@@ -58,19 +58,25 @@
 #'   `"meters"` or `"M"`, `"kilometers"` or `"KM"`, or `"miles"`. Defaults to miles.
 #' @param min.haul Required, numeric, minimum number of hauls. Zones with fewer 
 #'   hauls than the `min.haul` value will not be included in model data.
-#' @param spatID Required, variable in `spat` that identifies the individual 
-#'   areas or zones. 
 #' @param zoneID Variable in `dat` that identifies the individual zones or 
-#'   areas. 
-#' @param spat Required, data file or character. `spat` is a spatial data file 
-#'   containing information on fishery management or regulatory zones boundaries.
-#'   `sf` objects are recommended, but `sp` objects can be used as well. See 
-#'   [dat_to_sf()] to convert a spatial table read from a csv file to an `sf` 
-#'   object. To upload your spatial data to the FishSETFolder see [load_spatial()].
-#'   If `spat` should come from the FishSET database, it should be the name of 
-#'   the original file name, in quotes. For example, `"pollockNMFSZonesSpatTable"`.
-#'   Use [tables_database()] or `list_tables("project", type = "spat")` to view 
-#'   the names of spatial tables in the FishSET database.
+#'   areas.
+#' @param cent.tab The name of a centroid table to use when `alt_var` is set to 
+#'   `zonal centroid` or `fishing centroid`. Use 
+#'   `list_tables("project", type = "centroid")` to view existing centroid tables.
+#'   See [create_centroid()] to create centroid tables or [cent_to_fsdb()] to 
+#'   create a centroid table from columns found in `dat`.
+#' @param spat Required when `alt_var = 'nearest point'`. `spat` is a spatial 
+#'   data file  containing information on fishery management or regulatory zones 
+#'   boundaries. `sf` objects are recommended, but `sp` objects can be used as 
+#'   well. See [dat_to_sf()] to convert a spatial table read from a csv file to 
+#'   an `sf` object. To upload your spatial data to the FishSETFolder see 
+#'   [load_spatial()].If `spat` should come from the FishSET database, it should 
+#'   be the name of the original file name, in quotes. For example, 
+#'   `"pollockNMFSZonesSpatTable"`. Use [tables_database()] or 
+#'   `list_tables("project", type = "spat")` to view the names of spatial tables 
+#'   in the FishSET database.
+#' @param spatID Required when `alt_var = 'nearest point'`. Variable in `spat` 
+#'   that identifies the individual zones or areas. 
 #' @importFrom DBI dbExecute
 #' @export create_alternative_choice
 #' @md
@@ -99,10 +105,11 @@
 #'         altChoiceUnits: \tab Set to miles\cr
 #'         altChoiceType: \tab Set to distance\cr
 #'         occasion: \tab Identifies how to find latitude and longitude for starting point\cr
+#'         occasion_var: \tab Identifies how to find latitude and longitude for starting point\cr
 #'         alt_var: \tab Identifies how to find latitude and longitude for alternative choice \cr
 #'         zoneRow: \tab Zones and choices array\cr
-#'         int: \tab Geographic centroid for each zone. Generated from [find_centroid()]\cr
-#'         matrix: \tab Distance matrix is alternative choices comes from gridded dataset
+#'         zone_cent: \tab Geographic centroid for each zone. Generated from [find_centroid()]\cr
+#'         fish_cent: \tab Fishing centroid for each zone. Generated from [find_fishing_centroid()]
 #'         }
 
 create_alternative_choice <- 
@@ -113,17 +120,10 @@ create_alternative_choice <-
            alt_var = 'zonal centroid',
            dist.unit = "miles",
            min.haul = 0,
-           spat, 
-           spatID, 
-           zoneID,
-           startingloc = NULL) {
-    
-
-  # TODO: Let users associate a column from dat w/ area column in spat 
-  # Needed if user doesn't have lon/lat data (ex. Fish Tickets)
-    
-  # TODO: If user imported primary data with zoneID and centroid lon-lat, then
-  # spatial table not required. 
+           zoneID, 
+           cent.tab = NULL,
+           spat = NULL,
+           spatID = NULL) {
   
   # Call in datasets
   out <- data_pull(dat, project)
@@ -135,8 +135,20 @@ create_alternative_choice <-
   spat <- parse_data_name(spat, "spat", project)
   
   column_check(dataset, cols = c(zoneID, occasion_var))
-  column_check(spatdat, cols = spatID)
   
+  o_len <- length(occasion_var)
+  
+  if (occasion %in% c("zonal centroid", "fishing centroid")) {
+    
+    if (o_len != 2) {
+    
+      if (is_value_empty(cent.tab)) {
+        
+        stop("'cent.tab' is required.", call. = FALSE)
+      }
+    }
+  }
+ 
   zone_cent <- NULL
   fish_cent <- NULL
   
@@ -144,7 +156,6 @@ create_alternative_choice <-
   
   occasion_opts <- c("zonal centroid", "fishing centroid", "port", "lon-lat")
   alt_opts <- c("zonal centroid", "fishing centroid", "nearest point")
-  o_len <- length(occasion_var)
   
   if (o_len > 2) stop("Invalid values for 'occasion_var'.", call. = FALSE)
   
@@ -173,9 +184,11 @@ create_alternative_choice <-
     }
   }
   
-  cent_check <- function(project, cent_exists, spat, type = "zone") {
+  cent_check <- function(project, cent.tab, type = "zone") {
     
     cent_type <- switch(type, zone = "Zonal", fish = "Fishing")
+    
+    cent_exists <- table_exists(cent.tab, project)
     
     if (!cent_exists) {
       
@@ -183,38 +196,47 @@ create_alternative_choice <-
            "create_centroid().", call. = FALSE)
     }
     
-    if (type == "zone") {
-      
-      cent_tab <- table_view(paste0(spat, "Centroid"), project)
-      
-    } else {
-      
-      cent_tab <- table_view(paste0(project, "Centroid"), project)
-    }
+    cent_tab <- table_view(cent.tab, project)
    
-    if (!any(cent_tab$ZoneID %in% dataset[[zoneID]])) {
+    if (!any(cent_tab$ZoneID %in% unique(dataset[[zoneID]]))) {
       
-      stop('Zones do not match between centroid table and zonal assignments',
-           ' in main data table. Rerun find_centroid() using same spatial data file',
-           ' as was using with the assignment_column() function.', call. = FALSE)
+      stop('Zones do not match between centroid table and zonal assignments ',
+           'in main data table. Rerun find_centroid() using same spatial data file ',
+           'as was using with the assignment_column() function.', call. = FALSE)
     }
+    
+    cent_tab
   }
   
   # alt_var ----
   ## zonal centroid ----
-  z_cent_exists <- table_exists(paste0(spat, 'Centroid'), project)
   
   if (alt_var == "zonal centroid") {
     
-    cent_check(project, z_cent_exists, spat, "zone")
+    zone_cent <- cent_check(project, cent.tab, "zone")
   }
   
   ## fishing centroid ----
-  f_cent_exists <- table_exists(paste0(project, 'FishCentroid'), project)
   
   if (alt_var == "fishing centroid") {
   
-    cent_check(project, f_cent_exists, spat, "fish")
+    fish_cent <- cent_check(project, cent.tab, "fish")
+  }
+  
+  ## nearest point ----
+  if (alt_var == "nearest point") {
+    
+    if (is_value_empty(spatdat) | is_value_empty(spatID)) {
+      
+      stop("'spat' and 'spatID' are required for alt_var = 'nearest point'",
+           call. = FALSE)
+    }
+    
+    if (!any(unique(spatdat[[spatID]]) %in% unique(dataset[[zoneID]]))) {
+      
+      stop("There are no shared zones between dat and spat. Check that 'spatID' ",
+           "and 'zoneID' are correct, or rerun column_assignment().", call. = FALSE)
+    }
   }
   
   # occasion ----
@@ -223,7 +245,10 @@ create_alternative_choice <-
     
     if (is_value_empty(occasion_var) | o_len == 1) {
       
-      cent_check(project, z_cent_exists, spat, "zone")
+      if (is.null(zone_cent)) {
+        
+        zone_cent <- cent_check(project, cent.tab, "zone")
+      }
       
     } else if (o_len == 2) {
       
@@ -238,7 +263,10 @@ create_alternative_choice <-
     
     if (is_value_empty(occasion_var) | o_len == 1) {
       
-      cent_check(project, f_cent_exists, spat, "fish")
+      if (is.null(fish_cent)) {
+        
+        fish_cent <- cent_check(project, cent.tab, "fish")
+      }
       
     } else if (o_len == 2) {
       
@@ -283,12 +311,6 @@ create_alternative_choice <-
     
     warning("No zone identified for ", sum(is.na(choice)), " observations. These ", 
             "observations will be removed in future analyses.", call. = FALSE)
-  }
-
-  if (is.null(choice)) {
-    
-    stop("Choice must be defined. Ensure that the zone or area assignment variable",
-         " (spatID parameter) is defined.", call. = FALSE)
   }
   
   # count zones
@@ -362,7 +384,7 @@ create_alternative_choice <-
   create_alternative_choice_function$functionID <- "create_alternative_choice"
   create_alternative_choice_function$args <- 
     list(dat, project, occasion, occasion_var, alt_var, 
-         dist.unit, min.haul, spat, spatID, zoneID, startingloc)
+         dist.unit, min.haul, zoneID, cent.tab, spat, spatID)
   
   create_alternative_choice_function$kwargs <- list()
   create_alternative_choice_function$output <- list()
