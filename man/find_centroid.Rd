@@ -10,6 +10,7 @@ find_centroid(
   spatID,
   lon.spat = NULL,
   lat.spat = NULL,
+  cent.name = NULL,
   log.fun = TRUE
 )
 }
@@ -28,6 +29,10 @@ Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
 
 \item{lat.spat}{Variable or list from \code{spat} containing latitude data. 
 Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
+
+\item{cent.name}{String, name to include in centroid table. Centroid name take the 
+form of `"projectNameZoneCentroid"`. Defaults to `NULL` 
+(e.g. `"projectZoneCentroid"`).}
 
 \item{log.fun}{Logical, whether to log function call (for internal use).}
 }
