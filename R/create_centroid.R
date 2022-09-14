@@ -1,43 +1,48 @@
 #' Create Centroid Table
 #' 
 #' Create zonal or fishing centroid table. The centroid can be joined with the 
-#' primary data if \code{output == "dataset"}. The centroid table is automatically 
+#' primary data if `output == "dataset"`. The centroid table is automatically 
 #' saved to the FishSET Database. 
 #' 
 #' @param spat Spatial data containing information on fishery management or 
-#'   regulatory zones. Required for \code{type = "zonal centroid"}, ignored for
-#'   \code{type = "fishing centroid"}. 
+#'   regulatory zones. Required for `type = "zonal centroid"`, not required 
+#'   for `type = "fishing centroid"`. `spat` will be included in centroid
+#'   table name. 
 #' @param dat Primary data containing information on hauls or trips. Table in 
-#'   FishSET database contains the string 'MainDataTable'. \code{dat} is not 
-#'   required if \code{type = "zonal centroid"} and \code{output = "centroid table"}.
+#'   FishSET database contains the string 'MainDataTable'. `dat` is not 
+#'   required if `type = "zonal centroid"` and `output = "centroid table"`.
 #' @param project Name of project.
-#' @param spatID Variable or list in \code{spat} that identifies the individual areas 
-#'   or zones. If \code{spat} is class sf, \code{spatID} should be name of list 
-#'   containing information on zones. Ignored if \code{type = "fishing centroid"}.
-#' @param zoneID Variable in \code{dat} that identifies zonal assignments. 
-#'   \code{zoneID} is not required if \code{type = "zonal centroid"} and 
-#'   \code{output = "centroid table"}.
-#' @param lon.dat Longitude variable in \code{dat}. Required for 
-#'   \code{type = "fishing centroid"}.
-#' @param lat.dat Latitude variable in \code{dat}. Required for 
-#'   \code{type = "fishing centroid"}.
-#' @param weight.var Variable from \code{dat} for weighted average 
-#'   (for \code{type = "fishing centroid"}. only). If \code{weight.var} is defined, 
+#' @param spatID Variable or list in `spat` that identifies the individual areas 
+#'   or zones. If `spat` is class sf, `spatID` should be name of list 
+#'   containing information on zones. Ignored if `type = "fishing centroid"`.
+#' @param zoneID Variable in `dat` that identifies zonal assignments. 
+#'   `zoneID` is not required if `type = "zonal centroid"` and 
+#'   `output = "centroid table"`.
+#' @param lon.dat Longitude variable in `dat`. Required for 
+#'   `type = "fishing centroid"`.
+#' @param lat.dat Latitude variable in `dat`. Required for 
+#'   `type = "fishing centroid"`.
+#' @param weight.var Variable from `dat` for weighted average 
+#'   (for `type = "fishing centroid"`. only). If `weight.var` is defined, 
 #'   the centroid is defined by the latitude and longitude of fishing locations 
-#'   in each zone weighted by \code{weight.var}.
-#' @param type The type of centroid to create. Options include \code{"zonal centroid"}
-#'   and \code{"fishing centroid"}. See other arguments for \code{type} requirements.
+#'   in each zone weighted by `weight.var`.
+#' @param type The type of centroid to create. Options include `"zonal centroid"`
+#'   and `"fishing centroid"`. See other arguments for `type` requirements.
 #' @param names Character vector of length two containing the names of the fishing 
-#'   centroid columns. The order should be \code{c("lon_name", "lat_name")}. The 
-#'   default names are \code{c("weight_cent_lon", "weight_cent_lat")} for weighted 
-#'   fishing centroid and \code{c("fish_cent_lon", "fish_cent_lat")} for unweighted 
+#'   centroid columns. The order should be `c("lon_name", "lat_name")`. The 
+#'   default names are `c("weight_cent_lon", "weight_cent_lat")` for weighted 
+#'   fishing centroid and `c("fish_cent_lon", "fish_cent_lat")` for unweighted 
 #'   fishing centroid.
-#' @param output Options are \code{"centroid table"}, \code{"dataset"}, or \code{"both"}. 
-#'   \code{"centroid table"} returns a table containing the zone name and the 
-#'   longitude and latitude of the centroid. \code{"dataset"} returns the primary 
-#'   table joined with the centroid table. \code{"both"} returns a list containing 
+#' @param cent.name A string to include in the centroid table name. Table names 
+#'   take the form of `"projectNameZoneCentroid"` for zonal centroids and 
+#'   `"projectNameZoneCentroid"` for fishing centroids.
+#' @param output Options are `"centroid table"`, `"dataset"`, or `"both"`. 
+#'   `"centroid table"` returns a table containing the zone name and the 
+#'   longitude and latitude of the centroid. `"dataset"` returns the primary 
+#'   table joined with the centroid table. `"both"` returns a list containing 
 #'   the merged primary table and the centroid table.  
 #' @export
+#' @md
 #' @importFrom stats setNames
 #' @importFrom dplyr left_join
 #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
@@ -53,6 +58,7 @@ create_centroid <- function(spat = NULL,
                             weight.var = NULL,
                             type = "zonal centroid", 
                             names = NULL,
+                            cent.name = NULL,
                             output = "dataset") {
 
   #call in data
@@ -77,9 +83,14 @@ create_centroid <- function(spat = NULL,
       stop("'spat' required for zonal centroid.", call. = FALSE)
     }
     
+    # TODO: the name of the centroid table will be inaccurate if create_centroid()
+    # is used due to parsing issue ("spatdatZoneCentroid" rather than "[spat name]ZoneCentroid")
+    # Move create_centroid() functionality to find_centroid/find_fishing_centroid
+    # and remove create_centroid()
+    
     # centroid table saved automatically 
     cent_tab <- find_centroid(spat = spatdat, project = project, spatID = spatID,
-                              log.fun = FALSE) # add ... for spat.lat/lon
+                              log.fun = FALSE, cent.name = cent.name) # add ... for spat.lat/lon
 
     if (output == "dataset") {
       
@@ -129,8 +140,13 @@ create_centroid <- function(spat = NULL,
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
     
     # TODO: make fishing centroid table name more informative -- which spatial file 
-    # was it created with? Would require spat. Use zoneID instead?
-    DBI::dbWriteTable(fishset_db, paste0(project, "FishCentroid"), cent_tab, 
+    # was it created with? Would require spat. Use zoneID instead? What if 
+    # user loaded data with centroid lon-lat and has no spatial table? Or has
+    # multiple zone scales, each with its own centroid lon-lats?
+    
+    cent_name <- paste0(project, cent.name, "FishCentroid")
+    
+    DBI::dbWriteTable(fishset_db, cent_name, cent_tab, 
                       overwrite = TRUE)
     message('Fishing centroid saved to fishset database')
     
