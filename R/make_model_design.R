@@ -4,12 +4,12 @@
 #' to model call function
 #'
 #' @param project String, name of project.
-#' @param catchID  String, variable from \code{dat} that contains catch data.
-#' @param replace Logical, should the model design file be replaced? If \code{FALSE}, 
-#'   appends to existing model design file. Defaults to \code{TRUE}.
+#' @param catchID  String, variable from `dat` that contains catch data.
+#' @param replace Logical, should the model design file be replaced? If `FALSE`, 
+#'   appends to existing model design file. Defaults to `TRUE`.
 #' @param likelihood String, name of likelihood function. Details on likelihood 
 #'   specific initial parameter specification can be found in 
-#'   \code{\link{discretefish_subroutine}} documentation.
+#'   [discretefish_subroutine()] documentation.
 #' \tabular{rlll}{
 #'  logit_c: \tab  Conditional logit likelihood \cr
 #'  logit_avgcat: \tab Average catch multinomial logit procedure \cr
@@ -22,14 +22,14 @@
 #'   revenue/location-specific covariates then cost/distance. The number of 
 #'   parameter estimate varies by likelihood function. See Details section for 
 #'   more information. If using parameter estimates from previous model, 
-#'   \code{initparams} should be the name of the model the parameter estimates 
-#'   should come from. Examples: \code{initparams = 'epm_mod1'}, 
-#'   \code{initparams=list('epm_mod1', 'epm_mod2')}
+#'   `initparams` should be the name of the model the parameter estimates 
+#'   should come from. Examples: `initparams = 'epm_mod1'`, 
+#'   `initparams=list('epm_mod1', 'epm_mod2')`
 #' @param optimOpt  String, optimization options 
 #'   [max function evaluations, max iterations, (reltol) tolerance of x, trace]
 #'   Note: add optim reference here?.
-#' @param methodname String, optimization method (see \code{\link[stats]{optim}} 
-#'   options). Defaults to \code{"BFGS"}.
+#' @param methodname String, optimization method (see [stats::optim()] options). 
+#'   Defaults to `"BFGS"`.
 #' @param mod.name String, name of model run for model result output table.
 #' @param vars1  Character string, additional ‘travel-distance’ variables to 
 #'   include in the model. These depend on the likelihood. See the Details section 
@@ -37,34 +37,43 @@
 #' @param vars2 Character string, additional variables to include in the model. 
 #'   These depend on the likelihood. See the Details section for how to specify 
 #'   for each likelihood function.
-#' @param priceCol Variable in \code{dat} containing price information. Required 
+#' @param priceCol Variable in `dat` containing price information. Required 
 #'   if specifying an expected profit model for the likelihood (epm_normal, 
 #'   epm_weibull, epm_lognormal).
 #' @param expectcatchmodels List, name of expected catch models to include in 
 #'   model run. Defaults to all models. Each list item should be a string of 
 #'   expected catch models to include in a model. For example, 
-#'   \code{list(c('recent', 'older'), c('user'))} would run one model with the 
+#'   `list(c('recent', 'older'), c('user'))` would run one model with the 
 #'   medium and long expected catch matrices, and one model with just the user-defined 
 #'   expected catch matrix. Choices are "recent", "older", "oldest", "logbook", 
 #'   "all", and "individual". 
-#'   See \code{\link{create_expectations}} for details on the different models.
+#'   See [create_expectations()] for details on the different models.
 #'   Option "all" will run all expected catch matrices jointly. Option "individual" 
 #'   will run the model for each expected catch matrix separately. The final 
 #'   option is to select one more expected catch matrices to run jointly.
-#' @param startloc Variable in \code{dat} identifying the location when choice 
+#' @param startloc Variable in `dat` identifying the location when choice 
 #'   of where to fish next was made. Required for logit_correction likelihood.
-#'   Use the \code{\link{create_startingloc}} function to create the starting 
+#'   Use the [create_startingloc()] function to create the starting 
 #'   location vector.
 #' @param polyn Numeric, correction polynomial degree. Required for 
-#'   \code{\link{logit_correction}} likelihood.
+#'   [logit_correction()] likelihood.
+#' @param spat A spatial data file containing information on fishery management 
+#'   or regulatory zones boundaries. Only required if `alt_var = "nearest point"`
+#'   was used in the alternative choice matrix (see [create_alternative_choice()]).
+#'   Defaults to `NULL`. This should be the same spatial file used to assign
+#'   observations to zones. 
+#' @param spatID Variable in `spat` that identifies the individual areas or zones. 
+#'   Only required if `alt_var = "nearest point"` was used in the alternative 
+#'   choice matrix (see [create_alternative_choice()]). Defaults to `NULL`.
 #' @importFrom DBI dbGetQuery dbExecute dbListTables
 #' @export make_model_design
+#' @md
 #' @details Function creates the model matrix list that contains the data and 
 #'   modeling choices. The model design list is saved to the FishSET database and 
-#'   called by the \code{\link{discretefish_subroutine}}. Alternative fishing 
+#'   called by the [discretefish_subroutine()]. Alternative fishing 
 #'   options come from the Alternative Choice list, generated from the 
-#'   \code{\link{create_alternative_choice}} function, and the expected catch 
-#'   matrices from the \code{\link{create_expectations}} function. The distance 
+#'   [create_alternative_choice()] function, and the expected catch 
+#'   matrices from the [create_expectations()] function. The distance 
 #'   from the starting point to alternative choices is calculated. \cr\cr
 #'   Variable names details: \cr
 #' \tabular{lllllll}{
@@ -169,10 +178,10 @@
 #' }
 #' @return Function creates the model matrix list that contains the data and 
 #'   modeling choices. The model design list is saved to the FishSET database and 
-#'   called by the \code{\link{discretefish_subroutine}}. Alternative fishing 
+#'   called by the [discretefish_subroutine()]. Alternative fishing 
 #'   options come from the `Alternative Choice` list, generated from the 
-#'   \code{\link{create_alternative_choice}} function, and the expected catch 
-#'   matrices from the \code{\link{create_expectations}} function. The distance 
+#'   [create_alternative_choice()] function, and the expected catch 
+#'   matrices from the [create_expectations()] function. The distance 
 #'   from the starting point to alternative choices is calculated. \cr\cr
 #'   Model design list: \cr
 #'   \tabular{rlll}{
@@ -203,7 +212,7 @@
 #'     bCHeader: \tab Variables to include in the model that do not vary by zone. 
 #'     Includes independent variables and interactions\cr
 #'     gridVaryingVariables: \tab Variables to include in the model that do vary 
-#'     by zone such as expected catch (from \code{\link{create_expectations}} function)
+#'     by zone such as expected catch (from [create_expectations()] function)
 #'   }
 #' @examples
 #' \dontrun{
@@ -229,9 +238,10 @@ make_model_design <-
            priceCol = NULL,
            expectcatchmodels = list('all'),
            startloc = NULL,
-           polyn = NULL) {
+           polyn = NULL,
+           spat = NULL,
+           spatID = NULL) {
     
-  # TODO: update expectcatchmodels description
   # TODO: use formula method for specifying model
   # TODO: standardize arg names: use camel-case or period-case etc.
 
@@ -245,6 +255,10 @@ make_model_design <-
   } 
     
   dataset <- table_view(paste0(project, "MainDataTable_final"), project)
+  
+  spat_out <- data_pull(spat, project)
+  spatdat <- spat_out$dataset
+  spat <- parse_data_name(spat, "spat", project)
   
   column_check(dataset, c(catchID, priceCol, startloc))
     
@@ -310,27 +324,33 @@ make_model_design <-
          "create_alternative_choice() function.", call. = FALSE)
   }
     
-  alt_var <- Alt[["alt_var"]]
-  occasion <- Alt[["occasion"]]
-  dataZoneTrue <- Alt[["dataZoneTrue"]]
+  alt_var <- Alt$alt_var
+  occasion <- Alt$occasion
+  occasion_var <- Alt$occasion_var
+  dataZoneTrue <- Alt$dataZoneTrue
   zone_ind <- which(dataZoneTrue == 1)
-  int <- Alt[["int"]] # centroid table
-  # Note: dataframe needed for choice_raw and choice? 
-  choice_raw <- as.data.frame(Alt$choice)
-  choice <- as.data.frame(Alt$choice[zone_ind, ])
-  zoneRow <- Alt[["zoneRow"]]
-  zoneID <- Alt[['zoneID']]
   
-  startingloc <- if (!is.null(startloc) & all(is.na(Alt$startingloc))) {
+  # TODO: update this, can be zonal or fishing centroid
+  
+  zone_cent <- Alt$zone_cent # zonal centroid table
+  fish_cent <- Alt$fish_cent # fishing centroid table
+  # Note: dataframe needed for choice_raw and choice? 
+  choice_raw <- Alt$choice # as.data.frame(Alt$choice)
+  choice <- Alt$choice[zone_ind] # s.data.frame(Alt$choice[zone_ind])
+  zoneRow <- Alt$zoneRow
+  zoneID <- Alt$zoneID
+  
+  # startingloc ----
+  if (is_value_empty(startloc)) {
     
-    dataset[[startloc]]
+    start_loc <- rep(NA, nrow(dataset))
     
   } else {
     
-    Alt[["startingloc"]]
+    start_loc <- dataset[[startloc]]
   }
   
-  units <- Alt[["altChoiceUnits"]]
+  units <- Alt$altChoiceUnits
 
   # Expected catch ----
   
@@ -340,7 +360,7 @@ make_model_design <-
     
     ExpectedCatch <- unserialize_table(paste0(project, "ExpectedCatch"), project)
       
-    if (nrow(ExpectedCatch$user_exp) != nrow(choice)) {
+    if (nrow(ExpectedCatch$user_exp) != length(choice)) {
       
       stop('Number of observations in Expected catch matrix and catch data do not ',  
            'match. Model design file cannot be created.', call. = FALSE)
@@ -363,7 +383,7 @@ make_model_design <-
     }
   }
     
-  # Note: revisit this -- EC should be avaiable for other likelihood funs
+  # Note: revisit this -- EC should be available for other likelihood funs
   if (!exists("ExpectedCatch")) {
     
     ExpectedCatch <- ""
@@ -385,18 +405,22 @@ make_model_design <-
     
 
   # Port ----  
-  # TODO: use less error-prone check for detecting port occasion
-  if (any(grepl("Port", occasion, ignore.case = TRUE))) {
+  
+  if (occasion == "port") {
     
-    pt <- data_pull(paste0(project, 'PortTable'), project)
-    # TODO: Use a different check (this will always be TRUE unless data_pull returns an error)
-    if (exists('pt')) {
+    # check if port table needs to be merged to primary table
+    if (length(occasion_var) == 1) { # port ID variable
       
+      pt <- data_pull(paste0(project, 'PortTable'), project)
       ptname <- pt$dat # Q: what is ptname used for? 
       port <- pt$dataset # used in create_distance_matrix()
       
+    } else if (length(occasion_var) == 2) { # port lon-lat columns
+      
+      # do what?
     } else {
      
+      # update error msg
       stop("Port table not found in database. Check spelling and ensure port table ", 
            "is loaded into the FishSET database.", call. = FALSE)
     }
@@ -411,15 +435,15 @@ make_model_design <-
   # Gridded ----
   # TODO: Rename alt matrix (X is too generic)
   # Note: this is the distance matrix created from a gridded dataset (create_alternative_choice())
-  if (!is.null(Alt[["matrix"]])) X <- Alt[["matrix"]]
-  else X <- NULL
+  # if (!is.null(Alt[["matrix"]])) X <- Alt[["matrix"]]
+  # else X <- NULL
   
  # TODO: need to pull gridded data from FSDB (should var2 be table name?) or 
  # from primary table if joined
  # TODO: check that gridded data is in correct format (format_grid()--before mmd is run?)
   if (is_empty(gridVariablesInclude)) {
     
-    gridVariablesInclude <- as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1))
+    gridVariablesInclude <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
   } 
 
 
@@ -427,7 +451,7 @@ make_model_design <-
     
     bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, 
                      userDumV = userDumV, 
-                     indeVarsForModel = as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1)))
+                     indeVarsForModel = as.data.frame(matrix(1, nrow = length(choice), ncol = 1)))
     
   } else {
     # TODO: check this
@@ -458,17 +482,19 @@ make_model_design <-
       
     } else {
       # Q: why five? 
-      # Note: revisit -- 
-      # Should be able to automate this 
+      # Note: Should be able to automate this 
       initparams <- c(1, 1, 1, 1, 1) 
       warning('Model not found. Setting parameter estimates to 1.')
     }
   }
     
   # Distance Matrix ----
-  dist_out <- create_dist_matrix(dataset = dataset, alt_var = alt_var, occasion = occasion, 
-                                 dataZoneTrue = dataZoneTrue, int = int, choice = choice_raw, 
-                                 units = units, port = port, zoneRow = zoneRow, X = X, 
+  dist_out <- create_dist_matrix(dataset = dataset, spat = spatdat,
+                                 spatID = spatID,  alt_var = alt_var, 
+                                 occasion = occasion, occasion_var = occasion_var,
+                                 dataZoneTrue = dataZoneTrue, zone_cent = zone_cent, 
+                                 fish_cent = fish_cent, choice = choice_raw, 
+                                 units = units, port = port, zoneRow = zoneRow, 
                                  zoneID = zoneID)
   
   if (is.null(dist_out)) {
@@ -497,7 +523,7 @@ make_model_design <-
     }
   
     # scales zonal ----
-    mscale <- mean(dist_out$X, na.rm = TRUE)
+    mscale <- mean(dist_out$distMatrix, na.rm = TRUE)
   
     # scales data r in
     # Note: this should be done before line 419 else first condition can't be TRUE
@@ -526,17 +552,17 @@ make_model_design <-
     modelInputData_tosave <- list(
       likelihood = likelihood,
       catch = catch,
-      choice = choice,
+      choice = as.data.frame(choice), # consider leaving as vector
       initparams = initparams, 
       optimOpt = optimOpt, 
       methodname = methodname, 
       mod.name  = mod.name,
-      startingloc = startingloc[zone_ind],
+      startingloc = start_loc[zone_ind],
       scales = c(catch = yscale, zonal = mscale, griddata = r, 
                  intdata = r2, pscale = pscale),
-      distance = dist_out[['X']],
-      instances = nrow(dist_out[['X']]),
-      alts = ncol(dist_out[['X']]),
+      distance = dist_out$distMatrix,
+      instances = nrow(dist_out$distMatrix),
+      alts = ncol(dist_out$distMatrix),
       epmDefaultPrice = epmDefaultPrice,
       dataZoneTrue = dataZoneTrue,
       typeOfNecessary = Alt[["zoneType"]],
