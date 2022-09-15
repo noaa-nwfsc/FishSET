@@ -40,59 +40,26 @@ create_dist_matrix <-
            zoneRow,
            zoneID) {
     
-  # Q: is int (centroid table) always required?
-    # No, not always needed, ex: haul end - all haul locs
-  # occasion ----
-  
-  ## Grid ----
-  #Steps if alternative matrix come from gridded data file 
-  #The distance matrix is the gridded data file
     
-  # if (!is.null(X)) {
-  #   altChoiceUnits <- units
-  # 
-  #   #Identify if using centroid or other for altToLocal2
-  #   allZP <- dataset[, grep("AREA|zone", colnames(dataset), ignore.case =T)[1]] # get zonal type variables
-  # 
-  #   if (all(is.null(allZP)) || alt_var > length(allZP)) {
-  # 
-  #     v2 <- 0 # zonal centroid
-  # 
-  #   } else {
-  # 
-  #     v2 <- allZP(alt_var) #
-  #   }
-  # 
-  #   if (v2 == 0) {
-  # 
-  #     altToLocal1 <- ""
-  #     altToLocal2 <- "Centroid of Zonal Assignment"
-  # 
-  #   } else {
-  # 
-  #     altToLocal1 <- ""
-  #     altToLocal2 <- alt_var
-  #   }
-  # 
-  #   altChoiceType <- "loaded grid data matrix"
-  #   B <- zoneRow
-  #   choiceZ <- ""
-  #   # End Grid Matrix
-  # } else {
-  
   # index of zones that meet min haul requirement
   zone_ind <- which(dataZoneTrue == 1)
   
-  # steps if alternative matrix comes from loaded data (expectations)
+  # occasion ----
+  
+  ## Grid ----
+    # Note: not currently available
+  
   ## Centroid ----
   if (occasion %in% c("zonal centroid", "fishing centroid")) {
-
-    o_var <- ifelse(is_value_empty(occasion_var), zoneID, occasion_var)
+    
+    if (is_value_empty(occasion_var)) o_var <- zoneID
+    else o_var <- occasion_var
     
     fromXY <- dataset[zone_ind, o_var]
     
-    if (length(o_var == 1)) {
+    if (length(o_var) == 1) {
       # join centroid lon-lat by zoneID
+      
       if (occasion == "zonal centroid") cent_tab <- zone_cent
       else if (occasion == "fishing centroid") cent_tab <- fish_cent 
       
@@ -163,6 +130,7 @@ create_dist_matrix <-
     
     column_check(spat, spatID)
     
+    # TODO: check whether shift_long() affects distance matrix
     spat <- check_spatdat(spat)
     
     if (all(unique(choice) %in% spat[[spatID]]) == FALSE) {
@@ -174,7 +142,6 @@ create_dist_matrix <-
     altToLocal2 <- alt_var
   } 
   
-  
   # Distance Matrix ----
   # Test for potential issues with data
   if (any(qaqc_helper(fromXY, "NaN"))) {
@@ -182,54 +149,45 @@ create_dist_matrix <-
     stop(paste("NaN found in ", altToLocal1, ". Design file aborted."), 
          call. = FALSE)
   }
-     
-    if (any(qaqc_helper(toXY, "NaN"))) {
-    
-    stop(paste("NaN found in ", altToLocal2, ". Design file aborted."), 
-         call. = FALSE)
-  }
 
   # convert to sf object
   fromXY[seq_along(fromXY)] <- lapply(fromXY, as.numeric)
-  fromXY <- sf::st_as_sf(fromXY, coords = c(find_lon(fromXY), find_lat(fromXY)))
+  fromXY <- sf::st_as_sf(fromXY, 
+                         coords = c(find_lon(fromXY), find_lat(fromXY)),
+                         crs = 4326) # TODO: make sure crs can be changed if needed
     
   if (alt_var == "nearest point") {
     
-    toXY <- spat[spatID %in% unique(choice), spatID]
+    toXY <- spat[spat[[spatID]] %in% unique(choice), spatID]
+    # transform fromXY CRS to match
+    fromXY <- sf::st_transform(fromXY, crs = sf::st_crs(toXY))
     
   } else {
     
+    if (any(qaqc_helper(toXY, "NaN"))) {
+      
+      stop(paste("NaN found in ", altToLocal2, ". Design file aborted."), 
+           call. = FALSE)
+    }
+    
     toXY[seq_along(toXY)] <- lapply(toXY, as.numeric)
-    toXY <- sf::st_as_sf(toXY, coords = c(find_lon(toXY), find_lat(toXY)))
+    toXY <- sf::st_as_sf(toXY, 
+                         coords = c(find_lon(toXY), find_lat(toXY)),
+                         crs = 4326) # TODO: make sure crs can be changed if needed
+  }
+  
+  if (any(is_value_empty(fromXY) | is_value_empty(toXY))) {
+    
+    stop("Error in creating distance matrix: empty spatial table", call. = FALSE)
   }
   
   distMatrix <- sf::st_distance(fromXY, toXY)
   
-  # Note: distGeo uses meters
-  # # Note: this will break if cols aren't in long-lat order.
-  # distMatrix <- geosphere::distm(fromXY[, c(find_lon(fromXY), find_lat(fromXY))], 
-  #                                toXY[, c(find_lon(toXY), find_lat(toXY))])
-    
-  altChoiceType <- "distance"
+  units(distMatrix) <- units
   
-  if (units %in% c("meters", "M", "m")) {
-    
-    altChoiceUnits <- "meters"
-    
-  } else if (units %in% c("kilometers", "KM", "km")) {
-    
-    distMatrix <- distMatrix / 1000
-    altChoiceUnits <- "kilometers"
-    
-  } else if (units == "miles") {
-    
-    distMatrix <- distMatrix * 0.000621371192237334
-    altChoiceUnits <- "miles"
-    
-  } else {
-    
-    altChoiceUnits <- units
-  }
+  altChoiceType <- "distance"
+  altChoiceUnits <- units
+
   # DM list ----
   return(list(distMatrix = distMatrix, 
               altChoiceUnits = altChoiceUnits, 
