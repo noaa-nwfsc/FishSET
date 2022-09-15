@@ -55,13 +55,19 @@
 #'   [create_centroid()] to create and save centroids. List existing centroid 
 #'   tables  by running `list_tables("project", type = "centroid")`.
 #' @param dist.unit String, how distance measure should be returned. Choices are 
-#'   `"meters"` or `"M"`, `"kilometers"` or `"KM"`, or `"miles"`. Defaults to miles.
+#'   `"meters"` or `"m"`, `"kilometers"` or `"km"`,`"miles"`, or `"nmiles"` 
+#'   (nautical miles). Defaults to `"miles"`.
 #' @param min.haul Required, numeric, minimum number of hauls. Zones with fewer 
 #'   hauls than the `min.haul` value will not be included in model data.
 #' @param zoneID Variable in `dat` that identifies the individual zones or 
 #'   areas.
-#' @param cent.tab The name of a centroid table to use when `alt_var` is set to 
-#'   `zonal centroid` or `fishing centroid`. Use 
+#' @param zone.cent.name The name of the zonal centroid table to use when 
+#'   `occasion` or `alt_var` is set to `zonal centroid`. Use 
+#'   `list_tables("project", type = "centroid")` to view existing centroid tables.
+#'   See [create_centroid()] to create centroid tables or [cent_to_fsdb()] to 
+#'   create a centroid table from columns found in `dat`.
+#' @param fish.cent.name The name of the fishing centroid table to use when 
+#'   `occasion` or `alt_var` is set to `fishing centroid`. Use 
 #'   `list_tables("project", type = "centroid")` to view existing centroid tables.
 #'   See [create_centroid()] to create centroid tables or [cent_to_fsdb()] to 
 #'   create a centroid table from columns found in `dat`.
@@ -121,7 +127,8 @@ create_alternative_choice <-
            dist.unit = "miles",
            min.haul = 0,
            zoneID, 
-           cent.tab = NULL,
+           zone.cent.name = NULL,
+           fish.cent.name = NULL,
            spat = NULL,
            spatID = NULL) {
   
@@ -138,15 +145,31 @@ create_alternative_choice <-
   
   o_len <- length(occasion_var)
   
-  if (occasion %in% c("zonal centroid", "fishing centroid")) {
+  
+  if (occasion == "zonal centroid") {
     
-    if (o_len != 2) {
-    
-      if (is_value_empty(cent.tab)) {
-        
-        stop("'cent.tab' is required.", call. = FALSE)
-      }
+    if (o_len != 2 & is_value_empty(zone.cent.name)) {
+      
+      stop("'zone.cent.name' is required.", call. = FALSE)
     }
+  }
+  
+  if (occasion == "fishing centroid") {
+    
+    if (o_len != 2 & is_value_empty(fish.cent.name)) {
+      
+      stop("'fish.cent.name' is required.", call. = FALSE)
+    }
+  }
+  
+  if (alt_var == "zonal centroid" & is_value_empty(zone.cent.name)) {
+    
+    stop("'zone.cent.name' is required.", call. = FALSE)
+  }
+  
+  if (alt_var == "fishing centroid" & is_value_empty(fish.cent.name)) {
+    
+    stop("'fish.cent.name' is required.", call. = FALSE)
   }
  
   zone_cent <- NULL
@@ -208,19 +231,29 @@ create_alternative_choice <-
     cent_tab
   }
   
+  ## units ----
+  valid_units <- c('m','meter', 'meters', 'km', 'kilometer', 'kilometers', 
+                  'mile', 'miles', 'nmile', 'nmiles')
+  
+  if (!dist.unit %in% valid_units) {
+    
+    stop(dist.unit, " is not an available unit. Unit options are: ", 
+         paste0(valid_units, collapse = ", "), call. = FALSE)
+  }
+  
   # alt_var ----
   ## zonal centroid ----
   
   if (alt_var == "zonal centroid") {
     
-    zone_cent <- cent_check(project, cent.tab, "zone")
+    zone_cent <- cent_check(project, zone.cent.name, "zone")
   }
   
   ## fishing centroid ----
   
   if (alt_var == "fishing centroid") {
   
-    fish_cent <- cent_check(project, cent.tab, "fish")
+    fish_cent <- cent_check(project, fish.cent.name, "fish")
   }
   
   ## nearest point ----
@@ -247,7 +280,7 @@ create_alternative_choice <-
       
       if (is.null(zone_cent)) {
         
-        zone_cent <- cent_check(project, cent.tab, "zone")
+        zone_cent <- cent_check(project, zone.cent.name, "zone")
       }
       
     } else if (o_len == 2) {
@@ -265,7 +298,7 @@ create_alternative_choice <-
       
       if (is.null(fish_cent)) {
         
-        fish_cent <- cent_check(project, cent.tab, "fish")
+        fish_cent <- cent_check(project, fish.cent.name, "fish")
       }
       
     } else if (o_len == 2) {
@@ -384,7 +417,8 @@ create_alternative_choice <-
   create_alternative_choice_function$functionID <- "create_alternative_choice"
   create_alternative_choice_function$args <- 
     list(dat, project, occasion, occasion_var, alt_var, 
-         dist.unit, min.haul, zoneID, cent.tab, spat, spatID)
+         dist.unit, min.haul, zoneID, zone.cent.name, 
+         fish.cent.name, spat, spatID)
   
   create_alternative_choice_function$kwargs <- list()
   create_alternative_choice_function$output <- list()
