@@ -35,7 +35,7 @@
 #'   fishing centroid.
 #' @param cent.name A string to include in the centroid table name. Table names 
 #'   take the form of `"projectNameZoneCentroid"` for zonal centroids and 
-#'   `"projectNameZoneCentroid"` for fishing centroids.
+#'   `"projectNameFishCentroid"` for fishing centroids.
 #' @param output Options are `"centroid table"`, `"dataset"`, or `"both"`. 
 #'   `"centroid table"` returns a table containing the zone name and the 
 #'   longitude and latitude of the centroid. `"dataset"` returns the primary 
@@ -83,11 +83,6 @@ create_centroid <- function(spat = NULL,
       stop("'spat' required for zonal centroid.", call. = FALSE)
     }
     
-    # TODO: the name of the centroid table will be inaccurate if create_centroid()
-    # is used due to parsing issue ("spatdatZoneCentroid" rather than "[spat name]ZoneCentroid")
-    # Move create_centroid() functionality to find_centroid/find_fishing_centroid
-    # and remove create_centroid()
-    
     # centroid table saved automatically 
     cent_tab <- find_centroid(spat = spatdat, project = project, spatID = spatID,
                               log.fun = FALSE, cent.name = cent.name) # add ... for spat.lat/lon
@@ -129,32 +124,28 @@ create_centroid <- function(spat = NULL,
     
     dat_out <- find_fishing_centroid(dat = dataset, project = project, zoneID = zoneID, 
                                      lon.dat = lon.dat, lat.dat = lat.dat, 
-                                     weight.var = weight.var, names = names,
-                                     log.fun = FALSE)
-    # unique centroid rows 
-    cent_tab <- unique(dat_out[c(zoneID, names)])
+                                     weight.var = weight.var, names = names, 
+                                     cent.name = cent.name, log.fun = FALSE)
     
-    # save cent_tab to FSDB
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
-                                                  locdatabase(project = project)))
-    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-    
-    # TODO: make fishing centroid table name more informative -- which spatial file 
-    # was it created with? Would require spat. Use zoneID instead? What if 
-    # user loaded data with centroid lon-lat and has no spatial table? Or has
-    # multiple zone scales, each with its own centroid lon-lats?
-    
-    cent_name <- paste0(project, cent.name, "FishCentroid")
-    
-    DBI::dbWriteTable(fishset_db, cent_name, cent_tab, 
-                      overwrite = TRUE)
-    message('Fishing centroid saved to fishset database')
+    if (output %in% c("centroid table", "both")) {
+      
+      cent_tab <- unique(dat_out[c(zoneID, names)])
+    }
     
   } else {
     
     stop("Invalid type, check spelling. The options are 'zonal centroid', or ", 
          "'fishing centroid'.", call. = FALSE)
   }
+  
+  # Log function
+  create_centroid_function <- list()
+  create_centroid_function$functionID <- "create_centroid"
+  create_centroid_function$args <- list(spat, dat, project, spatID, zoneID,
+                                        lon.dat, lat.dat, type, weight.var, 
+                                        names, cent.name, output)
+  log_call(project, create_centroid_function)
+  
   
   if (output == "centroid table") cent_tab
   else if (output == "dataset") dat_out
