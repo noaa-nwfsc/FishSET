@@ -61,7 +61,7 @@ fishing centroid.}
 
 \item{cent.name}{A string to include in the centroid table name. Table names
 take the form of \code{"projectNameZoneCentroid"} for zonal centroids and
-\code{"projectNameZoneCentroid"} for fishing centroids.}
+\code{"projectNameFishCentroid"} for fishing centroids.}
 
 \item{output}{Options are \code{"centroid table"}, \code{"dataset"}, or \code{"both"}.
 \code{"centroid table"} returns a table containing the zone name and the

@@ -13,7 +13,8 @@ create_alternative_choice(
   dist.unit = "miles",
   min.haul = 0,
   zoneID,
-  cent.tab = NULL,
+  zone.cent.name = NULL,
+  fish.cent.name = NULL,
   spat = NULL,
   spatID = NULL
 )
@@ -37,7 +38,8 @@ centroid table has been saved to the project's FishSET Database. See
 tables  by running \code{list_tables("project", type = "centroid")}.}
 
 \item{dist.unit}{String, how distance measure should be returned. Choices are
-\code{"meters"} or \code{"M"}, \code{"kilometers"} or \code{"KM"}, or \code{"miles"}. Defaults to miles.}
+\code{"meters"} or \code{"m"}, \code{"kilometers"} or \code{"km"},\code{"miles"}, or \code{"nmiles"}
+(nautical miles). Defaults to \code{"miles"}.}
 
 \item{min.haul}{Required, numeric, minimum number of hauls. Zones with fewer
 hauls than the \code{min.haul} value will not be included in model data.}
@@ -45,8 +47,14 @@ hauls than the \code{min.haul} value will not be included in model data.}
 \item{zoneID}{Variable in \code{dat} that identifies the individual zones or
 areas.}
 
-\item{cent.tab}{The name of a centroid table to use when \code{alt_var} is set to
-\verb{zonal centroid} or \verb{fishing centroid}. Use
+\item{zone.cent.name}{The name of the zonal centroid table to use when
+\code{occasion} or \code{alt_var} is set to \verb{zonal centroid}. Use
+\code{list_tables("project", type = "centroid")} to view existing centroid tables.
+See \code{\link[=create_centroid]{create_centroid()}} to create centroid tables or \code{\link[=cent_to_fsdb]{cent_to_fsdb()}} to
+create a centroid table from columns found in \code{dat}.}
+
+\item{fish.cent.name}{The name of the fishing centroid table to use when
+\code{occasion} or \code{alt_var} is set to \verb{fishing centroid}. Use
 \code{list_tables("project", type = "centroid")} to view existing centroid tables.
 See \code{\link[=create_centroid]{create_centroid()}} to create centroid tables or \code{\link[=cent_to_fsdb]{cent_to_fsdb()}} to
 create a centroid table from columns found in \code{dat}.}
