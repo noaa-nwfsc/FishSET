@@ -41,6 +41,8 @@ of length two in the order of \code{c("lon", "lat")}. The default is
 
 \item{cent.name}{A string to include in the centroid table name. Table names 
 take the form of `"projectNameFishCentroid"` for fishing centroids.}
+
+\item{log.fun}{Logical, whether to log function call (for internal use).}
 }
 \value{
 Returns primary dataset with fishing centroid and, if \code{weight.var} 

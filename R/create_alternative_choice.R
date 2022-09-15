@@ -3,7 +3,7 @@
 #' Required step. Creates a list identifying how alternative fishing choices should 
 #' be defined. Output is saved to the FishSET database. Run this function before 
 #' running models. `dat` must have a zone assignment column (see 
-#' [column_assignment()]). In certain cases a centroid table must be saved to 
+#' [assignment_column()]). In certain cases a centroid table must be saved to 
 #' the FishSET Database, see `occasion_var` for details.
 #'
 #' @param dat  Required, main data frame containing data on hauls or trips.
@@ -12,7 +12,7 @@
 #' @param occasion String, determines the starting point when calculating the 
 #'   distance matrix. Options are `"zonal centroid"`, `"fishing centroid"`, 
 #'   `"port"`, or `"lon-lat"`. See `occasion_var` for requirements. 
-#' @param occaion_var Identifies an ID column or set of lon-lat variables needed 
+#' @param occasion_var Identifies an ID column or set of lon-lat variables needed 
 #'   to create the distance matrix. Possible options depend on the value of 
 #'   `occasion`: 
 #'   \describe{
@@ -55,7 +55,7 @@
 #'   [create_centroid()] to create and save centroids. List existing centroid 
 #'   tables  by running `list_tables("project", type = "centroid")`.
 #' @param dist.unit String, how distance measure should be returned. Choices are 
-#'   `"meters"` or `"m"`, `"kilometers"` or `"km"`,`"miles"`, or `"nmiles"` 
+#'   `"meters"` or `"m"`, `"kilometers"` or `"km"`, `"miles"`, or `"nmiles"` 
 #'   (nautical miles). Defaults to `"miles"`.
 #' @param min.haul Required, numeric, minimum number of hauls. Zones with fewer 
 #'   hauls than the `min.haul` value will not be included in model data.
@@ -64,12 +64,12 @@
 #' @param zone.cent.name The name of the zonal centroid table to use when 
 #'   `occasion` or `alt_var` is set to `zonal centroid`. Use 
 #'   `list_tables("project", type = "centroid")` to view existing centroid tables.
-#'   See [create_centroid()] to create centroid tables or [cent_to_fsdb()] to 
+#'   See [create_centroid()] to create centroid tables or [centroid_to_fsdb()] to 
 #'   create a centroid table from columns found in `dat`.
 #' @param fish.cent.name The name of the fishing centroid table to use when 
 #'   `occasion` or `alt_var` is set to `fishing centroid`. Use 
 #'   `list_tables("project", type = "centroid")` to view existing centroid tables.
-#'   See [create_centroid()] to create centroid tables or [cent_to_fsdb()] to 
+#'   See [create_centroid()] to create centroid tables or [centroid_to_fsdb()] to 
 #'   create a centroid table from columns found in `dat`.
 #' @param spat Required when `alt_var = 'nearest point'`. `spat` is a spatial 
 #'   data file  containing information on fishery management or regulatory zones 
@@ -268,7 +268,7 @@ create_alternative_choice <-
     if (!any(unique(spatdat[[spatID]]) %in% unique(dataset[[zoneID]]))) {
       
       stop("There are no shared zones between dat and spat. Check that 'spatID' ",
-           "and 'zoneID' are correct, or rerun column_assignment().", call. = FALSE)
+           "and 'zoneID' are correct, or rerun assignment_column().", call. = FALSE)
     }
   }
   
