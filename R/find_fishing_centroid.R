@@ -15,8 +15,12 @@
 #'   of length two in the order of \code{c("lon", "lat")}. The default is 
 #'   \code{c("fish_cent_lon", "fish_cent_lat")} and 
 #'   \code{c("weight_cent_lon", "weight_cent_lat")} if \code{weight.var} is used.
+#' @param cent.name A string to include in the centroid table name. Table names 
+#'   take the form of `"projectNameFishCentroid"` for fishing centroids.
 #' @keywords centroid, zone
-#' @importFrom stats ave weighted.mean
+#' @importFrom stats ave weighted.mean setNames
+#' @importFrom DBI dbConnect dbDisconnect dbWriteTable
+#' @importFrom RSQLite SQLite
 #' @return Returns primary dataset with fishing centroid and, if \code{weight.var} 
 #'   is specified, the weighted fishing centroid. 
 #' @export find_fishing_centroid
@@ -40,6 +44,7 @@ find_fishing_centroid <- function(dat,
                                   lon.dat,
                                   lat.dat,
                                   names = NULL,
+                                  cent.name = NULL,
                                   log.fun = TRUE) {
   
   # Call in datasets
@@ -94,6 +99,21 @@ find_fishing_centroid <- function(dat,
   dataset[[names[2]]] <- 
     stats::ave(dataset[c(lat.dat)], dataset[[zoneID]],
                FUN = function(x) stats::ave(x[[lat.dat]]))[[1]]
+  
+  # unique centroid rows 
+  cent_tab <- unique(dataset[c(zoneID, names)])
+  cent_tab <- stats::setNames(cent_tab, c("ZoneID", "cent.lon", "cent.lat"))
+  
+  # save fishing centroid to FSDB
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
+                                                locdatabase(project = project)))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
+  cent_name <- paste0(project, cent.name, "FishCentroid")
+  
+  DBI::dbWriteTable(fishset_db, cent_name, cent_tab, overwrite = TRUE)
+  
+  message('Fishing centroid saved to fishset database')
 
   if (log.fun) {
     
