@@ -12,6 +12,7 @@ find_fishing_centroid(
   lon.dat,
   lat.dat,
   names = NULL,
+  cent.name = NULL,
   log.fun = TRUE
 )
 }
@@ -37,6 +38,9 @@ longitude of fishing locations in each zone weighted by \code{weight.var}.}
 of length two in the order of \code{c("lon", "lat")}. The default is 
 \code{c("fish_cent_lon", "fish_cent_lat")} and 
 \code{c("weight_cent_lon", "weight_cent_lat")} if \code{weight.var} is used.}
+
+\item{cent.name}{A string to include in the centroid table name. Table names 
+take the form of `"projectNameFishCentroid"` for fishing centroids.}
 }
 \value{
 Returns primary dataset with fishing centroid and, if \code{weight.var} 
