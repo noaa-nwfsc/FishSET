@@ -26,7 +26,7 @@
 #'   should come from. Examples: `initparams = 'epm_mod1'`, 
 #'   `initparams=list('epm_mod1', 'epm_mod2')`
 #' @param optimOpt  String, optimization options 
-#'   [max function evaluations, max iterations, (reltol) tolerance of x, trace]
+#'   (max function evaluations, max iterations, (reltol) tolerance of x, trace)
 #'   Note: add optim reference here?.
 #' @param methodname String, optimization method (see [stats::optim()] options). 
 #'   Defaults to `"BFGS"`.
@@ -251,7 +251,7 @@ make_model_design <-
   if (!table_exists(paste0(project, "MainDataTable_final"), project)) {
     
     stop("Final dataset does not exist. Run check_model_data() to save the final",
-            " dataset to the FishSET Database before modeling.")
+         " dataset to the FishSET Database before modeling.")
   } 
     
   dataset <- table_view(paste0(project, "MainDataTable_final"), project)
@@ -330,11 +330,8 @@ make_model_design <-
   dataZoneTrue <- Alt$dataZoneTrue
   zone_ind <- which(dataZoneTrue == 1)
   
-  # TODO: update this, can be zonal or fishing centroid
-  
   zone_cent <- Alt$zone_cent # zonal centroid table
   fish_cent <- Alt$fish_cent # fishing centroid table
-  # Note: dataframe needed for choice_raw and choice? 
   choice_raw <- Alt$choice # as.data.frame(Alt$choice)
   choice <- Alt$choice[zone_ind] # s.data.frame(Alt$choice[zone_ind])
   zoneRow <- Alt$zoneRow

@@ -52,7 +52,7 @@ should come from. Examples: \code{initparams = 'epm_mod1'},
 \code{initparams=list('epm_mod1', 'epm_mod2')}}
 
 \item{optimOpt}{String, optimization options
-\link{max function evaluations, max iterations, (reltol) tolerance of x, trace}
+(max function evaluations, max iterations, (reltol) tolerance of x, trace)
 Note: add optim reference here?.}
 
 \item{methodname}{String, optimization method (see \code{\link[stats:optim]{stats::optim()}} options).

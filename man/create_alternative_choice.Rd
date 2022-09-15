@@ -29,51 +29,7 @@ Table in FishSET database should contain the string \code{MainDataTable}.}
 distance matrix. Options are \code{"zonal centroid"}, \code{"fishing centroid"},
 \code{"port"}, or \code{"lon-lat"}. See \code{occasion_var} for requirements.}
 
-\item{alt_var}{Determines the alternative choices used to calculate the distance
-matrix. \code{alt_var} may be the centroid of zonal assignment (\code{"zonal centroid"}),
-\code{"fishing centroid"}, or the closest point in fishing zone
-(\code{"nearest point"}). The centroid options require that the appropriate
-centroid table has been saved to the project's FishSET Database. See
-\code{\link[=create_centroid]{create_centroid()}} to create and save centroids. List existing centroid
-tables  by running \code{list_tables("project", type = "centroid")}.}
-
-\item{dist.unit}{String, how distance measure should be returned. Choices are
-\code{"meters"} or \code{"m"}, \code{"kilometers"} or \code{"km"},\code{"miles"}, or \code{"nmiles"}
-(nautical miles). Defaults to \code{"miles"}.}
-
-\item{min.haul}{Required, numeric, minimum number of hauls. Zones with fewer
-hauls than the \code{min.haul} value will not be included in model data.}
-
-\item{zoneID}{Variable in \code{dat} that identifies the individual zones or
-areas.}
-
-\item{zone.cent.name}{The name of the zonal centroid table to use when
-\code{occasion} or \code{alt_var} is set to \verb{zonal centroid}. Use
-\code{list_tables("project", type = "centroid")} to view existing centroid tables.
-See \code{\link[=create_centroid]{create_centroid()}} to create centroid tables or \code{\link[=cent_to_fsdb]{cent_to_fsdb()}} to
-create a centroid table from columns found in \code{dat}.}
-
-\item{fish.cent.name}{The name of the fishing centroid table to use when
-\code{occasion} or \code{alt_var} is set to \verb{fishing centroid}. Use
-\code{list_tables("project", type = "centroid")} to view existing centroid tables.
-See \code{\link[=create_centroid]{create_centroid()}} to create centroid tables or \code{\link[=cent_to_fsdb]{cent_to_fsdb()}} to
-create a centroid table from columns found in \code{dat}.}
-
-\item{spat}{Required when \code{alt_var = 'nearest point'}. \code{spat} is a spatial
-data file  containing information on fishery management or regulatory zones
-boundaries. \code{sf} objects are recommended, but \code{sp} objects can be used as
-well. See \code{\link[=dat_to_sf]{dat_to_sf()}} to convert a spatial table read from a csv file to
-an \code{sf} object. To upload your spatial data to the FishSETFolder see
-\code{\link[=load_spatial]{load_spatial()}}.If \code{spat} should come from the FishSET database, it should
-be the name of the original file name, in quotes. For example,
-\code{"pollockNMFSZonesSpatTable"}. Use \code{\link[=tables_database]{tables_database()}} or
-\code{list_tables("project", type = "spat")} to view the names of spatial tables
-in the FishSET database.}
-
-\item{spatID}{Required when \code{alt_var = 'nearest point'}. Variable in \code{spat}
-that identifies the individual zones or areas.}
-
-\item{occaion_var}{Identifies an ID column or set of lon-lat variables needed
+\item{occasion_var}{Identifies an ID column or set of lon-lat variables needed
 to create the distance matrix. Possible options depend on the value of
 \code{occasion}:
 \describe{
@@ -108,6 +64,50 @@ string vector of length two containing the longitude and latitude of a
 vessel's location in the \code{dat}. For example, the current or
 previous haul location.}
 }}
+
+\item{alt_var}{Determines the alternative choices used to calculate the distance
+matrix. \code{alt_var} may be the centroid of zonal assignment (\code{"zonal centroid"}),
+\code{"fishing centroid"}, or the closest point in fishing zone
+(\code{"nearest point"}). The centroid options require that the appropriate
+centroid table has been saved to the project's FishSET Database. See
+\code{\link[=create_centroid]{create_centroid()}} to create and save centroids. List existing centroid
+tables  by running \code{list_tables("project", type = "centroid")}.}
+
+\item{dist.unit}{String, how distance measure should be returned. Choices are
+\code{"meters"} or \code{"m"}, \code{"kilometers"} or \code{"km"}, \code{"miles"}, or \code{"nmiles"}
+(nautical miles). Defaults to \code{"miles"}.}
+
+\item{min.haul}{Required, numeric, minimum number of hauls. Zones with fewer
+hauls than the \code{min.haul} value will not be included in model data.}
+
+\item{zoneID}{Variable in \code{dat} that identifies the individual zones or
+areas.}
+
+\item{zone.cent.name}{The name of the zonal centroid table to use when
+\code{occasion} or \code{alt_var} is set to \verb{zonal centroid}. Use
+\code{list_tables("project", type = "centroid")} to view existing centroid tables.
+See \code{\link[=create_centroid]{create_centroid()}} to create centroid tables or \code{\link[=centroid_to_fsdb]{centroid_to_fsdb()}} to
+create a centroid table from columns found in \code{dat}.}
+
+\item{fish.cent.name}{The name of the fishing centroid table to use when
+\code{occasion} or \code{alt_var} is set to \verb{fishing centroid}. Use
+\code{list_tables("project", type = "centroid")} to view existing centroid tables.
+See \code{\link[=create_centroid]{create_centroid()}} to create centroid tables or \code{\link[=centroid_to_fsdb]{centroid_to_fsdb()}} to
+create a centroid table from columns found in \code{dat}.}
+
+\item{spat}{Required when \code{alt_var = 'nearest point'}. \code{spat} is a spatial
+data file  containing information on fishery management or regulatory zones
+boundaries. \code{sf} objects are recommended, but \code{sp} objects can be used as
+well. See \code{\link[=dat_to_sf]{dat_to_sf()}} to convert a spatial table read from a csv file to
+an \code{sf} object. To upload your spatial data to the FishSETFolder see
+\code{\link[=load_spatial]{load_spatial()}}.If \code{spat} should come from the FishSET database, it should
+be the name of the original file name, in quotes. For example,
+\code{"pollockNMFSZonesSpatTable"}. Use \code{\link[=tables_database]{tables_database()}} or
+\code{list_tables("project", type = "spat")} to view the names of spatial tables
+in the FishSET database.}
+
+\item{spatID}{Required when \code{alt_var = 'nearest point'}. Variable in \code{spat}
+that identifies the individual zones or areas.}
 }
 \value{
 Saves the alternative choice list to the FishSET database as a list.
@@ -131,7 +131,7 @@ fish_cent: \tab Fishing centroid for each zone. Generated from \code{\link[=find
 Required step. Creates a list identifying how alternative fishing choices should
 be defined. Output is saved to the FishSET database. Run this function before
 running models. \code{dat} must have a zone assignment column (see
-\code{\link[=column_assignment]{column_assignment()}}). In certain cases a centroid table must be saved to
+\code{\link[=assignment_column]{assignment_column()}}). In certain cases a centroid table must be saved to
 the FishSET Database, see \code{occasion_var} for details.
 }
 \details{

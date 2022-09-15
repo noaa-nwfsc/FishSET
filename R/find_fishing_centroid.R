@@ -17,6 +17,7 @@
 #'   \code{c("weight_cent_lon", "weight_cent_lat")} if \code{weight.var} is used.
 #' @param cent.name A string to include in the centroid table name. Table names 
 #'   take the form of `"projectNameFishCentroid"` for fishing centroids.
+#' @param log.fun Logical, whether to log function call (for internal use).
 #' @keywords centroid, zone
 #' @importFrom stats ave weighted.mean setNames
 #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
