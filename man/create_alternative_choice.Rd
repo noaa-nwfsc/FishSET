@@ -61,8 +61,8 @@ longitude and latitude in \code{dat}.}
 }
 \item{Lon-Lat}{When \code{occasion = lon-lat}, \code{occasion_var} must contain a
 string vector of length two containing the longitude and latitude of a
-vessel's location in the \code{dat}. For example, the current or
-previous haul location.}
+vessel's location in the \code{dat}. For example, the current or previous
+haul location.}
 }}
 
 \item{alt_var}{Determines the alternative choices used to calculate the distance
