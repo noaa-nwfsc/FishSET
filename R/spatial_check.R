@@ -7,7 +7,7 @@ shift_long <- function(spat) {
   #' @importFrom sf st_bbox
   #' @keywords internal
 
-  # this is just a working version, needs elaboration
+  # this is just a working version, needs adjusting
   bbox <- sf::st_bbox(spat)
   
   bbox$xmin < -179 | bbox$xmax > 179
@@ -28,6 +28,7 @@ is_invalid_spat <- function(spat) {
   #' found, if any empty geometries are detected, or if longitude needs to be
   #' shifted to Pacific view. 
   
+  # TODO: add option to not check for shift_long()
   any(sf::st_is(spat, "GEOMETRYCOLLECTION")) ||
     any(!sf::st_is(spat, c("MULTIPOLYGON", "POLYGON"))) ||
     any(!sf::st_is_valid(spat)) ||
@@ -87,7 +88,7 @@ clean_spat <- function(spat) {
               " This may result in an invalid geometry.")
     }
   }
-  
+  # TODO: change this to optional check
   # shift to Pacific view if needed
   if (shift_long(spat)) {
     
@@ -199,7 +200,7 @@ check_spatdat <- function(spatdat, lon = NULL, lat = NULL, id = NULL) {
   }
   
   if (is_invalid_spat(spatdat)) {
-    
+    # TODO add an option to check whether shift_long should be used
     spatdat <- clean_spat(spatdat)
   } 
   
