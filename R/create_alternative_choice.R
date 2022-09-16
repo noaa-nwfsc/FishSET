@@ -44,8 +44,8 @@
 #'     }
 #'     \item{Lon-Lat}{When `occasion = lon-lat`, `occasion_var` must contain a 
 #'       string vector of length two containing the longitude and latitude of a 
-#'       vessel's location in the `dat`. For example, the current or 
-#'       previous haul location.} 
+#'       vessel's location in the `dat`. For example, the current or previous 
+#'       haul location.} 
 #'   }
 #' @param alt_var Determines the alternative choices used to calculate the distance
 #'   matrix. `alt_var` may be the centroid of zonal assignment (`"zonal centroid"`), 
