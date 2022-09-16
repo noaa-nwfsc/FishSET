@@ -70,7 +70,7 @@ table joined with the centroid table. \code{"both"} returns a list containing
 the merged primary table and the centroid table.}
 }
 \description{
-Create zonal or fishing centroid table. The centroid can be joined with the
+Create a zonal or fishing centroid table. The centroid can be joined with the
 primary data if \code{output == "dataset"}. The centroid table is automatically
 saved to the FishSET Database.
 }

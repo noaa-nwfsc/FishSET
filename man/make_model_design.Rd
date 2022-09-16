@@ -9,7 +9,7 @@ make_model_design(
   catchID,
   replace = TRUE,
   likelihood = NULL,
-  initparams,
+  initparams = NULL,
   optimOpt = c(1e+05, 1e-08, 1, 1),
   methodname = "BFGS",
   mod.name = NULL,
