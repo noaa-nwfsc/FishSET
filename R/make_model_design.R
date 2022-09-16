@@ -229,7 +229,7 @@ make_model_design <-
            catchID,
            replace = TRUE,
            likelihood = NULL,
-           initparams,
+           initparams = NULL,
            optimOpt = c(100000, 1.0e-08, 1, 1),
            methodname = "BFGS",
            mod.name = NULL,
@@ -409,25 +409,22 @@ make_model_design <-
     if (length(occasion_var) == 1) { # port ID variable
       
       pt <- data_pull(paste0(project, 'PortTable'), project)
-      ptname <- pt$dat # Q: what is ptname used for? 
+      ptname <- pt$dat # Note: ptname not used 
       port <- pt$dataset # used in create_distance_matrix()
       
-    } else if (length(occasion_var) == 2) { # port lon-lat columns
-      
-      # do what?
+    # } else {
+    #  
+    #   # update error msg
+    #   stop("Port table not found in database. Check spelling and ensure port table ", 
+    #        "is loaded into the FishSET database.", call. = FALSE)
+    # }
+    
     } else {
-     
-      # update error msg
-      stop("Port table not found in database. Check spelling and ensure port table ", 
-           "is loaded into the FishSET database.", call. = FALSE)
+      
+      ptname <- NULL
+      port <- NULL
     }
-    
-  } else {
-    
-    ptname <- NULL
-    port <- NULL
   }
-  
   
   # Gridded ----
   # TODO: Rename alt matrix (X is too generic)
@@ -468,19 +465,33 @@ make_model_design <-
   # Initial parameters ----
   # need to grab inits from previous model run if required
   # TODO: use better method for reading in existing initial parameters
-  if (!is.numeric(initparams) & !any(grepl(',', initparams))) {
+  
+  # TODO: adjust this
+  ip_len <- 
+    length(vars1) + length(vars2) + length(unique(choice)) + 
+    length(priceCol) # missing? exp catch?
+  
+  if (is_value_empty(initparams)) {
     
+    init_params <- rep(1, ip_len)
+    
+  } else if (is.numeric(initparams) & length(initparams) == 1) {
+    
+    init_params <- rep(initparams, ip_len)
+    
+  } else if (!is.numeric(initparams) & !any(grepl(',', initparams))) {
+    # read in parameters from previous model
     x_temp <- read_dat(paste0(locoutput(project),  
-                              pull_output(project, type = 'table', fun = paste0('params_', initparams))))
+                              pull_output(project, type = 'table', 
+                                          fun = paste0('params_', initparams))))
     
     if (!is.null(x_temp)) {
       
-      initparams <- x_temp$estimate
+      init_params <- x_temp$estimate
       
     } else {
-      # Q: why five? 
-      # Note: Should be able to automate this 
-      initparams <- c(1, 1, 1, 1, 1) 
+      
+      init_params <- rep(1, ip_len)
       warning('Model not found. Setting parameter estimates to 1.')
     }
   }
@@ -496,7 +507,8 @@ make_model_design <-
   
   if (is.null(dist_out)) {
     
-    stop('Model design failed. Error in calculating distance matrix', call. = FALSE)
+    stop('Model design failed. Error in calculating distance matrix', 
+         call. = FALSE)
     
   } else {
 
@@ -506,7 +518,6 @@ make_model_design <-
     catch <- dataset[zone_ind, ][[catchID]]
     yscale <- mean(catch, na.rm = TRUE)
      
-          
     # Some models need price data
     if (is_value_empty(priceCol)) {
       
@@ -550,7 +561,7 @@ make_model_design <-
       likelihood = likelihood,
       catch = catch,
       choice = as.data.frame(choice), # consider leaving as vector
-      initparams = initparams, 
+      initparams = init_params, 
       optimOpt = optimOpt, 
       methodname = methodname, 
       mod.name  = mod.name,
