@@ -18,13 +18,15 @@
 #'  epm_weibull: \tab Expected profit model with Weibull catch function \cr
 #'  epm_lognormal: \tab  Expected profit model with lognormal catch function \cr
 #'  }
-#' @param initparams String or list, initial parameter estimates for 
+#' @param initparams Vector or list, initial parameter estimates for 
 #'   revenue/location-specific covariates then cost/distance. The number of 
 #'   parameter estimate varies by likelihood function. See Details section for 
-#'   more information. If using parameter estimates from previous model, 
+#'   more information. The initial parameters will be set to `1` if 
+#'   `initparams == NULL`. If `initparams` is a single numeric value, it will be
+#'   used for each parameter. If using parameter estimates from previous model, 
 #'   `initparams` should be the name of the model the parameter estimates 
 #'   should come from. Examples: `initparams = 'epm_mod1'`, 
-#'   `initparams=list('epm_mod1', 'epm_mod2')`
+#'   `initparams = list('epm_mod1', 'epm_mod2')`.
 #' @param optimOpt  String, optimization options 
 #'   (max function evaluations, max iterations, (reltol) tolerance of x, trace)
 #'   Note: add optim reference here?.
@@ -260,7 +262,17 @@ make_model_design <-
   spatdat <- spat_out$dataset
   spat <- parse_data_name(spat, "spat", project)
   
+  # check args ----
   column_check(dataset, c(catchID, priceCol, startloc))
+  
+  ll_funs <- c("logit_c", "logit_avgcat", "logit_correction", "epm_normal", 
+               "epm_lognormal", "epm_weibull")
+  
+  if (!likelihood %in% ll_funs) {
+    
+    stop("Invalid likelihood function selected. Options are ", 
+         paste0(ll_funs, collapse = ", "), call. = FALSE)
+  }
     
   # parameter setup ----
   # Script necessary to ensure parameters generated in shiny app are in correct format
@@ -307,10 +319,38 @@ make_model_design <-
     startloc <- NULL
   } 
   
+  mod_dsn_exists <- table_exists(paste0(project, "ModelInputData"), project)
+  
+  if (mod_dsn_exists) mod_nms <- model_names(project)
+  
   if (is_value_empty(mod.name)) {
     
-    mod.name <- paste0(likelihood, Sys.time())
-  } 
+    mod.name <- likelihood
+    
+    if (mod_dsn_exists) {
+      
+      if (mod.name %in% mod_nms) {
+        
+        n_nms <- sum(grepl(mod.name, mod_nms))
+        
+        mod.name <- paste0(mod.name, "_", n_nms)
+      }
+    }
+    
+  } else {
+    
+    if (mod_dsn_exists) {
+      
+      if (mod.name %in% mod_nms) {
+        
+        stop("Model name '", mod.name, "' exists. Enter a unique name. Current ",
+             "model names are: ", paste0(model_names(project), collapse = ", "), 
+             call. = FALSE)
+      }
+      
+      file_nm_check(mod.name)
+    }
+  }
  
   # Alt choice ----
   # get alt choice list
@@ -334,6 +374,7 @@ make_model_design <-
   fish_cent <- Alt$fish_cent # fishing centroid table
   choice_raw <- Alt$choice # as.data.frame(Alt$choice)
   choice <- Alt$choice[zone_ind] # s.data.frame(Alt$choice[zone_ind])
+  alts <- length(unique(choice))
   zoneRow <- Alt$zoneRow
   zoneID <- Alt$zoneID
   
@@ -432,9 +473,9 @@ make_model_design <-
   # if (!is.null(Alt[["matrix"]])) X <- Alt[["matrix"]]
   # else X <- NULL
   
- # TODO: need to pull gridded data from FSDB (should var2 be table name?) or 
- # from primary table if joined
- # TODO: check that gridded data is in correct format (format_grid()--before mmd is run?)
+  # TODO: need to pull gridded data from FSDB (should var2 be table name?) or 
+  # from primary table if joined
+  # TODO: check that gridded data is in correct format (format_grid()--before mmd is run?)
   if (is_empty(gridVariablesInclude)) {
     
     gridVariablesInclude <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
@@ -465,11 +506,26 @@ make_model_design <-
   # Initial parameters ----
   # need to grab inits from previous model run if required
   # TODO: use better method for reading in existing initial parameters
+  indNum <- length(vars1)
+  gridNum <- length(vars2)
   
-  # TODO: adjust this
-  ip_len <- 
-    length(vars1) + length(vars2) + length(unique(choice)) + 
-    length(priceCol) # missing? exp catch?
+  # default parameter lengths 
+  if (likelihood == "logit_c") {
+    
+    ip_len <- indNum + gridNum
+    
+  } else if (likelihood == "logit_avgcat") {
+    
+    ip_len <- gridNum * (alts - 1) + indNum
+    
+  } else if (likelihood == "logit_correction") {
+    
+    ip_len <- gridNum * alts + ((((polyn+1)*2)+2)*alts) + indNum + 1 + 1
+    
+  } else {
+    
+    ip_len <- gridNum * alts + indNum + 1 + 1
+  }
   
   if (is_value_empty(initparams)) {
     
@@ -565,6 +621,7 @@ make_model_design <-
       optimOpt = optimOpt, 
       methodname = methodname, 
       mod.name  = mod.name,
+      mod.date = Sys.time(),
       startingloc = start_loc[zone_ind],
       scales = c(catch = yscale, zonal = mscale, griddata = r, 
                  intdata = r2, pscale = pscale),
@@ -585,13 +642,13 @@ make_model_design <-
       expectcatchmodels = exp_select
     )
   
-    single_sql <- paste0(project, "modelinputdata")
-    date_sql <- paste0(project, "modelinputdata", format(Sys.Date(), format = "%Y%m%d"))
+    single_sql <- paste0(project, "ModelInputData")
+    date_sql <- paste0(project, "ModelInputData", format(Sys.Date(), format = "%Y%m%d"))
     
     if (table_exists(single_sql, project) & replace == FALSE) {
       
-      modelInputData <- unserialize_table(paste0(project, "modelinputdata"), project)
-      modelInputData[[length(modelInputData) + 1]] <- modelInputData_tosave
+      ModelInputData <- unserialize_table(paste0(project, "ModelInputData"), project)
+      ModelInputData[[length(modelInputData) + 1]] <- modelInputData_tosave
       
     } else {
       
