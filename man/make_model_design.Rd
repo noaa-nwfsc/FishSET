@@ -43,13 +43,15 @@ epm_weibull: \tab Expected profit model with Weibull catch function \cr
 epm_lognormal: \tab  Expected profit model with lognormal catch function \cr
 }}
 
-\item{initparams}{String or list, initial parameter estimates for
+\item{initparams}{Vector or list, initial parameter estimates for
 revenue/location-specific covariates then cost/distance. The number of
 parameter estimate varies by likelihood function. See Details section for
-more information. If using parameter estimates from previous model,
+more information. The initial parameters will be set to \code{1} if
+\code{initparams == NULL}. If \code{initparams} is a single numeric value, it will be
+used for each parameter. If using parameter estimates from previous model,
 \code{initparams} should be the name of the model the parameter estimates
 should come from. Examples: \code{initparams = 'epm_mod1'},
-\code{initparams=list('epm_mod1', 'epm_mod2')}}
+\code{initparams = list('epm_mod1', 'epm_mod2')}.}
 
 \item{optimOpt}{String, optimization options
 (max function evaluations, max iterations, (reltol) tolerance of x, trace)
