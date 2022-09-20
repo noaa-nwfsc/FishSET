@@ -1312,7 +1312,7 @@ table_type <- function(tab) {
     
     db_type <- c("MainDataTableInfo", "MainDataTable_raw", "MainDataTable_final", 
                  "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable", "port", 
-                 "ldglobalcheck", "FleetTable", "modelOut", "modelfit", "modelinputdata", 
+                 "ldglobalcheck", "FleetTable", "modelOut", "modelfit", "ModelInputData", 
                  "modelDesignTable", "FilterTable", "GridTable", "AuxTable", "SpatTable")
     
     t_regex <- paste0(db_type, collapse = "|")
@@ -1326,7 +1326,7 @@ table_type <- function(tab) {
                   "port" = "port", "MainDataTableInfo" = "info table",
                   "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
                   "FleetTable" = "fleet table", "modelOut" = "model output", 
-                  "modelfit" = "model fit", "modelinputdata" = "model data", 
+                  "modelfit" = "model fit", "ModelInputData" = "model data", 
                   "modelDesignTable" = "model design", "other" = "other",
                   "GridTable" = "grid", "AuxTable" = "aux", "SpatTable" = "spatial")
     
