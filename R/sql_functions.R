@@ -225,6 +225,11 @@ unserialize_table <- function(table, project) {
   #' @importFrom DBI dbConnect dbDisconnect dbGetQuery
   #' @importFrom RSQLite SQLite
   
+  if (!table_exists(table, project)) {
+    
+    stop("Table '", table, "' does not exist.", call. = FALSE)
+  }
+  
   tab_type <- table_type(table)
   
   serial_tabs <- c("alt choice matrix", "expected catch matrix", "model data", 
@@ -238,9 +243,9 @@ unserialize_table <- function(table, project) {
   tab_qry <- switch(tab_type, 
                     "alt choice matrix" = "AlternativeMatrix", 
                     "expected catch matrix" = "data",
-                    "model data" = "ModelInputData", # check for consistency, seen lowercase version 
+                    "model data" = "ModelInputData", # Note: check for consistency, seen lowercase version 
                                                      # (depends on whether created in app or console)
-                    "predict output" = "PredictOutput") # hasn't been added to table_type
+                    "predict output" = "PredictOutput") # Note: Hasn't been added to table_type
   
   sql_qry <- paste0("SELECT ", tab_qry, " FROM ", table, " LIMIT 1")
   
@@ -435,6 +440,22 @@ model_fit <- function(project) {
   return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM ", paste0(project, "modelfit"))))
 }
 
+model_names <- function(project) {
+  #' Return model names 
+  #' 
+  #' Returns model names saved to to the model desgin file. 
+  #' 
+  #' @param project Name of project.
+  #' @export
+  #' 
+  
+  tab_name <- paste0(project, "ModelInputData")
+  mod_design_list <- unserialize_table(tab_name, project)
+  
+  vapply(mod_design_list, function(x) x$mod.name, character(1))
+}
+
+
 projects <- function() {
   #' Display projects names
   #' @export
@@ -539,8 +560,7 @@ list_tables <- function(project, type = "main") {
   #'   (GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (altmatrix), 
   #'   "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
   #'   "filter" (FilterTable), "centroid" (Centroid or FishCentroid),  "model" 
-  #'   (modelOut), "model_data" (modelinputdata), and "model_design" 
-  #'   (modelDesignTable).
+  #'   (modelOut), "model data" or "model design" (ModelInputData).
   #' @export
   #' @examples 
   #' \dontrun{
@@ -550,7 +570,7 @@ list_tables <- function(project, type = "main") {
   #' 
 
   tab_types <- c("info", "main", "ec", "altc", "port", "gc", "fleet", "model", 
-                 "model_data", "model_design", "grid", "aux", "spat", "filter",
+                 "model data", "model design", "grid", "aux", "spat", "filter",
                  "centroid")
   
   if (!type %in% tab_types) {
@@ -563,8 +583,8 @@ list_tables <- function(project, type = "main") {
     switch(type, 
            "info" = "MainDataTableInfo", "main" = "MainDataTable", "ec" = "ExpectedCatch", 
            "altc" = "altmatrix", "port" = "PortTable", "gc" = "ldglobalcheck", 
-           "fleet" = "FleetTable", "model" = "modelOut", "model_data" = "modelinputdata", 
-           "model_design" = "modelDesignTable", "grid" = "GridTable", "aux" = "AuxTable",
+           "fleet" = "FleetTable", "model" = "modelOut", "model data" = "ModelInputData", 
+           "model design" = "ModelInputData", "grid" = "GridTable", "aux" = "AuxTable",
            "spat" = "SpatTable", "filter" = "FilterTable", "centroid" = "Centroid")
   
   if (is_value_empty(project)) {
@@ -654,7 +674,7 @@ fishset_tables <- function(project = NULL) {
     db_type <- c("MainDataTableInfo", "MainDataTable\\d{8}", "MainDataTable_final", 
                  "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable\\d{8}",
                  "PortTable", "ldglobalcheck", "FleetTable", "modelOut", "modelfit",
-                 "modelinputdata", "modelDesignTable", "FilterTable", "GridTable\\d{8}",  
+                 "ModelInputData", "modelDesignTable", "FilterTable", "GridTable\\d{8}",  
                  "GridTable", "AuxTable\\d{8}", "AuxTable", "SpatTable\\d{8}", "SpatTable")
     
     raw <- c("MainDataTable\\d{8}", "PortTable\\d{8}", "GridTable\\d{8}", 
@@ -682,7 +702,7 @@ fishset_tables <- function(project = NULL) {
                "PortTable" = "port table", "MainDataTableInfo" = "info table",
                "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
                "FleetTable" = "fleet table", "modelOut" = "model output", 
-               "modelfit" = "model fit", "modelinputdata" = "model data", 
+               "modelfit" = "model fit", "ModelInputData" = "model data", 
                "modelDesignTable" = "model design", "other" = "other",
                "GridTable_raw" = "raw grid table",  "GridTable" = "grid table",
                "AuxTable_raw" = "raw aux table", "AuxTable" = "aux table", 
