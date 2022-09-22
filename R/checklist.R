@@ -68,7 +68,7 @@ checklist <- function(project, modDesignTab = NULL) {
   
   # find expected catch matrices (if logit_c used)
   ec_required <- FALSE
-  e_catch <- list_tables(project, type = "ec") 
+  e_catch <- suppressWarnings(list_tables(project, type = "ec")) 
   ec_exists <- length(e_catch) > 0
   
   if (!is.null(modDesignTab)) { # app only
