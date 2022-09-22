@@ -69,7 +69,7 @@ if(is.null(mod.name)||is.numeric(mod.name)){
 fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
 on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
 
-x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
+x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "ModelInputData LIMIT 1"))$ModelInputData[[1]])
 if(!any(modname %in% lapply( x_temp , "[[" , "mod.name" )))
   stop("Model design file was not found for", modname)
 x_new <- x_temp[[which(lapply( x_temp , "[[" , "mod.name" ) == modname)]]

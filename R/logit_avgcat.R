@@ -124,12 +124,12 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
 
   ldsumglobalcheck <- ld      #-log(rowSums(exp(profx)))
   paramsglobalcheck <- starts3   #starting parameters
-  ldglobalcheck <- unlist(as.matrix(ldchoice))
+  LDGlobalCheck <- unlist(as.matrix(ldchoice))
 
-  ldglobalcheck <- list(model = paste0(project, expname, mod.name), ldsumglobalcheck = ldsumglobalcheck, paramsglobalcheck = paramsglobalcheck, ldglobalcheck = ldglobalcheck)
+  LDGlobalCheck <- list(model = paste0(project, expname, mod.name), ldsumglobalcheck = ldsumglobalcheck, paramsglobalcheck = paramsglobalcheck, LDGlobalCheck = LDGlobalCheck)
 
-  # TODO: output a list containing ldglobalcheck and ld. Adjust discretefish_subroutine()
-  assign("ldglobalcheck", value = ldglobalcheck, pos = 1, envir = rlang::caller_env())
+  # TODO: output a list containing LDGlobalCheck and ld. Adjust discretefish_subroutine()
+  assign("LDGlobalCheck", value = LDGlobalCheck, pos = 1, envir = rlang::caller_env())
   
   return(ld)
 }
