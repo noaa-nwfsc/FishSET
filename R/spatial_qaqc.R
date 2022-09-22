@@ -45,7 +45,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   #' @import sf
   #' @importFrom rlang sym
   #' @importFrom dplyr group_by summarize %>% left_join
-  #' @importFrom stats dist
+  #' @importFrom stats dist reformulate aggregate
   #' @return A list of plots and/or dataframes depending on whether spatial data 
   #' quality issues are detected. The list includes:
   #'   \describe{
@@ -401,8 +401,11 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                             bins = 15, type = "freq", format_lab = "decimal")
     
     # dist summary table
-    dist_sum <- agg_helper(dist_df, "dist", group = c("YEAR", group), 
-                           fun = function(x) summary(x, digits = 2))
+    dist_fm <- stats::reformulate(c("YEAR", group), "dist")
+    dist_sum <- stats::aggregate(dist_fm, FUN = summary, data = dataset, digits = 2)
+    
+    # dist_sum <- agg_helper(dist_df, "dist", group = c("YEAR", group), 
+    #                        fun = function(x) summary(x, digits = 2))
     
     dsm <- as.data.frame(dist_sum$dist)
     dist_sum$dist <- NULL
