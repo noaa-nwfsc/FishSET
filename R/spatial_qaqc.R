@@ -45,7 +45,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   #' @import sf
   #' @importFrom rlang sym
   #' @importFrom dplyr group_by summarize %>% left_join
-  #' @importFrom stats dist
+  #' @importFrom stats dist reformulate aggregate
   #' @return A list of plots and/or dataframes depending on whether spatial data 
   #' quality issues are detected. The list includes:
   #'   \describe{
