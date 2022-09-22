@@ -263,7 +263,7 @@ make_model_design <-
   spat <- parse_data_name(spat, "spat", project)
   
   # check args ----
-  column_check(dataset, c(catchID, priceCol, startloc))
+  column_check(dataset, c(catchID, vars1, vars2, priceCol, startloc))
   
   ll_funs <- c("logit_c", "logit_avgcat", "logit_correction", "epm_normal", 
                "epm_lognormal", "epm_weibull")
@@ -272,6 +272,39 @@ make_model_design <-
     
     stop("Invalid likelihood function selected. Options are ", 
          paste0(ll_funs, collapse = ", "), call. = FALSE)
+  }
+  
+  mod_dsn_exists <- table_exists(paste0(project, "ModelInputData"), project)
+  
+  if (mod_dsn_exists) mod_nms <- model_names(project)
+  
+  if (is_value_empty(mod.name)) {
+    
+    mod.name <- likelihood
+    
+    if (mod_dsn_exists) {
+      
+      if (mod.name %in% mod_nms) {
+        
+        n_nms <- sum(grepl(mod.name, mod_nms))
+        
+        mod.name <- paste0(mod.name, "_", n_nms)
+      }
+    }
+    
+  } else {
+    
+    if (mod_dsn_exists) {
+      
+      if (mod.name %in% mod_nms) {
+        
+        stop("Model name '", mod.name, "' exists. Enter a unique name. Current ",
+             "model names are: ", paste0(model_names(project), collapse = ", "), 
+             call. = FALSE)
+      }
+      
+      file_nm_check(mod.name)
+    }
   }
     
   # parameter setup ----
@@ -318,39 +351,6 @@ make_model_design <-
     
     startloc <- NULL
   } 
-  
-  mod_dsn_exists <- table_exists(paste0(project, "ModelInputData"), project)
-  
-  if (mod_dsn_exists) mod_nms <- model_names(project)
-  
-  if (is_value_empty(mod.name)) {
-    
-    mod.name <- likelihood
-    
-    if (mod_dsn_exists) {
-      
-      if (mod.name %in% mod_nms) {
-        
-        n_nms <- sum(grepl(mod.name, mod_nms))
-        
-        mod.name <- paste0(mod.name, "_", n_nms)
-      }
-    }
-    
-  } else {
-    
-    if (mod_dsn_exists) {
-      
-      if (mod.name %in% mod_nms) {
-        
-        stop("Model name '", mod.name, "' exists. Enter a unique name. Current ",
-             "model names are: ", paste0(model_names(project), collapse = ", "), 
-             call. = FALSE)
-      }
-      
-      file_nm_check(mod.name)
-    }
-  }
  
   # Alt choice ----
   # get alt choice list
@@ -468,40 +468,35 @@ make_model_design <-
   }
   
   # Gridded ----
-  # TODO: Rename alt matrix (X is too generic)
-  # Note: this is the distance matrix created from a gridded dataset (create_alternative_choice())
-  # if (!is.null(Alt[["matrix"]])) X <- Alt[["matrix"]]
-  # else X <- NULL
+  # Note: create_alternative_choice() currently cannot create a dm from a 
+  # gridded dataset
   
-  # TODO: need to pull gridded data from FSDB (should var2 be table name?) or 
-  # from primary table if joined
-  # TODO: check that gridded data is in correct format (format_grid()--before mmd is run?)
+
   if (is_empty(gridVariablesInclude)) {
     
     gridVariablesInclude <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
-  } 
-
-
-  if (any(is_empty(indeVarsForModel))) {
-    
-    bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, 
-                     userDumV = userDumV, 
-                     indeVarsForModel = as.data.frame(matrix(1, nrow = length(choice), ncol = 1)))
     
   } else {
-    # TODO: check this
-    if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) {
-      
-      bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, 
-                       userDumV = userDumV, 
-                       indeVarsForModel = lapply(indeVarsForModel[-1], function(x) dataset[[x]][zone_ind]))
-    } else {
-      
-      bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, 
-                       userDumV = userDumV, 
-                       indeVarsForModel = lapply(indeVarsForModel, function(x) dataset[[x]][zone_ind]))
-    }
+    
+    gridVariablesInclude <- lapply(gridVariablesInclude, function(x) dataset[[x]][zone_ind])
   }
+  
+  # Ind ----
+  if (any(is_empty(indeVarsForModel))) {
+    
+    indeVarsForModel <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
+    
+  } else if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) {
+    
+    indeVarsForModel <- lapply(indeVarsForModel[-1], function(x) dataset[[x]][zone_ind])
+    
+  } else {
+    
+    indeVarsForModel <- lapply(indeVarsForModel, function(x) dataset[[x]][zone_ind])
+  }
+  
+  bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, 
+                   userDumV = userDumV, indeVarsForModel = indeVarsForModel)
  
   # Initial parameters ----
   # need to grab inits from previous model run if required
@@ -526,7 +521,7 @@ make_model_design <-
     
     ip_len <- gridNum * alts + indNum + 1 + 1
   }
-  
+  # set parameters
   if (is_value_empty(initparams)) {
     
     init_params <- rep(1, ip_len)
@@ -548,7 +543,7 @@ make_model_design <-
     } else {
       
       init_params <- rep(1, ip_len)
-      warning('Model not found. Setting parameter estimates to 1.')
+      warning('Model not found. Setting parameter estimates to 1.', call. = FALSE)
     }
   }
     
@@ -648,12 +643,12 @@ make_model_design <-
     if (table_exists(single_sql, project) & replace == FALSE) {
       
       ModelInputData <- unserialize_table(paste0(project, "ModelInputData"), project)
-      ModelInputData[[length(modelInputData) + 1]] <- modelInputData_tosave
+      ModelInputData[[length(ModelInputData) + 1]] <- modelInputData_tosave
       
     } else {
       
-      modelInputData <- list()
-      modelInputData[[length(modelInputData) + 1]] <- modelInputData_tosave
+      ModelInputData <- list()
+      ModelInputData[[length(ModelInputData) + 1]] <- modelInputData_tosave
     }
     
     if (table_exists(single_sql, project)) table_remove(single_sql, project)
@@ -663,19 +658,19 @@ make_model_design <-
   
     DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
     DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"),
-                   params = list(ModelInputData = list(serialize(modelInputData, NULL)))
+                   params = list(ModelInputData = list(serialize(ModelInputData, NULL)))
     )
     DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(ModelInputData MODELINPUTDATA)"))
     DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:ModelInputData)"),
-                   params = list(ModelInputData = list(serialize(modelInputData, NULL)))
+                   params = list(ModelInputData = list(serialize(ModelInputData, NULL)))
     )
     
     make_model_design_function <- list()
     make_model_design_function$functionID <- "make_model_design"
     make_model_design_function$args <- list(
-      project, catchID, replace,  likelihood,
-      initparams, optimOpt, methodname, as.character(mod.name), 
-      vars1, vars2, priceCol,expectcatchmodels, startloc, polyn
+      project, catchID, replace,  likelihood,initparams, optimOpt, 
+      methodname, as.character(mod.name), vars1, vars2, priceCol,
+      expectcatchmodels, startloc, polyn, spat, spatID
     )
     make_model_design_function$kwargs <- list()
     
