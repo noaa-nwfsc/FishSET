@@ -7,7 +7,8 @@
 data_check(dat, project, x)
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.}
+\item{dat}{Primary data containing information on hauls or trips. Table in 
+the FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{String, name of project.}
 
@@ -15,13 +16,16 @@ data_check(dat, project, x)
 Must be in quotes if called from the FishSET database.}
 }
 \description{
-Check primary data for common data quality issues, such as NaNs, NAs, outliers, unique rows, and empty variables.
+Check primary data for common data quality issues, such as NaNs, NAs, outliers, 
+unique rows, and empty variables.
 }
 \details{
-Prints summary stats for all variables in \code{dat}. Prints column names that contain NaNs or NAs. Checks 
-  for outliers for specified variable \code{x}. Checks that all column names are unique, whether any columns in 
-   \code{dat} are empty, whether each row is a unique choice occurrence at the haul or trip level, that data for 
-   either lat/lon or fishing area are included. The function is also called by other functions.
+Prints summary stats for all variables in \code{dat}. Prints column 
+  names that contain NaNs or NAs. Checks for outliers for specified variable 
+  \code{x}. Checks that all column names are unique, whether any columns in 
+  \code{dat} are empty, whether each row is a unique choice occurrence at the 
+  haul or trip level, that data for either lat/lon or fishing area are included. 
+  The function is also called by other functions.
 }
 \examples{
 \dontrun{
