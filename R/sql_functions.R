@@ -332,14 +332,14 @@ model_out_view <- function(table, project) {
   #' argument must be the full name of the table name in the FishSET database. 
   #' Output includes information on model convergence, standard errors, t-stats, etc.
   #' @param table  Table name in FishSET database. Should contain the phrase 
-  #'   'modelout'. Table name must be in quotes.
+  #'   'ModelOut'. Table name must be in quotes.
   #' @param project Name of project
   #' @export
   #' @description Returns output from running the discretefish_subroutine function.
   #'   The table parameter must be the full name of the table name in the FishSET database.
   #' @examples
   #' \dontrun{
-  #' model_out_view('pcodmodelout20190604', 'pcod')
+  #' model_out_view('pcodModelOut20190604', 'pcod')
   #' }
   #
   if (table_exists(table, project) == FALSE) {
@@ -365,7 +365,7 @@ model_params <- function(table, project) {
   #' database. 
   #' 
   #' @param table  Table name in FishSET database. Should contain the phrase 
-  #'   'modelout'. Table name must be in quotes.
+  #'   'ModelOut'. Table name must be in quotes.
   #' @param project Name of project
   #' @export
   #' @description Returns parameter estimates, standard errors, and t-statistic 
@@ -373,7 +373,7 @@ model_params <- function(table, project) {
   #'  be the full name of the table name in the FishSET database.
   #' @examples
   #' \dontrun{
-  #' model_params('pcodmodelout20190604', 'pcod')
+  #' model_params('pcodModelOut20190604', 'pcod')
   #' }
   #'
 
@@ -437,7 +437,7 @@ model_fit <- function(project) {
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM ", paste0(project, "modelfit"))))
+  return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM ", paste0(project, "ModelFit"))))
 }
 
 model_names <- function(project) {
@@ -560,7 +560,7 @@ list_tables <- function(project, type = "main") {
   #'   (GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (altmatrix), 
   #'   "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
   #'   "filter" (FilterTable), "centroid" (Centroid or FishCentroid),  "model" 
-  #'   (modelOut), "model data" or "model design" (ModelInputData).
+  #'   (ModelOut), "model data" or "model design" (ModelInputData).
   #' @export
   #' @examples 
   #' \dontrun{
@@ -583,7 +583,7 @@ list_tables <- function(project, type = "main") {
     switch(type, 
            "info" = "MainDataTableInfo", "main" = "MainDataTable", "ec" = "ExpectedCatch", 
            "altc" = "altmatrix", "port" = "PortTable", "gc" = "ldglobalcheck", 
-           "fleet" = "FleetTable", "model" = "modelOut", "model data" = "ModelInputData", 
+           "fleet" = "FleetTable", "model" = "ModelOut", "model data" = "ModelInputData", 
            "model design" = "ModelInputData", "grid" = "GridTable", "aux" = "AuxTable",
            "spat" = "SpatTable", "filter" = "FilterTable", "centroid" = "Centroid")
   
@@ -673,7 +673,7 @@ fishset_tables <- function(project = NULL) {
     # add a type column (order matters)
     db_type <- c("MainDataTableInfo", "MainDataTable\\d{8}", "MainDataTable_final", 
                  "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable\\d{8}",
-                 "PortTable", "ldglobalcheck", "FleetTable", "modelOut", "modelfit",
+                 "PortTable", "ldglobalcheck", "FleetTable", "ModelOut", "ModelFit",
                  "ModelInputData", "modelDesignTable", "FilterTable", "GridTable\\d{8}",  
                  "GridTable", "AuxTable\\d{8}", "AuxTable", "SpatTable\\d{8}", "SpatTable")
     
@@ -701,8 +701,8 @@ fishset_tables <- function(project = NULL) {
                "altmatrix" = "alt choice matrix", "PortTable_raw" = "raw port table",
                "PortTable" = "port table", "MainDataTableInfo" = "info table",
                "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
-               "FleetTable" = "fleet table", "modelOut" = "model output", 
-               "modelfit" = "model fit", "ModelInputData" = "model data", 
+               "FleetTable" = "fleet table", "ModelOut" = "model output", 
+               "ModelFit" = "model fit", "ModelInputData" = "model data", 
                "modelDesignTable" = "model design", "other" = "other",
                "GridTable_raw" = "raw grid table",  "GridTable" = "grid table",
                "AuxTable_raw" = "raw aux table", "AuxTable" = "aux table", 

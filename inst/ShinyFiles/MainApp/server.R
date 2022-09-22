@@ -5526,10 +5526,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         inputs 
       } 
        
-      temp <- isolate(paste0(project$name, "modelfit"))
+      temp <- isolate(paste0(project$name, "ModelFit"))
       this_table <- reactive(
         if(DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)),
-                                              paste0(project$name, 'modelfit'))){
+                                              paste0(project$name, 'ModelFit'))){
           data.frame(t(model_fit(project$name)))
         } else {
           data.frame('X1'=NA, 'X2'=NA, 'X3'=NA, 'X4'=NA)
