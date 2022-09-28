@@ -309,7 +309,7 @@ make_model_design <-
     
   # parameter setup ----
   # Script necessary to ensure parameters generated in shiny app are in correct format
-  if (is_empty(vars1) || vars1 == "none") {
+  if (is_value_empty(vars1) || "none" %in% vars1) {
     
     indeVarsForModel <- NULL
     
@@ -325,7 +325,7 @@ make_model_design <-
     }
   }
     
-  if (is_empty(vars2) || vars2 == "none") {
+  if (is_value_empty(vars2) || "none" %in% vars2) {
     
     gridVariablesInclude <- NULL
     
@@ -405,7 +405,7 @@ make_model_design <-
       
     } else {
       
-      if (is.null(expectcatchmodels)) {
+      if (is_value_empty(expectcatchmodels)) {
         
         stop('Expected catch matrix not defined. Model design file cannot be created.',
              call. = FALSE)
@@ -500,9 +500,17 @@ make_model_design <-
  
   # Initial parameters ----
   # need to grab inits from previous model run if required
+  # TODO: include expected catch matrices if used
   # TODO: use better method for reading in existing initial parameters
   indNum <- length(vars1)
   gridNum <- length(vars2)
+  
+  if (!is_value_empty(expectcatchmodels)) {
+    
+    browser()
+    
+    
+  }
   
   # default parameter lengths 
   if (likelihood == "logit_c") {
