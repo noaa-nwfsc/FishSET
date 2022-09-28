@@ -1,23 +1,4 @@
 # File directory functions ----
-
-# First a helper function to load packages, installing them first if necessary
-# Returns logical value for whether successful
-# TODO: consider removing this function
-ensure_library = function (lib.name) {
-  #' Helper function to load packages that may be missing
-  #' @param lib.name Library name required
-  #' @keywords internal
-  #' @export
-  
-  x = require(lib.name, quietly = TRUE, character.only = TRUE)
-  if (!x) {
-    install.packages(lib.name, dependencies = TRUE, quiet = TRUE)
-    x = require(lib.name, quietly = TRUE, character.only = TRUE)
-  }
-  x
-}
-
-
 choose_directory = function() {
   #' Choose directory
   #' @export
@@ -67,7 +48,7 @@ loc <- function() {
     if (grepl('FishSETFolder', as.character(newdir)) == FALSE) {
       
       newdir <- paste0(newdir, '/FishSETFolder/')
-      
+      # this will silently fail if dir already exists
       dir.create(file.path(newdir), showWarnings = FALSE)
     } 
     # otherwise, return the loc of the existing FSF
@@ -405,7 +386,33 @@ find_project <- function(dat, project=NULL){
   }
   
 }
+
 # ----
+
+file_nm_check <- function(file_nm) {
+  #' Check name or file name
+  #' 
+  #' Check a name or file name for illegal characters. 
+  #' @param file_nm String, the file name or name to check. 
+  #' @keywords internal
+  #'
+  
+  illegal_chars <- c('#', '<', '>', '#', '$', '+', '%', '!', '`', '&', '*','\'', 
+                     '\"', '|', '\\{', '\\}', '?', '=', '/', '\\',':', '@')
+  
+  ill_print <- gsub("\\\\", "", illegal_chars)
+  ill_print[20] <- "\\"
+  ill_print <- paste(ill_print, collapse = ", ")
+  
+  ill_chars <- paste0(illegal_chars, collapse = "|")
+  
+  if (any(grepl(ill_chars, file_nm))) {
+    
+    stop("Invalid name or file name. The following characters are not allowed: ", 
+         ill_print, call. = FALSE)
+  }
+}
+
 
 # QAQC functions ----
 vgsub <- function(pattern, replacement, x, ...) {
@@ -1673,8 +1680,9 @@ save_table <- function(table, project, func_name, ...) {
   #' save_table(count, project, "species_catch")
   #' }
   
-  fn <- paste0(locoutput(project=project), project, "_", func_name, "_", Sys.Date(), ".csv")
-  write.csv(table, fn)
+  fn <- 
+    paste0(locoutput(project=project), project, "_", func_name, "_", Sys.Date(), ".csv")
+  write.csv(table, fn, ...)
 }
 
 save_ntable <- function(table, project, func_name, id = "num", ...) {

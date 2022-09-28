@@ -3,7 +3,11 @@
 \name{assignment_column}
 \alias{assignment_column}
 \title{Assign each observation in the primary dataset to a fishery management or 
- regulatory zone}
+ regulatory zone
+ 
+ Assign each observation in the primary dataset to a fishery management or 
+ regulatory zone. Function is primarily called by other functions that 
+ require zone assignment but can also be used on its own.}
 \usage{
 assignment_column(
   dat,
@@ -23,8 +27,8 @@ assignment_column(
 )
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips. Table in FishSET 
-database contains the string 'MainDataTable'.}
+\item{dat}{Primary data containing information on hauls or trips. Table in 
+FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{name of project.}
 
@@ -44,8 +48,8 @@ containing information on zones.}
 
 \item{name}{The name of the new assignment column. Defaults to \code{"ZoneID"}.}
 
-\item{closest.pt}{Logical, if \code{TRUE}, observations that fall outside zones are 
-classed as the closest zone polygon to the point.}
+\item{closest.pt}{Logical, if \code{TRUE}, observations that fall outside 
+zones are classed as the closest zone polygon to the point.}
 
 \item{bufferval}{Maximum buffer distance, in meters, for assigning observations 
 to the closest zone polygon. If the observation is not within the defined 
@@ -60,13 +64,14 @@ Required for spatial tables read from csv files. Leave as \code{NULL} if
 Required for spatial tables read from csv files. Leave as \code{NULL} if 
 \code{spat} is an \code{sf} or \code{sp} object.}
 
-\item{hull.polygon}{Logical, if \code{TRUE}, creates convex hull polygon. Use if spatial 
-data creating polygon are sparse or irregular.}
+\item{hull.polygon}{Logical, if \code{TRUE}, creates convex hull polygon. Use 
+if spatial data creating polygon are sparse or irregular.}
 
-\item{epsg}{EPSG code. Set the epsg code to ensure that \code{spat} and \code{dat} 
-have the same projections. If epsg is not specified but is defined for \code{spat}, 
-then the \code{spat} coordinate reference system will be applied to \code{dat}. 
-See \url{http://spatialreference.org/} to help identify optimal epsg number.}
+\item{epsg}{EPSG code. Set the epsg code to ensure that \code{spat} and 
+\code{dat} have the same projections. If epsg is not specified but is 
+defined for \code{spat}, then the \code{spat} coordinate reference system 
+will be applied to \code{dat}. See \url{http://spatialreference.org/} to 
+help identify optimal epsg number.}
 
 \item{log.fun}{Logical, whether to log function call (for internal use).}
 }
@@ -74,9 +79,12 @@ See \url{http://spatialreference.org/} to help identify optimal epsg number.}
 Returns primary dataset with new assignment column.
 }
 \description{
-Assign each observation in the primary dataset to a fishery management 
-  or regulatory zone. Function is primarily called by other functions that require 
-  zone assignment but can also be used on its own.
+Assign each observation in the primary dataset to a fishery management or 
+ regulatory zone
+ 
+ Assign each observation in the primary dataset to a fishery management or 
+ regulatory zone. Function is primarily called by other functions that 
+ require zone assignment but can also be used on its own.
 }
 \details{
 Function uses the specified latitude and longitude from the primary 

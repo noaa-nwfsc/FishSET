@@ -1,18 +1,21 @@
 #' Create the distance matrix
 #'
 #' @param dataset Primary data set
+#' @param spat Spatial table. 
+#' @param spatID Column name for Zone/area ID. 
 #' @param alt_var Alternative choice location
 #' @param occasion Define choice location
+#' @param occasion_var Identify variable(s) needed to define choice location.
 #' @param dataZoneTrue Include zone
-#' @param int  Zone centroid data frame
+#' @param zone_cent  Zonal centroid table.
+#' @param fish_cent  Fishing centroid table.
 #' @param choice Choice zone
 #' @param units Distance units
 #' @param port Port table
 #' @param zoneRow Zone row
-#' @param X distance matrix
 #' @param zoneID Zone identifier
-#' @importFrom geosphere distm
-#' @importFrom stringi stri_count
+#' @importFrom sf st_as_sf st_distance
+#' @importFrom dplyr left_join
 #' @export 
 #' @keywords internal
 #' @details Function is called by \code{\link{make_model_design}} generate the 
@@ -23,283 +26,170 @@
 
 create_dist_matrix <-
   function(dataset,
+           spat = NULL, 
+           spatID = NULL,
            alt_var,
            occasion,
+           occasion_var = NULL,
            dataZoneTrue,
-           int,
+           zone_cent = NULL,
+           fish_cent = NULL,
            choice,
            units,
-           port,
+           port = NULL,
            zoneRow,
-           X,
            zoneID) {
     
-  # Q: is int (centroid table) always required?
-    # No, not always needed, ex: haul end - all haul locs
+    
+  # index of zones that meet min haul requirement
+  zone_ind <- which(dataZoneTrue == 1)
+  
   # occasion ----
   
   ## Grid ----
-  #Steps if alternative matrix come from gridded data file 
-  #The distance matrix is the gridded data file
-  if (!is.null(X)) {
-    altChoiceUnits <- units
+    # Note: not currently available
+  
+  ## Centroid ----
+  if (occasion %in% c("zonal centroid", "fishing centroid")) {
     
-    #Identify if using centroid or other for altToLocal2
-    allZP <- dataset[, grep("AREA|zone", colnames(dataset), ignore.case =T)[1]] # get zonal type variables
+    if (is_value_empty(occasion_var)) o_var <- zoneID
+    else o_var <- occasion_var
     
-    if (all(is.null(allZP)) || alt_var > length(allZP)) {
+    fromXY <- dataset[zone_ind, o_var]
+    
+    if (length(o_var) == 1) {
+      # join centroid lon-lat by zoneID
       
-      v2 <- 0 # zonal centroid
+      if (occasion == "zonal centroid") cent_tab <- zone_cent
+      else if (occasion == "fishing centroid") cent_tab <- fish_cent 
       
-    } else {
+      join_by <- stats::setNames("ZoneID", o_var)
+      fromXY <- dplyr::left_join(fromXY, cent_tab, by = join_by)
       
-      v2 <- allZP(alt_var) #
+      fromXY <- fromXY[, c("cent.lon", "cent.lat")]
     }
-    
-    if (v2 == 0) {
-      
-      altToLocal1 <- ""
-      altToLocal2 <- "Centroid of Zonal Assignment"
-      
-    } else {
-      
-      altToLocal1 <- ""
-      altToLocal2 <- alt_var
-    }
-    
-    altChoiceType <- "loaded grid data matrix"
-    B <- zoneRow
-    choiceZ <- ""
-    # End Grid Matrix
-  } else {
-    
-    zone_ind <- which(dataZoneTrue == 1)
-    
-    # steps if alternative matrix comes from loaded data (expectations)
-    ## Centroid ----
-    if (any(grepl("centroid|zon", occasion, ignore.case = TRUE))) {
 
-      # TODO: use better names for temp and toXY1 (occasion_loc)
-      # Note: this is the zone where haul occurred, not where it decided to go next
-      # 
-      temp <- dataset[zone_ind, zoneID]
-      # Q: should this be changed to ZoneID instead of keeping original name?
-      colnames(temp) <- "ZoneID"
-      # switch to left_join() (faster)
-      temp <- merge(temp, int, all.x = TRUE)
-      toXY1 <- temp[zone_ind, 2:3]
-      altToLocal1 <- "Centroid of Zonal Assignment"
+    altToLocal1 <- "Centroid of Zonal Assignment"
+    
+  } else if (occasion == "port") {
+    ## port ----
+    fromXY <- dataset[zone_ind, occasion_var]
+    
+    if (length(occasion_var) == 1) {
       
-    } else {
-    ## Port ----
-      if (any(grepl("Port", occasion, ignore.case = TRUE))) {
+      fromXY[[occasion_var]] <- trimws(fromXY[[occasion_var]])
+      port$Port_Name <- trimws(port$Port_Name)
+      
+      if (all(unique(fromXY[[occasion_var]]) %in% unique(port$Port_Name)) == FALSE) {
         
-        if (is.data.frame(dataset)) {
-          
-          if (any(is_empty(dataset[[occasion]]))) {
-            
-            breakearly <- 1
-            stop("occasion does not exist in dataset", call. = FALSE)
-          }
-          # Note: occasion = name of port var in primary data
-          toXYa <- data.frame(dataset[[occasion]][zone_ind]) # subset data to when dataZoneTrue==1
-          # Note: rename toXYa to something related to ports 
-          colnames(toXYa) <- c(occasion) # ports from primary data
-          toXYa[[occasion]] <- trimws(toXYa[[occasion]])
-          colnames(port)[1] <- occasion
-          port[[occasion]] <- trimws(port[[occasion]]) # port table
-          
-          
-          if (all(unique(toXYa[[occasion]]) %in% unique(port[[occasion]])) == FALSE) {
-            
-            stop("At least one port not included in PortTable.", call. = FALSE)
-          }
-          
-          toXY1 <- merge(toXYa, port) # merge port locations w/ primary data
-          
-        # Data from list
-        } else {
-          
-          stop("Primary data must be a dataframe.", call. = FALSE)
-        }
-        
-      } else {  #End port
-        
-        ## Lon-Lat ----
-        # Data is from a data frame or matrix
-        if (is.data.frame(dataset)) {
-          
-          if (length(occasion) < 2) {
-            
-            stop("Please define both lat and long in occasion parameter of ",  
-                 "create_alternative_choice function.", call. = FALSE)
-          }
-          
-          if (all(occasion %in% names(dataset)) == FALSE) {
-            
-            stop('At least one lat/lon variable was not found in the primary ', 
-                 'data table. Distance matrix not created.', call. = FALSE)
-          }
-          
-          if (any(grepl('lat', occasion, ignore.case=TRUE))) {
-            
-            toXY1 <- data.frame(
-              
-              dataset[[occasion[which(stringi::stri_count(occasion, '(?=LON|Lon|lon)')==max(stringi::stri_count(occasion, '(?=LON|Lon|lon)')))]]][zone_ind],
-              dataset[[occasion[which(stringi::stri_count(occasion, '(?=LAT|lat|Lat)')==max(stringi::stri_count(occasion, '(?=LAT|Lat|lat)')))]]][zone_ind]
-            )
-          
-          } else {
-            
-            # Note: if lat isn't found in col names, assume lon-lat order
-            toXY1 <- data.frame(
-              dataset[[occasion[1]]][zone_ind],
-              dataset[[occasion[2]]][zone_ind]
-            )
-          }
-          
-        } else { # if not data.frame
-          
-          toXY1 <- dataset[[occasion]][zone_ind]
-        } 
+        stop("At least one port not included in PortTable.", call. = FALSE)
       }
       
-      altToLocal1 <- occasion
+      join_by <- stats::setNames("Port_Name", occasion_var)
+      fromXY <- dplyr::left_join(fromXY, port, by = join_by)
+      fromXY <- fromXY[, c("Port_Long", "Port_Lat")] # drop port name, lon-lat order
+    }
+      
+  } else {  
+      
+    ## Lon-Lat ----
+    fromXY <- dataset[zone_ind, occasion_var]
+  }
+    
+    altToLocal1 <- occasion
+
+  
+  # alt_var ----
+  
+  ## centroid ----
+  if (alt_var %in% c("zonal centroid", "fishing centroid")) {
+    
+    if (alt_var == "zonal centroid") cent_tab <- zone_cent
+    else if (alt_var == "fishing centroid") cent_tab <- fish_cent 
+    
+    if (!any(cent_tab$ZoneID %in% unique(choice[zone_ind]))) {
+      
+      stop('Name of zones in centroid table do not match choice zones. Rerun ',
+           'find_centroid()', call. = FALSE)
     }
     
-    # alt_var ----
+    # filter centroid table 
+    cent_tab <- cent_tab[cent_tab$ZoneID %in% unique(choice[zone_ind]),] 
+    toXY <- cent_tab[, c("cent.lon", "cent.lat")]
+    altToLocal2 <- "Centroid of Zonal Assignment"
     
-    ## centroid ----
-    if (any(grepl("zon|cent", alt_var, ignore.case = TRUE)) & length(alt_var)==1) {
-     
-      if (!any(int$ZoneID %in% unique(choice[zone_ind, ]))) {
-        
-        stop('Name of zones in centroid table do not match choice zones. Rerun ',
-             'find_centroid', call. = FALSE)
-      }
+  } else if (alt_var == "nearest point") {
+    
+    ## nearest point ----
+    
+    if (is_value_empty(spat) | is_value_empty(spatID)) {
       
-      B <- int[int$ZoneID %in% unique(choice[zone_ind, ]), "ZoneID"] 
-      # Note: I don't think this works the way it's suppose to (doesn't make
-      # sense to use zone_ind w/ the centroid table)
-      # Also, choiceZ isn't used or saved
-      choiceZ <- match(int$ZoneID[zone_ind], unique(int$ZoneID[zone_ind]))
+      stop("'spat' and 'spatID' are required for alt_var = 'nearest point'.", 
+           call. = FALSE)
+    }
+    
+    column_check(spat, spatID)
+    
+    # TODO: check whether shift_long() affects distance matrix
+    spat <- check_spatdat(spat)
+    
+    if (all(unique(choice) %in% spat[[spatID]]) == FALSE) {
       
-      centersZone <- int[int$ZoneID %in% unique(choice[zone_ind, ]), 2:3] # Lat and Long
-      altToLocal2 <- "Centroid of Zonal Assignment"
-      
-    } else {
-      
-      ## Lon-Lat ----
-      if (is.data.frame(dataset)) {
-        
-        if (length(alt_var) < 2) {
-          
-          stop("Please define lon and lat in alt_var argument of ", 
-               "create_alternative_choice function.", call. = FALSE)
-        }
-        
-        if (any(is_empty(dataset[[alt_var[1]]]))) {
-          
-          stop("alt_var does not exist in dataset", call. = FALSE)
-        }
-        
-        if (any(is_empty(dataset[[alt_var[2]]]))) {
-          
-          stop("alt_var does not exist in dataset", call. = FALSE)
-        }
-        
-        toXY2 <- data.frame(
-          dataset[[alt_var[1]]][zone_ind],
-          dataset[[alt_var[2]]][zone_ind]
-        )
-        
-      } else {
-        
-        toXY2 <- dataset[[alt_var]][zone_ind] # MUST be a LAT/LONG 
-      }
-      
-      Bb <- unique(cbind(data.frame(choice[zone_ind, ]), data.frame(toXY2)))
-      B <- Bb[, 1] # Assignment column
-      centersZone <- Bb[, 2:3] # Latitude aned Longitude
-      altToLocal2 <- alt_var
-    } 
-  } # End From loaded data
+      stop("'spat' contains zones not found in alternative choice list. Do you ",
+           "have the correct spatial table?", call. = FALSE)
+    }
+    
+    altToLocal2 <- alt_var
+  } 
   
   # Distance Matrix ----
   # Test for potential issues with data
-     
-  if (any(do.call(cbind, lapply(toXY1, is.nan)))) {
+  if (any(qaqc_helper(fromXY, "NaN"))) {
     
     stop(paste("NaN found in ", altToLocal1, ". Design file aborted."), 
          call. = FALSE)
   }
-     
-  if (any(do.call(cbind, lapply(centersZone, is.nan)))) {
-    
-    stop(paste("NaN found in ", altToLocal2, ". Design file aborted."), 
-         call. = FALSE)
-  }
 
-  # Q: why would toXY1 have more than 2 cols?
-  if (ncol(toXY1) > 2) {
+  # convert to sf object
+  fromXY[seq_along(fromXY)] <- lapply(fromXY, as.numeric)
+  fromXY <- sf::st_as_sf(fromXY, 
+                         coords = c(find_lon(fromXY), find_lat(fromXY)),
+                         crs = 4326) # TODO: make sure crs can be changed if needed
     
-    # TODO: switch to sf::st_distance()? 
-    # Note: different output, check units 
-    if (FALSE) {
+  if (alt_var == "nearest point") {
+    
+    toXY <- spat[spat[[spatID]] %in% unique(choice), spatID]
+    # transform fromXY CRS to match
+    fromXY <- sf::st_transform(fromXY, crs = sf::st_crs(toXY))
+    
+  } else {
+    
+    if (any(qaqc_helper(toXY, "NaN"))) {
       
-      st_zone <- sf::st_as_sf(toXY1[, 2:3],
-                              coords = c(find_lon(toXY1), find_lat(toXY1)))
-      st_cent <- sf::st_as_sf(centersZone[, 1:2],
-                              coords = c(find_lon(centersZone), find_lat(centersZone)))
-
-      distMatrix <- sf::st_distance(st_zone, st_cent)
+      stop(paste("NaN found in ", altToLocal2, ". Design file aborted."), 
+           call. = FALSE)
     }
     
-    # Note: if occasion = centroid, then this is calculating distance after the decision
-    # of where to go was made, not before. Would need to know the 
-    # centroid of the zone before departure occurred (i.e. location of last haul).
-    # Note: distGeo uses meters
-    toXY1[, 2] <- as.numeric(toXY1[, 2])
-    toXY1[, 3] <- as.numeric(toXY1[, 3])
-    distMatrix <- geosphere::distm(toXY1[, c(find_lon(toXY1), find_lat(toXY1))], 
-                                   centersZone[, c(find_lon(centersZone), 
-                                                   find_lat(centersZone))])
-  } else {
-    
-    # Note: this will break if cols aren't in long-lat order.
-    toXY1[, 1] <- as.numeric(toXY1[, 1])
-    toXY1[, 2] <- as.numeric(toXY1[, 2])
-    
-    distMatrix <- geosphere::distm(toXY1[, c(find_lon(toXY1), find_lat(toXY1))], 
-                                   centersZone[, c(find_lon(centersZone), 
-                                                   find_lat(centersZone))])
+    toXY[seq_along(toXY)] <- lapply(toXY, as.numeric)
+    toXY <- sf::st_as_sf(toXY, 
+                         coords = c(find_lon(toXY), find_lat(toXY)),
+                         crs = 4326) # TODO: make sure crs can be changed if needed
   }
-  # st_distance() has a units argument, have function take care of this
-  #
-  altChoiceType <- "distance"
   
-  if (units %in% c("meters", "M", "m")) {
+  if (any(is_value_empty(fromXY) | is_value_empty(toXY))) {
     
-    X <- distMatrix
-    altChoiceUnits <- "meters"
-    
-  } else if (units %in% c("kilometers", "KM", "km")) {
-    
-    X <- distMatrix / 1000
-    altChoiceUnits <- "kilometers"
-    
-  } else if (units == "miles") {
-    
-    X <- distMatrix * 0.000621371192237334
-    altChoiceUnits <- "miles"
-    
-  } else {
-    
-    X <- distMatrix
-    altChoiceUnits <- units
+    stop("Error in creating distance matrix: empty spatial table", call. = FALSE)
   }
+  
+  distMatrix <- sf::st_distance(fromXY, toXY)
+  
+  units(distMatrix) <- units
+  
+  altChoiceType <- "distance"
+  altChoiceUnits <- units
+
   # DM list ----
-  return(list(X = X, 
+  return(list(distMatrix = distMatrix, 
               altChoiceUnits = altChoiceUnits, 
               altChoiceType = altChoiceType, 
               altToLocal1 = altToLocal1,

@@ -950,11 +950,11 @@ model_out_summary <- function(project, output = "print") {
   #' model_out_summary("pollock")
   #' }
 
-  pull_out <- current_db_table(project, "modelOut")
+  pull_out <- current_db_table(project, "ModelOut")
   
   if (pull_out$exists == FALSE) {
     
-    message(project, "modelOut not found.")
+    message(project, "ModelOut not found.")
   
   } else {
     
@@ -1002,11 +1002,11 @@ model_error_summary <- function(project, output = "print") {
   #' model_error_summary("pollock")
   #' }
 
-  pull_out <- current_db_table(project, "modelOut")
+  pull_out <- current_db_table(project, "ModelOut")
 
   if (pull_out$exists == FALSE) {
     
-    message(project, "modelOut not found.")
+    message(project, "ModelOut not found.")
     
   } else {
     
@@ -1055,11 +1055,11 @@ model_fit_summary <- function(project, output = "print") {
   #' model_fit_summary("pollock")
   #' }
 
-  pull_out <- current_db_table(project, "modelOut")
+  pull_out <- current_db_table(project, "ModelOut")
   
   if (pull_out$exists == FALSE) {
     
-    message(project, "modelOut not found.")
+    message(project, "ModelOut not found.")
   
   } else {
     
@@ -1312,7 +1312,7 @@ table_type <- function(tab) {
     
     db_type <- c("MainDataTableInfo", "MainDataTable_raw", "MainDataTable_final", 
                  "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable", "port", 
-                 "ldglobalcheck", "FleetTable", "modelOut", "modelfit", "modelinputdata", 
+                 "LDGlobalCheck", "FleetTable", "ModelOut", "ModelFit", "ModelInputData", 
                  "modelDesignTable", "FilterTable", "GridTable", "AuxTable", "SpatTable")
     
     t_regex <- paste0(db_type, collapse = "|")
@@ -1324,9 +1324,9 @@ table_type <- function(tab) {
                   "MainDataTable_raw" = "raw table", "ExpectedCatch" = "expected catch matrix", 
                   "altmatrix" = "alt choice matrix", "PortTable" = "port", 
                   "port" = "port", "MainDataTableInfo" = "info table",
-                  "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
-                  "FleetTable" = "fleet table", "modelOut" = "model output", 
-                  "modelfit" = "model fit", "modelinputdata" = "model data", 
+                  "FilterTable" = "filter table", "LDGlobalCheck" = "global check", 
+                  "FleetTable" = "fleet table", "ModelOut" = "model output", 
+                  "ModelFit" = "model fit", "ModelInputData" = "model data", 
                   "modelDesignTable" = "model design", "other" = "other",
                   "GridTable" = "grid", "AuxTable" = "aux", "SpatTable" = "spatial")
     

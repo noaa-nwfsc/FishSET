@@ -34,9 +34,9 @@ welfare_predict <- function(project, mod.name, expected.catch.name, enteredPrice
 
    #Get inverse hessian for selected model
   #Get model output
-  tlength <- length(tables_database(project=project)[grep('modelOut', tables_database(project=project))])
+  tlength <- length(tables_database(project=project)[grep('ModelOut', tables_database(project=project))])
      for(i in 1:tlength){
-        tempname <- tables_database(project=project)[grep('modelOut', tables_database(project=project))][tlength]
+        tempname <- tables_database(project=project)[grep('ModelOut', tables_database(project=project))][tlength]
         out <- model_out_view(table = tempname, project=project)
     if(any(lapply( out , "[[" , "name" ) == mod.name)==TRUE){
       break   #model.H1{mChoice} #Note added inv hessian
@@ -68,12 +68,12 @@ welfare_predict <- function(project, mod.name, expected.catch.name, enteredPrice
 #modelOutput=cell2mat(model.Out{mChoice}(:,1:end))
 #modeloutput is  the parameter estimates
   if(file.exists(read_dat(paste0(locoutput(project), pull_output(project, type='table', fun=paste0('params_',  mod.name)))))){
-      modelOutput <- read_dat(paste0(locoutput(project), pull_output(project, type='table', fun=paste0('params_',  mod.name))))
+      ModelOutput <- read_dat(paste0(locoutput(project), pull_output(project, type='table', fun=paste0('params_',  mod.name))))
   } else {
     "Parameter estimate table could not be found."
   }
 #zoneID <- logitEq$X
-modelOutput <- modelOutput[,2]
+ModelOutput <- ModelOutput[,2]
 
 
  ##                                                                     
@@ -144,7 +144,7 @@ if(predict_temp[[1]]$type == 'Logit'){
   #FIXME see main_welfare_like_rob_cjb.m
   #[r,p]=chol(invHess)
   #if (p==0){
-  mu_rand <- t(mvgrnd(modelOutput,invHess,betadraws))  # flipped so that rows are output and columns are draws
+  mu_rand <- t(mvgrnd(ModelOutput,invHess,betadraws))  # flipped so that rows are output and columns are draws
   welfare = sim_welfare(project=project, X=x,alts=alts,beta_j=mu_rand, scenario)
 
   #  warning('Welfare prediction cannot be performed as the inverse hessian is not positive definite')
@@ -182,9 +182,9 @@ WelfareScale=100000
  #check that invhess is positive definite
 
 
-mu_rand= t(mvgrnd(modelOutput,invHess,betadraws))  # fliped so that rows are output and columns are draws
+mu_rand= t(mvgrnd(ModelOutput,invHess,betadraws))  # fliped so that rows are output and columns are draws
 
-z=length(modelOutput[,1])
+z=length(ModelOutput[,1])
 
 
 

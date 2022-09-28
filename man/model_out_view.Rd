@@ -8,7 +8,7 @@ model_out_view(table, project)
 }
 \arguments{
 \item{table}{Table name in FishSET database. Should contain the phrase 
-'modelout'. Table name must be in quotes.}
+'ModelOut'. Table name must be in quotes.}
 
 \item{project}{Name of project}
 }
@@ -23,6 +23,6 @@ Output includes information on model convergence, standard errors, t-stats, etc.
 }
 \examples{
 \dontrun{
-model_out_view('pcodmodelout20190604', 'pcod')
+model_out_view('pcodModelOut20190604', 'pcod')
 }
 }

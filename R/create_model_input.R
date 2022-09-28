@@ -40,7 +40,7 @@ create_model_input <-
   
   if (is.null(x)) {
     
-    x_temp <- unserialize_table(paste0(project, "modelinputdata"), project)
+    x_temp <- unserialize_table(paste0(project, "ModelInputData"), project)
     
     if (!is.null(mod.name)) {
       
@@ -65,9 +65,9 @@ create_model_input <-
     
     if (!is.character(scaler.func)) {
       
-      x$scales$catch <- scaler.func(x$catch)
-      x$scales$zonal <-  scaler.func(x$distance)
-      x$scales$griddata <-  scaler.func(x$bCHeader$gridVariablesInclude)
+      x$scales['catch'] <- scaler.func(x$catch)
+      x$scales['zonal'] <- scaler.func(x$distance)
+      x$scales['griddata'] <- scaler.func(x$bCHeader$gridVariablesInclude)
       
       if (is.list(x$bCHeader$indeVarsForModel)) {
         
@@ -87,8 +87,8 @@ create_model_input <-
     }
   }
 
-  catch <- data.frame(x$catch) / as.numeric(x$scales["catch"])
-  choice <- x$choice
+  catch <- x$catch / as.numeric(x$scales['catch'])
+  choice <- x$choice # Note: is dataframe necessary?
   distance <- data.frame(x$distance) / as.numeric(x$scales['zonal'])
   startingloc <- x$startingloc
   mod.name <- unlist(x$mod.name)
@@ -97,21 +97,21 @@ create_model_input <-
   choice <- as.data.frame(as.numeric(factor(as.matrix(choice))))
   ab <- max(choice) + 1 # no interactions in create_logit_input - interact distances in likelihood function instead
   
-  fr <- x$likelihood # function, e.g. logit_c
+  fr <- x$likelihood
   
   if (fr == "logit_correction" & all(is.na(startingloc))) {
     # Note: use stop() instead?
     warning("Startingloc parameter is not specified. Rerun the create_alternative_choice function")
   }
-  
+  # browser()
   dataCompile <- create_logit_input(choice)
-  # Note: addition 2 cols added?
+  
   d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
   
   
   # Data needs will vary by the likelihood function
-  # TODO: gridVariablesInclude is only being used in EPMs atm, need to include 
-  # it for other models
+  # Note: gridVariablesInclude (non-expected catch gridded vars) is only being 
+  # used in EPMs, need to include it for other models?
   if (grepl("epm", fr)) {
     
     otherdat <- list(
