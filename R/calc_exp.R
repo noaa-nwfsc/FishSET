@@ -60,7 +60,7 @@ calc_exp <- function(dataset,
   z_ind <- which(dataZoneTrue == 1)
   fleet <- fleet[z_ind]
   
-  areas <- choice$g[z_ind] # mapping to to the map file (zones)
+  areas <- choice[z_ind] # mapping to to the map file (zones)
   altc_areas <- as.character(unique(areas)) 
   altc_fleet <- unique(paste0(fleet, areas))
   
