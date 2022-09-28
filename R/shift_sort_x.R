@@ -17,7 +17,8 @@ shift_sort_x <- function(x, ch, y, distance, alts, ab) {
 
   ch0 <- ch - 1
   n <- max(dim(ch))
-  d <- list()
+  # d <- list()
+  d <- vector(mode = "list", length = n)
   x <- as.matrix(cbind(x, distance))
   # starts as data.frame
   ch <- as.matrix(ch)
@@ -39,7 +40,7 @@ shift_sort_x <- function(x, ch, y, distance, alts, ab) {
       xsorted <- t(xsorted)
       xsorted <- matrix(xsorted, 1, alts * ab)
     }
-    # the catch, location, possible locations, and the distance to each location for an occasion
+    # the catch, chosen location, possible locations, and the distance to each location for an occasion
     d[[j]] <- cbind(as.matrix(y[j, ]), as.matrix(ch[j, ]), xsorted)
   }
 
