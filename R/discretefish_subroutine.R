@@ -196,8 +196,8 @@ discretefish_subroutine <-
       
         
         # Number of inits ----
-        gridNum <- length(datamatrix$otherdat$griddat[[1]])
-        intNum <-  length(datamatrix$otherdat$intdat[[1]])
+        gridNum <- length(datamatrix$otherdat$griddat)
+        intNum <-  length(datamatrix$otherdat$intdat)
         
         if (fr == 'logit_c') {
           
@@ -672,7 +672,7 @@ discretefish_subroutine <-
   single_sql <- paste0(project, "ModelOut", format(Sys.Date(), format = "%Y%m%d"))
   
   if (table_exists(single_sql, project)) {
-    # TODO: determine what this block is for
+    # TODO: determine what this block is for, returning parameters?
     out <- 
       unserialize(
         DBI::dbGetQuery(fishset_db, 
