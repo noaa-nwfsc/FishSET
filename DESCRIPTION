@@ -1,7 +1,7 @@
 Type: Package
 Package: FishSET
 Title: Spatial Economics Toolbox for Fisheries
-Version: 0.1.2
+Version: 0.1.3
 Date: 2021
 Author: Alan Haynie, Melanie Harsch, Bryce McManus
 Maintainer: Alan Haynie - NOAA Federal <FishSET@noaa.gov>
