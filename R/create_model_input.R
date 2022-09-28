@@ -95,6 +95,7 @@ create_model_input <-
   choice.table <- choice 
   # TODO: fix non-syntactic choice column name (or leave as vector)
   choice <- as.data.frame(as.numeric(factor(as.matrix(choice))))
+  # Note: ab # of cost parameters + # of alts (shift_sort_x)
   ab <- max(choice) + 1 # no interactions in create_logit_input - interact distances in likelihood function instead
   
   fr <- x$likelihood
@@ -103,7 +104,7 @@ create_model_input <-
     # Note: use stop() instead?
     warning("Startingloc parameter is not specified. Rerun the create_alternative_choice function")
   }
-  # browser()
+  
   dataCompile <- create_logit_input(choice)
   
   d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
@@ -158,21 +159,18 @@ create_model_input <-
     
     
     # Q: Is this right? Also, should dummies by included?
-    ec_mean <- mean(do.call(cbind, expected.catch))
+    # ec_mean <- mean(do.call(cbind, expected.catch))
+    ec_mean <- vapply(expected.catch, mean, numeric(1))
     
-    # alternative for griddat 
-    
-    # if (FALSE) {
-      # df w/ a column for each area in each ec matrix
-      # has same nrow as # of occasions 
-      # Q: filter for ec matrices (exclude dummies)?
-      griddat <- lapply(expected.catch, function(sub) sub/ec_mean)
+    # Q: filter for ec matrices (exclude dummies)?
+    griddat <- lapply(seq_along(expected.catch), function(i) {
       
-      names(griddat) <- names(expected.catch)
-      # Q: if dummies excluded from above, re-add them here? 
-      griddat <- as.data.frame(griddat)
-    # }
-   
+      expected.catch[[i]]/ec_mean[i]
+      })
+      
+    names(griddat) <- names(expected.catch)
+    # Q: if dummies excluded from above, re-add them here? 
+    # griddat <- as.data.frame(griddat)
     
     
     otherdat <- list(
@@ -189,9 +187,12 @@ create_model_input <-
       griddat = griddat,
       
       # Note: df w/ 1 column for each variable (nrow = n occurrences)
-      intdat = list(as.data.frame(
-        mapply("/", x$bCHeader$indeVarsForModel,
-               grep('intdata', names(x$scales)), SIMPLIFY = FALSE)))
+      # intdat = list(as.data.frame(
+      #   mapply("/", x$bCHeader$indeVarsForModel,
+      #          grep('intdata', names(x$scales)), SIMPLIFY = FALSE)))
+      intdat = mapply("/", x$bCHeader$indeVarsForModel, 
+                      grep('intdata', names(x$scales)), 
+                      SIMPLIFY = FALSE)
     )
   }
   
