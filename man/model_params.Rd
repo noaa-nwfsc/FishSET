@@ -8,7 +8,7 @@ model_params(table, project)
 }
 \arguments{
 \item{table}{Table name in FishSET database. Should contain the phrase 
-'modelout'. Table name must be in quotes.}
+'ModelOut'. Table name must be in quotes.}
 
 \item{project}{Name of project}
 }
@@ -24,7 +24,7 @@ database.
 }
 \examples{
 \dontrun{
-model_params('pcodmodelout20190604', 'pcod')
+model_params('pcodModelOut20190604', 'pcod')
 }
 
 }

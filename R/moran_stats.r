@@ -108,7 +108,7 @@ moran_stats <- function(dat, project, varofint, zoneid, spat, cat, lon.dat = NUL
       
     } else {
       
-    int <- suppressWarnings(find_centroid(spat=spatdat, project = project, cat = cat, 
+    int <- suppressWarnings(find_centroid(spat=spatdat, project = project, spatID = cat, 
                                           lon.spat=lon.spat, lat.spat=lat.spat, log.fun = FALSE))
   }
   

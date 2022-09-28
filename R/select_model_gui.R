@@ -62,7 +62,7 @@ select_model <- function(project, overwrite_table=FALSE) {
 
       # out_mod <- reactive({
       fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
-      #     return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM", paste0(project, "modelfit"))))
+      #     return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM", paste0(project, "ModelFit"))))
       # })
 
       shinyInput <- function(FUN, len, id, ...) {
@@ -75,7 +75,7 @@ select_model <- function(project, overwrite_table=FALSE) {
 
       this_table <- reactiveVal(data.frame(t(DBI::dbGetQuery(
         DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project)),
-        paste0("SELECT * FROM ", paste0(project, "modelfit"))
+        paste0("SELECT * FROM ", paste0(project, "ModelFit"))
       )))) # ,Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_")))
 
       observeEvent(input$delete_btn, {

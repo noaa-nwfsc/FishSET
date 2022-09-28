@@ -1,19 +1,19 @@
 #'  Assign each observation in the primary dataset to a fishery management or 
 #'  regulatory zone
 #'  
-#' @description Assign each observation in the primary dataset to a fishery management 
-#'   or regulatory zone. Function is primarily called by other functions that require 
-#'   zone assignment but can also be used on its own.
-#' @param dat Primary data containing information on hauls or trips. Table in FishSET 
-#'   database contains the string 'MainDataTable'.
+#'  Assign each observation in the primary dataset to a fishery management or 
+#'  regulatory zone. Function is primarily called by other functions that 
+#'  require zone assignment but can also be used on its own.
+#' @param dat Primary data containing information on hauls or trips. Table in 
+#'   FishSET database contains the string 'MainDataTable'.
 #' @param project name of project.
 #' @param spat Spatial data containing information on fishery management or 
 #'   regulatory zones. \code{sf} objects are recommended, but \code{sp} objects
 #'   can be used as well. If using a spatial table read from a csv file, then
 #'   arguments \code{lon.spat} and \code{lat.spat} are required. To upload your
 #'   spatial data to the FishSETFolder see \code{\link{load_spatial}}.
-#' @param hull.polygon Logical, if \code{TRUE}, creates convex hull polygon. Use if spatial 
-#'   data creating polygon are sparse or irregular.
+#' @param hull.polygon Logical, if \code{TRUE}, creates convex hull polygon. Use 
+#'   if spatial data creating polygon are sparse or irregular.
 #' @param lon.dat Longitude variable in \code{dat}.
 #' @param lat.dat Latitude variable in \code{dat}.
 #' @param lon.spat Variable or list from \code{spat} containing longitude data. 
@@ -26,12 +26,13 @@
 #'   or zones. If \code{spat} is class \code{sf}, \code{cat} should be name of list 
 #'   containing information on zones.
 #' @param name The name of the new assignment column. Defaults to \code{"ZoneID"}. 
-#' @param epsg EPSG code. Set the epsg code to ensure that \code{spat} and \code{dat} 
-#'   have the same projections. If epsg is not specified but is defined for \code{spat}, 
-#'   then the \code{spat} coordinate reference system will be applied to \code{dat}. 
-#'   See \url{http://spatialreference.org/} to help identify optimal epsg number.
-#' @param closest.pt  Logical, if \code{TRUE}, observations that fall outside zones are 
-#'   classed as the closest zone polygon to the point.
+#' @param epsg EPSG code. Set the epsg code to ensure that \code{spat} and 
+#'   \code{dat} have the same projections. If epsg is not specified but is 
+#'   defined for \code{spat}, then the \code{spat} coordinate reference system 
+#'   will be applied to \code{dat}. See \url{http://spatialreference.org/} to 
+#'   help identify optimal epsg number.
+#' @param closest.pt  Logical, if \code{TRUE}, observations that fall outside 
+#'   zones are classed as the closest zone polygon to the point.
 #' @param bufferval Maximum buffer distance, in meters, for assigning observations 
 #'   to the closest zone polygon. If the observation is not within the defined 
 #'   \code{bufferval}, then it will not be assigned to a zone polygon. 

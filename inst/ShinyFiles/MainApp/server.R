@@ -5526,10 +5526,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         inputs 
       } 
        
-      temp <- isolate(paste0(project$name, "modelfit"))
+      temp <- isolate(paste0(project$name, "ModelFit"))
       this_table <- reactive(
         if(DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)),
-                                              paste0(project$name, 'modelfit'))){
+                                              paste0(project$name, 'ModelFit'))){
           data.frame(t(model_fit(project$name)))
         } else {
           data.frame('X1'=NA, 'X2'=NA, 'X3'=NA, 'X4'=NA)
@@ -5702,7 +5702,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       observeEvent(input$savecentroid, {
         q_test <- quietly_test(find_centroid)
-        q_test(spat=spatdat$dataset, project = project$name, cat = input$cat_altc, lon.spat = input$long_grid_altc, lat.spat = input$lat_grid_altc)
+        q_test(spat=spatdat$dataset, project = project$name, spatID = input$cat_altc, lon.spat = input$long_grid_altc, lat.spat = input$lat_grid_altc)
         showNotification('Geographic centroid of zones calculated and saved')
       }, ignoreInit = FALSE)
       

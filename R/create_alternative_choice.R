@@ -2,88 +2,104 @@
 #'
 #' Required step. Creates a list identifying how alternative fishing choices should 
 #' be defined. Output is saved to the FishSET database. Run this function before 
-#' running models.  
+#' running models. `dat` must have a zone assignment column (see 
+#' [assignment_column()]). In certain cases a centroid table must be saved to 
+#' the FishSET Database, see `occasion_var` for details.
 #'
 #' @param dat  Required, main data frame containing data on hauls or trips.
 #'   Table in FishSET database should contain the string `MainDataTable`.
-#' @param project Required, name of project
-#' @param occasion String, identifies how to find lat/lon for starting point 
-#'   (must have a lon/lat associated with it). \code{occasion} may be the ‘centroid 
-#'   of zonal assignment’, a port variable or lon/lat variable(s) in the primary 
-#'   dataset. If a port variable is defined, a corresponding port table must exist 
-#'   which contains the port name and the longitude and latitude of each port. For 
-#'   lon/lat variables, longitude must be specified first.
-#' @param alt_var Identifies how to find lat/lon for alternative choices. \code{alt_var} 
-#'   may be the centroid of zonal assignment \code{"centroid"}, or lon/lat variables 
-#'   in the primary dataset. Longitude must be specified first.
-#' @param grid Data must contain a variable that varies by the spatial dataset 
-#'   \code{spat}. First variable in \code{grid} should match a column in \code{dat}. 
-#'   The remaining columns should match the zone IDs in the \code{spat}.
+#' @param project Required, name of project.
+#' @param occasion String, determines the starting point when calculating the 
+#'   distance matrix. Options are `"zonal centroid"`, `"fishing centroid"`, 
+#'   `"port"`, or `"lon-lat"`. See `occasion_var` for requirements. 
+#' @param occasion_var Identifies an ID column or set of lon-lat variables needed 
+#'   to create the distance matrix. Possible options depend on the value of 
+#'   `occasion`: 
+#'   \describe{
+#'     \item{Centroid}{When `occasion = zonal/fishing centroid` the possible 
+#'       options are `NULL`, the name of a zone ID variable, or a set coordinate 
+#'       variables (in Lon-Lat order).
+#'       \describe{
+#'         \item{NULL}{This will merge centroid lon-lat data to the primary table 
+#'           using the column enter in `zoneID`. A centroid table must be saved 
+#'           to the FishSET Database.}
+#'         \item{Zone ID}{This option specifies the zone ID variable to merge the 
+#'           centroid table to. For example, a column containing the previous zonal
+#'           area. A centroid table must be saved to the FishSET Database.}
+#'         \item{Lon-Lat}{A string vector of length two containing the longitude 
+#'           and latitude of an existing set centroid variables in `dat`.}
+#'       } 
+#'     }
+#'     \item{Port}{When `occasion = port` the possible options include the name 
+#'       of a port ID variable or a set of lon-lat variables describing the 
+#'       location of the port. A value of `NULL` will return an error.
+#'       \describe{
+#'         \item{Port ID}{The name of a port ID variable in `dat` that will be 
+#'           used to join the port table to the primary table. A port table
+#'           is required (see [load_port()]) which contains the port name and 
+#'           the longitude and latitude of each port.}
+#'         \item{Lon-Lat}{A string vector of length two containing a port's 
+#'           longitude and latitude in `dat`.}
+#'       }
+#'     }
+#'     \item{Lon-Lat}{When `occasion = lon-lat`, `occasion_var` must contain a 
+#'       string vector of length two containing the longitude and latitude of a 
+#'       vessel's location in the `dat`. For example, the current or previous 
+#'       haul location.} 
+#'   }
+#' @param alt_var Determines the alternative choices used to calculate the distance
+#'   matrix. `alt_var` may be the centroid of zonal assignment (`"zonal centroid"`), 
+#'   `"fishing centroid"`, or the closest point in fishing zone 
+#'   (`"nearest point"`). The centroid options require that the appropriate 
+#'   centroid table has been saved to the project's FishSET Database. See 
+#'   [create_centroid()] to create and save centroids. List existing centroid 
+#'   tables  by running `list_tables("project", type = "centroid")`.
 #' @param dist.unit String, how distance measure should be returned. Choices are 
-#'   \code{"meters"} or \code{"M"}, \code{"kilometers"} or \code{"KM"}, \code{"miles"}, 
-#'   or units of \code{grid}. Defaults to miles.
+#'   `"meters"` or `"m"`, `"kilometers"` or `"km"`, `"miles"`, or `"nmiles"` 
+#'   (nautical miles). Defaults to `"miles"`.
 #' @param min.haul Required, numeric, minimum number of hauls. Zones with fewer 
-#'   hauls than the \code{min.haul} value will not be included in model data.
-#' @param cat Required, variable in either \code{dat} or \code{spat} that identifies 
-#'   the individual areas or zones. If \code{cat} is a variable in \code{dat} that 
-#'   identifies zone assignments for each occurrence record, set \code{spat} to 
-#'   \code{NULL}. Otherwise, if \code{spat} is class \code{sf}, \code{cat} should be the 
-#'   name of the list containing information on zones.
-#' @param zoneID Variable in \code{dat} that identifies the individual zones or 
-#'   areas. Define if exists in \code{dat} and is not named `ZoneID`. Defaults to 
-#'   \code{NULL}. 
-#' @param spat Required, data file or character. \code{spat} is a spatial data file 
-#'   containing information on fishery management or regulatory zones boundaries.
-#'   Shape, json, geojson, and csv formats are supported. geojson is the preferred 
-#'   format. json files must be converted into geojson. This is done automatically 
-#'   when the file is loaded with \code{\link{read_dat}} with \code{is.map = TRUE}.
-#'   \code{lon.dat}, \code{lat.dat}, \code{lon.spat}, and \code{lat.spat} are required 
-#'   for specific \code{spat} file formats. \code{cat} must be specified for all 
-#'   file formats. If a zonal centroid table exists in the FishSET database and a 
-#'   zonal assignment column exists in \code{dat} then \code{spat} may be a table 
-#'   from the FishSET database or a data file. If \code{spat} should come from the 
-#'   FishSET database, it should be the name of the original file name, in quotes. 
-#'   For example, 'NMFS_zones_polygons'. \code{cat} would then be the name of the 
-#'   column in \code{dat} containing fishing zone assignments. Use \code{tables_database()} 
-#'   to view names of tables in the FishSET database.
-# @param case Centroid='Centroid of Zonal Assignment', Port, Other
-#' @param hull.polygon Used in \code{\link{assignment_column}} function. Creates 
-#'   polygon using convex hull method. Required if zonal assignments in \code{dat} 
-#'   should be identified and \code{spat} is not \code{NULL}.
-#' @param lon.dat Longitude variable from \code{dat}. Required if zonal assignments 
-#'   in \code{dat} should be identified and \code{spat} is not \code{NULL}.
-#' @param lat.dat Latitude variable from \code{dat}. Required if zonal assignments 
-#'   in \code{dat} should be identified and \code{spat} is not \code{NULL}.
-#' @param lon.spat Variable or list from \code{spat} containing longitude data. 
-#'   Required for csv files. Leave as \code{NULL} if \code{spat} is a shape or json 
-#'   file, Required if zonal assignments in \code{dat} should be identified and 
-#'   \code{spat} is not \code{NULL}.
-#' @param lat.spat Variable or list from \code{spat} containing latitude data. Required 
-#'   for csv files. Leave as \code{NULL} if \code{spat} is a shape or json file, 
-#'   Required if zonal assignments in \code{dat} should be identified and \code{spat} 
-#'   is not \code{NULL}.
-#' @param closest.pt Logical, if true, zone ID identified as the closest polygon 
-#'   to the point. Called in \code{\link{assignment_column}}. Required if zonal 
-#'   assignments for observations in \code{dat} should be identified and \code{spat} 
-#'   is not \code{NULL}.
+#'   hauls than the `min.haul` value will not be included in model data.
+#' @param zoneID Variable in `dat` that identifies the individual zones or 
+#'   areas.
+#' @param zone.cent.name The name of the zonal centroid table to use when 
+#'   `occasion` or `alt_var` is set to `zonal centroid`. Use 
+#'   `list_tables("project", type = "centroid")` to view existing centroid tables.
+#'   See [create_centroid()] to create centroid tables or [centroid_to_fsdb()] to 
+#'   create a centroid table from columns found in `dat`.
+#' @param fish.cent.name The name of the fishing centroid table to use when 
+#'   `occasion` or `alt_var` is set to `fishing centroid`. Use 
+#'   `list_tables("project", type = "centroid")` to view existing centroid tables.
+#'   See [create_centroid()] to create centroid tables or [centroid_to_fsdb()] to 
+#'   create a centroid table from columns found in `dat`.
+#' @param spat Required when `alt_var = 'nearest point'`. `spat` is a spatial 
+#'   data file  containing information on fishery management or regulatory zones 
+#'   boundaries. `sf` objects are recommended, but `sp` objects can be used as 
+#'   well. See [dat_to_sf()] to convert a spatial table read from a csv file to 
+#'   an `sf` object. To upload your spatial data to the FishSETFolder see 
+#'   [load_spatial()].If `spat` should come from the FishSET database, it should 
+#'   be the name of the original file name, in quotes. For example, 
+#'   `"pollockNMFSZonesSpatTable"`. Use [tables_database()] or 
+#'   `list_tables("project", type = "spat")` to view the names of spatial tables 
+#'   in the FishSET database.
+#' @param spatID Required when `alt_var = 'nearest point'`. Variable in `spat` 
+#'   that identifies the individual zones or areas. 
 #' @importFrom DBI dbExecute
 #' @export create_alternative_choice
+#' @md
 #' @details Defines the alternative fishing choices. These choices are used to develop 
 #'   the matrix of distances between observed and alternative fishing choices (where 
 #'   they could have fished but did not). The distance matrix is calculated by the 
-#'   \code{\link{make_model_design}} function. The distance matrix can come from 
-#'   \code{dat} or from the gridded data frame \code{grid}. If the distance 
-#'   matrix is to come from \code{dat}, then \code{occasion} (observed fishing location) 
-#'   and \code{alt_var} (alternative fishing location) must be specified. \code{grid}, 
-#'   if used, must be a variable that varies by the spatial dataset, such as wind 
-#'   speed. Each column must be a unique zone that matches the zones in \code{dat}.
+#'   [make_model_design()] function. `occasion` defines the observed fishing 
+#'   location and `alt_var` the alternative fishing location. `occasion_var` 
+#'   identifies an ID column or set of lon-lat variables needed to create the 
+#'   distance matrix.  
 #'   
-#'   Parts of the alternative choice list are pulled by \code{\link{create_expectations}}, 
-#'   \code{\link{make_model_design}}, and the model run (\code{\link{discretefish_subroutine}}) 
+#'   Parts of the alternative choice list are pulled by [create_expectations()], 
+#'   [make_model_design()], and the model run [discretefish_subroutine()]) 
 #'   functions. These output include choices of which variable to use for catch and 
 #'   which zones to include in analyses based on a minimum number of hauls per trip 
 #'   within a zone. Note that if the alternative choice list is modified, the 
-#'   \code{\link{create_expectations}} and \code{\link{make_model_design}} functions 
+#'   [create_expectations()] and [make_model_design()] functions 
 #'   should also be updated before rerunning models.
 #' @return Saves the alternative choice list to the FishSET database as a list.
 #'   Output includes: \cr
@@ -95,37 +111,26 @@
 #'         altChoiceUnits: \tab Set to miles\cr
 #'         altChoiceType: \tab Set to distance\cr
 #'         occasion: \tab Identifies how to find latitude and longitude for starting point\cr
+#'         occasion_var: \tab Identifies how to find latitude and longitude for starting point\cr
 #'         alt_var: \tab Identifies how to find latitude and longitude for alternative choice \cr
 #'         zoneRow: \tab Zones and choices array\cr
-#'         int: \tab Geographic centroid for each zone. Generated from \code{\link{find_centroid}}\cr
-#'         matrix: \tab Distance matrix is alternative choices comes from gridded dataset
+#'         zone_cent: \tab Geographic centroid for each zone. Generated from [find_centroid()]\cr
+#'         fish_cent: \tab Fishing centroid for each zone. Generated from [find_fishing_centroid()]
 #'         }
 
 create_alternative_choice <- 
   function(dat,
            project,
-           occasion = 'centroid',
-           alt_var = 'centroid',
+           occasion = 'zonal centroid',
+           occasion_var = NULL,
+           alt_var = 'zonal centroid',
            dist.unit = "miles",
            min.haul = 0,
-           spat,
-           cat = NULL,
-           zoneID = NULL,
-           lon.dat = NULL,
-           lat.dat = NULL,
-           hull.polygon = FALSE,
-           closest.pt = FALSE,
-           grid = NULL,
-           lon.spat = NULL,
-           lat.spat = NULL) {
-    
-  # TODO: remove grid feature for now, add later if needed
-  # TODO: remove find_centroid() and assignment_column()--check if they are needed
-  # based on current args and inform user
-  # TODO: Let users associate a column from dat w/ area column in spat 
-  # Needed if user doesn't have lon/lat data (ex. Fish Tickets)
-  # TODO: add fishing centroid as occassion/alt_var option 
-  case <- "centroid"
+           zoneID, 
+           zone.cent.name = NULL,
+           fish.cent.name = NULL,
+           spat = NULL,
+           spatID = NULL) {
   
   # Call in datasets
   out <- data_pull(dat, project)
@@ -134,302 +139,253 @@ create_alternative_choice <-
   
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
-  spat <- parse_data_name(dat, "spat", project)
+  spat <- parse_data_name(spat, "spat", project)
   
-  grid_out <- data_pull(grid, project)
-  griddat <- grid_out$dataset
-  grid <- parse_data_name(grid, "grid", project)
+  column_check(dataset, cols = c(zoneID, occasion_var))
   
-  # TODO: column name checks for dat, spat, and grid (make sure columns exist)
+  o_len <- length(occasion_var)
   
   
-  # Note: Currently, only one centroid table can exist for each project
-  # this would need to change if multiple spatial scales are being modeled 
-  cent_exists <- 
-    table_exists(paste0(spat, 'Centroid'), project) || 
-    table_exists("spatCentroid", project)
-
-  # TODO: check whether centroid exists first
-  if (!is.null(spatdat)) {
+  if (occasion == "zonal centroid") {
     
-      int <- suppressWarnings(
-        
-        find_centroid(project = project, spat = spatdat, cat = cat, 
-                      lon.spat = lon.spat, lat.spat = lat.spat)
-        )
+    if (o_len != 2 & is_value_empty(zone.cent.name)) {
       
-  } else if (cent_exists) {
-    
-    if (table_exists(paste0(spat, 'Centroid'), project)) {
-
-      int <- table_view(paste0(spat, 'Centroid'), project)
-
-    } else {
-      # Nit: Not sure it makes sense to have two different centroid naming conventions
-      int <- table_view('spatCentroid', project)
+      stop("'zone.cent.name' is required.", call. = FALSE)
     }
+  }
+  
+  if (occasion == "fishing centroid") {
     
-  } else {
+    if (o_len != 2 & is_value_empty(fish.cent.name)) {
+      
+      stop("'fish.cent.name' is required.", call. = FALSE)
+    }
+  }
+  
+  if (alt_var == "zonal centroid" & is_value_empty(zone.cent.name)) {
     
-    stop("Zonal centroid must be defined. Function not run.", call. = FALSE)
+    stop("'zone.cent.name' is required.", call. = FALSE)
+  }
+  
+  if (alt_var == "fishing centroid" & is_value_empty(fish.cent.name)) {
+    
+    stop("'fish.cent.name' is required.", call. = FALSE)
   }
  
-  # TODO: Simplify this. Remove 'ZoneID' default. Make zoneID required (must exist in dat). 
-  # Not clear why cat is changed.
+  zone_cent <- NULL
+  fish_cent <- NULL
   
-  if ('ZoneID' %in% names(dataset) || cat %in% names(dataset) || 
-     !is.null(zoneID) && zoneID %in% names(dataset)) {
+  # check args ----
+  
+  occasion_opts <- c("zonal centroid", "fishing centroid", "port", "lon-lat")
+  alt_opts <- c("zonal centroid", "fishing centroid", "nearest point")
+  
+  if (o_len > 2) stop("Invalid values for 'occasion_var'.", call. = FALSE)
+  
+  if (!occasion %in% occasion_opts) {
     
-        int.data <- dataset
-        
-    if ('ZoneID' %in% names(dataset)) {
+    stop("Invalid option for 'occasion'. Options are ", 
+         paste0(occasion_opts, collapse = ", "), ".", call. = FALSE)
+  }
+  
+  if (!alt_var %in% alt_opts) {
+    
+    stop("Invalid option for 'alt_var'. Options are ", 
+         paste0(alt_opts, collapse = ", "), ".", call. = FALSE)
+  }
+  
+  # check occasion_var for lon-lat string match
+  ll_occ_check <- function(occ) {
+    
+    ll_check <- grepl("lon|lat", occ, ignore.case = TRUE)
+    
+    if (!any(ll_check)) {
       
-        cat <- 'ZoneID'
-        
-    } else if (!is.null(zoneID) && zoneID %in% names(dataset)) {
-      
-        cat <- zoneID
-        
-    } else if (cat %in% names(dataset)) {
-      
-        cat <- cat 
+      warning("Check that 'occasion_var' contains longitude and latitude ",
+              "variables: ", paste0(occ, collapse = ", "), 
+              call. = FALSE)
     }
-        
-  } else {
+  }
+  
+  cent_check <- function(project, cent.tab, type = "zone") {
     
-  if (!is.null(spatdat) & !is.character(spatdat)) { # is.character(spatdat) shouldn't happen
+    cent_type <- switch(type, zone = "Zonal", fish = "Fishing")
     
-      if (is.null(lon.dat)) {
+    cent_exists <- table_exists(cent.tab, project)
+    
+    if (!cent_exists) {
+      
+      stop(cent_type, " centroid table must be saved to FishSET Database. Run ", 
+           "create_centroid().", call. = FALSE)
+    }
+    
+    cent_tab <- table_view(cent.tab, project)
+   
+    if (!any(cent_tab$ZoneID %in% unique(dataset[[zoneID]]))) {
+      
+      stop('Zones do not match between centroid table and zonal assignments ',
+           'in main data table. Rerun find_centroid() using same spatial data file ',
+           'as was using with the assignment_column() function.', call. = FALSE)
+    }
+    
+    cent_tab
+  }
+  
+  ## units ----
+  valid_units <- c('m','meter', 'meters', 'km', 'kilometer', 'kilometers', 
+                  'mile', 'miles', 'nmile', 'nmiles')
+  
+  if (!dist.unit %in% valid_units) {
+    
+    stop(dist.unit, " is not an available unit. Unit options are: ", 
+         paste0(valid_units, collapse = ", "), call. = FALSE)
+  }
+  
+  # alt_var ----
+  ## zonal centroid ----
+  
+  if (alt_var == "zonal centroid") {
+    
+    zone_cent <- cent_check(project, zone.cent.name, "zone")
+  }
+  
+  ## fishing centroid ----
+  
+  if (alt_var == "fishing centroid") {
+  
+    fish_cent <- cent_check(project, fish.cent.name, "fish")
+  }
+  
+  ## nearest point ----
+  if (alt_var == "nearest point") {
+    
+    if (is_value_empty(spatdat) | is_value_empty(spatID)) {
+      
+      stop("'spat' and 'spatID' are required for alt_var = 'nearest point'",
+           call. = FALSE)
+    }
+    
+    if (!any(unique(spatdat[[spatID]]) %in% unique(dataset[[zoneID]]))) {
+      
+      stop("There are no shared zones between dat and spat. Check that 'spatID' ",
+           "and 'zoneID' are correct, or rerun assignment_column().", call. = FALSE)
+    }
+  }
+  
+  # occasion ----
+  ## zonal centroid ----
+  if (occasion == "zonal centroid") {
+    
+    if (is_value_empty(occasion_var) | o_len == 1) {
+      
+      if (is.null(zone_cent)) {
         
-        stop('Observations must be assigned to zones. Function not run.', call. = FALSE)
-        
-      } else {
-        # name will default to "ZoneID" 
-        int.data <- assignment_column(
-          dat = dataset, project=project, spat = spatdat, hull.polygon = hull.polygon,
-          lon.spat = lon.spat, lat.spat = lat.spat, lon.dat = lon.dat,
-          lat.dat = lat.dat, cat = cat, closest.pt = closest.pt, log.fun = FALSE
-        )
+        zone_cent <- cent_check(project, zone.cent.name, "zone")
       }
-    } # FALSE case?
-  }
-
- 
-  if (!any(int[,1] %in% int.data[[cat]])) {
-    # Note: Not sure what this is checking. Is it, "are any zone IDs from the centroid table not in main data?"
-    # Meant to update centroid table, I think. 
-    # This statement will return FALSE if any zones from centroid table are in the dataset
-    # Nit: should also refer to this column by it's assigned name used in find_centroid(): currently ZoneID
-
-    if (!is.null(spatdat)) {
-
-      int <- find_centroid(spat = spatdat, project = project, lon.spat = lon.spat,
-                           lat.spat = lat.spat, cat = cat, log.fun = FALSE)
-
+      
+    } else if (o_len == 2) {
+      
+      ll_occ_check(occasion_var)
+      
     } else {
       
-      stop('Zones do not match between centroid table and zonal assignments',
-           ' in main data table. Rerun find_centoid using same spatial data file',
-           ' as was using with the assignment_column function.', call. = FALSE)
+      stop("Invalid 'occasion_var'.", call. = FALSE)
     }
-  }
-
+  ## fishing centroid ----
+  } else if (occasion == "fishing centroid") {
     
-  if (!is.null(int.data[[cat]])) {
+    if (is_value_empty(occasion_var) | o_len == 1) {
+      
+      if (is.null(fish_cent)) {
+        
+        fish_cent <- cent_check(project, fish.cent.name, "fish")
+      }
+      
+    } else if (o_len == 2) {
+      
+      ll_occ_check(occasion_var)
+      
+    } else {
+      
+      stop("Invalid 'occasion_var'.", call. = FALSE)
+    } ## port ----
     
-    g <- int.data[[cat]]
+  } else if (occasion == "port") {
     
-  } else if (!is.null(int.data[['ZoneID']])) {
+    if (is_value_empty(occasion_var)) {
+      
+      stop("Port column name required for 'occasion = port'.", call. = FALSE)
+    }
     
-    g <- int.data[['ZoneID']]
-  }
-  
-  if (anyNA(g) == TRUE) {
+    if (o_len == 2) {
+      
+      ll_occ_check(occasion_var)
+    }
+  ## lon-lat ----
+  } else if (occasion == "lon-lat") {
     
-    warning(paste("No zone identified for", sum(is.na(g)), "observations. 
-                  These observations will be removed in future analyses."))
-  }
-  
-
-  choice <- data.frame(g)  
-  
-  # Q: Is this meant to check whether "startingloc" exists as a column in dat?
-  # What if named something else? Add as new arg?  
-  startingloc <- if (!"startingloc" %in% colnames(int.data)) {
+    if (o_len != 2) {
+      
+      stop("'occasion_var' must contain a longitude and latitude column.", 
+           call. = FALSE)
+    }
     
-    rep(NA, nrow(int.data))
+    ll_occ_check(occasion_var)
     
   } else {
     
-    data.frame(int.data$startingloc)
-  }
-
-  if (is.null(choice)) {
-    
-    stop("Choice must be defined. Ensure that the zone or area assignment variable",
-         " (cat parameter) is defined.")
+    stop("Invalid 'occasion' option.", call. = FALSE)
   }
   
-  # TODO: this will always be true (see line 111)
-  if (case == "centroid") {
-    
-    # unique zones w/o NAs
-    B <- as.data.frame(unique(g[!is.na(g)])) 
-    
-    # zone index (of B)
-    C <- match(g[!is.na(g)], unique(g[!is.na(g)]))
+  # min hauls ----
+  choice <- dataset[[zoneID]]
   
-  } else {
-    # TODO: this is an unreliable method for finding area/zone cols
-    # should use zoneID
-    a <- colnames(dataset)[grep("zon|area", colnames(dataset), ignore.case = TRUE)] # find data that is zonal type
-
-    temp <- cbind(as.character(g), dataset[[a[1]]]) 
-    B <- unique(temp) # Correct ->> Needs to be lat/long
-    C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))
+  if (anyNA(choice) == TRUE) {
+    
+    warning("No zone identified for ", sum(is.na(choice)), " observations. These ", 
+            "observations will be removed in future analyses.", call. = FALSE)
   }
+  
+  # count zones
+  zoneCount <- agg_helper(dataset, value = zoneID, count = TRUE, fun = NULL)
+  # remove zones that don't have enough hauls and unassigned zones
+  zoneCount[zoneCount$n < min.haul, zoneID] <- NA
 
-  # Zone counts 
-  numH <- accumarray(C, C)
-  binH <- 1:length(numH)
-  numH <- numH / t(binH)
-  # numH = number of obs, binH = zone index, B = name of zone
-  zoneHist <- data.frame(numH = as.vector(numH), binH = as.vector(binH), B[, 1])
-
-  # mark zones under min.haul as NA
-  zoneHist[which(zoneHist[, 1] < min.haul), 3] <- NA
-
-  # TODO: simplify this check
-  if (any(is_empty(which(is.na(zoneHist[, 3]) == FALSE)))) {
+  if (all(is.na(zoneCount[[zoneID]]))) {
     
     stop("No zones meet criteria. No data will be included in further analyses.",
-         " Check the min.haul parameter or zone identification.")
+         " Check the 'min.haul' parameter or zone identification.", call. = FALSE)
   }
-
-  # matrix of which zones to include: first column whether to include (0/1), 
-  # second column the index of the assigned zone
-  dataZoneTrue <- cbind(g %in% zoneHist[, 3], match(g, zoneHist[, 3], nomatch = 0))
   
-  # vector index of zones that meet/exceed min.haul
-  greaterNZ <- which(zoneHist[, 1] >= min.haul)
-  numOfNecessary <- min.haul
+  zoneCount <- zoneCount[!is.na(zoneCount[[zoneID]]), ]
+
+  # zones that meet/exceed min.haul
+  greaterNZ <- zoneCount[[zoneID]]
+  
+  # index of obs to include based on min.haul
+  dataZoneTrue <- as.numeric(dataset[[zoneID]] %in% greaterNZ)
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
 
+  # alt choice list ----
   Alt <- list(
-    dataZoneTrue = dataZoneTrue[, 1], # array of logical values to identify which are to be used in model
+    dataZoneTrue = dataZoneTrue, # index to identify which obs to use in model
     greaterNZ = greaterNZ,
-    numOfNecessary = numOfNecessary, # input
+    numOfNecessary = min.haul,
     choice = choice,
-    altChoiceUnits = dist.unit, # miles
+    altChoiceUnits = dist.unit,
     altChoiceType = "distance",
-    occasion = occasion, # altToLocal1
-    alt_var = alt_var, # altToLocal2
-    startingloc = startingloc,
-    zoneHist = zoneHist,
-    zoneRow = zoneHist[greaterNZ, 3], # zones and choices array
-    zoneID = cat,
-    int = int # centroid table
+    occasion = occasion, 
+    occasion_var = occasion_var,
+    alt_var = alt_var, 
+    zoneHist = zoneCount,
+    zoneRow = zoneCount[, zoneID], # zones and choices array
+    zoneID = zoneID,
+    zone_cent = zone_cent,
+    fish_cent = fish_cent
     )
-
-
-  # Q: Why do this after creating Alt list?
-  # TODO: Consider making a function that converts gridded datasets to required 
-  # matrix output. Handle both wide and long formats. Need additional arguments. 
-  ### Add gridded data ###
-  if (!is.null(griddat)) {
-    # TODO: change gridVar to griddat
-    gridVar <- griddat
-    
-    # removes non-numerical characters from column names
-    # grid_names <- noquote(gsub("[^0-9]", "", colnames(gridVar)))
-    grid_names <- colnames(gridVar)
-
-    if (!is.null(int.data[[cat]])) {
-      
-      g <- int.data[[cat]]
-      
-    } else if (!is.null(int.data[['ZoneID']])) {
-      
-      g <- int.data[['ZoneID']]
-    }
-        
-    # Note: Assumes that area values can't have non-numeric characters
-    # TODO: change this so that long-form data can work
-    
-    # if (any(noquote(gsub("[^0-9]", "", colnames(gridVar))) %in% g) == FALSE) {
-    #   
-    #   stop("Cannot use grid. Column names of grid do not match zone",
-    #        " IDs in spatial dataset")
-    # }
-
-    # If gridded data is not an array, need to create matrix
-    
-    # Q: is this for cases where gridded data contains a single value for 
-    # each area, i.e. does not vary by time etc? An alternative specific constant?
-    if (dim(gridVar)[1] == 1) { # (is_empty(gridVar.row.array)){ #1d
-      
-      biG <- match(Alt[["zoneRow"]], grid_names) # FIXME FOR STRING CONNECTIONS
-      numRows <- nrow(dataset)
-      
-      if (!any(biG)) {
-        
-        stop("The map associated to the data and the grid information in the",
-             " gridded variable do not overlap.")
-      }
-      # matrix # of obs x Area. Each row is identical. 
-      allMat <- matrix(1, numRows, 1) %x% as.matrix(gridVar[1, biG]) 
-      
-    } else {
-      
-      # biG <- match(Alt[["zoneRow"]], grid_names[-1]) 
-      biG <- Alt$zoneRow %in% grid_names[-1] # TODO: change grid_names[-1] to less faulty approach
-      if (!any(biG)) { # if no areas from grid are in dataset
-        
-        stop("The map associated to the data and the grid information in the",
-             " gridded variable do not overlap.")
-      }
-
-      # TODO: check if this is necessary
-      if (names(gridVar)[1] %in% colnames(dataset) == FALSE) {
-        # wrong occurrence variable to connect data
-        stop("The data in the workspace and the loaded grid file do not have a", 
-             " matching variable for connecting.")
-      }
-
-      # Note: believe the "D" in "biD" stands for date
-      # Assuming we know which columns in grid are date/id cols -- add args?
-      # Match ids between dataset and grid
-      biD <- match(dataset[, names(gridVar)[1]], gridVar[, 1])
-      
-      biD <- dataset[[names(gridVar)[1]]] %in% gridVar[, 1]
-      
-      if (!any(biD)) {
-        # stop?
-        message("The data in the workspace and the loaded grid file do not have a",
-                " matching variable for connecting.")
-      }
-
-      # Note: believe this is suppose to be a matrix of gridded values from areas 
-      # and dates that exist in dat (with date col removed)
-      # TODO: this repeats the first row of the gridded data by # of obs in data.
-      # All other rows are dropped, why? 
-      # Q: how many rows should there be? should dim = # obs x # zones? 
-      # Join to dataset instead? Need to know what correct format is. 
-      allMat <- gridVar[, -1][biD, biG]
-    }
-    
-    if (anyNA(allMat[Alt[["dataZoneTrue"]], ])) {
-      
-      stop("Problem with loaded matrix, NA found.")
-    }
-   
-    # add grid matrix to Alt choice list
-    # Note: Need to change this if adding more than one gridded dataset
-    Alt <- c(Alt, matrix = list(allMat[Alt[["dataZoneTrue"]], ]))
-  }
-
+  
   # write Alt to datafile
     
   single_sql <- paste0(project, "altmatrix")
@@ -460,11 +416,11 @@ create_alternative_choice <-
   create_alternative_choice_function <- list()
   create_alternative_choice_function$functionID <- "create_alternative_choice"
   create_alternative_choice_function$args <- 
-    list('dat' = dat, 'project' = project, 'occasion' = occasion, alt_var,  dist.unit, 
-         min.haul, spat, cat, zoneID, lon.dat, lat.dat, hull.polygon, closest.pt)
+    list(dat, project, occasion, occasion_var, alt_var, 
+         dist.unit, min.haul, zoneID, zone.cent.name, 
+         fish.cent.name, spat, spatID)
   
-  create_alternative_choice_function$kwargs <- 
-    list("lon.spat" = lon.spat, "lat.spat" = lat.spat, "grid" = grid)
+  create_alternative_choice_function$kwargs <- list()
   create_alternative_choice_function$output <- list()
 
   log_call(project, create_alternative_choice_function)
