@@ -936,6 +936,7 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
   check <- TRUE
   
   out <- data_pull(dat, project)
+  # Note: dataset is not used
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   

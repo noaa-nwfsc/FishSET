@@ -76,7 +76,7 @@ create_dist_between_for_gui <- function(dat, project, start=c('lat','lon'), end=
           int <- table_view('spatCentroid', project)
         }
       } else {
-        int <- find_centroid(project=project, spat = spatdat, lon.spat = lon.spat, lat.spat = lat.spat, cat = cat)
+        int <- find_centroid(project=project, spat = spatdat, lon.spat = lon.spat, lat.spat = lat.spat, spatID = cat)
       }
     }
     
