@@ -1,32 +1,34 @@
 #' Format Gridded Data
 #' 
-#' Change the format of a gridded dataset from wide to long (or vice versa). 
-#' and remove any unmatched area/zones from \code{grid}.
+#' Change the format of a gridded dataset from wide to long (or vice versa) 
+#' and remove any unmatched area/zones from `grid`.
 #' 
 #' @param grid Gridded dataset to format.
 #' @param dat Primary data containing information on hauls or trips. Table in 
 #'   the FishSET database contains the string 'MainDataTable'.
 #' @param project Name of project.
-#' @param area.dat String, the name of the area or zone column in \code{dat}.
-#' @param area.grid String, the name of the area or zone column in \code{dat} if
-#'   \code{from.format = "long"}. Ignored if \code{from.format = "wide"}.
-#' @param id.cols String, the names of all non-area columns if \code{from.format = "wide"},
-#'   such as date variables.\code{id.cols} should contain the name of the value
-#'   variable if \code{from.format = "long"}. 
-#' @param from.format The original format of \code{grid}. Options include
-#'   \code{"long"} or \code{"wide"}. Use \code{"long"} if a single area column
-#'   exists in \code{grid}. Use \code{"wide"} if each area has its own column in 
-#'   \code{grid}.
-#' @param to.format The desired format of \code{grid}. Options include
-#'   \code{"long"} or \code{"wide"}.  Use \code{"long"} if you want a single area 
-#'   column with a corresponding value column. Use \code{"wide"} if you would 
+#' @param area.dat String, the name of the area or zone column in `dat`.
+#' @param area.grid String, the name of the area or zone column in `dat` if
+#'   `from.format = "long"`. Ignored if `from.format = "wide"`.
+#' @param id.cols String, the names of all non-area columns if `from.format = "wide"`,
+#'   such as date variables.`id.cols` should contain the name of the value
+#'   variable if `from.format = "long"`. 
+#' @param from.format The original format of `grid`. Options include
+#'   `"long"` or `"wide"`. Use `"long"` if a single area column
+#'   exists in `grid`. Use `"wide"` if each area has its own column in 
+#'   `grid`.
+#' @param to.format The desired format of `grid`. Options include
+#'   `"long"` or `"wide"`.  Use `"long"` if you want a single area 
+#'   column with a corresponding value column. Use `"wide"` if you would 
 #'   like each area to have its own column.
-#' @param val.name Required if \code{from.format = "wide"} and \code{to.format = "long"}.
+#' @param val.name Required if `from.format = "wide"` and `to.format = "long"`.
 #'   This will be the name of the new value variable associated with the area 
 #'   column.
-#' @param save Logical, whether to save formatted \code{grid}. 
+#' @param save Logical, whether to save formatted `grid`. 
 #' @export
 #' @importFrom tidyr pivot_longer pivot_wider
+#' @seealso [merge_dat()]
+#' @md
 
 format_grid <-
   function(grid,
@@ -41,6 +43,8 @@ format_grid <-
            save = FALSE
            ) {
     
+    # TODO: warning if gridded data does not cover all zones in primary data
+    
     out <- data_pull(dat, project)
     dataset <- out$dataset
     dat <- parse_data_name(dat, "main", project)
@@ -51,16 +55,18 @@ format_grid <-
     
     # Note: if no date var, allow format?
     
-    column_check(dat, area.dat)
+    stopifnot("'area.dat' is required" = !is_value_empty(area.dat),
+              "'id.cols' is requierd" = !is_value_empty(id.cols))
+    
+    column_check(dataset, area.dat)
     column_check(griddat, c(area.grid, id.cols))
     
     if (from.format == "wide") {
       
       # filter out unmatched areas
-      
       g_names <- colnames(griddat)
       g_areas <- g_names[!g_names %in% id.cols]
-      d_areas <- unique(as.character(dat[[area.dat]]))
+      d_areas <- unique(as.character(dataset[[area.dat]]))
       a_ind <- g_areas %in% d_areas
       
       if (sum(a_ind) == 0) {
@@ -86,10 +92,15 @@ format_grid <-
       
     } else if (from.format == "long") {
       
+      if (is_value_empty(area.grid)) {
+        
+        stop("'area.grid' is required.", call. = FALSE)
+      }
+      
       # Note: check/coerce type? 
       # filter unmatched areas from grid
       g_areas <- unique(griddat[[area.grid]])
-      d_areas <- unique(dat[[area.dat]])
+      d_areas <- unique(dataset[[area.dat]])
       g_areas <- g_areas[g_areas %in% d_areas] 
       
       if (length(g_areas) == 0) {
@@ -108,8 +119,30 @@ format_grid <-
       }
     }
     
-    # TODO: add save feature
+    if (save) {
+      
+      if (table_exists(grid, project)) {
+        
+        fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), 
+                                                      locdatabase(project = project)))
+        on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+        
+        DBI::dbWriteTable(fishset_db, grid, griddat, overwrite = TRUE)
+        
+      } else {
+        
+        warning("Gridded table '", grid, "' does not exists, table not saved. ", 
+                "Use load_grid() to save gridded tables to the FishSET Database.",
+                call. = FALSE)
+      }
+    }
     
+    # log function
+    format_grid_function <- list()
+    format_grid_function$functionID <- "format_grid"
+    format_grid_function$args <- 
+      list(grid, dat, project, area.dat, area.grid, id.cols,
+           from.format, to.format, val.name, save)
     
     griddat
 }
