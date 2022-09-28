@@ -20,7 +20,7 @@ format_grid(
 \arguments{
 \item{grid}{Gridded dataset to format.}
 
-\item{dat}{Primary data containing information on hauls or trips. Table in 
+\item{dat}{Primary data containing information on hauls or trips. Table in
 the FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{Name of project.}
@@ -36,21 +36,24 @@ variable if \code{from.format = "long"}.}
 
 \item{from.format}{The original format of \code{grid}. Options include
 \code{"long"} or \code{"wide"}. Use \code{"long"} if a single area column
-exists in \code{grid}. Use \code{"wide"} if each area has its own column in 
+exists in \code{grid}. Use \code{"wide"} if each area has its own column in
 \code{grid}.}
 
 \item{to.format}{The desired format of \code{grid}. Options include
-\code{"long"} or \code{"wide"}.  Use \code{"long"} if you want a single area 
-column with a corresponding value column. Use \code{"wide"} if you would 
+\code{"long"} or \code{"wide"}.  Use \code{"long"} if you want a single area
+column with a corresponding value column. Use \code{"wide"} if you would
 like each area to have its own column.}
 
 \item{val.name}{Required if \code{from.format = "wide"} and \code{to.format = "long"}.
-This will be the name of the new value variable associated with the area 
+This will be the name of the new value variable associated with the area
 column.}
 
 \item{save}{Logical, whether to save formatted \code{grid}.}
 }
 \description{
-Change the format of a gridded dataset from wide to long (or vice versa). 
+Change the format of a gridded dataset from wide to long (or vice versa)
 and remove any unmatched area/zones from \code{grid}.
+}
+\seealso{
+\code{\link[=merge_dat]{merge_dat()}}
 }
