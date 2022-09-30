@@ -148,16 +148,27 @@ discretefish_subroutine <-
       
       length.exp.names <-length(x$gridVaryingVariables)
       
+      if (length.exp.names == 0) length.exp.names <- 1
+      
       # data matrix ----
       # loop thru expected catch matrices (loops once if no matrix)
       for (j in seq_len(length.exp.names)) {
+        
+        if (is_value_empty(x$expectcatchmodels)) {
+          
+          exp.names <- NULL
+          
+        } else {
+          
+          exp.names <- x$expectcatchmodels[[j]]
+        }
         
         datamatrix <- create_model_input(project = project, x = x, 
                                          mod.name = x$mod.name, 
                                          use.scalers = use.scalers, 
                                          scaler.func = scaler.func, 
                                          expected.catch = x$gridVaryingVariables, 
-                                         exp.names = x$expectcatchmodels[[j]])
+                                         exp.names = exp.names)
           
         if (is.factor(x$optimOpt)) {
           
@@ -219,12 +230,16 @@ discretefish_subroutine <-
         
         if (numInits != length(starts2)) {
           
-          if (numInits > length(starts2)) {
+          if (length(starts2) == 1) {
             
-            starts2 <- c(starts2, rep(0.5, (numInits - length(starts2))))
+            starts2 <- rep(starts2, numInits)
+            
+          } else if (numInits > length(starts2)) { # TODO: check if this is okay
+            
+            starts2 <- c(starts2, rep(1, (numInits - length(starts2))))
             message(numInits, ' initial parameter values should be specified')
             
-          } else if (numInits < length(starts2)) {
+          } else if (numInits < length(starts2)) { # TODO: check if this is okay
             
             starts2 <- starts2[1:numInits]
             message(numInits, ' initial parameter values should be specified')
