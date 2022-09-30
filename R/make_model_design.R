@@ -392,9 +392,17 @@ make_model_design <-
 
   # Expected catch ----
   
-  exp_select <- list()
-  # use for logit_avecat, others?   
-  if (table_exists(paste0(project, "ExpectedCatch"), project) & likelihood == "logit_c") {
+  ExpectedCatch <- NULL
+  exp_select <- NULL
+  # use for logit_avgcat, others?   
+  # if (table_exists(paste0(project, "ExpectedCatch"), project) & likelihood == "logit_c") {
+  if (!is_value_empty(expectcatchmodels)) {
+    
+    if (!table_exists(paste0(project, "ExpectedCatch"), project)) {
+      
+      stop("Expected catch/revenue does not exist. Run create_expectations() ",
+           "or set 'expectcatchmodels = NULL'.", call. = FALSE)
+    }
     
     ExpectedCatch <- unserialize_table(paste0(project, "ExpectedCatch"), project)
       
@@ -422,9 +430,8 @@ make_model_design <-
   }
     
   # Note: revisit this -- EC should be available for other likelihood funs
-  if (!exists("ExpectedCatch")) {
+  if (is.null(ExpectedCatch)) {
     
-    ExpectedCatch <- ""
     userDumV <- 1
     
     if (likelihood == "logit_c") {
@@ -432,15 +439,12 @@ make_model_design <-
       stop("Expected Catch Matrix does not exist. Please run the create_expectations ", 
            "function if expected catch will be included in the model.", call. = FALSE)
     }
-  }
-
-  
-  if (is.list(ExpectedCatch)) {
-  # Note: do this in calc_exp()? 
+    
+  } else {
+    # Note: do this in calc_exp()? 
     if (is.null(ExpectedCatch$user_dummy)) userDumV <- 1 # Note: consider removing this
     else userDumV <- ExpectedCatch$user_dummy
   }
-    
 
   # Port ----  
   
@@ -472,9 +476,12 @@ make_model_design <-
   # gridded dataset
   
 
-  if (is_empty(gridVariablesInclude)) {
+  if (is_value_empty(gridVariablesInclude)) {
     
-    gridVariablesInclude <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
+    if (is_value_empty(expectcatchmodels)) {
+      
+      gridVariablesInclude <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
+    }
     
   } else {
     
@@ -482,7 +489,7 @@ make_model_design <-
   }
   
   # Ind ----
-  if (any(is_empty(indeVarsForModel))) {
+  if (any(is_value_empty(indeVarsForModel))) {
     
     indeVarsForModel <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
     
@@ -500,59 +507,31 @@ make_model_design <-
  
   # Initial parameters ----
   # need to grab inits from previous model run if required
-  # TODO: include expected catch matrices if used
   # TODO: use better method for reading in existing initial parameters
-  indNum <- length(vars1)
-  gridNum <- length(vars2)
-  
-  if (!is_value_empty(expectcatchmodels)) {
-    
-    browser()
-    
-    
-  }
-  
-  # default parameter lengths 
-  if (likelihood == "logit_c") {
-    
-    ip_len <- indNum + gridNum
-    
-  } else if (likelihood == "logit_avgcat") {
-    
-    ip_len <- gridNum * (alts - 1) + indNum
-    
-  } else if (likelihood == "logit_correction") {
-    
-    ip_len <- gridNum * alts + ((((polyn+1)*2)+2)*alts) + indNum + 1 + 1
-    
-  } else {
-    
-    ip_len <- gridNum * alts + indNum + 1 + 1
-  }
+ 
   # set parameters
+  
+  init_params <- initparams
+  
   if (is_value_empty(initparams)) {
     
-    init_params <- rep(1, ip_len)
-    
-  } else if (is.numeric(initparams) & length(initparams) == 1) {
-    
-    init_params <- rep(initparams, ip_len)
-    
-  } else if (!is.numeric(initparams) & !any(grepl(',', initparams))) {
-    # read in parameters from previous model
-    x_temp <- read_dat(paste0(locoutput(project),  
-                              pull_output(project, type = 'table', 
-                                          fun = paste0('params_', initparams))))
-    
-    if (!is.null(x_temp)) {
+    if (!is.numeric(initparams) & !any(grepl(',', initparams))) {
+      # read in parameters from previous model
+      x_temp <- read_dat(paste0(locoutput(project),  
+                                pull_output(project, type = 'table', 
+                                            fun = paste0('params_', initparams))))
       
-      init_params <- x_temp$estimate
+      if (!is.null(x_temp)) {
+        
+        init_params <- x_temp$estimate
+        
+      } else {
+        
+        init_params <- 1
+        warning('Model not found. Setting parameter estimates to 1.', call. = FALSE)
+      }
       
-    } else {
-      
-      init_params <- rep(1, ip_len)
-      warning('Model not found. Setting parameter estimates to 1.', call. = FALSE)
-    }
+    } else init_params <- 1
   }
     
   # Distance Matrix ----
@@ -585,11 +564,11 @@ make_model_design <-
       
     } else {
       
-      epmDefaultPrice <- dataset[zone_ind, as.character(priceCol)]
+      epmDefaultPrice <- dataset[[priceCol]][zone_ind]
       pscale <- mean(epmDefaultPrice, na.rm = TRUE)
     }
   
-    # scales zonal ----
+    # scales ----
     mscale <- mean(dist_out$distMatrix, na.rm = TRUE)
   
     # scales data r in
