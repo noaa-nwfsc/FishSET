@@ -67,15 +67,25 @@ create_model_input <-
       
       x$scales['catch'] <- scaler.func(x$catch)
       x$scales['zonal'] <- scaler.func(x$distance)
-      x$scales['griddata'] <- scaler.func(x$bCHeader$gridVariablesInclude)
+      # There can be multiple griddata vars, loop 
+      # x$scales['griddata'] <- scaler.func(x$bCHeader$gridVariablesInclude)
       
-      if (is.list(x$bCHeader$indeVarsForModel)) {
+      if (is.list(x$bCHeader$gridVariablesInclude)) {
         
-        x$scales$intdata <- lapply(x$bCHeader$indeVarsForModel, function(x) scaler.func(unlist(x)))
+        x$scales['griddata'] <- lapply(x$bCHeader$gridVariablesInclude, function(x) scaler.func(unlist(x)))
         
       } else {
         
-        x$scales$intdata <- scaler.func(x$bCHeader$indeVarsForModel) 
+        x$scales['griddata'] <- scaler.func(x$bCHeader$gridVariablesInclude) 
+      }
+      
+      if (is.list(x$bCHeader$indeVarsForModel)) {
+        
+        x$scales['intdata'] <- lapply(x$bCHeader$indeVarsForModel, function(x) scaler.func(unlist(x)))
+        
+      } else {
+        
+        x$scales['intdata'] <- scaler.func(x$bCHeader$indeVarsForModel) 
       }
     } 
     
@@ -95,7 +105,7 @@ create_model_input <-
   choice.table <- choice 
   # TODO: fix non-syntactic choice column name (or leave as vector)
   choice <- as.data.frame(as.numeric(factor(as.matrix(choice))))
-  # Note: ab # of cost parameters + # of alts (shift_sort_x)
+  # Note: ab is # of cost parameters + # of alts (shift_sort_x)
   ab <- max(choice) + 1 # no interactions in create_logit_input - interact distances in likelihood function instead
   
   fr <- x$likelihood
@@ -110,16 +120,46 @@ create_model_input <-
   d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
   
   
+  intdat <- mapply("/", x$bCHeader$indeVarsForModel, 
+                  grep('intdata', names(x$scales)), 
+                  SIMPLIFY = FALSE)
+  
+  griddat <- mapply("/", x$bCHeader$gridVariablesInclude, 
+                    grep('griddata', names(x$scales)), 
+                    SIMPLIFY = FALSE)
+  
+  if (!is_value_empty(exp.names)) {
+    
+    # use exp.names to pull specified exp matrix
+    expected.catch <- expected.catch[exp.names]
+    
+    expname <- paste0(fr, '.', paste0(names(expected.catch), collapse = '.'))
+   
+    # Q: Is this right? Also, should dummies by included?
+    ec_mean <- vapply(expected.catch, mean, numeric(1))
+    
+    # Q: filter for ec matrices (exclude dummies)?
+    ec_grid <- lapply(seq_along(expected.catch), function(i) {
+      
+      expected.catch[[i]]/ec_mean[i]
+    })
+    
+    names(ec_grid) <- names(expected.catch)
+    # add ec matrices to griddat
+    griddat <- c(griddat, ec_grid)
+  }
+  
   # Data needs will vary by the likelihood function
   # Note: gridVariablesInclude (non-expected catch gridded vars) is only being 
-  # used in EPMs, need to include it for other models?
+  # used in EPMs, need to include for other models
   if (grepl("epm", fr)) {
     
+    
+    
     otherdat <- list(
-      griddat = list(griddatfin = as.data.frame(x$bCHeader$gridVariablesInclude)/as.numeric(x$scales['griddata'])),
-      intdat = list(as.data.frame(
-        mapply("/", x$bCHeader$indeVarsForModel,
-               grep('intdata', names(x$scales)), SIMPLIFY = FALSE))),
+      # griddat = list(griddatfin = as.data.frame(x$bCHeader$gridVariablesInclude)/as.numeric(x$scales['griddata'])),
+      griddat = griddat,
+      intdat = intdat,
       pricedat = as.data.frame(x$epmDefaultPrice/as.numeric(x$scales['pscale']))
     )
     expname <- fr
@@ -127,9 +167,9 @@ create_model_input <-
   } else if (fr == "logit_correction") {
     
     otherdat <- list(
-      griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), 
-      intdat = list(as.data.frame(mapply("/", x$bCHeader$indeVarsForModel,
-                                         grep('intdata', names(x$scales)), SIMPLIFY = FALSE))),
+      # griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), 
+      griddat = griddat,
+      intdat = intdat,
       startloc = as.data.frame(x$startloc),
       polyn = as.data.frame(x$polyn),
       distance=list(distance)
@@ -139,43 +179,42 @@ create_model_input <-
   } else if (fr == "logit_avgcat") {
     
     otherdat <- list(
-      griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))),
-      intdat = list(as.data.frame(
-        mapply("/", x$bCHeader$indeVarsForModel,
-               grep('intdata', names(x$scales)), SIMPLIFY = FALSE))) 
+      # griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))),
+      griddat = griddat,
+      intdat = intdat
     )
     expname <- fr
     
   } else if (fr == "logit_c") {
     
-    # use exp.names to pull specified exp matrix
-    expected.catch <- expected.catch[exp.names]
-    
-    # Q: should this include all names or just what is being used?
-    expname <- paste0(fr, '_', paste0(names(x$gridVaryingVariables), collapse = ''))
-    # alt
+    # # use exp.names to pull specified exp matrix
+    # expected.catch <- expected.catch[exp.names]
+    # 
+    # # Q: should this include all names or just what is being used?
+    # # expname <- paste0(fr, '_', paste0(names(x$gridVaryingVariables), collapse = ''))
+    # 
     # expname <- paste0(fr, '.', paste0(names(expected.catch), collapse = '.'))
-    
-    
-    
-    # Q: Is this right? Also, should dummies by included?
-    # ec_mean <- mean(do.call(cbind, expected.catch))
-    ec_mean <- vapply(expected.catch, mean, numeric(1))
-    
-    # Q: filter for ec matrices (exclude dummies)?
-    griddat <- lapply(seq_along(expected.catch), function(i) {
-      
-      expected.catch[[i]]/ec_mean[i]
-      })
-      
-    names(griddat) <- names(expected.catch)
-    # Q: if dummies excluded from above, re-add them here? 
-    # griddat <- as.data.frame(griddat)
-    
+    # 
+    # 
+    # 
+    # # Q: Is this right? Also, should dummies by included?
+    # # ec_mean <- mean(do.call(cbind, expected.catch))
+    # ec_mean <- vapply(expected.catch, mean, numeric(1))
+    # 
+    # # Q: filter for ec matrices (exclude dummies)?
+    # ec_grid <- lapply(seq_along(expected.catch), function(i) {
+    #   
+    #   expected.catch[[i]]/ec_mean[i]
+    #   })
+    #   
+    # names(ec_grid) <- names(expected.catch)
+    # # Q: if dummies excluded from above, re-add them here? 
+    # # griddat <- as.data.frame(griddat)
+    # 
+    # griddat <- c(griddat, ec_grid)
     
     otherdat <- list(
-      # Q: this creates a df w/ 1 row and a column for every cell of all ec matrices 
-      # -- is this the desired format?
+
       # Q: this would divide the dummy matrices by the mean of all ec (also 
       # including dummies) is this right?
       # griddat = list(as.data.frame(lapply(expected.catch, function(sub) {
@@ -186,19 +225,15 @@ create_model_input <-
       
       griddat = griddat,
       
-      # Note: df w/ 1 column for each variable (nrow = n occurrences)
       # intdat = list(as.data.frame(
       #   mapply("/", x$bCHeader$indeVarsForModel,
       #          grep('intdata', names(x$scales)), SIMPLIFY = FALSE)))
-      intdat = mapply("/", x$bCHeader$indeVarsForModel, 
-                      grep('intdata', names(x$scales)), 
-                      SIMPLIFY = FALSE)
+      intdat = intdat 
     )
   }
   
-  
   out <- list(
-    d=d, #datacompile/choice matrix
+    d = d, #datacompile/choice matrix
     dataCompile = dataCompile,
     distance = distance,
     otherdat = otherdat, #include price
