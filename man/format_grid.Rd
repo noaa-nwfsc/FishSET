@@ -8,6 +8,7 @@ format_grid(
   grid,
   dat,
   project,
+  dat.key,
   area.dat,
   area.grid = NULL,
   id.cols,
@@ -25,6 +26,9 @@ the FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{Name of project.}
 
+\item{dat.key}{String, name of column(s) in MainDataTable to join by. The
+number of columns must match \code{id.cols}.}
+
 \item{area.dat}{String, the name of the area or zone column in \code{dat}.}
 
 \item{area.grid}{String, the name of the area or zone column in \code{dat} if
@@ -40,7 +44,7 @@ exists in \code{grid}. Use \code{"wide"} if each area has its own column in
 \code{grid}.}
 
 \item{to.format}{The desired format of \code{grid}. Options include
-\code{"long"} or \code{"wide"}.  Use \code{"long"} if you want a single area
+\code{"long"} or \code{"wide"}. Use \code{"long"} if you want a single area
 column with a corresponding value column. Use \code{"wide"} if you would
 like each area to have its own column.}
 

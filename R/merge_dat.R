@@ -79,7 +79,7 @@ merge_dat <- function(dat, other, project, main_key, other_key, other_type,
     
     if (any(!except_match)) {
       
-      ind <- which(!except_match)
+      ind <- which(unlist(no_match_class) & !except_match)
       
       class_error <- vapply(ind, FUN = function(x) {
         

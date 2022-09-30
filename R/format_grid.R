@@ -7,6 +7,8 @@
 #' @param dat Primary data containing information on hauls or trips. Table in 
 #'   the FishSET database contains the string 'MainDataTable'.
 #' @param project Name of project.
+#' @param dat.key String, name of column(s) in MainDataTable to join by. The 
+#'   number of columns must match `id.cols`.
 #' @param area.dat String, the name of the area or zone column in `dat`.
 #' @param area.grid String, the name of the area or zone column in `dat` if
 #'   `from.format = "long"`. Ignored if `from.format = "wide"`.
@@ -18,7 +20,7 @@
 #'   exists in `grid`. Use `"wide"` if each area has its own column in 
 #'   `grid`.
 #' @param to.format The desired format of `grid`. Options include
-#'   `"long"` or `"wide"`.  Use `"long"` if you want a single area 
+#'   `"long"` or `"wide"`. Use `"long"` if you want a single area 
 #'   column with a corresponding value column. Use `"wide"` if you would 
 #'   like each area to have its own column.
 #' @param val.name Required if `from.format = "wide"` and `to.format = "long"`.
@@ -34,6 +36,7 @@ format_grid <-
   function(grid,
            dat,
            project,
+           dat.key,
            area.dat,
            area.grid = NULL,
            id.cols, 
@@ -42,8 +45,8 @@ format_grid <-
            val.name = NULL,
            save = FALSE
            ) {
-    
-    # TODO: warning if gridded data does not cover all zones in primary data
+    # TODO: join grided to dat then remove dat columns--this will create the 
+    # correct number of rows and correct order for use with logit_c model
     
     out <- data_pull(dat, project)
     dataset <- out$dataset
@@ -56,11 +59,12 @@ format_grid <-
     # Note: if no date var, allow format?
     
     stopifnot("'area.dat' is required" = !is_value_empty(area.dat),
-              "'id.cols' is requierd" = !is_value_empty(id.cols))
+              "'id.cols' is required" = !is_value_empty(id.cols))
     
     column_check(dataset, area.dat)
     column_check(griddat, c(area.grid, id.cols))
     
+    # from wide ----
     if (from.format == "wide") {
       
       # filter out unmatched areas
@@ -73,6 +77,11 @@ format_grid <-
         
         stop("No matches between gridded table and primary table. Check gridded ",
              "table format or use data with matching zones.", call. = FALSE)
+      }
+      
+      if (!all(d_areas %in% g_areas)) {
+        
+        stop("Gridded data does not include all zones from 'dat'.", call. = FALSE)
       }
       
       # filter out unmatched areas
@@ -89,7 +98,7 @@ format_grid <-
                                        names_to = area.dat, 
                                        values_to = val.name) 
       }
-      
+      # from long ----
     } else if (from.format == "long") {
       
       if (is_value_empty(area.grid)) {
@@ -109,6 +118,11 @@ format_grid <-
              "table format or use data with matching zones.", call. = FALSE)
       }
       
+      if (!all(d_areas %in% g_areas)) {
+        
+        stop("Gridded data does not include all zones from 'dat'.", call. = FALSE)
+      }
+      
       griddat <- griddat[griddat[[area.grid]] %in% g_areas, ]
       
       if (to.format == "wide") {
@@ -119,6 +133,33 @@ format_grid <-
       }
     }
     
+    # join-split ----
+    browser()
+    
+    if (to.format == "wide") {
+      
+      # id.cols should contain the grid ids needed to join, change to grid.id
+      dat_grid <- merge_dat(dataset, griddat, project = project,
+                            main_key = dat.key,
+                            other_key = id.cols,
+                            other_type = "grid",
+                            merge_type = "left")
+      
+    } else {
+      
+      dat_grid <- merge_dat(dataset, griddat, project = project,
+                            main_key = c(dat.key, area.dat),
+                            other_key = c(id.cols, area.grid),
+                            other_type = "grid",
+                            merge_type = "left")
+    }
+    
+    
+    # drop dat and ID columns
+    griddat <- dat_grid[-seq(ncol(dataset))]
+    
+    
+    # save ----
     if (save) {
       
       if (table_exists(grid, project)) {
@@ -127,7 +168,9 @@ format_grid <-
                                                       locdatabase(project = project)))
         on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
         
-        DBI::dbWriteTable(fishset_db, grid, griddat, overwrite = TRUE)
+        g_name <- paste0(grid, simpleCap(to.format))
+        
+        DBI::dbWriteTable(fishset_db, g_name, griddat, overwrite = TRUE)
         
       } else {
         
