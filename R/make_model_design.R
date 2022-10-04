@@ -38,7 +38,9 @@
 #'   for how to specify for each likelihood function.
 #' @param vars2 Character string, additional variables to include in the model. 
 #'   These depend on the likelihood. See the Details section for how to specify 
-#'   for each likelihood function.
+#'   for each likelihood function. For `likelihood == 'logit_c'`, `vars2` 
+#'   should be the name of the gridded table saved to the FishSET Database, and
+#'   should contain the string `"GridTableWide"`. See [format_grid()] for details. 
 #' @param priceCol Variable in `dat` containing price information. Required 
 #'   if specifying an expected profit model for the likelihood (epm_normal, 
 #'   epm_weibull, epm_lognormal).
@@ -263,7 +265,21 @@ make_model_design <-
   spat <- parse_data_name(spat, "spat", project)
   
   # check args ----
-  column_check(dataset, c(catchID, vars1, vars2, priceCol, startloc))
+  
+  if (likelihood == "logit_c") {
+    
+    column_check(dataset, c(catchID, vars1, priceCol, startloc))
+    
+    if (!table_exists(vars2, project)) {
+      
+      stop("Gridded table '", vars2, "' does not exist.", call. = FALSE)
+    }
+    
+  } else {
+    
+    column_check(dataset, c(catchID, vars1, vars2, priceCol, startloc))
+  }
+  
   
   ll_funs <- c("logit_c", "logit_avgcat", "logit_correction", "epm_normal", 
                "epm_lognormal", "epm_weibull")
@@ -394,6 +410,7 @@ make_model_design <-
   
   ExpectedCatch <- NULL
   exp_select <- NULL
+  # TODO: Check whether ec matrices need to be rerun (necessary if primary data was filtered after ec were created)
   # use for logit_avgcat, others?   
   # if (table_exists(paste0(project, "ExpectedCatch"), project) & likelihood == "logit_c") {
   if (!is_value_empty(expectcatchmodels)) {
@@ -485,7 +502,21 @@ make_model_design <-
     
   } else {
     
-    gridVariablesInclude <- lapply(gridVariablesInclude, function(x) dataset[[x]][zone_ind])
+    if (likelihood == "logit_c") {
+
+      # TODO: check if gridded table has correct # of rows, if not error out and 
+      # tell user to re-run format_grid()
+      gridVariablesInclude <- lapply(gridVariablesInclude, function(x) {
+        
+        grid_tab <- table_view(x, project)
+        
+        grid_tab[zone_ind, names(grid_tab) %in% unique(choice)]
+      })
+      
+    } else {
+      
+      gridVariablesInclude <- lapply(gridVariablesInclude, function(x) dataset[[x]][zone_ind])
+    }
   }
   
   # Ind ----
