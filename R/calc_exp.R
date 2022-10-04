@@ -17,7 +17,7 @@
 #' @param Alt Alternative choice list
 #' @keywords internal
 #' @importFrom lubridate floor_date year years
-#' @importFrom stats aggregate lm coef
+#' @importFrom stats aggregate lm coef na.pass
 #' @returns Returns a list containing the expected catch/revenue matrix and 
 #'   dummy matrix (if \code{dummy.exp = TRUE}). 
 #' 
@@ -266,7 +266,7 @@ calc_exp <- function(dataset,
         
         # Note: could remove fleet
         aggregate(lag.value ~ areas + fleet, data = df[ind, ], 
-                  FUN = mean, na.action = na.pass, na.rm = TRUE) # remove na.rm = TRUE?
+                  FUN = mean, na.action = stats::na.pass, na.rm = TRUE) # remove na.rm = TRUE?
         
       } else {
         
