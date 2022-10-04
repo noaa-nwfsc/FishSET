@@ -34,29 +34,32 @@ number of columns must match \code{id.cols}.}
 \item{area.grid}{String, the name of the area or zone column in \code{dat} if
 \code{from.format = "long"}. Ignored if \code{from.format = "wide"}.}
 
-\item{id.cols}{String, the names of all non-area columns if \code{from.format = "wide"},
-such as date variables.\code{id.cols} should contain the name of the value
-variable if \code{from.format = "long"}.}
+\item{id.cols}{String, the names of columns from \code{grid} that are neither area
+(\code{area.grid}) or value (\code{val.name}) columns, for example date or period
+column(s).}
 
-\item{from.format}{The original format of \code{grid}. Options include
-\code{"long"} or \code{"wide"}. Use \code{"long"} if a single area column
-exists in \code{grid}. Use \code{"wide"} if each area has its own column in
-\code{grid}.}
+\item{from.format}{The original format of \code{grid}. Options include \code{"long"} or
+\code{"wide"}. Use \code{"long"} if a single area column exists in \code{grid}. Use \code{"wide"}
+if \code{grid} contains a column for each area.}
 
-\item{to.format}{The desired format of \code{grid}. Options include
-\code{"long"} or \code{"wide"}. Use \code{"long"} if you want a single area
-column with a corresponding value column. Use \code{"wide"} if you would
-like each area to have its own column.}
+\item{to.format}{The desired format of \code{grid}. Options include \code{"long"} or
+\code{"wide"}. Use \code{"long"} if you want a single area column with a corresponding
+value column. Use \code{"wide"} if you would like each area to have its own column.}
 
-\item{val.name}{Required if \code{from.format = "wide"} and \code{to.format = "long"}.
-This will be the name of the new value variable associated with the area
-column.}
+\item{val.name}{Required if converting from wide to long or long to wide format.
+When \code{from.format = "wide"} and \code{to.format = "long"}, \code{val.name} will be the
+name of the new value variable associated with the area column.  When
+\code{from.format = "long"} and \code{to.format = "wide"}, \code{val.name} will be the
+name of the existing value variable associated with the area column.}
 
-\item{save}{Logical, whether to save formatted \code{grid}.}
+\item{save}{Logical, whether to save formatted \code{grid}. When \code{TRUE}, the
+table will be saved with the string \code{"Wide"} or \code{"Long"} appended depending
+on the value of \code{to.format}.}
 }
 \description{
 Change the format of a gridded dataset from wide to long (or vice versa)
-and remove any unmatched area/zones from \code{grid}.
+and remove any unmatched area/zones from \code{grid}. This is a necessary step
+for including gridded variables in the conditional logit (\code{\link[=logit_c]{logit_c()}}) model.
 }
 \seealso{
 \code{\link[=merge_dat]{merge_dat()}}
