@@ -68,7 +68,9 @@ for how to specify for each likelihood function.}
 
 \item{vars2}{Character string, additional variables to include in the model.
 These depend on the likelihood. See the Details section for how to specify
-for each likelihood function.}
+for each likelihood function. For \code{likelihood == 'logit_c'}, \code{vars2}
+should be the name of the gridded table saved to the FishSET Database, and
+should contain the string \code{"GridTableWide"}. See \code{\link[=format_grid]{format_grid()}} for details.}
 
 \item{priceCol}{Variable in \code{dat} containing price information. Required
 if specifying an expected profit model for the likelihood (epm_normal,
