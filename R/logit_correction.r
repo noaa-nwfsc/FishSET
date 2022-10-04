@@ -176,7 +176,7 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
   probmove <- probs * locmove
 
   intpoly <- 2
-  # browser()
+  
   movemat <- matrix(
     c(locmove, (matrix(probmove, obsnum, alts * polyn)^matrix(rep(1:polyn, each = alts), obsnum, alts * polyn, byrow = TRUE)), (matrix(
       probmove,
