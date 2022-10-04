@@ -189,6 +189,12 @@ table_view <- function(table, project) {
       tab_out <- DBI::dbGetQuery(fishset_db, 
                                  paste0("SELECT * FROM", paste0("'", noquote(table), "'")))
       
+      # TODO: need a better method for converting back to date
+      # Ex: this approach won't convert a date column named "TRIP_START"
+      # Alternative would be to save all date variables as character then check
+      # if any columns have a date format (date_cols())
+      # Best if character conversion was done in a table saving function
+      
       # convert date and date-time from numeric
       d_cols <- grep("date", names(tab_out), ignore.case = TRUE, value = TRUE)
       dt_cols <- grep("date.*time", names(tab_out), ignore.case = TRUE, value = TRUE)
