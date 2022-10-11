@@ -270,10 +270,13 @@ make_model_design <-
     
     column_check(dataset, c(catchID, vars1, priceCol, startloc))
     
-    if (!table_exists(vars2, project)) {
+    lapply(vars2, function(x) {
       
-      stop("Gridded table '", vars2, "' does not exist.", call. = FALSE)
-    }
+      if (!table_exists(x, project)) {
+        
+        stop("Gridded table '", x, "' does not exist.", call. = FALSE)
+      }
+    })
     
   } else {
     
