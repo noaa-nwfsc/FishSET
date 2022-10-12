@@ -364,13 +364,14 @@ model_out_view <- function(table, project) {
 
 
 model_params <- function(table, project) {
-  #' Load model parameter estimates, standard errors, and t-statistic to console for the defined project
+  #' Load model parameter estimates, standard errors, and t-statistic to console 
+  #' for the defined project
   #'
   #' Returns parameter estimates from running \code{\link{discretefish_subroutine}}. 
   #' The table argument must be the full name of the table name in the FishSET 
   #' database. 
   #' 
-  #' @param table  Table name in FishSET database. Should contain the phrase 
+  #' @param table Table name in FishSET database. Should contain the phrase 
   #'   'ModelOut'. Table name must be in quotes.
   #' @param project Name of project
   #' @export
@@ -386,14 +387,24 @@ model_params <- function(table, project) {
   mod_out <- model_out_view(table, project)
   
   if (!is.null(mod_out)) {
+
+    mod_list <- 
+      lapply(mod_out, function(x) {
+        
+        params <- as.data.frame(x$OutLogit)
+        
+        names(params) <- c("estimate", "std_error", "t_value") 
+        
+        params <- round(params, 3)
+        
+        params
+      })
     
-    params <- as.data.frame(mod_out$OutLogit)
+    mod_names <- vapply(mod_out, function(x) x$name, character(1))
     
-    names(params) <- c("estimate", "std_error", "t_value") 
+    names(mod_list) <- mod_names
     
-    params <- round(params, 3)
-    
-    params
+    mod_list
   }
 }
 
