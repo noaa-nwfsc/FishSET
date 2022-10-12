@@ -146,7 +146,7 @@ discretefish_subroutine <-
 
       x <- x_temp[[i]]
       
-      length.exp.names <-length(x$gridVaryingVariables)
+      length.exp.names <-length(x$expectcatchmodels)
       
       if (length.exp.names == 0) length.exp.names <- 1
       
@@ -281,9 +281,6 @@ discretefish_subroutine <-
         detailreport <- opt[4]
         
         controlin <- list(trace = detailreport, maxit = mIter, reltol = relTolX, REPORT = reportfreq)
-        
-        # Note: remove
-        # res <- get("mod_out")
         
         res <- tryCatch({
 
