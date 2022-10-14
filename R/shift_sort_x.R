@@ -43,7 +43,7 @@ shift_sort_x <- function(x, ch, y, distance, alts, ab) {
     # the catch, chosen location, possible locations, and the distance to each location for an occasion
     d[[j]] <- cbind(as.matrix(y[j, ]), as.matrix(ch[j, ]), xsorted)
   }
-
+# note: no variation in first column in distance matrix, causes 
   d <- do.call("rbind", d)
 
   return(d)
