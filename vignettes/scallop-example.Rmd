@@ -1,0 +1,382 @@
+---
+title: "scallop-example"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scallop-example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(FishSET)
+library(dplyr)
+library(tidyr)
+```
+
+```{r}
+folderpath <- tempdir()
+
+proj <- "scallop"
+```
+
+## Data Import
+
+```{r}
+load_maindata(dat = FishSET::scallop, project = proj)
+
+load_spatial(spat = FishSET::tenMNSQR, project = proj, name = "TenMNSQR")
+
+load_spatial(spat = FishSET::windLease, project = proj, name = "WindClose")
+```
+
+```{r}
+scallopTenMNSQRSpatTable <- table_view("scallopTenMNSQRSpatTable", proj)
+scallopWindCloseSpatTable <- table_view("scallopWindCloseSpatTable", proj)
+```
+
+This data contains `r nrow(scallopMainDataTable)` rows and `r ncol(scallopMainDataTable)` variables.
+
+
+### Fleet assignment
+
+```{r create_fleet_tabs}
+fleet_tab <- 
+  data.frame(
+    condition = c('`Plan Code` == "SES" & `Program Code` == "SAA"',
+                  '`Plan Code` == "SES" & `Program Code` == "SCA"'),
+    fleet = c("Access Area", "Days at Sea"))
+```
+
+
+```{r}
+# save fleet table to FishSET DB
+fleet_table(scallopMainDataTable, 
+            project = proj,
+            table = fleet_tab, save = TRUE)
+
+# Create fleet column 
+fleet_tab_name <- list_tables(proj, type = "fleet") # grab tab name
+
+scallopMainDataTable <- 
+  fleet_assign(scallopMainDataTable, project = proj, 
+               fleet_tab = fleet_tab_name)
+```
+
+
+### Bin Gears
+```{r bin_gears}
+scallopMainDataTable$GEARCODE_OLD <- scallopMainDataTable$GEARCODE
+#Anything with "DREDGE" in the GEARCODE will be rebinned to "DREDGE" 
+pat_match <- "*DREDGE*"
+reg_pat <- glob2rx(pat_match)
+scallopMainDataTable$GEARCODE[grep(reg_pat, scallopMainDataTable$GEARCODE)] <- 'DREDGE'
+#Look at the GEARCODE NOW, there should be 'DREDGE', 'TRAWL-BOTTOM', and some funky stuff
+table(scallopMainDataTable$GEARCODE)
+scallopMainDataTable$GEARCODE[!(scallopMainDataTable$GEARCODE %in% c('DREDGE','TRAWL-BOTTOM'))] <- 'OTHER'
+
+```
+
+
+```{r calculate operating profit}
+# Calculate operating profit by subtracting 2020 trip costs from aggregated revenues in 2020 dollars.
+scallopMainDataTable <- 
+  scallopMainDataTable %>% 
+  mutate(OPERATING_PROFIT_2020 = DOLLAR_ALL_SP_2020_OBSCURED - TRIP_COST_WINSOR_2020_DOL)
+```
+
+
+### summary table
+```{r}
+summary_stats(scallopMainDataTable, proj) 
+# %>% 
+#   pretty_tab_sb()
+```
+
+## QAQC
+
+### NA check
+```{r}
+na_filter(scallopMainDataTable, 
+          project = proj, 
+          replace = FALSE, remove = FALSE, 
+          rep.value = NA, over_write = FALSE)
+```
+
+<br><br>
+
+### NaN check
+```{r}
+nan_filter(scallopMainDataTable, 
+           project = proj, 
+           replace = FALSE, remove = FALSE, 
+           rep.value = NA, over_write = FALSE)
+```
+
+<br><br>
+
+### Unique rows
+
+```{r}
+unique_filter(scallopMainDataTable, project = proj, remove = FALSE)
+```
+<br><br>
+
+### Empty variables
+By "empty" we mean containing all NAs.
+```{r}
+empty_vars_filter(scallopMainDataTable, project = proj, remove = FALSE)
+```
+
+<br><br>
+
+
+### Lon/Lat format
+
+```{r}
+degree(scallopMainDataTable, project = proj,
+       lat = "DDLAT", lon = "DDLON", 
+       latsign = NULL, lonsign = NULL,
+       replace = FALSE)
+```
+<br><br>
+
+### Spatial QAQC 
+
+```{r}
+spat_qaqc_out <-
+spatial_qaqc(scallopMainDataTable, project = proj,
+             spat = scallopTenMNSQRSpatTable, lon.dat = "DDLON", lat.dat = "DDLAT")
+
+spat_qaqc_out$dataset <- NULL # drop dataset
+spat_qaqc_out$spatial_summary 
+# %>% 
+#   pretty_lab(cols = "n") %>% 
+#    pretty_tab() 
+spat_qaqc_out[2:4]
+```
+
+## Data creation
+
+### Landing Year
+
+```{r}
+scallopMainDataTable <- 
+  scallopMainDataTable %>% 
+  mutate(DB_LANDING_YEAR = as.numeric(format(date_parser(DATE_TRIP), "%Y")))
+```
+
+
+### Finagle Live pounds to meat weights
+```{r}
+# rename POUNDS to LIVE_POUNDS for clarity.  Convert live pounds to meat pounds.
+scallopMainDataTable$LIVE_POUNDS <- scallopMainDataTable$POUNDS
+scallopMainDataTable$MEAT_POUNDS <- scallopMainDataTable$POUNDS / 8.33
+scallopMainDataTable$POUNDS <- NULL
+```
+
+### CPUE
+Create `CPUE` variable using `TRIP_LENGTH` and `MEAT_POUNDS`. Filter out any 
+infinite values. 
+```{r}
+scallopMainDataTable <- 
+  cpue(scallopMainDataTable, proj,
+       xWeight = "MEAT_POUNDS",
+       xTime = "TRIP_LENGTH", 
+       name = "CPUE")
+
+scallopMainDataTable <- 
+  scallopMainDataTable %>% 
+  filter(!is.infinite(CPUE))
+```
+<br><br>
+
+#### CPUE Percent Rank
+Add a percent rank column to filter outliers.
+```{r}
+outlier_table(scallopMainDataTable, proj, x = "CPUE") 
+# %>% 
+  #  pretty_lab() %>% 
+  # pretty_tab()
+
+scallopMainDataTable <- 
+  scallopMainDataTable %>% 
+  mutate(CPUE_p = percent_rank(CPUE))
+```
+
+<br><br>
+
+### VPUE
+Same as above but with revenue instead of meat pounds. 
+```{r}
+scallopMainDataTable <- 
+  cpue(scallopMainDataTable, proj,
+       xWeight = "DOLLAR_OBSCURED",
+       xTime = "TRIP_LENGTH", 
+       name = "VPUE")
+
+scallopMainDataTable <- 
+  scallopMainDataTable %>% 
+  filter(!is.infinite(VPUE))
+```
+<br><br>
+
+#### VPUE Percent Rank
+
+Add a percent rank column to filter outliers.
+```{r}
+outlier_table(scallopMainDataTable, proj, x = "VPUE") 
+# %>% 
+  #  pretty_lab() %>% 
+  # pretty_tab()
+
+scallopMainDataTable <- 
+  scallopMainDataTable %>% 
+  mutate(VPUE_p = percent_rank(VPUE))
+```
+
+### Fleet Tabulation
+
+```{r}
+scallopMainDataTable %>% 
+  count(fleet) %>% 
+  mutate(perc = round(n/sum(n) * 100, 1)) 
+# %>% 
+#   pretty_lab(cols = "n") %>% 
+#   pretty_tab()
+```
+
+### Zone assignment
+```{r}
+scallopMainDataTable <- 
+  assignment_column(scallopMainDataTable, project = proj,
+                    spat = scallopTenMNSQRSpatTable, 
+                    lon.dat = "DDLON",
+                    lat.dat = "DDLAT", 
+                    cat = "TEN_ID",
+                    name = "ZONE_ID",
+                    closest.pt = FALSE,
+                    hull.polygon = FALSE)
+```
+
+
+### Closure area assignment
+```{r}
+scallopMainDataTable <- 
+  assignment_column(scallopMainDataTable, project = proj,
+                    spat = scallopWindCloseSpatTable, 
+                    lon.dat = "DDLON",
+                    lat.dat = "DDLAT", 
+                    cat = "NAME",
+                    name = "closeID",
+                    closest.pt = FALSE,
+                    hull.polygon = FALSE) 
+
+scallopMainDataTable <- 
+  scallopMainDataTable %>% 
+  mutate(in_closure = !is.na(closeID))
+```
+
+
+`r sum(scallopMainDataTable$in_closure)` 
+observations (`r round(sum(scallopMainDataTable$in_closure)/nrow(scallopMainDataTable) * 100, 2)`%)
+occurred inside a closure area. 
+```{r}
+agg_helper(scallopMainDataTable, value = "in_closure", count = TRUE) %>% 
+  pivot_wider(names_from = "in_closure", values_from = "n") %>% 
+  rename("Outside Closure(s)" = "FALSE", "Inside Closure(s)" = "TRUE") 
+# %>% 
+#   pretty_lab() %>% 
+#   pretty_tab()
+```
+
+Observations inside/outside closures by fleet. 
+```{r}
+agg_helper(scallopMainDataTable, group = "fleet", 
+            value = "in_closure", count = TRUE) %>% 
+  pivot_wider(names_from = "in_closure", values_from = "n") %>% 
+  rename("Outside Closure(s)" = "FALSE", "Inside Closure(s)" = "TRUE") 
+# %>% 
+#   pretty_lab() %>% 
+#   pretty_tab()
+```
+
+Observations inside/outside closures by year. 
+```{r}
+agg_helper(scallopMainDataTable, value = "in_closure", 
+            group = "DB_LANDING_YEAR", 
+            count = TRUE) %>% 
+  pivot_wider(names_from = "in_closure", values_from = "n",
+              values_fill = 0) %>% 
+  arrange(DB_LANDING_YEAR) %>% 
+  rename("Outside closure(s)" = "FALSE", "Inside closure(s)" = "TRUE") 
+# %>% 
+#   pretty_lab(ignore = "DB_LANDING_YEAR") %>% 
+#   pretty_tab()
+```
+
+<br><br><br>
+Observations inside/outside closures by year and fleet. 
+```{r}
+agg_helper(scallopMainDataTable, value = "in_closure", 
+            group = c("DB_LANDING_YEAR", "fleet"), 
+            count = TRUE) %>% 
+  pivot_wider(names_from = "in_closure", values_from = "n",
+              values_fill = 0) %>% 
+  arrange(DB_LANDING_YEAR) %>% 
+  rename("Outside closure(s)" = "FALSE", "Inside closure(s)" = "TRUE") 
+# 
+# %>% 
+#   pretty_lab(ignore = "DB_LANDING_YEAR") %>% 
+#   pretty_tab_sb(width = "50%") 
+```
+
+## Zone Summary
+
+### Frequency
+
+Zone frequency.
+```{r }
+zone_out <- 
+  zone_summary(scallopMainDataTable, project = proj,
+           spat = scallopTenMNSQRSpatTable, 
+           zone.dat = "ZONE_ID",
+           zone.spat = "TEN_ID",
+           output = "tab_plot",
+           count = TRUE,
+           breaks = NULL, n.breaks = 10, 
+           na.rm = TRUE)
+
+zone_out$plot
+zone_out$table 
+# %>% 
+#   pretty_lab(cols = "n") %>% 
+#   pretty_tab_sb(width = "40%")
+```
+
+Percent of observations.
+```{r }
+zone_out <- 
+  zone_summary(scallopMainDataTable,
+           project = proj,
+           spat = scallopTenMNSQRSpatTable,
+           zone.dat = "ZONE_ID",
+           zone.spat = "TEN_ID",
+           output = "tab_plot",
+           count = TRUE, fun = "percent",
+           breaks = c(seq(.2, .5, .1), seq(1, 2, .5)), 
+           na.rm = TRUE)
+
+zone_out$plot
+zone_out$table 
+# %>% 
+#   pretty_lab(ignore = "ZONE_ID") %>% 
+#   pretty_tab_sb(width = "40%")
+```
+
