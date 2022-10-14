@@ -234,7 +234,7 @@ make_model_design <-
            replace = TRUE,
            likelihood = NULL,
            initparams = NULL,
-           optimOpt = c(100000, 1.0e-08, 1, 1),
+           optimOpt = c(100, 1.0e-08, 1, 1), # tolerance may be low
            methodname = "BFGS",
            mod.name = NULL,
            vars1 = NULL,
