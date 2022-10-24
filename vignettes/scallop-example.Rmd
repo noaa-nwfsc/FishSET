@@ -1,6 +1,9 @@
 ---
 title: "scallop-example"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 4
 vignette: >
   %\VignetteIndexEntry{scallop-example}
   %\VignetteEngine{knitr::rmarkdown}
@@ -14,38 +17,76 @@ knitr::opts_chunk$set(
 )
 ```
 
+
+## Introduction
+
+This vignette is an example of an exploratory data analysis using FishSET.
+
+<br><br>
+
+## Packages
+
 ```{r setup}
 library(FishSET)
 library(dplyr)
 library(tidyr)
 ```
 
+<br><br>
+
+## Project Setup
+
+The chunk below defines the location of the FishSET Folder. A temporary directory 
+is used in this vignette example; for actual use, set the `folderpath` to a location 
+that is not temporary. 
 ```{r}
 folderpath <- tempdir()
 
 proj <- "scallop"
 ```
 
+<br><br>
+
 ## Data Import
 
+Upload northeast scallop data from the FishSET package.
 ```{r}
 load_maindata(dat = FishSET::scallop, project = proj)
+```
 
+<br><br>
+
+View and upload ten minute squares and wind turbine closure areas from the FishSET
+package. 
+```{r}
+plot_spat(FishSET::tenMNSQR)
+plot_spat(FishSET::windLease)
+```
+
+
+```{r}
 load_spatial(spat = FishSET::tenMNSQR, project = proj, name = "TenMNSQR")
 
 load_spatial(spat = FishSET::windLease, project = proj, name = "WindClose")
 ```
+
+<br><br>
+
+Assign the regulatory zones and closure areas to the working environment.
 
 ```{r}
 scallopTenMNSQRSpatTable <- table_view("scallopTenMNSQRSpatTable", proj)
 scallopWindCloseSpatTable <- table_view("scallopWindCloseSpatTable", proj)
 ```
 
+<br><br>
+
 This data contains `r nrow(scallopMainDataTable)` rows and `r ncol(scallopMainDataTable)` variables.
 
+<br><br>
 
 ### Fleet assignment
-
+Assign all observations to either "Access Area" or "Days at Sea" fleets. 
 ```{r create_fleet_tabs}
 fleet_tab <- 
   data.frame(
@@ -60,17 +101,20 @@ fleet_tab <-
 fleet_table(scallopMainDataTable, 
             project = proj,
             table = fleet_tab, save = TRUE)
-
-# Create fleet column 
-fleet_tab_name <- list_tables(proj, type = "fleet") # grab tab name
-
+# grab tab name
+fleet_tab_name <- list_tables(proj, type = "fleet")
+# create fleet column
 scallopMainDataTable <- 
   fleet_assign(scallopMainDataTable, project = proj, 
                fleet_tab = fleet_tab_name)
 ```
 
+<br><br>
 
 ### Bin Gears
+There are several types of fishing gear in this dataset. For simplicity, the 
+`GEARCODE` column is re-binned to include three categories: `"DREDGE"`, `"TRAWL-BOTTOM"`,
+and `"OTHER"`. 
 ```{r bin_gears}
 scallopMainDataTable$GEARCODE_OLD <- scallopMainDataTable$GEARCODE
 #Anything with "DREDGE" in the GEARCODE will be rebinned to "DREDGE" 
@@ -80,28 +124,28 @@ scallopMainDataTable$GEARCODE[grep(reg_pat, scallopMainDataTable$GEARCODE)] <- '
 #Look at the GEARCODE NOW, there should be 'DREDGE', 'TRAWL-BOTTOM', and some funky stuff
 table(scallopMainDataTable$GEARCODE)
 scallopMainDataTable$GEARCODE[!(scallopMainDataTable$GEARCODE %in% c('DREDGE','TRAWL-BOTTOM'))] <- 'OTHER'
-
 ```
 
-
+### Operating Profit
+Calculate operating profit by subtracting 2020 trip costs from aggregated revenues in 2020 dollars.
 ```{r calculate operating profit}
-# Calculate operating profit by subtracting 2020 trip costs from aggregated revenues in 2020 dollars.
 scallopMainDataTable <- 
   scallopMainDataTable %>% 
   mutate(OPERATING_PROFIT_2020 = DOLLAR_ALL_SP_2020_OBSCURED - TRIP_COST_WINSOR_2020_DOL)
 ```
 
+<br><br>
 
-### summary table
+### Summary Table
 ```{r}
 summary_stats(scallopMainDataTable, proj) 
-# %>% 
-#   pretty_tab_sb()
 ```
+
+<br><br><br>
 
 ## QAQC
 
-### NA check
+### NA Check
 ```{r}
 na_filter(scallopMainDataTable, 
           project = proj, 
@@ -111,7 +155,7 @@ na_filter(scallopMainDataTable,
 
 <br><br>
 
-### NaN check
+### NaN Check
 ```{r}
 nan_filter(scallopMainDataTable, 
            project = proj, 
@@ -121,15 +165,15 @@ nan_filter(scallopMainDataTable,
 
 <br><br>
 
-### Unique rows
+### Unique Rows
 
 ```{r}
 unique_filter(scallopMainDataTable, project = proj, remove = FALSE)
 ```
 <br><br>
 
-### Empty variables
-By "empty" we mean containing all NAs.
+### Empty Variables
+"Empty" variables contain all NAs.
 ```{r}
 empty_vars_filter(scallopMainDataTable, project = proj, remove = FALSE)
 ```
@@ -137,7 +181,7 @@ empty_vars_filter(scallopMainDataTable, project = proj, remove = FALSE)
 <br><br>
 
 
-### Lon/Lat format
+### Lon/Lat Format
 
 ```{r}
 degree(scallopMainDataTable, project = proj,
@@ -156,13 +200,12 @@ spatial_qaqc(scallopMainDataTable, project = proj,
 
 spat_qaqc_out$dataset <- NULL # drop dataset
 spat_qaqc_out$spatial_summary 
-# %>% 
-#   pretty_lab(cols = "n") %>% 
-#    pretty_tab() 
 spat_qaqc_out[2:4]
 ```
 
-## Data creation
+<br><br><br>
+
+## Data Creation
 
 ### Landing Year
 
@@ -172,6 +215,7 @@ scallopMainDataTable <-
   mutate(DB_LANDING_YEAR = as.numeric(format(date_parser(DATE_TRIP), "%Y")))
 ```
 
+<br><br>
 
 ### Finagle Live pounds to meat weights
 ```{r}
@@ -180,6 +224,8 @@ scallopMainDataTable$LIVE_POUNDS <- scallopMainDataTable$POUNDS
 scallopMainDataTable$MEAT_POUNDS <- scallopMainDataTable$POUNDS / 8.33
 scallopMainDataTable$POUNDS <- NULL
 ```
+
+<br><br>
 
 ### CPUE
 Create `CPUE` variable using `TRIP_LENGTH` and `MEAT_POUNDS`. Filter out any 
@@ -195,15 +241,13 @@ scallopMainDataTable <-
   scallopMainDataTable %>% 
   filter(!is.infinite(CPUE))
 ```
+
 <br><br>
 
 #### CPUE Percent Rank
 Add a percent rank column to filter outliers.
 ```{r}
-outlier_table(scallopMainDataTable, proj, x = "CPUE") 
-# %>% 
-  #  pretty_lab() %>% 
-  # pretty_tab()
+outlier_table(scallopMainDataTable, proj, x = "CPUE")
 
 scallopMainDataTable <- 
   scallopMainDataTable %>% 
@@ -225,6 +269,7 @@ scallopMainDataTable <-
   scallopMainDataTable %>% 
   filter(!is.infinite(VPUE))
 ```
+
 <br><br>
 
 #### VPUE Percent Rank
@@ -232,14 +277,13 @@ scallopMainDataTable <-
 Add a percent rank column to filter outliers.
 ```{r}
 outlier_table(scallopMainDataTable, proj, x = "VPUE") 
-# %>% 
-  #  pretty_lab() %>% 
-  # pretty_tab()
 
 scallopMainDataTable <- 
   scallopMainDataTable %>% 
   mutate(VPUE_p = percent_rank(VPUE))
 ```
+
+<br><br>
 
 ### Fleet Tabulation
 
@@ -247,12 +291,13 @@ scallopMainDataTable <-
 scallopMainDataTable %>% 
   count(fleet) %>% 
   mutate(perc = round(n/sum(n) * 100, 1)) 
-# %>% 
-#   pretty_lab(cols = "n") %>% 
-#   pretty_tab()
 ```
 
-### Zone assignment
+<br><br>
+
+### Zone Assignment
+
+Assign each observation to a regulatory zone. 
 ```{r}
 scallopMainDataTable <- 
   assignment_column(scallopMainDataTable, project = proj,
@@ -265,8 +310,11 @@ scallopMainDataTable <-
                     hull.polygon = FALSE)
 ```
 
+<br><br>
 
-### Closure area assignment
+### Closure Area Assignment
+Assign each observation to a closure area. An observation will have an `NA` if
+it  does not occur within a closure area.
 ```{r}
 scallopMainDataTable <- 
   assignment_column(scallopMainDataTable, project = proj,
@@ -283,29 +331,30 @@ scallopMainDataTable <-
   mutate(in_closure = !is.na(closeID))
 ```
 
+<br><br>
 
 `r sum(scallopMainDataTable$in_closure)` 
-observations (`r round(sum(scallopMainDataTable$in_closure)/nrow(scallopMainDataTable) * 100, 2)`%)
-occurred inside a closure area. 
+observations (`r round(sum(scallopMainDataTable$in_closure)/nrow(scallopMainDataTable) * 100, 2)`%) occurred inside a closure area. 
 ```{r}
-agg_helper(scallopMainDataTable, value = "in_closure", count = TRUE) %>% 
+agg_helper(scallopMainDataTable, 
+           value = "in_closure", 
+           count = TRUE, 
+           fun = NULL) %>% 
   pivot_wider(names_from = "in_closure", values_from = "n") %>% 
   rename("Outside Closure(s)" = "FALSE", "Inside Closure(s)" = "TRUE") 
-# %>% 
-#   pretty_lab() %>% 
-#   pretty_tab()
 ```
+
+<br><br>
 
 Observations inside/outside closures by fleet. 
 ```{r}
 agg_helper(scallopMainDataTable, group = "fleet", 
             value = "in_closure", count = TRUE) %>% 
   pivot_wider(names_from = "in_closure", values_from = "n") %>% 
-  rename("Outside Closure(s)" = "FALSE", "Inside Closure(s)" = "TRUE") 
-# %>% 
-#   pretty_lab() %>% 
-#   pretty_tab()
+  rename("Outside Closure(s)" = "FALSE", "Inside Closure(s)" = "TRUE")
 ```
+
+<br><br>
 
 Observations inside/outside closures by year. 
 ```{r}
@@ -316,12 +365,10 @@ agg_helper(scallopMainDataTable, value = "in_closure",
               values_fill = 0) %>% 
   arrange(DB_LANDING_YEAR) %>% 
   rename("Outside closure(s)" = "FALSE", "Inside closure(s)" = "TRUE") 
-# %>% 
-#   pretty_lab(ignore = "DB_LANDING_YEAR") %>% 
-#   pretty_tab()
 ```
 
-<br><br><br>
+<br><br>
+
 Observations inside/outside closures by year and fleet. 
 ```{r}
 agg_helper(scallopMainDataTable, value = "in_closure", 
@@ -331,52 +378,559 @@ agg_helper(scallopMainDataTable, value = "in_closure",
               values_fill = 0) %>% 
   arrange(DB_LANDING_YEAR) %>% 
   rename("Outside closure(s)" = "FALSE", "Inside closure(s)" = "TRUE") 
-# 
-# %>% 
-#   pretty_lab(ignore = "DB_LANDING_YEAR") %>% 
-#   pretty_tab_sb(width = "50%") 
 ```
+
+<br><br><br>
 
 ## Zone Summary
 
 ### Frequency
 
-Zone frequency.
-```{r }
-zone_out <- 
-  zone_summary(scallopMainDataTable, project = proj,
-           spat = scallopTenMNSQRSpatTable, 
-           zone.dat = "ZONE_ID",
-           zone.spat = "TEN_ID",
-           output = "tab_plot",
-           count = TRUE,
-           breaks = NULL, n.breaks = 10, 
-           na.rm = TRUE)
-
-zone_out$plot
-zone_out$table 
-# %>% 
-#   pretty_lab(cols = "n") %>% 
-#   pretty_tab_sb(width = "40%")
+The number of observations by zone.
+```{r}
+zone_summary(scallopMainDataTable, project = proj,
+             spat = scallopTenMNSQRSpatTable, 
+             zone.dat = "ZONE_ID",
+             zone.spat = "TEN_ID",
+             output = "tab_plot",
+             count = TRUE,
+             breaks = NULL, n.breaks = 10, 
+             na.rm = TRUE)
 ```
 
-Percent of observations.
-```{r }
-zone_out <- 
-  zone_summary(scallopMainDataTable,
-           project = proj,
-           spat = scallopTenMNSQRSpatTable,
-           zone.dat = "ZONE_ID",
-           zone.spat = "TEN_ID",
-           output = "tab_plot",
-           count = TRUE, fun = "percent",
-           breaks = c(seq(.2, .5, .1), seq(1, 2, .5)), 
-           na.rm = TRUE)
+<br><br>
 
-zone_out$plot
-zone_out$table 
-# %>% 
-#   pretty_lab(ignore = "ZONE_ID") %>% 
-#   pretty_tab_sb(width = "40%")
+Percent of observations by zone.
+```{r}
+zone_summary(scallopMainDataTable,
+             project = proj,
+             spat = scallopTenMNSQRSpatTable,
+             zone.dat = "ZONE_ID",
+             zone.spat = "TEN_ID",
+             output = "tab_plot",
+             count = TRUE, fun = "percent",
+             breaks = c(seq(.2, .5, .1), seq(1, 2, .5)), 
+             na.rm = TRUE)
 ```
 
+<br><br>
+
+Zone frequency (Access Area fleet).
+```{r }
+scallopMainDataTable %>% 
+  filter(fleet == "Access Area") %>% 
+  zone_summary(project = proj,
+               spat = scallopTenMNSQRSpatTable, 
+               zone.dat = "ZONE_ID",
+               zone.spat = "TEN_ID",
+               output = "tab_plot",
+               count = TRUE,
+               breaks = NULL, n.breaks = 10, 
+               na.rm = TRUE)
+```
+
+
+<br><br><br>
+
+Zone frequency (Days at Sea fleet).
+```{r }
+scallopMainDataTable %>% 
+  filter(fleet == "Days at Sea") %>% 
+  zone_summary(project = proj,
+               spat = scallopTenMNSQRSpatTable,
+               zone.dat = "ZONE_ID",
+               zone.spat = "TEN_ID",
+               output = "tab_plot",
+               count = TRUE,
+               breaks = NULL, n.breaks = 10, 
+               na.rm = TRUE)
+```
+
+<br><br>
+
+### Catch
+
+Total catch (meats). 
+```{r }
+zone_summary(scallopMainDataTable, 
+             project = proj,
+             spat = scallopTenMNSQRSpatTable, 
+             zone.dat = "ZONE_ID",
+             zone.spat = "TEN_ID",
+             count = FALSE,
+             var = "MEAT_POUNDS", fun = "sum",
+             breaks = c(1e3, 1e4, 5e4, 1e5, seq(1e6, 1.3e7, 2e6)),
+             output = "tab_plot", na.rm = TRUE)
+```
+
+<br><br>
+
+Average catch (meats). 
+```{r}
+zone_summary(scallopMainDataTable,
+             project = proj,
+             spat = scallopTenMNSQRSpatTable, 
+             zone.dat = "ZONE_ID",
+             zone.spat = "TEN_ID",
+             count = FALSE,
+             var = "MEAT_POUNDS", fun = "mean",
+             breaks = c(1e3, 5e3, seq(1e4, 4e4, 5e3)),
+             output = "tab_plot", na.rm = TRUE)
+```
+
+<br><br>
+
+Percent of total catch (meat). 
+```{r}
+zone_summary(scallopMainDataTable, project = proj,
+             spat = scallopTenMNSQRSpatTable,
+             zone.dat = "ZONE_ID",
+             zone.spat = "TEN_ID",
+             count = FALSE,
+             var = "MEAT_POUNDS", fun = "percent",
+             breaks = seq(0, 2, .2),
+             bin_colors = c("white", viridis::viridis(10, option = "H")),
+             output = "tab_plot", na.rm = TRUE)
+```
+
+<br><br>
+
+### Trip Length
+
+Average trip length for Access Area and Days at Sea fleet.
+```{r}
+zone_summary(scallopMainDataTable, project = proj,
+             spat = scallopTenMNSQRSpatTable, 
+             zone.dat = "ZONE_ID",
+             zone.spat = "TEN_ID",
+             count = FALSE,
+             var = "TRIP_LENGTH", fun = "mean",
+             breaks = seq(2, 16, 2),
+             output = "tab_plot", na.rm = TRUE)
+```
+
+<br><br>
+
+### CPUE
+
+Average CPUE for Access Area and Days at Sea fleets.
+```{r}
+scallopMainDataTable %>% 
+  filter(CPUE_p >= .025 & CPUE_p <= .975) %>%
+  zone_summary(project = proj,
+               spat = scallopTenMNSQRSpatTable, 
+               zone.dat = "ZONE_ID",
+               zone.spat = "TEN_ID",
+               count = FALSE,
+               var = "CPUE", fun = "mean",
+               na.rm = TRUE, output = "tab_plot")
+```
+
+<br><br>
+
+### VPUE
+
+
+Average VPUE for Access Area and Days at Sea fleets.
+```{r}
+scallopMainDataTable %>% 
+  filter(VPUE_p >= .025 & VPUE_p <= .975) %>% 
+  zone_summary(project = proj,
+               spat = scallopTenMNSQRSpatTable, 
+               zone.dat = "ZONE_ID",
+               zone.spat = "TEN_ID",
+               count = FALSE,
+               var = "VPUE", fun = "mean",
+               breaks = seq(5e3, 3.5e4, 5e3),
+               na.rm = TRUE, output = "tab_plot")
+```
+
+<br><br><br>
+
+## Closure Summary
+
+
+Number of observations in closure areas.
+```{r}
+zone_summary(scallopMainDataTable, project = proj,
+             spat = scallopWindCloseSpatTable, 
+             zone.dat = "closeID",
+             zone.spat = "NAME",
+             count = TRUE,
+             na.rm = TRUE, dat.center = FALSE, 
+             output = "tab_plot")
+```
+
+
+<br><br><br>
+
+Percent of observations in closure areas.
+```{r}
+zone_summary(scallopMainDataTable, project = proj,
+             spat = scallopWindCloseSpatTable, 
+             zone.dat = "closeID",
+             zone.spat = "NAME",
+             fun = "percent",
+             count = TRUE,
+             na.rm = TRUE, dat.center = FALSE, 
+             output = "tab_plot")
+```
+
+<br><br><br>
+
+Percent of total revenue by closure area. 
+```{r}
+zone_summary(scallopMainDataTable, project = proj,
+             spat = scallopWindCloseSpatTable,
+             zone.dat = "closeID",
+             zone.spat = "NAME",
+             var = "DOLLAR_OBSCURED",
+             fun = "percent",
+             count = FALSE, 
+             na.rm = TRUE, dat.center = FALSE,
+             output = "tab_plot")
+```
+
+
+<br><br><br>
+
+Percent of total revenue by fleet. 
+```{r}
+zone_summary(scallopMainDataTable, project = proj,
+             spat = scallopWindCloseSpatTable,
+             zone.dat = "closeID",
+             zone.spat = "NAME",
+             var = "DOLLAR_OBSCURED", group = "fleet",
+             fun = "percent",
+             count = FALSE, 
+             na.rm = TRUE, dat.center = FALSE,
+             output = "tab_plot")
+```
+
+<br><br><br>
+
+Average meat catch per closure area.
+```{r}
+zone_summary(scallopMainDataTable, project = proj,
+             spat = scallopWindCloseSpatTable, 
+             zone.dat = "closeID",
+             zone.spat = "NAME",
+             var = "MEAT_POUNDS",
+             fun = "mean",
+             count = FALSE,
+             na.rm = TRUE, dat.center = FALSE, 
+             output = "tab_plot")
+```
+
+<br><br><br>
+
+Average meat catch by fleet.
+```{r}
+zone_summary(scallopMainDataTable, project = proj,
+             spat = scallopWindCloseSpatTable, 
+             zone.dat = "closeID",
+             zone.spat = "NAME",
+             var = "MEAT_POUNDS", group = "fleet",
+             fun = "mean",
+             count = FALSE,
+             na.rm = TRUE, dat.center = FALSE, 
+             output = "tab_plot")
+```
+
+<br><br><br>
+
+## Outliers
+
+### POUNDS
+```{r}
+outlier_table(scallopMainDataTable, proj,
+              x = "MEAT_POUNDS") 
+```
+
+```{r}
+outlier_plot(scallopMainDataTable, proj,
+             x = "MEAT_POUNDS", 
+             dat.remove = "none",
+             x.dist = "normal",
+             output.screen = TRUE)
+```
+
+```{r}
+outlier_plot(scallopMainDataTable, proj,
+             x = "MEAT_POUNDS", 
+             dat.remove = "mean_3SD",
+             x.dist = "normal",
+             output.screen = TRUE)
+```
+
+<br><br><br>
+
+## Temporal Plots
+
+
+```{r}
+temp_plot(scallopMainDataTable, proj,
+          var.select = "MEAT_POUNDS",
+          len.fun = "percent",
+          agg.fun = "sum",
+          date.var = "DATE_TRIP",
+          pages = "multi")
+```
+
+<br><br><br>
+
+```{r}
+temp_plot(scallopMainDataTable, proj,
+          var.select = "TRIP_LENGTH",
+          len.fun = "percent",
+          agg.fun = "sum",
+          date.var = "DATE_TRIP",
+          pages = "multi")
+```
+
+<br><br><br>
+
+```{r}
+temp_plot(scallopMainDataTable, proj,
+          var.select = "DOLLAR_OBSCURED",
+          len.fun = "percent",
+          agg.fun = "sum",
+          date.var = "DATE_TRIP",
+          pages = "multi")
+```
+
+<br><br><br>
+
+## Scatter Plots
+
+Trip length by meat catch. 
+```{r}
+xy_plot(scallopMainDataTable, proj,
+        var1 = "TRIP_LENGTH", var2 = "MEAT_POUNDS",
+        regress = FALSE)
+```
+
+
+<br><br><br>
+
+Trip length by revenue. 
+```{r}
+xy_plot(scallopMainDataTable, proj,
+        var1 = "TRIP_LENGTH", var2 = "DOLLAR_OBSCURED",
+        regress = FALSE)
+```
+
+
+<br><br><br>
+
+Trip length by trip cost (Winsor).
+```{r}
+xy_plot(scallopMainDataTable, proj,
+        var1 = "TRIP_LENGTH", var2 = "TRIP_COST_WINSOR_2020_DOL",
+        regress = FALSE)
+```
+
+<br><br><br>
+
+## Correlation Matrix
+
+```{r}
+# corr <- 
+  corr_out(scallopMainDataTable, proj,
+           variables = "all",
+           method = "pearson")
+
+# corr$plot + theme(axis.text.x = element_text(size = 7),
+#                   axis.text.y = element_text(size = 8))
+# 
+# corr$table 
+```
+
+<br><br><br>
+
+## Active Vessels
+
+vessel count by year. 
+```{r}
+vessel_count(scallopMainDataTable, proj,
+             v_id = "PERMIT.y",
+             date = "DATE_TRIP",
+             period = "year", type = "line")
+```
+
+<br><br><br>
+
+vessel count by fleet. 
+```{r}
+vessel_count(scallopMainDataTable, proj,
+             v_id = "PERMIT.y",
+             group = "fleet",
+             output = "table")
+```
+
+<br><br><br>
+
+vessel count by year and fleet. 
+```{r}
+vessel_count(scallopMainDataTable, proj,
+             v_id = "PERMIT.y",
+             group = "fleet",
+             date = "DATE_TRIP",
+             period = "year", type = "line")
+```
+
+<br><br><br>
+
+
+vessel count by gearcode. 
+```{r}
+vessel_count(scallopMainDataTable, proj,
+             v_id = "PERMIT.y",
+             group = "GEARCODE", tran = "log")
+```
+
+<br><br><br>
+
+## Catch
+
+Total meat catch by year. 
+```{r}
+species_catch(scallopMainDataTable, proj,
+              species = "MEAT_POUNDS",
+              date = "DATE_TRIP", 
+              period = "year",
+              fun = "sum",
+              type = "line", format_lab = "decimal")
+```
+
+
+<br><br><br>
+
+Total meat catch by fleet. 
+```{r}
+species_catch(scallopMainDataTable, proj,
+              species = "MEAT_POUNDS",
+              group = "fleet",
+              fun = "sum",
+              type = "bar", format_lab = "decimal")
+```
+
+<br><br><br>
+
+Total meat catch by year and fleet. 
+```{r}
+species_catch(scallopMainDataTable, proj,
+              species = "MEAT_POUNDS",
+              date = "DATE_TRIP", 
+              period = "year",
+              group = "fleet",
+              fun = "sum",
+              type = "line", format_lab = "decimal")
+```
+
+<br><br><br>
+
+## CPUE 
+
+Average CPUE by year.
+```{r}
+species_catch(scallopMainDataTable, proj,
+              species = "CPUE",
+              date = "DATE_TRIP", 
+              period = "year",
+              fun = "mean", type = "line")
+```
+
+<br><br><br>
+
+Average CPUE by year and fleet.
+```{r}
+species_catch(scallopMainDataTable, proj,
+              species = "CPUE",
+              date = "DATE_TRIP", 
+              period = "year",
+              group = "fleet",
+              fun = "mean", type = "line")
+```
+
+<br><br><br>
+
+## VPUE
+
+Average VPUE by year.
+```{r}
+species_catch(scallopMainDataTable, proj,
+              species = "VPUE",
+              date = "DATE_TRIP", 
+              period = "year",
+              fun = "mean", type = "line")
+```
+
+<br><br><br>
+
+Average VPUE by year and fleet.
+```{r}
+species_catch(scallopMainDataTable, proj,
+              species = "VPUE",
+              date = "DATE_TRIP", 
+              period = "year",
+              group = "fleet",
+              fun = "mean", type = "line")
+```
+
+
+<br><br><br>
+
+Average VPUE by gearcode.
+```{r}
+species_catch(scallopMainDataTable, proj,
+              species = "VPUE",
+              group = "GEARCODE",
+              fun = "mean", type = "line")
+```
+
+<br><br><br>
+
+## Distributions
+
+
+### MEAT_POUNDS
+KDE, ECDF, and CDF of meat catch. 
+```{r}
+density_plot(scallopMainDataTable, proj,
+             var = "MEAT_POUNDS", 
+             type = "all", tran = "log")
+```
+
+<br><br>
+
+KDE, ECDF, and CDF of meat catch by fleet. 
+```{r}
+density_plot(scallopMainDataTable, proj,
+             var = "MEAT_POUNDS",
+             group = "fleet", position = "stack", 
+             type = "all", tran = "log", pages = "multi")
+```
+
+<br><br>
+
+KDE of meat catch by year.
+```{r}
+density_plot(scallopMainDataTable, proj,
+             var = "MEAT_POUNDS", 
+             facet_by = "DB_LANDING_YEAR",
+             filter_by = "DB_LANDING_YEAR",
+             filter_value = 2007:2013,
+             type = "kde", bw = 1.5, 
+             tran = "log", scale = "free_y") #+ 
+  #angled_theme()
+
+density_plot(scallopMainDataTable, proj,
+             var = "MEAT_POUNDS", 
+             facet_by = "DB_LANDING_YEAR",
+             filter_by = "DB_LANDING_YEAR",
+             filter_value = 2014:2019,
+             type = "kde", bw = 1.5, 
+             tran = "log", scale = "free_y") #+ 
+  #angled_theme()
+```
