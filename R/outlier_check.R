@@ -127,7 +127,7 @@ outlier_table <- function(dat, project, x, sd_val = NULL, log_fun = TRUE) {
 
 outlier_plot <- function(dat, project, x, dat.remove = 'none', sd_val = NULL, 
                          x.dist = 'normal', date = NULL, group = NULL, 
-                         output.screen = FALSE, log_fun = TRUE) {
+                         pages = "single", output.screen = FALSE, log_fun = TRUE) {
   #' Evaluate outliers in plot format
   #'
   #' Visualize spread of data and measures to identify outliers.
@@ -152,6 +152,8 @@ outlier_plot <- function(dat, project, x, dat.remove = 'none', sd_val = NULL,
   #'   \code{"negative binomial"}.
   #' @param date (Optional) date variable to group the histogram by year.
   #' @param group (Optional) additional variable to group the histogram by.
+  #' @param pages Whether to output plots on a single page (\code{"single"}, the 
+  #'    default) or multiple pages (\code{"multi"}). 
   #' @param output.screen Logical, if true, return plots to the screen. If \code{FALSE}, 
   #'   returns plot to the 'output' folder as a png file.
   #' @param log_fun Logical, whether to log function call (for internal use).
@@ -408,28 +410,31 @@ outlier_plot <- function(dat, project, x, dat.remove = 'none', sd_val = NULL,
                         dat.remove, "'. \nBlue: Included points   Red: Removed points")
     }
     
-    # Put it all together
-    fig <- gridExtra::grid.arrange(p1, p2, p3, ncol = 2, nrow = 2, 
-                                   top = grid::textGrob(p_title, gp = grid::gpar(fontsize = 10)))
-
+    if (pages == "single") {
+      
+      fig <- gridExtra::grid.arrange(p1, p2, p3, ncol = 2, nrow = 2, 
+                                     top = grid::textGrob(p_title, gp = grid::gpar(fontsize = 10)))
+      
+    } else {
+      
+      fig <- list(data_plot = p1, prob_plot = p2, QQ_plot = p3)
+    }
+    
     # Log function
     if (log_fun) {
       
       outlier_plot_function <- list()
       outlier_plot_function$functionID <- "outlier_plot"
-      outlier_plot_function$args <- list(dat, project, x, dat.remove, x.dist, 
-                                         output.screen, log_fun)
+      outlier_plot_function$args <- list(dat, project, x, dat.remove, sd_val,
+                                         x.dist, date, group, pages, output.screen, 
+                                         log_fun)
       log_call(project, outlier_plot_function)
     }
    
-    if (output.screen == FALSE) {
-      
-      save_plot(project, "outlier_plot", fig)
+    if (pages == "single") save_plot(project, "outlier_plot", fig)
+    else save_nplot(project, "outlier_plot", fig, id = "name")
     
-    } else {
-      
-      fig
-    }
+    if (output.screen) fig
     
   } else {
     # Actions to take if data is not numeric
