@@ -14,7 +14,19 @@
 
 <title>FishSET R package functions</title>
 
-<script src="data:application/javascript;base64,Ly8gUGFuZG9jIDIuOSBhZGRzIGF0dHJpYnV0ZXMgb24gYm90aCBoZWFkZXIgYW5kIGRpdi4gV2UgcmVtb3ZlIHRoZSBmb3JtZXIgKHRvCi8vIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUgYmVoYXZpb3Igb2YgUGFuZG9jIDwgMi44KS4KZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIGZ1bmN0aW9uKGUpIHsKICB2YXIgaHMgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCJkaXYuc2VjdGlvbltjbGFzcyo9J2xldmVsJ10gPiA6Zmlyc3QtY2hpbGQiKTsKICB2YXIgaSwgaCwgYTsKICBmb3IgKGkgPSAwOyBpIDwgaHMubGVuZ3RoOyBpKyspIHsKICAgIGggPSBoc1tpXTsKICAgIGlmICghL15oWzEtNl0kL2kudGVzdChoLnRhZ05hbWUpKSBjb250aW51ZTsgIC8vIGl0IHNob3VsZCBiZSBhIGhlYWRlciBoMS1oNgogICAgYSA9IGguYXR0cmlidXRlczsKICAgIHdoaWxlIChhLmxlbmd0aCA+IDApIGgucmVtb3ZlQXR0cmlidXRlKGFbMF0ubmFtZSk7CiAgfQp9KTsK"></script>
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -39,6 +51,7 @@
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
 div.sourceCode { margin: 1em 0; }
 pre.sourceCode { margin: 0; }
@@ -125,7 +138,187 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 
-<link rel="stylesheet" href="data:text/css,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" type="text/css" />
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
 
 
 
@@ -146,18 +339,38 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <!--  word_document: default-->
 <!--  html_document:-->
 <!--    df_print: paged-->
-<p>##Getting started The FishSET R package includes functions that can be used in the R console or that can be run through the FishSET app (a guided user interface built u sing the Shiny R package). Calling function through the R console allows for greater flexibility and ease in troubleshooting but requires knowledge of R and the FishSET R package. The FishSET app is meant to allow for users to use functions and models with limited knowledge of R. The FishSET app is opened by typing <code>run_fishset()</code> in the R console. This tutorial does not use the FishSET app but walks through examples of FishSET R package functions in the R console.</p>
+<p>##Getting started The FishSET R package includes functions that can
+be used in the R console or that can be run through the FishSET app (a
+guided user interface built u sing the Shiny R package). Calling
+function through the R console allows for greater flexibility and ease
+in troubleshooting but requires knowledge of R and the FishSET R
+package. The FishSET app is meant to allow for users to use functions
+and models with limited knowledge of R. The FishSET app is opened by
+typing <code>run_fishset()</code> in the R console. This tutorial does
+not use the FishSET app but walks through examples of FishSET R package
+functions in the R console.</p>
 <p>##Load the package.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&#39;devtools&#39;</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(devtools)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;PATH/TO/Directory/Containing/FishSET&quot;</span>, <span class="at">repos=</span><span class="cn">NULL</span>, <span class="at">type=</span><span class="st">&#39;source&#39;</span>)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(FishSET)</span></code></pre></div>
-<p>##Upload data When the data is loaded into the FishSET database a series of checks are performed. The output of these checks will be printed to the R console. Check these messages to identify if any corrections should be made. In the box below, we load both the main data set and the port data. We will also need a spatial data set. We will load that with the <code>read_dat</code> function. The <code>read_dat</code> function recognizes most data formats, including spss, json, and stata, and reads the data into the working environment. The functions does not save the data into the FishSET database.</p>
+<p>##Upload data When the data is loaded into the FishSET database a
+series of checks are performed. The output of these checks will be
+printed to the R console. Check these messages to identify if any
+corrections should be made. In the box below, we load both the main data
+set and the port data. We will also need a spatial data set. We will
+load that with the <code>read_dat</code> function. The
+<code>read_dat</code> function recognizes most data formats, including
+spss, json, and stata, and reads the data into the working environment.
+The functions does not save the data into the FishSET database.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Upload data</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load_maindata</span>(dat, <span class="at">over_write =</span> <span class="cn">TRUE</span>, <span class="at">project =</span> <span class="st">&#39;EXAMP&#39;</span>) </span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">load_port</span>(dat, <span class="at">port_name =</span> port, <span class="at">over_write =</span> <span class="cn">TRUE</span>, <span class="at">project =</span> <span class="st">&#39;EXAMP&#39;</span>)</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>spatdat <span class="ot">&lt;-</span> <span class="fu">read_dat</span>(<span class="st">&#39;&#39;</span>)</span></code></pre></div>
-<p>Data are now loaded into the FishSET database. The first line of code below returns a list of all the data tables in the FishSET database. The second line of code returns the first six lines of data from the data table you just loaded into the database.</p>
+<p>Data are now loaded into the FishSET database. The first line of code
+below returns a list of all the data tables in the FishSET database. The
+second line of code returns the first six lines of data from the data
+table you just loaded into the database.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tables_database</span>()</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">table_view</span>(<span class="st">&#39;projectMainDataTable&#39;</span>))</span></code></pre></div>
 <p>Additional codes for working within the FishSET database:</p>
@@ -166,12 +379,19 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Remove a table from the database.</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">table_remove</span>()     </span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">table_fields</span>()      View column names of data table.</span></code></pre></div>
-<p>##Data Quality FishSET has built-in functions to check for NAs, NaNs, outliers, unique observations, empty variables, and whether latitude and longitude variables are in the correct format. The <code>data_verification</code> function checks for these potential issues. All messages returned to R console are also saved in the log file.</p>
+<p>##Data Quality FishSET has built-in functions to check for NAs, NaNs,
+outliers, unique observations, empty variables, and whether latitude and
+longitude variables are in the correct format. The
+<code>data_verification</code> function checks for these potential
+issues. All messages returned to R console are also saved in the log
+file.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data_verification</span>()</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># The following functions are contained in `data_verification` but can be run on their own too.</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">outlier_check</span>()</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nan_identify</span>()</span></code></pre></div>
-<p>Functions also exist to view table or plot output of data quality assessments. All plots and tables are automatically saved with project name to the <code>output</code> folder in the FishSET R package.</p>
+<p>Functions also exist to view table or plot output of data quality
+assessments. All plots and tables are automatically saved with project
+name to the <code>output</code> folder in the FishSET R package.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Table output functions</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summary_stats</span>()</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">outlier_table</span>() </span>
@@ -189,7 +409,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">empty_vars_filter</span>()</span>
 <span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">degree</span>()</span></code></pre></div>
-<p>Data tables can be filtered using the <code>filter_table</code> and <code>filter_dat</code> functions. The filter statements are saved as a table in the FishSET database and can be applied to any dataset using the <code>filter_dat</code> function. No function has been written to remove variables from the working data set. Users should use base R functions for this. Within the FishSET app variables can be removed from the working data set in the <code>Data Exploration</code> tab. Use the <code>add_vars</code> function to add variables from the raw data set back into the working data set.</p>
+<p>Data tables can be filtered using the <code>filter_table</code> and
+<code>filter_dat</code> functions. The filter statements are saved as a
+table in the FishSET database and can be applied to any dataset using
+the <code>filter_dat</code> function. No function has been written to
+remove variables from the working data set. Users should use base R
+functions for this. Within the FishSET app variables can be removed from
+the working data set in the <code>Data Exploration</code> tab. Use the
+<code>add_vars</code> function to add variables from the raw data set
+back into the working data set.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Filter</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter_table</span>()</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter_dat</span>()</span>
@@ -197,7 +425,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Add variables back into the working data set</span></span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_vars</span>()</span></code></pre></div>
 <p>##Data Exploration<br />
-View the spatial (<code>map_plot</code>) and temporal (<code>temp_plot</code>) distribution of data and the relationship between variables (<code>xy_plot</code>). Plots and tables to the <code>output</code> folder. The <code>map_kernel</code>, <code>getis_ord_stats</code>, and <code>moran_stats</code> functions provide measures of clustering, or hot spot analysis. The <code>density_plot</code> creates a density or cumulative distribution function plot of the selected variable.</p>
+View the spatial (<code>map_plot</code>) and temporal
+(<code>temp_plot</code>) distribution of data and the relationship
+between variables (<code>xy_plot</code>). Plots and tables to the
+<code>output</code> folder. The <code>map_kernel</code>,
+<code>getis_ord_stats</code>, and <code>moran_stats</code> functions
+provide measures of clustering, or hot spot analysis. The
+<code>density_plot</code> creates a density or cumulative distribution
+function plot of the selected variable.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Map</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_plot</span>()</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">#map kernel</span></span>
@@ -211,7 +446,12 @@ View the spatial (<code>map_plot</code>) and temporal (<code>temp_plot</code>) d
 <span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co">#x-y plots</span></span>
 <span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xy_plot</span>(dat, project, var1, var2, <span class="at">regress =</span> <span class="cn">FALSE</span>) </span>
 <span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">density_plot</span>()</span></code></pre></div>
-<p>##Fleet Analyses Fleet functions focus on functions that allow users to assign vessels to fleet and view fleet characteristics (vessel count) and fleet effort (trip length, weekly effort), and catch as a fleet (species catch, by catch, weekly catch). All functions return output as plots and/or tables that are output to the R console and saved to the <code>output</code> folder.</p>
+<p>##Fleet Analyses Fleet functions focus on functions that allow users
+to assign vessels to fleet and view fleet characteristics (vessel count)
+and fleet effort (trip length, weekly effort), and catch as a fleet
+(species catch, by catch, weekly catch). All functions return output as
+plots and/or tables that are output to the R console and saved to the
+<code>output</code> folder.</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Define and store fleet expressions </span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fleet_assign</span>(dat, project, <span class="at">cond =</span> <span class="cn">NULL</span>, <span class="at">fleet_val =</span> <span class="cn">NULL</span>, <span class="at">table =</span> <span class="cn">NULL</span>, <span class="at">save =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Number of unique vessels by time period</span></span>
@@ -237,13 +477,23 @@ View the spatial (<code>map_plot</code>) and temporal (<code>temp_plot</code>) d
 <span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">trip_length</span>(dat, project, start, end, <span class="at">units =</span> <span class="st">&quot;days&quot;</span>, <span class="at">catch =</span> <span class="cn">NULL</span>, </span>
 <span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>                        <span class="at">hauls =</span> <span class="cn">NULL</span>, <span class="at">output =</span> <span class="fu">c</span>(<span class="st">&quot;table&quot;</span>, <span class="st">&quot;plot&quot;</span>), <span class="at">haul_to_trip =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 <p>##Simple Analyses<br />
-View and quantify relationship between variables. The correlation function, <code>corr_out</code> returns a plot and table of correlations values between all numberic variables supplied. The regression function, <code>xy_plot&#39;, returns a plot with fitted simple linear regression line and test statitistics whne regress is set to TRUE. When</code>regress` is set to FALSE, points are plotted without a best fit line.</p>
+View and quantify relationship between variables. The correlation
+function, <code>corr_out</code> returns a plot and table of correlations
+values between all numberic variables supplied. The regression function,
+<code>xy_plot&#39;, returns a plot with fitted simple linear regression line and test statitistics whne regress is set to TRUE. When</code>regress`
+is set to FALSE, points are plotted without a best fit line.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#correlation</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">corr_out</span>(dat, project, <span class="at">variables=</span><span class="st">&#39;all&#39;</span>)</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">#regression</span></span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xy_plot</span>(dat, project, var1, var2, <span class="at">regress =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <p>##Compute New Variables<br />
-Modify or create variables such as cpue and trip centroid. Functions focus on data transformations, generating ID variables (for haul or fishery season), computing simple arithmetic functions such as catch per unit effort or sum of hauls, generate dummy variablesm, create a variety of spatial variables such as distance between hauls or the latitude and longitude of the haul midpoint, and create trip level functions such collapsing haul to trip and identfiying trip centroid.</p>
+Modify or create variables such as cpue and trip centroid. Functions
+focus on data transformations, generating ID variables (for haul or
+fishery season), computing simple arithmetic functions such as catch per
+unit effort or sum of hauls, generate dummy variablesm, create a variety
+of spatial variables such as distance between hauls or the latitude and
+longitude of the haul midpoint, and create trip level functions such
+collapsing haul to trip and identfiying trip centroid.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Data Transformations</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="do">##Change time unit</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  temporal_mod</span>
@@ -280,20 +530,66 @@ Modify or create variables such as cpue and trip centroid. Functions focus on da
 <span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Trip centroid</span></span>
 <span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">create_trip_centroid</span>()</span></code></pre></div>
 <p>##Zonal Definition<br />
-Functions in this group require a spatial data frame defining fishing or regulatory zone. Both the <code>find_centroid</code> and <code>assignment_column</code> can be used on their own but are called as necessary in other function. The <code>find_centroid</code> function identifies the centroid of a zone and the <code>assignment_column</code> function assigns observations in the primary data set to zones. The <code>create_alternative_choice</code> function defines alternative fishing choices and is required.</p>
+Functions in this group require a spatial data frame defining fishing or
+regulatory zone. Both the <code>find_centroid</code> and
+<code>assignment_column</code> can be used on their own but are called
+as necessary in other function. The <code>find_centroid</code> function
+identifies the centroid of a zone and the <code>assignment_column</code>
+function assigns observations in the primary data set to zones. The
+<code>create_alternative_choice</code> function defines alternative
+fishing choices and is required.</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">find_centroid</span>()</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">assignment_column</span>()</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">create_alternative_choice</span>()</span></code></pre></div>
 <p>##Expected Catch/Revenue<br />
-Compute expected catch or expected revenue. The function creates the expected catch/revenue matrix based on user-provided parameters, and three default cases: Near-term: Movng window size of two days. In this case, vessels are grouped based on defineGroup parameter. Medium-term: Moving window size of seven days. In this case, there is no grouping and catch for entire fleet is used. Long-term: Moving window size of seven days from the previous year. In this case, there is no grouping and catch for entire fleet is used. Output is saved in the FishSET database and called in the <code>make_model_design</code> function.</p>
-<p>The <code>sparstable</code> function provides a table of data sparsity by time periods. It should be used to assess the availability of data for defining the temporal moving window size in the <code>create_expectations</code> function. Sparse data is not suited for shorter moving window sizes.</p>
+Compute expected catch or expected revenue. The function creates the
+expected catch/revenue matrix based on user-provided parameters, and
+three default cases: Near-term: Movng window size of two days. In this
+case, vessels are grouped based on defineGroup parameter. Medium-term:
+Moving window size of seven days. In this case, there is no grouping and
+catch for entire fleet is used. Long-term: Moving window size of seven
+days from the previous year. In this case, there is no grouping and
+catch for entire fleet is used. Output is saved in the FishSET database
+and called in the <code>make_model_design</code> function.</p>
+<p>The <code>sparstable</code> function provides a table of data
+sparsity by time periods. It should be used to assess the availability
+of data for defining the temporal moving window size in the
+<code>create_expectations</code> function. Sparse data is not suited for
+shorter moving window sizes.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sparsetable</span>()  </span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">create_expectations</span>()</span></code></pre></div>
-<p>##Model design file and run The <code>make_model_design</code> function creates a list with data and parameters required to run the models, which are called in the <code>discretefish_subroutine</code> function. The <code>discretefish_subroutine</code> requires inputs of initial parameters, optimization options (maximum iterations, the relative tolerance of x, report frequency, and whether to report iterations), the optimization method chosen, which must be one of the base R <code>optim</code> options, and a name for the model to allow for easier tracking and comparison of models. The subroutine also requires <code>catch</code>, <code>choice</code>, and <code>distance</code> data, plus any other data <code>otherdat</code> needed to run the chosen likelihood, such as expected catches or harvester data. These data are defined in the <code>make_model_design</code> file. Expected catches is pulled by the <code>make_model_design</code> function from the saved table generated by the <code>create_expectations</code> function. <code>make_model_design</code> calls output from <code>create_alternative_choice</code> to generate distance data.</p>
+<p>##Model design file and run The <code>make_model_design</code>
+function creates a list with data and parameters required to run the
+models, which are called in the <code>discretefish_subroutine</code>
+function. The <code>discretefish_subroutine</code> requires inputs of
+initial parameters, optimization options (maximum iterations, the
+relative tolerance of x, report frequency, and whether to report
+iterations), the optimization method chosen, which must be one of the
+base R <code>optim</code> options, and a name for the model to allow for
+easier tracking and comparison of models. The subroutine also requires
+<code>catch</code>, <code>choice</code>, and <code>distance</code> data,
+plus any other data <code>otherdat</code> needed to run the chosen
+likelihood, such as expected catches or harvester data. These data are
+defined in the <code>make_model_design</code> file. Expected catches is
+pulled by the <code>make_model_design</code> function from the saved
+table generated by the <code>create_expectations</code> function.
+<code>make_model_design</code> calls output from
+<code>create_alternative_choice</code> to generate distance data.</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make_model_design</span>()</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">discretefish_subroutine</span>()</span></code></pre></div>
-<p>###Likelihood functions FishSET includes six functions. User-created functions can be saved and logged using the <code>log_func-model</code> function. <code>logit_c</code> Conditional logit likelihood <code>logit_avgcat</code> Average catch multinomial logit procedure <code>logit_correction</code> Full information model with Dahl’s correction function <code>epm_normal</code> Expected profit model normal catch function <code>epm_lognormal</code> Expected profit model lognormal catch function <code>epm_weibull</code> Expected profit model Weibull catch function</p>
-<p>###Model run output The discretefish_subroutine function can take 30 or minutes to run. Model run status is returned to the R console. The subroutine function outputs model results in a list that can be summarized as:</p>
+<p>###Likelihood functions FishSET includes six functions. User-created
+functions can be saved and logged using the <code>log_func-model</code>
+function. <code>logit_c</code> Conditional logit likelihood
+<code>logit_avgcat</code> Average catch multinomial logit procedure
+<code>logit_correction</code> Full information model with Dahl’s
+correction function <code>epm_normal</code> Expected profit model normal
+catch function <code>epm_lognormal</code> Expected profit model
+lognormal catch function <code>epm_weibull</code> Expected profit model
+Weibull catch function</p>
+<p>###Model run output The discretefish_subroutine function can take 30
+or minutes to run. Model run status is returned to the R console. The
+subroutine function outputs model results in a list that can be
+summarized as:</p>
 <pre><code>errorExplain: If it exists, a description of the model error.
 OutLogit: A matrix of coefficients, standard errors, and t-statistics
 optoutput: Optimization information (such as number of function iterations)
@@ -305,17 +601,40 @@ H1: The inverse hessian</code></pre>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">globalcheck_view</span>(<span class="st">&#39;pcodldglobalcheck20190604&#39;</span>)</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Display all other model output.</span></span>
 <span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">model_out_view</span>(<span class="st">&#39;pcodmodelout20190604&#39;</span>)</span></code></pre></div>
-<p>###Selecting models Model comparison metrics are conveniently saved in a table in the FishSET database. To access the table use <code>model_fit</code> with the project name. Identifying the best model for future reference requires <code>select_model</code>. This function utilized R Shiny to open an interactive window where best models can be selected and saved. Model selection can also be accomplished from the discretefish_subroutine function by setting the <code>select.model</code> parameter to TRUE. When the parameter is set to TRUE, a interactive window opens after the model has compiled and output has saved.</p>
+<p>###Selecting models Model comparison metrics are conveniently saved
+in a table in the FishSET database. To access the table use
+<code>model_fit</code> with the project name. Identifying the best model
+for future reference requires <code>select_model</code>. This function
+utilized R Shiny to open an interactive window where best models can be
+selected and saved. Model selection can also be accomplished from the
+discretefish_subroutine function by setting the
+<code>select.model</code> parameter to TRUE. When the parameter is set
+to TRUE, a interactive window opens after the model has compiled and
+output has saved.</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_fit</span>(<span class="st">&#39;pollock&#39;</span>)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">select_model</span>()</span></code></pre></div>
-<p>##Interactivity R Shiny is used to provide interactive interfaces. All FishSET functions described here can be run through a user interface with <code>run_fishset_gui</code>. The user interace guides users through loading data to model evaluation. In addition, users can use the <code>select_vars</code> function to open an interactive interface for selecting a subset of variables to keep in the working data set and the <code>add_vars</code> function to interactively select vars to add back into the working data set from the raw dataset.</p>
+<p>##Interactivity R Shiny is used to provide interactive interfaces.
+All FishSET functions described here can be run through a user interface
+with <code>run_fishset_gui</code>. The user interace guides users
+through loading data to model evaluation. In addition, users can use the
+<code>select_vars</code> function to open an interactive interface for
+selecting a subset of variables to keep in the working data set and the
+<code>add_vars</code> function to interactively select vars to add back
+into the working data set from the raw dataset.</p>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">run_fishset_gui</span>()</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">select_vars</span>()</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="fu">select_model</span>()</span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">add_vars</span>()</span></code></pre></div>
 <div id="reproducibility" class="section level2">
 <h2>Reproducibility</h2>
-<p>FishSET was designed with the aim of reproducibility. All function calls are logged in a dated file. Log files are stored in the <code>Logs</code> folder. Each log call has a functionID and a list of parameters supplies (args). Some logged functions includs kwargs, optional arguments, an output, or a message. The message section is used to save text output from a function call that users may want to reference later, such as the number of number of rows with missing data.</p>
+<p>FishSET was designed with the aim of reproducibility. All function
+calls are logged in a dated file. Log files are stored in the
+<code>Logs</code> folder. Each log call has a functionID and a list of
+parameters supplies (args). Some logged functions includs kwargs,
+optional arguments, an output, or a message. The message section is used
+to save text output from a function call that users may want to
+reference later, such as the number of number of rows with missing
+data.</p>
 <p>For example, the function call</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter_table</span>(<span class="at">dat =</span> <span class="st">&#39;pcodmaindatatable&#39;</span>, <span class="at">project =</span> <span class="st">&#39;pcod&#39;</span>, <span class="at">x =</span> <span class="st">&#39;PERFORMANCE_Code&#39;</span>, <span class="at">exp =</span> <span class="st">&#39;PERFORMANCE_Code==1&#39;</span>)</span></code></pre></div>
 <p>returns the following log entry:</p>
@@ -337,13 +656,23 @@ H1: The inverse hessian</code></pre>
 <span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>            }</span>
 <span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>          ]</span>
 <span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>        }</span></code></pre></div>
-<p>Log entries are written in JSON. Future version of FishSET will include a function that will read the log files and rerun function calls with current or updated data.</p>
-<p>Logging is built into FishSET functions. However, it is possible to start a new log file using <code>log_reset</code>. New log files are started each day. User-created functions, such as likelihoods, can be saved for future use and logged using <code>log_func_model</code>.</p>
+<p>Log entries are written in JSON. Future version of FishSET will
+include a function that will read the log files and rerun function calls
+with current or updated data.</p>
+<p>Logging is built into FishSET functions. However, it is possible to
+start a new log file using <code>log_reset</code>. New log files are
+started each day. User-created functions, such as likelihoods, can be
+saved for future use and logged using <code>log_func_model</code>.</p>
 <p>###Logging</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="st">`</span><span class="at">log_reset</span><span class="st">`</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="st">`</span><span class="at">log_func_model</span><span class="st">`</span></span></code></pre></div>
-<p>In the FishSET app, each tab has a <code>Notes</code> sections that is saved to the <code>Output</code> folder. Comments, observations, or thoughts typed by the user in this section are saved in dated text files. Additional pre-build messages are also saved, such as output from data evaluation functions.</p>
-<p>Finally, the FishSET package includes a Notebook template for report writing.</p>
+<p>In the FishSET app, each tab has a <code>Notes</code> sections that
+is saved to the <code>Output</code> folder. Comments, observations, or
+thoughts typed by the user in this section are saved in dated text
+files. Additional pre-build messages are also saved, such as output from
+data evaluation functions.</p>
+<p>Finally, the FishSET package includes a Notebook template for report
+writing.</p>
 </div>
 
 
