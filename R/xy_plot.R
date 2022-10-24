@@ -1,4 +1,4 @@
-xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
+xy_plot <- function(dat, project, var1, var2, regress = FALSE, alpha = .5) {
   #' Plot relationship of two variables
   #' 
   #' @description Evaluate relationship of two variables in a plot format. 
@@ -10,6 +10,8 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   #' @param var2 Second variable in \code{dat}.
   #' @param regress Logical, if TRUE, returns plot with fitted linear regression 
   #'   line. Defaults to \code{FALSE}.
+  #' @param alpha The opaqueness of each data point in scatterplot. 0 is total 
+  #'  transparency and 1 is total opaqueness.  Defaults to .5. 
   #' @keywords xy plot
   #' @description Plot of var1 against var 2
   #' @return Returns plot output to R console and saves plot to Output folder.
@@ -41,7 +43,7 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   if (regress == FALSE) {
     
     x_plot <- ggplot2::ggplot(dataset, ggplot2::aes(x = !!x_sym, y = !!y_sym)) +
-      ggplot2::geom_point() +
+      ggplot2::geom_point(alpha = alpha) +
       ggplot2::labs(subtitle = paste(var1, "by", var2), x = var1, y = var2) +
       fishset_theme()
     
@@ -50,7 +52,7 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
     
     p1 <- 
       ggplot2::ggplot(dataset, ggplot2::aes(x = !!x_sym, y = !!y_sym)) +
-      ggplot2::geom_point() +
+      ggplot2::geom_point(alpha = alpha) +
       ggplot2::geom_smooth(method = lm) +
       ggplot2::labs(subtitle = paste(var1, "against", var2), x = var1, y = var2) +
       fishset_theme()
@@ -75,7 +77,7 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   # Log the function
   xy_plot_function <- list()
   xy_plot_function$functionID <- "xy_plot"
-  xy_plot_function$args <- list(dat, project, var1, var2, regress)
+  xy_plot_function$args <- list(dat, project, var1, var2, regress, alpha)
   log_call(project, xy_plot_function)
 
   # Save output
