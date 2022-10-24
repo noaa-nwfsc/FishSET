@@ -10,7 +10,7 @@ make_model_design(
   replace = TRUE,
   likelihood = NULL,
   initparams = NULL,
-  optimOpt = c(1e+05, 1e-08, 1, 1),
+  optimOpt = c(100, 1e-08, 1, 1),
   methodname = "BFGS",
   mod.name = NULL,
   vars1 = NULL,
