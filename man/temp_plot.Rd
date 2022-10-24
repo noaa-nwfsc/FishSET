@@ -11,6 +11,8 @@ temp_plot(
   len.fun = "length",
   agg.fun = "mean",
   date.var = NULL,
+  alpha = 0.5,
+  pages = "single",
   text.size = 8
 )
 }
@@ -31,6 +33,12 @@ returns the percentage of total observations.}
 
 \item{date.var}{Date variable in \code{dat}. Defaults to first date variable 
 in \code{dat} set if not defined.}
+
+\item{alpha}{The opaqueness of each data point in scatterplot. 0 is total 
+transparency and 1 is total opaqueness.  Defaults to .5.}
+
+\item{pages}{Whether to output plots on a single page (\code{"single"}, the 
+default) or multiple pages (\code{"multi"}).}
 
 \item{text.size}{Text size of x-axes.}
 }

@@ -8,7 +8,7 @@
 `windLease`
 Simple features collection with 32 features and 1 field:
 \describe{
-  \item{NAME}{}
+  \item{NAME}{Name of wind lease.}
 }
 }
 \usage{

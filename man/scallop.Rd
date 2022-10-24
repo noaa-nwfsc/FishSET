@@ -45,6 +45,8 @@ A data.frame with 10,000 rows and 31 columns:
   \item{MN10SQID}{Unique identifier assigned to a ten minute square.}
   \item{NAME}{Name of wind lease which is found within a given ten minute square.}
   \item{ZoneID}{FishSET's version of a ten minute square.}
+  \item{POUNDS}{Live pounds.}
+  \item{LANDED}{Landed pounds from the dealer report.}
   \item{LANDED_OBSCURED}{Landed pounds from the dealer report (jittered/obscured).}
   \item{DOLLAR_OBSCURED}{The value of catch paid by the dealer, from the 
   dealer report (jittered/obscured).}

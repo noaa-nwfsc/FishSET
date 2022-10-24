@@ -14,6 +14,8 @@ temp_plot_helper(
   len.fun,
   agg.fun,
   plot_by_yr,
+  alpha,
+  pages,
   text.size
 )
 }
@@ -35,6 +37,11 @@ temp_plot_helper(
 \item{agg.fun}{aggregation function}
 
 \item{plot_by_yr}{Whether to plot by year.}
+
+\item{alpha}{transparency of data points.}
+
+\item{pages}{Whether to output plots on a single page (\code{"single"}, the 
+default) or multiple pages (\code{"multi"}).}
 
 \item{text.size}{Text size of x-axes.}
 }

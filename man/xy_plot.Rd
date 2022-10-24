@@ -4,7 +4,7 @@
 \alias{xy_plot}
 \title{Plot relationship of two variables}
 \usage{
-xy_plot(dat, project, var1, var2, regress = FALSE)
+xy_plot(dat, project, var1, var2, regress = FALSE, alpha = 0.5)
 }
 \arguments{
 \item{dat}{Primary data containing information on hauls or trips. Table in 
@@ -18,6 +18,9 @@ FishSET database contains the string 'MainDataTable'.}
 
 \item{regress}{Logical, if TRUE, returns plot with fitted linear regression 
 line. Defaults to \code{FALSE}.}
+
+\item{alpha}{The opaqueness of each data point in scatterplot. 0 is total 
+transparency and 1 is total opaqueness.  Defaults to .5.}
 }
 \value{
 Returns plot output to R console and saves plot to Output folder.
