@@ -2732,66 +2732,6 @@ pull_shiny_output <- function(project, fun = NULL, type = "plot", conf = TRUE) {
   }
 }
 
-corr_plot <- function(corr, project){
-#' Correlation plot
-#' @param corr Correlation matrix
-#' @param project Name of project
-#' @export
-#' @keywords internal
-#' @import ggplot2
-#' @importFrom tidyr gather
-#' @importFrom tibble as.tibble
-  
-  legend.title = "Corr"
-  ggtheme = ggplot2::theme_minimal
-  colors = c("blue", "white",  "red")
-  rowname <- c()
-  
-  #Get lower triangle of the correlation matrix
-  get_lower_tri <- function(cormat) {
-    if (is.null(cormat)) {
-      return(cormat)
-    }
-    cormat[upper.tri(cormat)] <- NA
-    return(cormat)
-  }
-  
-  if (!is.matrix(corr) & !is.data.frame(corr)) {
-    stop("Need a matrix or data frame!")
-  }
-  
-  corr <- as.matrix(corr)
-  corr <- base::round(x = corr, digits = 2)
-  
-  
-  corr <- get_lower_tri(corr)
-  corr <- tibble::as_tibble(corr, rownames = "rowname")
-  corr <-  tidyr::gather(corr, key = "column", value = "cor", -rowname)
-  colnames(corr) <- c("Var1", "Var2", "value")
-  corr$pvalue <- rep(NA, nrow(corr))
-  corr$signif <- rep(NA, nrow(corr))
-  
-  corr$abs_corr <- abs(corr$value) * 10
-  
-  p <- ggplot2::ggplot(data = corr, mapping = ggplot2::aes_string(x = "Var1", y = "Var2", fill = "value"))  
-  p <- p + ggplot2::geom_tile(color = 'white')
-  p <- p +  ggplot2::scale_fill_gradient2(low = colors[1], high = colors[3],  mid = colors[2],
-                                  midpoint = 0, limit = c(-1, 1), space = "Lab", 
-                                  name = "Corr") + ggtheme() 
-  p <- p +  ggplot2::theme(axis.text.x = ggplot2::element_text(angle =45, vjust = 1, size = 12, hjust = 1), 
-                          axis.text.y = ggplot2::element_text(size = 12)) + 
-    ggplot2::coord_fixed()
-  
-  label <- round(x = corr[, "value"], digits = 2)
-  
-  p <- p + ggplot2::ggtitle(paste("Correlation matrix plot for", project, "data"))
-  
- 
-  p <- p +  ggplot2::theme(axis.title.x = ggplot2::element_blank(), axis.title.y = ggplot2::element_blank())
-  p
-}
-
-
 
 fishset_viridis <- function(n) {
   #' viridis color function
