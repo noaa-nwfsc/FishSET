@@ -4,27 +4,41 @@
 \alias{corr_out}
 \title{View correlation coefficients between numeric variables}
 \usage{
-corr_out(dat, project, variables = "all", method = "pearson")
+corr_out(
+  dat,
+  project,
+  variables = "all",
+  method = "pearson",
+  show_coef = FALSE
+)
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.}
+\item{dat}{Primary data containing information on hauls or trips. Table in 
+FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{String, project name.}
 
-\item{variables}{A character string of variables to include. Defaults to \code{"all"} numeric variables.}
+\item{variables}{A character string of variables to include. Defaults to 
+\code{"all"} numeric variables.}
 
 \item{method}{A character string indicating which correlation coefficient is 
 to be computed. One of "pearson" (default), "kendall", or "spearman".}
+
+\item{show_coef}{Logical, whether to include the correlation coefficients 
+on the correlation plot. Only coefficients with a p-value of less than or 
+equal to 0.05 are shown.}
 }
 \description{
-Correlations coefficients can be displayed between all numeric variables or selected numeric variables. 
-  Defaults to pearson correlation coefficient. To change the method, specify \code{'method'} as 
+Correlations coefficients can be displayed between all numeric 
+  variables or selected numeric variables. Defaults to pearson correlation 
+  coefficient. To change the method, specify \code{'method'} as 
   \code{'kendall'}, or \code{'spearman'}.
-   Both a plot and table output are generated and saved to the `output` folder. Correlation plot is generated using \code{\link[ggcorrplot]{ggcorrplot}}.
+   Both a plot and table output are generated and saved to the `output` 
+   folder.
 }
 \details{
-Returns Pearson's correlation coefficient between numeric variables in plot 
-  and table format. Output saved to output folder.
+Returns Pearson's correlation coefficient between numeric variables 
+  in plot and table format. Output saved to output folder.
 }
 \examples{
 \dontrun{
