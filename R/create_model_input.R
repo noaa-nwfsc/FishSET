@@ -172,7 +172,7 @@ create_model_input <-
       intdat = intdat,
       startloc = as.data.frame(x$startloc),
       polyn = as.data.frame(x$polyn),
-      distance=list(distance)
+      distance = list(distance)
     )
     expname <- fr
     
@@ -187,49 +187,7 @@ create_model_input <-
     
   } else if (fr == "logit_c") {
     
-    # # use exp.names to pull specified exp matrix
-    # expected.catch <- expected.catch[exp.names]
-    # 
-    # # Q: should this include all names or just what is being used?
-    # # expname <- paste0(fr, '_', paste0(names(x$gridVaryingVariables), collapse = ''))
-    # 
-    # expname <- paste0(fr, '.', paste0(names(expected.catch), collapse = '.'))
-    # 
-    # 
-    # 
-    # # Q: Is this right? Also, should dummies by included?
-    # # ec_mean <- mean(do.call(cbind, expected.catch))
-    # ec_mean <- vapply(expected.catch, mean, numeric(1))
-    # 
-    # # Q: filter for ec matrices (exclude dummies)?
-    # ec_grid <- lapply(seq_along(expected.catch), function(i) {
-    #   
-    #   expected.catch[[i]]/ec_mean[i]
-    #   })
-    #   
-    # names(ec_grid) <- names(expected.catch)
-    # # Q: if dummies excluded from above, re-add them here? 
-    # # griddat <- as.data.frame(griddat)
-    # 
-    # griddat <- c(griddat, ec_grid)
-    
-    otherdat <- list(
-
-      # Q: this would divide the dummy matrices by the mean of all ec (also 
-      # including dummies) is this right?
-      # griddat = list(as.data.frame(lapply(expected.catch, function(sub) {
-      #   
-      #   sub <- lapply(sub, `/`, mean(unlist(do.call(cbind, expected.catch))))
-      #   sub
-      # }))),
-      
-      griddat = griddat,
-      
-      # intdat = list(as.data.frame(
-      #   mapply("/", x$bCHeader$indeVarsForModel,
-      #          grep('intdata', names(x$scales)), SIMPLIFY = FALSE)))
-      intdat = intdat 
-    )
+    otherdat <- list(griddat = griddat, intdat = intdat)
   }
   
   out <- list(

@@ -36,14 +36,14 @@ shift_sort_x <- function(x, ch, y, distance, alts, ab) {
       xj <- x[j, , drop = FALSE]
       xj <- matrix(xj, ab, alts, byrow = TRUE)
 
-      xsorted <- cbind(xj[, ch[j, ]:dim(xj)[2]], xj[, 1:(ch[j, ] - 1)])
+      xsorted <- cbind(xj[, ch[j, ]:ncol(xj)], xj[, 1:(ch[j, ] - 1)])
       xsorted <- t(xsorted)
       xsorted <- matrix(xsorted, 1, alts * ab)
     }
     # the catch, chosen location, possible locations, and the distance to each location for an occasion
     d[[j]] <- cbind(as.matrix(y[j, ]), as.matrix(ch[j, ]), xsorted)
   }
-# note: no variation in first column in distance matrix, causes 
+# note: no variation in first column in distance matrix (always 0), could cause problem w/ convergence 
   d <- do.call("rbind", d)
 
   return(d)
