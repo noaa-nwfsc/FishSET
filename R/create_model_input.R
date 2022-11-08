@@ -121,14 +121,15 @@ create_model_input <-
   
   
   intdat <- mapply("/", x$bCHeader$indeVarsForModel, 
-                  grep('intdata', names(x$scales)), 
-                  SIMPLIFY = FALSE)
+                   x$scales[grep('intdata', names(x$scales))], 
+                   SIMPLIFY = FALSE)
   
   griddat <- mapply("/", x$bCHeader$gridVariablesInclude, 
-                    grep('griddata', names(x$scales)), 
+                    x$scales[grep('griddata', names(x$scales))], 
                     SIMPLIFY = FALSE)
   
   if (!is_value_empty(exp.names)) {
+    # TODO: exclude dummies from scaling 
     
     # use exp.names to pull specified exp matrix
     expected.catch <- expected.catch[exp.names]
