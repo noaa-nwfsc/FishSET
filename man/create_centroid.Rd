@@ -71,6 +71,6 @@ the merged primary table and the centroid table.}
 }
 \description{
 Create a zonal or fishing centroid table. The centroid can be joined with the
-primary data if \code{output == "dataset"}. The centroid table is automatically
+primary data if \code{output = "dataset"}. The centroid table is automatically
 saved to the FishSET Database.
 }
