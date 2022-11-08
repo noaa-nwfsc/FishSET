@@ -20,7 +20,8 @@ make_model_design(
   startloc = NULL,
   polyn = NULL,
   spat = NULL,
-  spatID = NULL
+  spatID = NULL,
+  crs = NULL
 )
 }
 \arguments{
@@ -105,6 +106,9 @@ observations to zones.}
 \item{spatID}{Variable in \code{spat} that identifies the individual areas or zones.
 Only required if \code{alt_var = "nearest point"} was used in the alternative
 choice matrix (see \code{\link[=create_alternative_choice]{create_alternative_choice()}}). Defaults to \code{NULL}.}
+
+\item{crs}{coordinate reference system to be assigned when creating the
+distance matrix. Passed on to \code{\link[=create_dist_matrix]{create_dist_matrix()}}.}
 }
 \value{
 Function creates the model matrix list that contains the data and
