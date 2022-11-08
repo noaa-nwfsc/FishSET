@@ -14,6 +14,7 @@
 #' @param port Port table
 #' @param zoneRow Zone row
 #' @param zoneID Zone identifier
+#' @param crs Coordinate reference system. 
 #' @importFrom sf st_as_sf st_distance
 #' @importFrom dplyr left_join
 #' @export 
@@ -38,12 +39,19 @@ create_dist_matrix <-
            units,
            port = NULL,
            zoneRow,
-           zoneID) {
+           zoneID,
+           crs = NULL) {
     
     
   # index of zones that meet min haul requirement
   zone_ind <- which(dataZoneTrue == 1)
   
+  if (is.null(crs)) {
+    
+    crs <- 4326
+    warning("CRS is not specfied, distance matrix will be created using WGS 84 (4326).",
+            call. = FALSE)
+  }
   # occasion ----
   
   ## Grid ----
@@ -154,7 +162,7 @@ create_dist_matrix <-
   fromXY[seq_along(fromXY)] <- lapply(fromXY, as.numeric)
   fromXY <- sf::st_as_sf(fromXY, 
                          coords = c(find_lon(fromXY), find_lat(fromXY)),
-                         crs = 4326) # TODO: make sure crs can be changed if needed
+                         crs = crs) # TODO: make sure crs can be changed if needed
     
   if (alt_var == "nearest point") {
     
@@ -173,7 +181,7 @@ create_dist_matrix <-
     toXY[seq_along(toXY)] <- lapply(toXY, as.numeric)
     toXY <- sf::st_as_sf(toXY, 
                          coords = c(find_lon(toXY), find_lat(toXY)),
-                         crs = 4326) # TODO: make sure crs can be changed if needed
+                         crs = crs) # TODO: make sure crs can be changed if needed
   }
   
   if (any(is_value_empty(fromXY) | is_value_empty(toXY))) {
