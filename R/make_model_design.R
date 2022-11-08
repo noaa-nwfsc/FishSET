@@ -69,6 +69,8 @@
 #' @param spatID Variable in `spat` that identifies the individual areas or zones. 
 #'   Only required if `alt_var = "nearest point"` was used in the alternative 
 #'   choice matrix (see [create_alternative_choice()]). Defaults to `NULL`.
+#' @param crs coordinate reference system to be assigned when creating the 
+#'   distance matrix. Passed on to [create_dist_matrix()].
 #' @importFrom DBI dbGetQuery dbExecute dbListTables
 #' @export make_model_design
 #' @md
@@ -244,7 +246,8 @@ make_model_design <-
            startloc = NULL,
            polyn = NULL,
            spat = NULL,
-           spatID = NULL) {
+           spatID = NULL,
+           crs = NULL) {
     
   # TODO: use formula method for specifying model
   # TODO: standardize arg names: use camel-case or period-case etc.
@@ -330,33 +333,39 @@ make_model_design <-
   # Script necessary to ensure parameters generated in shiny app are in correct format
   if (is_value_empty(vars1) || "none" %in% vars1) {
     
-    indeVarsForModel <- NULL
+    # indeVarsForModel <- NULL
+    indVars <- NULL
     
   } else {
     # TODO: find better way to specify vars1 and vars2 (formula method?)
     if (any(grepl(',', vars1))) {
       
-      indeVarsForModel <- unlist(strsplit(vars1, ","))
+      # indeVarsForModel <- unlist(strsplit(vars1, ","))
+      indVars <- unlist(strsplit(vars1, ","))
       
     } else {
       
-      indeVarsForModel <- vars1
+      # indeVarsForModel <- vars1
+      indVars <- vars1
     }
   }
     
   if (is_value_empty(vars2) || "none" %in% vars2) {
     
-    gridVariablesInclude <- NULL
+    # gridVariablesInclude <- NULL
+    gridVars <- NULL
     
   } else {
     
     if (any(grepl(',', vars2))) {
       
-      gridVariablesInclude <- unlist(strsplit(vars2, ","))
+      # gridVariablesInclude <- unlist(strsplit(vars2, ","))
+      gridVars <- unlist(strsplit(vars2, ","))
       
     } else {
       
-      gridVariablesInclude <- vars2
+      # gridVariablesInclude <- vars2
+      gridVars <- vars2
     }
   }
     
@@ -496,12 +505,14 @@ make_model_design <-
   # gridded dataset
   
 
-  if (is_value_empty(gridVariablesInclude)) {
+  # if (is_value_empty(gridVariablesInclude)) {
+  if (is_value_empty(gridVars)) {
     
     if (is_value_empty(expectcatchmodels)) {
       
       gridVariablesInclude <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
-    }
+      
+    } else gridVariablesInclude <- NULL
     
   } else {
     
@@ -509,7 +520,8 @@ make_model_design <-
 
       # TODO: check if gridded table has correct # of rows, if not error out and 
       # tell user to re-run format_grid()
-      gridVariablesInclude <- lapply(gridVariablesInclude, function(x) {
+      # gridVariablesInclude <- lapply(gridVariablesInclude, function(x) {
+      gridVariablesInclude <- lapply(gridVars, function(x) {
         
         grid_tab <- table_view(x, project)
         
@@ -518,22 +530,27 @@ make_model_design <-
       
     } else {
       
-      gridVariablesInclude <- lapply(gridVariablesInclude, function(x) dataset[[x]][zone_ind])
+      # gridVariablesInclude <- lapply(gridVariablesInclude, function(x) dataset[[x]][zone_ind])
+      gridVariablesInclude <- lapply(gridVars, function(x) dataset[[x]][zone_ind])
     }
   }
   
   # Ind ----
-  if (any(is_value_empty(indeVarsForModel))) {
+  # if (any(is_value_empty(indeVarsForModel))) {
+  if (is_value_empty(indVars)) {
     
     indeVarsForModel <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
     
-  } else if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) {
+  # } else if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) {
+  } else if (any(indVars %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) {
     
-    indeVarsForModel <- lapply(indeVarsForModel[-1], function(x) dataset[[x]][zone_ind])
+    # indeVarsForModel <- lapply(indeVarsForModel[-1], function(x) dataset[[x]][zone_ind])
+    indeVarsForModel <- lapply(indVars[-1], function(x) dataset[[x]][zone_ind])
     
   } else {
     
-    indeVarsForModel <- lapply(indeVarsForModel, function(x) dataset[[x]][zone_ind])
+    # indeVarsForModel <- lapply(indeVarsForModel, function(x) dataset[[x]][zone_ind])
+    indeVarsForModel <- lapply(indVars, function(x) dataset[[x]][zone_ind])
   }
   
   bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, 
@@ -575,7 +592,7 @@ make_model_design <-
                                  dataZoneTrue = dataZoneTrue, zone_cent = zone_cent, 
                                  fish_cent = fish_cent, choice = choice_raw, 
                                  units = units, port = port, zoneRow = zoneRow, 
-                                 zoneID = zoneID)
+                                 zoneID = zoneID, crs = crs)
   
   if (is.null(dist_out)) {
     
@@ -607,14 +624,16 @@ make_model_design <-
   
     # scales data r in
     # Note: this should be done before line 419 else first condition can't be TRUE
-    if (length(bCHeader$gridVariablesInclude) == 0) r <- 1
+    # if (length(bCHeader$gridVariablesInclude) == 0) r <- 1
+    if (is_value_empty(gridVars)) r <- 1
     else {
       
       r <- as.numeric(lapply(bCHeader$gridVariablesInclude, 
                              function(x) mean(as.numeric(unlist(x)), na.rm = TRUE)))
     }
     
-    if (length(bCHeader$indeVarsForModel) == 0) { 
+    # if (length(bCHeader$indeVarsForModel) == 0) { 
+    if (is_value_empty(indVars)) { 
       
       r2 <- 1 
         
@@ -691,7 +710,7 @@ make_model_design <-
     make_model_design_function$args <- list(
       project, catchID, replace,  likelihood,initparams, optimOpt, 
       methodname, as.character(mod.name), vars1, vars2, priceCol,
-      expectcatchmodels, startloc, polyn, spat, spatID
+      expectcatchmodels, startloc, polyn, spat, spatID, crs
     )
     make_model_design_function$kwargs <- list()
     
