@@ -263,7 +263,7 @@ zone_summary <- function(dat,
       z_ind <- spatdat[[zone.spat]] %in% unique(zone_tab[[zone.dat]])
       bbox <- sf::st_bbox(spatdat[z_ind, ]) # keeps shifted long
       
-    } else  bbox <- sf::st_bbox(spatdat) # use entire spatial data
+    } else bbox <- sf::st_bbox(spatdat) # use entire spatial data
 
     # world2 uses 0 - 360 lon format
     base_map <- ggplot2::map_data(map = ifelse(shift_long(spatdat), "world2", "world"),
@@ -286,6 +286,7 @@ zone_summary <- function(dat,
       
       # check if breaks include range, show.limits = TRUE will add additional bins
       # Note: this can reject users bin_colors 
+      
       val_range <- range(dat[[val_var]])
       
       if (is.null(breaks)) brks <- pretty(dat[[val_var]], n = n.breaks)
@@ -295,15 +296,13 @@ zone_summary <- function(dat,
         
         if (length(bin_colors) != length(brks)) {
           
-          warning("bin_colors length is not equal to breaks. Using default colors.")
-          # bin_colors <- viridis::viridis(length(brks), option = "H")
+          warning("bin_colors length is not equal to breaks. Using default colors.",
+                  call. = FALSE) # TODO: use bin_colors[seq_along(brks)] ?
           bin_colors <- fishset_viridis(length(brks))
         }
         
       } else {
         
-        # bin_colors <- viridis::viridis(length(brks), option = "H")
-        # bin_colors <- c("white", fishset_viridis(length(brks) - 1))
         bin_colors <- fishset_viridis(length(brks))
       }
         
