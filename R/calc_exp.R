@@ -50,7 +50,7 @@ calc_exp <- function(dataset,
   # check whether defining a group or using all fleet averaging
   if (is_value_empty(defineGroup)) {
     # just use an id=ones to get all info as one group
-    fleet <- rep(1, dim(dataset)[1])
+    fleet <- rep(1, nrow(dataset))
     # Define by group case
   } else {
     
@@ -99,7 +99,7 @@ calc_exp <- function(dataset,
                                  FUN = mean, na.rm = TRUE) 
     # TODO: update for groups
     exp_matrix <- matrix(allCatch$x, nrow = nrow(dataset), ncol = length(altc_areas),
-                         dimnames = list(NULL, altc_areas), byrow = TRUE)
+                         dimnames = list(NULL, allCatch$areas), byrow = TRUE)
     
     newDumV <- list()
     
@@ -382,7 +382,10 @@ calc_exp <- function(dataset,
     })
     
     exp_matrix <- do.call(rbind, exp_matrix)
+    # order columns
+    exp_matrix <- exp_matrix[, order(colnames(exp_matrix))]
   }
   
-  list(exp = exp_matrix, dummy = dum_matrix)
+  
+  list(exp = exp_matrix, dummy = get0("dum_matrix"))
 }
