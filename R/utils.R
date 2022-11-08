@@ -45,6 +45,7 @@ loc <- function() {
     newdir <- choose_directory()
     
     # If user is selecting the location to create the FSF
+    # TODO: check that chosen dir ends in 'FishSETFolder'
     if (grepl('FishSETFolder', as.character(newdir)) == FALSE) {
       
       newdir <- paste0(newdir, '/FishSETFolder/')
@@ -2442,7 +2443,7 @@ find_lon <- function(dat) {
  #' @importFrom stringi stri_count_regex
  #' @export
  
-  if (all(is_empty(dat[1, ]))) return(NULL)
+  # if (all(is_empty(dat[1, ]))) return(NULL)
   
   cols <- colnames(dat)[grep('lon', colnames(dat), ignore.case = TRUE)]
   lat_find <- stringi::stri_count_regex(cols, '(?=LAT|Lat|lat)')
@@ -2464,7 +2465,7 @@ find_lat <- function(dat) {
   #' @export
   #' 
 
-  if (all(is_empty(dat[1,]))) return()
+  # if (all(is_empty(dat[1,]))) return()
   
   cols <- colnames(dat)[grep('lat', colnames(dat), ignore.case = TRUE)]
   lon_find <- stringi::stri_count_regex(cols, '(?=LON|Lon|lon)')
