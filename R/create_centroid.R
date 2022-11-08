@@ -1,7 +1,7 @@
 #' Create Centroid Table
 #' 
 #' Create a zonal or fishing centroid table. The centroid can be joined with the 
-#' primary data if `output == "dataset"`. The centroid table is automatically 
+#' primary data if `output = "dataset"`. The centroid table is automatically 
 #' saved to the FishSET Database. 
 #' 
 #' @param spat Spatial data containing information on fishery management or 
