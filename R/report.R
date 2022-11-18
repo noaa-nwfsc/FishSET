@@ -474,8 +474,7 @@ insert_table <- function(out, project) {
       
     } else {
       
-      tab <- read.csv(paste0(get_user_locoutput(project), out))
-      tab
+      read.csv(paste0(get_user_locoutput(project), out))
     }
   }
 }
@@ -968,18 +967,24 @@ model_out_summary <- function(project, output = "print") {
       Stand_Errors = rep(NA, length(results)),
       Hessian = rep(NA, length(results))
     )
-    
+    # TODO: account for model errors
     for (i in seq_along(results)) {
+      
+      conv <- results[[i]]$optoutput$convergence
+      seOut <- results[[i]]$seoutmat2
+      hes <- results[[i]]$H1
+      
       modeltab[i, 1] <- results[[i]]$name
-      modeltab[i, 2] <- results[[i]]$optoutput$convergence
-      modeltab[i, 3] <- toString(round(results[[i]]$seoutmat2, 3))
-      modeltab[i, 4] <- toString(round(results[[i]]$H1, 5))
+      modeltab[i, 2] <- if (is.null(conv)) "Error" else conv
+      modeltab[i, 3] <- if (is.null(seOut)) "Error" else toString(round(seOut, 3))
+      modeltab[i, 4] <- if (is.character(hes)) hes else toString(round(hes, 5))
     }
     
     if (output == "print") {
       
       pander::pander(
-        pander::pandoc.table(modeltab, style = "simple", row.names = FALSE, split.table = Inf)
+        pander::pandoc.table(modeltab, style = "simple", 
+                             row.names = FALSE, split.table = Inf)
       )
       
     } else if (output == "table") modeltab
@@ -1020,6 +1025,7 @@ model_error_summary <- function(project, output = "print") {
     )
   
     for (i in seq_along(results)) {
+      
       error_out[i, 1] <- results[[i]]$name
       error_out[i, 2] <- ifelse(is.null(results[[i]]$errorExplain), "No error reported",
         toString(results[[i]]$errorExplain)
