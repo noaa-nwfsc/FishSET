@@ -299,7 +299,7 @@ discretefish_subroutine <-
             return("Optimization error, check 'LDGlobalCheck'")
           }
         )
-        
+        # if (i == 4) browser()
         # save ld global check ----
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
         on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
@@ -321,7 +321,7 @@ discretefish_subroutine <-
            if (any(empty_dat)) {
              
              table_remove(single_sql, project)
-            LDGlobalCheck <- LDGlobalCheck
+             LDGlobalCheck <- LDGlobalCheck
             
            } else {
              
@@ -367,8 +367,8 @@ discretefish_subroutine <-
     
         # Model comparison metrics (MCM) ----
         
-        param <- max(dim(as.matrix(starts2)))
-        obs <- dim(datamatrix$dataCompile)[1]
+        param <- length(starts2)
+        obs <- nrow(datamatrix$dataCompile)
         AIC <- round(2 * param - 2 * LL, 3)
         
         AICc <- round(AIC + (2 * param * (param + 1)) / (obs - param - 1), 3)
@@ -377,17 +377,20 @@ discretefish_subroutine <-
         
         PseudoR2 <- round((LL_start - LL) / LL_start, 3)
         
+        
+        modOutName <- paste0(datamatrix$expname, ".", x_temp[[i]][["mod.name"]])
+        
         if (!exists("mod.out")) {
           
           mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
           mod.out[, 1] <- c(AIC, AICc, BIC, PseudoR2)
           rownames(mod.out) <- c("AIC", "AICc", "BIC", "PseudoR2")
-          colnames(mod.out) <- paste0(datamatrix$expname, x_temp[[i]][["mod.name"]])
+          colnames(mod.out) <- modOutName
           
         } else {
           
           temp <- data.frame(c(AIC, AICc, BIC, PseudoR2))
-          colnames(temp) <- paste0(datamatrix$expname, x_temp[[i]][["mod.name"]])
+          colnames(temp) <- modOutName
         }
 
         if (i == 1) {
@@ -425,7 +428,11 @@ discretefish_subroutine <-
         ## Full model output ----
         MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
         
-        if (is.null(H) == FALSE) {
+        if (is.null(H)) {
+          
+          print("Model error, check 'LDGlobalCheck'")
+        
+        } else {
           
           Htrial <- function(x) {
             
@@ -468,7 +475,7 @@ discretefish_subroutine <-
           
           if (H1[1] != "Error, singular, check 'LDGlobalCheck'") {
             
-            if(diag2[1] != "Error, NAs, check 'LDGlobalCheck'") {
+            if (diag2[1] != "Error, NAs, check 'LDGlobalCheck'") {
               
               se2 <- tryCatch({
                 
@@ -491,23 +498,44 @@ discretefish_subroutine <-
             }
           }
          
-          if (H1[1] != "Error, singular, check 'LDGlobalCheck'"){
-            if(se2[1]!="Cannot compute standard error. Check 'LDGlobalCheck'") {
-            outmat2 <- t(q2) #best set of parameters found
-            seoutmat2 <- t(se2) #standard errors
-            optoutput <- output #optimization info - counts, convergence, optimization error
-            tLogit <- t(outmat2 / se2)
-            OutLogit <- cbind(t(outmat2), as.matrix(se2), (tLogit))
+          if (H1[1] != "Error, singular, check 'LDGlobalCheck'") { 
+            
+            if (se2[1]!= "Cannot compute standard error. Check 'LDGlobalCheck'") {
+              
+              outmat2 <- t(q2) #best set of parameters found
+              seoutmat2 <- t(se2) #standard errors
+              optoutput <- output #optimization info - counts, convergence, optimization error
+              tLogit <- t(outmat2 / se2)
+              OutLogit <- cbind(t(outmat2), as.matrix(se2), (tLogit))
+              
+              OutLogit <- as.data.frame(OutLogit)
+              names(OutLogit) <- c("estimate", "std_error", "t_value")
+              
+              OutLogit <- round(OutLogit, 3)
+              
+              # TODO: make sure this works for each model type
+              p_names <- unlist(lapply(x_temp[[i]]$bCHeader[-1], names))
+              ec_names <- names(x_temp[[i]]$gridVaryingVariables)
+              
+              if (fr == "logit_avgcat") {
+                
+                z_names <- sort(unique(x_temp[[i]]$choice$choice))
+                rownames(OutLogit) <- c(z_names, ec_names, p_names)
+                
+              } else {
+                # Q: will this always be the correct order?
+                rownames(OutLogit) <- c(ec_names, p_names)
+              }
+              # save to output folder
+              save_table(OutLogit, project = project, x_temp[[i]]$mod.name)
+            }
           }
-        }
-        
-       # if(H1[1]=="Error, singular, check 'LDGlobalCheck'") next
-       # if (H1[1] != "Error, singular, check 'LDGlobalCheck'") {
-        if(!exists("ModelOut")) {
+          
+        if (!exists("ModelOut")) {
           
           ModelOut <- list()
           ModelOut[[1]] <- list(
-            name = datamatrix$expname, errorExplain = errorExplain, 
+            name = modOutName, errorExplain = errorExplain, 
             OutLogit = OutLogit, optoutput = optoutput, seoutmat2 = seoutmat2, 
             MCM = MCM, H1 = H1, choice.table = datamatrix$choice.table, 
             params = outmat2
@@ -516,7 +544,7 @@ discretefish_subroutine <-
         } else {
           
           ModelOut[[length(ModelOut) + 1]] <- list(
-            name = datamatrix$expname, errorExplain = errorExplain, 
+            name = modOutName, errorExplain = errorExplain, 
             OutLogit = OutLogit, optoutput = optoutput, seoutmat2 = seoutmat2, 
             MCM = MCM, H1 = H1, choice.table = datamatrix$choice.table, 
             params = outmat2
@@ -537,19 +565,7 @@ discretefish_subroutine <-
           table_remove(raw_sql, project)
         }
         
-        # save param ests, se, and t-vals to output folder
-        if (!is.null(OutLogit)) {
-          
-          params_out <- as.data.frame(OutLogit)
-          names(params_out) <- c("estimate", "std_error", "t_value") 
-          rownames(params_out)[1:length(sort(unique(x_temp[[i]]$choice)[, 1]))] <- sort(unique(x_temp[[i]]$choice)[, 1])
-          params_out <- round(params_out, 3)
-
-          # TODO: Find appropriate name for output
-          save_table(params_out, project=project, x_temp[[i]]$mod.name)
-          # save_table(params_out, paste0(project, '_params'), x_temp[[i]]$mod.name)
-        }
-        
+        # Save ModelOut table to FSDB
         second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
         raw_second_sql <- paste("INSERT INTO", raw_sql, "VALUES (:data)")
         DBI::dbExecute(fishset_db, 
@@ -561,10 +577,7 @@ discretefish_subroutine <-
         DBI::dbExecute(fishset_db, raw_second_sql, 
                        params = list(data = list(serialize(ModelOut, NULL))))
 
-        } else {
-          
-          print("Model error, check 'LDGlobalCheck'")
-        }
+        } 
       } # End looping through expected catch cases
     } # end looping through model choices
   } # end model run (if end == false)
