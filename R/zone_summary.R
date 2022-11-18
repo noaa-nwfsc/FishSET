@@ -139,7 +139,7 @@ zone_summary <- function(dat,
   }
   
   zone_tab <- agg_helper(dataset, value = var, group = c(zone.dat, group), 
-                          fun = fun, count = count)
+                         fun = fun, count = count)
   
   # percent flag
   if (!is.null(fun) && fun == "percent") calc_perc <- TRUE 
