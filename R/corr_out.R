@@ -1,5 +1,5 @@
 # correlation
-corr_out <- function(dat, project, variables='all', method = "pearson", 
+corr_out <- function(dat, project, variables = "all", method = "pearson", 
                      show_coef = FALSE) {
   #' View correlation coefficients between numeric variables
   #'
