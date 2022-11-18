@@ -350,7 +350,9 @@ model_out_view <- function(table, project) {
   #
   if (table_exists(table, project) == FALSE) {
     
-    return("Table not found. Check spelling or tables in database using 'tables_database()'.")
+    # TODO: Change to stop()?
+    stop("Table not found. Check spelling or tables in database using 'tables_database()'.",
+         call. = FALSE)
     
   } else {
     
@@ -386,26 +388,11 @@ model_params <- function(table, project) {
 
   mod_out <- model_out_view(table, project)
   
-  if (!is.null(mod_out)) {
-
-    mod_list <- 
-      lapply(mod_out, function(x) {
-        
-        params <- as.data.frame(x$OutLogit)
-        
-        names(params) <- c("estimate", "std_error", "t_value") 
-        
-        params <- round(params, 3)
-        
-        params
-      })
-    
-    mod_names <- vapply(mod_out, function(x) x$name, character(1))
-    
-    names(mod_list) <- mod_names
-    
-    mod_list
-  }
+  mod_list <- lapply(mod_out, function(x) x$OutLogit)
+  mod_names <- vapply(mod_out, function(x) x$name, character(1))
+  names(mod_list) <- mod_names
+  
+  mod_list
 }
 
 
@@ -460,7 +447,7 @@ model_fit <- function(project) {
 model_names <- function(project) {
   #' Return model names 
   #' 
-  #' Returns model names saved to to the model desgin file. 
+  #' Returns model names saved to to the model design file. 
   #' 
   #' @param project Name of project.
   #' @export
