@@ -333,38 +333,32 @@ make_model_design <-
   # Script necessary to ensure parameters generated in shiny app are in correct format
   if (is_value_empty(vars1) || "none" %in% vars1) {
     
-    # indeVarsForModel <- NULL
     indVars <- NULL
     
   } else {
     # TODO: find better way to specify vars1 and vars2 (formula method?)
     if (any(grepl(',', vars1))) {
       
-      # indeVarsForModel <- unlist(strsplit(vars1, ","))
       indVars <- unlist(strsplit(vars1, ","))
       
     } else {
       
-      # indeVarsForModel <- vars1
       indVars <- vars1
     }
   }
     
   if (is_value_empty(vars2) || "none" %in% vars2) {
     
-    # gridVariablesInclude <- NULL
     gridVars <- NULL
     
   } else {
     
     if (any(grepl(',', vars2))) {
       
-      # gridVariablesInclude <- unlist(strsplit(vars2, ","))
       gridVars <- unlist(strsplit(vars2, ","))
       
     } else {
       
-      # gridVariablesInclude <- vars2
       gridVars <- vars2
     }
   }
@@ -505,7 +499,6 @@ make_model_design <-
   # gridded dataset
   
 
-  # if (is_value_empty(gridVariablesInclude)) {
   if (is_value_empty(gridVars)) {
     
     if (is_value_empty(expectcatchmodels)) {
@@ -520,7 +513,6 @@ make_model_design <-
 
       # TODO: check if gridded table has correct # of rows, if not error out and 
       # tell user to re-run format_grid()
-      # gridVariablesInclude <- lapply(gridVariablesInclude, function(x) {
       gridVariablesInclude <- lapply(gridVars, function(x) {
         
         grid_tab <- table_view(x, project)
@@ -530,27 +522,29 @@ make_model_design <-
       
     } else {
       
-      # gridVariablesInclude <- lapply(gridVariablesInclude, function(x) dataset[[x]][zone_ind])
       gridVariablesInclude <- lapply(gridVars, function(x) dataset[[x]][zone_ind])
     }
+    
+    names(gridVariablesInclude) <- gridVars
   }
   
   # Ind ----
-  # if (any(is_value_empty(indeVarsForModel))) {
   if (is_value_empty(indVars)) {
     
     indeVarsForModel <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
     
-  # } else if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) {
-  } else if (any(indVars %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) {
-    
-    # indeVarsForModel <- lapply(indeVarsForModel[-1], function(x) dataset[[x]][zone_ind])
-    indeVarsForModel <- lapply(indVars[-1], function(x) dataset[[x]][zone_ind])
-    
   } else {
     
-    # indeVarsForModel <- lapply(indeVarsForModel, function(x) dataset[[x]][zone_ind])
-    indeVarsForModel <- lapply(indVars, function(x) dataset[[x]][zone_ind])
+    if (any(indVars %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) {
+    
+    indeVarsForModel <- lapply(indVars[-1], function(x) dataset[[x]][zone_ind])
+    
+    } else {
+      
+      indeVarsForModel <- lapply(indVars, function(x) dataset[[x]][zone_ind])
+    }
+    
+    names(indeVarsForModel) <- indVars
   }
   
   bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, 
