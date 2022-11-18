@@ -398,8 +398,8 @@ file_nm_check <- function(file_nm) {
   #' @keywords internal
   #'
   
-  illegal_chars <- c('#', '<', '>', '#', '$', '+', '%', '!', '`', '&', '*','\'', 
-                     '\"', '|', '\\{', '\\}', '?', '=', '/', '\\',':', '@')
+  illegal_chars <- c('#', '<', '>', '#', '\\$', '\\+', '%', '!', '`', '&', '\\*','\'', 
+                     '\"', '\\|', '\\{', '\\}', '\\?', '=', '/', '\\\\',':', '@')
   
   ill_print <- gsub("\\\\", "", illegal_chars)
   ill_print[20] <- "\\"
@@ -1178,6 +1178,7 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, within_group
     
   calc_perc <- FALSE
   
+  # TODO: use !match.fun(fun) instead? 
   if (!is.function(fun)) {
     
     if (count && !is.null(fun) && fun != "percent") {
@@ -1189,7 +1190,11 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, within_group
       
       calc_perc <- TRUE
       fun <- "sum"
-    } 
+      
+    } else {
+      
+      # stop("Invalid function.", call. = FALSE)
+    }
   } 
   
   tab_out <- 
