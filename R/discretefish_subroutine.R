@@ -117,448 +117,466 @@ discretefish_subroutine <-
            use.scalers = TRUE,
            scaler.func = NULL) {
   
-  end <- FALSE
+  
 
   if (!isRunning()) { # if run in console
     # 
     check <- checklist(project)
     end <- any(vapply(check, function(x) x$pass == FALSE, logical(1)))
-  }
-
-  # TODO: remove end, change to stop()   
-  if (end == FALSE) {
-
-    # Call in datasets
-    if (table_exists(paste0(project, "ModelInputData"), project)) {
-      
-      x_temp <- unserialize_table(paste0(project, "ModelInputData"), project)
-      
-    } else {
-      
-      warning('Model input table does not exist.', call. = FALSE)
-      end <- TRUE
-    }
-  }
-
-  if (end == FALSE) {
     
-    for (i in 1:length(x_temp)) { # loop thru each model
+    if (end) stop("Model checklist incomplete.", call. = FALSE)
+  }
 
-      x <- x_temp[[i]]
+  # Call in datasets
+  if (table_exists(paste0(project, "ModelInputData"), project)) {
+    
+    x_temp <- unserialize_table(paste0(project, "ModelInputData"), project)
+    
+  } else {
+    
+    stop('Model input table does not exist.', call. = FALSE)
+  }
+
+
+  
+  for (i in 1:length(x_temp)) { # loop thru each model
+
+    x <- x_temp[[i]]
+    
+    length.exp.names <-length(x$expectcatchmodels)
+    
+    if (length.exp.names == 0) length.exp.names <- 1
+    
+    # data matrix ----
+    # loop thru expected catch matrices (loops once if no matrix)
+    for (j in seq_len(length.exp.names)) {
       
-      length.exp.names <-length(x$gridVaryingVariables)
+      if (is_value_empty(x$expectcatchmodels)) {
+        
+        exp.names <- NULL
+        
+      } else {
+        
+        exp.names <- x$expectcatchmodels[[j]]
+      }
       
-      # data matrix ----
-      # loop thru expected catch matrices (loops once if no matrix)
-      for (j in seq_len(length.exp.names)) {
+      datamatrix <- create_model_input(project = project, x = x, 
+                                       mod.name = x$mod.name, 
+                                       use.scalers = use.scalers, 
+                                       scaler.func = scaler.func, 
+                                       expected.catch = x$gridVaryingVariables, 
+                                       exp.names = exp.names)
         
-        datamatrix <- create_model_input(project = project, x = x, 
-                                         mod.name = x$mod.name, 
-                                         use.scalers = use.scalers, 
-                                         scaler.func = scaler.func, 
-                                         expected.catch = x$gridVaryingVariables, 
-                                         exp.names = x$expectcatchmodels[[j]])
-          
-        if (is.factor(x$optimOpt)) {
-          
-          opt <- as.numeric(unlist(strsplit(as.character(x$optimOpt), " ")))
-          
-        } else if (is.list(x$optimOpt)) {
-          
-          opt <- as.numeric(unlist(x$optimOpt))
-          
-        } else {
-          
-          opt <- as.numeric(unlist(strsplit(as.character(x$optimOpt), " ")))
-        }
+      if (is.factor(x$optimOpt)) {
+        
+        opt <- as.numeric(unlist(strsplit(as.character(x$optimOpt), " ")))
+        
+      } else if (is.list(x$optimOpt)) {
+        
+        opt <- as.numeric(unlist(x$optimOpt))
+        
+      } else {
+        
+        opt <- as.numeric(unlist(strsplit(as.character(x$optimOpt), " ")))
+      }
+    
+      if (is.factor(x$initparams)) {
+        
+        starts2 <- as.numeric(unlist(strsplit(as.character(x$initparams), ","))) # inits
+        
+      } else if (is.list(x$initparams)) {
+        
+        starts2 <- unlist(x$initparams)
+        
+      } else {
+        
+        starts2 <-as.numeric(unlist(strsplit(as.character(x$initparams), ","))) # inits
+      }
       
-        if (is.factor(x$initparams)) {
-          
-          starts2 <- as.numeric(unlist(strsplit(as.character(x$initparams), ","))) # inits
-          
-        } else if (is.list(x$initparams)) {
-          
-          starts2 <- unlist(x$initparams)
-          
-        } else {
-          
-          starts2 <-as.numeric(unlist(strsplit(as.character(x$initparams), ","))) # inits
-        }
-        
-        errorExplain <- NULL
-        OutLogit <- NULL
-        optoutput <- NULL
-        seoutmat2 <- NULL
-        MCM <- NULL
-        H1 <- NULL
-        fr <- x$likelihood # func  #e.g. logit_c
-        fr.name <- match.fun(find_original_name(match.fun(as.character(fr))))
+      errorExplain <- NULL
+      OutLogit <- NULL
+      optoutput <- NULL
+      seoutmat2 <- NULL
+      MCM <- NULL
+      H1 <- NULL
+      fr <- x$likelihood # func  #e.g. logit_c
+      fr.name <- match.fun(find_original_name(match.fun(as.character(fr))))
+    
       
+      # Number of inits ----
+      gridNum <- length(datamatrix$otherdat$griddat)
+      intNum <-  length(datamatrix$otherdat$intdat)
+      
+      if (fr == 'logit_c') {
         
-        # Number of inits ----
-        gridNum <- length(datamatrix$otherdat$griddat[[1]])
-        intNum <-  length(datamatrix$otherdat$intdat[[1]])
+        numInits <- gridNum + intNum
         
-        if (fr == 'logit_c') {
+      } else if (fr == 'logit_avgcat') {
+        
+        numInits <- gridNum * (max(datamatrix$choice) - 1) + intNum
+        
+      } else if (fr == 'logit_correction') {
+        
+        numInits <- gridNum * max(datamatrix$choice) + intNum + 
+          ((((as.numeric(x_temp[[i]]$polyn)+1)*2)+2)*max(datamatrix$choice)) +1+1
+        
+      } else {
+        
+        numInits <- gridNum*max(datamatrix$choice)+intNum+1+1
+      }
+      
+      if (numInits != length(starts2)) {
+        
+        if (length(starts2) == 1) {
           
-          numInits <- gridNum + intNum
+          starts2 <- rep(starts2, numInits)
           
-        } else if (fr == 'logit_avgcat') {
+        } else if (numInits > length(starts2)) { # TODO: check if this is okay
           
-          numInits <- gridNum * (max(datamatrix$choice) - 1) + intNum
+          starts2 <- c(starts2, rep(1, (numInits - length(starts2))))
+          message(numInits, ' initial parameter values should be specified')
           
-        } else if (fr == 'logit_correction') {
+        } else if (numInits < length(starts2)) { # TODO: check if this is okay
           
-          numInits <- gridNum * max(datamatrix$choice) + intNum + 
-            ((((as.numeric(x_temp[[i]]$polyn)+1)*2)+2)*max(datamatrix$choice)) +1+1
-          
-        } else {
-          
-          numInits <- gridNum*max(datamatrix$choice)+intNum+1+1
+          starts2 <- starts2[1:numInits]
+          message(numInits, ' initial parameter values should be specified')
+        } 
+      }
+
+      # Explore starting parameters ----
+      if (explorestarts) {
+        
+        sp <- if (is_empty(space[i])) 10 else space[i]
+        devr <- if (is_empty(dev[i])) 5 else dev[i] 
+        
+        starts2 <- explore_startparams_discrete(space = sp, dev = devr, 
+                                                breakearly = breakearly, 
+                                                startsr = starts2, fr = fr, 
+                                                d = datamatrix$d, 
+                                                otherdat = datamatrix$otherdat, 
+                                                choice = datamatrix$choice, 
+                                                project = project)
+      }
+      
+      # likelihood ----
+      LL_start <- fr.name(starts2, datamatrix$d, datamatrix$otherdat, 
+                          max(datamatrix$choice), project = project, 
+                          datamatrix$expname, as.character(datamatrix$mod.name))
+      
+      if (is.null(LL_start) || is.nan(LL_start) || is.infinite(LL_start)) {
+        # haven't checked what happens when error yet
+        errorExplain <- "Initial function results bad (Nan, Inf, or undefined), check 'LDGlobalCheck'"
+        cat("Initial function results bad (Nan, Inf, or undefined), check 'LDGlobalCheck'")
+        next
+      }
+
+      # optim ----
+      res <- c()
+      mIter <- opt[1] # should add something to default options here if not specified
+      relTolX <- opt[2]
+      reportfreq <- opt[3]
+      detailreport <- opt[4]
+      
+      controlin <- list(trace = detailreport, maxit = mIter, reltol = relTolX, REPORT = reportfreq)
+      
+      res <- tryCatch({
+
+          stats::optim(starts2, fr.name,
+                       dat = datamatrix$d, otherdat = datamatrix$otherdat,
+                       alts = max(datamatrix$choice),
+                       method = as.character(x_temp[[i]][['methodname']]),
+                       control = controlin, hessian = TRUE, project = project,
+                       expname = datamatrix$expname,
+                       mod.name = as.character(unlist(x_temp[[i]][['mod.name']]))
+          )
+        },
+
+        error = function(e) {
+
+          return("Optimization error, check 'LDGlobalCheck'")
         }
-        
-        if (numInits != length(starts2)) {
+      )
+      # if (i == 4) browser()
+      # save ld global check ----
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+      on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+      
+      single_sql <- paste0(project, "LDGlobalCheck", format(Sys.Date(), format = "%Y%m%d"))
+      second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
+      
+      
+       if (table_exists(single_sql, project=project)) {
+         
+         empty_dat <- 
+           is_empty(
+             unlist(
+               DBI::dbGetQuery(fishset_db, 
+                               paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data
+               )
+             )
+         
+         if (any(empty_dat)) {
+           
+           table_remove(single_sql, project)
+           LDGlobalCheck <- LDGlobalCheck
           
-          if (numInits > length(starts2)) {
-            
-            starts2 <- c(starts2, rep(0.5, (numInits - length(starts2))))
-            message(numInits, ' initial parameter values should be specified')
-            
-          } else if (numInits < length(starts2)) {
-            
-            starts2 <- starts2[1:numInits]
-            message(numInits, ' initial parameter values should be specified')
-          } 
-        }
-
-        # Explore starting parameters ----
-        if (explorestarts) {
-          
-          sp <- if (is_empty(space[i])) 10 else space[i]
-          devr <- if (is_empty(dev[i])) 5 else dev[i] 
-          
-          starts2 <- explore_startparams_discrete(space = sp, dev = devr, 
-                                                  breakearly = breakearly, 
-                                                  startsr = starts2, fr = fr, 
-                                                  d = datamatrix$d, 
-                                                  otherdat = datamatrix$otherdat, 
-                                                  choice = datamatrix$choice, 
-                                                  project = project)
-        }
+         } else {
+           
+          x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+          table_remove(single_sql, project = project)
+          LDGlobalCheck <- c(x, LDGlobalCheck)
+         }
+       }
+      
+      ld_sql <- paste0("CREATE TABLE IF NOT EXISTS ", project, "LDGlobalCheck", 
+                       format(Sys.Date(), format = "%Y%m%d"), "(data LDGlobalCheck)")
+      
+      DBI::dbExecute(fishset_db, ld_sql)
+      DBI::dbExecute(fishset_db, second_sql, 
+                     params = list(data = list(serialize(LDGlobalCheck, NULL))))
+      
+      
+      if (res[[1]][1] == "Optimization error, check 'LDGlobalCheck'") {
         
-        # likelihood ----
-        LL_start <- fr.name(starts2, datamatrix$d, datamatrix$otherdat, 
-                            max(datamatrix$choice), project = project, 
-                            datamatrix$expname, as.character(datamatrix$mod.name))
-        
-        if (is.null(LL_start) || is.nan(LL_start) || is.infinite(LL_start)) {
-          # haven't checked what happens when error yet
-          errorExplain <- "Initial function results bad (Nan, Inf, or undefined), check 'LDGlobalCheck'"
-          cat("Initial function results bad (Nan, Inf, or undefined), check 'LDGlobalCheck'")
-          next
-        }
-
-        # optim ----
-        res <- c()
-        mIter <- opt[1] # should add something to default options here if not specified
-        relTolX <- opt[2]
-        reportfreq <- opt[3]
-        detailreport <- opt[4]
-        
-        controlin <- list(trace = detailreport, maxit = mIter, reltol = relTolX, REPORT = reportfreq)
-        
-        # Note: remove
-        # res <- get("mod_out")
-        
-        res <- tryCatch({
-
-            stats::optim(starts2, fr.name,
-                         dat = datamatrix$d, otherdat = datamatrix$otherdat,
-                         alts = max(datamatrix$choice),
-                         method = as.character(x_temp[[i]][['methodname']]),
-                         control = controlin, hessian = TRUE, project = project,
-                         expname = datamatrix$expname,
-                         mod.name = as.character(unlist(x_temp[[i]][['mod.name']]))
-            )
-          },
-
-          error = function(e) {
-
-            return("Optimization error, check 'LDGlobalCheck'")
-          }
+        print(
+          list(
+          error = paste('optimization error for', x_temp[[i]]$mod.name,
+                        ', check LDGlobalCheck'),
+          name = names(x_temp[[i]][["gridVaryingVariables"]])[i], 
+          errorExplain = res, OutLogit = OutLogit, optoutput = optoutput,
+          seoutmat2 = seoutmat2, MCM = MCM, H1 = H1
+          )
         )
         
-        # save ld global check ----
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-        on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+        next
+      }
+      
+      q2 <- res[["par"]]
+      LL <- res[["value"]]
+      
+      output <- list(
+        counts = res[["counts"]], convergence = res[["convergence"]],
+        optim_message = res[["message"]]
+      )
+      
+      H <- res[["hessian"]]
+      
+  
+      # Model comparison metrics (MCM) ----
+      
+      param <- length(starts2)
+      obs <- nrow(datamatrix$dataCompile)
+      AIC <- round(2 * param - 2 * LL, 3)
+      
+      AICc <- round(AIC + (2 * param * (param + 1)) / (obs - param - 1), 3)
+      
+      BIC <- round(-2 * LL + param * log(obs), 3)
+      
+      PseudoR2 <- round((LL_start - LL) / LL_start, 3)
+      
+      
+      modOutName <- paste0(datamatrix$expname, ".", x_temp[[i]][["mod.name"]])
+      
+      if (!exists("mod.out")) {
         
-        single_sql <- paste0(project, "LDGlobalCheck", format(Sys.Date(), format = "%Y%m%d"))
-        second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
+        mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
+        mod.out[, 1] <- c(AIC, AICc, BIC, PseudoR2)
+        rownames(mod.out) <- c("AIC", "AICc", "BIC", "PseudoR2")
+        colnames(mod.out) <- modOutName
         
+      } else {
         
-         if (table_exists(single_sql, project=project)) {
-           
-           empty_dat <- 
-             is_empty(
-               unlist(
-                 DBI::dbGetQuery(fishset_db, 
-                                 paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data
-                 )
-               )
-           
-           if (any(empty_dat)) {
-             
-             table_remove(single_sql, project)
-            LDGlobalCheck <- LDGlobalCheck
-            
-           } else {
-             
-            x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
-            table_remove(single_sql, project = project)
-            LDGlobalCheck <- c(x, LDGlobalCheck)
-           }
-         }
+        temp <- data.frame(c(AIC, AICc, BIC, PseudoR2))
+        colnames(temp) <- modOutName
+      }
+
+      if (i == 1) {
         
-        ld_sql <- paste0("CREATE TABLE IF NOT EXISTS ", project, "LDGlobalCheck", 
-                         format(Sys.Date(), format = "%Y%m%d"), "(data LDGlobalCheck)")
-        
-        DBI::dbExecute(fishset_db, ld_sql)
-        DBI::dbExecute(fishset_db, second_sql, 
-                       params = list(data = list(serialize(LDGlobalCheck, NULL))))
-        
-        
-        if (res[[1]][1] == "Optimization error, check 'LDGlobalCheck'") {
+        if (table_exists(paste0(project, "ModelFit"), project)) {
           
-          print(
-            list(
-            error = paste('optimization error for', x_temp[[i]]$mod.name,
-                          ', check LDGlobalCheck'),
-            name = names(x_temp[[i]][["gridVaryingVariables"]])[i], 
-            errorExplain = res, OutLogit = OutLogit, optoutput = optoutput,
-            seoutmat2 = seoutmat2, MCM = MCM, H1 = H1
-            )
+          table_remove(paste0(project, "ModelFit"), project)
+        }
+        
+        DBI::dbWriteTable(fishset_db, paste0(project, "ModelFit"), mod.out)
+        
+      } else {
+        
+        out.mod <- DBI::dbReadTable(fishset_db, paste0(project, "ModelFit"))
+        
+        if (exists("temp")) {
+          
+          out.mod <- cbind(out.mod, temp)
+          
+        } else {
+          
+          out.mod <- cbind(out.mod, mod.out)
+        }
+        
+        if (any(duplicated(colnames(out.mod)))) {
+          
+          warning("Duplicate columns names. Adding numeric identifer to make colnames unique.",
+                  call. = FALSE)
+          colnames(out.mod) <- paste0(colnames(out.mod), 1:length(colnames(out.mod)))
+        }
+        
+        DBI::dbWriteTable(fishset_db, paste0(project, "ModelFit"), out.mod, overwrite = TRUE)
+      }
+      
+      ## Full model output ----
+      MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
+      
+      if (is.null(H)) {
+        
+        print("Model error, check 'LDGlobalCheck'")
+      
+      } else {
+        
+        Htrial <- function(x) {
+          
+          tryCatch({
+            
+              solve(x)
+            },
+            
+            error = function(e) {
+              return("Error, singular, check 'LDGlobalCheck'")
+          })
+        }
+        
+        print(Htrial(H))
+        H1 <- Htrial(H)
+        
+        diagtrial <- function(x) {
+          
+          diagtrial <- tryCatch({
+            
+              diag(H1)
+            },
+            
+            error = function(e) {
+              return("Error, NAs, check 'LDGlobalCheck'")
+            }
           )
           
-          next
+          diagtrial
         }
         
-        q2 <- res[["par"]]
-        LL <- res[["value"]]
-        
-        output <- list(
-          counts = res[["counts"]], convergence = res[["convergence"]],
-          optim_message = res[["message"]]
-        )
-        
-        H <- res[["hessian"]]
-        
-    
-        # Model comparison metrics (MCM) ----
-        
-        param <- max(dim(as.matrix(starts2)))
-        obs <- dim(datamatrix$dataCompile)[1]
-        AIC <- round(2 * param - 2 * LL, 3)
-        
-        AICc <- round(AIC + (2 * param * (param + 1)) / (obs - param - 1), 3)
-        
-        BIC <- round(-2 * LL + param * log(obs), 3)
-        
-        PseudoR2 <- round((LL_start - LL) / LL_start, 3)
-        
-        if (!exists("mod.out")) {
+        if (H1[1] != "Error, singular, check 'LDGlobalCheck'") {
           
-          mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
-          mod.out[, 1] <- c(AIC, AICc, BIC, PseudoR2)
-          rownames(mod.out) <- c("AIC", "AICc", "BIC", "PseudoR2")
-          colnames(mod.out) <- paste0(datamatrix$expname, x_temp[[i]][["mod.name"]])
-          
-        } else {
-          
-          temp <- data.frame(c(AIC, AICc, BIC, PseudoR2))
-          colnames(temp) <- paste0(datamatrix$expname, x_temp[[i]][["mod.name"]])
-        }
-
-        if (i == 1) {
-          
-          if (table_exists(paste0(project, "ModelFit"), project)) {
-            
-            table_remove(paste0(project, "ModelFit"), project)
-          }
-          
-          DBI::dbWriteTable(fishset_db, paste0(project, "ModelFit"), mod.out)
-          
-        } else {
-          
-          out.mod <- DBI::dbReadTable(fishset_db, paste0(project, "ModelFit"))
-          
-          if (exists("temp")) {
-            
-            out.mod <- cbind(out.mod, temp)
-            
-          } else {
-            
-            out.mod <- cbind(out.mod, mod.out)
-          }
-          
-          if (any(duplicated(colnames(out.mod)))) {
-            
-            warning("Duplicate columns names. Adding numeric identifer to make colnames unique.",
-                    call. = FALSE)
-            colnames(out.mod) <- paste0(colnames(out.mod), 1:length(colnames(out.mod)))
-          }
-          
-          DBI::dbWriteTable(fishset_db, paste0(project, "ModelFit"), out.mod, overwrite = TRUE)
+          diag2 <- diagtrial(H1)
+          print(diag2)
         }
         
-        ## Full model output ----
-        MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
-        
-        if (is.null(H) == FALSE) {
+        if (H1[1] != "Error, singular, check 'LDGlobalCheck'") {
           
-          Htrial <- function(x) {
+          if (diag2[1] != "Error, NAs, check 'LDGlobalCheck'") {
             
-            Htrial <- tryCatch({
+            se2 <- tryCatch({
               
-                solve(H)
+                sqrt(diag2)
               },
-              
-              error = function(e) {
-                return("Error, singular, check 'LDGlobalCheck'")
-              }
-            )
-            
-            Htrial
-          }
-          
-          print(Htrial(H))
-          H1 <- Htrial(H)
-          
-          diagtrial <- function(x) {
-            
-            diagtrial <- tryCatch({
-              
-                diag(H1)
-              },
-              
-              error = function(e) {
-                return("Error, NAs, check 'LDGlobalCheck'")
-              }
-            )
-            
-            diagtrial
-          }
-          
-          if (H1[1] != "Error, singular, check 'LDGlobalCheck'") {
-            
-            diag2 <- diagtrial(H1)
-            print(diag2)
-          }
-          
-          if (H1[1] != "Error, singular, check 'LDGlobalCheck'") {
-            
-            if(diag2[1] != "Error, NAs, check 'LDGlobalCheck'") {
-              
-              se2 <- tryCatch({
-                
-                  sqrt(diag2)
-                },
-                
-                warning = function(war) {
-                  
-                  print("Cannot compute standard error. Check 'LDGlobalCheck'")
-                  sqrt(diag2)
-                }
-              )
-              
-            } else {
               
               warning = function(war) {
                 
                 print("Cannot compute standard error. Check 'LDGlobalCheck'")
+                sqrt(diag2)
               }
+            )
+            
+          } else {
+            
+            warning = function(war) {
+              
+              print("Cannot compute standard error. Check 'LDGlobalCheck'")
             }
           }
-         
-          if (H1[1] != "Error, singular, check 'LDGlobalCheck'"){
-            if(se2[1]!="Cannot compute standard error. Check 'LDGlobalCheck'") {
+        }
+       
+        if (H1[1] != "Error, singular, check 'LDGlobalCheck'") { 
+          
+          if (se2[1]!= "Cannot compute standard error. Check 'LDGlobalCheck'") {
+            
             outmat2 <- t(q2) #best set of parameters found
             seoutmat2 <- t(se2) #standard errors
             optoutput <- output #optimization info - counts, convergence, optimization error
             tLogit <- t(outmat2 / se2)
             OutLogit <- cbind(t(outmat2), as.matrix(se2), (tLogit))
+            
+            OutLogit <- as.data.frame(OutLogit)
+            names(OutLogit) <- c("estimate", "std_error", "t_value")
+            
+            OutLogit <- round(OutLogit, 3)
+            
+            # TODO: make sure this works for each model type
+            p_names <- unlist(lapply(x_temp[[i]]$bCHeader[-1], names))
+            ec_names <- names(x_temp[[i]]$gridVaryingVariables)
+            
+            if (fr == "logit_avgcat") {
+              
+              z_names <- sort(unique(x_temp[[i]]$choice$choice))
+              rownames(OutLogit) <- c(z_names, ec_names, p_names)
+              
+            } else {
+              # Q: will this always be the correct order?
+              rownames(OutLogit) <- c(ec_names, p_names)
+            }
+            # save to output folder
+            save_table(OutLogit, project = project, x_temp[[i]]$mod.name)
           }
         }
         
-       # if(H1[1]=="Error, singular, check 'LDGlobalCheck'") next
-       # if (H1[1] != "Error, singular, check 'LDGlobalCheck'") {
-        if(!exists("ModelOut")) {
-          
-          ModelOut <- list()
-          ModelOut[[1]] <- list(
-            name = datamatrix$expname, errorExplain = errorExplain, 
-            OutLogit = OutLogit, optoutput = optoutput, seoutmat2 = seoutmat2, 
-            MCM = MCM, H1 = H1, choice.table = datamatrix$choice.table, 
-            params = outmat2
-          )
-          
-        } else {
-          
-          ModelOut[[length(ModelOut) + 1]] <- list(
-            name = datamatrix$expname, errorExplain = errorExplain, 
-            OutLogit = OutLogit, optoutput = optoutput, seoutmat2 = seoutmat2, 
-            MCM = MCM, H1 = H1, choice.table = datamatrix$choice.table, 
-            params = outmat2
-          )
-        } 
+      if (!exists("ModelOut")) {
         
-        # save model output ----  
-        raw_sql <- paste0(project, "ModelOut")
-        single_sql <- paste0(project, "ModelOut", format(Sys.Date(), format = "%Y%m%d"))
+        ModelOut <- list()
+        ModelOut[[1]] <- list(
+          name = modOutName, errorExplain = errorExplain, 
+          OutLogit = OutLogit, optoutput = optoutput, seoutmat2 = seoutmat2, 
+          MCM = MCM, H1 = H1, choice.table = datamatrix$choice.table, 
+          params = outmat2
+        )
         
-        if (table_exists(single_sql, project)) {
-          
-          table_remove(single_sql, project)
-        }
+      } else {
         
-        if (table_exists(raw_sql, project)) {
-          
-          table_remove(raw_sql, project)
-        }
+        ModelOut[[length(ModelOut) + 1]] <- list(
+          name = modOutName, errorExplain = errorExplain, 
+          OutLogit = OutLogit, optoutput = optoutput, seoutmat2 = seoutmat2, 
+          MCM = MCM, H1 = H1, choice.table = datamatrix$choice.table, 
+          params = outmat2
+        )
+      } 
+      
+      # save model output ----  
+      raw_sql <- paste0(project, "ModelOut")
+      single_sql <- paste0(project, "ModelOut", format(Sys.Date(), format = "%Y%m%d"))
+      
+      if (table_exists(single_sql, project)) {
         
-        # save param ests, se, and t-vals to output folder
-        if (!is.null(OutLogit)) {
-          
-          params_out <- as.data.frame(OutLogit)
-          names(params_out) <- c("estimate", "std_error", "t_value") 
-          rownames(params_out)[1:length(sort(unique(x_temp[[i]]$choice)[, 1]))] <- sort(unique(x_temp[[i]]$choice)[, 1])
-          params_out <- round(params_out, 3)
+        table_remove(single_sql, project)
+      }
+      
+      if (table_exists(raw_sql, project)) {
+        
+        table_remove(raw_sql, project)
+      }
+      
+      # Save ModelOut table to FSDB
+      second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
+      raw_second_sql <- paste("INSERT INTO", raw_sql, "VALUES (:data)")
+      DBI::dbExecute(fishset_db, 
+                     paste("CREATE TABLE IF NOT EXISTS", single_sql, "(data ModelOut)"))
+      DBI::dbExecute(fishset_db, second_sql, 
+                     params = list(data = list(serialize(ModelOut, NULL))))
+      DBI::dbExecute(fishset_db, 
+                     paste("CREATE TABLE IF NOT EXISTS", raw_sql, "(data ModelOut)"))
+      DBI::dbExecute(fishset_db, raw_second_sql, 
+                     params = list(data = list(serialize(ModelOut, NULL))))
 
-          # TODO: Find appropriate name for output
-          save_table(params_out, project=project, x_temp[[i]]$mod.name)
-          # save_table(params_out, paste0(project, '_params'), x_temp[[i]]$mod.name)
-        }
-        
-        second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
-        raw_second_sql <- paste("INSERT INTO", raw_sql, "VALUES (:data)")
-        DBI::dbExecute(fishset_db, 
-                       paste("CREATE TABLE IF NOT EXISTS", single_sql, "(data ModelOut)"))
-        DBI::dbExecute(fishset_db, second_sql, 
-                       params = list(data = list(serialize(ModelOut, NULL))))
-        DBI::dbExecute(fishset_db, 
-                       paste("CREATE TABLE IF NOT EXISTS", raw_sql, "(data ModelOut)"))
-        DBI::dbExecute(fishset_db, raw_second_sql, 
-                       params = list(data = list(serialize(ModelOut, NULL))))
-
-        } else {
-          
-          print("Model error, check 'LDGlobalCheck'")
-        }
-      } # End looping through expected catch cases
-    } # end looping through model choices
-  } # end model run (if end == false)
+      } 
+    } # End looping through expected catch cases
+  } # end looping through model choices
     # out.mod <<- out.mod
     
-# select model app ----
+  # select model app ----
   if (select.model == TRUE) {
     #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
     #   print(DT::datatable(t(round(out.mod, 5)), filter='top'))
@@ -672,7 +690,7 @@ discretefish_subroutine <-
   single_sql <- paste0(project, "ModelOut", format(Sys.Date(), format = "%Y%m%d"))
   
   if (table_exists(single_sql, project)) {
-    # TODO: determine what this block is for
+    # TODO: determine what this block is for, returning parameters?
     out <- 
       unserialize(
         DBI::dbGetQuery(fishset_db, 

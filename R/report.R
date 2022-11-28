@@ -474,8 +474,7 @@ insert_table <- function(out, project) {
       
     } else {
       
-      tab <- read.csv(paste0(get_user_locoutput(project), out))
-      tab
+      read.csv(paste0(get_user_locoutput(project), out))
     }
   }
 }
@@ -968,18 +967,24 @@ model_out_summary <- function(project, output = "print") {
       Stand_Errors = rep(NA, length(results)),
       Hessian = rep(NA, length(results))
     )
-    
+    # TODO: account for model errors
     for (i in seq_along(results)) {
+      
+      conv <- results[[i]]$optoutput$convergence
+      seOut <- results[[i]]$seoutmat2
+      hes <- results[[i]]$H1
+      
       modeltab[i, 1] <- results[[i]]$name
-      modeltab[i, 2] <- results[[i]]$optoutput$convergence
-      modeltab[i, 3] <- toString(round(results[[i]]$seoutmat2, 3))
-      modeltab[i, 4] <- toString(round(results[[i]]$H1, 5))
+      modeltab[i, 2] <- if (is.null(conv)) "Error" else conv
+      modeltab[i, 3] <- if (is.null(seOut)) "Error" else toString(round(seOut, 3))
+      modeltab[i, 4] <- if (is.character(hes)) hes else toString(round(hes, 5))
     }
     
     if (output == "print") {
       
       pander::pander(
-        pander::pandoc.table(modeltab, style = "simple", row.names = FALSE, split.table = Inf)
+        pander::pandoc.table(modeltab, style = "simple", 
+                             row.names = FALSE, split.table = Inf)
       )
       
     } else if (output == "table") modeltab
@@ -1020,6 +1025,7 @@ model_error_summary <- function(project, output = "print") {
     )
   
     for (i in seq_along(results)) {
+      
       error_out[i, 1] <- results[[i]]$name
       error_out[i, 2] <- ifelse(is.null(results[[i]]$errorExplain), "No error reported",
         toString(results[[i]]$errorExplain)
@@ -1332,4 +1338,103 @@ table_type <- function(tab) {
     
     out
   }
+}
+
+
+# Table formatting ----
+
+pretty_tab <- function(tab, full_width = FALSE) {
+  #' Format table for R Markdown
+  #' 
+  #' 
+  #' @param tab Table to format.
+  #' @param full_width Logical, whether table should fill out entire width of 
+  #'  the page. 
+  #' @importFrom kableExtra kbl kable_styling
+  #' @export
+  # TODO: move kableExtra to Suggests
+  kableExtra::kable_styling(kableExtra::kbl(tab),
+                            bootstrap_options = c("striped", "condensed"),
+                            full_width = full_width) 
+} 
+
+pretty_tab_sb <- function(tab, width = "100%", height = "500px", 
+                          full_width = FALSE) {
+  #'  Scroll box for R Markdown table
+  #' 
+  #' Allows tables to become scrollable. Useful for large tables. 
+  #' 
+  #' @param tab Table to format.
+  #' @param width A character string indicating the width of the box. Can be
+  #'   in pixels (e.g. "50px") or as a percentage (e.g. "50\%").
+  #' @param height A character string indicating the height of the box. Can be
+  #'   in pixels (e.g. "50px") or as a percentage (e.g. "50\%").
+  #' @param full_width Logical, whether table should fill out entire width of 
+  #'  the page. 
+  #' @importFrom kableExtra scroll_box
+  #' @export
+  # TODO: move kableExtra to Suggests
+  kableExtra::scroll_box(pretty_tab(tab, full_width),
+                         height = height, width = width)
+}
+# label formatting
+pretty_lab <- function(tab, cols = "all", type = "pretty", ignore = NULL) {
+  #' Format numbers in table
+  #' 
+  #' Format numeric columns. 
+  #' 
+  #' @param tab Table to format.
+  #' @param cols Character string of columns to format. defaults to \code{"all"}
+  #'   which will include all numeric variables in \code{tab}. If \code{ignore = TRUE}
+  #'   then the columns listed in \code{cols} will be not be formatted and all 
+  #'   other columns in \code{tab} will be formatted. 
+  #' @param type The type of formatting to apply. \code{"pretty"} uses 
+  #'   \code{\link[base]{prettyNum}} which uses commas (",") to mark big intervals.
+  #'   \code{"scientific"} uses scientific notation. \code{"decimal"} simply rounds
+  #'   to two decimal places. 
+  #' @param ignore Logical, whether to exclude the columns listed in \code{cols}
+  #'   and apply formatting to all other columns in \code{tab}.
+  #' @export
+  
+  # check that all cols are numeric
+  if (length(cols) == 1 && cols == "all") {
+    
+    cols <- qaqc_helper(tab, is.numeric, output = "names")
+    
+  } else {
+    
+    if (any(!qaqc_helper(tab[cols], is.numeric))) {
+      
+      warning("Non-numeric columns given, no formatting applied", call. = FALSE)
+      return(tab)
+    } 
+  }
+  
+  if (!is.null(ignore)) cols <- cols[!cols %in% ignore]
+  
+  if (type == "decimal") {
+    
+    tab[cols] <- lapply(tab[cols], round, digits = 2)
+    
+  } else if (type == "pretty") {
+    
+    tab[cols] <- lapply(tab[cols], function(x) prettyNum(round(x, 2), big.mark = ","))
+    
+    
+  } else if (type == "scientific") {
+    
+    tab[cols] <- lapply(tab[cols], function(x) formatC(x, format = "e", digits = 2))
+  }
+  
+  tab
+}
+
+# tilt x-axis text
+angled_theme <- function() {
+  #' Set x-axis labels to 45 degrees
+  #' 
+  #' @export
+  #' @importFrom ggplot2 theme element_text
+  
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8))
 }

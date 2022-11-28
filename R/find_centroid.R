@@ -65,6 +65,8 @@ find_centroid <-
   cent$cent.lon <- as.numeric(cent$cent.lon)
   cent$cent.lat <- as.numeric(cent$cent.lat)
   
+  cent <- cent[order(cent$ZoneID), ]
+  
   if (any(abs(cent$cent.lon) > 180)) {
     
     cat("Longitude is not valid (outside -180:180).", file = tmp, append = TRUE)

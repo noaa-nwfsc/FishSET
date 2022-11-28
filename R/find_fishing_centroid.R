@@ -104,6 +104,7 @@ find_fishing_centroid <- function(dat,
   # unique centroid rows 
   cent_tab <- unique(dataset[c(zoneID, names)])
   cent_tab <- stats::setNames(cent_tab, c("ZoneID", "cent.lon", "cent.lat"))
+  cent_tab <- cent_tab[order(cent_tab$ZoneID), ]
   
   # save fishing centroid to FSDB
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 

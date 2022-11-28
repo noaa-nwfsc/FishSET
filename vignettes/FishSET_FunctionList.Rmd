@@ -21,7 +21,7 @@ editor_options:
 
 <!--    df_print: paged-->
 
-\#\#Getting started The FishSET R package includes functions that can be
+##Getting started The FishSET R package includes functions that can be
 used in the R console or that can be run through the FishSET app (a
 guided user interface built u sing the Shiny R package). Calling
 function through the R console allows for greater flexibility and ease
@@ -32,7 +32,7 @@ typing `run_fishset()` in the R console. This tutorial does not use the
 FishSET app but walks through examples of FishSET R package functions in
 the R console.
 
-\#\#Load the package.
+##Load the package.
 
 ```{r eval=FALSE}
 install.packages('devtools')
@@ -41,15 +41,15 @@ install.packages("PATH/TO/Directory/Containing/FishSET", repos=NULL, type='sourc
 library(FishSET)
 ```
 
-\#\#Upload data When the data is loaded into the FishSET database a
-series of checks are performed. The output of these checks will be
-printed to the R console. Check these messages to identify if any
-corrections should be made. In the box below, we load both the main data
-set and the port data. We will also need a spatial data set. We will
-load that with the `read_dat` function. The `read_dat` function
-recognizes most data formats, including spss, json, and stata, and reads
-the data into the working environment. The functions does not save the
-data into the FishSET database.
+##Upload data When the data is loaded into the FishSET database a series
+of checks are performed. The output of these checks will be printed to
+the R console. Check these messages to identify if any corrections
+should be made. In the box below, we load both the main data set and the
+port data. We will also need a spatial data set. We will load that with
+the `read_dat` function. The `read_dat` function recognizes most data
+formats, including spss, json, and stata, and reads the data into the
+working environment. The functions does not save the data into the
+FishSET database.
 
 ```{r eval=FALSE}
 #Upload data
@@ -78,7 +78,7 @@ Additional codes for working within the FishSET database:
 table_fields()      View column names of data table.
 ```
 
-\#\#Data Quality FishSET has built-in functions to check for NAs, NaNs,
+##Data Quality FishSET has built-in functions to check for NAs, NaNs,
 outliers, unique observations, empty variables, and whether latitude and
 longitude variables are in the correct format. The `data_verification`
 function checks for these potential issues. All messages returned to R
@@ -137,7 +137,7 @@ from the raw data set back into the working data set.
   add_vars()
 ```
 
-\#\#Data Exploration\
+##Data Exploration\
 View the spatial (`map_plot`) and temporal (`temp_plot`) distribution of
 data and the relationship between variables (`xy_plot`). Plots and
 tables to the `output` folder. The `map_kernel`, `getis_ord_stats`, and
@@ -163,8 +163,8 @@ distribution function plot of the selected variable.
 
 ```
 
-\#\#Fleet Analyses Fleet functions focus on functions that allow users
-to assign vessels to fleet and view fleet characteristics (vessel count)
+##Fleet Analyses Fleet functions focus on functions that allow users to
+assign vessels to fleet and view fleet characteristics (vessel count)
 and fleet effort (trip length, weekly effort), and catch as a fleet
 (species catch, by catch, weekly catch). All functions return output as
 plots and/or tables that are output to the R console and saved to the
@@ -197,7 +197,7 @@ plots and/or tables that are output to the R console and saved to the
                         hauls = NULL, output = c("table", "plot"), haul_to_trip = FALSE)
 ```
 
-\#\#Simple Analyses\
+##Simple Analyses\
 View and quantify relationship between variables. The correlation
 function, `corr_out` returns a plot and table of correlations values
 between all numberic variables supplied. The regression function,
@@ -211,7 +211,7 @@ is set to FALSE, points are plotted without a best fit line.
   xy_plot(dat, project, var1, var2, regress = TRUE)
 ```
 
-\#\#Compute New Variables\
+##Compute New Variables\
 Modify or create variables such as cpue and trip centroid. Functions
 focus on data transformations, generating ID variables (for haul or
 fishery season), computing simple arithmetic functions such as catch per
@@ -258,7 +258,7 @@ collapsing haul to trip and identfiying trip centroid.
   create_trip_centroid()
 ```
 
-\#\#Zonal Definition\
+##Zonal Definition\
 Functions in this group require a spatial data frame defining fishing or
 regulatory zone. Both the `find_centroid` and `assignment_column` can be
 used on their own but are called as necessary in other function. The
@@ -274,7 +274,7 @@ alternative fishing choices and is required.
 
 ```
 
-\#\#Expected Catch/Revenue\
+##Expected Catch/Revenue\
 Compute expected catch or expected revenue. The function creates the
 expected catch/revenue matrix based on user-provided parameters, and
 three default cases: Near-term: Movng window size of two days. In this
@@ -295,7 +295,7 @@ function. Sparse data is not suited for shorter moving window sizes.
   create_expectations()
 ```
 
-\#\#Model design file and run The `make_model_design` function creates a
+##Model design file and run The `make_model_design` function creates a
 list with data and parameters required to run the models, which are
 called in the `discretefish_subroutine` function. The
 `discretefish_subroutine` requires inputs of initial parameters,
@@ -316,7 +316,7 @@ make_model_design()
 discretefish_subroutine()
 ```
 
-\#\#\#Likelihood functions FishSET includes six functions. User-created
+###Likelihood functions FishSET includes six functions. User-created
 functions can be saved and logged using the `log_func-model` function.
 `logit_c` Conditional logit likelihood `logit_avgcat` Average catch
 multinomial logit procedure `logit_correction` Full information model
@@ -325,8 +325,8 @@ normal catch function `epm_lognormal` Expected profit model lognormal
 catch function `epm_weibull` Expected profit model Weibull catch
 function
 
-\#\#\#Model run output The discretefish_subroutine function can take 30
-or minutes to run. Model run status is returned to the R console. The
+###Model run output The discretefish_subroutine function can take 30 or
+minutes to run. Model run status is returned to the R console. The
 subroutine function outputs model results in a list that can be
 summarized as:
 
@@ -347,9 +347,9 @@ model_out_view('pcodmodelout20190604')
 
 ```
 
-\#\#\#Selecting models Model comparison metrics are conveniently saved
-in a table in the FishSET database. To access the table use `model_fit`
-with the project name. Identifying the best model for future reference
+###Selecting models Model comparison metrics are conveniently saved in a
+table in the FishSET database. To access the table use `model_fit` with
+the project name. Identifying the best model for future reference
 requires `select_model`. This function utilized R Shiny to open an
 interactive window where best models can be selected and saved. Model
 selection can also be accomplished from the discretefish_subroutine
@@ -362,7 +362,7 @@ model_fit('pollock')
 select_model()
 ```
 
-\#\#Interactivity R Shiny is used to provide interactive interfaces. All
+##Interactivity R Shiny is used to provide interactive interfaces. All
 FishSET functions described here can be run through a user interface
 with `run_fishset_gui`. The user interace guides users through loading
 data to model evaluation. In addition, users can use the `select_vars`
@@ -428,7 +428,7 @@ start a new log file using `log_reset`. New log files are started each
 day. User-created functions, such as likelihoods, can be saved for
 future use and logged using `log_func_model`.
 
-\#\#\#Logging
+###Logging
 
 ```{r  eval=FALSE}
 `log_reset`

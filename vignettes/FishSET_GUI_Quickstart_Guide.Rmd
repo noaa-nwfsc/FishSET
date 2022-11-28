@@ -70,8 +70,7 @@ To use the FishSET GUI, users must first install R and RStudio.
 
 Installation files for both R and RStudio are platform specific.\
 Install the most recent version of R and RStudio available.\
-Default settings do not need to be changed
-.
+Default settings do not need to be changed .
 
 For more details see the [FishSET Help Manual](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.1fob9te "Installing R and RStudio").
 
@@ -525,24 +524,20 @@ Choices:
 
 2.  Area variable (map)\
     Name of the property in the spatial data file that identifies the zones.\
-    Links to Area variable (data)
-    .
+    Links to Area variable (data) .
 
 3.  Numeric variables (required)\
     Points on the map are color coded based on the numeric variable value.\
-    Multiple numeric variables can be included but only one will be plotted at a time
-    .
+    Multiple numeric variables can be included but only one will be plotted at a time .
 
 4.  Temporal variables (required)\
     Used in scatter plot.
     Temporal variable is plotted against numeric variable.\
-    Multiple temporal variables can be included but only one will be plotted at a time
-    .
+    Multiple temporal variables can be included but only one will be plotted at a time .
 
 5.  ID variables (recommended)\
     Categorical variables for grouping in plots.\
-    Multiple ID variables can be included but only one will be plotted at a time
-    .
+    Multiple ID variables can be included but only one will be plotted at a time .
 
 6.  Location point or path\
     Should the map show hauls as individual points or paths?
@@ -602,8 +597,7 @@ Steps:
 2.  Select price or value variable if calculating expected revenue.\
     Price is multiplied against catch to produce revenue.
     If a revenue variable exists in the dataset, it can be used for the Catch Variable.\
-    This matrix is required to run the conditional logit model
-    .
+    This matrix is required to run the conditional logit model .
 
 3.  Decide whether to account for potential that catch differs between groups.
 
@@ -653,8 +647,7 @@ Steps:
 
 The models may take several minutes to run.\
 When the models are completed, the tables in the `Compare models` subtab will be populated.\
-Use these tables to assess convergence, fit, and select the preferred model for future analyses
-.
+Use these tables to assess convergence, fit, and select the preferred model for future analyses .
 
 See the [Model Development](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.3cqmetx) section of the FishSET manual for details on model choices, including likelihood functions, optimization method, and initial parameter estimates.
 
@@ -667,8 +660,7 @@ The `Bookmark Choices` tabs is used to store choices and actions made in the Fis
 Restore selections made in the FishSET GUI.\
 Data will not be reloaded.
 Got to the *Upload Data* tab to load data.\
-Previous actions, such as deriving variables, will not be rerun
-.
+Previous actions, such as deriving variables, will not be rerun .
 
 #### Rerun logged function subtab
 

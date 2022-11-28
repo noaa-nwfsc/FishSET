@@ -38,7 +38,9 @@
 #'   for how to specify for each likelihood function.
 #' @param vars2 Character string, additional variables to include in the model. 
 #'   These depend on the likelihood. See the Details section for how to specify 
-#'   for each likelihood function.
+#'   for each likelihood function. For `likelihood == 'logit_c'`, `vars2` 
+#'   should be the name of the gridded table saved to the FishSET Database, and
+#'   should contain the string `"GridTableWide"`. See [format_grid()] for details. 
 #' @param priceCol Variable in `dat` containing price information. Required 
 #'   if specifying an expected profit model for the likelihood (epm_normal, 
 #'   epm_weibull, epm_lognormal).
@@ -67,6 +69,8 @@
 #' @param spatID Variable in `spat` that identifies the individual areas or zones. 
 #'   Only required if `alt_var = "nearest point"` was used in the alternative 
 #'   choice matrix (see [create_alternative_choice()]). Defaults to `NULL`.
+#' @param crs coordinate reference system to be assigned when creating the 
+#'   distance matrix. Passed on to [create_dist_matrix()].
 #' @importFrom DBI dbGetQuery dbExecute dbListTables
 #' @export make_model_design
 #' @md
@@ -232,7 +236,7 @@ make_model_design <-
            replace = TRUE,
            likelihood = NULL,
            initparams = NULL,
-           optimOpt = c(100000, 1.0e-08, 1, 1),
+           optimOpt = c(100, 1.0e-08, 1, 1), # tolerance may be low
            methodname = "BFGS",
            mod.name = NULL,
            vars1 = NULL,
@@ -242,7 +246,8 @@ make_model_design <-
            startloc = NULL,
            polyn = NULL,
            spat = NULL,
-           spatID = NULL) {
+           spatID = NULL,
+           crs = NULL) {
     
   # TODO: use formula method for specifying model
   # TODO: standardize arg names: use camel-case or period-case etc.
@@ -263,7 +268,24 @@ make_model_design <-
   spat <- parse_data_name(spat, "spat", project)
   
   # check args ----
-  column_check(dataset, c(catchID, vars1, vars2, priceCol, startloc))
+  
+  if (likelihood == "logit_c") {
+    
+    column_check(dataset, c(catchID, vars1, priceCol, startloc))
+    
+    lapply(vars2, function(x) {
+      
+      if (!table_exists(x, project)) {
+        
+        stop("Gridded table '", x, "' does not exist.", call. = FALSE)
+      }
+    })
+    
+  } else {
+    
+    column_check(dataset, c(catchID, vars1, vars2, priceCol, startloc))
+  }
+  
   
   ll_funs <- c("logit_c", "logit_avgcat", "logit_correction", "epm_normal", 
                "epm_lognormal", "epm_weibull")
@@ -309,35 +331,35 @@ make_model_design <-
     
   # parameter setup ----
   # Script necessary to ensure parameters generated in shiny app are in correct format
-  if (is_empty(vars1) || vars1 == "none") {
+  if (is_value_empty(vars1) || "none" %in% vars1) {
     
-    indeVarsForModel <- NULL
+    indVars <- NULL
     
   } else {
     # TODO: find better way to specify vars1 and vars2 (formula method?)
     if (any(grepl(',', vars1))) {
       
-      indeVarsForModel <- unlist(strsplit(vars1, ","))
+      indVars <- unlist(strsplit(vars1, ","))
       
     } else {
       
-      indeVarsForModel <- vars1
+      indVars <- vars1
     }
   }
     
-  if (is_empty(vars2) || vars2 == "none") {
+  if (is_value_empty(vars2) || "none" %in% vars2) {
     
-    gridVariablesInclude <- NULL
+    gridVars <- NULL
     
   } else {
     
     if (any(grepl(',', vars2))) {
       
-      gridVariablesInclude <- unlist(strsplit(vars2, ","))
+      gridVars <- unlist(strsplit(vars2, ","))
       
     } else {
       
-      gridVariablesInclude <- vars2
+      gridVars <- vars2
     }
   }
     
@@ -392,9 +414,18 @@ make_model_design <-
 
   # Expected catch ----
   
-  exp_select <- list()
-  # use for logit_avecat, others?   
-  if (table_exists(paste0(project, "ExpectedCatch"), project) & likelihood == "logit_c") {
+  ExpectedCatch <- NULL
+  exp_select <- NULL
+  # TODO: Check whether ec matrices need to be rerun (necessary if primary data was filtered after ec were created)
+  # use for logit_avgcat, others?   
+  # if (table_exists(paste0(project, "ExpectedCatch"), project) & likelihood == "logit_c") {
+  if (!is_value_empty(expectcatchmodels)) {
+    
+    if (!table_exists(paste0(project, "ExpectedCatch"), project)) {
+      
+      stop("Expected catch/revenue does not exist. Run create_expectations() ",
+           "or set 'expectcatchmodels = NULL'.", call. = FALSE)
+    }
     
     ExpectedCatch <- unserialize_table(paste0(project, "ExpectedCatch"), project)
       
@@ -405,7 +436,7 @@ make_model_design <-
       
     } else {
       
-      if (is.null(expectcatchmodels)) {
+      if (is_value_empty(expectcatchmodels)) {
         
         stop('Expected catch matrix not defined. Model design file cannot be created.',
              call. = FALSE)
@@ -422,9 +453,8 @@ make_model_design <-
   }
     
   # Note: revisit this -- EC should be available for other likelihood funs
-  if (!exists("ExpectedCatch")) {
+  if (is.null(ExpectedCatch)) {
     
-    ExpectedCatch <- ""
     userDumV <- 1
     
     if (likelihood == "logit_c") {
@@ -432,15 +462,12 @@ make_model_design <-
       stop("Expected Catch Matrix does not exist. Please run the create_expectations ", 
            "function if expected catch will be included in the model.", call. = FALSE)
     }
-  }
-
-  
-  if (is.list(ExpectedCatch)) {
-  # Note: do this in calc_exp()? 
+    
+  } else {
+    # Note: do this in calc_exp()? 
     if (is.null(ExpectedCatch$user_dummy)) userDumV <- 1 # Note: consider removing this
     else userDumV <- ExpectedCatch$user_dummy
   }
-    
 
   # Port ----  
   
@@ -472,27 +499,52 @@ make_model_design <-
   # gridded dataset
   
 
-  if (is_empty(gridVariablesInclude)) {
+  if (is_value_empty(gridVars)) {
     
-    gridVariablesInclude <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
+    if (is_value_empty(expectcatchmodels)) {
+      
+      gridVariablesInclude <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
+      
+    } else gridVariablesInclude <- NULL
     
   } else {
     
-    gridVariablesInclude <- lapply(gridVariablesInclude, function(x) dataset[[x]][zone_ind])
+    if (likelihood == "logit_c") {
+
+      # TODO: check if gridded table has correct # of rows, if not error out and 
+      # tell user to re-run format_grid()
+      gridVariablesInclude <- lapply(gridVars, function(x) {
+        
+        grid_tab <- table_view(x, project)
+        
+        grid_tab[zone_ind, names(grid_tab) %in% unique(choice)]
+      })
+      
+    } else {
+      
+      gridVariablesInclude <- lapply(gridVars, function(x) dataset[[x]][zone_ind])
+    }
+    
+    names(gridVariablesInclude) <- gridVars
   }
   
   # Ind ----
-  if (any(is_empty(indeVarsForModel))) {
+  if (is_value_empty(indVars)) {
     
     indeVarsForModel <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
     
-  } else if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) {
-    
-    indeVarsForModel <- lapply(indeVarsForModel[-1], function(x) dataset[[x]][zone_ind])
-    
   } else {
     
-    indeVarsForModel <- lapply(indeVarsForModel, function(x) dataset[[x]][zone_ind])
+    if (any(indVars %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) {
+    
+    indeVarsForModel <- lapply(indVars[-1], function(x) dataset[[x]][zone_ind])
+    
+    } else {
+      
+      indeVarsForModel <- lapply(indVars, function(x) dataset[[x]][zone_ind])
+    }
+    
+    names(indeVarsForModel) <- indVars
   }
   
   bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, 
@@ -501,50 +553,30 @@ make_model_design <-
   # Initial parameters ----
   # need to grab inits from previous model run if required
   # TODO: use better method for reading in existing initial parameters
-  indNum <- length(vars1)
-  gridNum <- length(vars2)
-  
-  # default parameter lengths 
-  if (likelihood == "logit_c") {
-    
-    ip_len <- indNum + gridNum
-    
-  } else if (likelihood == "logit_avgcat") {
-    
-    ip_len <- gridNum * (alts - 1) + indNum
-    
-  } else if (likelihood == "logit_correction") {
-    
-    ip_len <- gridNum * alts + ((((polyn+1)*2)+2)*alts) + indNum + 1 + 1
-    
-  } else {
-    
-    ip_len <- gridNum * alts + indNum + 1 + 1
-  }
+ 
   # set parameters
+  
+  init_params <- initparams
+  
   if (is_value_empty(initparams)) {
     
-    init_params <- rep(1, ip_len)
-    
-  } else if (is.numeric(initparams) & length(initparams) == 1) {
-    
-    init_params <- rep(initparams, ip_len)
-    
-  } else if (!is.numeric(initparams) & !any(grepl(',', initparams))) {
-    # read in parameters from previous model
-    x_temp <- read_dat(paste0(locoutput(project),  
-                              pull_output(project, type = 'table', 
-                                          fun = paste0('params_', initparams))))
-    
-    if (!is.null(x_temp)) {
+    if (!is.numeric(initparams) & !any(grepl(',', initparams))) {
+      # read in parameters from previous model
+      x_temp <- read_dat(paste0(locoutput(project),  
+                                pull_output(project, type = 'table', 
+                                            fun = paste0('params_', initparams))))
       
-      init_params <- x_temp$estimate
+      if (!is.null(x_temp)) {
+        
+        init_params <- x_temp$estimate
+        
+      } else {
+        
+        init_params <- 1
+        warning('Model not found. Setting parameter estimates to 1.', call. = FALSE)
+      }
       
-    } else {
-      
-      init_params <- rep(1, ip_len)
-      warning('Model not found. Setting parameter estimates to 1.', call. = FALSE)
-    }
+    } else init_params <- 1
   }
     
   # Distance Matrix ----
@@ -554,7 +586,7 @@ make_model_design <-
                                  dataZoneTrue = dataZoneTrue, zone_cent = zone_cent, 
                                  fish_cent = fish_cent, choice = choice_raw, 
                                  units = units, port = port, zoneRow = zoneRow, 
-                                 zoneID = zoneID)
+                                 zoneID = zoneID, crs = crs)
   
   if (is.null(dist_out)) {
     
@@ -577,23 +609,25 @@ make_model_design <-
       
     } else {
       
-      epmDefaultPrice <- dataset[zone_ind, as.character(priceCol)]
+      epmDefaultPrice <- dataset[[priceCol]][zone_ind]
       pscale <- mean(epmDefaultPrice, na.rm = TRUE)
     }
   
-    # scales zonal ----
+    # scales ----
     mscale <- mean(dist_out$distMatrix, na.rm = TRUE)
   
     # scales data r in
     # Note: this should be done before line 419 else first condition can't be TRUE
-    if (length(bCHeader$gridVariablesInclude) == 0) r <- 1
+    # if (length(bCHeader$gridVariablesInclude) == 0) r <- 1
+    if (is_value_empty(gridVars)) r <- 1
     else {
       
       r <- as.numeric(lapply(bCHeader$gridVariablesInclude, 
                              function(x) mean(as.numeric(unlist(x)), na.rm = TRUE)))
     }
     
-    if (length(bCHeader$indeVarsForModel) == 0) { 
+    # if (length(bCHeader$indeVarsForModel) == 0) { 
+    if (is_value_empty(indVars)) { 
       
       r2 <- 1 
         
@@ -670,7 +704,7 @@ make_model_design <-
     make_model_design_function$args <- list(
       project, catchID, replace,  likelihood,initparams, optimOpt, 
       methodname, as.character(mod.name), vars1, vars2, priceCol,
-      expectcatchmodels, startloc, polyn, spat, spatID
+      expectcatchmodels, startloc, polyn, spat, spatID, crs
     )
     make_model_design_function$kwargs <- list()
     

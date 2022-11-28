@@ -2,7 +2,8 @@
 % Please edit documentation in R/sql_functions.R
 \name{model_params}
 \alias{model_params}
-\title{Load model parameter estimates, standard errors, and t-statistic to console for the defined project}
+\title{Load model parameter estimates, standard errors, and t-statistic to console 
+for the defined project}
 \usage{
 model_params(table, project)
 }

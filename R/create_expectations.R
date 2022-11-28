@@ -140,7 +140,8 @@ create_expectations <-
   
   if (all(is_empty(date_cols(dataset)))) {
     
-    warning("No time variable found, only averaging in groups and per zone is capable")
+    warning("No time variable found, only averaging in groups and per zone is capable",
+            call. = FALSE)
   }
   
   # Check that define group is either empty of an actual variable in the dataset

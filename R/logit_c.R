@@ -104,7 +104,8 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
 
   betas <- matrix(c(gridbetas, intbetas), obsnum, (alts + 1))
 
-  djztemp <- betas[1:obsnum, rep(1:ncol(betas), each = alts)] * dat[, 3:(dim(dat)[2])]
+  djztemp <- betas[, rep(1:ncol(betas), each = alts)] * dat[, 3:ncol(dat)]
+  
   dim(djztemp) <- c(nrow(djztemp), ncol(djztemp) / (alts + 1), alts + 1)
 
   prof <- rowSums(djztemp, dims = 2)
