@@ -10,7 +10,7 @@ make_model_design(
   replace = TRUE,
   likelihood = NULL,
   initparams = NULL,
-  optimOpt = c(1e+05, 1e-08, 1, 1),
+  optimOpt = c(100, 1e-08, 1, 1),
   methodname = "BFGS",
   mod.name = NULL,
   vars1 = NULL,
@@ -20,7 +20,8 @@ make_model_design(
   startloc = NULL,
   polyn = NULL,
   spat = NULL,
-  spatID = NULL
+  spatID = NULL,
+  crs = NULL
 )
 }
 \arguments{
@@ -68,7 +69,9 @@ for how to specify for each likelihood function.}
 
 \item{vars2}{Character string, additional variables to include in the model.
 These depend on the likelihood. See the Details section for how to specify
-for each likelihood function.}
+for each likelihood function. For \code{likelihood == 'logit_c'}, \code{vars2}
+should be the name of the gridded table saved to the FishSET Database, and
+should contain the string \code{"GridTableWide"}. See \code{\link[=format_grid]{format_grid()}} for details.}
 
 \item{priceCol}{Variable in \code{dat} containing price information. Required
 if specifying an expected profit model for the likelihood (epm_normal,
@@ -103,6 +106,9 @@ observations to zones.}
 \item{spatID}{Variable in \code{spat} that identifies the individual areas or zones.
 Only required if \code{alt_var = "nearest point"} was used in the alternative
 choice matrix (see \code{\link[=create_alternative_choice]{create_alternative_choice()}}). Defaults to \code{NULL}.}
+
+\item{crs}{coordinate reference system to be assigned when creating the
+distance matrix. Passed on to \code{\link[=create_dist_matrix]{create_dist_matrix()}}.}
 }
 \value{
 Function creates the model matrix list that contains the data and

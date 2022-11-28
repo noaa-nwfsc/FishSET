@@ -13,6 +13,7 @@ outlier_plot(
   x.dist = "normal",
   date = NULL,
   group = NULL,
+  pages = "single",
   output.screen = FALSE,
   log_fun = TRUE
 )
@@ -46,6 +47,9 @@ would be outliers.}
 \item{date}{(Optional) date variable to group the histogram by year.}
 
 \item{group}{(Optional) additional variable to group the histogram by.}
+
+\item{pages}{Whether to output plots on a single page (\code{"single"}, the 
+default) or multiple pages (\code{"multi"}).}
 
 \item{output.screen}{Logical, if true, return plots to the screen. If \code{FALSE}, 
 returns plot to the 'output' folder as a png file.}

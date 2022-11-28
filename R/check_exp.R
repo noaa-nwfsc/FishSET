@@ -88,6 +88,10 @@ check_exp <- function(ec, ec_names) {
         
         if (is.null(out_j)) { # switch() returns NULL if no match found
           
+          ec_dums <- grepl("_dummy", ec_choices)
+          ec_exp <- gsub("_\\w+$", "", ec_choices[!ec_dums])
+          ec_choices <- c(ec_exp, ec_choices[ec_dums])
+          
           stop("Invalid option passed to 'expectcatchmodel'. Please select from the ",
                "following options: ", paste(c("all", "individual", ec_choices), collapse = ", "),
                call. = FALSE)

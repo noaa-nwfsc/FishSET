@@ -189,6 +189,12 @@ table_view <- function(table, project) {
       tab_out <- DBI::dbGetQuery(fishset_db, 
                                  paste0("SELECT * FROM", paste0("'", noquote(table), "'")))
       
+      # TODO: need a better method for converting back to date
+      # Ex: this approach won't convert a date column named "TRIP_START"
+      # Alternative would be to save all date variables as character then check
+      # if any columns have a date format (date_cols())
+      # Best if character conversion was done in a table saving function
+      
       # convert date and date-time from numeric
       d_cols <- grep("date", names(tab_out), ignore.case = TRUE, value = TRUE)
       dt_cols <- grep("date.*time", names(tab_out), ignore.case = TRUE, value = TRUE)
@@ -344,7 +350,9 @@ model_out_view <- function(table, project) {
   #
   if (table_exists(table, project) == FALSE) {
     
-    return("Table not found. Check spelling or tables in database using 'tables_database()'.")
+    # TODO: Change to stop()?
+    stop("Table not found. Check spelling or tables in database using 'tables_database()'.",
+         call. = FALSE)
     
   } else {
     
@@ -358,13 +366,14 @@ model_out_view <- function(table, project) {
 
 
 model_params <- function(table, project) {
-  #' Load model parameter estimates, standard errors, and t-statistic to console for the defined project
+  #' Load model parameter estimates, standard errors, and t-statistic to console 
+  #' for the defined project
   #'
   #' Returns parameter estimates from running \code{\link{discretefish_subroutine}}. 
   #' The table argument must be the full name of the table name in the FishSET 
   #' database. 
   #' 
-  #' @param table  Table name in FishSET database. Should contain the phrase 
+  #' @param table Table name in FishSET database. Should contain the phrase 
   #'   'ModelOut'. Table name must be in quotes.
   #' @param project Name of project
   #' @export
@@ -379,16 +388,11 @@ model_params <- function(table, project) {
 
   mod_out <- model_out_view(table, project)
   
-  if (!is.null(mod_out)) {
-    
-    params <- as.data.frame(mod_out$OutLogit)
-    
-    names(params) <- c("estimate", "std_error", "t_value") 
-    
-    params <- round(params, 3)
-    
-    params
-  }
+  mod_list <- lapply(mod_out, function(x) x$OutLogit)
+  mod_names <- vapply(mod_out, function(x) x$name, character(1))
+  names(mod_list) <- mod_names
+  
+  mod_list
 }
 
 
@@ -443,7 +447,7 @@ model_fit <- function(project) {
 model_names <- function(project) {
   #' Return model names 
   #' 
-  #' Returns model names saved to to the model desgin file. 
+  #' Returns model names saved to to the model design file. 
   #' 
   #' @param project Name of project.
   #' @export
