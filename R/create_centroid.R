@@ -1,7 +1,7 @@
 #' Create Centroid Table
 #' 
 #' Create a zonal or fishing centroid table. The centroid can be joined with the 
-#' primary data if `output == "dataset"`. The centroid table is automatically 
+#' primary data if `output = "dataset"`. The centroid table is automatically 
 #' saved to the FishSET Database. 
 #' 
 #' @param spat Spatial data containing information on fishery management or 
@@ -130,6 +130,8 @@ create_centroid <- function(spat = NULL,
     if (output %in% c("centroid table", "both")) {
       
       cent_tab <- unique(dat_out[c(zoneID, names)])
+      cent_tab <- cent_tab[order(cent_tab[[zoneID]]), ]
+      cent_tab <- stats::setNames(cent_tab, c("ZoneID", "cent.lon", "cent.lat"))
     }
     
   } else {

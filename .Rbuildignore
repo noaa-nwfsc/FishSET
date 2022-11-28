@@ -1,6 +1,6 @@
 ^Meta$
-^doc$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^data/ExpData\.RData$
 ^data/PollockData\.RData$
+^doc$

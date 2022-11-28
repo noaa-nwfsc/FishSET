@@ -18,7 +18,8 @@ create_dist_matrix(
   units,
   port = NULL,
   zoneRow,
-  zoneID
+  zoneID,
+  crs = NULL
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ create_dist_matrix(
 \item{zoneRow}{Zone row}
 
 \item{zoneID}{Zone identifier}
+
+\item{crs}{Coordinate reference system.}
 }
 \value{
 Distance matrix based on choices made in create_alternative_choice

@@ -184,7 +184,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   if (sf::st_crs(spatdat) != sf::st_crs(dat_sf)) {
     
     warning("Projection does not match. The detected projection in the",
-            " spatial file will be used unless epsg is specified.")
+            " spatial file will be used unless epsg is specified.", call. = FALSE)
   }
   
   if (!is.null(epsg)) {
@@ -241,7 +241,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     land_msg <- paste0(n_land, " observations (", p_land, "%) occur on land.\n")
     
     cat(land_msg, file = tmp)
-    warning(land_msg)
+    warning(land_msg, call. = FALSE)
     
     land_col <- "ON_LAND"
     dataset[[land_col]] <- obs_on_land
@@ -283,7 +283,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     out_msg <- paste0(n_out, " observations (", p_out, "%) are outside the regulatory zones.\n")
     
     cat(out_msg, file = tmp, append = TRUE)
-    warning(out_msg)
+    warning(out_msg, call. = FALSE)
     
     out_col <- "OUTSIDE_ZONE"
     dataset[[out_col]] <- obs_out_not_land
@@ -313,7 +313,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                         " line between regulatory zones.\n")
     
     cat(bound_msg, file = tmp, append = TRUE)
-    warning(bound_msg)
+    warning(bound_msg, call. = FALSE)
     
     bound_col <- "ON_ZONE_BOUNDARY"
     dataset[[bound_col]] <- obs_on_bound

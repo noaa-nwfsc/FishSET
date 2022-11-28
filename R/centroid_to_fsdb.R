@@ -46,14 +46,16 @@ centroid_to_fsdb <- function(dat,
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
-  
-  spat_out <- data_pull(spat, project)
-  spatdat <- spat_out$dataset
-  spat <- parse_data_name(spat, "spat", project)
+  # 
+  # spat_out <- data_pull(spat, project)
+  # spatdat <- spat_out$dataset
+  # spat <- parse_data_name(spat, "spat", project)
   
   column_check(dataset, cols = c(zoneID, cent.lon, cent.lat))
   
   cent_tab <- unique(dataset[, c(zoneID, cent.lon, cent.lat)])
+  cent_tab <- setNames(cent_tab, c("ZoneID", cent.lon, cent.lat))
+  cent_tab <- cent_tab[order(cent_tab$ZoneID), ]
   
   # save centroid table to FSDB
   
@@ -75,4 +77,6 @@ centroid_to_fsdb <- function(dat,
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
   DBI::dbWriteTable(fishset_db, cent_name, cent_tab, overwrite = TRUE)
+  
+  cent_tab
 }

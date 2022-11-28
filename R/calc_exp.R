@@ -17,7 +17,7 @@
 #' @param Alt Alternative choice list
 #' @keywords internal
 #' @importFrom lubridate floor_date year years
-#' @importFrom stats aggregate lm coef
+#' @importFrom stats aggregate lm coef na.pass
 #' @returns Returns a list containing the expected catch/revenue matrix and 
 #'   dummy matrix (if \code{dummy.exp = TRUE}). 
 #' 
@@ -50,7 +50,7 @@ calc_exp <- function(dataset,
   # check whether defining a group or using all fleet averaging
   if (is_value_empty(defineGroup)) {
     # just use an id=ones to get all info as one group
-    fleet <- rep(1, dim(dataset)[1])
+    fleet <- rep(1, nrow(dataset))
     # Define by group case
   } else {
     
@@ -60,7 +60,7 @@ calc_exp <- function(dataset,
   z_ind <- which(dataZoneTrue == 1)
   fleet <- fleet[z_ind]
   
-  areas <- choice$g[z_ind] # mapping to to the map file (zones)
+  areas <- choice[z_ind] # mapping to to the map file (zones)
   altc_areas <- as.character(unique(areas)) 
   altc_fleet <- unique(paste0(fleet, areas))
   
@@ -99,7 +99,7 @@ calc_exp <- function(dataset,
                                  FUN = mean, na.rm = TRUE) 
     # TODO: update for groups
     exp_matrix <- matrix(allCatch$x, nrow = nrow(dataset), ncol = length(altc_areas),
-                         dimnames = list(NULL, altc_areas), byrow = TRUE)
+                         dimnames = list(NULL, allCatch$areas), byrow = TRUE)
     
     newDumV <- list()
     
@@ -266,7 +266,7 @@ calc_exp <- function(dataset,
         
         # Note: could remove fleet
         aggregate(lag.value ~ areas + fleet, data = df[ind, ], 
-                  FUN = mean, na.action = na.pass, na.rm = TRUE) # remove na.rm = TRUE?
+                  FUN = mean, na.action = stats::na.pass, na.rm = TRUE) # remove na.rm = TRUE?
         
       } else {
         
@@ -382,7 +382,10 @@ calc_exp <- function(dataset,
     })
     
     exp_matrix <- do.call(rbind, exp_matrix)
+    # order columns
+    exp_matrix <- exp_matrix[, order(colnames(exp_matrix))]
   }
   
-  list(exp = exp_matrix, dummy = dum_matrix)
+  
+  list(exp = exp_matrix, dummy = get0("dum_matrix"))
 }
