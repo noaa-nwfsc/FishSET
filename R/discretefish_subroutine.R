@@ -433,17 +433,14 @@ discretefish_subroutine <-
         
         Htrial <- function(x) {
           
-          Htrial <- tryCatch({
+          tryCatch({
             
-              solve(H)
+              solve(x)
             },
             
             error = function(e) {
               return("Error, singular, check 'LDGlobalCheck'")
-            }
-          )
-          
-          Htrial
+          })
         }
         
         print(Htrial(H))
