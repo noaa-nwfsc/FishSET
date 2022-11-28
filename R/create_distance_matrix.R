@@ -169,6 +169,7 @@ create_dist_matrix <-
     toXY <- spat[spat[[spatID]] %in% unique(choice), spatID]
     # transform fromXY CRS to match
     fromXY <- sf::st_transform(fromXY, crs = sf::st_crs(toXY))
+    z_nms <- sort(unique(choice))
     
   } else {
     
@@ -182,6 +183,8 @@ create_dist_matrix <-
     toXY <- sf::st_as_sf(toXY, 
                          coords = c(find_lon(toXY), find_lat(toXY)),
                          crs = crs) # TODO: make sure crs can be changed if needed
+    
+    z_nms <- cent_tab$ZoneID
   }
   
   if (any(is_value_empty(fromXY) | is_value_empty(toXY))) {
@@ -192,6 +195,11 @@ create_dist_matrix <-
   distMatrix <- sf::st_distance(fromXY, toXY)
   
   units(distMatrix) <- units
+  
+  if (occasion == "lon-lat") r_nms <- NULL
+  else r_nms <- dataset[[occasion_var]]
+  
+  dimnames(distMatrix) <- list(r_nms, z_nms)
   
   altChoiceType <- "distance"
   altChoiceUnits <- units
