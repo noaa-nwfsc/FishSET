@@ -77,4 +77,6 @@ centroid_to_fsdb <- function(dat,
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
   DBI::dbWriteTable(fishset_db, cent_name, cent_tab, overwrite = TRUE)
+  
+  cent_tab
 }
