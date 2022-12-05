@@ -10,5 +10,5 @@ model_names(project)
 \item{project}{Name of project.}
 }
 \description{
-Returns model names saved to to the model desgin file.
+Returns model names saved to to the model design file.
 }
