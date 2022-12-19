@@ -16,7 +16,7 @@
 #' 
 #' @param dat Required, main data frame containing data on hauls or trips.
 #'   Table in FishSET database should contain the string `MainDataTable`.
-#' @param spat Optional, a name to associate with the centroid table. 
+#' @param spat.name Optional, a name to associate with the centroid table. 
 #' @param project Name of project.
 #' @param zoneID Variable in `dat` that identifies the individual zones or 
 #'   areas. 
@@ -25,14 +25,14 @@
 #' @param cent.lat Required, variable in `dat` that identifies the centroid 
 #'   latitude of  zones or areas. 
 #' @param type The type of centroid. Options include `"zone"` for zonal centroids
-#'   and `fish` for fishing centroids. 
+#'   and `"fish"` for fishing centroids. 
 #' @export
 #' @importFrom RSQLite SQLite
 #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
 #' @md
 
 centroid_to_fsdb <- function(dat,
-                             spat = NULL,
+                             spat.name = NULL,
                              project,
                              zoneID,
                              cent.lon,
@@ -46,14 +46,18 @@ centroid_to_fsdb <- function(dat,
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
-  # 
-  # spat_out <- data_pull(spat, project)
-  # spatdat <- spat_out$dataset
-  # spat <- parse_data_name(spat, "spat", project)
   
   column_check(dataset, cols = c(zoneID, cent.lon, cent.lat))
-  
+  # TODO: check for duplicate zones (e.g. a zone with multiple centroid lon-lats), 
+  # if any exist then there's an issue w/ data
   cent_tab <- unique(dataset[, c(zoneID, cent.lon, cent.lat)])
+  
+  if (any(duplicated(cent_tab[[zoneID]]))) {
+    
+    stop("Duplicate ", type, " centroids found. Centroid table not saved.", 
+         call. = FALSE)
+  }
+  
   cent_tab <- setNames(cent_tab, c("ZoneID", cent.lon, cent.lat))
   cent_tab <- cent_tab[order(cent_tab$ZoneID), ]
   
@@ -61,13 +65,13 @@ centroid_to_fsdb <- function(dat,
   
   if (type == "zone") {
     
-    z_name <- ifelse(!is_value_empty(spat), spat, project)
+    z_name <- ifelse(!is_value_empty(spat.name), spat.name, project)
     
     cent_name <- paste0(z_name, "ZoneCentroid")
     
   } else if (type == "fish") {
     
-    f_name <- ifelse(!is_value_empty(spat), spat, project)
+    f_name <- ifelse(!is_value_empty(spat.name), spat.name, project)
     
     cent_name <- paste0(f_name, "FishCentroid")
   }
