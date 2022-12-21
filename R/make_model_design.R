@@ -471,10 +471,13 @@ make_model_design <-
 
   # Port ----  
   
-  if (occasion == "port") {
+  if (occasion == "port" || 
+      (occasion %in% c("zonal centroid", "fishing centroid") & 
+       !is_value_empty(occasion_var) && occasion_var != zoneID)) {
     
     # check if port table needs to be merged to primary table
-    if (length(occasion_var) == 1) { # port ID variable
+    # (if occasion_var is empty, assume port lon-lat is included in primary table)
+    if (length(occasion_var) == 1) { # port ID variable or previous area variable
       
       pt <- data_pull(paste0(project, 'PortTable'), project)
       ptname <- pt$dat # Note: ptname not used 
@@ -662,8 +665,9 @@ make_model_design <-
       typeOfNecessary = Alt[["zoneType"]],
       altChoiceType = dist_out[['altChoiceType']],
       altChoiceUnits = dist_out[['altChoiceUnits']],
-      altToLocal1 = dist_out[['altToLocal1']],
-      altToLocal2 = dist_out[['altToLocal2']],
+      occasion = dist_out$occasion,
+      occasion_var = dist_out$occasion_var,
+      alt_choice = dist_out$alt_choice,
       bCHeader = bCHeader,
       startloc = startloc,
       polyn = polyn,
