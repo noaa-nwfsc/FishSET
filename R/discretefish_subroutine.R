@@ -25,9 +25,9 @@
 #'   to deviate from the average parameter values when exploring (random normal 
 #'   deviates). The less certain the average parameters are, the greater the 
 #'   \code{dev} argument should be.
-#' @param use.scalers Logical, should data be noramalized? Defaults to \code{TRUE}. 
+#' @param use.scalers Logical, should data be normalized? Defaults to \code{FALSE}. 
 #'   Rescaling factors are the mean of the numeric vector unless specified with 
-#'   \code{scaler}.
+#'   \code{scaler.func}.
 #' @param scaler.func Function to calculate rescaling factors. Can be a generic 
 #'   function, such as mean, or a user-defined function. User-defined functions 
 #'   must be specified as \code{scaler.fun = function(x, FUN = sd) 2*FUN(x)}. 
@@ -114,11 +114,9 @@ discretefish_subroutine <-
            breakearly = TRUE,
            space = NULL,
            dev = NULL,
-           use.scalers = TRUE,
+           use.scalers = FALSE,
            scaler.func = NULL) {
   
-  
-
   if (!isRunning()) { # if run in console
     # 
     check <- checklist(project)
