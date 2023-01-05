@@ -82,7 +82,7 @@ find_centroid <-
   if (any(table(cent$ZoneID) > 1)) {
     
     cent <- cent[!duplicated(cent$ZoneID),]
-    warning('Duplicate centoids found for at least one zone. Using first centroid.')
+    warning('Duplicate centroids found for at least one zone. Using first centroid.')
   }
   
   # TODO: add project name to centroid table name, update other funs
