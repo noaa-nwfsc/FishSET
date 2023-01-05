@@ -122,7 +122,8 @@ create_expectations <-
            dummy.exp = FALSE,
            default.exp = TRUE,
            replace.output = TRUE) {
-    
+  
+  # TODO: handling multiple exp catch matrices. Need naming convention
 
   # TODO: when revenue col exists, either automatically create col of ones (currently user must do this) 
   # or allow catch arg to also be revenue. Use generic name (e.g. value) 
@@ -255,34 +256,23 @@ create_expectations <-
   sscale <- 10^(r - 1)
 
   # exp catch list ----
-  
+
   ExpectedCatch <- list(
-    recent_exp = recent_exp$exp,
+    recent = recent_exp$exp,
     recent_dummy = recent_exp$dummy,
-    older_exp = older_exp$exp,
+    older = older_exp$exp,
     older_dummy = older_exp$dummy,
-    oldest_exp = oldest_exp$exp,
+    oldest = oldest_exp$exp,
     oldest_dummy = oldest_exp$dummy,
-    logbook_exp = logbook_exp$exp,
+    logbook = logbook_exp$exp,
     logbook_dummy = logbook_exp$dummy,
-    user_exp = user_exp$exp,
+    user = user_exp$exp,
     user_dummy = user_exp$dummy,
     scale = sscale,
     # TODO: Use alternative approach for determining units
     units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS") # units of catch data
   )
   
-  # Note: this will affect how data is structured in create_model_input()
-  # ExpectedCatch <- list(
-  #   recent_exp = get0("recent_exp"),
-  #   older_exp = get0("older_exp"),
-  #   oldest_exp = get0("oldest_exp"),
-  #   logbook_exp = get0("logbook_exp"),
-  #   user_defined_exp = user_def_exp, 
-  #   scale = sscale,
-  #   # TODO: Use alternative approach for determining units
-  #   units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS") # units of catch data 
-  # )
 
   single_sql <- paste0(project, "ExpectedCatch")
 
@@ -292,10 +282,20 @@ create_expectations <-
   if (replace.output == FALSE) {
     
     if (table_exists(single_sql, project)) {
-      # Note: this will affect how exp matrices are selected in make_model_design()
-      ExpectedCatchOld <- unserialize_table(paste0(project, "ExpectedCatch"), project)
-      ExpectedCatch <- c(ExpectedCatchOld, ExpectedCatch)
       
+      ExpectedCatchOld <- unserialize_table(single_sql, project)
+      
+      ExpectedCatch <- c(ExpectedCatchOld, 
+                         list(user = ExpectedCatch$user, 
+                              user_dummy = ExpectedCatch$user_dummy))
+      # update user_exp names
+      user_ind <- grep("user$|user\\d+$", names(ExpectedCatch))
+      i <- length(user_ind)
+      names(ExpectedCatch)[user_ind] <- paste0("user", seq_len(i))
+      # update user_dummy names
+      dum_ind <- grep("user_dummy", names(ExpectedCatch))
+      i <- length(dum_ind)
+      names(ExpectedCatch)[dum_ind] <- paste0("user_dummy", seq_len(i))
     }
   }
 
