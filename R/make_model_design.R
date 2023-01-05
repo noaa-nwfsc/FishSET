@@ -429,25 +429,31 @@ make_model_design <-
     
     ExpectedCatch <- unserialize_table(paste0(project, "ExpectedCatch"), project)
       
-    if (nrow(ExpectedCatch$user_exp) != length(choice)) {
+    if (is_value_empty(expectcatchmodels)) {
       
-      stop('Number of observations in Expected catch matrix and catch data do not ',  
-           'match. Model design file cannot be created.', call. = FALSE)
+      stop('Expected catch matrix not defined. Model design file cannot be created.',
+           call. = FALSE)
       
     } else {
+      # TODO: allow multiple user created ec matrices, named, select by name 
+      # prepare the ec list and expectcatchmodels for model
+      exp_out <- check_exp(ec = ExpectedCatch, ec_names = expectcatchmodels)
       
-      if (is_value_empty(expectcatchmodels)) {
+      ExpectedCatch <- exp_out$exp
+      exp_select <- exp_out$exp_select
+      
+      nr_ind <- vapply(ExpectedCatch, function(x) {
         
-        stop('Expected catch matrix not defined. Model design file cannot be created.',
-             call. = FALSE)
+        nrow(x) != length(choice)
+      }, logical(1))
+      
+      if (any(nr_ind)) {
         
-      } else {
-        # TODO: allow multiple user created ec matrices, named, select by name 
-        # prepare the ec list and expectcatchmodels for model
-        exp_out <- check_exp(ec = ExpectedCatch, ec_names = expectcatchmodels)
+        nr_nm <- paste(names(ExpectedCatch)[nr_ind], collapse = ",")
         
-        ExpectedCatch <- exp_out$exp
-        exp_select <- exp_out$exp_select
+        stop('Number of observations in Expected catch matrix and catch data do not ',  
+             'match the following matrices: ', nr_nm, 
+             '. Model design file cannot be created.', call. = FALSE)
       }
     }
   }
@@ -561,26 +567,25 @@ make_model_design <-
   
   init_params <- initparams
   
-  if (is_value_empty(initparams)) {
+  if (is_value_empty(initparams)) init_params <- 1
+  
+  if (!is.numeric(init_params) & !any(grepl(',', init_params))) {
+    # read in parameters from previous model
+    x_temp <- read_dat(paste0(locoutput(project),  
+                              pull_output(project, type = 'table', 
+                                          fun = paste0('params_', init_params))))
     
-    if (!is.numeric(initparams) & !any(grepl(',', initparams))) {
-      # read in parameters from previous model
-      x_temp <- read_dat(paste0(locoutput(project),  
-                                pull_output(project, type = 'table', 
-                                            fun = paste0('params_', initparams))))
+    if (!is.null(x_temp)) {
       
-      if (!is.null(x_temp)) {
-        
-        init_params <- x_temp$estimate
-        
-      } else {
-        
-        init_params <- 1
-        warning('Model not found. Setting parameter estimates to 1.', call. = FALSE)
-      }
+      init_params <- x_temp$estimate
       
-    } else init_params <- 1
+    } else {
+      
+      init_params <- 1
+      warning('Model not found. Setting parameter estimates to 1.', call. = FALSE)
+    }
   }
+  
     
   # Distance Matrix ----
   dist_out <- create_dist_matrix(dataset = dataset, spat = spatdat,
