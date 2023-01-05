@@ -42,6 +42,7 @@ calc_exp <- function(dataset,
   # TODO: when revenue col exists, either automatically create col of ones (currently user must do this) 
   # or allow catch arg to also be revenue. Use generic name (e.g. value) 
 
+  # TODO: Add warning if the number of alternatives is high (or/also include in create_alternative_choice())
   
   dataZoneTrue <- Alt[["dataZoneTrue"]] # used for catch and other variables
   choice <- Alt[["choice"]] # used for catch and other variables
