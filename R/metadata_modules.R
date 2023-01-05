@@ -226,7 +226,7 @@ colDescUI <- function(id, nm, value = "") {
   nm <- make.names(nm)
   ns <- NS(id)
  
-    textAreaInput(ns(nm), nm, width = "100%", resize = "vertical", value = value)
+  textAreaInput(ns(nm), nm, width = "100%", resize = "vertical", value = value)
 }
 
 
