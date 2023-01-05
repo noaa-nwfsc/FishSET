@@ -442,7 +442,7 @@ make_model_design <-
              call. = FALSE)
         
       } else {
-        # Note: allow multiple user created ec matrices, named, select by name 
+        # TODO: allow multiple user created ec matrices, named, select by name 
         # prepare the ec list and expectcatchmodels for model
         exp_out <- check_exp(ec = ExpectedCatch, ec_names = expectcatchmodels)
         
@@ -498,7 +498,7 @@ make_model_design <-
   }
   
   # Gridded ----
-  # Note: create_alternative_choice() currently cannot create a dm from a 
+  # Note: create_alternative_choice() currently cannot create a distance matrix from a 
   # gridded dataset
   
 
@@ -602,44 +602,25 @@ make_model_design <-
     # add only for EPM model
   
     catch <- dataset[zone_ind, ][[catchID]]
-    yscale <- mean(catch, na.rm = TRUE)
+    
+    # scales ----
+    yscale <- 1
      
     # Some models need price data
     if (is_value_empty(priceCol)) {
-      
+
       epmDefaultPrice <- ""
-      pscale <- 1
-      
+
     } else {
-      
+
       epmDefaultPrice <- dataset[[priceCol]][zone_ind]
-      pscale <- mean(epmDefaultPrice, na.rm = TRUE)
-    }
-  
-    # scales ----
-    mscale <- mean(dist_out$distMatrix, na.rm = TRUE)
-  
-    # scales data r in
-    # Note: this should be done before line 419 else first condition can't be TRUE
-    # if (length(bCHeader$gridVariablesInclude) == 0) r <- 1
-    if (is_value_empty(gridVars)) r <- 1
-    else {
-      
-      r <- as.numeric(lapply(bCHeader$gridVariablesInclude, 
-                             function(x) mean(as.numeric(unlist(x)), na.rm = TRUE)))
     }
     
-    # if (length(bCHeader$indeVarsForModel) == 0) { 
-    if (is_value_empty(indVars)) { 
-      
-      r2 <- 1 
-        
-    } else {
-      
-      r2 <- as.numeric(lapply(bCHeader$indeVarsForModel, 
-                              function(x) mean(as.numeric(unlist(x)), na.rm = TRUE)))
-    }
-  
+    pscale <- 1
+    mscale <- 1
+    r <- rep(1, times = length(bCHeader$gridVariablesInclude))
+    r2 <- rep(1, times = length(bCHeader$indeVarsForModel))
+    
     # model design list ----
     
     # Note: bCHeader includes GridVariablesInclude (doc says it doesn't include grid varying vars)
