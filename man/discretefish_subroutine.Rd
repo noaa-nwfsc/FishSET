@@ -11,7 +11,7 @@ discretefish_subroutine(
   breakearly = TRUE,
   space = NULL,
   dev = NULL,
-  use.scalers = TRUE,
+  use.scalers = FALSE,
   scaler.func = NULL
 )
 }
@@ -43,9 +43,9 @@ to deviate from the average parameter values when exploring (random normal
 deviates). The less certain the average parameters are, the greater the 
 \code{dev} argument should be.}
 
-\item{use.scalers}{Logical, should data be noramalized? Defaults to \code{TRUE}. 
+\item{use.scalers}{Logical, should data be normalized? Defaults to \code{FALSE}. 
 Rescaling factors are the mean of the numeric vector unless specified with 
-\code{scaler}.}
+\code{scaler.func}.}
 
 \item{scaler.func}{Function to calculate rescaling factors. Can be a generic 
 function, such as mean, or a user-defined function. User-defined functions 
