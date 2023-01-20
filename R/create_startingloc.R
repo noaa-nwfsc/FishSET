@@ -20,20 +20,12 @@
 #'   does not exist in \code{dat}.
 #' @param lat.dat Latitude variable from \code{dat}. Required if \emph{ZoneID} 
 #'   does not exist in \code{dat}.
-#' @param cat Variable or list in \code{spat} that identifies the individual areas 
-#'   or zones. Required if \emph{ZoneID} does not exist in \code{dat}. If \code{spat} 
-#'   is class sf, \code{cat} should be name of list containing information on zones.
-#' @param zoneid Variable in \code{dat} that identifies the individual zones or 
-#'   areas. Defaults to NULL. Define if the name of the zone identifier variable 
-#'   is not `ZoneID`.
+#' @param zoneID Variable in \code{dat} that identifies the individual zones or 
+#'   areas.
+#' @param spatID Variable in \code{spat} that identifies the individual zones or 
+#'   areas.
 #' @param name String, name of created variable. Defaults to name of the function 
 #'   if not defined.
-#' @param lon.spat Variable or list from \code{spat} containing longitude data. 
-#'   Required if \emph{ZoneID} does not exist in \code{dat}. Required for csv files. 
-#'   Leave as NULL if \code{spat} is a shape or json file.
-#' @param lat.spat Variable or list from \code{spat} containing latitude data. 
-#'   Required if \emph{ZoneID} does not exist in \code{dat}. Required for csv files. 
-#'   Leave as NULL if \code{spat} is a shape or json file.
 #' @importFrom DBI dbExecute
 #' @export create_startingloc
 #' @return Primary data set with starting location variable added.
@@ -61,13 +53,9 @@ create_startingloc <-
            trip_id,
            haul_order,
            starting_port,
-           lon.dat,
-           lat.dat,
-           cat,
-           zoneid,
-           name = "startingloc",
-           lon.spat = NULL,
-           lat.spat = NULL) {
+           zoneID,
+           spatID, 
+           name = "startingloc") {
     
   # TODO: consider removing assignment_column() functionality
   # TODO: Change this to required? project is required for nearly every other function
@@ -92,71 +80,49 @@ create_startingloc <-
   spatdat <- spat_out$dataset
   spat <- parse_data_name(dat, "spat", project)
   
-  column_check(dataset, cols = c(trip_id, haul_order, starting_port, lon.dat, 
-                                 lat.dat, zoneid))
+  column_check(dataset, cols = c(trip_id, haul_order, starting_port, zoneID))
   
-  column_check(spatdat, cols = c(cat, lon.spat, lat.spat))
+  column_check(spatdat, cols = c(zoneID))
   
  # name <- ifelse(is_empty(name), "startingloc", name)
   name <- name_check(dataset, name, repair = TRUE)
   
-  port <- assignment_column(
+  port.table <- assignment_column(
     dat = port.table, project = project, spat = spatdat, hull.polygon = FALSE, 
-    lon.spat = lon.spat, lat.spat = lat.spat, lon.dat = "Port_Long",
-    lat.dat = "Port_Lat", cat = cat, closest.pt = TRUE, log.fun = FALSE, 
-    bufferval = 100 # need to consider how this affects things
+    lon.dat = "Port_Long", lat.dat = "Port_Lat", cat = spatID, closest.pt = TRUE, 
+    log.fun = FALSE, bufferval = 100 # need to consider how this affects things
   )
 
-  # TODO: remove 'ZoneID' default. Make zoneID required (must exist in dat). 
-  if ("ZoneID" %in% names(dataset)) {
-    
-    int.data <- dataset
-    zoneid <- 'ZoneID'
-    
-  } else if (!is.null(zoneid)) {
-    
-    int.data <- dataset
-    colnames(int.data)[colnames(int.data)==zoneid] <- 'ZoneID'
-    
-  } else {
-    
-    int.data <- assignment_column(
-      dat = dataset, project = project, spat = spatdat, hull.polygon = FALSE, 
-      lon.spat = lon.spat, lat.spat = lat.spat, lon.dat = lon.dat,
-      lat.dat = lat.dat, cat = cat, closest.pt = TRUE, log.fun = FALSE
-    )
-  }
-  
   # Create starting loc variable
   # TODO: trip_id is currently required; can't be NULL. Resolve.
   if (is.null(trip_id)) {
     
-    int.data <- int.data[order(int.data[[haul_order]]), ]
+    dataset <- dataset[order(dataset[[haul_order]]), ]
     
   } else {
     
-    int.data <- int.data[order(int.data[[trip_id]], int.data[[haul_order]]), ]
+    dataset <- dataset[order(dataset[[trip_id]], dataset[[haul_order]]), ]
   }
   
-  newvar <- rep(NA, nrow(int.data))
-  newvar[2:nrow(int.data)] <- int.data$ZoneID[1:(nrow(int.data) - 1)]
+  newvar <- rep(NA, nrow(dataset))
+  newvar[2:nrow(dataset)] <- dataset[[zoneID]][1:(nrow(dataset) - 1)]
 
   # Make starting of trips set to zone of starting port
   if (!is.null(trip_id)) {
     
-    rownumbers <- match(trimws(int.data[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min), starting_port]), port$Port_Name)
+    rownumbers <- match(trimws(dataset[tapply(seq_along(dataset[[trip_id]]), dataset[[trip_id]], min), starting_port]), port.table$Port_Name)
     
     if (any(is.na(rownumbers))) { 
       
       warning('NAs produced. At least one disembarked port was not found in the port table.')
     }
     
-    newvar[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min)] <- port[rownumbers, "ZoneID"]
+    newvar[tapply(seq_along(dataset[[trip_id]]), dataset[[trip_id]], min)] <- port.table[rownumbers, 'ZoneID']
     
   } else {
     
-    rownumbers <- match(trimws(int.data[1, starting_port]), port$PORT)
-    newvar[1] <- port[rownumbers, "ZoneID"]
+    rownumbers <- match(trimws(dataset[1, starting_port]), port.table$Port_Name)
+    newvar[1] <- port.table[rownumbers, zoneID]
   }
   
   g <- cbind(dataset, newvar)
@@ -165,10 +131,8 @@ create_startingloc <-
   create_startingloc_function <- list()
   create_startingloc_function$functionID <- "create_startingloc"
   create_startingloc_function$args <- list(dat, project, spat, port, trip_id, 
-                                           haul_order, starting_port, lon.dat, 
-                                           lat.dat, cat, name)
-  create_startingloc_function$kwargs <- list("lon.spat" = lon.spat, "lat.spat" = lat.spat)
-  create_startingloc_function$output <- list(dat)
+                                           haul_order, starting_port, zoneID, 
+                                           spatID, name)
 
   log_call(project, create_startingloc_function)
 
