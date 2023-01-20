@@ -365,7 +365,7 @@ model_out_view <- function(table, project) {
 }
 
 
-model_params <- function(table, project) {
+model_params <- function(table, project, output = 'list') {
   #' Load model parameter estimates, standard errors, and t-statistic to console 
   #' for the defined project
   #'
@@ -376,7 +376,10 @@ model_params <- function(table, project) {
   #' @param table Table name in FishSET database. Should contain the phrase 
   #'   'ModelOut'. Table name must be in quotes.
   #' @param project Name of project
+  #' @param output Options include list, table, or print. 
   #' @export
+  #' @importFrom pander pander
+  #' @importFrom tibble rownames_to_column
   #' @description Returns parameter estimates, standard errors, and t-statistic 
   #'  from running the discretefish_subroutine function. The table parameter must 
   #'  be the full name of the table name in the FishSET database.
@@ -392,7 +395,20 @@ model_params <- function(table, project) {
   mod_names <- vapply(mod_out, function(x) x$name, character(1))
   names(mod_list) <- mod_names
   
-  mod_list
+  if (output == 'print') {
+    
+    pander::pander(mod_list)
+    
+  } else if (output == 'table') {
+    
+    mod_list <- lapply(mod_list, tibble::rownames_to_column, var = 'var') 
+    
+    do.call(rbind, mod_list) 
+    
+  } else if (output == 'list') {
+    
+    mod_list
+  }
 }
 
 
