@@ -305,28 +305,31 @@ discretefish_subroutine <-
       second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
       
       
-       if (table_exists(single_sql, project=project)) {
+      if (table_exists(single_sql, project)) {
+        
+        empty_dat <- 
+          is_empty(
+            unlist(
+              DBI::dbGetQuery(fishset_db, 
+                              paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data
+              )
+            )
          
-         empty_dat <- 
-           is_empty(
-             unlist(
-               DBI::dbGetQuery(fishset_db, 
-                               paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data
-               )
-             )
-         
-         if (any(empty_dat)) {
-           
-           table_remove(single_sql, project)
-           LDGlobalCheck <- LDGlobalCheck
+        if (any(empty_dat)) {
           
-         } else {
-           
-          x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+          table_remove(single_sql, project)
+          LDGlobalCheck <- LDGlobalCheck
+          
+        } else {
+          # TODO: overwrites model data if more than one expected catch matrix is used
+          # x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+          x_ldgcheck <- unserialize(DBI::dbGetQuery(fishset_db, 
+                                                    paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
           table_remove(single_sql, project = project)
-          LDGlobalCheck <- c(x, LDGlobalCheck)
-         }
-       }
+          # LDGlobalCheck <- c(x, LDGlobalCheck)
+          LDGlobalCheck <- c(x_ldgcheck, LDGlobalCheck)
+        }
+      }
       
       ld_sql <- paste0("CREATE TABLE IF NOT EXISTS ", project, "LDGlobalCheck", 
                        format(Sys.Date(), format = "%Y%m%d"), "(data LDGlobalCheck)")
@@ -509,7 +512,8 @@ discretefish_subroutine <-
         
         # TODO: make sure this works for each model type
         p_names <- unlist(lapply(x_temp[[i]]$bCHeader[-1], names))
-        ec_names <- names(x_temp[[i]]$gridVaryingVariables)
+        # ec_names <- names(x_temp[[i]]$gridVaryingVariables)
+        ec_names <- x$expectcatchmodels[[j]]
         
         if (fr == "logit_avgcat") {
           
