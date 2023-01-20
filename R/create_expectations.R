@@ -1,7 +1,8 @@
 #' Create expected catch/expected revenue matrix
 #'
 #' Create expected catch or expected revenue matrix. The matrix is required for 
-#' the logit_c model.
+#' the \code{\link{logit_c}} model. Multiple user-defined matrices can be saved
+#' by setting \code{replace.output = FALSE} and re-running the function. 
 
 #' @param dat  Primary data containing information on hauls or trips. Table in FishSET 
 #'   database contains the string 'MainDataTable'.
@@ -41,26 +42,28 @@
 #' @param dummy.exp Logical, should a dummy variable be created? If \code{TRUE}, 
 #'   output dummy variable for originally missing value. If \code{FALSE}, no dummy 
 #'   variable is outputted. Defaults to \code{FALSE}.
-#' @param default.exp Whether to run default expectations. Defaults to \code{TRUE}.
+#' @param default.exp Whether to run default expectations. Defaults to \code{FALSE}.
 #'   Alternatively, a character string containing the names of default expectations 
 #'   to run can be entered. Options include "recent", "older", "oldest", and 
 #'   "logbook". The logbook expectation is only run if \code{defineGroup} is used. 
-#'   "recent" will not include \code{defineGroup}. See Details for how default
-#'   expectations are defined. 
+#'   "recent" will not include \code{defineGroup}. Setting \code{default.exp = TRUE}
+#'   will include all four options. See Details for how default expectations are 
+#'   defined. 
 #' @param replace.output Logical, replace existing saved expected catch data frame 
 #'   with new expected catch data frame? If \code{FALSE}, new expected catch data 
-#'   frames appended to previously saved expected catch data frames. Default is \code{TRUE}
+#'   frames appended to previously saved expected catch data frames. Default is 
+#'   \code{TRUE}. If \code{TRUE}
 #' @importFrom lubridate floor_date year
 #' @importFrom DBI dbGetQuery
 #' @importFrom stats aggregate reshape coef lm
 #' @export create_expectations
-#' @return Function returns a list of expected catch matrices. The list includes 
+#' @return Function saves a list of expected catch matrices to the FishSET database
+#'   as \code{projectExpectedCatch}. The list includes 
 #'   the expected catch matrix from the user-defined choices, recent fine grained
 #'   information, older fine grained information, oldest fine grained information,
-#'   and logbook level information. Additional expected 
-#'   catch cases can be added to the list by specifying \code{replace.output = FALSE}. 
-#'   The model run function will run through each expected catch case 
-#'   provided. The list is automatically saved to the FishSET database and is called 
+#'   and logbook level information. Additional expected catch cases can be added 
+#'   to the list by specifying \code{replace.output = FALSE}. The list is 
+#'   automatically saved to the FishSET database and is called 
 #'   in \code{\link{make_model_design}}. The expected catch output does not need 
 #'   to be loaded when defining or running the model.
 #' @details Function creates an expectation of catch or revenue for alternative 
@@ -127,6 +130,11 @@ create_expectations <-
 
   # TODO: when revenue col exists, either automatically create col of ones (currently user must do this) 
   # or allow catch arg to also be revenue. Use generic name (e.g. value) 
+    
+  # TODO: Check whether/which default options have already been run, notify user
+  # that they don't need to be re-run -- unless the alt choice matrix has been changed
+  # in which case the previous ec matrices are no longer valid and replace.output must 
+  # be TRUE.
   
   # Call in data sets
   out <- data_pull(dat, project = project)
@@ -273,6 +281,35 @@ create_expectations <-
     units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS") # units of catch data
   )
   
+  # TODO: only include default options that were actually run
+  # Note: need to figure out how to handle case where default was run but not dummy,
+  # then the same default was run again but w/ dummy. Replace older version? Update just dummy?
+  if (FALSE) {
+    
+    ec_out <- ExpectedCatch
+    ExpectedCatch <- list()
+    # index version
+    for (i in seq_along(ec_out)) {
+      
+      if (!is_value_empty(ec_out[[i]])) {
+        
+        ExpectedCatch[[i]] <- ec_out[[i]] 
+        names(ExpectedCatch)[[i]] <- names(ec_out)[[i]]
+      }
+    }
+    # named version (simpler)
+    for (nm in names(ec_out)) {
+      
+      if (!is_value_empty(ec_out[[nm]])) {
+        
+        ExpectedCatch[[nm]] <- ec_out[[nm]] 
+      }
+    }
+    
+    ExpectedCatch$scale <- sscale
+    ExpectedCatch$units <- ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS")
+  }
+  
 
   single_sql <- paste0(project, "ExpectedCatch")
 
@@ -282,7 +319,8 @@ create_expectations <-
   if (replace.output == FALSE) {
     
     if (table_exists(single_sql, project)) {
-      
+      # TODO: check if any default options from previous ec run weren't include but 
+      # have been added in most recent run. These should be added.
       ExpectedCatchOld <- unserialize_table(single_sql, project)
       
       ExpectedCatch <- c(ExpectedCatchOld, 
