@@ -65,19 +65,32 @@ create_dist_matrix <-
       if (occasion == "zonal centroid") cent_tab <- zone_cent
       else if (occasion == "fishing centroid") cent_tab <- fish_cent 
       
-    if (o_var == zoneID) { # single haul
+    if (o_var == zoneID | !any(fromXY[[o_var]] %in% port$Port_Name)) {
+      # o_var == zoneID = single haul
+      # otherwise, multi-haul w/ prev area variable
       # join centroid lon-lat by zoneID
       join_by <- stats::setNames("ZoneID", o_var)
       fromXY <- dplyr::left_join(fromXY, cent_tab, by = join_by)
       
     } else { # Previous Area (multi-haul)
-      # include port table previous area
+      # include port table previous area if o_var contains port names (this happens 
+      # when creating a previous area/starting loc variable and the port is not within a zone)
+      
       area_tab <- 
         do.call(rbind, 
                 lapply(list(port, cent_tab), function(x) {
                   setNames(x, c(o_var, "cent.lon", "cent.lat"))
-                  })
-                )
+                })
+        )
+      
+      if (class(area_tab[[o_var]]) != class(fromXY[[o_var]])) {
+        
+        stop(o_var, ' from dat cannot be joined to port table: \n', o_var, ' is class ',
+             class(fromXY[[o_var]]), ' while the port name column is ', 
+             class(area_tab[[o_var]]), '. \nChange ', o_var, ' to class ', 
+             class(area_tab[[o_var]]), ' by using change_class() ',
+             'then rerun create_alternative_choice() and check_model_data().', call. = FALSE)
+      }
       
       fromXY <- dplyr::left_join(fromXY, area_tab, by = o_var)
     }
