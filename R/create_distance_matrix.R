@@ -214,7 +214,7 @@ create_dist_matrix <-
   if (is.null(o_var)) o_var <- occasion_var
   
   if (occasion == "lon-lat") r_nms <- NULL
-  else r_nms <- dataset[[o_var]]
+  else r_nms <- dataset[[o_var]][zone_ind]
   
   dimnames(distMatrix) <- list(r_nms, z_nms)
   
