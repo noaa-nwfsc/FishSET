@@ -274,8 +274,8 @@ create_expectations <-
     oldest_dummy = oldest_exp$dummy,
     logbook = logbook_exp$exp,
     logbook_dummy = logbook_exp$dummy,
-    user = user_exp$exp,
-    user_dummy = user_exp$dummy,
+    user1 = user_exp$exp,
+    user1_dummy = user_exp$dummy,
     scale = sscale,
     # TODO: Use alternative approach for determining units
     units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS") # units of catch data
@@ -324,14 +324,14 @@ create_expectations <-
       ExpectedCatchOld <- unserialize_table(single_sql, project)
       
       ExpectedCatch <- c(ExpectedCatchOld, 
-                         list(user = ExpectedCatch$user, 
-                              user_dummy = ExpectedCatch$user_dummy))
+                         list(user1 = ExpectedCatch$user1, 
+                              user1_dummy = ExpectedCatch$user1_dummy))
       # update user_exp names
-      user_ind <- grep("user$|user\\d+$", names(ExpectedCatch))
+      user_ind <- grep("user\\d+$", names(ExpectedCatch))
       i <- length(user_ind)
       names(ExpectedCatch)[user_ind] <- paste0("user", seq_len(i))
       # update user_dummy names
-      dum_ind <- grep("user_dummy", names(ExpectedCatch))
+      dum_ind <- grep("user_dummy\\d+", names(ExpectedCatch))
       i <- length(dum_ind)
       names(ExpectedCatch)[dum_ind] <- paste0("user_dummy", seq_len(i))
     }
