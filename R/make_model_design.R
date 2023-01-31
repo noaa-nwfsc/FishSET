@@ -318,7 +318,7 @@ make_model_design <-
     
     if (mod_dsn_exists) {
       
-      if (mod.name %in% mod_nms) {
+      if (mod.name %in% mod_nms & !replace) {
         
         stop("Model name '", mod.name, "' exists. Enter a unique name. Current ",
              "model names are: ", paste0(model_names(project), collapse = ", "), 
