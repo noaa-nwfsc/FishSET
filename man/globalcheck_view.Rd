@@ -8,18 +8,19 @@ globalcheck_view(table, project)
 }
 \arguments{
 \item{table}{Table name in FishSET database. Should contain the project, the 
-  phrase 'ldglobalcheck', and a date in YMD format (20200101). 
+  phrase 'LDGlobalCheck', and a date in YMD format (20200101). 
 Table name must be in quotes.}
 
 \item{project}{Name of project}
 }
 \description{
-Returns error output from running the discretefish_subroutine function.
-The table argument must be the full name of the table name in the FishSET database.
-Use 'tables_database()' to view table names in FishSET database.
+Returns error output from running the \code{\link{discretefish_subroutine}} 
+function. The table argument must be the full name of the table name in the 
+FishSET database. Use \code{\link{tables_database}}to view table names in 
+FishSET database.
 }
 \examples{
 \dontrun{
-globalcheck_view('pcodldglobalcheck20190604', 'pcod')
+globalcheck_view('pcodLDGlobalCheck20190604', 'pcod')
 }
 }
