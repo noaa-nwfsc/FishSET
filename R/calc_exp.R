@@ -207,7 +207,7 @@ calc_exp <- function(dataset,
           x_year <- lubridate::year(x)
           ind <- year_all == x_year & df$ID == y
           
-          mean(df$lag.value[ind], na.rm = TRUE)
+          mean(df$catch[ind], na.rm = TRUE)
         }
         
         # current version (group by year and fleet)
@@ -228,56 +228,56 @@ calc_exp <- function(dataset,
     }
     
     # lag ----
-    if (temp.lag > 0) {
-      
-      df$lag.value <- c(rep(NA, temp.lag), df$catch[-c(1:temp.lag)])
-      
-      # this will omit the first ob ID even if duplicated ex: duplicated(rep(1, 3))
-      # TODO: count IDs and replace catch for IDs with single count? Remove? 
-      df$lag.value[which(!duplicated(df$ID))] <- NA
-      
-    } else {
-      
-      df$lag.value <- df$catch
-    }
-    
-    if (temp.lag > 2) { # TODO: check this
-      
-      for (i in seq_len(temp.lag - 1)) {
-        
-        df$lag.value[(which(!duplicated(df$ID)) + temp.lag - i)] <- NA
-      }
-    }
+    # if (temp.lag > 0) {
+    #   
+    #   df$lag.value <- c(rep(NA, temp.lag), df$catch[-c(1:temp.lag)])
+    #   
+    #   # this will omit the first ob ID even if duplicated ex: duplicated(rep(1, 3))
+    #   # TODO: count IDs and replace catch for IDs with single count? Remove? 
+    #   df$lag.value[which(!duplicated(df$ID))] <- NA
+    #   
+    # } else {
+    #   
+    #   df$lag.value <- df$catch
+    # }
+    # 
+    # if (temp.lag > 2) { # TODO: check this
+    #   
+    #   for (i in seq_len(temp.lag - 1)) {
+    #     
+    #     df$lag.value[(which(!duplicated(df$ID)) + temp.lag - i)] <- NA
+    #   }
+    # }
     
     # Moving window ----
     
     window_ave <- function(x) {
       
       ind <- 
-        df$dateFloor >= x - lubridate::years(year.lag) - temp.window & 
-        df$dateFloor <= x - lubridate::years(year.lag)
+        df$dateFloor >= x - temp.lag - lubridate::years(year.lag) - temp.window + 1 & 
+        df$dateFloor <= x - temp.lag - lubridate::years(year.lag)
       
       # TODO: simplify
       if (is_value_empty(defineGroup)) {
         
         if (sum(ind) == 0) { # empty dataframe
           
-          return(data.frame(areas = altc_names, lag.value = NA))
+          return(data.frame(areas = altc_names, catch = NA))
         }
         
         # Note: could remove fleet
-        aggregate(lag.value ~ areas + fleet, data = df[ind, ], 
-                  FUN = mean, na.action = stats::na.pass, na.rm = TRUE) # remove na.rm = TRUE?
+        aggregate(catch ~ areas + fleet, data = df[ind, ], 
+                  FUN = mean, na.action = stats::na.pass, na.rm = TRUE)
         
       } else {
         
         if (sum(ind) == 0) { # empty dataframe
           # TODO: update for fleet
-          return(data.frame(ID = altc_names, lag.value = NA))
+          return(data.frame(ID = altc_names, catch = NA))
         }
         
-        aggregate(lag.value ~ ID, data = df[ind, ], 
-                  FUN = mean, na.action = na.pass, na.rm = TRUE) # remove na.rm = TRUE?
+        aggregate(catch ~ ID, data = df[ind, ], 
+                  FUN = mean, na.action = na.pass, na.rm = TRUE)
       }
     }
     # list entries contain the window avg for each day
@@ -290,7 +290,7 @@ calc_exp <- function(dataset,
     ave_list <- lapply(ave_list, function(i) {
       
       # return avg for each area. Return NA if missing
-      i$lag.value[match(altc_names, i[[area_nm]])]
+      i$catch[match(altc_names, i[[area_nm]])]
     })
     
     # combine into "small" exp catch matrix
