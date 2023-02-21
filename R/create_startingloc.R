@@ -16,10 +16,10 @@
 #' @param haul_order Variable in \code{dat} containing information on the order 
 #'   that hauls occur within a trip. Can be time, coded variable, etc.
 #' @param starting_port Variable in \code{dat} to identify port at start of trip.
-#' @param lon.dat Longitude variable from \code{dat}. Required if \emph{ZoneID} 
-#'   does not exist in \code{dat}.
-#' @param lat.dat Latitude variable from \code{dat}. Required if \emph{ZoneID} 
-#'   does not exist in \code{dat}.
+# @param lon.dat Longitude variable from \code{dat}. Required if \emph{ZoneID} 
+#   does not exist in \code{dat}.
+# @param lat.dat Latitude variable from \code{dat}. Required if \emph{ZoneID} 
+#   does not exist in \code{dat}.
 #' @param zoneID Variable in \code{dat} that identifies the individual zones or 
 #'   areas.
 #' @param spatID Variable in \code{spat} that identifies the individual zones or 
