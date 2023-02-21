@@ -84,3 +84,17 @@
 #' }
 #' 
 "windLease"
+
+
+#' Alaskan Ports
+#' 
+#' 
+#' @format `alaskaPorts`
+#' A dataframe with three columns and 88 rows:
+#' \describe{
+#'   \item{PORT}{Name of port.}
+#'   \item{LONGITUDE}{LONGITUDE of port.}
+#'   \item{LATITUDE}{LATITUDE of port.}
+#' }
+#' 
+"alaskaPorts"
