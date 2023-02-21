@@ -267,6 +267,10 @@ make_model_design <-
   spatdat <- spat_out$dataset
   spat <- parse_data_name(spat, "spat", project)
   
+  pt <- data_pull(paste0(project, 'PortTable'), project)
+  ptname <- pt$dat # Note: ptname not used 
+  port <- pt$dataset # used in create_distance_matrix()
+  
   # check args ----
   
   if (likelihood == "logit_c") {
@@ -476,32 +480,32 @@ make_model_design <-
   }
 
   # Port ----  
-  
-  if (occasion == "port" || 
-      (occasion %in% c("zonal centroid", "fishing centroid") & 
-       !is_value_empty(occasion_var) && occasion_var != zoneID)) {
-    
-    # check if port table needs to be merged to primary table
-    # (if occasion_var is empty, assume port lon-lat is included in primary table)
-    if (length(occasion_var) == 1) { # port ID variable or previous area variable
-      
-      pt <- data_pull(paste0(project, 'PortTable'), project)
-      ptname <- pt$dat # Note: ptname not used 
-      port <- pt$dataset # used in create_distance_matrix()
-      
-    # } else {
-    #  
-    #   # update error msg
-    #   stop("Port table not found in database. Check spelling and ensure port table ", 
-    #        "is loaded into the FishSET database.", call. = FALSE)
-    # }
-    
-    } else {
-      
-      ptname <- NULL
-      port <- NULL
-    }
-  }
+  # TODO: Revisit port section (should port table always be included?)
+  # if (occasion == "port" || 
+  #     (occasion %in% c("zonal centroid", "fishing centroid") & 
+  #      !is_value_empty(occasion_var) && occasion_var != zoneID)) {
+  #   
+  #   # check if port table needs to be merged to primary table
+  #   # (if occasion_var is empty, assume port lon-lat is included in primary table)
+  #   if (length(occasion_var) == 1) { # port ID variable or previous area variable
+  #     
+  #     pt <- data_pull(paste0(project, 'PortTable'), project)
+  #     ptname <- pt$dat # Note: ptname not used 
+  #     port <- pt$dataset # used in create_distance_matrix()
+  #     
+  #   # } else {
+  #   #  
+  #   #   # update error msg
+  #   #   stop("Port table not found in database. Check spelling and ensure port table ", 
+  #   #        "is loaded into the FishSET database.", call. = FALSE)
+  #   # }
+  #   
+  #   } else {
+  #     
+  #     ptname <- NULL
+  #     port <- NULL
+  #   }
+  # }
   
   # Gridded ----
   # Note: create_alternative_choice() currently cannot create a distance matrix from a 
@@ -546,7 +550,7 @@ make_model_design <-
     
     if (any(indVars %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) {
     
-    indeVarsForModel <- lapply(indVars[-1], function(x) dataset[[x]][zone_ind])
+      indeVarsForModel <- lapply(indVars[-1], function(x) dataset[[x]][zone_ind])
     
     } else {
       
