@@ -14,17 +14,20 @@ outlier_plot_int(
 )
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
+\item{dat}{Main data frame over which to apply function. Table in fishet_db 
+database should contain the string `MainDataTable`.}
 
-\item{x}{Column in dataframe to check for outliers}
+\item{x}{Column in dataframe to check for outliers.}
 
-\item{dat_remove}{Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD}
+\item{dat_remove}{Defines method to subset the data. Choices include: 'none', 
+'5_95_quant', '25_75_quant', 'mean_2SD', 'median_2SD', 'mean_3SD', 'median_3SD'.}
 
-\item{x_dist}{Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial}
+\item{x_dist}{Distribution of the data. Choices include: 'normal', 'lognormal', 
+'exponential', 'weibull', 'poisson', 'negative binomial'.}
 
-\item{sd_val}{User-defined rule}
+\item{sd_val}{User-defined rule.}
 
-\item{plot_type}{Which plot to return}
+\item{plot_type}{Which plot to return.}
 }
 \value{
 Plot of the data
@@ -33,9 +36,12 @@ Plot of the data
 Evaluate outliers through plots
 }
 \details{
-The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
- x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat_remove` is `none`, then only blue points will be shown.
- The probability plot is a histogram of the data with the fitted probability distribution based on `x_dist`. The Q-Q plot plots are
+The function returns three plots, the data, a probability plot, 
+ and a Q-Q plot. The data plot is the value of \code{x} against row number. 
+ Red points are all the data without any points removed. The blue points are 
+ the subsetted data. If `dat_remove` is `none`, then only blue points will 
+ be shown. The probability plot is a histogram of the data with the fitted 
+ probability distribution based on `x_dist`. The Q-Q plot plots are
  sampled quantiles against theoretical quantiles.
 }
 \keyword{internal}

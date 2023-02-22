@@ -4,14 +4,14 @@
 \alias{welfare_predict}
 \title{Welfare analysis code}
 \usage{
-welfare_predict(project, mod.name, expected.catch.name, enteredPrice)
+welfare_predict(project, mod.name, expected.catch, enteredPrice)
 }
 \arguments{
 \item{project}{Name of project}
 
 \item{mod.name}{Name of selected model (mchoice)}
 
-\item{expected.catch.name}{Name of expectedchatch table to use}
+\item{expected.catch}{Name of expectedchatch table to use}
 
 \item{enteredPrice}{Price for welfare}
 }
@@ -19,6 +19,7 @@ welfare_predict(project, mod.name, expected.catch.name, enteredPrice)
 Welfare analysis code
 }
 \details{
-Called by \code{\link{run_policy}} function. The \code{\link{model_prediction}} function should be run before this function.
+Called by \code{\link{run_policy}} function. The 
+  \code{\link{model_prediction}} function should be run before this function.
 EPM weibull'
 }

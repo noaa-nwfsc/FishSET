@@ -14,23 +14,28 @@ run_policy(
 \arguments{
 \item{project}{Name of project}
 
-\item{mod.name}{Model name. Argument can be the name of the model or the name can be pulled the `modelChosen`` table.
- Leave \code{mod.name} empty to use the name of the saved `best` model. If more than
-one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
+\item{mod.name}{Model name. Argument can be the name of the model or the name 
+can be pulled the `modelChosen` table. Leave \code{mod.name} empty to use 
+the name of the saved `best` model. If more than one model is saved, 
+\code{mod.name} should be the numeric indicator of which model to use.
 Use \code{table_view("modelChosen", project)} to view a table of saved models.}
 
-\item{enteredPrice}{Price data. Leave as NULL if using price data from primary dataset.}
+\item{enteredPrice}{Price data. Leave as NULL if using price data from primary 
+dataset.}
 
-\item{expected.catch}{Required for conditional logit (\code{logit_c}) model. 
-Name of expected catch table to use. 
- Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 
- long-term scenario (\code{long}), or the user-defined temporal parameters (\code{user}).}
+\item{expected.catch}{Required for conditional logit (\code{logit_c}) model.
+Name of expected catch table to use. Can be the expected catch from the 
+short-term scenario (\code{short}), the medium-term scenario (\code{med}), 
+the long-term scenario (\code{long}), or the user-defined temporal parameters 
+(\code{user}).}
 }
 \description{
-Checks policy scenario exists. Runs predict_probability function. Runs welfare_predict function
+Checks policy scenario exists. Runs predict_probability function. Runs 
+\code{\link{welfare_predict}} function
 }
 \details{
-\code{run_policy} is a wrapper function that calls the policy and welfare subfunctions. Policy closure scenarios 
-  must be defined using the \code{\link[FishSET]{zone_closure}} function. The function also requires parameter 
+\code{run_policy} is a wrapper function that calls the policy and 
+  welfare subfunctions. Policy closure scenarios must be defined using the 
+  \code{\link[FishSET]{zone_closure}} function. The function also requires parameter
   estimates and model data from one model.
 }

@@ -17,15 +17,15 @@ Table in the FishSET database contains the string 'MainDataTable'.}
 use \code{c('var1', 'var2')}}
 }
 \value{
-Box and whisker plot for all nuemric variables. Saved to `output` folder.
+Box and whisker plot for all numeric variables. Saved to `output` folder.
 }
 \description{
 Boxplot to assess outliers
 }
 \details{
 Creates a visual representation of five summary statistics: 
-  median
-  two hinges (first and third quartiles)
-  two whiskers (extends to 1.5*IQR where IQR is the distance bewteen the first and third quartiles.
-  "Outlying" points, those beyond the two whiskers (1.5*IQR) are shown individually.
+  median, two hinges (first and third quartiles), two whiskers (extends to 
+  1.5*IQR where IQR is the distance between the first and third quartiles.
+  "Outlying" points, those beyond the two whiskers (1.5*IQR) are shown 
+  individually.
 }
