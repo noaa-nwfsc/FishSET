@@ -21,20 +21,22 @@ Table in the FishSET database contains the string 'MainDataTable'.}
 
 \item{x}{Variable in \code{dat} containing potential outliers.}
 
-\item{dat.remove}{Defines measure to subset the data. 
-Users can use the predefined values (see below) or user-defined standard deviations from the mean.
- For user-defined values, \code{dat.remove} should be a numeric value. For example, \code{dat.remove=6} 
- would would result in value outside 6SD from the mean being class as outliers. 
- User-defined standard deviations from the mean can also be applied using \code{sd_val}.
- Predefined choices: 
- \code{"none"}, \code{"5_95_quant"}, \code{"25_75_quant"}, \code{"mean_2SD"}, 
- \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.}
+\item{dat.remove}{Defines measure to subset the data. Users can use the 
+predefined values (see below) or user-defined standard deviations from the 
+mean. For user-defined values, \code{dat.remove} should be a numeric value. 
+For example, \code{dat.remove=6} would would result in value outside 6SD 
+from the mean being class as outliers. User-defined standard deviations 
+from the mean can also be applied using \code{sd_val}.
+Predefined choices: 
+\code{"none"}, \code{"5_95_quant"}, \code{"25_75_quant"}, \code{"mean_2SD"}, 
+\code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.}
 
-\item{sd_val}{Optional. Number of standard deviations from mean defining outliers. 
-Example, \code{sd_val=6} would mean values outside +/- 6 SD from the mean would be outliers.}
+\item{sd_val}{Optional. Number of standard deviations from mean defining 
+outliers. For example, \code{sd_val=6} would mean values outside +/- 6 SD 
+from the mean would be outliers.}
 
-\item{over_write}{Logical, If TRUE, saves data over previously saved data 
-table in the FishSET database.}
+\item{over_write}{Logical, If \code{TRUE}, saves data over previously saved 
+data table in the FishSET database.}
 }
 \value{
 Returns the modified primary dataset. Modified dataset will be saved 

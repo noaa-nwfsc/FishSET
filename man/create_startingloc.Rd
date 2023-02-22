@@ -45,12 +45,6 @@ areas.}
 
 \item{name}{String, name of created variable. Defaults to name of the function 
 if not defined.}
-
-\item{lon.dat}{Longitude variable from \code{dat}. Required if \emph{ZoneID} 
-does not exist in \code{dat}.}
-
-\item{lat.dat}{Latitude variable from \code{dat}. Required if \emph{ZoneID} 
-does not exist in \code{dat}.}
 }
 \value{
 Primary data set with starting location variable added.
