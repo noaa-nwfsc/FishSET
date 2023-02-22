@@ -77,21 +77,27 @@ test_that("empty_vars_filter: detects empty var", {
   expect_equal(out, temp_dat[-3])
 })
 
-
-dd_df <- data.frame(lat_dd = PollockData$LonLat_START_LAT[1:10],
-                    lon_dd = PollockData$LonLat_START_LON[1:10])
-
-dms_df <- data.frame(lat_dms = as.character(sp::dd2dms(dd_df$lat_dd)),
-                     lon_dms = paste0("-", as.character(sp::dd2dms(dd_df$lon_dd))))
+if (requireNamespace('sp', quietly = TRUE)) {
+  
+  dd_df <- data.frame(lat_dd = PollockData$LonLat_START_LAT[1:10],
+                      lon_dd = PollockData$LonLat_START_LON[1:10])
+  # TODO: make this test conditional on whether sp is available
+  dms_df <- data.frame(lat_dms = as.character(sp::dd2dms(dd_df$lat_dd)),
+                       lon_dms = paste0("-", as.character(sp::dd2dms(dd_df$lon_dd))))
+}
 
 test_that("degree: detects lat lon degrees", {
 
-expect_message(degree(dd_df, "pollock", lat = "lat_dd", lon = "lon_dd"),
-               "Latitude and longitude variables in decimal degrees")
+  skip_if_not_installed("sp")
+  
+  expect_message(degree(dd_df, "pollock", lat = "lat_dd", lon = "lon_dd"),
+                 "Latitude and longitude variables in decimal degrees")
   
 })
 
 test_that("degree: converts decimal minutes", {
+  
+  skip_if_not_installed("sp")
   
   out <- degree(dms_df, "pollock", lat = "lat_dms", lon = "lon_dms", replace = TRUE)
   
@@ -100,6 +106,8 @@ test_that("degree: converts decimal minutes", {
 })
 
 test_that("degree: converts packed DMS", {
+  
+  skip_if_not_installed("sp")
   
   pdms_df <- data.frame(lat_pdms = dms_to_pdms(dms_df$lat_dms, type = "lat", as_num = TRUE),
                         lon_pdms = dms_to_pdms(dms_df$lon_dms, type = "lon", as_num = TRUE))
@@ -112,6 +120,8 @@ test_that("degree: converts packed DMS", {
 
 
 test_that("degree: changes signs", {
+  
+  skip_if_not_installed("sp")
   
   sign_df <- data.frame(lat_dd = dd_df$lat_dd * -1, lon_dd = dd_df$lon_dd * -1)
   
