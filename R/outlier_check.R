@@ -451,18 +451,20 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", sd_val=NULL, ov
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
   #' @param x Variable in \code{dat} containing potential outliers.
-  #' @param dat.remove Defines measure to subset the data. 
-  #'  Users can use the predefined values (see below) or user-defined standard deviations from the mean.
-  #'   For user-defined values, \code{dat.remove} should be a numeric value. For example, \code{dat.remove=6} 
-  #'   would would result in value outside 6SD from the mean being class as outliers. 
-  #'   User-defined standard deviations from the mean can also be applied using \code{sd_val}.
+  #' @param dat.remove Defines measure to subset the data. Users can use the 
+  #'   predefined values (see below) or user-defined standard deviations from the 
+  #'   mean. For user-defined values, \code{dat.remove} should be a numeric value. 
+  #'   For example, \code{dat.remove=6} would would result in value outside 6SD 
+  #'   from the mean being class as outliers. User-defined standard deviations 
+  #'   from the mean can also be applied using \code{sd_val}.
   #'   Predefined choices: 
   #'   \code{"none"}, \code{"5_95_quant"}, \code{"25_75_quant"}, \code{"mean_2SD"}, 
   #'   \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.
-  #' @param sd_val Optional. Number of standard deviations from mean defining outliers. 
-  #'    Example, \code{sd_val=6} would mean values outside +/- 6 SD from the mean would be outliers.
-  #' @param over_write Logical, If TRUE, saves data over previously saved data 
-  #'   table in the FishSET database.
+  #' @param sd_val Optional. Number of standard deviations from mean defining 
+  #'   outliers. For example, \code{sd_val=6} would mean values outside +/- 6 SD 
+  #'   from the mean would be outliers.
+  #' @param over_write Logical, If \code{TRUE}, saves data over previously saved 
+  #'   data table in the FishSET database.
   #' @export outlier_remove
   #' @importFrom stats median quantile sd
   #' @importFrom DBI dbConnect dbWriteTable dbDisconnect
@@ -548,7 +550,7 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", sd_val=NULL, ov
 }
     
 
-outlier_boxplot <- function(dat, project, x=NULL){
+outlier_boxplot <- function(dat, project, x = NULL) {
   #' Boxplot to assess outliers
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
@@ -557,15 +559,16 @@ outlier_boxplot <- function(dat, project, x=NULL){
   #'   \code{x = NULL} to plot all numeric variables. To specify multiple variables 
   #'   use \code{c('var1', 'var2')}
   #' @details Creates a visual representation of five summary statistics: 
-  #'   median
-  #'   two hinges (first and third quartiles)
-  #'   two whiskers (extends to 1.5*IQR where IQR is the distance bewteen the first and third quartiles.
-  #'   "Outlying" points, those beyond the two whiskers (1.5*IQR) are shown individually.
-  #' @return Box and whisker plot for all nuemric variables. Saved to `output` folder.
+  #'   median, two hinges (first and third quartiles), two whiskers (extends to 
+  #'   1.5*IQR where IQR is the distance between the first and third quartiles.
+  #'   "Outlying" points, those beyond the two whiskers (1.5*IQR) are shown 
+  #'   individually.
+  #' @return Box and whisker plot for all numeric variables. Saved to `output` folder.
   #' @export
   #' @import ggplot2
   #' @importFrom tidyr pivot_longer
   
+  variable <- value <- id <- NULL
   
   out <- data_pull(dat, project)
   dataset <- out$dataset
@@ -574,19 +577,24 @@ outlier_boxplot <- function(dat, project, x=NULL){
   dataset$id <- 1:nrow(dataset)
   
   if(is.null(x)){
-  num_cols <- unlist(lapply(dataset, is.numeric))   
+    num_cols <- qaqc_helper(dataset, is.numeric, output = 'names')   
   } else {
     if(!all(x %in% names(dataset))){
       stop('Variables in `x` do not match variables names in data table')
     }
-    num_cols <- unlist(lapply(dataset[,c(x, 'id')], is.numeric))   
+    num_cols <- qaqc_helper(dataset[c(x, 'id')], is.numeric, output = 'names')   
   }
   
-  ddm = tidyr::gather(dataset[,num_cols], variable, value, -id)
-  # ddm = tidyr::pivot_longer(dataset[,num_cols], variable, value, -id)
+  ddm <- tidyr::pivot_longer(dataset[num_cols], 
+                             cols = -id, 
+                             names_to = 'variable', 
+                             values_to = 'value')
 
-  p <- ggplot2::ggplot(ddm)+ggplot2::geom_boxplot(aes(x=variable, y=(value)))+
-    fishset_theme() +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+  p <- 
+    ggplot2::ggplot(ddm) +
+    ggplot2::geom_boxplot(ggplot2::aes(x = variable, y = value)) +
+    fishset_theme() + 
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1))
   
   outlier_boxplot_function <- list()
   outlier_boxplot_function$functionID <- "outlier_boxplot"
@@ -594,6 +602,5 @@ outlier_boxplot <- function(dat, project, x=NULL){
   log_call(project, outlier_boxplot_function)
   
   save_plot(project, "outlier_boxplot", p)
-   print(p)
- 
+  print(p)
 }
