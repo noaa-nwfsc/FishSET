@@ -972,6 +972,7 @@ data_upload_helper <- function(dat, type, ...) {
   #' @param type The type of data to upload. Options include \code{"main"}, 
   #' \code{"port"}, \code{"grid"}, \code{"aux"}, and \code{"spat"}.
   #' @param ... Additional arguments passed to \code{\link{read_dat}}.
+  #' @importFrom utils glob2rx
   #' @examples 
   #' \dontrun{
   #' dataset <- data_upload_helper(dat, type = "main")
@@ -1004,7 +1005,7 @@ data_upload_helper <- function(dat, type, ...) {
       
       if (dat %in% main_tabs) {
         
-        dat_string <- glob2rx(dat)
+        dat_string <- utils::glob2rx(dat)
         
         f_proj <- f_tabs$project[grepl(dat_string, main_tabs)]
         
@@ -1172,6 +1173,8 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, within_group
   #'            within_group = "PORT_CODE")
   #' }
   
+  . <- NULL
+
   agg_cols <- unique(c(value, period, group))
   
   column_check(dataset, agg_cols)
@@ -2104,9 +2107,10 @@ bbox <- function(dat, lon, lat, f = 0.05) {
   #' @param f Number specifying the fraction by which to extend the range.
   #' @export
   #' @keywords internal
+  #' @importFrom grDevices extendrange
   
-  lon_range <- extendrange(range(dat[[lon]], na.rm = TRUE), f = f)
-  lat_range <- extendrange(range(dat[[lat]], na.rm = TRUE), f = f)
+  lon_range <- grDevices::extendrange(range(dat[[lon]], na.rm = TRUE), f = f)
+  lat_range <- grDevices::extendrange(range(dat[[lat]], na.rm = TRUE), f = f)
   
   c(left = lon_range[1], bottom = lat_range[1], 
     right = lon_range[2], top = lat_range[2])
@@ -2153,24 +2157,28 @@ add_prompter <- function(ui_element,
 }
 
 
-
-
-
-outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal", sd_val=NULL, plot_type) {
+outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal", 
+                             sd_val = NULL, plot_type) {
   #' Evaluate outliers through plots
-  #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
-  #' @param x Column in dataframe to check for outliers
-  #' @param dat_remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
-  #' @param x_dist Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial
-  #' @param sd_val User-defined rule
-  #' @param plot_type Which plot to return
+  #' @param dat Main data frame over which to apply function. Table in fishet_db 
+  #'   database should contain the string `MainDataTable`.
+  #' @param x Column in dataframe to check for outliers.
+  #' @param dat_remove Defines method to subset the data. Choices include: 'none', 
+  #'   '5_95_quant', '25_75_quant', 'mean_2SD', 'median_2SD', 'mean_3SD', 'median_3SD'.
+  #' @param x_dist Distribution of the data. Choices include: 'normal', 'lognormal', 
+  #'   'exponential', 'weibull', 'poisson', 'negative binomial'.
+  #' @param sd_val User-defined rule.
+  #' @param plot_type Which plot to return.
   #' @importFrom graphics points
   #' @import ggplot2
   #' @keywords internal
   #' @export
-  #' @details  The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
-  #'  x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat_remove` is `none`, then only blue points will be shown.
-  #'  The probability plot is a histogram of the data with the fitted probability distribution based on `x_dist`. The Q-Q plot plots are
+  #' @details  The function returns three plots, the data, a probability plot, 
+  #'  and a Q-Q plot. The data plot is the value of \code{x} against row number. 
+  #'  Red points are all the data without any points removed. The blue points are 
+  #'  the subsetted data. If `dat_remove` is `none`, then only blue points will 
+  #'  be shown. The probability plot is a histogram of the data with the fitted 
+  #'  probability distribution based on `x_dist`. The Q-Q plot plots are
   #'  sampled quantiles against theoretical quantiles.
   #'
   #' @return Plot of the data
@@ -2184,8 +2192,6 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal", sd_
   if(!is.null(sd_val) & is.numeric(sd_val)){
     dat_remove <- sd_val
   }
-  
-
   
   if (is.numeric(dataset[[x]])) {
     # Begin outlier check
@@ -2318,7 +2324,7 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal", sd_
     p_title <- paste0("Plots for ", x, " with ", x_dist,
                      " distribution and data removed based on '", dat_remove,
                      "'. \nBlue: included points   Red: removed points")
-    
+    # TODO: p1 and p2 out of scope
     fig <- gridExtra::grid.arrange(p1, p2, p3, ncol = 2, nrow = 2, 
                                    top = grid::textGrob(p_title, gp = grid::gpar(fontsize = 10)))
     
