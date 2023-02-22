@@ -21,7 +21,7 @@ corr_out <- function(dat, project, variables = "all", method = "pearson",
   #'   equal to 0.05 are shown. 
   #' @export
   #' @import ggplot2
-  #' @importFrom stats cor
+  #' @importFrom stats cor cor.test
   #' @importFrom rlang sym
   #' @details Returns Pearson's correlation coefficient between numeric variables 
   #'   in plot and table format. Output saved to output folder.
@@ -76,7 +76,7 @@ corr_out <- function(dat, project, variables = "all", method = "pearson",
     cor.list <- lapply(dataset[variables], function(x) {
       
       vapply(dataset[variables], 
-             function(y) cor.test(x, y, method = method)$p.value, numeric(1))
+             function(y) stats::cor.test(x, y, method = method)$p.value, numeric(1))
     })
     
     p.val <- do.call(rbind, cor.list)
@@ -127,6 +127,8 @@ corr_plot <- function(corr, p.val, show_coef, project) {
   #' @importFrom tidyr pivot_longer
   #' @importFrom tibble as_tibble
   
+  Var1 <- Var2 <- value <- NULL
+
   #Get lower triangle of the correlation matrix
   get_lower_tri <- function(cormat) {
     if (is.null(cormat)) {
