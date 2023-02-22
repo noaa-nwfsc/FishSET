@@ -29,7 +29,7 @@
 #'@param n.breaks The number of break points to create if breaks are not given 
 #'  directly. Defaults to 10. 
 #'@param bin_colors Optional, a vector of colors to use in plot. Must be same length
-#'  as breaks. Defaults to `viridis::viridis(option = "H")`.
+#'  as breaks. Defaults to `fishset_viridis(10)`.
 #'@param na.rm Logical, whether to remove zones with zero counts. 
 #'@param dat.center Logical, whether the plot should center on `dat` 
 #'  (`TRUE`) or `spat` (`FALSE`). Recommend `dat.center = TRUE`
