@@ -16,7 +16,7 @@
 #' @param dummy.exp dummy matrix
 #' @param Alt Alternative choice list
 #' @keywords internal
-#' @importFrom lubridate floor_date year years
+#' @importFrom lubridate floor_date year years %m-%
 #' @importFrom stats aggregate lm coef na.pass
 #' @returns Returns a list containing the expected catch/revenue matrix and 
 #'   dummy matrix (if \code{dummy.exp = TRUE}). 
@@ -253,9 +253,9 @@ calc_exp <- function(dataset,
     
     window_ave <- function(x) {
       
-      ind <- 
-        df$dateFloor >= x - temp.lag - lubridate::years(year.lag) - temp.window + 1 & 
-        df$dateFloor <= x - temp.lag - lubridate::years(year.lag)
+      ind <-
+        df$dateFloor >= x %m-% lubridate::years(year.lag) - temp.lag - temp.window + 1 &
+        df$dateFloor <= x %m-% lubridate::years(year.lag) - temp.lag
       
       # TODO: simplify
       if (is_value_empty(defineGroup)) {
