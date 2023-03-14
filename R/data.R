@@ -88,6 +88,7 @@
 
 #' Alaskan Ports
 #' 
+#' A dataframe of Alaskan ports.
 #' 
 #' @format `alaskaPorts`
 #' A dataframe with three columns and 88 rows:
@@ -98,3 +99,28 @@
 #' }
 #' 
 "alaskaPorts"
+
+
+#' Alaskan NMFS Areas
+#' 
+#' A spatial dataset of Alaskan NMFS areas.
+#' 
+#' @format `alaskaNMFSAreas`
+#' A simple features multipolygon dataframe with 10 features and two fields:
+#' \describe{
+#'   \item{NMFS_AREA}{NMFS area number.}
+#'   \item{geometry}{Coordinates for NMFS area.}
+#' }
+#' 
+"alaskaNMFSAreas"
+
+
+#' Pollock Data
+#' 
+#' Bering Sea pollock data from 2011
+#' 
+#' @format `PollockData`
+#' A dataframe with 36 columns and 839 rows:
+#' 
+#' 
+"PollockData"
