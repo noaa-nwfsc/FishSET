@@ -17,6 +17,6 @@ A dataframe with three columns and 88 rows:
 alaskaPorts
 }
 \description{
-Alaskan Ports
+A dataframe of Alaskan ports.
 }
 \keyword{datasets}

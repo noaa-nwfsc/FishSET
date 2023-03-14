@@ -30,8 +30,3 @@ previously saved data tables. The new data tables will be saved to the FishSET d
 Set the \code{compare} argument to FALSE if no previous versions of the data table exist in the FishSET database.
 No comparison will be made and the new file will be saved to the database.
 }
-\examples{
-\dontrun{
-
-}
-}
