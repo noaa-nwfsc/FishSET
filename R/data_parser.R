@@ -345,7 +345,7 @@ load_data <- function(project, name = NULL) {
   # check_proj(project)
 
  hack <- function(key, val, pos){
-      assign(key,val, envir=as.environment(pos)
+      assign(key, val, envir=as.environment(pos)
       )} 
   
  dat <- NULL
@@ -432,10 +432,8 @@ fishset_compare <- function(x, y, compare = c(TRUE, FALSE), project) {
   #' previously saved data tables. The new data tables will be saved to the FishSET database if column names match.
   #' Set the \code{compare} argument to FALSE if no previous versions of the data table exist in the FishSET database.
   #' No comparison will be made and the new file will be saved to the database.
-  #' @examples 
-  #' \dontrun{
   #' 
-  #' }
+ 
 
   fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
