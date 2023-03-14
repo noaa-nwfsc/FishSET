@@ -544,8 +544,7 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", sd_val=NULL, ov
       outlier_remove_function$msg <- paste("outliers removed using", dat.remove)
       log_call(project, outlier_remove_function)
 
-      dataset #
-      assign('pollockMainDataTable', dataset, envir=.GlobalEnv)
+      # assign('pollockMainDataTable', dataset, envir=.GlobalEnv)
       return(dataset)
 }
     
