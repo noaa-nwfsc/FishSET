@@ -548,7 +548,7 @@ zone_out <-
                count = FALSE,
                var = "MEAT_POUNDS", fun = "percent",
                breaks = seq(0, 2, .2),
-               bin_colors = c("white", viridis::viridis(10, option = "H")),
+               bin_colors = c("white", fishset_viridis(10)),
                output = "tab_plot", na.rm = TRUE)
 
 zone_out$plot
@@ -864,10 +864,8 @@ corr_outs <-
            method = "pearson", 
            show_coef = FALSE)
 
-# corr_outs$plot$layers[[2]]$aes_params$size <- 1.5
 corr_outs$plot
 corr_outs$table %>% 
-  # pretty_lab() %>% 
   pretty_tab_sb(width = "100%")
 ```
 
@@ -1135,3 +1133,8 @@ density_plot(scallopMainDataTable, proj,
              tran = "log", scale = "free_y") + 
   angled_theme()
 ```
+
+```{r echo = FALSE}
+unlink(folderpath)
+```
+
