@@ -85,7 +85,13 @@ locproject <- function() {
   proj_dir <- paste0(normalizePath(proj_dir), "/")
   
   # create the new path to FishSETFolder
-  if (!fp_exists) assign('folderpath', proj_dir, envir = as.environment(1L))
+  
+  if (!fp_exists) {
+    
+    pos <- 1
+    envir = as.environment(pos)
+    assign('folderpath', proj_dir, envir = envir)
+  }
   
   return(proj_dir)
 }
@@ -104,7 +110,9 @@ update_folderpath <- function() {
   
   proj_dir <- paste0(normalizePath(fs_path), "/") # add trailing slash
   
-  assign('folderpath', proj_dir, envir = as.environment(1L))
+  pos <- 1
+  envir = as.environment(pos)
+  assign('folderpath', proj_dir, envir = envir)
 }
 
 project_exists <- function(project) {
