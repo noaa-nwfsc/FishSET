@@ -62,6 +62,7 @@ map_viewer <- function(dat, project, spat, avd, avm, num_vars, temp_vars, id_var
   
   if (!is.null(spatdat)) {
     
+    unlink(paste0(loc_map(project = project), "spatdat.geojson"))
     sf::st_write(spatdat, dsn = paste0(loc_map(project = project), "spatdat.geojson"), 
                  overwrite = TRUE)
   }

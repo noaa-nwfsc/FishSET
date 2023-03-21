@@ -2,13 +2,14 @@
   #' Welfare analysis code
   #' @param project Name of project
   #' @param mod.name Name of selected model (mchoice)
-  #' @param expected.catch.name Name of expectedchatch table to use
+  #' @param expected.catch Name of expectedchatch table to use
   #' @param enteredPrice Price for welfare
   #' @importFrom DBI dbConnect dbDisconnect dbGetQuery
   #' @importFrom RSQLite SQLite
   #' @export
-  #' @details Called by \code{\link{run_policy}} function. The \code{\link{model_prediction}} function should be run before this function.
-welfare_predict <- function(project, mod.name, expected.catch.name, enteredPrice){
+  #' @details Called by \code{\link{run_policy}} function. The 
+  #'   \code{\link{model_prediction}} function should be run before this function.
+welfare_predict <- function(project, mod.name, expected.catch, enteredPrice){
 
  #TODO make stdard version, only works for zone that all 100% closed and
  #compares closure at entered price versus non closure at that price (not a comparison to other years
@@ -29,19 +30,25 @@ welfare_predict <- function(project, mod.name, expected.catch.name, enteredPrice
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  predict_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT PredictOutput FROM ", project, "predictoutput LIMIT 1"))$PredictOutput[[1]])
+  # TODO: use unserialize_table()
+  predict_temp <- 
+    unserialize(DBI::dbGetQuery(fishset_db, 
+                                paste0("SELECT PredictOutput FROM ", project, "predictoutput LIMIT 1"))$PredictOutput[[1]])
   
 
    #Get inverse hessian for selected model
   #Get model output
   tlength <- length(tables_database(project=project)[grep('ModelOut', tables_database(project=project))])
-     for(i in 1:tlength){
-        tempname <- tables_database(project=project)[grep('ModelOut', tables_database(project=project))][tlength]
-        out <- model_out_view(table = tempname, project=project)
-    if(any(lapply( out , "[[" , "name" ) == mod.name)==TRUE){
+     
+  for(i in 1:tlength) {
+    
+    tempname <- tables_database(project=project)[grep('ModelOut', tables_database(project=project))][tlength]
+    out <- model_out_view(table = tempname, project=project)
+    
+    if(any(lapply( out , "[[" , "name" ) == mod.name)==TRUE) {
       break   #model.H1{mChoice} #Note added inv hessian
     } 
-    }
+  }
 
   stopifnot(any(lapply( out , "[[" , "name" ) == mod.name)==TRUE)
     warning('Specified model not found. Check name.')

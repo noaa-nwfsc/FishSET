@@ -74,19 +74,11 @@ check_exp <- function(ec, ec_names) {
       
     } else { # specific matrices to include
       
-      # loop thru each entry, replace with actual name in ec list
       out <- c()
       
       for (j in seq_along(ec_names[[i]])) {
         
-        out_j <- switch(ec_names[[i]][j], 
-                        recent = "recent_exp", recent_dummy = "recent_dummy",
-                        older = "older_exp", older_dummy = "older_dummy",
-                        oldest = "oldest_exp", oldest_dummy = "oldest_dummy",
-                        logbook = "logbook_exp", logbook_dummy = "logbook_dummy",
-                        user = "user_exp", user_dummy = "user_dummy")
-        
-        if (is.null(out_j)) { # switch() returns NULL if no match found
+        if (!ec_names[[i]][j] %in% names(ec)) {
           
           ec_dums <- grepl("_dummy", ec_choices)
           ec_exp <- gsub("_\\w+$", "", ec_choices[!ec_dums])
@@ -97,7 +89,7 @@ check_exp <- function(ec, ec_names) {
                call. = FALSE)
         }
         
-        out <- c(out, out_j)
+        out <- c(out, ec_names[[i]][j])
       }
       
       if (invd) {

@@ -77,17 +77,16 @@ test_that("empty_vars_filter: detects empty var", {
   expect_equal(out, temp_dat[-3])
 })
 
-
 dd_df <- data.frame(lat_dd = PollockData$LonLat_START_LAT[1:10],
                     lon_dd = PollockData$LonLat_START_LON[1:10])
 
-dms_df <- data.frame(lat_dms = as.character(sp::dd2dms(dd_df$lat_dd)),
-                     lon_dms = paste0("-", as.character(sp::dd2dms(dd_df$lon_dd))))
+dms_df <- data.frame(lat_dms = as.character(dd2dms(dd_df$lat_dd)),
+                     lon_dms = paste0("-", as.character(dd2dms(dd_df$lon_dd))))
 
 test_that("degree: detects lat lon degrees", {
-
-expect_message(degree(dd_df, "pollock", lat = "lat_dd", lon = "lon_dd"),
-               "Latitude and longitude variables in decimal degrees")
+  
+  expect_message(degree(dd_df, "pollock", lat = "lat_dd", lon = "lon_dd"),
+                 "Latitude and longitude variables in decimal degrees")
   
 })
 

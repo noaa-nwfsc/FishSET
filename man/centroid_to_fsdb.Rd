@@ -6,7 +6,7 @@
 \usage{
 centroid_to_fsdb(
   dat,
-  spat = NULL,
+  spat.name = NULL,
   project,
   zoneID,
   cent.lon,
@@ -18,7 +18,7 @@ centroid_to_fsdb(
 \item{dat}{Required, main data frame containing data on hauls or trips.
 Table in FishSET database should contain the string \code{MainDataTable}.}
 
-\item{spat}{Optional, a name to associate with the centroid table.}
+\item{spat.name}{Optional, a name to associate with the centroid table.}
 
 \item{project}{Name of project.}
 
@@ -32,7 +32,7 @@ longitude of zones or areas.}
 latitude of  zones or areas.}
 
 \item{type}{The type of centroid. Options include \code{"zone"} for zonal centroids
-and \code{fish} for fishing centroids.}
+and \code{"fish"} for fishing centroids.}
 }
 \description{
 Save the unique centroid values from the primary table to the FishSET Database.

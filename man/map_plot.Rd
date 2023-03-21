@@ -7,7 +7,8 @@
 map_plot(dat, project, lat, lon, minmax = NULL, percshown = NULL)
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.}
+\item{dat}{Primary data containing information on hauls or trips. Table in
+FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{String, project name.}
 
@@ -18,15 +19,17 @@ map_plot(dat, project, lat, lon, minmax = NULL, percshown = NULL)
 \item{minmax}{Optional map extent argument, a vector (num) of length four
 corresponding to c(minlat, maxlat, minlon, maxlon).}
 
-\item{percshown}{Whole number, percent of points to show. Use this option if there are a lot of data points.}
+\item{percshown}{Whole number, percent of points to show. Use this option 
+if there are a lot of data points.}
 }
 \value{
 mapout: ggplot2 object
 }
 \description{
-Plot observed locations on a map. For large datasets, it is best to plot a subset of points.
-Use \code{percshown} to randomly subset the number of points. If the predefined map extent needs adjusting,
- use \code{minmax}.
+Plot observed locations on a map. For large datasets, it is best 
+  to plot a subset of points. Use \code{percshown} to randomly subset the 
+  number of points. If the predefined map extent needs adjusting,
+  use \code{minmax}.
 }
 \examples{
 \dontrun{

@@ -225,7 +225,7 @@ unserialize_table <- function(table, project) {
   #' 
   #' @param table The name of the special table to unserialize. Special tables
   #'   include alternative choice matrix output, expected catch matrix output,
-  #'   the model data list, and the prediction output (not available yet). 
+  #'   the model data list, and the prediction output. 
   #' @param project Name of project.
   #' @keywords internal
   #' @importFrom DBI dbConnect dbDisconnect dbGetQuery
@@ -239,7 +239,7 @@ unserialize_table <- function(table, project) {
   tab_type <- table_type(table)
   
   serial_tabs <- c("alt choice matrix", "expected catch matrix", "model data", 
-                   "predict output")
+                   "predict output", "global check")
   
   if (!tab_type %in% serial_tabs) {
     
@@ -249,6 +249,7 @@ unserialize_table <- function(table, project) {
   tab_qry <- switch(tab_type, 
                     "alt choice matrix" = "AlternativeMatrix", 
                     "expected catch matrix" = "data",
+                    "global check" = "data",
                     "model data" = "ModelInputData", # Note: check for consistency, seen lowercase version 
                                                      # (depends on whether created in app or console)
                     "predict output" = "PredictOutput") # Note: Hasn't been added to table_type
@@ -365,7 +366,7 @@ model_out_view <- function(table, project) {
 }
 
 
-model_params <- function(table, project) {
+model_params <- function(table, project, output = 'list') {
   #' Load model parameter estimates, standard errors, and t-statistic to console 
   #' for the defined project
   #'
@@ -376,7 +377,10 @@ model_params <- function(table, project) {
   #' @param table Table name in FishSET database. Should contain the phrase 
   #'   'ModelOut'. Table name must be in quotes.
   #' @param project Name of project
+  #' @param output Options include list, table, or print. 
   #' @export
+  #' @importFrom pander pander
+  #' @importFrom tibble rownames_to_column
   #' @description Returns parameter estimates, standard errors, and t-statistic 
   #'  from running the discretefish_subroutine function. The table parameter must 
   #'  be the full name of the table name in the FishSET database.
@@ -392,25 +396,39 @@ model_params <- function(table, project) {
   mod_names <- vapply(mod_out, function(x) x$name, character(1))
   names(mod_list) <- mod_names
   
-  mod_list
+  if (output == 'print') {
+    
+    pander::pander(mod_list)
+    
+  } else if (output == 'table') {
+    
+    mod_list <- lapply(mod_list, tibble::rownames_to_column, var = 'var') 
+    
+    do.call(rbind, mod_list) 
+    
+  } else if (output == 'list') {
+    
+    mod_list
+  }
 }
 
 
 globalcheck_view <- function(table, project) {
   #' View error output from discrete choice model for the defined project
   #'
-  #' Returns error output from running the discretefish_subroutine function.
-  #' The table argument must be the full name of the table name in the FishSET database.
-  #' Use 'tables_database()' to view table names in FishSET database.
+  #' Returns error output from running the \code{\link{discretefish_subroutine}} 
+  #' function. The table argument must be the full name of the table name in the 
+  #' FishSET database. Use \code{\link{tables_database}}to view table names in 
+  #' FishSET database.
   #'
   #' @param table  Table name in FishSET database. Should contain the project, the 
-  #'    phrase 'ldglobalcheck', and a date in YMD format (20200101). 
+  #'    phrase 'LDGlobalCheck', and a date in YMD format (20200101). 
   #'  Table name must be in quotes.
   #' @param project Name of project
   #' @export
   #' @examples
   #' \dontrun{
-  #' globalcheck_view('pcodldglobalcheck20190604', 'pcod')
+  #' globalcheck_view('pcodLDGlobalCheck20190604', 'pcod')
   #' }
 
   if (table_exists(table, project) == FALSE) {
@@ -718,5 +736,77 @@ fishset_tables <- function(project = NULL) {
     db_tabs[c("project", "type")] <- lapply(db_tabs[c("project", "type")], as.factor)
     
     db_tabs
+  }
+}
+
+
+
+expected_catch_list <- function(project, name = NULL) {
+  #' Get Expected Catch List 
+  #' 
+  #' Returns the Expected Catch list from the FishSET database.
+  #' 
+  #' @param project Name of project.
+  #' @param name Name of expected catch table from the FishSET database. The table 
+  #'   name will contain the string "ExpectedCatch". If \code{NULL}, the default 
+  #'   table is returned. Use \code{\link{tables_database}} to see a list of 
+  #'   FishSET database tables by project. 
+  #' @export
+  #'   
+  
+  if (!is_value_empty(name)) {
+    
+    unserialize_table(name, project)
+    
+  } else {
+    
+    unserialize_table(paste0(project, 'ExpectedCatch'), project)
+  }
+}
+
+
+alt_choice_list <- function(project, name = NULL) {
+  #' Get Alternative Choice List 
+  #' 
+  #' Returns the Alternative Choice list from the FishSET database. 
+  #' 
+  #' @param project Name of project.
+  #' @param name Name of Alternative Choice list in the FishSET database. 
+  #'   The table name will contain the string "altmatrix". If \code{NULL}, the 
+  #'   default table is returned. Use \code{\link{tables_database}} to see a list 
+  #'   of FishSET database tables by project. 
+  #' @export
+  #'   
+  
+  if (!is_value_empty(name)) {
+    
+    unserialize_table(name, project)
+    
+  } else {
+    
+    unserialize_table(paste0(project, 'altmatrix'), project)
+  }
+}
+
+model_design_list <- function(project, name = NULL) {
+  #' Get Model Design List 
+  #' 
+  #' Returns the Model Design list from the FishSET database. 
+  #' 
+  #' @param project Name of project.
+  #' @param name Name of Model Design list in the FishSET database. 
+  #'   The table name will contain the string "ModelInputData". If \code{NULL}, the 
+  #'   default table is returned. Use \code{\link{tables_database}} to see a list 
+  #'   of FishSET database tables by project. 
+  #' @export
+  #'   
+  
+  if (!is_value_empty(name)) {
+    
+    unserialize_table(name, project)
+    
+  } else {
+    
+    unserialize_table(paste0(project, 'ModelInputData'), project)
   }
 }
