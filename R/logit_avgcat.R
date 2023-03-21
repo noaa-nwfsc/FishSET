@@ -128,8 +128,10 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
 
   LDGlobalCheck <- list(model = paste0(project, expname, mod.name), ldsumglobalcheck = ldsumglobalcheck, paramsglobalcheck = paramsglobalcheck, LDGlobalCheck = LDGlobalCheck)
 
-  # TODO: output a list containing LDGlobalCheck and ld. Adjust discretefish_subroutine()
-  assign("LDGlobalCheck", value = LDGlobalCheck, pos = 1, envir = rlang::caller_env())
+  pos <- 1
+  envir = as.environment(pos)
+  assign("LDGlobalCheck", value = LDGlobalCheck, envir = envir)
+  # assign("LDGlobalCheck", value = LDGlobalCheck, pos = 1, envir = rlang::caller_env())
   
   return(ld)
 }

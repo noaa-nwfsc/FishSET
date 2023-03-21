@@ -267,6 +267,10 @@ make_model_design <-
   spatdat <- spat_out$dataset
   spat <- parse_data_name(spat, "spat", project)
   
+  pt <- data_pull(paste0(project, 'PortTable'), project)
+  ptname <- pt$dat # Note: ptname not used 
+  port <- pt$dataset # used in create_distance_matrix()
+  
   # check args ----
   
   if (likelihood == "logit_c") {
@@ -318,7 +322,7 @@ make_model_design <-
     
     if (mod_dsn_exists) {
       
-      if (mod.name %in% mod_nms) {
+      if (mod.name %in% mod_nms & !replace) {
         
         stop("Model name '", mod.name, "' exists. Enter a unique name. Current ",
              "model names are: ", paste0(model_names(project), collapse = ", "), 
@@ -429,25 +433,31 @@ make_model_design <-
     
     ExpectedCatch <- unserialize_table(paste0(project, "ExpectedCatch"), project)
       
-    if (nrow(ExpectedCatch$user_exp) != length(choice)) {
+    if (is_value_empty(expectcatchmodels)) {
       
-      stop('Number of observations in Expected catch matrix and catch data do not ',  
-           'match. Model design file cannot be created.', call. = FALSE)
+      stop('Expected catch matrix not defined. Model design file cannot be created.',
+           call. = FALSE)
       
     } else {
+      # TODO: allow multiple user created ec matrices, named, select by name 
+      # prepare the ec list and expectcatchmodels for model
+      exp_out <- check_exp(ec = ExpectedCatch, ec_names = expectcatchmodels)
       
-      if (is_value_empty(expectcatchmodels)) {
+      ExpectedCatch <- exp_out$exp
+      exp_select <- exp_out$exp_select
+      
+      nr_ind <- vapply(ExpectedCatch, function(x) {
         
-        stop('Expected catch matrix not defined. Model design file cannot be created.',
-             call. = FALSE)
+        nrow(x) != length(choice)
+      }, logical(1))
+      
+      if (any(nr_ind)) {
         
-      } else {
-        # Note: allow multiple user created ec matrices, named, select by name 
-        # prepare the ec list and expectcatchmodels for model
-        exp_out <- check_exp(ec = ExpectedCatch, ec_names = expectcatchmodels)
+        nr_nm <- paste(names(ExpectedCatch)[nr_ind], collapse = ",")
         
-        ExpectedCatch <- exp_out$exp
-        exp_select <- exp_out$exp_select
+        stop('Number of observations in Expected catch matrix and catch data do not ',  
+             'match the following matrices: ', nr_nm, 
+             '. Model design file cannot be created.', call. = FALSE)
       }
     }
   }
@@ -470,32 +480,35 @@ make_model_design <-
   }
 
   # Port ----  
-  
-  if (occasion == "port") {
-    
-    # check if port table needs to be merged to primary table
-    if (length(occasion_var) == 1) { # port ID variable
-      
-      pt <- data_pull(paste0(project, 'PortTable'), project)
-      ptname <- pt$dat # Note: ptname not used 
-      port <- pt$dataset # used in create_distance_matrix()
-      
-    # } else {
-    #  
-    #   # update error msg
-    #   stop("Port table not found in database. Check spelling and ensure port table ", 
-    #        "is loaded into the FishSET database.", call. = FALSE)
-    # }
-    
-    } else {
-      
-      ptname <- NULL
-      port <- NULL
-    }
-  }
+  # TODO: Revisit port section (should port table always be included?)
+  # if (occasion == "port" || 
+  #     (occasion %in% c("zonal centroid", "fishing centroid") & 
+  #      !is_value_empty(occasion_var) && occasion_var != zoneID)) {
+  #   
+  #   # check if port table needs to be merged to primary table
+  #   # (if occasion_var is empty, assume port lon-lat is included in primary table)
+  #   if (length(occasion_var) == 1) { # port ID variable or previous area variable
+  #     
+  #     pt <- data_pull(paste0(project, 'PortTable'), project)
+  #     ptname <- pt$dat # Note: ptname not used 
+  #     port <- pt$dataset # used in create_distance_matrix()
+  #     
+  #   # } else {
+  #   #  
+  #   #   # update error msg
+  #   #   stop("Port table not found in database. Check spelling and ensure port table ", 
+  #   #        "is loaded into the FishSET database.", call. = FALSE)
+  #   # }
+  #   
+  #   } else {
+  #     
+  #     ptname <- NULL
+  #     port <- NULL
+  #   }
+  # }
   
   # Gridded ----
-  # Note: create_alternative_choice() currently cannot create a dm from a 
+  # Note: create_alternative_choice() currently cannot create a distance matrix from a 
   # gridded dataset
   
 
@@ -537,7 +550,7 @@ make_model_design <-
     
     if (any(indVars %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) {
     
-    indeVarsForModel <- lapply(indVars[-1], function(x) dataset[[x]][zone_ind])
+      indeVarsForModel <- lapply(indVars[-1], function(x) dataset[[x]][zone_ind])
     
     } else {
       
@@ -558,26 +571,25 @@ make_model_design <-
   
   init_params <- initparams
   
-  if (is_value_empty(initparams)) {
+  if (is_value_empty(initparams)) init_params <- 1
+  
+  if (!is.numeric(init_params) & !any(grepl(',', init_params))) {
+    # read in parameters from previous model
+    x_temp <- read_dat(paste0(locoutput(project),  
+                              pull_output(project, type = 'table', 
+                                          fun = paste0('params_', init_params))))
     
-    if (!is.numeric(initparams) & !any(grepl(',', initparams))) {
-      # read in parameters from previous model
-      x_temp <- read_dat(paste0(locoutput(project),  
-                                pull_output(project, type = 'table', 
-                                            fun = paste0('params_', initparams))))
+    if (!is.null(x_temp)) {
       
-      if (!is.null(x_temp)) {
-        
-        init_params <- x_temp$estimate
-        
-      } else {
-        
-        init_params <- 1
-        warning('Model not found. Setting parameter estimates to 1.', call. = FALSE)
-      }
+      init_params <- x_temp$estimate
       
-    } else init_params <- 1
+    } else {
+      
+      init_params <- 1
+      warning('Model not found. Setting parameter estimates to 1.', call. = FALSE)
+    }
   }
+  
     
   # Distance Matrix ----
   dist_out <- create_dist_matrix(dataset = dataset, spat = spatdat,
@@ -599,44 +611,25 @@ make_model_design <-
     # add only for EPM model
   
     catch <- dataset[zone_ind, ][[catchID]]
-    yscale <- mean(catch, na.rm = TRUE)
+    
+    # scales ----
+    yscale <- 1
      
     # Some models need price data
     if (is_value_empty(priceCol)) {
-      
+
       epmDefaultPrice <- ""
-      pscale <- 1
-      
+
     } else {
-      
+
       epmDefaultPrice <- dataset[[priceCol]][zone_ind]
-      pscale <- mean(epmDefaultPrice, na.rm = TRUE)
-    }
-  
-    # scales ----
-    mscale <- mean(dist_out$distMatrix, na.rm = TRUE)
-  
-    # scales data r in
-    # Note: this should be done before line 419 else first condition can't be TRUE
-    # if (length(bCHeader$gridVariablesInclude) == 0) r <- 1
-    if (is_value_empty(gridVars)) r <- 1
-    else {
-      
-      r <- as.numeric(lapply(bCHeader$gridVariablesInclude, 
-                             function(x) mean(as.numeric(unlist(x)), na.rm = TRUE)))
     }
     
-    # if (length(bCHeader$indeVarsForModel) == 0) { 
-    if (is_value_empty(indVars)) { 
-      
-      r2 <- 1 
-        
-    } else {
-      
-      r2 <- as.numeric(lapply(bCHeader$indeVarsForModel, 
-                              function(x) mean(as.numeric(unlist(x)), na.rm = TRUE)))
-    }
-  
+    pscale <- 1
+    mscale <- 1
+    r <- rep(1, times = length(bCHeader$gridVariablesInclude))
+    r2 <- rep(1, times = length(bCHeader$indeVarsForModel))
+    
     # model design list ----
     
     # Note: bCHeader includes GridVariablesInclude (doc says it doesn't include grid varying vars)
@@ -662,8 +655,9 @@ make_model_design <-
       typeOfNecessary = Alt[["zoneType"]],
       altChoiceType = dist_out[['altChoiceType']],
       altChoiceUnits = dist_out[['altChoiceUnits']],
-      altToLocal1 = dist_out[['altToLocal1']],
-      altToLocal2 = dist_out[['altToLocal2']],
+      occasion = dist_out$occasion,
+      occasion_var = dist_out$occasion_var,
+      alt_choice = dist_out$alt_choice,
       bCHeader = bCHeader,
       startloc = startloc,
       polyn = polyn,
