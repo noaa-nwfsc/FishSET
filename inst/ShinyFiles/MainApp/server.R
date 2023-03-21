@@ -1878,8 +1878,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                       shinycssloaders::withSpinner(DT::DTOutput("dbTables_confirm"))),
                       
                       footer = tagList(
-                        actionButton("cancel_delete", "Cancel"),
-                        actionButton("delete_tab_confirm", "Delete", 
+                        actionButton("cancel_delete_tab", "Cancel"),
+                        actionButton("confirm_delete_tab", "Delete", 
                                      style = "color: #fff; background-color: red; border-color:#000000;")
                       ),
                       easyClose = FALSE, size = "m"))
@@ -1912,7 +1912,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           })
       })
       
-      observeEvent(input$delete_tab_confirm, {
+      observeEvent(input$confirm_delete_tab, {
         
         tabs_to_delete <- dbTab$tabs$table[input$dbTables_rows_selected]
         tab_proj <- as.character(dbTab$tabs$project[input$dbTables_rows_selected])
@@ -1927,7 +1927,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         show_delete_modal()
       })
       
-      observeEvent(input$cancel_delete, show_delete_modal())
+      observeEvent(input$cancel_delete_tab, show_delete_modal())
       
       ## confidentiality check ----
       

@@ -302,3 +302,41 @@ dms_to_pdms <- function(x, type, dec = FALSE, as_num = FALSE) {
   
   pdms
 }
+
+
+
+dd2dms <- function(dd, NS = FALSE) {
+#' Convert DD to DMS
+#'
+#'Convert decimal degree format to degree minutes seconds format. 
+#'
+#'@param dd numeric vector of decimal degrees.
+#'@param NS logical, \code{TRUE} for north/south decimal degrees, \code{FALSE} 
+#'for east/west decimal degrees.
+#'
+#'@keywords internal
+#'@export
+#'@importFrom methods as new validObject
+#'
+  
+  sdd <- sign(dd)
+  WS <- ifelse(sdd < 0, TRUE, FALSE)
+  dd <- abs(dd)
+  deg <- methods::as(floor(dd), "integer")
+  dd <- (dd - deg) * 60
+  mins <- methods::as(floor(dd), "integer")
+  sec <- (dd - mins) * 60
+  tst <- abs(sec - 60) > sqrt(.Machine$double.eps)
+  sec <- ifelse(tst, sec, 0)
+  mins <- ifelse(tst, mins, mins + 1)
+  tst <- mins < 60
+  mins <- ifelse(tst, mins, 0)
+  deg <- ifelse(tst, deg, deg + 1)
+  dms <- methods::new("DMS", WS = WS, deg = deg, min = mins, sec = sec, 
+                      NS = NS)
+  tst <- methods::validObject(dms)
+  if (is.logical(tst) & tst) 
+    return(dms)
+  else stop(tst)
+  dms
+}

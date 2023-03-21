@@ -12,13 +12,9 @@ create_startingloc(
   trip_id,
   haul_order,
   starting_port,
-  lon.dat,
-  lat.dat,
-  cat,
-  zoneid,
-  name = "startingloc",
-  lon.spat = NULL,
-  lat.spat = NULL
+  zoneID,
+  spatID,
+  name = "startingloc"
 )
 }
 \arguments{
@@ -41,30 +37,14 @@ that hauls occur within a trip. Can be time, coded variable, etc.}
 
 \item{starting_port}{Variable in \code{dat} to identify port at start of trip.}
 
-\item{lon.dat}{Longitude variable from \code{dat}. Required if \emph{ZoneID} 
-does not exist in \code{dat}.}
+\item{zoneID}{Variable in \code{dat} that identifies the individual zones or 
+areas.}
 
-\item{lat.dat}{Latitude variable from \code{dat}. Required if \emph{ZoneID} 
-does not exist in \code{dat}.}
-
-\item{cat}{Variable or list in \code{spat} that identifies the individual areas 
-or zones. Required if \emph{ZoneID} does not exist in \code{dat}. If \code{spat} 
-is class sf, \code{cat} should be name of list containing information on zones.}
-
-\item{zoneid}{Variable in \code{dat} that identifies the individual zones or 
-areas. Defaults to NULL. Define if the name of the zone identifier variable 
-is not `ZoneID`.}
+\item{spatID}{Variable in \code{spat} that identifies the individual zones or 
+areas.}
 
 \item{name}{String, name of created variable. Defaults to name of the function 
 if not defined.}
-
-\item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
-Required if \emph{ZoneID} does not exist in \code{dat}. Required for csv files. 
-Leave as NULL if \code{spat} is a shape or json file.}
-
-\item{lat.spat}{Variable or list from \code{spat} containing latitude data. 
-Required if \emph{ZoneID} does not exist in \code{dat}. Required for csv files. 
-Leave as NULL if \code{spat} is a shape or json file.}
 }
 \value{
 Primary data set with starting location variable added.

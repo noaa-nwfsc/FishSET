@@ -78,25 +78,27 @@ set \code{year.lag} to the number of years to go back.}
 output dummy variable for originally missing value. If \code{FALSE}, no dummy 
 variable is outputted. Defaults to \code{FALSE}.}
 
-\item{default.exp}{Whether to run default expectations. Defaults to \code{TRUE}.
+\item{default.exp}{Whether to run default expectations. Defaults to \code{FALSE}.
 Alternatively, a character string containing the names of default expectations 
 to run can be entered. Options include "recent", "older", "oldest", and 
 "logbook". The logbook expectation is only run if \code{defineGroup} is used. 
-"recent" will not include \code{defineGroup}. See Details for how default
-expectations are defined.}
+"recent" will not include \code{defineGroup}. Setting \code{default.exp = TRUE}
+will include all four options. See Details for how default expectations are 
+defined.}
 
 \item{replace.output}{Logical, replace existing saved expected catch data frame 
 with new expected catch data frame? If \code{FALSE}, new expected catch data 
-frames appended to previously saved expected catch data frames. Default is \code{TRUE}}
+frames appended to previously saved expected catch data frames. Default is 
+\code{TRUE}. If \code{TRUE}}
 }
 \value{
-Function returns a list of expected catch matrices. The list includes 
+Function saves a list of expected catch matrices to the FishSET database
+  as \code{projectExpectedCatch}. The list includes 
   the expected catch matrix from the user-defined choices, recent fine grained
   information, older fine grained information, oldest fine grained information,
-  and logbook level information. Additional expected 
-  catch cases can be added to the list by specifying \code{replace.output = FALSE}. 
-  The model run function will run through each expected catch case 
-  provided. The list is automatically saved to the FishSET database and is called 
+  and logbook level information. Additional expected catch cases can be added 
+  to the list by specifying \code{replace.output = FALSE}. The list is 
+  automatically saved to the FishSET database and is called 
   in \code{\link{make_model_design}}. The expected catch output does not need 
   to be loaded when defining or running the model.
 
@@ -104,7 +106,8 @@ newGridVar,  newDumV
 }
 \description{
 Create expected catch or expected revenue matrix. The matrix is required for 
-the logit_c model.
+the \code{\link{logit_c}} model. Multiple user-defined matrices can be saved
+by setting \code{replace.output = FALSE} and re-running the function.
 }
 \details{
 Function creates an expectation of catch or revenue for alternative 

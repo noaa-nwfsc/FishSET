@@ -6,9 +6,9 @@
 #' @param x Optional, Model input data
 #' @param mod.name Optional, name of model. Include if building model data for 
 #'   specific defined model.
-#' @param use.scalers Logical, should data be normalized? Defaults to TRUE. 
+#' @param use.scalers Logical, should data be normalized? Defaults to \code{FALSE}. 
 #'   Rescaling factors are the mean of the numeric vector unless specified with 
-#'   \code{scaler}.
+#'   \code{scaler.func}.
 #' @param scaler.func Function to calculate rescaling factors. 
 #' @param expected.catch For conditional logit. Expected catch matrices to include
 #' @param exp.names The names of expected catch matrices to use in model. Specified
@@ -17,6 +17,7 @@
 #'   otherdat, expname, choice, choice.table, and mod.name
 #' @importFrom DBI dbConnect dbDisconnect
 #' @importFrom RSQLite SQLite
+#' @importFrom rlang is_bare_list
 #' @export
 #' @keywords internal
 
@@ -24,19 +25,15 @@ create_model_input <-
   function(project,
            x = NULL,
            mod.name = NULL,
-           use.scalers = TRUE,
+           use.scalers = FALSE,
            scaler.func = NULL,
            expected.catch = NULL,
            exp.names = NULL) {
-  
-  # TODO: add an arg for include specified ec matrices
-  # Q: don't scale dummies?
   
   # Two scenarios 
   # 1) Pulling from discrete fish subroutine  - x will be supplied
   # 2) Pulling specific model
   # Call in datasets
-  
   
   if (is.null(x)) {
     
@@ -60,55 +57,113 @@ create_model_input <-
          call. = FALSE)
   }
   
-  # scalers ----
-  if (use.scalers == TRUE && !is.null(scaler.func)) {
-    
-    if (!is.character(scaler.func)) {
-      
-      x$scales['catch'] <- scaler.func(x$catch)
-      x$scales['zonal'] <- scaler.func(x$distance)
-      # There can be multiple griddata vars, loop 
-      # x$scales['griddata'] <- scaler.func(x$bCHeader$gridVariablesInclude)
-      
-      if (is.list(x$bCHeader$gridVariablesInclude)) {
-        
-        x$scales['griddata'] <- lapply(x$bCHeader$gridVariablesInclude, function(x) scaler.func(unlist(x)))
-        
-      } else {
-        
-        x$scales['griddata'] <- scaler.func(x$bCHeader$gridVariablesInclude) 
-      }
-      
-      if (is.list(x$bCHeader$indeVarsForModel)) {
-        
-        x$scales['intdata'] <- lapply(x$bCHeader$indeVarsForModel, function(x) scaler.func(unlist(x)))
-        
-      } else {
-        
-        x$scales['intdata'] <- scaler.func(x$bCHeader$indeVarsForModel) 
-      }
-    } 
-    
-  } else if (use.scalers == FALSE) {
-    
-    for (k in 1:length(x$scales)) { 
-      
-      x$scales[k] <- 1
-    }
-  }
-
-  catch <- x$catch / as.numeric(x$scales['catch'])
+  catch <- x$catch
   choice <- x$choice # Note: is dataframe necessary?
-  distance <- data.frame(x$distance) / as.numeric(x$scales['zonal'])
-  startingloc <- x$startingloc
-  mod.name <- unlist(x$mod.name)
   choice.table <- choice 
   # TODO: fix non-syntactic choice column name (or leave as vector)
   choice <- as.data.frame(as.numeric(factor(as.matrix(choice))))
   # Note: ab is # of cost parameters + # of alts (shift_sort_x)
   ab <- max(choice) + 1 # no interactions in create_logit_input - interact distances in likelihood function instead
-  
+  distance <- data.frame(x$distance)
+  startingloc <- x$startingloc
+  mod.name <- unlist(x$mod.name)
   fr <- x$likelihood
+    
+  if (use.scalers) {
+    
+    if (is.null(scaler.func)) {
+      
+      scaler.func <- mean
+    } 
+    
+    if (is.character(scaler.func)) {
+      
+      scaler_char <- rlang::parse_expr(scaler.func)
+      
+      if (is.function(eval(scaler_char))) {
+        
+        scaler.func <- eval(scaler_char)
+        
+      } else {
+        
+        stop("scaler.func is not a function.", call. = FALSE)
+      }
+      
+    } else if (!is.function(scaler.func)) {
+      
+      stop("scaler.func is not a function.", call. = FALSE)
+    }
+    
+    x$scales['catch'] <- scaler.func(x$catch)
+    catch <- catch / as.numeric(x$scales['catch'])
+    
+    x$scales['zonal'] <- scaler.func(x$distance)
+    distance <- distance / as.numeric(x$scales['zonal'])
+    
+    if (grepl("epm", fr)) {
+      
+      x$scales['pscale'] <- scaler.func(x$epmDefaultPrice)
+      x$epmDefaultPrice <- x$epmDefaultPrice / x$scales['pscale']
+    }
+    
+    if (rlang::is_bare_list(x$bCHeader$gridVariablesInclude)) {
+      
+      x$scales['griddata'] <- lapply(x$bCHeader$gridVariablesInclude, 
+                                     function(x) scaler.func(unlist(x)))
+    } else {
+      
+      x$scales['griddata'] <- scaler.func(x$bCHeader$gridVariablesInclude) 
+    }
+    
+    if (rlang::is_bare_list(x$bCHeader$indeVarsForModel)) {
+      
+      x$scales['intdata'] <- lapply(x$bCHeader$indeVarsForModel, 
+                                    function(x) scaler.func(unlist(x)))
+    } else {
+      
+      x$scales['intdata'] <- scaler.func(x$bCHeader$indeVarsForModel) 
+    }
+    
+    intdat <- mapply("/", x$bCHeader$indeVarsForModel, 
+                     x$scales[grep('intdata', names(x$scales))], 
+                     SIMPLIFY = FALSE)
+    
+    griddat <- mapply("/", x$bCHeader$gridVariablesInclude, 
+                      x$scales[grep('griddata', names(x$scales))], 
+                      SIMPLIFY = FALSE)
+    
+    # expected catch
+    if (!is_value_empty(exp.names)) {
+      # use exp.names to pull specified exp matrix
+      expected.catch <- expected.catch[exp.names]
+      
+      expname <- paste0(fr, '.', paste0(names(expected.catch), collapse = '.'))
+      is_dummy <- grepl("_dummy", names(expected.catch))
+
+      ec_grid <- lapply(seq_along(expected.catch), function(i) {
+        # exclude dummies from scaling
+        if (is_dummy[i]) expected.catch[[i]]
+        else             expected.catch[[i]] / scaler.func(expected.catch[[i]])
+      })
+      
+      names(ec_grid) <- names(expected.catch)
+      # add ec matrices to griddat
+      griddat <- c(griddat, ec_grid)
+    }
+    
+  } else { # Do not scale variables
+    
+    intdat <- x$bCHeader$indeVarsForModel
+    griddat <- x$bCHeader$gridVariablesInclude
+    
+    if (!is_value_empty(exp.names)) {
+      # use exp.names to pull specified exp matrix
+      expected.catch <- expected.catch[exp.names]
+      expname <- paste0(fr, '.', paste0(names(expected.catch), collapse = '.'))
+      # add ec matrices to griddat
+      griddat <- c(griddat, expected.catch)
+    }
+  }
   
   if (fr == "logit_correction" & all(is.na(startingloc))) {
     # Note: use stop() instead?
@@ -119,56 +174,19 @@ create_model_input <-
   
   d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
   
-  
-  intdat <- mapply("/", x$bCHeader$indeVarsForModel, 
-                   x$scales[grep('intdata', names(x$scales))], 
-                   SIMPLIFY = FALSE)
-  
-  griddat <- mapply("/", x$bCHeader$gridVariablesInclude, 
-                    x$scales[grep('griddata', names(x$scales))], 
-                    SIMPLIFY = FALSE)
-  
-  if (!is_value_empty(exp.names)) {
-    # TODO: exclude dummies from scaling 
-    
-    # use exp.names to pull specified exp matrix
-    expected.catch <- expected.catch[exp.names]
-    
-    expname <- paste0(fr, '.', paste0(names(expected.catch), collapse = '.'))
-   
-    # Q: Is this right? Also, should dummies by included?
-    ec_mean <- vapply(expected.catch, mean, numeric(1))
-    
-    # Q: filter for ec matrices (exclude dummies)?
-    ec_grid <- lapply(seq_along(expected.catch), function(i) {
-      
-      expected.catch[[i]]/ec_mean[i]
-    })
-    
-    names(ec_grid) <- names(expected.catch)
-    # add ec matrices to griddat
-    griddat <- c(griddat, ec_grid)
-  }
-  
   # Data needs will vary by the likelihood function
-  # Note: gridVariablesInclude (non-expected catch gridded vars) is only being 
-  # used in EPMs, need to include for other models
   if (grepl("epm", fr)) {
     
-    
-    
     otherdat <- list(
-      # griddat = list(griddatfin = as.data.frame(x$bCHeader$gridVariablesInclude)/as.numeric(x$scales['griddata'])),
       griddat = griddat,
       intdat = intdat,
-      pricedat = as.data.frame(x$epmDefaultPrice/as.numeric(x$scales['pscale']))
+      pricedat = x$epmDefaultPrice
     )
     expname <- fr
     
   } else if (fr == "logit_correction") {
     
     otherdat <- list(
-      # griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), 
       griddat = griddat,
       intdat = intdat,
       startloc = as.data.frame(x$startloc),
@@ -180,7 +198,6 @@ create_model_input <-
   } else if (fr == "logit_avgcat") {
     
     otherdat <- list(
-      # griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))),
       griddat = griddat,
       intdat = intdat
     )

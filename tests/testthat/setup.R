@@ -1,5 +1,5 @@
 # this script runs before tests are executed
-
+# TODO: this may need to be changed to testDat <- FishSET::PollockData
 data("PollockData")
 
 # change the database and log/output filepaths to the test folder

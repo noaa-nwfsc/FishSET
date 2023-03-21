@@ -89,7 +89,7 @@ create_centroid <- function(spat = NULL,
 
     if (output == "dataset") {
       
-      if (is_value_empty(dat)) stop("Argument 'dat' required.", call. = FALSE)
+      # if (is_value_empty(dat)) stop("Argument 'dat' required.", call. = FALSE)
       
       stopifnot(
         "'dat' is missing" = !is_value_empty(dat),

@@ -8,7 +8,7 @@ create_model_input(
   project,
   x = NULL,
   mod.name = NULL,
-  use.scalers = TRUE,
+  use.scalers = FALSE,
   scaler.func = NULL,
   expected.catch = NULL,
   exp.names = NULL
@@ -22,9 +22,9 @@ create_model_input(
 \item{mod.name}{Optional, name of model. Include if building model data for 
 specific defined model.}
 
-\item{use.scalers}{Logical, should data be normalized? Defaults to TRUE. 
+\item{use.scalers}{Logical, should data be normalized? Defaults to \code{FALSE}. 
 Rescaling factors are the mean of the numeric vector unless specified with 
-\code{scaler}.}
+\code{scaler.func}.}
 
 \item{scaler.func}{Function to calculate rescaling factors.}
 

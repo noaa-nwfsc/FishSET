@@ -42,9 +42,9 @@ create_dist_matrix <-
            zoneID,
            crs = NULL) {
     
-    
   # index of zones that meet min haul requirement
   zone_ind <- which(dataZoneTrue == 1)
+  o_var <- NULL
   
   if (is.null(crs)) {
     
@@ -54,9 +54,6 @@ create_dist_matrix <-
   }
   # occasion ----
   
-  ## Grid ----
-    # Note: not currently available
-  
   ## Centroid ----
   if (occasion %in% c("zonal centroid", "fishing centroid")) {
     
@@ -65,25 +62,48 @@ create_dist_matrix <-
     
     fromXY <- dataset[zone_ind, o_var]
     
-    if (length(o_var) == 1) {
-      # join centroid lon-lat by zoneID
-      
       if (occasion == "zonal centroid") cent_tab <- zone_cent
       else if (occasion == "fishing centroid") cent_tab <- fish_cent 
       
+    if (o_var == zoneID | !any(fromXY[[o_var]] %in% port$Port_Name)) {
+      # o_var == zoneID = single haul
+      # otherwise, multi-haul w/ prev area variable
+      # join centroid lon-lat by zoneID
       join_by <- stats::setNames("ZoneID", o_var)
       fromXY <- dplyr::left_join(fromXY, cent_tab, by = join_by)
       
-      fromXY <- fromXY[, c("cent.lon", "cent.lat")]
+    } else { # Previous Area (multi-haul)
+      # include port table previous area if o_var contains port names (this happens 
+      # when creating a previous area/starting loc variable and the port is not within a zone)
+      
+      area_tab <- 
+        do.call(rbind, 
+                lapply(list(port, cent_tab), function(x) {
+                  setNames(x, c(o_var, "cent.lon", "cent.lat"))
+                })
+        )
+      
+      if (class(area_tab[[o_var]]) != class(fromXY[[o_var]])) {
+        
+        stop(o_var, ' from dat cannot be joined to port table: \n', o_var, ' is class ',
+             class(fromXY[[o_var]]), ' while the port name column is ', 
+             class(area_tab[[o_var]]), '. \nChange ', o_var, ' to class ', 
+             class(area_tab[[o_var]]), ' by using change_class() ',
+             'then rerun create_alternative_choice() and check_model_data().', call. = FALSE)
+      }
+      
+      fromXY <- dplyr::left_join(fromXY, area_tab, by = o_var)
     }
-
-    altToLocal1 <- "Centroid of Zonal Assignment"
-    
+      
+    fromXY <- fromXY[, c("cent.lon", "cent.lat")]
+      
   } else if (occasion == "port") {
     ## port ----
-    fromXY <- dataset[zone_ind, occasion_var]
+    fromXY <- dataset[zone_ind, occasion_var] 
     
-    if (length(occasion_var) == 1) {
+    # if this will determine whether port lon-lats need to be merged or exist in
+    # the primary table
+    if (length(occasion_var) == 1) { # merge port table w/ primary
       
       fromXY[[occasion_var]] <- trimws(fromXY[[occasion_var]])
       port$Port_Name <- trimws(port$Port_Name)
@@ -101,11 +121,9 @@ create_dist_matrix <-
   } else {  
       
     ## Lon-Lat ----
+    # occasion_var should be names of lon-lat cols
     fromXY <- dataset[zone_ind, occasion_var]
   }
-    
-    altToLocal1 <- occasion
-
   
   # alt_var ----
   
@@ -124,7 +142,6 @@ create_dist_matrix <-
     # filter centroid table 
     cent_tab <- cent_tab[cent_tab$ZoneID %in% unique(choice[zone_ind]),] 
     toXY <- cent_tab[, c("cent.lon", "cent.lat")]
-    altToLocal2 <- "Centroid of Zonal Assignment"
     
   } else if (alt_var == "nearest point") {
     
@@ -146,15 +163,13 @@ create_dist_matrix <-
       stop("'spat' contains zones not found in alternative choice list. Do you ",
            "have the correct spatial table?", call. = FALSE)
     }
-    
-    altToLocal2 <- alt_var
   } 
   
   # Distance Matrix ----
   # Test for potential issues with data
   if (any(qaqc_helper(fromXY, "NaN"))) {
     
-    stop(paste("NaN found in ", altToLocal1, ". Design file aborted."), 
+    stop(paste("NaN found in ", occasion, ". Design file aborted."), 
          call. = FALSE)
   }
 
@@ -162,7 +177,7 @@ create_dist_matrix <-
   fromXY[seq_along(fromXY)] <- lapply(fromXY, as.numeric)
   fromXY <- sf::st_as_sf(fromXY, 
                          coords = c(find_lon(fromXY), find_lat(fromXY)),
-                         crs = crs) # TODO: make sure crs can be changed if needed
+                         crs = crs)
     
   if (alt_var == "nearest point") {
     
@@ -175,14 +190,14 @@ create_dist_matrix <-
     
     if (any(qaqc_helper(toXY, "NaN"))) {
       
-      stop(paste("NaN found in ", altToLocal2, ". Design file aborted."), 
+      stop(paste("NaN found in ", alt_var, ". Design file aborted."), 
            call. = FALSE)
     }
     
     toXY[seq_along(toXY)] <- lapply(toXY, as.numeric)
     toXY <- sf::st_as_sf(toXY, 
                          coords = c(find_lon(toXY), find_lat(toXY)),
-                         crs = crs) # TODO: make sure crs can be changed if needed
+                         crs = crs)
     
     z_nms <- cent_tab$ZoneID
   }
@@ -196,8 +211,10 @@ create_dist_matrix <-
   
   units(distMatrix) <- units
   
+  if (is.null(o_var)) o_var <- occasion_var
+  
   if (occasion == "lon-lat") r_nms <- NULL
-  else r_nms <- dataset[[occasion_var]]
+  else r_nms <- dataset[[o_var]][zone_ind]
   
   dimnames(distMatrix) <- list(r_nms, z_nms)
   
@@ -208,6 +225,7 @@ create_dist_matrix <-
   return(list(distMatrix = distMatrix, 
               altChoiceUnits = altChoiceUnits, 
               altChoiceType = altChoiceType, 
-              altToLocal1 = altToLocal1,
-              altToLocal2 = altToLocal2))
+              occasion = occasion,
+              occasion_var = o_var,
+              alt_choice = alt_var))
 }

@@ -60,7 +60,7 @@ percentage of observations in a given zone. Other options include "sum",
 directly. Defaults to 10.}
 
 \item{bin_colors}{Optional, a vector of colors to use in plot. Must be same length
-as breaks. Defaults to \code{viridis::viridis(option = "H")}.}
+as breaks. Defaults to \code{fishset_viridis(10)}.}
 
 \item{na.rm}{Logical, whether to remove zones with zero counts.}
 

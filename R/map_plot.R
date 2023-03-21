@@ -1,17 +1,20 @@
 map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
   #' Map observed vessel locations
   #'
-  #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+  #' @param dat Primary data containing information on hauls or trips. Table in
+  #'   FishSET database contains the string 'MainDataTable'.
   # @param gridfile
   #' @param project String, project name.
   #' @param lat Variable in \code{dat} that defines latitude, in decimal degrees.
   #' @param lon Variable in \code{dat} that defines longitude, in decimal degrees.
   #' @param minmax Optional map extent argument, a vector (num) of length four
   #' corresponding to c(minlat, maxlat, minlon, maxlon).
-  #' @param percshown Whole number, percent of points to show. Use this option if there are a lot of data points.
-  #' @description Plot observed locations on a map. For large datasets, it is best to plot a subset of points.
-  #' Use \code{percshown} to randomly subset the number of points. If the predefined map extent needs adjusting,
-  #'  use \code{minmax}.
+  #' @param percshown Whole number, percent of points to show. Use this option 
+  #'   if there are a lot of data points.
+  #' @description Plot observed locations on a map. For large datasets, it is best 
+  #'   to plot a subset of points. Use \code{percshown} to randomly subset the 
+  #'   number of points. If the predefined map extent needs adjusting,
+  #'   use \code{minmax}.
   #' @return mapout: ggplot2 object
   #' @import ggplot2
   #' @export
