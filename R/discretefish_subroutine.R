@@ -518,7 +518,8 @@ discretefish_subroutine <-
         if (fr == "logit_avgcat") {
           
           z_names <- sort(unique(x_temp[[i]]$choice$choice))
-          rownames(OutLogit) <- c(z_names, ec_names, p_names)
+          # rownames(OutLogit) <- c(z_names, ec_names, p_names)
+          rownames(OutLogit) <- z_names
           
         } else {
           # Q: will this always be the correct order?
