@@ -8,8 +8,8 @@ epm_normal(starts3, dat, otherdat, alts, project, expname, mod.name)
 }
 \arguments{
 \item{starts3}{Starting values as a vector (num). For this likelihood,
-the order takes: c([catch-function parameters], [travel-distance
-parameters], [catch sigma(s)], [scale parameter]). \cr \cr
+the order takes: c([catch-function parameters], [travel-distance parameters], 
+[catch sigma(s)], [scale parameter]). \cr \cr
 The catch-function and travel-distance parameters are of length (# of
 catch-function variables)*(k) and (# of travel-distance variables)
 respectively, where (k) equals the number of alternatives. The catch
