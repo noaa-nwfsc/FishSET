@@ -477,6 +477,22 @@ model_names <- function(project) {
   vapply(mod_design_list, function(x) x$mod.name, character(1))
 }
 
+exp_catch_names <- function(project) {
+  #' Return names of expected catch matrices 
+  #' 
+  #' Return the names of expected catch matrices saved to the FishSET database. 
+  #' 
+  #' @param project Name of project.
+  #' @export
+  #' 
+  
+  ecl <- expected_catch_list(project)
+  ec_nms <- names(ecl)
+  ec_ind <- !vapply(ecl, is.null, logical(1))
+  ec_nms <- ec_nms[ec_ind]
+  ec_nms[!ec_nms %in% c('scale', 'units')]
+}
+
 
 projects <- function() {
   #' Display projects names
