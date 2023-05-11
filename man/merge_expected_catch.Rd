@@ -20,13 +20,13 @@ database contains the string 'MainDataTable'.}
 
 \item{project}{String, name of project.}
 
-\item{zoneID}{zoneID Variable in \code{dat} that identifies the individual zones or
+\item{zoneID}{zone ID Variable in \code{dat} that identifies the individual zones or
 areas.}
 
 \item{exp.name}{Name(s) of expected catch matrix to merge into \code{dat}.}
 
 \item{new.name}{Optional, new name for \code{exp.name}. These should be in the same
-order as \code{exp.name}. \code{catch.formula} must use new names.}
+order as \code{exp.name}.}
 
 \item{ec.table}{Optional, the name of a specific expected catch table to use.
 Defaults to \code{projectnameExpectedCatch}.}
