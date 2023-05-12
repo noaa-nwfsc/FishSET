@@ -33,23 +33,23 @@ catch_lm <- function(dat, project, catch.formula, zoneID = NULL, exp.name = NULL
     ecl <- expected_catch_list(project)
     
     # if (is.null(new.name)) new.name <- exp.name
-    
+    # TODO: zoneID required
     for (i in seq_along(exp.name)) {
       
       # add each ec matrix as a column to dat
-      dat <- merge_expected_catch(dat, project, zoneID, 
-                                  exp.name = exp.name[i], 
-                                  # new.name = new.name[i], 
-                                  new.name = NULL, 
-                                  log_fun = FALSE)
+      dataset <- merge_expected_catch(dataset, project, zoneID, 
+                                      exp.name = exp.name[i], 
+                                      new.name = NULL, 
+                                      log_fun = FALSE)
     }
   }
   
   # specify linear model
   # TODO: save lm output
     
-  lm_dat <- rlang::parse_expr(dat)
-  lm_call <- rlang::expr(stats::lm(!!catch.formula, data = !!lm_dat)) # include ... for added options?
+  # lm_dat <- rlang::parse_expr(dataset)
+  # lm_call <- rlang::expr(stats::lm(!!catch.formula, data = !!lm_dat)) # include ... for added options?
+  lm_call <- rlang::expr(stats::lm(!!catch.formula, data = dataset))
   
   catch_mod <- eval(lm_call)
   
@@ -59,9 +59,9 @@ catch_lm <- function(dat, project, catch.formula, zoneID = NULL, exp.name = NULL
   
   if (output == 'ec matrix') {
     
-    zoneL <- is.null(zoneID) || !zoneID %in% cv
+    no_zone <- is.null(zoneID) || !zoneID %in% cv
     
-    if (is.null(exp.name) & zoneL) {
+    if (is.null(exp.name) & no_zone) {
       
       stop('An expected catch matrix must be used ("exp.name") or a zone/area ', 
            'term must be used in linear model ("zoneID") for output = "ec matrix"', 
@@ -85,7 +85,7 @@ catch_lm <- function(dat, project, catch.formula, zoneID = NULL, exp.name = NULL
     ec_pred <- lapply(seq_len(nz), function(j) {
       
       # original data w/ response and ec variable removed
-      dat.x <- dat[cv[!cv %in% new.name & cv != cv[1]]]
+      dat.x <- dataset[cv[!cv %in% new.name & cv != cv[1]]]
       # add ec variables from ec_cols
       dat.x <- cbind(dat.x, ec_cols[[j]])
       
@@ -99,10 +99,44 @@ catch_lm <- function(dat, project, catch.formula, zoneID = NULL, exp.name = NULL
     
     # TODO: save to ec list using new.name, add message. 
     
+    # create a default name if new.name is NULL
+    if (is.null(new.name)) {
+      
+      new.name <- 'catch_lm'
+      # check if default name used already, if so increment by 1
+      name_match <- grep('catch_lm\\d+$', names(ecl))
+    
+      if (length(name_match) > 0) new.name <- paste0(new.name, length(name_match) + 1)
+      else new.name <- paste0(new.name, 1)
+    }
+   
+    # add new matrix w/ new name
+    ecl[[new.name]] <- ec_matrix
+    
+    # connect to FishSET DB
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    # save to FishSET DB
+    ec_sql <- paste0(project, "ExpectedCatch")
+    
+    if (table_exists(ec_sql, project)) {
+      
+      table_remove(ec_sql, project)
+    }
+    
+    DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", ec_sql, 
+                                     "(data ExpectedCatch)"))
+    DBI::dbExecute(fishset_db, 
+                   paste("INSERT INTO", ec_sql, "VALUES (:data)"),
+                   params = list(data = list(serialize(ecl, NULL)))
+    )
+    
+    message(paste0('"', new.name, '" added to expected catch list.'))
+    
   } else {
     
-    dat[[new.name]] <- catch_mod$fitted.values
-    return(dat)
+    dataset[[new.name]] <- catch_mod$fitted.values
+    return(dataset)
   }
   
   # TODO: log function
