@@ -11,7 +11,7 @@ catch_lm(
   zoneID = NULL,
   exp.name = NULL,
   new.name = NULL,
-  output = "ec matrix"
+  output = "matrix"
 )
 }
 \arguments{
@@ -20,20 +20,25 @@ database contains the string 'MainDataTable'.}
 
 \item{project}{String, name of project.}
 
-\item{catch.formula}{A formula object specifying the linear model. See
-\code{\link[stats:lm]{stats::lm()}}.}
+\item{catch.formula}{A formula object specifying the linear model.See \code{\link[stats:lm]{stats::lm()}}.}
 
 \item{zoneID}{zone ID Variable in \code{dat} that identifies the individual zones or
-areas.}
+areas. Required if merging expected catch into \code{dat} using \code{exp.name}, or
+when creating a new expected catch matrix  and \code{exp.name} is \code{NULL} (see
+\code{output} below).}
 
 \item{exp.name}{Name(s) of expected catch matrix to merge into \code{dat}.}
 
-\item{new.name}{Optional, new name for \code{exp.name}. These should be in the same
-order as \code{exp.name}. \code{catch.formula} must use new names.}
+\item{new.name}{Optional, string. When \code{output = 'matrix'}, \code{new.name} will
+become the name of the new expected catch matrix saved to the FishSET DB
+expected catch list. When \code{output = 'dataset'}, \code{new.name} will
+become the name of the new expected catch variable added to the primary
+dataset.}
 
-\item{output}{Whether to output \code{dat} with a single variable added (\code{'variable'})
-or}
+\item{output}{Whether to output \code{dat} with the expected catch variable added
+(\code{'dataset'}) or to save an expected catch matrix to the expected catch
+FishSET DB table (\code{'matrix'}). Defaults to \code{output = 'matrix'}.}
 }
 \description{
-First stage regression model for catch. Can be used to
+First stage regression model for catch.
 }
