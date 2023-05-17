@@ -19,14 +19,43 @@
 #' @param output Whether to output `dat` with the expected catch variable added 
 #'   (`'dataset'`) or to save an expected catch matrix to the expected catch 
 #'   FishSET DB table (`'matrix'`). Defaults to `output = 'matrix'`. 
+#' @details `catch_lm()` can merge an expected catch matrix into the primary dataset
+#'   before running the linear model. This is done using by passing `exp.name` 
+#'   and `zoneID` to [merge_expected_catch()] and is for convenience; users can 
+#'   do this separately using [merge_expected_catch()] if desired, just make sure 
+#'   to leave `exp.name` empty before running `catch_lm()`. Merging expected catch
+#'   in a separate step is useful for creating tables and plots before running 
+#'   a first stage linear regression. 
+#' @return `catch_lm()` has two output options: `dataset` and `matrix`. When 
+#'   `output == 'dataset'`, the primary dataset will be returned with the fitted
+#'   values from the model added as a new column. The new column is named using 
+#'   `new.name`. 
+#'   
+#'   When `output == 'matrix'` an expected catch matrix is created and saved to 
+#'   the FishSET DB expected catch list (it is not outputted to the console). 
+#'   There are two ways to create an expected catch matrix: by using an existing 
+#'   expected catch matrix in `catch.formula`, or by using a zone-identifier
+#'   column (i.e. `zoneID`) in the `catch.formula`. For example, if you have 
+#'   created an expected catch matrix named 'user1' using [create_expectations()],
+#'   `catch.formula` could equal `catch ~ vessel_length * user1`. In this case
+#'   `exp.name` would equal `'user1'`. Alternatively, you could create an expected 
+#'   catch matrix by specifying `catch.formula` as `catch ~ vessel_length * zone`.
+#'   In this case, `exp.name = NULL` and `zoneID = 'zone'`. 
+#' @seealso [merge_expected_catch()]
 #' @md
 #' @export
 #' @importFrom stats lm
-#' @importFrom rlang expr parse_expr sym
-#' @importFrom dplyr select all_of expand_grid
+#' @importFrom rlang expr
+#' @importFrom dplyr select all_of 
+#' @importFrom tidyr expand_grid
 
-catch_lm <- function(dat, project, catch.formula, zoneID = NULL, exp.name = NULL, 
-                     new.name = NULL, output = 'matrix') {
+catch_lm <- function(dat, 
+                     project, 
+                     catch.formula, 
+                     zoneID = NULL, 
+                     exp.name = NULL, 
+                     new.name = NULL, 
+                     output = 'matrix') {
 
   # call in dataset ----
   out <- data_pull(dat, project = project)
@@ -38,8 +67,6 @@ catch_lm <- function(dat, project, catch.formula, zoneID = NULL, exp.name = NULL
     # get expected catch matrices (will throw error if ec list doesn't exist)
     ecl <- expected_catch_list(project)
     
-    # if (is.null(new.name)) new.name <- exp.name
-    # TODO: zoneID required
     for (i in seq_along(exp.name)) {
       
       # add each ec matrix as a column to dat
@@ -75,6 +102,7 @@ catch_lm <- function(dat, project, catch.formula, zoneID = NULL, exp.name = NULL
            call. = FALSE)
     }
     
+    # output matrix ----
     if (!is.null(exp.name)) {
       
       # list of referenced ec matrices
@@ -106,16 +134,16 @@ catch_lm <- function(dat, project, catch.formula, zoneID = NULL, exp.name = NULL
       
     } else { # use zoneID instead of ec matrix 
       
-      z_sym <- rlang::sym(zoneID)
+      # select variables except zoneID, then expand dataframe using zoneID
       dd <- 
-        dat %>% 
+        dataset %>% 
         dplyr::select(-dplyr::all_of(zoneID)) %>% 
-        dplyr::expand_grid(zone.temp = unique(dat[[zoneID]]))
-      
+        tidyr::expand_grid(zone.temp = unique(dat[[zoneID]]))
+
       names(dd)[names(dd) == 'zone.temp'] <- zoneID
       
       pred_dd <- predict(catch_mod, newdata = dd)
-      ec_matrix <- matrix(pred_dd, ncol = length(unique(dat[[zoneID]])), byrow = TRUE)
+      ec_matrix <- matrix(pred_dd,  ncol = length(unique(dataset[[zoneID]])), byrow = TRUE)
       dimnames(ec_matrix) <- list(NULL, unique(dat[[zoneID]]))
     }
     
