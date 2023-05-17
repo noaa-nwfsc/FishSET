@@ -39,6 +39,35 @@ dataset.}
 (\code{'dataset'}) or to save an expected catch matrix to the expected catch
 FishSET DB table (\code{'matrix'}). Defaults to \code{output = 'matrix'}.}
 }
+\value{
+\code{catch_lm()} has two output options: \code{dataset} and \code{matrix}. When
+\code{output == 'dataset'}, the primary dataset will be returned with the fitted
+values from the model added as a new column. The new column is named using
+\code{new.name}.
+
+When \code{output == 'matrix'} an expected catch matrix is created and saved to
+the FishSET DB expected catch list (it is not outputted to the console).
+There are two ways to create an expected catch matrix: by using an existing
+expected catch matrix in \code{catch.formula}, or by using a zone-identifier
+column (i.e. \code{zoneID}) in the \code{catch.formula}. For example, if you have
+created an expected catch matrix named 'user1' using \code{\link[=create_expectations]{create_expectations()}},
+\code{catch.formula} could equal \code{catch ~ vessel_length * user1}. In this case
+\code{exp.name} would equal \code{'user1'}. Alternatively, you could create an expected
+catch matrix by specifying \code{catch.formula} as \code{catch ~ vessel_length * zone}.
+In this case, \code{exp.name = NULL} and \code{zoneID = 'zone'}.
+}
 \description{
 First stage regression model for catch.
+}
+\details{
+\code{catch_lm()} can merge an expected catch matrix into the primary dataset
+before running the linear model. This is done using by passing \code{exp.name}
+and \code{zoneID} to \code{\link[=merge_expected_catch]{merge_expected_catch()}} and is for convenience; users can
+do this separately using \code{\link[=merge_expected_catch]{merge_expected_catch()}} if desired, just make sure
+to leave \code{exp.name} empty before running \code{catch_lm()}. Merging expected catch
+in a separate step is useful for creating tables and plots before running
+a first stage linear regression.
+}
+\seealso{
+\code{\link[=merge_expected_catch]{merge_expected_catch()}}
 }
