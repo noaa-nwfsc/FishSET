@@ -47,7 +47,7 @@
 #' @param expectcatchmodels List, name of expected catch models to include in 
 #'   model run. Defaults to all models. Each list item should be a string of 
 #'   expected catch models to include in a model. For example, 
-#'   `list(c('recent', 'older'), c('user'))` would run one model with the 
+#'   `list(c('recent', 'older'), c('user1'))` would run one model with the 
 #'   medium and long expected catch matrices, and one model with just the user-defined 
 #'   expected catch matrix. Choices are "recent", "older", "oldest", "logbook", 
 #'   "all", and "individual". 
