@@ -16,6 +16,7 @@
 #'   expected catch list. When `output = 'dataset'`, `new.name` will 
 #'   become the name of the new expected catch variable added to the primary
 #'   dataset. 
+#' @param date Date variable from `dat` used to create expected catch matrix. 
 #' @param output Whether to output `dat` with the expected catch variable added 
 #'   (`'dataset'`) or to save an expected catch matrix to the expected catch 
 #'   FishSET DB table (`'matrix'`). Defaults to `output = 'matrix'`. 
@@ -47,7 +48,7 @@
 #' @importFrom stats lm
 #' @importFrom rlang expr
 #' @importFrom dplyr select all_of 
-#' @importFrom tidyr expand_grid
+#' @importFrom tidyr expand_grid pivot_wider
 
 catch_lm <- function(dat, 
                      project, 
@@ -55,12 +56,15 @@ catch_lm <- function(dat,
                      zoneID = NULL, 
                      exp.name = NULL, 
                      new.name = NULL, 
+                     date, 
                      output = 'matrix') {
 
   # call in dataset ----
   out <- data_pull(dat, project = project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
+  
+  column_check(dataset, c(zoneID, date))
    
   if (!is.null(exp.name)) {
     
@@ -70,7 +74,10 @@ catch_lm <- function(dat,
     for (i in seq_along(exp.name)) {
       
       # add each ec matrix as a column to dat
-      dataset <- merge_expected_catch(dataset, project, zoneID, 
+      dataset <- merge_expected_catch(dataset,
+                                      project, 
+                                      zoneID, 
+                                      date = date,
                                       exp.name = exp.name[i], 
                                       new.name = NULL, 
                                       log_fun = FALSE)
@@ -107,12 +114,14 @@ catch_lm <- function(dat,
       
       # list of referenced ec matrices
       catch_mat <- ecl[exp.name]
-      nz <- ncol(catch_mat[[1]])
+      nz <- ncol(catch_mat[[1]])     # number of zones
+      zn <- colnames(catch_mat[[1]]) # zone names
       
       # create a list where each entry is a data.frame containing a single zone from 
       # each chosen ec matrix, e.g. list 1 = zone 1 from exp matrices 1 and 2,  etc.
       ec_cols <- lapply(seq_len(nz), function(i) {
-        
+        # i = expected catch matrix i
+        # j = zone j
         ec_i <- lapply(seq_along(exp.name), function(j) catch_mat[[j]][, i])
         names(ec_i) <- exp.name 
         as.data.frame(ec_i)
@@ -120,34 +129,54 @@ catch_lm <- function(dat,
       
       # use catch model to estimate expected catch for each zone
       ec_pred <- lapply(seq_len(nz), function(j) {
-        
+        # j = zone j
         # original data w/ response and ec variable removed
-        dat.x <- dataset[cv[!cv %in% new.name & cv != cv[1]]]
-        # add ec variables from ec_cols
+        dat.x <- dataset[cv[!cv %in% new.name & cv != cv[1] & cv != zoneID]]
+        # add expected catch from column j
         dat.x <- cbind(dat.x, ec_cols[[j]])
-        
+        # add zone
+        dat.x[[zoneID]] <- zn[j]
+        # predict catch using zone j
         predict(catch_mod, newdata = dat.x)
       })
       
+      # convert to matrix
       names(ec_pred) <- colnames(catch_mat[[1]])
       ec_matrix <- as.matrix(as.data.frame(ec_pred))
+      row.names(ec_matrix) <- as.character(dataset[[date]])
       
     } else { # use zoneID instead of ec matrix 
       
-      # select variables except zoneID, then expand dataframe using zoneID
+      # add fitted values to dataset
+      dataset[[new.name]] <- catch_mod$fitted.values
+      
+      # filter data to include date, zoneID, and fitted values
       dd <- 
         dataset %>% 
-        dplyr::select(-dplyr::all_of(zoneID)) %>% 
-        tidyr::expand_grid(zone.temp = unique(dat[[zoneID]]))
-
-      names(dd)[names(dd) == 'zone.temp'] <- zoneID
+        select(all_of(c(date, zoneID, new.name))) %>% 
+        # widen data by zone
+        tidyr::pivot_wider(id_cols = !!date, 
+                           names_from = all_of(zoneID), 
+                           values_from = all_of(new.name), 
+                           values_fill = 0, # fill missing values w/ 0
+                           values_fn = mean) # when more than one value exists for date-zone, output the mean
       
-      pred_dd <- predict(catch_mod, newdata = dd)
-      ec_matrix <- matrix(pred_dd,  ncol = length(unique(dataset[[zoneID]])), byrow = TRUE)
-      dimnames(ec_matrix) <- list(NULL, unique(dat[[zoneID]]))
+      # arrange columns 
+      dd <- dd %>% dplyr::select(all_of(sort(names(dd))))
+      
+      # convert to matrix
+      ec_matrix <- as.matrix(dd[-1]) # drop date
+      row.names(ec_matrix) <- as.character(dd[[date]]) # add date as row name
+      
+      # pull rows matched by day 
+      ecList <- 
+        lapply(dataset[[date]], function(p) {
+          
+          ec_matrix[p == row.names(ec_matrix), , drop = FALSE]
+        })
+      # combine list into a matrix, dim = n obs x n zones (fishset format)
+      ec_matrix <- do.call(rbind, ecList)
     }
-    
-    # TODO: assign row names using day
     
     # create a default name if new.name is NULL
     if (is.null(new.name)) {
@@ -192,7 +221,7 @@ catch_lm <- function(dat,
   catch_lm_function <- list()
   catch_lm_function$functionID <- "catch_lm"
   catch_lm_function$args <- list(dat, project, catch.formula, zoneID, exp.name, 
-                                 new.name, output)
+                                 new.name, date, output)
   catch_lm_function$kwargs <- list()
   
   log_call(project, catch_lm_function)
