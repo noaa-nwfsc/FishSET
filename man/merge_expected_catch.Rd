@@ -8,6 +8,7 @@ merge_expected_catch(
   dat,
   project,
   zoneID,
+  date,
   exp.name,
   new.name = NULL,
   ec.table = NULL,
@@ -22,6 +23,8 @@ database contains the string 'MainDataTable'.}
 
 \item{zoneID}{zone ID Variable in \code{dat} that identifies the individual zones or
 areas.}
+
+\item{date}{Date variable used to create the expected catch matrix.}
 
 \item{exp.name}{Name(s) of expected catch matrix to merge into \code{dat}.}
 
