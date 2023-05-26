@@ -227,28 +227,6 @@ calc_exp <- function(dataset,
       }
     }
     
-    # lag ----
-    # if (temp.lag > 0) {
-    #   
-    #   df$lag.value <- c(rep(NA, temp.lag), df$catch[-c(1:temp.lag)])
-    #   
-    #   # this will omit the first ob ID even if duplicated ex: duplicated(rep(1, 3))
-    #   # TODO: count IDs and replace catch for IDs with single count? Remove? 
-    #   df$lag.value[which(!duplicated(df$ID))] <- NA
-    #   
-    # } else {
-    #   
-    #   df$lag.value <- df$catch
-    # }
-    # 
-    # if (temp.lag > 2) { # TODO: check this
-    #   
-    #   for (i in seq_len(temp.lag - 1)) {
-    #     
-    #     df$lag.value[(which(!duplicated(df$ID)) + temp.lag - i)] <- NA
-    #   }
-    # }
-    
     # Moving window ----
     
     window_ave <- function(x) {
