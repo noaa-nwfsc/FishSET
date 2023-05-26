@@ -7,6 +7,7 @@
 #' @param project String, name of project.
 #' @param zoneID zone ID Variable in `dat` that identifies the individual zones or 
 #'   areas.
+#' @param date Date variable used to create the expected catch matrix.
 #' @param exp.name Name(s) of expected catch matrix to merge into `dat`.
 #' @param new.name Optional, new name for `exp.name`. These should be in the same
 #'   order as `exp.name`. 
@@ -19,7 +20,7 @@
 #' to the primary dataset, `dat`. 
 
 
-merge_expected_catch <- function(dat, project, zoneID, exp.name, new.name = NULL, 
+merge_expected_catch <- function(dat, project, zoneID, date, exp.name, new.name = NULL, 
                                  ec.table = NULL, log_fun = TRUE) {
   
   # call in dataset
@@ -31,7 +32,7 @@ merge_expected_catch <- function(dat, project, zoneID, exp.name, new.name = NULL
   # vector of expected catch matrix names
   ecn <- exp_catch_names(project)
   
-  column_check(dataset, zoneID)
+  column_check(dataset, c(zoneID, date))
   
   # TODO: check that new column names won't conflict w/ existing 
   
@@ -54,15 +55,16 @@ merge_expected_catch <- function(dat, project, zoneID, exp.name, new.name = NULL
       
       ecMat <- ecl[[x]]
       # use the ec value that matches data's date and zone  
-      ecMat[cbind(1:nrow(ecMat), match(dataset[[zoneID]], colnames(ecMat)))]
+      ecMat[cbind(match(as.character(dataset[[date]]), row.names(ecMat)),
+                  match(dataset[[zoneID]], colnames(ecMat)))]
     })
   
   if (log_fun) {
     # log function
     merge_expected_catch_function <- list()
     merge_expected_catch_function$functionID <- "merge_expected_catch"
-    merge_expected_catch_function$args <- list(dat, project, zoneID, exp.name, new.name,
-                                               ec.table)
+    merge_expected_catch_function$args <- list(dat, project, zoneID, date, exp.name, 
+                                               new.name, ec.table, log_fun)
     merge_expected_catch_function$kwargs <- list()
     
     log_call(project, merge_expected_catch_function)
