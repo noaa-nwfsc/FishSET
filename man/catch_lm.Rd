@@ -11,6 +11,7 @@ catch_lm(
   zoneID = NULL,
   exp.name = NULL,
   new.name = NULL,
+  date,
   output = "matrix"
 )
 }
@@ -34,6 +35,8 @@ become the name of the new expected catch matrix saved to the FishSET DB
 expected catch list. When \code{output = 'dataset'}, \code{new.name} will
 become the name of the new expected catch variable added to the primary
 dataset.}
+
+\item{date}{Date variable from \code{dat} used to create expected catch matrix.}
 
 \item{output}{Whether to output \code{dat} with the expected catch variable added
 (\code{'dataset'}) or to save an expected catch matrix to the expected catch
