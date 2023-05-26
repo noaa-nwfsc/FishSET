@@ -53,9 +53,6 @@
 #'   with new expected catch data frame? If \code{FALSE}, new expected catch data 
 #'   frames appended to previously saved expected catch data frames. Default is 
 #'   \code{TRUE}. If \code{TRUE}
-#' @importFrom lubridate floor_date year
-#' @importFrom DBI dbGetQuery
-#' @importFrom stats aggregate reshape coef lm
 #' @export create_expectations
 #' @return Function saves a list of expected catch matrices to the FishSET database
 #'   as \code{projectExpectedCatch}. The list includes 
