@@ -45,17 +45,19 @@ This analysis uses three of `FishSET`'s example datasets: the `scallop`
 dataframe which contains anonymized scallop data from the Northeast,
 `scallop_ports` which is a table of ports and their location, and
 `tenMNSQR` which is a spatial dataframe of Northeastern ten minute
-squares.
+squares. We also rescale the Landed weight to thousands of meat pounds
+and the Dollar value to thousands of Real dollars.
 
 ```{r}
 data("scallop")
 data('scallop_ports')
 data("tenMNSQR")
+scallop$LANDED_thousands<-scallop$LANDED_OBSCURED/1000
+scallop$DOLLAR_2020_thousands<-scallop$DOLLAR_2020_OBSCURED/1000
 
 vars_to_keep <- c('TRIPID', 'PERMIT.y', 'DATE_TRIP', 'DDLON', 'DDLAT', 'ZoneID', 
-                  'POUNDS', 'port_lon', 'port_lat', 'previous_namelsad',
+                  'LANDED_thousands', 'DOLLAR_2020_thousands', 'port_lon', 'port_lat', 'previous_namelsad',
                   'previous_port_lon', 'previous_port_lat')
-
 scallop <- scallop[vars_to_keep]
 ```
 
@@ -125,7 +127,7 @@ Check for sparsity.
 sparsetable(scallopModMainDataTable, 'scallopMod', 
             timevar = 'DATE_TRIP', 
             zonevar = 'ZoneID',
-            var = 'POUNDS')
+            var = 'LANDED_thousands')
 
 sparsplot('scallopMod')
 ```
@@ -206,7 +208,7 @@ will be named `user1` and `user2` respectively.
 # user1 expected catch matrix
 create_expectations(dat = scallopModMainDataTable,
                     project = "scallopMod",
-                    catch = "POUNDS", 
+                    catch = "LANDED_thousands", 
                     temp.var = "DATE_TRIP",
                     temp.window = 7,
                     temp.lag = 1,
@@ -220,7 +222,7 @@ create_expectations(dat = scallopModMainDataTable,
 # user2 expected catch matrix
 create_expectations(dat = scallopModMainDataTable,
                     project = "scallopMod",
-                    catch = "POUNDS", 
+                    catch = "LANDED_thousands", 
                     temp.var = "DATE_TRIP",
                     temporal = "daily",
                     temp.window = 14,
@@ -257,7 +259,7 @@ specified by using `'individual'` in the `expectcatchmodels` argument).
 
 ```{r}
 make_model_design(project = "scallopMod",
-                  catchID = "POUNDS",
+                  catchID = "LANDED_thousands",
                   replace = TRUE,
                   likelihood = "logit_c",
                   initparams = c(0, 0),
