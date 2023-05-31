@@ -1,0 +1,311 @@
+---
+title: "Scallop Conditional Logit Model Example"
+author: "Bryce McManus"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This is an example of a conditional logit model using the `scallop` data
+from the `FishSET` package.
+
+### Packages
+
+```{r}
+library(FishSET)
+```
+
+### Setup
+
+<!--# Create folder path to the FishSET folder. -->
+
+```{r eval=TRUE, echo=FALSE}
+# this chunk is for vignette version only
+folderpath <- tempdir()
+```
+
+
+Reset the the `scallopMod` project if it exists. Note: when running this
+chunk you may get a pop-up asking to identify the location for a new
+FishSET folder or an existing folder.
+
+```{r}
+# for running .Rmd, remove for vignette version
+if (project_exists('scallopMod')) erase_project('scallopMod')
+```
+
+<br>
+<br>
+
+### Load Data
+
+This analysis uses three of `FishSET`'s example datasets: the `scallop`
+dataframe which contains anonymized scallop data from the Northeast,
+`scallop_ports` which is a table of ports and their location, and
+`tenMNSQR` which is a spatial dataframe of Northeastern ten minute
+squares.
+
+```{r}
+data("scallop")
+data('scallop_ports')
+data("tenMNSQR")
+
+vars_to_keep <- c('TRIPID', 'PERMIT.y', 'DATE_TRIP', 'DDLON', 'DDLAT', 'ZoneID', 
+                  'POUNDS', 'port_lon', 'port_lat', 'previous_namelsad',
+                  'previous_port_lon', 'previous_port_lat')
+
+scallop <- scallop[vars_to_keep]
+```
+
+<br>
+<br>
+
+Load each dataset into FishSET. Note: when running this chunk you may
+get a pop-up asking to identify the location for a new FishSET folder or
+an existing folder.
+
+```{r}
+load_maindata(scallop, project = "scallopMod", over_write = TRUE)
+
+load_port(dat = scallop_ports, port_name = "port_name", project = "scallopMod")
+
+load_spatial(spat = tenMNSQR, name = "TenMnSqr", project = "scallopMod")
+
+scallopModTenMnSqrSpatTable <- table_view('scallopModTenMnSqrSpatTable', "scallopMod")
+```
+
+<br>
+<br>
+
+### QAQC
+
+`summary_stats()` is a useful way to find `NA`s in the data.
+
+```{r}
+summary_stats(scallopModMainDataTable, project = "scallopMod")
+```
+
+<br>
+<br>
+
+Remove `NA`s by calling `na_filter()`. In this case, three variables
+which are important for modeling are being filtered: `ZoneID`,
+`previous_port_lon`, and `previous_port_lat`.
+
+```{r}
+scallopModMainDataTable <- 
+  na_filter(scallopModMainDataTable,
+            project = "scallopMod", 
+            x = c("ZoneID", "previous_port_lon", "previous_port_lat"),
+            remove = TRUE)
+```
+
+<br>
+<br>
+
+Plot the number of observations by zone.
+
+```{r}
+zone_summary(scallopModMainDataTable, 
+             spat = scallopModTenMnSqrSpatTable, 
+             project = "scallopMod",
+             zone.dat = "ZoneID",
+             zone.spat = "TEN_ID",
+             output = "tab_plot")
+```
+
+<br>
+<br>
+
+Check for sparsity.
+
+```{r}
+sparsetable(scallopModMainDataTable, 'scallopMod', 
+            timevar = 'DATE_TRIP', 
+            zonevar = 'ZoneID',
+            var = 'POUNDS')
+
+sparsplot('scallopMod')
+```
+
+<br>
+<br>
+
+### Create Centroids
+
+A centroid table is needed to create the distance matrix. It can be used
+as the choice occasion or the alternative choice. The simplest way to
+create a zonal centroid table is by passing it to `create_centroid()`,
+which saves the centroids to the FishSET database.
+
+```{r}
+create_centroid(spat = scallopModTenMnSqrSpatTable,
+                project = "scallopMod",
+                spatID = "TEN_ID",
+                type = "zonal centroid",
+                output = "centroid table")
+```
+
+<br>
+<br>
+
+### Alternative Choice
+
+For this example, the alternative choice list will use the longitude and
+latitude of the disembarking port (`previous_port_lon` and
+`previous_port_lat`) as the choice occasion and the zonal centroid of
+the fishing areas as the alternative. The minimum haul haul requirement
+is set to 90.
+
+```{r}
+create_alternative_choice(dat = scallopModMainDataTable,
+                          project = "scallopMod",
+                          occasion = "lon-lat",
+                          occasion_var = c("previous_port_lon", "previous_port_lat"),
+                          alt_var = "zonal centroid",
+                          zoneID = "ZoneID",
+                          zone.cent.name = "scallopModZoneCentroid",
+                          min.haul = 90
+                          )
+```
+
+<br>
+<br>
+
+The plot below visualizes zone frequency after accounting for the
+minimum haul requirement from the alternative choice list.
+
+```{r}
+z_ind <- which(alt_choice_list('scallopMod')$dataZoneTrue == 1)
+
+zOut <- 
+  zone_summary(scallopModMainDataTable[z_ind, ], 
+               spat = scallopModTenMnSqrSpatTable, 
+               project = "scallopMod",
+               zone.dat = "ZoneID",
+               zone.spat = "TEN_ID",
+               output = "tab_plot")
+
+pretty_tab(zOut$tab)
+
+zOut$plot
+```
+
+<br>
+<br>
+
+### Expected Catch
+
+This code chunk creates two different expected catch matrices: one using
+a window of seven days, lag of one and a window of 14 days, lag of two. They
+will be named `user1` and `user2` respectively.
+
+```{r}
+# user1 expected catch matrix
+create_expectations(dat = scallopModMainDataTable,
+                    project = "scallopMod",
+                    catch = "POUNDS", 
+                    temp.var = "DATE_TRIP",
+                    temp.window = 7,
+                    temp.lag = 1,
+                    year.lag = 0,
+                    temporal = 'daily',
+                    empty.catch = 0,
+                    empty.expectation = 1e-04,
+                    default.exp = FALSE,
+                    replace.output = TRUE)
+
+# user2 expected catch matrix
+create_expectations(dat = scallopModMainDataTable,
+                    project = "scallopMod",
+                    catch = "POUNDS", 
+                    temp.var = "DATE_TRIP",
+                    temporal = "daily",
+                    temp.window = 14,
+                    temp.lag = 2,
+                    empty.catch = 0,
+                    empty.expectation = 1e-04,
+                    default.exp = FALSE,
+                    replace.output = FALSE)
+```
+
+<br>
+<br>
+
+The data must be checked for common data quality issues before it can be
+used in the modeling functions (i.e. `make_model_design()` and
+`discretefish_subroutine()`). `check_model_data()` saves a new version
+of the primary data with the suffix `_final` added to indicate that the
+table is in its "final" state and ready to be used for modeling.
+
+```{r}
+check_model_data(scallopModMainDataTable, 
+                 project = "scallopMod", 
+                 uniqueID = "TRIPID")
+```
+
+<br>
+<br>
+
+### Model Design
+
+The model design file below will run two conditional logit models, each
+using one of the expected catch matrices created earlier (this is
+specified by using `'individual'` in the `expectcatchmodels` argument).
+
+```{r}
+make_model_design(project = "scallopMod",
+                  catchID = "POUNDS",
+                  replace = TRUE,
+                  likelihood = "logit_c",
+                  initparams = c(0, 0),
+                  vars1 = NULL,
+                  vars2 = NULL,
+                  mod.name = 'lz', 
+                  expectcatchmodels = list('individual')
+                  )
+```
+
+<br>
+<br>
+
+### Run Models
+
+Use `discretefish_subroutine()` to run all models in the model design
+file.
+
+```{r}
+discretefish_subroutine(project = "scallopMod", explorestarts = FALSE)
+```
+
+<br>
+<br>
+
+Use `model_params()` to see the model output. `user1` and `user2` are the 
+expected catch parameters and `V1` the travel distance parameter.
+
+```{r}
+model_params("scallopModModelOut", "scallopMod", output = 'print')
+```
+
+<br>
+<br>
+
+Compare model fit.
+
+```{r}
+model_fit_summary("scallopMod")
+```
+
+```{r eval=FALSE, echo = FALSE}
+# for vignette version only
+unlink(folderpath)
+```
