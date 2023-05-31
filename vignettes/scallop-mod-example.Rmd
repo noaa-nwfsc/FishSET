@@ -2,7 +2,14 @@
 title: "Scallop Conditional Logit Model Example"
 author: "Bryce McManus"
 date: "`r Sys.Date()`"
-output: html_document
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 4
+vignette: >
+  %\VignetteIndexEntry{scallop-example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 editor_options: 
   markdown: 
     wrap: 72
@@ -23,24 +30,11 @@ from the `FishSET` package.
 library(FishSET)
 ```
 
-### Setup
-
-<!--# Create folder path to the FishSET folder. -->
-
 ```{r eval=TRUE, echo=FALSE}
 # this chunk is for vignette version only
 folderpath <- tempdir()
 ```
 
-
-Reset the the `scallopMod` project if it exists. Note: when running this
-chunk you may get a pop-up asking to identify the location for a new
-FishSET folder or an existing folder.
-
-```{r}
-# for running .Rmd, remove for vignette version
-if (project_exists('scallopMod')) erase_project('scallopMod')
-```
 
 <br>
 <br>
@@ -305,7 +299,7 @@ Compare model fit.
 model_fit_summary("scallopMod")
 ```
 
-```{r eval=FALSE, echo = FALSE}
+```{r eval=TRUE, echo=FALSE}
 # for vignette version only
 unlink(folderpath)
 ```
