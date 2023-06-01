@@ -231,6 +231,8 @@ source("map_viewer_app.R", local = TRUE)
                              
                              tags$br(), tags$br(),
                              fluidRow(
+                               
+                               uiOutput('fish_folder_path'), 
                               
                                 uiOutput("projects"), # define project name
                                 
