@@ -968,6 +968,26 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       ###---
       
+      folderpath <- reactiveVal()
+      
+      output$fish_folder_path <- renderUI({
+        
+        if (exists("folderpath", where = ".GlobalEnv")) {
+          
+          folderpath(get("folderpath", envir = as.environment(1L)))
+          
+          p(tags$strong('Currently set to ', folderpath()))
+          
+        } else {
+          
+          loc()
+          # Sys.sleep(.25)
+          # folderpath(get("folderpath", envir = as.environment(1L)))
+        }
+        
+      })
+      
+      
       output$projects <- renderUI({
         
         req(input$loadmainsource)
