@@ -512,13 +512,15 @@ discretefish_subroutine <-
         
         # TODO: make sure this works for each model type
         p_names <- unlist(lapply(x_temp[[i]]$bCHeader[-1], names))
-        # ec_names <- names(x_temp[[i]]$gridVaryingVariables)
+        grid_vars <- names(x_temp[[i]]$bCHeader$gridVariablesInclude)
+        ind_vars <- names(x_temp[[i]]$bCHeader$indeVarsForModel)
         ec_names <- x$expectcatchmodels[[j]]
         
         if (fr == "logit_avgcat") {
           
-          z_names <- sort(unique(x_temp[[i]]$choice$choice))
-          rownames(OutLogit) <- c(z_names, ec_names, p_names)
+          z_names <- sort(unique(x_temp[[i]]$choice$choice))[-1]
+          n1 <- unlist(lapply(grid_vars, function(x) as.character(interaction(x, z_names)))) 
+          rownames(OutLogit) <- c(n1, ind_vars) 
           
         } else {
           # Q: will this always be the correct order?
