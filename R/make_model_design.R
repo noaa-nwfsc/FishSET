@@ -38,7 +38,7 @@
 #'   for how to specify for each likelihood function.
 #' @param vars2 Character string, additional variables to include in the model. 
 #'   These depend on the likelihood. See the Details section for how to specify 
-#'   for each likelihood function. For `likelihood == 'logit_c'`, `vars2` 
+#'   for each likelihood function. For `likelihood = 'logit_c'`, `vars2` 
 #'   should be the name of the gridded table saved to the FishSET Database, and
 #'   should contain the string `"GridTableWide"`. See [format_grid()] for details. 
 #' @param priceCol Variable in `dat` containing price information. Required 
@@ -47,7 +47,7 @@
 #' @param expectcatchmodels List, name of expected catch models to include in 
 #'   model run. Defaults to all models. Each list item should be a string of 
 #'   expected catch models to include in a model. For example, 
-#'   `list(c('recent', 'older'), c('user'))` would run one model with the 
+#'   `list(c('recent', 'older'), c('user1'))` would run one model with the 
 #'   medium and long expected catch matrices, and one model with just the user-defined 
 #'   expected catch matrix. Choices are "recent", "older", "oldest", "logbook", 
 #'   "all", and "individual". 

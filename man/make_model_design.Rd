@@ -69,7 +69,7 @@ for how to specify for each likelihood function.}
 
 \item{vars2}{Character string, additional variables to include in the model.
 These depend on the likelihood. See the Details section for how to specify
-for each likelihood function. For \code{likelihood == 'logit_c'}, \code{vars2}
+for each likelihood function. For \code{likelihood = 'logit_c'}, \code{vars2}
 should be the name of the gridded table saved to the FishSET Database, and
 should contain the string \code{"GridTableWide"}. See \code{\link[=format_grid]{format_grid()}} for details.}
 
@@ -80,7 +80,7 @@ epm_weibull, epm_lognormal).}
 \item{expectcatchmodels}{List, name of expected catch models to include in
 model run. Defaults to all models. Each list item should be a string of
 expected catch models to include in a model. For example,
-\code{list(c('recent', 'older'), c('user'))} would run one model with the
+\code{list(c('recent', 'older'), c('user1'))} would run one model with the
 medium and long expected catch matrices, and one model with just the user-defined
 expected catch matrix. Choices are "recent", "older", "oldest", "logbook",
 "all", and "individual".
