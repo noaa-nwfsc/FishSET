@@ -67,28 +67,27 @@ get_proj_settings <- function(project, format = FALSE) {
   
   if (project_exists(project)) {
     
-    if (proj_settings_exists(project)) {
+    if (!proj_settings_exists(project)) {
       
-      set_file <- paste0(loc_doc(project), "project_settings.json")
-      
-      out <- jsonlite::fromJSON(set_file)
-      
-      if (format) pander::pander(out)
-      else out
-      
-    } else {
-      
+      warning("Project settings file did not exists. New project settings file created.",
+              call. = FALSE)
       create_proj_settings(project)
-      warning("Project settings file did not exists. New project settings file created.")
     }
     
-  } else if (is.null(project)){
+    set_file <- paste0(loc_doc(project), "project_settings.json")
+    
+    out <- jsonlite::fromJSON(set_file)
+    
+    if (format) pander::pander(out)
+    else out
+    
+  } else if (is.null(project)) {
     
     return(NULL)
     
     } else {
     
-    warning(paste("Project", project, "does not exist."))
+    warning(paste("Project", project, "does not exist."), call. = FALSE)
     return(NULL)
   }
 }

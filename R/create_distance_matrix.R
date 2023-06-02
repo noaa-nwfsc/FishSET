@@ -158,6 +158,16 @@ create_dist_matrix <-
     # TODO: check whether shift_long() affects distance matrix
     spat <- check_spatdat(spat)
     
+    if (is.na(crs)) {
+      # for testing purposes only
+      sf::st_crs(spat) <- NA
+      warning('crs = NA should only be used for testing purposes.', call. = FALSE)
+      
+    } else {
+      
+      spat <- sf::st_transform(spat, crs = crs)
+    }
+    
     if (all(unique(choice) %in% spat[[spatID]]) == FALSE) {
       
       stop("'spat' contains zones not found in alternative choice list. Do you ",
@@ -183,7 +193,16 @@ create_dist_matrix <-
     
     toXY <- spat[spat[[spatID]] %in% unique(choice), spatID]
     # transform fromXY CRS to match
-    fromXY <- sf::st_transform(fromXY, crs = sf::st_crs(toXY))
+    
+    if (is.na(crs)) {
+      # for testing purposes only
+      sf::st_crs(fromXY) <- NA
+      
+    } else {
+      
+      fromXY <- sf::st_transform(fromXY, crs = sf::st_crs(toXY))
+    }
+    
     z_nms <- sort(unique(choice))
     
   } else {

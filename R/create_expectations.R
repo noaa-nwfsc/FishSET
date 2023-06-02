@@ -53,9 +53,6 @@
 #'   with new expected catch data frame? If \code{FALSE}, new expected catch data 
 #'   frames appended to previously saved expected catch data frames. Default is 
 #'   \code{TRUE}. If \code{TRUE}
-#' @importFrom lubridate floor_date year
-#' @importFrom DBI dbGetQuery
-#' @importFrom stats aggregate reshape coef lm
 #' @export create_expectations
 #' @return Function saves a list of expected catch matrices to the FishSET database
 #'   as \code{projectExpectedCatch}. The list includes 
@@ -126,7 +123,7 @@ create_expectations <-
            default.exp = TRUE,
            replace.output = TRUE) {
   
-  # TODO: handling multiple exp catch matrices. Need naming convention
+  # TODO: custom names, need exp.name arg
 
   # TODO: when revenue col exists, either automatically create col of ones (currently user must do this) 
   # or allow catch arg to also be revenue. Use generic name (e.g. value) 
