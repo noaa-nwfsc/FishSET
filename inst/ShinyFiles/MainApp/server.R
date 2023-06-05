@@ -4328,15 +4328,48 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                            options = list(create = TRUE, maxItem = 1, 
                                           placeholder = 'Select or type LONGITUDE variable name')),
             
-                selectizeInput('lon_grid_zone',  'Longitude from spatial data', 
-                               choices=names(as.data.frame(spatdat$dataset)), multiple = TRUE,
-                               options = list(create = TRUE, maxItem = 1, 
-                                              placeholder = 'Select or type LONGITUDE variable name'))
+            selectizeInput('lon_grid_zone',  'Longitude from spatial data', 
+                           choices=names(as.data.frame(spatdat$dataset)), multiple = TRUE,
+                           options = list(create = TRUE, maxItem = 1, 
+                                          placeholder = 'Select or type LONGITUDE variable name'))
          )
        } 
       })
       
-      # Fishing centroid
+      # Zonal Centroid UI
+      output$zone_cent_ui <- renderUI({
+        tagList(
+          
+          if (names(spatdat$dataset)[1]=='var1') {
+            
+            return(
+              tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
+            )
+            
+          },
+          
+          selectInput('zone_cent_spatID', 'Select zone ID from spatial data',
+                      choices = names(spatdat$dataset)),
+          
+          textInput('zone_cent_name', 'Name for new centroid table', 
+                    placeholder = 'Ex: NMFSAreas'),
+          
+          checkboxInput('join_zone_cent', 'Join zonal centroids to primary data',
+                        value = FALSE),
+          
+          conditionalPanel(condition = 'input.join_zone_cent',
+                           
+                           selectInput('zone_cent_zoneID', 'Select zonal ID from primary data',
+                                       choices = names(values$dataset))
+                           
+                           ) 
+    
+        )
+        
+      })
+      
+      
+      # Fishing centroid UI
       output$fish_weight_cent <- renderUI({
         
         tagList(
@@ -4672,7 +4705,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                             lon.spat = input$lon_grid_zone, lat.spat = input$lat_grid_zone, 
                             hull.polygon = input$hull_polygon_zone, epsg = NULL)
           notif <- "Zone assignment column"
-          
+        
+        # TODO: add zonal centroid option  
+        
         } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'fish_cent') {
           
           q_test <- quietly_test(find_fishing_centroid)
@@ -5730,10 +5765,11 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
               showNotification('Completed. Alternative choice matrix updated', type='message', duration=10)
       }, ignoreInit = F) 
       
-      
+      # Note: not in use
       observeEvent(input$savecentroid, {
         q_test <- quietly_test(find_centroid)
-        q_test(spat=spatdat$dataset, project = project$name, spatID = input$cat_altc, lon.spat = input$long_grid_altc, lat.spat = input$lat_grid_altc)
+        q_test(spat=spatdat$dataset, project = project$name, spatID = input$cat_altc, 
+               lon.spat = input$long_grid_altc, lat.spat = input$lat_grid_altc)
         showNotification('Geographic centroid of zones calculated and saved')
       }, ignoreInit = FALSE)
       

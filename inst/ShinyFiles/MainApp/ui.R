@@ -837,6 +837,7 @@ source("map_viewer_app.R", local = TRUE)
                                conditionalPanel("input.VarCreateTop=='Spatial functions'",
                                                 selectInput('dist','Functions', 
                                                             choices = c('Assign observations to zones'='zone', 
+                                                                        'Zonal centroid' = 'zone_cent',
                                                                         'Fishery centroid' = 'fish_cent',
                                                                         'Distance between two points'='create_dist_between',
                                                                         'Midpoint location (lon/lat) for each haul'='create_mid_haul',
@@ -944,6 +945,10 @@ source("map_viewer_app.R", local = TRUE)
                                   uiOutput('zone_assign_2')
                                                 ),
                                
+                               conditionalPanel(condition = "input.VarCreateTop=='Spatial functions'&input.dist=='zone_cent'",
+                                                uiOutput('zone_cent_ui')
+                                                ),
+                               
                                conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='fish_cent'",
                                   uiOutput('fish_weight_cent'), 
                                   uiOutput('fish_weight_cent_2'), 
@@ -1026,8 +1031,7 @@ source("map_viewer_app.R", local = TRUE)
                                actionButton("refreshZ", "Refresh data", 
                                             style = "color: white; background-color: blue;" 
                                ),
-                               #runcodeUI (code='', type='ace'),
-                               # actionButton("eval", "Evaluate"),
+                               
                                radioButtons('choiceTab', '', choices=c( #basic parameters to populate elsewhere like catch, price
                                                                        'Select variables that define alternative fishing choices'='distm',
                                                                        #'Calculate zonal centroid'='zone', #calculate zonal centroid
