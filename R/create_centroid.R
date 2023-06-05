@@ -95,9 +95,8 @@ create_centroid <- function(spat = NULL,
         "'dat' is missing" = !is_value_empty(dat),
         "'zoneID' is missing" = !is_value_empty(zoneID)
       )
-      
-      by_join <- stats::setNames(spatID, zoneID)
-      
+      # ZoneID = standardized name for zones in centroid table
+      by_join <- stats::setNames('ZoneID', zoneID)
       dat_out <- dplyr::left_join(dataset, cent_tab, by = by_join)
     }
       

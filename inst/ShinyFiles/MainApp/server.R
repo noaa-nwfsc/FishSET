@@ -4354,10 +4354,10 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           textInput('zone_cent_name', 'Name for new centroid table', 
                     placeholder = 'Ex: NMFSAreas'),
           
-          checkboxInput('join_zone_cent', 'Join zonal centroids to primary data',
+          checkboxInput('zone_cent_join', 'Join zonal centroids to primary data',
                         value = FALSE),
           
-          conditionalPanel(condition = 'input.join_zone_cent',
+          conditionalPanel(condition = 'input.zone_cent_join',
                            
                            selectInput('zone_cent_zoneID', 'Select zonal ID from primary data',
                                        choices = names(values$dataset))
@@ -4605,6 +4605,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # Run data creation function 
       observeEvent(input$runNew, {
         
+        output_except <- FALSE # for create_centroid side-effect (otherwise error)
+        
         if (input$VarCreateTop == 'Dummy variables' & input$dummyfunc == 'From policy dates') {
           
           q_test <- quietly_test(dummy_num)
@@ -4707,14 +4709,31 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           notif <- "Zone assignment column"
         
         # TODO: add zonal centroid option  
-        
+        } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'zone_cent') {
+          
+          q_test <- quietly_test(create_centroid, show_msg = TRUE)
+          
+          if (input$zone_cent_join) {
+            # create centroid table, join centroids to primary data
+            output <- q_test(dat = values$dataset, spat = spatdat$dataset, project = project$name,
+                             spatID = input$zone_cent_spatID, zoneID = input$zone_cent_zoneID,
+                             cent.name = input$zone_cent_name, output = 'dataset')
+          } else {
+            # save centroid table, don't join to primary data
+            q_test(project = project$name, spat = spatdat$dataset, spatID = input$zone_cent_spatID, 
+                   cent.name = input$zone_cent_name, output = 'centroid table')
+            output <- NULL; output_except <- TRUE;
+          }
+          
+          notif <- 'Zonal centroid'
+          
         } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'fish_cent') {
           
           q_test <- quietly_test(find_fishing_centroid)
-          output <-  q_test(dat = values$dataset, project$name, spat = spatdat$dataset, 
-                            lon.dat = input$lon_dat_cent, lat.dat = input$lat_dat_cent, 
-                            cat = input$cat_cent, weight.var = input$weight_var_cent,
-                            lon.spat = input$lon_grid_cent,lat.spat = input$lat_grid_cent)
+          output <- q_test(dat = values$dataset, project$name, spat = spatdat$dataset, 
+                           lon.dat = input$lon_dat_cent, lat.dat = input$lat_dat_cent, 
+                           cat = input$cat_cent, weight.var = input$weight_var_cent,
+                           lon.spat = input$lon_grid_cent,lat.spat = input$lat_grid_cent)
           notif <- "Fishing centroid"
           
         } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'create_dist_between') {
@@ -4797,9 +4816,11 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           
         } else {
           
-          showNotification(paste(notif, "could not be created."), type = "error")
+          if (!output_except) {
+            
+            showNotification(paste(notif, "could not be created."), type = "error")
+          }
         }
-        
       })
       
       output$output_table_create <- DT::renderDT(
