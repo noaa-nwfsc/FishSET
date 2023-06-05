@@ -98,7 +98,7 @@ find_centroid <-
   # this should be removed eventually; create_alternative_choice() tends to break
   # if "spatCentroid" hasn't been saved
   # DBI::dbWriteTable(fishset_db, "spatCentroid", cent, overwrite = TRUE)
-  message('Geographic centroid saved to fishset database')
+  message('Geographic centroid saved to fishSET database')
   
   if (log.fun) {
     
