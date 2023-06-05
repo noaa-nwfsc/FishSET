@@ -45,8 +45,17 @@ This analysis uses three of `FishSET`'s example datasets: the `scallop`
 dataframe which contains anonymized scallop data from the Northeast,
 `scallop_ports` which is a table of ports and their location, and
 `tenMNSQR` which is a spatial dataframe of Northeastern ten minute
-squares. We also rescale the Landed weight to thousands of meat pounds
-and the Dollar value to thousands of Real dollars.
+squares. 
+
+The `scallop` dataframe contains a random sample of 10,000 trips 
+from vessels in the Limited Access Days-at-Sea fleet when they 
+are declared into either an Access Area or Open area Days-at-Sea
+fishing trip.  
+
+Noise was added to fishing locations, landing quantities, and the 
+value of catch.  Permit, Operator, and trip identifiers were also anonymized. 
+
+
 
 ```{r}
 data("scallop")
@@ -64,9 +73,10 @@ scallop <- scallop[vars_to_keep]
 <br>
 <br>
 
-Load each dataset into FishSET. Note: when running this chunk you may
-get a pop-up asking to identify the location for a new FishSET folder or
-an existing folder.
+Load each dataset into FishSET. Rescale the Landed weight to thousands of meat
+pounds and the Dollar value to thousands of Real dollars. Note: when running 
+this chunk you may get a pop-up asking to identify the location for a new 
+FishSET folder or an existing folder.
 
 ```{r}
 load_maindata(scallop, project = "scallopMod", over_write = TRUE)
@@ -286,7 +296,9 @@ discretefish_subroutine(project = "scallopMod", explorestarts = FALSE)
 <br>
 
 Use `model_params()` to see the model output. `user1` and `user2` are the 
-expected catch parameters and `V1` the travel distance parameter.
+expected catch parameters and `V1` the travel distance parameter.  A reasonably
+specified model should find positive coefficients for `user1` and `user2` and
+negative coefficiencts for `V1`.
 
 ```{r}
 model_params("scallopModModelOut", "scallopMod", output = 'print')
