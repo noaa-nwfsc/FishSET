@@ -113,6 +113,7 @@ update_folderpath <- function() {
   pos <- 1
   envir = as.environment(pos)
   assign('folderpath', proj_dir, envir = envir)
+  fs_path
 }
 
 project_exists <- function(project) {
