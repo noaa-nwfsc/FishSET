@@ -232,7 +232,8 @@ source("map_viewer_app.R", local = TRUE)
                              tags$br(), tags$br(),
                              fluidRow(
                                
-                               actionButton('change_fs_folder', 'Change FishSET Folder'), 
+                               actionButton('change_fs_folder', 'Change FishSET Folder',
+                                            style = "color: white; background-color: blue;"), 
                                uiOutput('fish_folder_path'), 
                               
                                 uiOutput("projects"), # define project name
