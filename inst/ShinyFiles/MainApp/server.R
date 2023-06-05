@@ -4826,7 +4826,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                           add_prompter(
                             div(
                               div(style="display: inline-block; width: 415px ;", h5(tags$b('Define how alternative fishing choices are calculated between'))),
-                              div(style="display: inline-block; width: 5px ;", icon('info-circle'))),
+                              div(style="display: inline-block; width: 5px ;", icon('info-circle', verify_fa = FALSE))),
                                      position = "bottom", type='info', size='medium', 
                                      message = "To change occurrent or alternative choice selection, click on 'Centroid of zonal assignment' and delete."),
                            div(style="display: inline-block;vertical-align:top; width: 160px;",
@@ -5258,7 +5258,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       output$gridvariables <- renderUI ({
         gridvariables <- c('none')
-        add_prompter(selectInput('gridVariablesInclude', label = list(gridlab(), icon('info-circle')), multiple=TRUE,
+        add_prompter(selectInput('gridVariablesInclude', label = list(gridlab(), icon('info-circle', verify_fa = FALSE)), multiple=TRUE,
                     choices = gridvariables, selected = ''),
                    position = "bottom", type='info', size='medium', message = "Generally, variables that vary by zonal alternatives or are interacted with zonal constants. 
                     See Likelihood functions sections of the FishSET Help Manual for details. Select 'none' if no variables are to be included.")
