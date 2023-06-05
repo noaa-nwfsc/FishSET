@@ -968,24 +968,24 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       ###---
       
+      # Allow users to change FishSET folders easily.
       folderpath <- reactiveVal()
-      
+      # Show path of current FS folder
       output$fish_folder_path <- renderUI({
         
-        if (exists("folderpath", where = ".GlobalEnv")) {
-          
-          folderpath(get("folderpath", envir = as.environment(1L)))
+        if (!is_value_empty(folderpath())) {
           
           p(tags$strong('Currently set to ', folderpath()))
-          
-        } else {
-          
-          loc()
-          # Sys.sleep(.25)
-          # folderpath(get("folderpath", envir = as.environment(1L)))
-        }
-        
+        } 
       })
+      
+      # update FS folder path
+      observeEvent(input$change_fs_folder, {
+        
+        fs_path <- update_folderpath()
+        folderpath(fs_path)
+      })
+      
       
       
       output$projects <- renderUI({
