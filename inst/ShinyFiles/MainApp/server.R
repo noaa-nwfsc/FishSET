@@ -9,6 +9,9 @@ if(!exists("default_search")) {default_search <- ""}
 # default column search values
 if (!exists("default_search_columns")) {default_search_columns <- NULL}
 
+# check for FishSET folder 
+fs_exist <- exists("folderpath", where = ".GlobalEnv")
+
     ### SERVER SIDE    
     server = function(input, output, session) {
       options(shiny.maxRequestSize = 8000*1024^2)
@@ -969,14 +972,22 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       ###---
       
       # Allow users to change FishSET folders easily.
-      folderpath <- reactiveVal()
+      folderpath <- reactiveVal({
+        
+        if (fs_exist) get("folderpath", envir = as.environment(1L))
+      })
+      
       # Show path of current FS folder
       output$fish_folder_path <- renderUI({
         
         if (!is_value_empty(folderpath())) {
           
           p(tags$strong('Currently set to ', folderpath()))
-        } 
+          
+        } else {
+          
+          p('No FishSET Folder found. Please select "Update FishSET Folder".')
+        }
       })
       
       # update FS folder path
