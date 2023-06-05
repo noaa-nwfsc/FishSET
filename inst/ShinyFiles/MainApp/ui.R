@@ -850,7 +850,7 @@ source("map_viewer_app.R", local = TRUE)
                                conditionalPanel("input.trip!='haul_to_trip'||input.trip!='trip_centroid'", 
                                                 
                                                 add_prompter(
-                                                   textInput('varname', list('Name of new variable', icon('info-circle')), 
+                                                   textInput('varname', list('Name of new variable', icon('info-circle', verify_fa = FALSE)), 
                                                              value = '', placeholder = ''),
                                                    position = "bottom", type='info', size='medium', 
                                                    message = "If left empty, default names will be supplied.")),
@@ -1105,7 +1105,7 @@ source("map_viewer_app.R", local = TRUE)
                                
                                add_prompter(div(
                                             div(style="display:inline-block; width: 145px;", h4('Temporal options')), 
-                                            div(style="display:inline-block; width: 10px;", icon('info-circle'))),
+                                            div(style="display:inline-block; width: 10px;", icon('info-circle', verify_fa = FALSE))),
                                           position = "right", type='info', size='large', 
                                           message = 'Use the entire temporal record of catch or take the timeline of catch into account. 
                                   When timeline is considered, catch for a given day is the average for the defined number of days (window), 
@@ -1164,7 +1164,7 @@ source("map_viewer_app.R", local = TRUE)
                                       tags$br(), tags$br(),
                                       'Function returns the expected catch or expected revenue data frame based on selected parameters.',
                                       tags$br(), tags$br(),
-                                      icon('exclamation-circle'), tags$b('Three default matrices are also all computed:'),  icon('exclamation-circle'),
+                                      icon('exclamation-circle', verify_fa = FALSE), tags$b('Three default matrices are also all computed:'),  icon('exclamation-circle', verify_fa = FALSE),
                                       tags$br(),
                                       tags$b('Short-term expected catch:'), 'Expected catch/revenue based on catch of the previous two days.',
                                       tags$br(),
@@ -1261,7 +1261,7 @@ source("map_viewer_app.R", local = TRUE)
                                    fluidRow(
                                      add_prompter(div(
                                        div(style="display: inline-block; width: 145px ;", h4('Initial parameters')), 
-                                       div(style="display: inline-block; width: 5px ;", icon('info-circle'))),
+                                       div(style="display: inline-block; width: 5px ;", icon('info-circle', verify_fa = FALSE))),
                                         position = "bottom", type='info', size='large', 
                                         message = tags$p("Starting values can be changed. 
                                         The function will explore the parameter space to find better starting values. 
