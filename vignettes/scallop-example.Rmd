@@ -225,23 +225,20 @@ scallopMainDataTable <-
 
 <br><br>
 
-### Finagle Live pounds to meat weights
+### Finagle LANDED_OBSCURED to Thousands of Pounds
 ```{r}
-# rename POUNDS to LIVE_POUNDS for clarity.  Convert live pounds to meat pounds.
-scallopMainDataTable$LIVE_POUNDS <- scallopMainDataTable$POUNDS
-scallopMainDataTable$MEAT_POUNDS <- scallopMainDataTable$POUNDS / 8.33
-scallopMainDataTable$POUNDS <- NULL
+scallopMainDataTable$LANDED_OBSCURED <- scallopMainDataTable$LANDED_OBSCURED / 1000
 ```
 
 <br><br>
 
 ### CPUE
-Create `CPUE` variable using `TRIP_LENGTH` and `MEAT_POUNDS`. Filter out any 
+Create `CPUE` variable using `TRIP_LENGTH` and `LANDED_OBSCURED`. Filter out any 
 infinite values. 
 ```{r}
 scallopMainDataTable <- 
   cpue(scallopMainDataTable, proj,
-       xWeight = "MEAT_POUNDS",
+       xWeight = "LANDED_OBSCURED",
        xTime = "TRIP_LENGTH", 
        name = "CPUE")
 
@@ -505,13 +502,13 @@ zone_out <-
                zone.dat = "ZONE_ID",
                zone.spat = "TEN_ID",
                count = FALSE,
-               var = "MEAT_POUNDS", fun = "sum",
+               var = "LANDED_OBSCURED", fun = "sum",
                breaks = c(1e3, 1e4, 5e4, 1e5, seq(1e6, 1.3e7, 2e6)),
                output = "tab_plot", na.rm = TRUE)
 
 zone_out$plot
 zone_out$table %>% 
-  pretty_lab(cols = "MEAT_POUNDS") %>% 
+  pretty_lab(cols = "LANDED_OBSCURED") %>% 
   pretty_tab_sb(width = "40%")
 ```
 
@@ -526,13 +523,13 @@ zone_out <-
                zone.dat = "ZONE_ID",
                zone.spat = "TEN_ID",
                count = FALSE,
-               var = "MEAT_POUNDS", fun = "mean",
+               var = "LANDED_OBSCURED", fun = "mean",
                breaks = c(1e3, 5e3, seq(1e4, 4e4, 5e3)),
                output = "tab_plot", na.rm = TRUE)
 
 zone_out$plot
 zone_out$table %>% 
-  pretty_lab(cols = "MEAT_POUNDS") %>% 
+  pretty_lab(cols = "LANDED_OBSCURED") %>% 
   pretty_tab_sb(width = "40%")
 ```
 
@@ -546,14 +543,14 @@ zone_out <-
                zone.dat = "ZONE_ID",
                zone.spat = "TEN_ID",
                count = FALSE,
-               var = "MEAT_POUNDS", fun = "percent",
+               var = "LANDED_OBSCURED", fun = "percent",
                breaks = seq(0, 2, .2),
                bin_colors = c("white", fishset_viridis(10)),
                output = "tab_plot", na.rm = TRUE)
 
 zone_out$plot
 zone_out$table %>% 
-  pretty_lab(cols = c("MEAT_POUNDS", "MEAT_POUNDS_perc"), type = "scientific") %>%
+  pretty_lab(cols = c("LANDED_OBSCURED", "LANDED_OBSCURED_perc"), type = "scientific") %>%
   pretty_tab_sb(width = "60%")
 ```
 
@@ -723,7 +720,7 @@ zone_out <-
                spat = scallopWindCloseSpatTable, 
                zone.dat = "closeID",
                zone.spat = "NAME",
-               var = "MEAT_POUNDS",
+               var = "LANDED_OBSCURED",
                fun = "mean",
                count = FALSE,
                na.rm = TRUE, dat.center = FALSE, 
@@ -745,7 +742,7 @@ zone_out <-
                spat = scallopWindCloseSpatTable, 
                zone.dat = "closeID",
                zone.spat = "NAME",
-               var = "MEAT_POUNDS", group = "fleet",
+               var = "LANDED_OBSCURED", group = "fleet",
                fun = "mean",
                count = FALSE,
                na.rm = TRUE, dat.center = FALSE, 
@@ -765,14 +762,14 @@ zone_out$plot
 ### POUNDS
 ```{r}
 outlier_table(scallopMainDataTable, proj,
-              x = "MEAT_POUNDS") %>% 
+              x = "LANDED_OBSCURED") %>% 
   pretty_lab() %>% 
   pretty_tab()
 ```
 
 ```{r}
 outlier_plot(scallopMainDataTable, proj,
-             x = "MEAT_POUNDS", 
+             x = "LANDED_OBSCURED", 
              dat.remove = "none",
              x.dist = "normal",
              output.screen = TRUE)
@@ -780,7 +777,7 @@ outlier_plot(scallopMainDataTable, proj,
 
 ```{r}
 outlier_plot(scallopMainDataTable, proj,
-             x = "MEAT_POUNDS", 
+             x = "LANDED_OBSCURED", 
              dat.remove = "mean_3SD",
              x.dist = "normal",
              output.screen = TRUE)
@@ -793,7 +790,7 @@ outlier_plot(scallopMainDataTable, proj,
 
 ```{r}
 temp_plot(scallopMainDataTable, proj,
-          var.select = "MEAT_POUNDS",
+          var.select = "LANDED_OBSCURED",
           len.fun = "percent",
           agg.fun = "sum",
           date.var = "DATE_TRIP",
@@ -829,7 +826,7 @@ temp_plot(scallopMainDataTable, proj,
 Trip length by meat catch. 
 ```{r}
 xy_plot(scallopMainDataTable, proj,
-        var1 = "TRIP_LENGTH", var2 = "MEAT_POUNDS",
+        var1 = "TRIP_LENGTH", var2 = "LANDED_OBSCURED",
         regress = FALSE, alpha = .3)
 ```
 
@@ -941,14 +938,14 @@ Total meat catch by year.
 ```{r}
 catch_out <- 
 species_catch(scallopMainDataTable, proj,
-              species = "MEAT_POUNDS",
+              species = "LANDED_OBSCURED",
               date = "DATE_TRIP", 
               period = "year",
               fun = "sum",
               type = "line", format_lab = "decimal")
 
 catch_out$table %>% 
-  pretty_lab(cols = "MEAT_POUNDS") %>%
+  pretty_lab(cols = "LANDED_OBSCURED") %>%
   pretty_tab()
 
 catch_out$plot
@@ -960,13 +957,13 @@ Total meat catch by fleet.
 ```{r}
 catch_out <- 
   species_catch(scallopMainDataTable, proj,
-                species = "MEAT_POUNDS",
+                species = "LANDED_OBSCURED",
                 group = "fleet",
                 fun = "sum",
                 type = "bar", format_lab = "decimal")
 
 catch_out$table %>% 
-  pretty_lab(cols = "MEAT_POUNDS") %>%
+  pretty_lab(cols = "LANDED_OBSCURED") %>%
   pretty_tab()
 
 catch_out$plot
@@ -978,7 +975,7 @@ Total meat catch by year and fleet.
 ```{r}
 catch_out <- 
   species_catch(scallopMainDataTable, proj,
-                species = "MEAT_POUNDS",
+                species = "LANDED_OBSCURED",
                 date = "DATE_TRIP", 
                 period = "year",
                 group = "fleet",
@@ -986,7 +983,7 @@ catch_out <-
                 type = "line", format_lab = "decimal")
 
 catch_out$table %>% 
-  pretty_lab(cols = "MEAT_POUNDS") %>%
+  pretty_lab(cols = "LANDED_OBSCURED") %>%
   pretty_tab_sb(width = "40%")
 
 catch_out$plot
@@ -1093,11 +1090,11 @@ vpue_out$plot + angled_theme()
 ## Distributions
 
 
-### MEAT_POUNDS
+### LANDED_OBSCURED
 KDE, ECDF, and CDF of meat catch. 
 ```{r}
 density_plot(scallopMainDataTable, proj,
-             var = "MEAT_POUNDS", 
+             var = "LANDED_OBSCURED", 
              type = "all", tran = "log")
 ```
 
@@ -1106,7 +1103,7 @@ density_plot(scallopMainDataTable, proj,
 KDE, ECDF, and CDF of meat catch by fleet. 
 ```{r}
 density_plot(scallopMainDataTable, proj,
-             var = "MEAT_POUNDS",
+             var = "LANDED_OBSCURED",
              group = "fleet", position = "stack", 
              type = "all", tran = "log", pages = "multi")
 ```
@@ -1116,7 +1113,7 @@ density_plot(scallopMainDataTable, proj,
 KDE of meat catch by year.
 ```{r}
 density_plot(scallopMainDataTable, proj,
-             var = "MEAT_POUNDS", 
+             var = "LANDED_OBSCURED", 
              facet_by = "DB_LANDING_YEAR",
              filter_by = "DB_LANDING_YEAR",
              filter_value = 2007:2013,
@@ -1125,7 +1122,7 @@ density_plot(scallopMainDataTable, proj,
   angled_theme()
 
 density_plot(scallopMainDataTable, proj,
-             var = "MEAT_POUNDS", 
+             var = "LANDED_OBSCURED", 
              facet_by = "DB_LANDING_YEAR",
              filter_by = "DB_LANDING_YEAR",
              filter_value = 2014:2019,
