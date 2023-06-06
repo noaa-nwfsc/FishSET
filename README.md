@@ -37,17 +37,17 @@ Use loc to specify directory location of the database and loc2 to specify locati
 For example, loc <- getwd().
 
 
-### GITLABS INSTALL {#LocalInstall}
+### GITLAB INSTALL {#GitlabInstall}
 
-1.  You will need a Gitlabs account and you'll need an access token.
+1.  You will need a Gitlab account and you'll need an access token.
 2.  To get an access token:
-    a.  Log into gitlabs. Click the little down arrow next you your profile (top right).
+    a.  Log into gitlab. Click the little down arrow next you your profile (top right).
     b.  Click the “access tokens” on the left hand side. 
     c.  Fill in a token name, give it all the scopes and click “create personal access token.”  It’s good to have an expiration date.  But a bit of a pain.
     d.  Copy and paste that token into notepad. It should start with the letters “glpat”.
 3.  Now, you need to save the Personal Access Token as the Environment Variable “GITLAB_PAT”. One way to do this is to ask you IT person to do this for you. Another way to do it is to have R do it for you every time it starts. I prefer to do this in the .Rprofile file.
 
-4/  If you’re on Windows, open Rstudio and do this:
+4.  If you’re on Windows, open Rstudio and do this:
 
 ```
 Sys.getenv('R_USER')
@@ -102,7 +102,7 @@ Alan Haynie, Melanie Harsch, Bryce McManus, and Allen Chen (2021). FishSET: Spat
 This repository is a scientific product and is not official communication of the National Oceanic and
 Atmospheric Administration, or the United States Department of Commerce. All NOAA Gitlabs project code is
 provided on an ‘as is’ basis and the user assumes responsibility for its use. Any claims against the Department of
-Commerce or Department of Commerce bureaus stemming from the use of this Gitlabs project will be governed
+Commerce or Department of Commerce bureaus stemming from the use of this Gitlab project will be governed
 by all applicable Federal law. Any reference to specific commercial products, processes, or services by service
 mark, trademark, manufacturer, or otherwise, does not constitute or imply their endorsement, recommendation or
 favoring by the Department of Commerce. The Department of Commerce seal and logo, or the seal and logo of a
