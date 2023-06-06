@@ -1028,23 +1028,17 @@ source("map_viewer_app.R", local = TRUE)
                                  onclick = "setTimeout(function(){window.close();},500);",  # close browser
                                  "Close app"
                                ),
+                               
                                actionButton("refreshZ", "Refresh data", 
                                             style = "color: white; background-color: blue;" 
                                ),
                                
-                               radioButtons('choiceTab', '', choices=c( #basic parameters to populate elsewhere like catch, price
-                                                                       'Select variables that define alternative fishing choices'='distm',
-                                                                       #'Calculate zonal centroid'='zone', #calculate zonal centroid
-                                                                       'Select catch and price variables'='primary')),#, #calculate distance matrix
-                               conditionalPanel("input.choiceTab=='distm'",
-                                                actionButton('saveALT','Save choices', style = "color: white; background-color: green;")),
-                               
-                               #conditionalPanel("input.choiceTab=='zone'",
-                               #                 actionButton('savecentroid','Calculate zonal centroid', style = "color: white; background-color: green;")),
+                               actionButton('saveALT','Save choices', style = "color: white; background-color: green;"), 
+                                              
                                actionButton('callTextDownloadAlt','Save notes'),
-                               textInput('notesAltc', "Notes", value=NULL, 
+                               textInput('notesAltc', "Notes", value = NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                               ##Inline scripting 
+                               # Inline scripting 
                                textInput("exprZ", label = "Enter an R expression",
                                          value = "values$dataset"),
                                actionButton("runZ", "Run", class = "btn-success"),
@@ -1053,31 +1047,19 @@ source("map_viewer_app.R", local = TRUE)
                                )
                              ),
                              mainPanel(
-                               #BASELINE
-                               verbatimTextOutput("output"),
-                              
-                               #--------#
-                               #CENTROID
-                               #uiOutput('conditionalInput2'),
-                               #uiOutput('cond2'),
-                               #runs assignment column and find_centroid functions
-                               #--------#
-                               #DISTANCE MATRIX
-                               uiOutput('conditionalInput3a'),
-                               uiOutput('distZonea'),
+                               
                                uiOutput('distZoneb'),
+                               
                               
                               uiOutput('conditionalInput3'),
                               
                               div(style="display: inline-block;vertical-align:top; width: 500px;",
-                                   conditionalPanel("input.choiceTab=='distm'",
-                                                    plotOutput('zoneIDNumbers_plot'))),
+                                  
+                                  plotOutput('zoneIDNumbers_plot')),
+                              
                                div(style="display: inline-block;vertical-align:top; width: 160px;",
-                                   conditionalPanel("input.choiceTab=='distm'", 
-                                                    textOutput('zoneIDText'))),
-                               #--------# 
-                               uiOutput('conditionalInput1')
-                               #EXPECTED CATCH
+                                   
+                                   textOutput('zoneIDText')),
                              )
                            )),
                   #---

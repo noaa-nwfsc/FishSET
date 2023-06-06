@@ -4708,7 +4708,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                             hull.polygon = input$hull_polygon_zone, epsg = NULL)
           notif <- "Zone assignment column"
         
-        # TODO: add zonal centroid option  
         } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'zone_cent') {
           
           q_test <- quietly_test(create_centroid, show_msg = TRUE)
@@ -4728,7 +4727,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           notif <- 'Zonal centroid'
           
         } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'fish_cent') {
-          
+          # TODO: update to use create_centroid -- fishing centroid
           q_test <- quietly_test(find_fishing_centroid)
           output <- q_test(dat = values$dataset, project$name, spat = spatdat$dataset, 
                            lon.dat = input$lon_dat_cent, lat.dat = input$lat_dat_cent, 
@@ -4846,129 +4845,67 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # ZONAL DEFINITION ----
       
       #---
-      
-      #Choose variables to pass on
-      output$conditionalInput1 <- renderUI({
-        conditionalPanel("input.choiceTab=='primary'",
-                         tagList(
-                           selectizeInput('catchBase','Column name containing catch data',
-                                          choices = numeric_cols(values$dataset),
-                                          options = list(create = TRUE, placeholder='Select or type column name')),
-                           selectizeInput('priceBase', 'Column name containing price or value data', 
-                                          choices=c('none selected'='none', find_value(values$dataset)),
-                                          selected='none', options = list(create = TRUE, placeholder='Select or type column name')),
-                           div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectizeInput('latBase', 'Occurrence latitude', choices=c('', find_lat(values$dataset)), 
-                                           selected='', options = list(create = TRUE, placeholder='Select or type LATITUDE column name'))),
-                           div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectizeInput('lonBase', 'Occurrence longitude', choices=c('',find_lon(values$dataset)),
-                                              selected='', options = list(create = TRUE, placeholder='Select or type LONGITUDE column name')))
-                         ))
-      })
-   
-
-      output$conditionalInput3a <- renderUI({
-        conditionalPanel(condition="input.choiceTab=='distm'",
-                         selectInput('distMsource', 'Should distance matrix come from', 
-                                     choices=c('Primary haul- or trip-level data'='primary', 'Gridded data'='gridded'), 
-                                     selected='primary')
-        )
-      })
         
       output$conditionalInput3 <- renderUI({
         tagList(
-        conditionalPanel(condition="input.choiceTab=='distm' && input.distMsource == 'primary'",
-                         tagList(
-                          add_prompter(
-                            div(
-                              div(style="display: inline-block; width: 415px ;", h5(tags$b('Define how alternative fishing choices are calculated between'))),
-                              div(style="display: inline-block; width: 5px ;", icon('info-circle', verify_fa = FALSE))),
-                                     position = "bottom", type='info', size='medium', 
-                                     message = "To change occurrent or alternative choice selection, click on 'Centroid of zonal assignment' and delete."),
-                           div(style="display: inline-block;vertical-align:top; width: 160px;",
-                               selectizeInput('occasion_ac', 'occurrence:', 
-                                           choices=c('Centroid of zonal assignment'='centroid', 
-                                                     grep('lat|lon|port', names(values$dataset), ignore.case=TRUE, value = TRUE)),
-                                           selected='', options = list(maxItems=2))), #Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
-                           div(style="display: inline-block;vertical-align:top; width: 170px;",
-                               selectizeInput('alt_var_ac', 'and alternative location', 
-                                              choices=c('Centroid of zonal assignment'='centroid', 
-                                                       find_lonlat(values$dataset)), 
-                                              selected='', options = list(maxItems = 2))),
-                          h5(tags$em('Longitude must be specified before latitude.')),
-                           selectizeInput('dist_ac','Distance units', choices=c('miles','kilometers','meters'), selected='miles'),
-                           numericInput('min_haul_ac', 'Include zones with more hauls than', min=1, max=1000, value=1)#,
-                         )
-                         ),
-        conditionalPanel(condition="input.alt_var_ac.length > 1 || input.occasion_ac.length >1",
-                         tagList(
-                           h5(tags$b('Calculate centroids for fishery/regulatory zones.')),
-                         selectInput('cat_altfc', 'Individual areas/zones from the spatial dataset', 
-                                     choices=names(as.data.frame(spatdat$dataset))),
-                         )),
-        conditionalPanel(condition="input.choiceTab=='distm' && input.distMsource == 'gridded'",
-                         fileInput("gridded.dat", "Load gridded data file", multiple = FALSE, placeholder = '')
-                         
-        )
+        
+          add_prompter(
+            div(
+              div(style="display: inline-block; width: 415px ;", h5(tags$b('Define how alternative fishing choices are calculated between'))),
+              div(style="display: inline-block; width: 5px ;", icon('info-circle', verify_fa = FALSE))),
+                     position = "bottom", type='info', size='medium', 
+                     message = "To change occurrent or alternative choice selection, click on 'Centroid of zonal assignment' and delete."),
+           div(style="display: inline-block;vertical-align:top; width: 160px;",
+               selectizeInput('occasion_ac', 'occurrence:', 
+                           choices=c('Centroid of zonal assignment'='centroid', 
+                                     grep('lat|lon|port', names(values$dataset), ignore.case=TRUE, value = TRUE)),
+                           selected='', options = list(maxItems=2))), #Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
+           div(style="display: inline-block;vertical-align:top; width: 170px;",
+               selectizeInput('alt_var_ac', 'and alternative location', 
+                              choices=c('Centroid of zonal assignment'='centroid', 
+                                       find_lonlat(values$dataset)), 
+                              selected='', options = list(maxItems = 2))),
+          h5(tags$em('Longitude must be specified before latitude.')),
+           selectizeInput('dist_ac','Distance units', choices=c('miles','kilometers','meters'), selected='miles'),
+           numericInput('min_haul_ac', 'Include zones with more hauls than', min=1, max=1000, value=1)
+
         )
       })
       
-    #input$min_haul_ac
+    
       zoneIDNumbers_dat <- reactive({
-        if(!any(colnames(values$dataset)=='ZoneID') && input$datzone==TRUE){
-        temp <- data.frame(table(values$dataset[[input$distMatrixZone]]))
-        temp2 <- values$dataset[which(values$dataset[[input$distMatrixZone]] %in% temp[which(temp$Freq > input$min_haul_ac),1]), ]
-        ggplot2::ggplot(temp2, ggplot2::aes(x=.data[[input$distMatrixZone]])) + 
-          ggplot2::geom_bar() + ggplot2::theme_bw() + 
-          ggplot2::theme(panel.border = ggplot2::element_blank(), 
-                         panel.grid.major = ggplot2::element_blank(),
-                         panel.grid.minor = ggplot2::element_blank(), 
-                         axis.line = ggplot2::element_line(colour = "black"))
-          #warning('This step cannot be completed. Observations not assigned to zones.')
-        } else if(any(colnames(values$dataset)=='ZoneID')) {
-          temp <- data.frame(table(values$dataset$ZoneID))
-          temp2 <- values$dataset[which(values$dataset$ZoneID %in% temp[which(temp$Freq > input$min_haul_ac),1]), ]
-           ggplot2::ggplot(temp2, ggplot2::aes(x=ZoneID)) + 
+  
+        if (!is_value_empty(input$distMatrixZone)) {
+          
+          temp <- data.frame(table(values$dataset[[input$distMatrixZone]]))
+          
+          temp <- values$dataset[which(values$dataset[[input$distMatrixZone]] %in% 
+                                         temp[which(temp$Freq > input$min_haul_ac),1]), ]
+          ggplot2::ggplot(temp, ggplot2::aes(x=.data[[input$distMatrixZone]])) + 
             ggplot2::geom_bar() + ggplot2::theme_bw() + 
             ggplot2::theme(panel.border = ggplot2::element_blank(), 
                            panel.grid.major = ggplot2::element_blank(),
                            panel.grid.minor = ggplot2::element_blank(), 
                            axis.line = ggplot2::element_line(colour = "black"))
-        } else {
-          return()
-        }
-      })
-      
-      output$distZonea <- renderUI({
-        if(any(colnames(values$dataset)=='ZoneID')){
-          return()
-        } else {
-          conditionalPanel(condition="input.choiceTab=='distm'",
-          checkboxInput('datzone', 'Primary data contains a zone/area assignment variable', value=FALSE)) 
-        }
+          }
       })
       
       output$distZoneb <- renderUI({
-        if(input$choiceTab=='distm' & !any(colnames(values$dataset)=='ZoneID')){
-              if(input$datzone==TRUE){
-                         selectInput('distMatrixZone', 'Column containing zone identifier', choices = c('', colnames(values$dataset)), selected='')
-               } else{
-                  return()
-               }
-           }
+        
+        selectInput('distMatrixZone', 'Column containing zone identifier', 
+                    choices = c('', colnames(values$dataset)), selected = '')
+    
       })
       
       output$zoneIDText <- renderText({
-        if(!any(colnames(values$dataset)=='ZoneID') && input$datzone==TRUE){
+    
+        if (!is_value_empty(input$distMatrixZone)) {
+          
           temp <- data.frame(table(values$dataset[[input$distMatrixZone]]))
-          paste('number of records:',dim(values$dataset[which(values$dataset[[input$distMatrixZone]] %in% temp[which(temp$Freq > input$min_haul_ac),1]), ])[1], 
+          paste('number of records:',
+                dim(values$dataset[which(values$dataset[[input$distMatrixZone]] %in% 
+                                           temp[which(temp$Freq > input$min_haul_ac),1]), ])[1], 
                 '\nnumber of zones:', nrow(temp[which(temp$Freq > input$min_haul_ac),]))
-        } else if(any(colnames(values$dataset)=='ZoneID')){
-          temp <- data.frame(table(values$dataset$ZoneID))
-          paste('number of records:',dim(values$dataset[which(values$dataset$ZoneID %in% temp[which(temp$Freq > input$min_haul_ac),1]), ])[1], 
-                '\nnumber of zones:', nrow(temp[which(temp$Freq > input$min_haul_ac),]))
-        } else {
-          return()
         }
       })
       
@@ -4985,10 +4922,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       output$selectcp <- renderUI({
         tagList(
           selectInput('catche','Catch variable for averaging',
-                      choices=c(input$catchBase, numeric_cols(values$dataset)),
-                      selected=input$catchBase),
+                      choices = numeric_cols(values$dataset)),
           selectizeInput('price', 'If expected revenue is to be calculated, column name containing price or value data', 
-                         choices=c(input$priceBase, "none", find_value(values$dataset)),
+                         choices = c("none", find_value(values$dataset)),
                                    options = list(create = TRUE, placeholder='Select or type column name')),
           selectizeInput('group','Choose column name containing data that defines groups',
                          choices=c('No group', category_cols(values$dataset))),
@@ -5189,13 +5125,12 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       output$catch_out <- renderUI({
         tagList(
           selectInput('catch','Column name containing catch data',
-                      choices=c(input$catchBase, numeric_cols(values$dataset)), 
-                      selected=input$catchBase),
+                      choices = numeric_cols(values$dataset)),
           conditionalPanel(
-            condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
+            condition = "input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
             checkboxInput('lockk', 'Location-specific catch parameter', value=FALSE)),
           conditionalPanel(condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
-            selectInput('price', 'Price variable', choices=c(input$priceBase,'none', find_value(values$dataset)), 
+            selectInput('price', 'Price variable', choices=c('none', find_value(values$dataset)), 
                         selected='none', multiple=FALSE)),
         #logit correction
           conditionalPanel(condition="input.model=='logit_correction'",
@@ -6168,7 +6103,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "cat_altc", selected = bookmarkedstate()$cat_altc)
         updateSelectInput(session, "cat_SL", selected = bookmarkedstate()$cat_SL)
         updateSelectInput(session, "catch", selected = bookmarkedstate()$catch)
-        updateSelectInput(session, "catchBase", selected = bookmarkedstate()$catchBase)
         updateSelectInput(session, "catche", selected = bookmarkedstate()$catche)
         updateRadioButtons(session, 'checks', selected = bookmarkedstate()$checks)
         updateRadioButtons(session, 'choiceTab', selected=bookmarkedstate()$choiceTab)
@@ -6216,7 +6150,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "lat_dat_SL", selected = bookmarkedstate()$lat_dat_SL)
         updateSelectInput(session, "lat_grid_SL", selected = bookmarkedstate()$lat_grid_SL)
         updateSelectInput(session, "lat_grid_altc", selected = bookmarkedstate()$lat_grid_altc)
-        updateSelectInput(session, "latBase", selected = bookmarkedstate()$latBase)
         updateCheckboxInput(session, "LatLon_Filter", value = bookmarkedstate()$LatLon_Filter)
         updateCheckboxInput(session, "lockk", value = bookmarkedstate()$lockk)
         updateSelectInput(session, "lon", selected = bookmarkedstate()$lon)
@@ -6225,7 +6158,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "lon_dat_SL", selected = bookmarkedstate()$lon_dat_SL)
         updateSelectInput(session, "long_grid", selected = bookmarkedstate()$long_grid)
         updateSelectInput(session, "lon_grid_SL", selected = bookmarkedstate()$lon_grid_SL)
-        updateSelectInput(session, "lonBase", selected = bookmarkedstate()$lonBase)
         updateSelectInput(session, "long_grid_altc", selected = bookmarkedstate()$long_grid_altc)
         updateSelectInput(session, "mid_end", selected = bookmarkedstate()$mid_end)
         updateSelectInput(session, "mid_start", selected = bookmarkedstate()$mid_start)
@@ -6245,7 +6177,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "port_end", selected = bookmarkedstate()$port_end)
         updateSelectInput(session, "port_start", selected = bookmarkedstate()$port_start)
         updateSelectInput(session, "price", selected = bookmarkedstate()$price)
-        updateSelectInput(session, "priceBase", selected = bookmarkedstate()$priceBase)
         updateTextInput(session, 'projectname', value = bookmarkedstate()$projectname)
         updateSelectInput(session, "p2fun", selected = bookmarkedstate()$p2fun)
         updateSelectInput(session, "p3fun", selected = bookmarkedstate()$p3fun)
