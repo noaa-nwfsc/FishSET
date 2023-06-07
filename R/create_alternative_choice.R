@@ -410,7 +410,7 @@ create_alternative_choice <-
   DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:AlternativeMatrix)"),
     params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
   
-  # TODO: add message that altmatrix was created/saved to FishSETDB
+  message('Alternative choice list saved to FishSET database')
   # TODO: return TRUE invisibly if successful, FALSE if not (for testing and app)
 
   create_alternative_choice_function <- list()
