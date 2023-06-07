@@ -1046,16 +1046,14 @@ source("map_viewer_app.R", local = TRUE)
                                    uiOutput('resultZ')
                                )
                              ),
+                             
                              mainPanel(
                                
-                               uiOutput('distZoneb'),
-                               
-                              
-                              uiOutput('conditionalInput3'),
+                              uiOutput('altc_ui'),
                               
                               div(style="display: inline-block;vertical-align:top; width: 500px;",
                                   
-                                  plotOutput('zoneIDNumbers_plot')),
+                                  plotOutput('altc_zone_plot')),
                               
                                div(style="display: inline-block;vertical-align:top; width: 160px;",
                                    
