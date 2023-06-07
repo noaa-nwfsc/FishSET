@@ -70,7 +70,7 @@ Don’t forget to save the file.
 7. Test by typing this
 
 ```
-Sys.getenv(“GITLAB_PAT”)
+Sys.getenv("GITLAB_PAT")
 ```
 
 8. To finally install, you will need to do this in the R console:
