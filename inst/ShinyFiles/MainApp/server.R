@@ -4889,7 +4889,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                            
                            selectizeInput('altc_occ_var', 'Choose longitude and latitude occasion columns', 
                                           choices = find_lonlat(values$dataset), 
-                                          options = list(maxItem = 2, create = TRUE, 
+                                          options = list(maxItems = 2, create = TRUE, 
                                                          placeholder = 'Select or type variable name'),
                                           multiple = TRUE)
                            ),
@@ -4906,8 +4906,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                            
                            uiOutput('altc_spat_ui')),
           
-          selectInput('altc_zoneID', 'Column containing zone identifier', 
-                      choices = c('', colnames(values$dataset)), selected = ''),
+          selectizeInput('altc_zoneID', 'Column containing zone identifier', 
+                         choices = colnames(values$dataset), options = list(maxItems = 1), 
+                         multiple = TRUE),
           
           selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
                          selected = 'miles'),
@@ -4974,14 +4975,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         if (!is_value_empty(input$altc_zoneID)) {
           
           temp <- data.frame(table(values$dataset[[input$altc_zoneID]]))
-          
-          temp <- values$dataset[which(values$dataset[[input$altc_zoneID]] %in% 
+
+          temp <- values$dataset[which(values$dataset[[input$altc_zoneID]] %in%
                                          temp[which(temp$Freq > input$altc_min_haul),1]), ]
-          ggplot2::ggplot(temp, ggplot2::aes(x=.data[[input$altc_zoneID]])) + 
-            ggplot2::geom_bar() + ggplot2::theme_bw() + 
-            ggplot2::theme(panel.border = ggplot2::element_blank(), 
+          ggplot2::ggplot(temp, ggplot2::aes(x=.data[[input$altc_zoneID]])) +
+            ggplot2::geom_bar() + ggplot2::theme_bw() +
+            ggplot2::theme(panel.border = ggplot2::element_blank(),
                            panel.grid.major = ggplot2::element_blank(),
-                           panel.grid.minor = ggplot2::element_blank(), 
+                           panel.grid.minor = ggplot2::element_blank(),
                            axis.line = ggplot2::element_line(colour = "black"))
         }
       })
@@ -5788,25 +5789,24 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       #Run functions ----
       #---
       observeEvent(input$saveALT, {
-              showNotification('Function can take a couple minutes. A message will appear when done.',
-                               type='message', duration=20)
-             create_alternative_choice(values$dataset, project=project$name, occasion=input$altc_occasion, alt_var=input$altc_alt_var, 
-                                  dist.unit=input$altc_dist, min.haul=input$altc_min_haul, spat=spatdat$dataset, cat=input$cat_altfc, 
-                                  zoneID=input$altc_zoneID, hull.polygon=input$hull_polygon_ac, 
-                                  griddedDat=NULL, lon.spat=input$long_grid_altc, lat.spat=input$lat_grid_altc, 
-                                  closest.pt=input$closest_pt_ac)
-              showNotification('Completed. Alternative choice matrix updated', type='message', duration=10)
-      }, ignoreInit = F) 
+        # switch to values that function accepts
+        occ_type <- switch(input$altc_occasion, 'zone' = 'zonal centroid', 
+                           'fish' = 'fishing centroid', 'port' = 'port', 'lon-lat' = 'lon-lat')
+        
+        alt_type <- switch(input$altc_alt_var, 'zone' = 'zonal centroid', 
+                           'fish' = 'fishing centroid', 'near' = 'nearest point')
+        
+        q_test <- quietly_test(create_alternative_choice, show_msg = TRUE)
+        
+        q_test(dat=values$dataset, project=project$name, occasion=occ_type,
+               occasion_var=input$altc_occ_var, alt_var=alt_type, 
+               dist.unit=input$altc_dist, min.haul=input$altc_min_haul, 
+               spat=spatdat$dataset, zoneID=input$altc_zoneID, spatID = input$altc_spatID,
+               zone.cent.name=input$altc_zone_cent, fish.cent.name=input$altc_fish_cent)
+              
+      }, ignoreInit = FALSE) 
       
-      # Note: not in use
-      observeEvent(input$savecentroid, {
-        q_test <- quietly_test(find_centroid)
-        q_test(spat=spatdat$dataset, project = project$name, spatID = input$cat_altc, 
-               lon.spat = input$long_grid_altc, lat.spat = input$lat_grid_altc)
-        showNotification('Geographic centroid of zones calculated and saved')
-      }, ignoreInit = FALSE)
-      
-                    
+    
       observeEvent(input$submitE, {
         showNotification('Function can take a couple minutes. A message will appear when done.',
                          type='message', duration=20)
