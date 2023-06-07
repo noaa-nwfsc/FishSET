@@ -4890,6 +4890,22 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                                          placeholder = 'Select or type variable name'),
                                           multiple = TRUE)
                            ),
+          # TODO: check if centroid tabs exist, notify if not
+          conditionalPanel("input.altc_occasion=='zone'||input.altc_alt_var=='zone'",
+                           
+                           uiOutput('altc_zone_cent_ui')
+                           
+                           ),
+          
+          conditionalPanel("input.altc_occasion=='fish'||input.altc_alt_var=='fish'",
+                           
+                           uiOutput('altc_fish_cent_ui')
+                           
+          ),
+          
+          conditionalPanel("input.altc_alt_var=='near'", 
+                           
+                           uiOutput('altc_spat_ui')),
           
           selectInput('altc_zoneID', 'Column containing zone identifier', 
                       choices = c('', colnames(values$dataset)), selected = ''),
@@ -4899,10 +4915,50 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           
           numericInput('altc_min_haul', 'Include zones with more hauls than', 
                        min = 1, max = 1000, value = 1)
+          
+         
 
         )
       })
       
+      output$altc_zone_cent_ui <- renderUI({
+        
+        zone_cent_tabs <- 
+          suppressWarnings(grep('ZoneCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
+        
+        if (length(zone_cent_tabs) == 0) {
+          
+          return(h5('No zonal centroid tables exist. Create centroid tables on the Compute New Variables tab.', style="color:red"))
+        }
+        
+        selectInput('altc_zone_cent', 'Select a zonal centroid table',
+                    choices = zone_cent_tabs)
+      })
+      
+      output$altc_fish_cent_ui <- renderUI({
+        
+        fish_cent_tabs <- 
+          suppressWarnings(grep('FishCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
+        
+        if (length(fish_cent_tabs) == 0) {
+          
+          return(h5('No fishing centroid tables exist. Create centroid tables on the Compute New Variables tab.', style="color:red"))
+        }
+        
+        selectInput('altc_fish_cent', 'Select a fishing centroid table',
+                    choices = grep('FishCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
+      })
+      
+      output$altc_spat_ui <- renderUI({
+        
+        if (names(spatdat$dataset)[1]=='var1') {
+          
+          return(h5('Spatial data file not loaded. Please load on Upload Data tab.', style="color:red"))
+        }
+          
+        selectInput('altc_spatID', "Select zone ID column from spatial dataset",
+                    choices = colnames(spatdat$dataset))
+      })
       
       output$zoneIDText <- renderText({
     
