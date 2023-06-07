@@ -50,11 +50,11 @@ For example, loc <- getwd().
 4.  If you’re on Windows, open Rstudio and do this:
 
 ```
-Sys.getenv('R_USER')
+Sys.getenv("R_USER")
 ```
 If you’re on *nix, do this:
 ```
-Sys.getenv(‘HOME’)
+Sys.getenv("HOME")
 ```
 
 5a. If there is an ‘.Rprofile’ in that folder, add this line:
