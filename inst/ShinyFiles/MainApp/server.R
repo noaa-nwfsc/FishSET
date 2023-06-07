@@ -4848,33 +4848,36 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
       output$altc_ui <- renderUI({
         tagList(
-        
-          add_prompter(
-            div(
-              div(style="display: inline-block; width: 415px ;", 
-                  h5(tags$b('Define how alternative fishing choices are calculated between'))),
-              
-              div(style="display: inline-block; width: 5px ;", 
-                  icon('info-circle', verify_fa = FALSE))
-              ),
-            
-            position = "bottom", type='info', size='medium',
-            message = "To change occurrent or alternative choice selection, click on 'Centroid of zonal assignment' and delete."),
+          
+          h5(tags$b('Define how alternative fishing choices are calculated between occurance and alternative location')),
+                  
+          fluidRow(
+            column(5,
+                   add_prompter(
+                     
+                     selectizeInput('altc_occasion', 'occurrence:', 
+                                    choices=c('Centroid of zonal assignment' = 'zone',
+                                              'Fishing centroid' = 'fish', 'Port' = 'port', 
+                                              'Lon-Lat Coordinates' = 'lon-lat')),
+                  
+                     message = 'A centroid table must be saved to the FishSET database to be used as trip/haul occurances',
+                     type = 'info', size = 'medium', position = 'bottom')
+                   ),
            
-          div(style="display: inline-block;vertical-align:top; width: 160px;",
-               
-              selectizeInput('altc_occasion', 'occurrence:', 
-                             choices=c('Centroid of zonal assignment'='zone',
-                                       'Fishing centroid' = 'fish', 'Port' = 'port', 
-                                       'Lon-Lat Coordinates' = 'lon-lat'))),
-          
-          div(style="display: inline-block;vertical-align:top; width: 170px;",
-               selectizeInput('altc_alt_var', 'and alternative location', 
-                              
-                              choices=c('Centroid of zonal assignment' = 'zone',
-                                        'Fishing centroid' = 'fish', 
-                                        'Nearest Point' = 'near'))),
-          
+            column(5, 
+                   add_prompter(
+                   
+                     selectizeInput('altc_alt_var', 'alternative location:', 
+                                    
+                                    choices=c('Centroid of zonal assignment' = 'zone',
+                                              'Fishing centroid' = 'fish', 
+                                              'Nearest Point' = 'near')),
+                   
+                     message = 'A centroid table must be saved to the FishSET database to be used as trip/haul occurances',
+                     type = 'info', size = 'medium', position = 'bottom')
+                   )
+          ),     
+              
           conditionalPanel("['zone', 'fish', 'port'].includes(input.altc_occasion)",
                            
                            selectInput('altc_occ_var', 'Choose occasion ID variable',
@@ -4890,18 +4893,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                                          placeholder = 'Select or type variable name'),
                                           multiple = TRUE)
                            ),
-          # TODO: check if centroid tabs exist, notify if not
+         
           conditionalPanel("input.altc_occasion=='zone'||input.altc_alt_var=='zone'",
                            
-                           uiOutput('altc_zone_cent_ui')
-                           
-                           ),
+                           uiOutput('altc_zone_cent_ui')),
           
           conditionalPanel("input.altc_occasion=='fish'||input.altc_alt_var=='fish'",
                            
-                           uiOutput('altc_fish_cent_ui')
-                           
-          ),
+                           uiOutput('altc_fish_cent_ui')),
           
           conditionalPanel("input.altc_alt_var=='near'", 
                            
@@ -4915,9 +4914,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           
           numericInput('altc_min_haul', 'Include zones with more hauls than', 
                        min = 1, max = 1000, value = 1)
-          
-         
-
         )
       })
       
