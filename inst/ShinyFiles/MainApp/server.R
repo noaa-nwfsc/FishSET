@@ -4846,70 +4846,95 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       #---
         
-      output$conditionalInput3 <- renderUI({
+      output$altc_ui <- renderUI({
         tagList(
         
           add_prompter(
             div(
-              div(style="display: inline-block; width: 415px ;", h5(tags$b('Define how alternative fishing choices are calculated between'))),
-              div(style="display: inline-block; width: 5px ;", icon('info-circle', verify_fa = FALSE))),
-                     position = "bottom", type='info', size='medium', 
-                     message = "To change occurrent or alternative choice selection, click on 'Centroid of zonal assignment' and delete."),
-           div(style="display: inline-block;vertical-align:top; width: 160px;",
-               selectizeInput('occasion_ac', 'occurrence:', 
-                           choices=c('Centroid of zonal assignment'='centroid', 
-                                     grep('lat|lon|port', names(values$dataset), ignore.case=TRUE, value = TRUE)),
-                           selected='', options = list(maxItems=2))), #Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
-           div(style="display: inline-block;vertical-align:top; width: 170px;",
-               selectizeInput('alt_var_ac', 'and alternative location', 
-                              choices=c('Centroid of zonal assignment'='centroid', 
-                                       find_lonlat(values$dataset)), 
-                              selected='', options = list(maxItems = 2))),
-          h5(tags$em('Longitude must be specified before latitude.')),
-           selectizeInput('dist_ac','Distance units', choices=c('miles','kilometers','meters'), selected='miles'),
-           numericInput('min_haul_ac', 'Include zones with more hauls than', min=1, max=1000, value=1)
+              div(style="display: inline-block; width: 415px ;", 
+                  h5(tags$b('Define how alternative fishing choices are calculated between'))),
+              
+              div(style="display: inline-block; width: 5px ;", 
+                  icon('info-circle', verify_fa = FALSE))
+              ),
+            
+            position = "bottom", type='info', size='medium',
+            message = "To change occurrent or alternative choice selection, click on 'Centroid of zonal assignment' and delete."),
+           
+          div(style="display: inline-block;vertical-align:top; width: 160px;",
+               
+              selectizeInput('altc_occasion', 'occurrence:', 
+                             choices=c('Centroid of zonal assignment'='zone',
+                                       'Fishing centroid' = 'fish', 'Port' = 'port', 
+                                       'Lon-Lat Coordinates' = 'lon-lat'))),
+          
+          div(style="display: inline-block;vertical-align:top; width: 170px;",
+               selectizeInput('altc_alt_var', 'and alternative location', 
+                              
+                              choices=c('Centroid of zonal assignment' = 'zone',
+                                        'Fishing centroid' = 'fish', 
+                                        'Nearest Point' = 'near'))),
+          
+          conditionalPanel("['zone', 'fish', 'port'].includes(input.altc_occasion)",
+                           
+                           selectInput('altc_occ_var', 'Choose occasion ID variable',
+                                       choices = colnames(values$dataset))),
+          
+          conditionalPanel('input.altc_occasion == "lon-lat"', 
+                           
+                           h5(tags$em('Longitude must be specified before latitude.')),
+                           
+                           selectizeInput('altc_occ_var', 'Choose longitude and latitude occasion columns', 
+                                          choices = find_lonlat(values$dataset), 
+                                          options = list(maxItem = 2, create = TRUE, 
+                                                         placeholder = 'Select or type variable name'),
+                                          multiple = TRUE)
+                           ),
+          
+          selectInput('altc_zoneID', 'Column containing zone identifier', 
+                      choices = c('', colnames(values$dataset)), selected = ''),
+          
+          selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
+                         selected = 'miles'),
+          
+          numericInput('altc_min_haul', 'Include zones with more hauls than', 
+                       min = 1, max = 1000, value = 1)
 
         )
       })
       
+      
+      output$zoneIDText <- renderText({
     
+        if (!is_value_empty(input$altc_zoneID)) {
+          
+          temp <- data.frame(table(values$dataset[[input$altc_zoneID]]))
+          paste('number of records:',
+                dim(values$dataset[which(values$dataset[[input$altc_zoneID]] %in% 
+                                           temp[which(temp$Freq > input$altc_min_haul),1]), ])[1], 
+                '\nnumber of zones:', nrow(temp[which(temp$Freq > input$altc_min_haul),]))
+        }
+      })
+      
+      
       zoneIDNumbers_dat <- reactive({
-  
-        if (!is_value_empty(input$distMatrixZone)) {
+        
+        if (!is_value_empty(input$altc_zoneID)) {
           
-          temp <- data.frame(table(values$dataset[[input$distMatrixZone]]))
+          temp <- data.frame(table(values$dataset[[input$altc_zoneID]]))
           
-          temp <- values$dataset[which(values$dataset[[input$distMatrixZone]] %in% 
-                                         temp[which(temp$Freq > input$min_haul_ac),1]), ]
-          ggplot2::ggplot(temp, ggplot2::aes(x=.data[[input$distMatrixZone]])) + 
+          temp <- values$dataset[which(values$dataset[[input$altc_zoneID]] %in% 
+                                         temp[which(temp$Freq > input$altc_min_haul),1]), ]
+          ggplot2::ggplot(temp, ggplot2::aes(x=.data[[input$altc_zoneID]])) + 
             ggplot2::geom_bar() + ggplot2::theme_bw() + 
             ggplot2::theme(panel.border = ggplot2::element_blank(), 
                            panel.grid.major = ggplot2::element_blank(),
                            panel.grid.minor = ggplot2::element_blank(), 
                            axis.line = ggplot2::element_line(colour = "black"))
-          }
-      })
-      
-      output$distZoneb <- renderUI({
-        
-        selectInput('distMatrixZone', 'Column containing zone identifier', 
-                    choices = c('', colnames(values$dataset)), selected = '')
-    
-      })
-      
-      output$zoneIDText <- renderText({
-    
-        if (!is_value_empty(input$distMatrixZone)) {
-          
-          temp <- data.frame(table(values$dataset[[input$distMatrixZone]]))
-          paste('number of records:',
-                dim(values$dataset[which(values$dataset[[input$distMatrixZone]] %in% 
-                                           temp[which(temp$Freq > input$min_haul_ac),1]), ])[1], 
-                '\nnumber of zones:', nrow(temp[which(temp$Freq > input$min_haul_ac),]))
         }
       })
       
-      output$zoneIDNumbers_plot <- renderPlot(zoneIDNumbers_dat())
+      output$altc_zone_plot <- renderPlot(zoneIDNumbers_dat())
       
       
      
@@ -5713,9 +5738,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       observeEvent(input$saveALT, {
               showNotification('Function can take a couple minutes. A message will appear when done.',
                                type='message', duration=20)
-             create_alternative_choice(values$dataset, project=project$name, occasion=input$occasion_ac, alt_var=input$alt_var_ac, 
-                                  dist.unit=input$dist_ac, min.haul=input$min_haul_ac, spat=spatdat$dataset, cat=input$cat_altfc, 
-                                  zoneID=input$distMatrixZone, hull.polygon=input$hull_polygon_ac, 
+             create_alternative_choice(values$dataset, project=project$name, occasion=input$altc_occasion, alt_var=input$altc_alt_var, 
+                                  dist.unit=input$altc_dist, min.haul=input$altc_min_haul, spat=spatdat$dataset, cat=input$cat_altfc, 
+                                  zoneID=input$altc_zoneID, hull.polygon=input$hull_polygon_ac, 
                                   griddedDat=NULL, lon.spat=input$long_grid_altc, lat.spat=input$lat_grid_altc, 
                                   closest.pt=input$closest_pt_ac)
               showNotification('Completed. Alternative choice matrix updated', type='message', duration=10)
@@ -6097,7 +6122,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         req(project$name)
         if(colnames(values$dataset)[1]!='var1'){
           #---
-        updateSelectInput(session, "alt_var_ac", selected = bookmarkedstate()$alt_var_ac)
+        updateSelectInput(session, "altc_alt_var", selected = bookmarkedstate()$altc_alt_var)
         updateSelectInput(session, "calc_method", selected = bookmarkedstate()$calc_method)
         updateSelectInput(session, "cat", selected = bookmarkedstate()$cat)
         updateSelectInput(session, "cat_altc", selected = bookmarkedstate()$cat_altc)
@@ -6116,7 +6141,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "define_format", selected = bookmarkedstate()$define_format)
         updateNumericInput(session, "detailreport", value = bookmarkedstate()$detailreport)
         updateSelectInput(session, "dist", selected = bookmarkedstate()$dist)
-        updateSelectInput(session, "dist_ac", selected = bookmarkedstate()$dist_ac)
+        updateSelectInput(session, "altc_dist", selected = bookmarkedstate()$altc_dist)
         updateSelectInput(session, "dummclosfunc", selected = bookmarkedstate()$dummclosfunc)
         updateCheckboxInput(session, "dummy_exp", value = bookmarkedstate()$dummy_exp)
         updateSelectInput(session, "dummyfunc", selected = bookmarkedstate()$dummyfunc)
@@ -6161,14 +6186,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "long_grid_altc", selected = bookmarkedstate()$long_grid_altc)
         updateSelectInput(session, "mid_end", selected = bookmarkedstate()$mid_end)
         updateSelectInput(session, "mid_start", selected = bookmarkedstate()$mid_start)
-        updateNumericInput(session, "min_haul_ac", value = bookmarkedstate()$min_haul_ac)
+        updateNumericInput(session, "altc_min_haul", value = bookmarkedstate()$altc_min_haul)
         updateNumericInput(session, "mIter", value = bookmarkedstate()$mIter)
         updateSelectInput(session, "mtgtcat", selected = bookmarkedstate()$mtgtcat)
         updateSelectInput(session, "mtgtlonlat", selected = bookmarkedstate()$mtgtlonlat)
         updateSelectInput(session, "NA_Filter", selected = bookmarkedstate()$NA_Filter)
         updateSelectInput(session, "NAN_Filter", selected = bookmarkedstate()$NAN_Filter)
         updateSelectInput(session, "numfunc", selected = bookmarkedstate()$numfunc)
-        updateSelectInput(session, "occasion_ac", selected = bookmarkedstate()$occasion_ac)
+        updateSelectInput(session, "altc_occasion", selected = bookmarkedstate()$altc_occasion)
         updateSelectInput(session, "plot_table", selected = bookmarkedstate()$plot_table)
         updateSelectInput(session, "plot_type", selected = bookmarkedstate()$plot_type)
         updateTextInput(session, 'polyear', value = bookmarkedstate()$polyear)
