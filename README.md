@@ -76,7 +76,7 @@ Sys.getenv("GITLAB_PAT")
 8. To finally install, you will need to do this in the R console:
 
 ```
-remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage", host="gitlab-afsc.fisheries.noaa.gov")
+remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage@master", host="gitlab-afsc.fisheries.noaa.gov")
 ```
 
 
