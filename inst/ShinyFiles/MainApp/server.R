@@ -4861,7 +4861,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                               'Lon-Lat Coordinates' = 'lon-lat')),
                   
                      message = 'A centroid table must be saved to the FishSET database to be used as trip/haul occurances',
-                     type = 'info', size = 'medium', position = 'bottom')
+                     type = 'info', size = 'medium', position = 'top')
                    ),
            
             column(5, 
@@ -4874,7 +4874,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                               'Nearest Point' = 'near')),
                    
                      message = 'A centroid table must be saved to the FishSET database to be used as trip/haul occurances',
-                     type = 'info', size = 'medium', position = 'bottom')
+                     type = 'info', size = 'medium', position = 'top')
                    )
           ),     
               
@@ -4989,8 +4989,29 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       output$altc_zone_plot <- renderPlot(zoneIDNumbers_dat())
       
+      zone_include_dat <- reactive({
+        
+        req(input$altc_spatID)
+        req(input$altc_zoneID)
+        
+        freq_tab <- agg_helper(values$dataset, value = input$altc_zoneID, 
+                               count = TRUE, fun = NULL)
+        join_by <- stats::setNames(input$altc_zoneID, input$altc_spatID)
+        dplyr::left_join(spatdat$dataset[input$altc_spatID], freq_tab, by = join_by)
+      })
       
-     
+      output$zone_include_plot <- renderPlot({
+        
+        zone_dat <- zone_include_dat()
+        zone_dat$include <- zone_dat$n >= input$altc_min_haul
+        
+        ggplot2::ggplot() +  
+          ggplot2::geom_sf(data = zone_dat, 
+                           ggplot2::aes(fill = include), color = "black", alpha = .8) +
+          ggplot2::scale_fill_manual(breaks = c(TRUE, FALSE), values=c('green', 'grey20')) + 
+          fishset_theme()
+        })
+      
       #---
       
       # EXPECTED CATCH ----     
@@ -5788,6 +5809,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       #---
       #Run functions ----
       #---
+      # Alternative choice 
       observeEvent(input$saveALT, {
         # switch to values that function accepts
         occ_type <- switch(input$altc_occasion, 'zone' = 'zonal centroid', 

@@ -1058,6 +1058,8 @@ source("map_viewer_app.R", local = TRUE)
                                div(style="display: inline-block;vertical-align:top; width: 160px;",
                                    
                                    textOutput('zoneIDText')),
+                              
+                              plotOutput('zone_include_plot')
                              )
                            )),
                   #---
