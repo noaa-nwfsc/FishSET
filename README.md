@@ -50,11 +50,11 @@ For example, loc <- getwd().
 4.  If you’re on Windows, open Rstudio and do this:
 
 ```
-Sys.getenv('R_USER')
+Sys.getenv("R_USER")
 ```
 If you’re on *nix, do this:
 ```
-Sys.getenv(‘HOME’)
+Sys.getenv("HOME")
 ```
 
 5a. If there is an ‘.Rprofile’ in that folder, add this line:
@@ -70,13 +70,13 @@ Don’t forget to save the file.
 7. Test by typing this
 
 ```
-Sys.getenv(“GITLAB_PAT”)
+Sys.getenv("GITLAB_PAT")
 ```
 
 8. To finally install, you will need to do this in the R console:
 
 ```
-remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage", host="gitlab-afsc.fisheries.noaa.gov")
+remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage@master", host="gitlab-afsc.fisheries.noaa.gov")
 ```
 
 
