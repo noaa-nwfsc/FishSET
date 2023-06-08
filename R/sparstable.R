@@ -7,7 +7,7 @@ sparsetable <- function(dat, project, timevar, zonevar, var) {
   #' @param timevar Variable in \code{dat} containing temporal data
   #' @param zonevar Variable in \code{dat} containing zone observation assigned to
   #' @param var Variable in \code{dat} containing catch data
-  #' @importFrom lubridate round_date
+  #' @importFrom lubridate round_date floor_date week
   #' @importFrom tidyr pivot_wider
   #' @export
   #'
@@ -16,7 +16,8 @@ sparsetable <- function(dat, project, timevar, zonevar, var) {
     if (dname == "1 weeks") {
       y <- lubridate::round_date(as.Date(rownames(x)), "1 weeks")
     } else if (dname == "2 weeks") {
-      y <- lubridate::round_date(as.Date(rownames(x)), "2 weeks")
+      y <- lubridate::floor_date(as.Date(rownames(x)), 'year') + 
+        14 * (lubridate::week(as.Date(rownames(x))) %/% 2)
     } else if (dname == "3 months") {
       y <- lubridate::round_date(as.Date(rownames(x)), "3 months")
     } else {
