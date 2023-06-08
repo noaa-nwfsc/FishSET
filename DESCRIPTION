@@ -29,6 +29,7 @@ Imports:
     knitr,
     leaflet,
     lubridate,
+    maps,
     methods,
     openxlsx,
     pander,
