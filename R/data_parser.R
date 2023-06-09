@@ -606,7 +606,7 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
       DBI::dbWriteTable(fishset_db, work_tab_name, dataset, overwrite = over_write)
       
       # convert date variables back to date
-      dataset[d_cols] <- lapply(d_cols, function(d) date_parser(dataset[[d]]))
+      dataset[d_cols] <- lapply(dataset[d_cols], date_parser)
 
       # log function
       load_maindata_function <- list()
