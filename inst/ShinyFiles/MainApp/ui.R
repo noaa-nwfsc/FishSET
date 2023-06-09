@@ -1157,10 +1157,12 @@ source("map_viewer_app.R", local = TRUE)
                              
                              mainPanel(
                                tags$br(),tags$br(),
-                               h4(tags$b('Compute expected catch for each observation and zone.')),
+                               h4(tags$b('Compute expected catch for each observation and zone')),
+                               
+                               uiOutput('exp_altc_check'),
                                
                                tags$p(
-                                      tags$br(), tags$br(),
+                                      tags$br(), 
                                       'Function returns the expected catch or expected revenue data frame based on selected parameters.',
                                       'Output saved in FishSET database. Previously saved expected catch/revenue output will be written over if the', 
                                       tags$i('Replace previously saved'), 'box is checked. Leaving the box unchecked will add new output to existing output.',
