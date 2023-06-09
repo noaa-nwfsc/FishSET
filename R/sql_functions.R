@@ -189,30 +189,21 @@ table_view <- function(table, project) {
       tab_out <- DBI::dbGetQuery(fishset_db, 
                                  paste0("SELECT * FROM", paste0("'", noquote(table), "'")))
       
-      # TODO: need a better method for converting back to date
-      # Ex: this approach won't convert a date column named "TRIP_START"
-      # Alternative would be to save all date variables as character then check
-      # if any columns have a date format (date_cols())
-      # Best if character conversion was done in a table saving function
+      # TODO: convert date-time columns to date-time
       
-      # convert date and date-time from numeric
-      d_cols <- grep("date", names(tab_out), ignore.case = TRUE, value = TRUE)
-      dt_cols <- grep("date.*time", names(tab_out), ignore.case = TRUE, value = TRUE)
+      # # # convert date and date-time from numeric
+      # dt_cols <- grep("date.*time", names(tab_out), ignore.case = TRUE, value = TRUE)
+      # 
+      # dt_numeric <- numeric_cols(tab_out[dt_cols], out = "names")
+      # 
+      # if (length(dt_numeric) > 0) {
+      #   # date-time saved as secs since 1970-01-01
+      #   tab_out[dt_numeric] <- lapply(tab_out[dt_numeric], lubridate::as_datetime)
+      # }
       
-      d_cols <- d_cols[!d_cols %in% dt_cols]
-      
-      date_numeric <- numeric_cols(tab_out[d_cols], out = "names")
-      dt_numeric <- numeric_cols(tab_out[dt_cols], out = "names")
-      
-      if (length(date_numeric) > 0) {
-        # date saved as days since 1970-01-01
-        tab_out[date_numeric] <- lapply(tab_out[date_numeric], lubridate::as_date)
-      }
-      
-      if (length(dt_numeric) > 0) {
-        # date-time saved as secs since 1970-01-01
-        tab_out[dt_numeric] <- lapply(tab_out[dt_numeric], lubridate::as_datetime)
-      }
+      # convert date variables back to date
+      d_cols <- date_cols(tab_out)
+      tab_out[d_cols] <- lapply(d_cols, function(d) date_parser(tab_out[[d]]))
       
       tibble::as_tibble(tab_out)
     }
