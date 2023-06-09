@@ -5020,6 +5020,26 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # EXPECTED CATCH ----     
       
       #---
+      exp_react <- reactiveValues(altc_exists = FALSE)
+      
+      # check if alt choice list exists when exp catch tab is selected
+      observeEvent(input$tabs == 'expectedCatch', {
+        
+        exp_react$altc_exists <- length(suppressWarnings(list_tables(project$name, 'altc'))) > 0
+      })
+      
+      # check if alt choice list exists
+      output$exp_altc_check <- renderUI({
+        
+        if (!exp_react$altc_exists) {
+          
+          tagList(
+            
+            tags$b(),
+            h4(tags$b('Alternative choice matrix does not exist. Go to the ', 
+                      'Define Alternative Fishing Choices tab.'), style='color: red;'))
+        }
+      })
       
       output$exp_ui <- renderUI({
         tagList(
@@ -5835,20 +5855,23 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         showNotification('Function can take several minutes. A message will appear when done.',
                          type = 'message', duration = 20)
+        
         q_test <- quietly_test(create_expectations)
         
-        defineGroup <- if (input$exp_group == 'No group') 'fleet' else input$exp_group
+        defineGroup <- if (input$exp_group == 'No group') NULL else input$exp_group
         defaults <- if (is_value_empty(input$exp_default)) FALSE else input$exp_default
+        price <- if (input$exp_price == 'none') NULL else input$exp_price
+        empty_catch <- switch(input$empty_expectation, 'NA' = NA, '0' = 0, 
+                              allCatch = 'allCatch', groupCatch = 'groupCatch')
+        empty_exp <- switch(input$empty_expectation, 'NA' = NA, '1e-04' = 1e-04, '0' = 0)
         
-        q_test(values$dataset, project$name, input$exp_catch_var, price=input$exp_price, 
+        q_test(values$dataset, project$name, input$exp_catch_var, price=price, 
                defineGroup=defineGroup,temp.var=input$exp_temp_var, temporal = input$exp_temporal, 
                calc.method = input$exp_calc_method, lag.method = input$exp_lag_method, 
-               empty.catch = input$exp_empty_catch,  empty.expectation = input$empty_expectation, 
+               empty.catch = empty_catch,  empty.expectation = empty_exp, 
                temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
                year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
                default.exp = defaults, replace.output = input$exp_replace_output)
-                
-        showNotification('Completed. Expectated catch matrices updated', type='message', duration=10)
       }) 
       
      
