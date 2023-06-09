@@ -1086,8 +1086,7 @@ source("map_viewer_app.R", local = TRUE)
                                textInput('notesEC', "Notes", value=NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
 
-                               uiOutput('selectcp'),
-                               #h5('Compute expectations for the entire fleet or by defined groups'),
+                               uiOutput('exp_ui'),
                                
                                add_prompter(div(
                                             div(style="display:inline-block; width: 145px;", h4('Temporal options')), 
@@ -1097,45 +1096,58 @@ source("map_viewer_app.R", local = TRUE)
                                   When timeline is considered, catch for a given day is the average for the defined number of days (window), 
                                   shifted to the past by the defined number of days (lag). For example, a window of 3 days and lag of 1 day means we take the 
                                   average catch over three days starting one day prior to the given date.'),
+                               
                                div(style = "margin-left:19px;font-size: 12px", 
-                                   selectInput('temporal', 'Method to sort time:', c('Entire record of catch (no time)', 'Daily timeline'='daily', 'Sequential order'='sequential'))),
-                               uiOutput('expcatch'),
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'",
+                                   selectInput('exp_temporal', 'Method to sort time:', 
+                                               choices = c('Entire record of catch (no time)', 
+                                                           'Daily timeline'='daily', 
+                                                           'Sequential order'='sequential'),
+                                               selected = 'daily')),
+                               
+                               uiOutput('exp_temp_var_ui'),
+                               
+                               conditionalPanel("input.exp_temporal!='Entire record of catch (no time)'",
                                                 style = "margin-left:19px;font-size: 12px",
-                                                  numericInput('temp_year', 'No. of years to go back if expected catch based on from previous year(s) catch ', value=0, min=0, max='')),
-                               #if(input$temporal!='Entire record of catch (no time)') {h5('Moving window averaging parameters')},
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'",
-                                                style = "margin-left:19px;font-size: 12px", 
-                                                  numericInput('temp_window', 'Window size (days) to average over', value = 7, min=0)),
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
-                                                style = "margin-left:19px;font-size: 12px", 
-                                                  numericInput('temp_lag', 'Time lag (in days) ', value = 0, min=0, max='')),
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
-                                                style = "margin-left:19px;font-size: 12px", 
-                                                  selectInput('calc_method','Expectation calculation:', 
+                                                
+                                                numericInput('exp_temp_year', 'No. of years to go back if expected catch based on from previous year(s) catch ', 
+                                                             value=0, min=0, max=''),
+                                                
+                                                numericInput('exp_temp_window', 'Window size (days) to average over', value = 7, min=0),
+                               
+                                                numericInput('exp_temp_lag', 'Time lag (in days) ', value = 0, min=0, max=''),
+                               
+                                                selectInput('exp_calc_method','Expectation calculation:', 
                                                             choices = c("Standard average"="standardAverage", 
-                                                                        "Simple lag regression of means"="simpleLag"#, 
-                                                                        #"Weights of regressed groups"="weights"
-                                                            ))), 
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
-                                                selectInput('lag_method', 'Method to average across time steps', 
-                                                            choices= c("Entire time period"="simple", "Grouped time periods"="grouped"))),
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
-                                      h4('Averaging options')),
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
+                                                                        "Simple lag regression of means"="simpleLag")
+                                                            )), #"Weights of regressed groups"="weights"
+                               
+                               conditionalPanel("input.exp_temporal!='Entire record of catch (no time)'", 
+                                                selectInput('exp_lag_method', 'Method to average across time steps', 
+                                                            choices= c("Entire time period"="simple", "Grouped time periods"="grouped")),
+                                                
+                                                h4('Averaging options')),
+                               
+                               conditionalPanel("input.exp_temporal!='Entire record of catch (no time)'", 
                                   div(style = "margin-left:19px; font-size: 12px", 
-                                      selectInput('empty_catch', 'Replace empty catch with:', 
-                                                  choices = c("NA: NA's removed when averaging"='NA', '0', 'Mean of all catch' ="allCatch", 
+                                      selectInput('exp_empty_catch', 'Replace empty catch with:', 
+                                                  choices = c("NA: NA's removed when averaging"='NA', '0', 
+                                                              'Mean of all catch' ="allCatch", 
                                                               'Mean of grouped catch' = "groupedCatch"))) 
-                               ),#h6("Note: Na's removed when averaging"), 
+                               ),
+                               
                                h4('Expected Catch/Dummy options'), 
+                               
                                div(style = "margin-left:19px; font-size: 12px",
                                    selectInput('empty_expectation', 'Replace empty expected catch with:', 
                                                choices = c("NA: NA's removed when averaging"='NA', 1e-04, 0))),  
                                #h6("Note: Na's removed when averaging"),
+                               
                                div(style = "margin-left:19px; font-size: 14px",
-                                   checkboxInput('dummy_exp', 'Output dummy variable for originally missing values?', value=FALSE)),
-                               checkboxInput('replace_output', 'Replace previously saved expected catch output with new output', value=FALSE),
+                                   checkboxInput('exp_dummy', 'Output dummy variable for originally missing values?', 
+                                                 value = FALSE)),
+                               
+                               checkboxInput('exp_replace_output', 'Replace previously saved expected catch output with new output', 
+                                             value = FALSE),
                                ##Inline scripting 
                                textInput("exprEC", label = "Enter an R expression",
                                          value = "values$dataset"),
@@ -1146,20 +1158,34 @@ source("map_viewer_app.R", local = TRUE)
                                ),
                              mainPanel(
                                tags$br(),tags$br(),
-                               tags$p('Compute expected catch for each observation and zone.', 
+                               h4(tags$b('Compute expected catch for each observation and zone.')),
+                               
+                               tags$p(
                                       tags$br(), tags$br(),
                                       'Function returns the expected catch or expected revenue data frame based on selected parameters.',
-                                      tags$br(), tags$br(),
-                                      icon('exclamation-circle', verify_fa = FALSE), tags$b('Three default matrices are also all computed:'),  icon('exclamation-circle', verify_fa = FALSE),
-                                      tags$br(),
-                                      tags$b('Short-term expected catch:'), 'Expected catch/revenue based on catch of the previous two days.',
-                                      tags$br(),
-                                      tags$b('Medium-term expected catch:'), 'Expected catch/revenue based on catch for the previous seven days.', 
-                                      tags$br(),
-                                      tags$b('Long-term expected catch:'), 'Expected catch/revenue based on catch in the previous year.', 
-                                      tags$br(), tags$br(),
                                       'Output saved in FishSET database. Previously saved expected catch/revenue output will be written over if the', 
-                                      tags$i('Replace previously saved'), 'box is checked. Leaving the box unchecked will add new output to existing output.'),
+                                      tags$i('Replace previously saved'), 'box is checked. Leaving the box unchecked will add new output to existing output.',
+                                     
+                                       tags$br(), tags$br(),
+                                      
+                                      h4(tags$b('Default Matrices')), tags$br(),
+                                      'There are four default matrices that can be run additionally:', 
+                                      tags$br(), tags$br(),
+                                      tags$b('Recent expected catch:'), 'Expected catch/revenue based on catch of the previous two days (two day window, no lag).', 
+                                      'In this case, there is no grouping, and catch for entire fleet is used.',
+                                      tags$br(), tags$br(), 
+                                      tags$b('Older expected catch:'), 'Expected catch/revenue based on catch for the previous seven days', 
+                                      ' (seven day window) starting two days previously (two day lag). Vessels are grouped (or not) based on group widget.',
+                                      tags$br(), tags$br(),
+                                      tags$b('Oldest expected catch:'), 'Expected catch/revenue based on catch for the previous seven days',
+                                      'starting eight days previously (eight day lag). Vessels are grouped (or not) based on group widget.',
+                                      tags$br(), tags$br(),
+                                      tags$b('Logbook expected catch:'), 'Expected catch/revenue based on catch in the previous 14 days', 
+                                      '(14 day window) starting one year and seven days previously. Can only be used if a group variable is provided.',
+                               ),
+                                      
+                               tags$br(), tags$br(),
+                                      
                                tags$br(), tags$br(),
                                conditionalPanel("input.temp_var!='none'",
                                                 tagList(
