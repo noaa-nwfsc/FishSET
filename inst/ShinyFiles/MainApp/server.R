@@ -5018,53 +5018,52 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       #---
       
-      output$selectcp <- renderUI({
+      output$exp_ui <- renderUI({
         tagList(
-          selectInput('catche','Catch variable for averaging',
+          selectInput('exp_catch_var','Catch variable for averaging',
                       choices = numeric_cols(values$dataset)),
-          selectizeInput('price', 'If expected revenue is to be calculated, column name containing price or value data', 
+          
+          selectizeInput('exp_price', 'If expected revenue is to be calculated, column name containing price or value data', 
                          choices = c("none", find_value(values$dataset)),
                                    options = list(create = TRUE, placeholder='Select or type column name')),
-          selectizeInput('group','Choose column name containing data that defines groups',
+          
+          selectizeInput('exp_group','Choose column name containing data that defines groups',
                          choices=c('No group', category_cols(values$dataset))),
-          selectizeInput('zoneidep', 'Column containing zone identifier', choices=c('', 'ZoneID', colnames(values$dataset)), selected='')
+          # zoneID used for sparsity plots
+          selectizeInput('exp_zoneID', 'Column containing zone identifier', choices = colnames(values$dataset),
+                         options = list(maxItems = 1), multiple = TRUE)
         )
       })
       
-      output$expcatch <-  renderUI({
-        conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'",
+      output$exp_temp_var_ui <-  renderUI({
+        
+        conditionalPanel(condition="input.exp_temporal!='Entire record of catch (no time)'",
                          style = "margin-left:19px;font-size: 12px", 
-                         selectizeInput('temp_var', 'Column name containing temporal data for averaging', 
-                                     choices=c('none', find_datetime(values$dataset)),
-                                     selected='none', options = list(create = TRUE, placeholder='Select or type column name')))
+                         
+                         selectizeInput('exp_temp_var', 'Column name containing temporal data for averaging', 
+                                        choices=c('none', find_datetime(values$dataset)),
+                                        selected='none', options = list(create = TRUE, placeholder='Select or type column name')))
       })
       
       sparstable_dat <- reactive({
         
-        if (!any(colnames(values$dataset)=='ZoneID') & !any(colnames(values$dataset)==input$zoneidep)) {
+        if (!any(colnames(values$dataset)=='ZoneID') & !any(colnames(values$dataset)==input$exp_zoneID)) {
           
           return()
           
-        } else if (is_empty(input$catche)) {
+        } else if (is_empty(input$exp_catch_var)) {
           
           return()
           
-        } else if (input$temp_var=='none') {
+        } else if (input$exp_temp_var=='none') {
           
           return()
           
         } else {
           
-          if (any(colnames(values$dataset)=='ZoneID')) {
-            
-            sparsetable(values$dataset, project=project$name, timevar=input$temp_var, 
-                        zonevar='ZoneID', var=input$catche)
-            
-          } else {
-            
-            sparsetable(values$dataset, project=project$name, timevar=input$temp_var, 
-                        zonevar=input$zoneidep, var=input$catche)
-          }
+          sparsetable(values$dataset, project=project$name, timevar=input$exp_temp_var, 
+                      zonevar=input$exp_zoneID, var=input$exp_catch_var)
+          
         }
       })
       
@@ -5073,15 +5072,15 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       output$spars_plot <- renderPlot({
         
-        if (!any(colnames(values$dataset)=='ZoneID')& !any(colnames(values$dataset)==input$zoneidep)) {
+        if (!any(colnames(values$dataset)=='ZoneID')& !any(colnames(values$dataset)==input$exp_zoneID)) {
           
           return()
           
-        } else if (is_empty(input$catche)) {
+        } else if (is_empty(input$exp_catch_var)) {
           
           return()
           
-        } else if (input$temp_var=='none') {
+        } else if (input$exp_temp_var=='none') {
           
           return()
           
@@ -5229,7 +5228,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
             condition = "input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
             checkboxInput('lockk', 'Location-specific catch parameter', value=FALSE)),
           conditionalPanel(condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
-            selectInput('price', 'Price variable', choices=c('none', find_value(values$dataset)), 
+            selectInput('mod_price', 'Price variable', choices=c('none', find_value(values$dataset)), 
                         selected='none', multiple=FALSE)),
         #logit correction
           conditionalPanel(condition="input.model=='logit_correction'",
@@ -5494,7 +5493,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                'vars2'= input$gridVariablesInclude, 
                                'catch'= input$catch,
                                'project'= project$name, 
-                               'price'= input$price,
+                               'price'= input$mod_price,
                                'startloc'=  'startingloc',#if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
                                'polyn'= input$polyn,
                                'exp' = paste(exp.name(), collapse=','))
@@ -5830,13 +5829,21 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
     
       observeEvent(input$submitE, {
+        
         showNotification('Function can take a couple minutes. A message will appear when done.',
                          type='message', duration=20)
-                create_expectations(values$dataset, project$name, input$catche, price=input$price, 
-                                    defineGroup=if(grepl('No group',input$group)){'fleet'} else {input$group},  
-                            temp.var=input$temp_var, temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
-                            empty.catch = input$empty_catch, empty.expectation = input$empty_expectation, temp.window = input$temp_window,  
-                            temp.lag = input$temp_lag, year.lag=input$temp_year, dummy.exp = input$dummy_exp, replace.output = TRUE)
+        q_test <- quietly_test(create_expectations)
+        
+        defineGroup <- if (input$exp_group == 'No group') 'fleet' else input$exp_group
+        
+        q_test(values$dataset, project$name, input$exp_catch_var, price=input$exp_price, 
+               defineGroup=defineGroup,temp.var=input$exp_temp_var, temporal = input$exp_temporal, 
+               calc.method = input$exp_calc_method, lag.method = input$exp_lag_method, 
+               empty.catch = input$exp_empty_catch,  empty.expectation = input$empty_expectation, 
+               temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
+               year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
+               replace.output = input$exp_replace_output)
+                
         showNotification('Completed. Expectated catch matrices updated', type='message', duration=10)
       }) 
       
@@ -6197,12 +6204,12 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         if(colnames(values$dataset)[1]!='var1'){
           #---
         updateSelectInput(session, "altc_alt_var", selected = bookmarkedstate()$altc_alt_var)
-        updateSelectInput(session, "calc_method", selected = bookmarkedstate()$calc_method)
+        updateSelectInput(session, "exp_calc_method", selected = bookmarkedstate()$exp_calc_method)
         updateSelectInput(session, "cat", selected = bookmarkedstate()$cat)
         updateSelectInput(session, "cat_altc", selected = bookmarkedstate()$cat_altc)
         updateSelectInput(session, "cat_SL", selected = bookmarkedstate()$cat_SL)
         updateSelectInput(session, "catch", selected = bookmarkedstate()$catch)
-        updateSelectInput(session, "catche", selected = bookmarkedstate()$catche)
+        updateSelectInput(session, "exp_catch_var", selected = bookmarkedstate()$exp_catch_var)
         updateRadioButtons(session, 'checks', selected = bookmarkedstate()$checks)
         updateRadioButtons(session, 'choiceTab', selected=bookmarkedstate()$choiceTab)
         updateCheckboxInput(session, 'sp_colgeartype', value=bookmarkedstate()$sp_colgeartype)
@@ -6217,7 +6224,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "dist", selected = bookmarkedstate()$dist)
         updateSelectInput(session, "altc_dist", selected = bookmarkedstate()$altc_dist)
         updateSelectInput(session, "dummclosfunc", selected = bookmarkedstate()$dummclosfunc)
-        updateCheckboxInput(session, "dummy_exp", value = bookmarkedstate()$dummy_exp)
+        updateCheckboxInput(session, "exp_dummy", value = bookmarkedstate()$exp_dummy)
         updateSelectInput(session, "dummyfunc", selected = bookmarkedstate()$dummyfunc)
         updateSelectInput(session, "dummypolydate", selected = bookmarkedstate()$dummypolydate)
         updateSelectInput(session, "dummypolyfunc", selected = bookmarkedstate()$dummypolyfunc)
@@ -6227,7 +6234,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "dur_start", selected = bookmarkedstate()$dur_start)
         updateSelectInput(session, "dur_start2", selected = bookmarkedstate()$dur_start2)
         updateSelectInput(session, "dur_units", selected = bookmarkedstate()$dur_units)
-        updateSelectInput(session, "empty_catch", selected = bookmarkedstate()$empty_catch)
+        updateSelectInput(session, "exp_empty_catch", selected = bookmarkedstate()$exp_empty_catch)
         updateSelectInput(session, "empty_expectation", selected = bookmarkedstate()$empty_expectation)
         updateSelectInput(session, "end", selected = bookmarkedstate()$end)
         updateSelectInput(session, "end_latlon", selected = bookmarkedstate()$end_latlon)
@@ -6236,14 +6243,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "fun_numeric", selected = bookmarkedstate()$fun_numeric)
         updateSelectInput(session, "fun_time", selected = bookmarkedstate()$fun_time)
         updateSelectInput(session, "gridVariablesInclude", selected = bookmarkedstate()$gridVariablesInclude)
-        updateSelectInput(session, "group", selected = bookmarkedstate()$group)
+        updateSelectInput(session, "exp_group", selected = bookmarkedstate()$exp_group)
         updateSelectInput(session, "haul_order", selected = bookmarkedstate()$haul_order)
         updateSelectInput(session, "Haul_Trip_IDVar", selected = bookmarkedstate()$Haul_Trip_IDVar)
         updateSelectInput(session, "haul_order_SL", selected = bookmarkedstate()$haul_order_SL)
         updateCheckboxInput(session, "hull_polygon_ac", value = bookmarkedstate()$hull_polygon_ac)
         updateSelectInput(session, "ID", selected = bookmarkedstate()$ID)
         updateSelectInput(session, "indeVarsForModel", selected = bookmarkedstate()$indeVarsForModel)
-        updateSelectInput(session, "lag_method", selected = bookmarkedstate()$lag_method)
+        updateSelectInput(session, "exp_lag_method", selected = bookmarkedstate()$exp_lag_method)
         updateSelectInput(session, "lat", selected = bookmarkedstate()$lat)
         updateSelectInput(session, "lat_dat_ac", selected = bookmarkedstate()$lat_dat_ac)
         updateSelectInput(session, "lat_dat_SL", selected = bookmarkedstate()$lat_dat_SL)
@@ -6275,7 +6282,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "port_dat_dist", selected = bookmarkedstate()$port_dat_dist)
         updateSelectInput(session, "port_end", selected = bookmarkedstate()$port_end)
         updateSelectInput(session, "port_start", selected = bookmarkedstate()$port_start)
-        updateSelectInput(session, "price", selected = bookmarkedstate()$price)
+        updateSelectInput(session, "exp_price", selected = bookmarkedstate()$exp_price)
+        updateSelectInput(session, "mod_price", selected = bookmarkedstate()$mod_price)
         updateTextInput(session, 'projectname', value = bookmarkedstate()$projectname)
         updateSelectInput(session, "p2fun", selected = bookmarkedstate()$p2fun)
         updateSelectInput(session, "p3fun", selected = bookmarkedstate()$p3fun)
@@ -6290,11 +6298,11 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "starting_port_SL", selected = bookmarkedstate()$starting_port_SL)
         updateSelectInput(session, "startloc", selected = bookmarkedstate()$startloc)
         updateTextInput(session, "target", value = bookmarkedstate()$target)
-        updateNumericInput(session, "temp_lag", value = bookmarkedstate()$temp_lag)
-        updateNumericInput(session, "temp_window", value = bookmarkedstate()$temp_window)
-        updateSelectInput(session, "temporal", selected = bookmarkedstate()$temporal)
-        updateNumericInput(session, "temp_year", value = bookmarkedstate()$temp_year)
-        updateSelectInput(session, "temp_var", selected = bookmarkedstate()$temp_var)
+        updateNumericInput(session, "exp_temp_lag", value = bookmarkedstate()$exp_temp_lag)
+        updateNumericInput(session, "exp_temp_window", value = bookmarkedstate()$exp_temp_window)
+        updateSelectInput(session, "exp_temporal", selected = bookmarkedstate()$exp_temporal)
+        updateNumericInput(session, "exp_temp_year", value = bookmarkedstate()$exp_temp_year)
+        updateSelectInput(session, "exp_temp_var", selected = bookmarkedstate()$exp_temp_var)
         updateSelectInput(session, "TimeVar", selected = bookmarkedstate()$TimeVar)
         updateSelectInput(session, "trans", selected = bookmarkedstate()$trans)
         updateSelectInput(session, "trans_var_name", selected = bookmarkedstate()$trans_var_name)
