@@ -2514,7 +2514,7 @@ find_datetime <- function(dat) {
   #' @keywords internal
   #' @export
   
-  grep('date|hour|time|year', colnames(dat), ignore.case = TRUE, value = TRUE)
+  grep('date|hour|time|year|day', colnames(dat), ignore.case = TRUE, value = TRUE)
 }
 
 find_catch <- function(dat) {
