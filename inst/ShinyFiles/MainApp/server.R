@@ -1244,7 +1244,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                              fluidRow(
                                column(5, fileInput("portdat", "Choose port data file",
                                                    multiple = FALSE, placeholder = 'Required data'))
-                               #column(1, uiOutput('ui.actionP'))
                              ))
          } else if (input$loadportsource == 'FishSET database') {
            
@@ -4915,18 +4914,18 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         )
       })
       
+      # tracking/updating zonal and fishing centroid tables
+      altc <- reactiveValues(zone_cent = NULL, fish_cent = NULL)
+      
       output$altc_zone_cent_ui <- renderUI({
         
-        zone_cent_tabs <- 
-          suppressWarnings(grep('ZoneCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
-        
-        if (length(zone_cent_tabs) == 0) {
+        if (is_value_empty(altc$zone_cent)) {
           
           return(h5('No zonal centroid tables exist. Create centroid tables on the Compute New Variables tab.', style="color:red"))
         }
         
         selectInput('altc_zone_cent', 'Select a zonal centroid table',
-                    choices = zone_cent_tabs)
+                    choices = altc$zone_cent)
       })
       
       output$altc_fish_cent_ui <- renderUI({
@@ -4934,13 +4933,20 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         fish_cent_tabs <- 
           suppressWarnings(grep('FishCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
         
-        if (length(fish_cent_tabs) == 0) {
+        if (is_value_empty(altc$fish_cent)) {
           
           return(h5('No fishing centroid tables exist. Create centroid tables on the Compute New Variables tab.', style="color:red"))
         }
         
         selectInput('altc_fish_cent', 'Select a fishing centroid table',
-                    choices = grep('FishCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
+                    choices = altc$fish_cent)
+      })
+      
+      # update zone/fish centroid tab list when alt choice tab is selected
+      observeEvent(input$tabs == 'altc', { 
+        
+        altc$zone_cent <- suppressWarnings(grep('ZoneCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
+        altc$fish_cent <- suppressWarnings(grep('FishCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
       })
       
       output$altc_spat_ui <- renderUI({
