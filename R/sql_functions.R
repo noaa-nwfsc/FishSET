@@ -203,7 +203,7 @@ table_view <- function(table, project) {
       
       # convert date variables back to date
       d_cols <- date_cols(tab_out)
-      tab_out[d_cols] <- lapply(d_cols, function(d) date_parser(tab_out[[d]]))
+      tab_out[d_cols] <- lapply(tab_out[d_cols], date_parser)
       
       tibble::as_tibble(tab_out)
     }
