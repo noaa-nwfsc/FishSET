@@ -344,6 +344,8 @@ create_expectations <-
   DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:data)"),
     params = list(data = list(serialize(ExpectedCatch, NULL)))
   )
+  
+  message('Expected catch/revenue matrix saved to FishSET database')
 
   create_expectations_function <- list()
   create_expectations_function$functionID <- "create_expectations"
