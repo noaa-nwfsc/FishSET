@@ -1056,23 +1056,20 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
               ))
             
           } else if (input$loadmainsource=='FishSET database') {
-            
-           # if (dir.exists(normalizePath('~/FishSETFolder'))){
                 
-              if (length(suppressWarnings(projects())) > 0) {
-                
-                if (isTruthy(project$name)) {
-                    
-                    tagList(
-                      fluidRow(
-                        column(5,
-                               selectInput("main_db_table", "Choose a main table",
-                                           choices = main_tables(project$name, show_all = FALSE))
-                        ))
-                    )
-                }
+            if (length(suppressWarnings(projects())) > 0) {
+              
+              if (isTruthy(project$name)) {
+                  
+                  tagList(
+                    fluidRow(
+                      column(5,
+                             selectInput("main_db_table", "Choose a main table",
+                                         choices = main_tables(project$name, show_all = FALSE))
+                      ))
+                  )
               }
-           # }
+            }
           }
       })
  
@@ -5830,11 +5827,12 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
     
       observeEvent(input$submitE, {
         
-        showNotification('Function can take a couple minutes. A message will appear when done.',
-                         type='message', duration=20)
+        showNotification('Function can take several minutes. A message will appear when done.',
+                         type = 'message', duration = 20)
         q_test <- quietly_test(create_expectations)
         
         defineGroup <- if (input$exp_group == 'No group') 'fleet' else input$exp_group
+        defaults <- if (is_value_empty(input$exp_default)) FALSE else input$exp_default
         
         q_test(values$dataset, project$name, input$exp_catch_var, price=input$exp_price, 
                defineGroup=defineGroup,temp.var=input$exp_temp_var, temporal = input$exp_temporal, 
@@ -5842,7 +5840,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                empty.catch = input$exp_empty_catch,  empty.expectation = input$empty_expectation, 
                temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
                year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
-               replace.output = input$exp_replace_output)
+               default.exp = defaults, replace.output = input$exp_replace_output)
                 
         showNotification('Completed. Expectated catch matrices updated', type='message', duration=10)
       }) 

@@ -1109,7 +1109,7 @@ source("map_viewer_app.R", local = TRUE)
                                conditionalPanel("input.exp_temporal!='Entire record of catch (no time)'",
                                                 style = "margin-left:19px;font-size: 12px",
                                                 
-                                                numericInput('exp_temp_year', 'No. of years to go back if expected catch based on from previous year(s) catch ', 
+                                                numericInput('exp_temp_year', 'No. of years to go back if expected catch based on previous year(s) catch ', 
                                                              value=0, min=0, max=''),
                                                 
                                                 numericInput('exp_temp_window', 'Window size (days) to average over', value = 7, min=0),
@@ -1140,7 +1140,6 @@ source("map_viewer_app.R", local = TRUE)
                                div(style = "margin-left:19px; font-size: 12px",
                                    selectInput('empty_expectation', 'Replace empty expected catch with:', 
                                                choices = c("NA: NA's removed when averaging"='NA', 1e-04, 0))),  
-                               #h6("Note: Na's removed when averaging"),
                                
                                div(style = "margin-left:19px; font-size: 14px",
                                    checkboxInput('exp_dummy', 'Output dummy variable for originally missing values?', 
@@ -1153,9 +1152,9 @@ source("map_viewer_app.R", local = TRUE)
                                          value = "values$dataset"),
                                actionButton("runEC", "Run", class = "btn-success"),
                                div(style = "margin-top: 2em;",
-                                   uiOutput('resultEC')
-                               )
+                                   uiOutput('resultEC'))
                                ),
+                             
                              mainPanel(
                                tags$br(),tags$br(),
                                h4(tags$b('Compute expected catch for each observation and zone.')),
@@ -1169,7 +1168,7 @@ source("map_viewer_app.R", local = TRUE)
                                        tags$br(), tags$br(),
                                       
                                       h4(tags$b('Default Matrices')), tags$br(),
-                                      'There are four default matrices that can be run additionally:', 
+                                      'There are four optional matrix settings:', 
                                       tags$br(), tags$br(),
                                       tags$b('Recent expected catch:'), 'Expected catch/revenue based on catch of the previous two days (two day window, no lag).', 
                                       'In this case, there is no grouping, and catch for entire fleet is used.',
@@ -1183,16 +1182,19 @@ source("map_viewer_app.R", local = TRUE)
                                       tags$b('Logbook expected catch:'), 'Expected catch/revenue based on catch in the previous 14 days', 
                                       '(14 day window) starting one year and seven days previously. Can only be used if a group variable is provided.',
                                ),
+                               
+                               checkboxGroupInput('exp_default', 'Select default matrices to include',
+                                                  choices = c('Recent' = 'recent', 'Older' = 'older', 
+                                                              'Oldest' = 'oldest', 'Logbook' = 'logbook')),
                                       
                                tags$br(), tags$br(),
                                       
-                               tags$br(), tags$br(),
-                               conditionalPanel("input.temp_var!='none'",
+                               conditionalPanel("input.exp_temp_var!='none'",
                                                 tagList(
-                                     h4('Sparsity of observations by time period and zone.'),
-                                     h5('Higher values indicate greater sparsity.'),
-                                    DT::DTOutput('spars_table'),
-                                    shinycssloaders::withSpinner(plotOutput('spars_plot'))
+                                                  h4(tags$b('Sparsity of observations by time period and zone')),
+                                                  h5('Higher values indicate greater sparsity.'),
+                                                  DT::DTOutput('spars_table'),
+                                                  shinycssloaders::withSpinner(plotOutput('spars_plot'))
                                                 ))
                              )
                              )),
