@@ -5068,51 +5068,32 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                         selected='none', options = list(create = TRUE, placeholder='Select or type column name')))
       })
       
+      # Sparsity table
       sparstable_dat <- reactive({
         
-        if (!any(colnames(values$dataset)=='ZoneID') & !any(colnames(values$dataset)==input$exp_zoneID)) {
-          
-          return()
-          
-        } else if (is_empty(input$exp_catch_var)) {
-          
-          return()
-          
-        } else if (input$exp_temp_var=='none') {
-          
-          return()
-          
-        } else {
-          
+        req(input$exp_temp_var)
+        req(input$exp_zoneID)
+        
+        if (!is_value_empty(input$exp_catch_var) & input$exp_temp_var!='none') {
+  
           sparsetable(values$dataset, project=project$name, timevar=input$exp_temp_var, 
                       zonevar=input$exp_zoneID, var=input$exp_catch_var)
-          
         }
       })
-      
       
       output$spars_table <- DT::renderDT(sparstable_dat(), server=TRUE)
       
+      # sparsity plot
       output$spars_plot <- renderPlot({
         
-        if (!any(colnames(values$dataset)=='ZoneID')& !any(colnames(values$dataset)==input$exp_zoneID)) {
+        req(input$exp_temp_var)
+        req(input$exp_zoneID)
+        
+        if (!is_value_empty(input$exp_catch_var) & input$exp_temp_var!='none') {
           
-          return()
-          
-        } else if (is_empty(input$exp_catch_var)) {
-          
-          return()
-          
-        } else if (input$exp_temp_var=='none') {
-          
-          return()
-          
-        } else {
-          
-          message(sparsplot(project=project$name, x=sparstable_dat()))
+          sparsplot(project = project$name, x = sparstable_dat())
         }
       })
-      
       
       #---
       
