@@ -4972,44 +4972,44 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         }
       })
       
-      
-      zoneIDNumbers_dat <- reactive({
+      # zone freq table
+      zone_freq <- reactive({
         
-        if (!is_value_empty(input$altc_zoneID)) {
-          
-          temp <- data.frame(table(values$dataset[[input$altc_zoneID]]))
-
-          temp <- values$dataset[which(values$dataset[[input$altc_zoneID]] %in%
-                                         temp[which(temp$Freq > input$altc_min_haul),1]), ]
-          ggplot2::ggplot(temp, ggplot2::aes(x=.data[[input$altc_zoneID]])) +
-            ggplot2::geom_bar() + ggplot2::theme_bw() +
-            ggplot2::theme(panel.border = ggplot2::element_blank(),
-                           panel.grid.major = ggplot2::element_blank(),
-                           panel.grid.minor = ggplot2::element_blank(),
-                           axis.line = ggplot2::element_line(colour = "black"))
-        }
-      })
-      
-      output$altc_zone_plot <- renderPlot(zoneIDNumbers_dat())
-      
-      zone_include_dat <- reactive({
-        
-        req(input$altc_spatID)
+        req(input$altc_min_haul)
         req(input$altc_zoneID)
         
         freq_tab <- agg_helper(values$dataset, value = input$altc_zoneID, 
                                count = TRUE, fun = NULL)
-        join_by <- stats::setNames(input$altc_zoneID, input$altc_spatID)
-        dplyr::left_join(spatdat$dataset[input$altc_spatID], freq_tab, by = join_by)
+        freq_tab$include <- freq_tab$n >= input$altc_min_haul
+        freq_tab
       })
       
+      # barplot of zone freq
+      zoneIDNumbers_dat <- reactive({
+        
+        req(input$altc_zoneID)
+        
+        dat <- zone_freq()
+        z_sym <- rlang::sym(input$altc_zoneID)
+        
+        ggplot2::ggplot(dat[dat$include, ]) +
+          ggplot2::geom_col(ggplot2::aes(x=!!z_sym, y = n)) + 
+          fishset_theme()
+      })
+      
+      output$altc_zone_plot <- renderPlot(zoneIDNumbers_dat())
+      
+      # map showing which zones will be included
       output$zone_include_plot <- renderPlot({
         
-        zone_dat <- zone_include_dat()
-        zone_dat$include <- zone_dat$n >= input$altc_min_haul
+        req(input$altc_spatID)
+        req(input$altc_zoneID)
+        
+        join_by <- stats::setNames(input$altc_zoneID, input$altc_spatID)
+        spat <- dplyr::left_join(spatdat$dataset[input$altc_spatID], zone_freq(), by = join_by)
         
         ggplot2::ggplot() +  
-          ggplot2::geom_sf(data = zone_dat, 
+          ggplot2::geom_sf(data = spat, 
                            ggplot2::aes(fill = include), color = "black", alpha = .8) +
           ggplot2::scale_fill_manual(breaks = c(TRUE, FALSE), values=c('green', 'grey20')) + 
           fishset_theme()
@@ -5616,7 +5616,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
           removeModal()
           input_list <- reactiveValuesToList(input)
-          toggle_inputs(input_list,F)
+          toggle_inputs(input_list, FALSE)
           #print('call model design function, call discrete_subroutine file')
           rv$data <- subset(rv$data, mod_name!='')
           
@@ -5653,7 +5653,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                         use.scalers=TRUE, scaler.func = NULL)             
 
                 showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=30)
-          toggle_inputs(input_list,T)
+          toggle_inputs(input_list, TRUE)
       })
       
       
