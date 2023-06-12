@@ -5224,77 +5224,62 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         })
       })
       
-      output$catch_out <- renderUI({
+      output$mod_catch_out <- renderUI({
         tagList(
-          selectInput('catch','Column name containing catch data',
+          selectInput('mod_catch','Column name containing catch data',
                       choices = numeric_cols(values$dataset)),
+          
           conditionalPanel(
-            condition = "input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
-            checkboxInput('lockk', 'Location-specific catch parameter', value=FALSE)),
-          conditionalPanel(condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
+            condition = "['epm_normal', 'epm_lognormal', 'epm_weibull'].includes(input.model)",
+            
+            checkboxInput('mod_lockk', 'Location-specific catch parameter', value=FALSE),
+            
             selectInput('mod_price', 'Price variable', choices=c('none', find_value(values$dataset)), 
                         selected='none', multiple=FALSE)),
         #logit correction
-          conditionalPanel(condition="input.model=='logit_correction'",
-            numericInput('polyn', 'Correction polynomial degree', value=2)),
-          conditionalPanel(condition="input.model=='logit_correction'",
-                           radioButtons('startlocdefined', 'Starting location variable', choices=c('Exists in data frame'='exists', 'Create variable'='create'))
-        ))
-        })
-      output$logit_correction_extra <- renderUI({
-          tagList(
-          conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='exists'",
-            selectInput('startloc_mod', 'Initial location during choice occassion', choices=c('startingloc', names(values$dataset)), 
-                        selected='startingloc', 
-                        multiple=FALSE)),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                              if(names(spatdat$dataset)[1]=='var1'){
-                                                 tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
-                              }),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectInput('trip_id_SL_mod', 'Variable that identifies unique trips', choices=c('',names(values$dataset)), selectize=TRUE)),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectInput('haul_order_SL_mod', 'Variable that identifies haul order within a trip. Can be time, coded variable, etc.',
-                                            choices=c('', names(values$dataset)), selectize=TRUE)),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectizeInput('starting_port_SL_mod',  "Variable that identifies port at start of trip", 
-                                            choices=find_port(values$dataset), 
-                                            options = list(create = TRUE, placeholder='Select or type variable name'))),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectizeInput('lon_dat_SL_mod', "Longitude variable in primary data table", 
-                                            choices= find_lon(values$dataset), 
-                                            options = list(create = TRUE, placeholder='Select or type variable name'))), 
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectizeInput('lat_dat_SL_mod', "Latitude variable in primary data table", 
-                                            choices= find_lat(values$dataset), 
-                                            options = list(create = TRUE, placeholder='Select or type variable name'))),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                           if(any(class(spatdat$dataset)=='sf')==FALSE){
-                                                selectInput('lat_grid_SL_mod', 'Select vector containing latitude data from spatial data',
-                                                            choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE)
-                              }),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             if(any(class(spatdat$dataset)=='sf')==FALSE){
-                                selectInput('lon_grid_SL_mod', 'Select vector containing longitude data from spatial data', 
-                                                             choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE, selectize=TRUE)
-                              }),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectInput('cat_SL_mod', "Property from spatial data file identifying zones or areas", choices= names(as.data.frame(spatdat$dataset)), selectize=TRUE)
-                         
-                        )
+          conditionalPanel(
+            condition="input.model=='logit_correction'",
+            
+            numericInput('mod_polyn', 'Correction polynomial degree', value=2),
+            
+            radioButtons('startlocdefined', 'Starting location variable', 
+                         choices=c('Exists in data frame'='exists', 'Create variable'='create')))
         )
       })
-      output$logit_c_extra <- renderUI({
-        tagList(
-          conditionalPanel(condition="input.model=='logit_c'",
-                           selectInput('logitcextra', 'Selected expected catch/revenue matrices to include in model', 
-                                       choices=c('All matrices'='all', 'Run each matrix in separate model'='individual', 
-                                                 'Select a subset of matrices to run in model'='subset'),
-                                       selected='all', multiple=FALSE)),
-          conditionalPanel(condition="input.model=='logit_c' & input.logitcextra=='subset'", 
-                           selectInput('logitcextrasub', 'Select one or more expected catch/revenue matrices to include', 
-                                       choices=c( 'User-defined matrix'='user', 'Short-term matrix'='short', 'Medium-term matrix'='medium',  'Long-term matrix'='long'), multiple=TRUE))
-          )
+      
+      output$mod_logit_correction <- renderUI({
+        
+          tagList(
+          conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='exists'",
+            
+                           selectInput('mod_startloc', 'Initial location during choice occassion', 
+                                       choices=c('startingloc', names(values$dataset)), 
+                                       selected='startingloc', 
+                                       multiple=FALSE)),
+          
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                              
+                             selectInput('mod_trip_id_SL', 'Variable that identifies unique trips', 
+                                         choices=names(values$dataset), selectize=TRUE),
+                             
+                             selectInput('mod_haul_order_SL', 'Variable that identifies haul order within a trip. Can be time, coded variable, etc.',
+                                         choices=names(values$dataset), selectize=TRUE),
+                             
+                             selectizeInput('mod_starting_port_SL', "Variable that identifies port at start of trip", 
+                                            choices = list_tables(project$name, type = 'port')),
+                             
+                             if (names(spatdat$dataset)[1]=='var1') {
+                               
+                               tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
+                             },
+                             
+                             selectInput('mod_spatID_SL', "Property from spatial data file identifying zones or areas", 
+                                         choices= names(spatdat$dataset), selectize=TRUE),
+                             
+                             selectInput('mod_zoneID_SL', "Column from primary data identifying zones or areas", 
+                                         choices= names(spatdat$dataset), selectize=TRUE)
+                        )
+        )
       })
       
       exp.name <- reactive({
@@ -5363,7 +5348,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       })
       
       numInits <- reactive({
-        polyn <- input$polyn
+        polyn <- input$mod_polyn
         gridNum <- as.integer(as.factor(length(input$gridVariablesInclude)))
         intNum <- as.integer(length(input$indeVarsForModel))
         if(input$model == 'logit_c'){
@@ -5373,7 +5358,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         } else if(input$model == 'logit_correction'){
           numInits <- gridNum*alt() + ((((polyn+1)*2)+2)*alt()) + intNum  +1+1
         } else {
-          if(input$lockk=='TRUE'){
+          if(input$mod_lockk=='TRUE'){
             numInits <- gridNum*alt()+intNum+alt+1
           } else {
             numInits <- gridNum*alt()+intNum+1+1
@@ -5456,20 +5441,29 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       })
       
       observeEvent(input$addModel, {
+        
         req(project$name)
-        if(is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
+        
+        if (is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
+          
           showNotification('Model not saved as at least one variable not defined.')
+          
         } else {
+          
           showNotification("Selected model parameters saved.", type='message', duration=10)
         }
        
 
         if(input$model=='logit_correction' & input$startlocdefined =='create'){
-          values$dataset$startingloc <- create_startingloc(dat=values$dataset, spat=spatdat$dataset, portTable=input$port.datMD, 
-                                            trip_id=input$trip_id_SL_mod, haul_order=input$haul_order_SL_mod, starting_port=input$starting_port_SL_mod, 
-                                            lon.dat=input$lon_dat_SL_mod, lat.dat=input$lat_dat_SL_mod, cat=input$cat_SL_mod, 
-                                            lon.spat=input$lat_grid_SL, lat.spat=input$lat_grid_SL_mod)
+          # TODO: replace with previous_loc() 
+          # Also, consider moving to data creation tab
+          values$dataset$startingloc <- 
+            create_startingloc(dat=values$dataset, spat=spatdat$dataset, port=input$mod_port_SL,
+                               trip_id=input$mod_trip_id_SL, haul_order=input$mod_haul_order_SL, 
+                               starting_port=input$mod_starting_port_SL, 
+                               zoneID=input$mod_zoneID_SL, spatID = input$mod_spatID_SL)
         } 
+        
         counter$countervalue <- counter$countervalue + 1
         
         if(is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
@@ -5490,16 +5484,16 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         } else {
           rv$data = rbind(data.frame('mod_name'=paste0(input$model, '_mod', counter$countervalue), 
                                'likelihood'=input$model, 
-                               'optimOpt'=paste(input$mIter,input$relTolX, input$reportfreq, input$detailreport),
+                               'optimOpt'=paste(input$mod_iter,input$mod_relTolX, input$mod_report_freq, input$mod_detail_report),
                                'inits'=paste(int_name(), collapse=','),#noquote(paste0('input$int',1:numInits())),
-                               'methodname' = input$optmeth, 
+                               'methodname' = input$mod_optmeth, 
                                'vars1'= paste(input$indeVarsForModel, collapse=','),
                                'vars2'= input$gridVariablesInclude, 
-                               'catch'= input$catch,
+                               'catch'= input$mod_catch,
                                'project'= project$name, 
                                'price'= input$mod_price,
                                'startloc'=  'startingloc',#if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
-                               'polyn'= input$polyn,
+                               'polyn'= input$mod_polyn,
                                'exp' = paste(exp.name(), collapse=','))
                     , rv$data)#model_table())
         }
@@ -6228,7 +6222,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "corr_select", selected = bookmarkedstate()$corr_select)
         updateSelectInput(session, "create_method", selected = bookmarkedstate()$create_method)
         updateSelectInput(session, "define_format", selected = bookmarkedstate()$define_format)
-        updateNumericInput(session, "detailreport", value = bookmarkedstate()$detailreport)
+        updateNumericInput(session, "mod_detail_report", value = bookmarkedstate()$mod_detail_report)
         updateSelectInput(session, "dist", selected = bookmarkedstate()$dist)
         updateSelectInput(session, "altc_dist", selected = bookmarkedstate()$altc_dist)
         updateSelectInput(session, "dummclosfunc", selected = bookmarkedstate()$dummclosfunc)
@@ -6265,7 +6259,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "lat_grid_SL", selected = bookmarkedstate()$lat_grid_SL)
         updateSelectInput(session, "lat_grid_altc", selected = bookmarkedstate()$lat_grid_altc)
         updateCheckboxInput(session, "LatLon_Filter", value = bookmarkedstate()$LatLon_Filter)
-        updateCheckboxInput(session, "lockk", value = bookmarkedstate()$lockk)
+        updateCheckboxInput(session, "mod_lockk", value = bookmarkedstate()$mod_lockk)
         updateSelectInput(session, "lon", selected = bookmarkedstate()$lon)
         updateSelectInput(session, "lon_dat", selected = bookmarkedstate()$lon_dat)
         updateSelectInput(session, "lon_dat_ac", selected = bookmarkedstate()$lon_dat_ac)
@@ -6276,7 +6270,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "mid_end", selected = bookmarkedstate()$mid_end)
         updateSelectInput(session, "mid_start", selected = bookmarkedstate()$mid_start)
         updateNumericInput(session, "altc_min_haul", value = bookmarkedstate()$altc_min_haul)
-        updateNumericInput(session, "mIter", value = bookmarkedstate()$mIter)
+        updateNumericInput(session, "mod_iter", value = bookmarkedstate()$mod_iter)
         updateSelectInput(session, "mtgtcat", selected = bookmarkedstate()$mtgtcat)
         updateSelectInput(session, "mtgtlonlat", selected = bookmarkedstate()$mtgtlonlat)
         updateSelectInput(session, "NA_Filter", selected = bookmarkedstate()$NA_Filter)
@@ -6286,7 +6280,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "plot_table", selected = bookmarkedstate()$plot_table)
         updateSelectInput(session, "plot_type", selected = bookmarkedstate()$plot_type)
         updateTextInput(session, 'polyear', value = bookmarkedstate()$polyear)
-        updateNumericInput(session, "polyn", value = bookmarkedstate()$polyn)
+        updateNumericInput(session, "mod_polyn", value = bookmarkedstate()$mod_polyn)
         updateSelectInput(session, "port_dat_dist", selected = bookmarkedstate()$port_dat_dist)
         updateSelectInput(session, "port_end", selected = bookmarkedstate()$port_end)
         updateSelectInput(session, "port_start", selected = bookmarkedstate()$port_start)
@@ -6296,8 +6290,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "p2fun", selected = bookmarkedstate()$p2fun)
         updateSelectInput(session, "p3fun", selected = bookmarkedstate()$p3fun)
         updateNumericInput(session, "quant_cat", value = bookmarkedstate()$quant_cat)
-        updateNumericInput(session, "relTolX", value = bookmarkedstate()$relTolX)
-        updateNumericInput(session, "reportfreq", value = bookmarkedstate()$reportfreq)
+        updateNumericInput(session, "mod_relTolX", value = bookmarkedstate()$mod_relTolX)
+        updateNumericInput(session, "mod_report_freq", value = bookmarkedstate()$mod_report_freq)
         updateSelectInput(session, "sp_col", selected = bookmarkedstate()$sp_col)
         updateSelectInput(session, "start", selected = bookmarkedstate()$start)
         updateSelectInput(session, "start_latlon", selected = bookmarkedstate()$start_latlon)
