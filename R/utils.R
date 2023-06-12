@@ -2514,7 +2514,16 @@ find_datetime <- function(dat) {
   #' @keywords internal
   #' @export
   
-  grep('date|hour|time|year|day', colnames(dat), ignore.case = TRUE, value = TRUE)
+  c_nms <- grep('date|hour|time|year|day', colnames(dat), 
+                ignore.case = TRUE, value = TRUE)
+  
+  c_class <- vapply(dat, function(d) {
+    
+    any(lubridate::is.Date(d), lubridate::is.POSIXt(d))
+  }, logical(1))
+  
+  out <- names(dat)[c_class]
+  unique(out, c_nms)
 }
 
 find_catch <- function(dat) {
