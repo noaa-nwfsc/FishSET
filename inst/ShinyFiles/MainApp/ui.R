@@ -1221,18 +1221,21 @@ source("map_viewer_app.R", local = TRUE)
                                # Models can't be run if final dataset not detected
                                uiOutput("disableMsg"),
                                
-                                 actionButton("addModel", "Save model and add new model", 
-                                              style="color: #fff; background-color: #337ab7; border-color: #800000;"),
+                               actionButton("addModel", "Save model and add new model", 
+                                            style="color: #fff; background-color: #337ab7; border-color: #800000;"),
                                
                                tags$br(),
+                               
                                conditionalPanel("input.addModel!='0'",
                                   shinyjs::disabled(
                                    actionButton("submit_modal", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;")
                                   )
                                ),
+                               
                                tags$br(),tags$br(),
                                tags$p(tags$strong("More information"), tags$br(),
                                       "Model parameter table is editable. Double click a cell to edit."),
+                               
                                actionButton('callTextDownloadModels','Save notes'),
                                textInput('notesModel', "Notes", value=NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
@@ -1242,38 +1245,64 @@ source("map_viewer_app.R", local = TRUE)
                                actionButton("runM", "Run", class = "btn-success"),
                                div(style = "margin-top: 2em;", uiOutput('resultM'))
                              ),
+                             
                              mainPanel(
                                div(id = "form",
-                                   #h4('Alternative choice matrix parameters'),
-                                   #selectInput("alternatives", label = "Create alternative choice matrix from",
-                                   #            choices = list("Loaded data" = 'loadedData', "Grid data" = "griddedData"),
-                                  #             selected = 'loadedData'),
-                                   #uiOutput('latlonB'),
-                                   #uiOutput('portmd'),
+                                   
                                    h4('Likelihood function'),
+                                   
                                    selectInput("model", label = "",
-                                               choices = list("Conditional logit" = 'logit_c', "Average catch" = "logit_avgcat", "Logit Dahl correction" = "logit_correction",
-                                                              'EPM normal'='epm_normal', 'EPM lognormal'='epm_lognormal', 'EPM Weibull'='epm_weibull'),
+                                               choices = list("Conditional logit" = 'logit_c', 
+                                                              "Average catch" = "logit_avgcat", 
+                                                              "Logit Dahl correction" = "logit_correction",
+                                                              'EPM normal'='epm_normal', 
+                                                              'EPM lognormal'='epm_lognormal', 
+                                                              'EPM Weibull'='epm_weibull'),
                                                selected = 'logit_c'),
-                                   selectInput('optmeth', 'Optimization method', 
-                                               choices=c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN"), selected='BFGS'),
+                                   
+                                   selectInput('mod_optmeth', 'Optimization method', 
+                                               choices=c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN"), 
+                                               selected='BFGS'),
+                                   
                                    h4('Select variables to include in model'),
-                                   div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('indvariables')),
-                                   div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('gridvariables')),
-                                   uiOutput('catch_out'),
-                                   uiOutput('logit_correction_extra'),
-                                   uiOutput('logit_c_extra'),
+                                   
+                                   div(style="display: inline-block;vertical-align:top; width: 250px;", 
+                                       uiOutput('indvariables')),
+                                   
+                                   div(style="display: inline-block;vertical-align:top; width: 250px;", 
+                                       uiOutput('gridvariables')),
+                                   
+                                   uiOutput('mod_catch_out'),
+                                   uiOutput('mod_logit_correction'),
+                                   
+                                   conditionalPanel(condition="input.model=='logit_c'",
+                                                    
+                                                    selectInput('logitcextra', 'Selected expected catch/revenue matrices to include in model', 
+                                                                choices=c('All matrices'='all', 
+                                                                          'Run each matrix in separate model'='individual', 
+                                                                          'Select a subset of matrices to run in model'='subset'),
+                                                                selected='all', multiple=FALSE)),
+                                   
+                                   conditionalPanel(condition="input.model=='logit_c' & input.logitcextra=='subset'", 
+                                                    
+                                                    selectInput('logitcextrasub', 'Select one or more expected catch/revenue matrices to include', 
+                                                                choices=c('User-defined matrix'='user', 
+                                                                          'Short-term matrix'='short', 
+                                                                          'Medium-term matrix'='medium',  
+                                                                          'Long-term matrix'='long'), 
+                                                                multiple=TRUE)),
                                    h3('Model parameters'),
                                    
                                    fluidRow(
                                      h4("Optimization options"),
                                      splitLayout(cellWidths = c("22%", "22%", "22%", "22%"),
-                                                 numericInput("mIter", "max iterations", value = 100),
-                                                 numericInput("relTolX", "tolerance of x", value = 0.00000001),
-                                                 numericInput("reportfreq", "report frequency", value = 1),
-                                                 numericInput("detailreport", "detailed report", value = 1, max=6)
+                                                 numericInput("mod_iter", "max iterations", value = 100),
+                                                 numericInput("mod_relTolX", "tolerance of x", value = 0.00000001),
+                                                 numericInput("mod_report_freq", "report frequency", value = 1),
+                                                 numericInput("mod_detail_report", "detailed report", value = 1, max=6)
                                      )
                                    ),
+                                   
                                    fluidRow(
                                      add_prompter(div(
                                        div(style="display: inline-block; width: 145px ;", h4('Initial parameters')), 
@@ -1286,16 +1315,19 @@ source("map_viewer_app.R", local = TRUE)
                                         Logit correction:  marginal utility from catch, catch-function parameters, polynomial starting parameters, travel-distance parameters, catch sigma
                                         EPM likelihood functions:  catch-function parameters, travel-distance parameters, catch sigma(s), scale parameter 
                                         See Likelihood section of Help Manual for more details.")),
+                                     
                                      uiOutput('paramsourcechoose'),
+                                     
                                      conditionalPanel(condition="input.initchoice=='prev'",
                                             uiOutput("paramtable")),
+                                     
                                      uiOutput("Inits")
-                                   
                                    ),
                                    
                                    DT::DTOutput('mod_param_table')
                                )
                              ))),
+                           
                            tabPanel("Compare models",
                                     sidebarLayout(
                                       sidebarPanel(
