@@ -1268,7 +1268,7 @@ source("map_viewer_app.R", local = TRUE)
                                    fluidRow(
                                      h4("Optimization options"),
                                      splitLayout(cellWidths = c("22%", "22%", "22%", "22%"),
-                                                 numericInput("mIter", "max iterations", value = 100000),
+                                                 numericInput("mIter", "max iterations", value = 100),
                                                  numericInput("relTolX", "tolerance of x", value = 0.00000001),
                                                  numericInput("reportfreq", "report frequency", value = 1),
                                                  numericInput("detailreport", "detailed report", value = 1, max=6)
