@@ -57,23 +57,25 @@ If you’re on *nix, do this:
 Sys.getenv("HOME")
 ```
 
-5a. If there is an ‘.Rprofile’ in that folder, add this line:
+5.  Store the GITLAB_PAT. 
+
+    1.  If there is an ‘.Renviron’ in that folder, add this line:
 ```
-Sys.setenv(GITLAB_PAT="glpat-the rest of your pat here")
+GITLAB_PAT="glpat-the rest of your pat here"
 ```
 Don’t forget to save the file. 
 
-5b. If there isn’t an ‘.Rprofile’ in that folder, create one and add that line.
+    2.  If there isn’t an ‘.Renviron’ in that folder, create one using a text editor and add that line.
 
 6. Restart R (Session→ Restart R should do the trick).
 
-7. Test by typing this
+7. Test by typing this into R
 
 ```
 Sys.getenv("GITLAB_PAT")
 ```
 
-8. To finally install, you will need to do this in the R console:
+8. To finally install FishSET, you will need to do this in the R console:
 
 ```
 remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage@master", host="gitlab-afsc.fisheries.noaa.gov")
