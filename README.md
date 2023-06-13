@@ -41,10 +41,10 @@ For example, loc <- getwd().
 
 1.  You will need a Gitlab account and you'll need an access token.
 2.  To get an access token:
-    a.  Log into gitlab. Click the little down arrow next you your profile (top right).
-    b.  Click the “access tokens” on the left hand side. 
-    c.  Fill in a token name, give it all the scopes and click “create personal access token.”  It’s good to have an expiration date.  But a bit of a pain.
-    d.  Copy and paste that token into notepad. It should start with the letters “glpat”.
+    1.  Log into gitlab. Click the little down arrow next you your profile (top right).
+    2.  Click the “access tokens” on the left hand side. 
+    3.  Fill in a token name, give it all the scopes and click “create personal access token.”  It’s good to have an expiration date.  But a bit of a pain.
+    4.  Copy and paste that token into notepad. It should start with the letters “glpat”.
 3.  Now, you need to save the Personal Access Token as the Environment Variable “GITLAB_PAT”. One way to do this is to ask you IT person to do this for you. Another way to do it is to have R do it for you every time it starts. I prefer to do this in the .Rprofile file.
 
 4.  If you’re on Windows, open Rstudio and do this:
