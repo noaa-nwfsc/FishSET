@@ -78,7 +78,7 @@ Sys.getenv("GITLAB_PAT")
 ```
 remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage@master", host="gitlab-afsc.fisheries.noaa.gov")
 ```
-
+use the ``build_vignettes=TRUE`` option to build vignettes, which takes a little extra time.
 
 
 
