@@ -76,9 +76,9 @@ Sys.getenv("GITLAB_PAT")
 8. To finally install FishSET, you will need to do this in the R console:
 
 ```
-remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage@master", host="gitlab-afsc.fisheries.noaa.gov")
+remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage@master", host="gitlab-afsc.fisheries.noaa.gov", build_vignettes=TRUE)
 ```
-use the ``build_vignettes=TRUE`` option to build vignettes, which takes a little extra time.
+use the ``build_vignettes=FALSE`` option to turn off vignettes, which takes a little less time.
 
 
 
