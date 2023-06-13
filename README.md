@@ -59,13 +59,11 @@ Sys.getenv("HOME")
 
 5.  Store the GITLAB_PAT. 
 
-    1.  If there is an ‘.Renviron’ in that folder, add this line:
+If there is an ‘.Renviron’ in that folder, add this line:
 ```
 GITLAB_PAT="glpat-the rest of your pat here"
 ```
-Don’t forget to save the file. 
-
-    2.  If there isn’t an ‘.Renviron’ in that folder, create one using a text editor and add that line.
+Don’t forget to save the file. If there isn’t an ‘.Renviron’ in that folder, create one using a text editor and add that line.
 
 6. Restart R (Session→ Restart R should do the trick).
 
