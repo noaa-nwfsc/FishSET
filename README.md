@@ -41,10 +41,10 @@ For example, loc <- getwd().
 
 1.  You will need a Gitlab account and you'll need an access token.
 2.  To get an access token:
-    a.  Log into gitlab. Click the little down arrow next you your profile (top right).
-    b.  Click the “access tokens” on the left hand side. 
-    c.  Fill in a token name, give it all the scopes and click “create personal access token.”  It’s good to have an expiration date.  But a bit of a pain.
-    d.  Copy and paste that token into notepad. It should start with the letters “glpat”.
+    1.  Log into gitlab. Click the little down arrow next you your profile (top right).
+    2.  Click the “access tokens” on the left hand side. 
+    3.  Fill in a token name, give it all the scopes and click “create personal access token.”  It’s good to have an expiration date.  But a bit of a pain.
+    4.  Copy and paste that token into notepad. It should start with the letters “glpat”.
 3.  Now, you need to save the Personal Access Token as the Environment Variable “GITLAB_PAT”. One way to do this is to ask you IT person to do this for you. Another way to do it is to have R do it for you every time it starts. I prefer to do this in the .Rprofile file.
 
 4.  If you’re on Windows, open Rstudio and do this:
@@ -57,28 +57,28 @@ If you’re on *nix, do this:
 Sys.getenv("HOME")
 ```
 
-5a. If there is an ‘.Rprofile’ in that folder, add this line:
-```
-Sys.setenv(GITLAB_PAT="glpat-the rest of your pat here")
-```
-Don’t forget to save the file. 
+5.  Store the GITLAB_PAT. 
 
-5b. If there isn’t an ‘.Rprofile’ in that folder, create one and add that line.
+If there is an ‘.Renviron’ in that folder, add this line:
+```
+GITLAB_PAT="glpat-the rest of your pat here"
+```
+Don’t forget to save the file. If there isn’t an ‘.Renviron’ in that folder, create one using a text editor and add that line.
 
 6. Restart R (Session→ Restart R should do the trick).
 
-7. Test by typing this
+7. Test by typing this into R
 
 ```
 Sys.getenv("GITLAB_PAT")
 ```
 
-8. To finally install, you will need to do this in the R console:
+8. To finally install FishSET, you will need to do this in the R console:
 
 ```
-remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage@master", host="gitlab-afsc.fisheries.noaa.gov")
+remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage@master", host="gitlab-afsc.fisheries.noaa.gov", build_vignettes=TRUE)
 ```
-
+use the ``build_vignettes=FALSE`` option to turn off vignettes, which takes a little less time.
 
 
 
