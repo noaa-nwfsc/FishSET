@@ -5107,17 +5107,29 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         tags$div(style="display:inline-block;", x)
       }
       
+      mod_rv <- reactiveValues(final = FALSE, exp = NULL)
+      
       # enable run model (modal) button if final table exists
       observeEvent(input$tabs == 'models', {
         
         req(isTruthy(project$name))
         
-        shinyjs::toggleState("submit_modal", 
-                             condition = {table_exists(paste0(project$name, "MainDataTable_final"), project$name)})
+        # check if final table exists
+        mod_rv$final <- table_exists(paste0(project$name, "MainDataTable_final"), project$name)
+        
+        # list the names of existing expected catch matrices
+        e_list <- expected_catch_list(project$name)
+        # remove units and scale entry
+        e_list <- e_list[!grepl('^scale$|^units$', names(e_list))]
+        # save names of matrices that aren't empty
+        mod_rv$exp <- names(e_list[!vapply(e_list, is.null, logical(1))])
+        
+        shinyjs::toggleState("submit_modal", condition = mod_rv$final) 
       })
       
       output$disableMsg <- renderUI({
-        if (!table_exists(paste0(project$name, "MainDataTable_final"), project$name)) {
+        
+        if (!mod_rv$final) {
           
           div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
               p("Finalized dataset must be saved before modeling."))
@@ -5236,7 +5248,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
             
             selectInput('mod_price', 'Price variable', choices=c('none', find_value(values$dataset)), 
                         selected='none', multiple=FALSE)),
-        #logit correction
+        
           conditionalPanel(
             condition="input.model=='logit_correction'",
             
@@ -5280,6 +5292,37 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                          choices= names(spatdat$dataset), selectize=TRUE)
                         )
         )
+      })
+      
+      output$mod_exp_select_ui <- renderUI({
+        
+        selectInput('mod_select_exp_1', 'Select matrices',
+                    choices = mod_rv$exp, multiple = TRUE)
+      })
+      
+      observeEvent(input$mod_add_exp, {
+
+        insertUI(selector = '#mod_select_exp_1',
+                 where = 'afterEnd',
+                 ui = selectInput(paste0('mod_select_exp_', input$mod_add_exp + 1),
+                                  label = '', choices = mod_rv$exp, multiple = TRUE)
+                 )
+      })
+      
+      observeEvent(input$mod_add_exp_reset, {
+        
+        removeUI(selector = '#add-exp-section')
+        
+        insertUI('#mod_add_exp_reset', where = 'afterEnd',
+                 ui = selectInput('mod_select_exp_1', 'Select matrices',
+                                  choices = mod_rv$exp, multiple = TRUE))
+      })
+      
+      observeEvent(input$mod_add_exp_test, {
+        
+        # combine each select input
+        exp_select <- grep('mod_select_exp_', names(input), value = TRUE)
+        exp_list <- lapply(exp_select, function(x) input[[x]])
       })
       
       exp.name <- reactive({
@@ -5454,7 +5497,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         }
        
 
-        if(input$model=='logit_correction' & input$startlocdefined =='create'){
+        if (input$model=='logit_correction' & input$startlocdefined =='create') {
           # TODO: replace with previous_loc() 
           # Also, consider moving to data creation tab
           values$dataset$startingloc <- 
@@ -5467,6 +5510,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         counter$countervalue <- counter$countervalue + 1
         
         if(is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
+          
           rv$data <- rbind(data.frame('mod_name'='', 
                                 'likelihood'='',
                                 'optimOpt'='',
@@ -5482,6 +5526,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                 'exp'='')
                      , rv$data)#model_table())
         } else {
+          
           rv$data = rbind(data.frame('mod_name'=paste0(input$model, '_mod', counter$countervalue), 
                                'likelihood'=input$model, 
                                'optimOpt'=paste(input$mod_iter,input$mod_relTolX, input$mod_report_freq, input$mod_detail_report),
@@ -5933,29 +5978,22 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # Save final Dataset ----
       save_final <- reactiveValues()
 
-            #observeEvent(input$save_final_modal, {
       saveModal <- function(ns) {  
-      #  showModal(
-
-          modalDialog(title = "Save the final version of the data before modeling",
-                      # TODO: check uniqueID select, not sure it works as intended 
-                      selectInput("final_uniqueID", "Select column containing unique occurrence identifier",
-                                  if(any(duplicated(values$dataset))==FALSE){
-                                    choices = c(RowID = rownames(values$dataset), names(values$dataset))
-                                    } else {
-                                      choices = names(values$dataset)
-                                      }),
-
-                      shinycssloaders::withSpinner(uiOutput("checkMsg")),
-                      
-                      footer = tagList(
-                        modalButton("Close"),
-                        actionButton("save_final_table", "Save", 
-                                     style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+        
+        modalDialog(title = "Save the final version of the data before modeling",
+                    # TODO: check uniqueID select, not sure it works as intended 
+                    selectInput("final_uniqueID", "Select column containing unique occurrence identifier",
+                                choices = names(values$dataset)),
+                    
+                    shinycssloaders::withSpinner(uiOutput("checkMsg")),
+                    
+                    footer = tagList(
+                      modalButton("Close"),
+                      actionButton("save_final_table", "Save", 
+                                   style = "color: #fff; background-color: #6EC479; border-color:#000000;")
                       )
           )
-      #  )
-      }#)
+      }
          
       observeEvent(input$save_final_modal, {
         

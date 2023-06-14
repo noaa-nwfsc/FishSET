@@ -1221,6 +1221,10 @@ source("map_viewer_app.R", local = TRUE)
                                # Models can't be run if final dataset not detected
                                uiOutput("disableMsg"),
                                
+                               # TODO: consider adding final data save bttn to models tab
+                               # actionButton("save_final_modal", "Save final table to FishSET database",
+                               #              style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+                               
                                actionButton("addModel", "Save model and add new model", 
                                             style="color: #fff; background-color: #337ab7; border-color: #800000;"),
                                
@@ -1277,20 +1281,21 @@ source("map_viewer_app.R", local = TRUE)
                                    
                                    conditionalPanel(condition="input.model=='logit_c'",
                                                     
-                                                    selectInput('logitcextra', 'Selected expected catch/revenue matrices to include in model', 
-                                                                choices=c('All matrices'='all', 
-                                                                          'Run each matrix in separate model'='individual', 
-                                                                          'Select a subset of matrices to run in model'='subset'),
-                                                                selected='all', multiple=FALSE)),
-                                   
-                                   conditionalPanel(condition="input.model=='logit_c' & input.logitcextra=='subset'", 
+                                                    uiOutput('mod_exp_select')
                                                     
-                                                    selectInput('logitcextrasub', 'Select one or more expected catch/revenue matrices to include', 
-                                                                choices=c('User-defined matrix'='user', 
-                                                                          'Short-term matrix'='short', 
-                                                                          'Medium-term matrix'='medium',  
-                                                                          'Long-term matrix'='long'), 
-                                                                multiple=TRUE)),
+                                   ),
+                                   
+                                   conditionalPanel(condition="input.model=='logit_c'",
+                                                    
+                                                    actionButton('mod_add_exp', 'Add expected catch entry',
+                                                                 style = 'background-color: blue; color: white;'),
+                                                    
+                                                    actionButton('mod_add_exp_reset', 'Reset',
+                                                                 style = 'background-color: red; color: white;'),
+                                                    
+                                                    uiOutput('mod_exp_select_ui')
+                                   ),
+                                   
                                    h3('Model parameters'),
                                    
                                    fluidRow(
