@@ -5107,7 +5107,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         tags$div(style="display:inline-block;", x)
       }
       
-      mod_rv <- reactiveValues(final = FALSE, exp = NULL)
+      mod_rv <- reactiveValues(final = FALSE, exp = NULL, alt = FALSE, altc = NULL)
       
       # enable run model (modal) button if final table exists
       observeEvent(input$tabs == 'models', {
@@ -5124,16 +5124,30 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         # save names of matrices that aren't empty
         mod_rv$exp <- names(e_list[!vapply(e_list, is.null, logical(1))])
         
+        # check for alt choice list (check for dated as well)
+        mod_rv$alt <- table_exists(paste0(project$name, "altmatrix"), project$name)
+        
+        # retrieve # of alts if exists
+        if (mod_rv$alt) mod_rv$altc <- length(alt_choice_list(project$name)$greaterNZ)
+      
         shinyjs::toggleState("submit_modal", condition = mod_rv$final) 
       })
       
       output$disableMsg <- renderUI({
         
-        if (!mod_rv$final) {
+        tagList(
+          if (!mod_rv$final) {
+            
+            div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
+                p("Finalized dataset must be saved before modeling."))
+          },
           
-          div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
-              p("Finalized dataset must be saved before modeling."))
-        }
+          if (!mod_rv$alt) {
+            
+            div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
+                p("Alternative choice list must be saved before modeling."))
+          }
+        )
       })
       
       cList <- reactiveValues(out = NULL, pass = NULL)
@@ -5325,41 +5339,10 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         exp_list <- lapply(exp_select, function(x) input[[x]])
       })
       
-      exp.name <- reactive({
-        if(input$logitcextra!='subset'){
-          return(input$logitcextra)
-        } else {
-          return(input$logitcextrasub)
-        }
-      })
+      
       
       # Data needed
-      ## Alternative choices
-      Alt_vars <- reactive({
-        if(!exists("Alt")) {
-        if(!exists('AltMatrixName')) {
-          if(DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)), paste0(project$name, 'altmatrix'))){
-          return(unserialize(DBI::dbGetQuery( DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)), paste0("SELECT AlternativeMatrix FROM ", 
-                                                                                              project$name, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]]))
-          } else {
-            warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
-            return(data.frame('choice'=NA, 'X2'=NA, 'X3'=NA))
-        }
-          DBI::dbDisconnect( DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
-        }} else {
-        return(Alt)
-        }
-      })
-          
-      choice <- reactive({Alt_vars()$choice})
-      alt <- reactive({
-        if(dim(table(unique(choice()))) > 100) {
-          return(100)
-        } else {
-          return(dim(table(unique(choice()))))
-        } 
-        })
-      
+      # TODO: check if this is a good idea, may remove necessary variables
       drop <- reactive({grep('date|port|processor|gear|target|lon|lat|permit|ifq', colnames(values$dataset), ignore.case=TRUE)})
       
       intlab <- renderText({
@@ -5390,59 +5373,84 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                        choices=tables_database(project$name)[grep('port', tables_database(project$name), ignore.case=TRUE)], multiple = FALSE)#,
       })
       
+      # Determine the # of parameters needed
       numInits <- reactive({
+        
         polyn <- input$mod_polyn
-        gridNum <- as.integer(as.factor(length(input$gridVariablesInclude)))
-        intNum <- as.integer(length(input$indeVarsForModel))
-        if(input$model == 'logit_c'){
-          numInits <- gridNum+intNum
-        } else if(input$model == 'logit_avgcat') {
-          numInits <- gridNum*(alt()-1)+intNum
-        } else if(input$model == 'logit_correction'){
-          numInits <- gridNum*alt() + ((((polyn+1)*2)+2)*alt()) + intNum  +1+1
+        gridNum <- length(input$gridVariablesInclude)
+        intNum <- length(input$indeVarsForModel)
+        
+        if (gridNum == 0) gridNum <- 1
+        if (intNum == 0) intNum <- 1
+        
+        if (input$model == 'logit_c') {
+          
+          gridNum+intNum
+          
+        } else if (input$model == 'logit_avgcat') {
+          
+          gridNum*(mod_rv$altc-1)+intNum
+          
+        } else if (input$model == 'logit_correction') {
+          
+          gridNum*mod_rv$altc + ((((polyn+1)*2)+2)*mod_rv$altc) + intNum +1+1
+          
         } else {
-          if(input$mod_lockk=='TRUE'){
-            numInits <- gridNum*alt()+intNum+alt+1
+          
+          if (input$mod_lockk) {
+            
+            gridNum*mod_rv$altc+intNum+alt+1
+            
           } else {
-            numInits <- gridNum*alt()+intNum+1+1
+            
+            gridNum*mod_rv$altc+intNum+1+1
           }
         }
       })
       
-
+      # inital parameter output
       output$Inits <- renderUI({
+        
         req(input$initchoice)
-        if(input$initchoice=='new'){
-        i = 1:numInits()
-        numwidth <- rep((1/numInits())*100, numInits())
-        numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
-        UI <- paste0("splitLayout(",
-                     "cellWidths = c(",numwidth,")",",",
-                     paste0("textInput(",
-                            "'int", i, "', ",
-                            paste0("''"), ",",
-                            value=1,
-                            ")",
-                            collapse = ", "),
-                     ")")
-        } else {
-          x_temp <-  read_dat(paste0(locoutput(project$name), pull_shiny_output(project$name, type='table', fun=paste0("params_", input$modname))))
-          param_temp <- x_temp$estimate
-          i = 1:length(param_temp)
-          numwidth <- rep((1/numInits())*100, numInits())
-          numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
-          UI <- paste0("splitLayout(",
-                       "cellWidths = c(",numwidth,")",",",
-                       paste0("textInput(",
-                              "'int", i, "', ",
-                              paste0("''"), ",",
-                              value=param_temp[i],
-                              #"width='",1/numInits*100,"%'",#50px'",
-                              ")",
-                              collapse = ", "),
-                       ")")
+        
+        if (numInits() > 0) {
+          
+          if (input$initchoice == 'new') {
+            
+            i = seq_len(numInits())
+            numwidth <- rep((1/numInits())*100, numInits())
+            numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
+            UI <- paste0("splitLayout(",
+                         "cellWidths = c(",numwidth,")",",",
+                         paste0("textInput(",
+                                "'int", i, "', ",
+                                paste0("''"), ",",
+                                value=1,
+                                ")",
+                                collapse = ", "),
+                         ")")
+            
+          } else {
+            
+            x_temp <-  read_dat(paste0(locoutput(project$name), pull_shiny_output(project$name, type='table', fun=paste0("params_", input$modname))))
+            param_temp <- x_temp$estimate
+            i = 1:length(param_temp)
+            numwidth <- rep((1/numInits())*100, numInits())
+            numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
+            UI <- paste0("splitLayout(",
+                         "cellWidths = c(",numwidth,")",",",
+                         paste0("textInput(",
+                                "'int", i, "', ",
+                                paste0("''"), ",",
+                                value=param_temp[i],
+                                #"width='",1/numInits*100,"%'",#50px'",
+                                ")",
+                                collapse = ", "),
+                         ")")
+          }
+          
+          eval(parse(text = UI))
         }
-        eval(parse(text = UI))
       })
       
       output$paramsourcechoose <- renderUI(
