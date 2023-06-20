@@ -388,8 +388,8 @@ create_alternative_choice <-
   
   # write Alt to datafile
     
-  single_sql <- paste0(project, "altmatrix")
-  date_sql <- paste0(project, "altmatrix", format(Sys.Date(), format = "%Y%m%d"))
+  single_sql <- paste0(project, "AltMatrix")
+  date_sql <- paste0(project, "AltMatrix", format(Sys.Date(), format = "%Y%m%d"))
   
   if (table_exists(single_sql, project)) {
     
