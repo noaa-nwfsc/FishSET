@@ -33,7 +33,7 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
     
-    Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
+    Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "AltMatrix LIMIT 1"))$AlternativeMatrix[[1]])
   }
 
   dataZoneTrue <- Alt[["dataZoneTrue"]] # used for catch and other variables

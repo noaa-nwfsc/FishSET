@@ -11,7 +11,7 @@ list_tables(project, type = "main")
 
 \item{type}{the type of fishset_db table to search for. Options include 
 "main" (MainDataTable), "port" (PortTable), "spat" (SpatTable), "grid" 
-(GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (altmatrix), 
+(GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (AltMatrix), 
 "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
 "filter" (FilterTable), "centroid" (Centroid or FishCentroid),  "model" 
 (ModelOut), "model data" or "model design" (ModelInputData).}

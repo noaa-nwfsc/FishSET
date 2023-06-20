@@ -1317,7 +1317,7 @@ table_type <- function(tab) {
   } else {
     
     db_type <- c("MainDataTableInfo", "MainDataTable_raw", "MainDataTable_final", 
-                 "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable", "port", 
+                 "MainDataTable", "ExpectedCatch", "AltMatrix", "PortTable", "port", 
                  "LDGlobalCheck", "FleetTable", "ModelOut", "ModelFit", "ModelInputData", 
                  "modelDesignTable", "FilterTable", "GridTable", "AuxTable", "SpatTable")
     
@@ -1328,7 +1328,7 @@ table_type <- function(tab) {
     out <- switch(t_str, 
                   "MainDataTable" = "main", "MainDataTable_final" = "final table", 
                   "MainDataTable_raw" = "raw table", "ExpectedCatch" = "expected catch matrix", 
-                  "altmatrix" = "alt choice matrix", "PortTable" = "port", 
+                  "AltMatrix" = "alt choice matrix", "PortTable" = "port", 
                   "port" = "port", "MainDataTableInfo" = "info table",
                   "FilterTable" = "filter table", "LDGlobalCheck" = "global check", 
                   "FleetTable" = "fleet table", "ModelOut" = "model output", 

@@ -138,7 +138,7 @@ create_expectations <-
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  Alt <- unserialize_table(paste0(project, "altmatrix"), project)
+  Alt <- unserialize_table(paste0(project, "AltMatrix"), project)
 
   # checks ----
   
