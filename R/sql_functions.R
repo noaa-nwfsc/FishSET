@@ -586,7 +586,7 @@ list_tables <- function(project, type = "main") {
   #' @param project A project name to show main tables by. 
   #' @param type the type of fishset_db table to search for. Options include 
   #'   "main" (MainDataTable), "port" (PortTable), "spat" (SpatTable), "grid" 
-  #'   (GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (altmatrix), 
+  #'   (GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (AltMatrix), 
   #'   "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
   #'   "filter" (FilterTable), "centroid" (Centroid or FishCentroid),  "model" 
   #'   (ModelOut), "model data" or "model design" (ModelInputData).
@@ -611,7 +611,7 @@ list_tables <- function(project, type = "main") {
   sql_tab <- 
     switch(type, 
            "info" = "MainDataTableInfo", "main" = "MainDataTable", "ec" = "ExpectedCatch", 
-           "altc" = "altmatrix", "port" = "PortTable", "gc" = "ldglobalcheck", 
+           "altc" = "AltMatrix", "port" = "PortTable", "gc" = "ldglobalcheck", 
            "fleet" = "FleetTable", "model" = "ModelOut", "model data" = "ModelInputData", 
            "model design" = "ModelInputData", "grid" = "GridTable", "aux" = "AuxTable",
            "spat" = "SpatTable", "filter" = "FilterTable", "centroid" = "Centroid")
@@ -701,7 +701,7 @@ fishset_tables <- function(project = NULL) {
     
     # add a type column (order matters)
     db_type <- c("MainDataTableInfo", "MainDataTable\\d{8}", "MainDataTable_final", 
-                 "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable\\d{8}",
+                 "MainDataTable", "ExpectedCatch", "AltMatrix", "PortTable\\d{8}",
                  "PortTable", "ldglobalcheck", "FleetTable", "ModelOut", "ModelFit",
                  "ModelInputData", "modelDesignTable", "FilterTable", "GridTable\\d{8}",  
                  "GridTable", "AuxTable\\d{8}", "AuxTable", "SpatTable\\d{8}", "SpatTable")
@@ -727,7 +727,7 @@ fishset_tables <- function(project = NULL) {
         switch(i, 
                "MainDataTable" = "main table", "MainDataTable_final" = "final table", 
                "MainDataTable_raw" = "raw main table", "ExpectedCatch" = "expected catch matrix", 
-               "altmatrix" = "alt choice matrix", "PortTable_raw" = "raw port table",
+               "AltMatrix" = "alt choice matrix", "PortTable_raw" = "raw port table",
                "PortTable" = "port table", "MainDataTableInfo" = "info table",
                "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
                "FleetTable" = "fleet table", "ModelOut" = "model output", 
@@ -779,7 +779,7 @@ alt_choice_list <- function(project, name = NULL) {
   #' 
   #' @param project Name of project.
   #' @param name Name of Alternative Choice list in the FishSET database. 
-  #'   The table name will contain the string "altmatrix". If \code{NULL}, the 
+  #'   The table name will contain the string "AltMatrix". If \code{NULL}, the 
   #'   default table is returned. Use \code{\link{tables_database}} to see a list 
   #'   of FishSET database tables by project. 
   #' @export
@@ -791,7 +791,7 @@ alt_choice_list <- function(project, name = NULL) {
     
   } else {
     
-    unserialize_table(paste0(project, 'altmatrix'), project)
+    unserialize_table(paste0(project, 'AltMatrix'), project)
   }
 }
 

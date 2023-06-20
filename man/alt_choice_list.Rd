@@ -10,7 +10,7 @@ alt_choice_list(project, name = NULL)
 \item{project}{Name of project.}
 
 \item{name}{Name of Alternative Choice list in the FishSET database. 
-The table name will contain the string "altmatrix". If \code{NULL}, the 
+The table name will contain the string "AltMatrix". If \code{NULL}, the 
 default table is returned. Use \code{\link{tables_database}} to see a list 
 of FishSET database tables by project.}
 }
