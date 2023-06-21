@@ -1316,12 +1316,12 @@ source("map_viewer_app.R", local = TRUE)
                                         EPM likelihood functions:  catch-function parameters, travel-distance parameters, catch sigma(s), scale parameter 
                                         See Likelihood section of Help Manual for more details.")),
                                      
-                                     uiOutput('paramsourcechoose'),
+                                     uiOutput('mod_param_choose'),
                                      
                                      conditionalPanel(condition="input.initchoice=='prev'",
-                                            uiOutput("paramtable")),
+                                            uiOutput("mod_param_table_ui")),
                                      
-                                     uiOutput("Inits")
+                                     uiOutput("mod_inits_ui")
                                    ),
                                    
                                    DT::DTOutput('mod_param_table')
