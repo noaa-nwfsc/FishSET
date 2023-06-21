@@ -1282,12 +1282,6 @@ source("map_viewer_app.R", local = TRUE)
                                    
                                    conditionalPanel(condition="input.model=='logit_c'",
                                                     
-                                                    uiOutput('mod_exp_select')
-                                                    
-                                   ),
-                                   
-                                   conditionalPanel(condition="input.model=='logit_c'",
-                                                    
                                                     actionButton('mod_add_exp', 'Add expected catch entry',
                                                                  style = 'background-color: blue; color: white;'),
                                                     
