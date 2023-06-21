@@ -5105,7 +5105,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         tags$div(style="display:inline-block;", x)
       }
       
-      mod_rv <- reactiveValues(final = FALSE, exp = NULL, alt = FALSE, altc = NULL)
+      mod_rv <- reactiveValues(final = FALSE, exp = NULL, exp_select = NULL,
+                               alt = FALSE, altc = NULL)
       
       # enable run model (modal) button if final table exists
       observeEvent(input$tabs == 'models', {
@@ -5123,7 +5124,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         mod_rv$exp <- names(e_list[!vapply(e_list, is.null, logical(1))])
         
         # check for alt choice list (check for dated as well)
-        mod_rv$alt <- table_exists(paste0(project$name, "altmatrix"), project$name)
+        mod_rv$alt <- table_exists(paste0(project$name, "AltMatrix"), project$name)
         
         # retrieve # of alts if exists
         if (mod_rv$alt) mod_rv$altc <- length(alt_choice_list(project$name)$greaterNZ)
