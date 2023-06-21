@@ -1080,7 +1080,8 @@ source("map_viewer_app.R", local = TRUE)
                                             style = "color: white; background-color: blue;" 
                                ),
                                tags$br(),
-                               actionButton("submitE", "Run expected catch/revenue function", style="color: #fff; background-color: #6da363; border-color: #800000;"), 
+                               actionButton("exp_submit", "Run expected catch/revenue function", 
+                                            style="color: #fff; background-color: #6da363; border-color: #800000;"), 
                                tags$br(),tags$br(), 
                                actionButton('callTextDownloadEC','Save notes'),
                                textInput('notesEC', "Notes", value=NULL, 
