@@ -285,7 +285,7 @@ source("map_viewer_app.R", local = TRUE)
                              tags$br(),
                             
                              fluidRow(
-                               column(4, radioButtons('loadauxsource', "Source auxiliary data from:", 
+                               column(4, radioButtons('load_aux_src', "Source auxiliary data from:", 
                                                       choices=c('Upload new file','FishSET database'), 
                                                       selected='Upload new file', inline=TRUE)),
                                uiOutput('aux_upload')
