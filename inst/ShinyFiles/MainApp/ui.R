@@ -1272,10 +1272,10 @@ source("map_viewer_app.R", local = TRUE)
                                    h4('Select variables to include in model'),
                                    
                                    div(style="display: inline-block;vertical-align:top; width: 250px;", 
-                                       uiOutput('indvariables')),
+                                       uiOutput('mod_ind_var_ui')),
                                    
                                    div(style="display: inline-block;vertical-align:top; width: 250px;", 
-                                       uiOutput('gridvariables')),
+                                       uiOutput('mod_grid_var_ui')),
                                    
                                    uiOutput('mod_catch_out'),
                                    uiOutput('mod_logit_correction'),
