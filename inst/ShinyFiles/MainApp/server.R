@@ -5334,40 +5334,43 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # TODO: check if this is a good idea, may remove necessary variables
       drop <- reactive({grep('date|port|processor|gear|target|lon|lat|permit|ifq', colnames(values$dataset), ignore.case=TRUE)})
       
-      intlab <- renderText({
-        if(input$model=='logit_c') { label='travel-distance variables'} else { label='travel-distance variables'}
-      })
-      output$indvariables <- renderUI ({
+      output$mod_ind_var_ui <- renderUI({
+        
         intvariables <- c('none', colnames(values$dataset[,-drop()]))
-        selectInput('indeVarsForModel', label = intlab(), multiple=TRUE,
-                    choices = intvariables, selected = '')#)
+        selectInput('mod_ind_vars', label = 'travel-distance variables', multiple=TRUE,
+                    choices = intvariables, selected = '')
       })
       
-      gridlab <- renderText({
-        if(input$model=='logit_c') { 
-          label='alternative-specific variables'} else if(input$model=='logit_avgcat') { 
-            label='alternative-specific variables'} else { label='catch-function variables'}
+      gridlab <- reactive({
+        
+        if (input$model %in% c('logit_c', 'logit_avgcat')) { 
+          
+          'alternative-specific variables'
+        
+        } else label='catch-function variables'
       })
       
-      output$gridvariables <- renderUI ({
+      output$mod_grid_var_ui <- renderUI({
+        
         gridvariables <- c('none')
-        add_prompter(selectInput('gridVariablesInclude', label = list(gridlab(), icon('info-circle', verify_fa = FALSE)), multiple=TRUE,
-                    choices = gridvariables, selected = ''),
-                   position = "bottom", type='info', size='medium', message = "Generally, variables that vary by zonal alternatives or are interacted with zonal constants. 
-                    See Likelihood functions sections of the FishSET Help Manual for details. Select 'none' if no variables are to be included.")
-      })
-      
-      output$portmd <- renderUI ({
-      selectInput("port.datMD", "Choose file from the FishSET database containing port data", 
-                                       choices=tables_database(project$name)[grep('port', tables_database(project$name), ignore.case=TRUE)], multiple = FALSE)#,
+        
+        add_prompter(selectInput('mod_grid_vars', 
+                                 label = list(gridlab(), icon('info-circle', verify_fa = FALSE)),
+                                 multiple=TRUE, choices = gridvariables, selected = ''),
+                     
+                   position = "bottom", type='info', size='medium', 
+                   message = "Generally, variables that vary by zonal alternatives 
+                   or are interacted with zonal constants. See Likelihood functions 
+                   sections of the FishSET Help Manual for details. Select 'none' 
+                   if no variables are to be included.")
       })
       
       # Determine the # of parameters needed
       numInits <- reactive({
         
         polyn <- input$mod_polyn
-        gridNum <- length(input$gridVariablesInclude)
-        intNum <- length(input$indeVarsForModel)
+        gridNum <- length(input$mod_grid_vars)
+        intNum <- length(input$mod_ind_vars)
         
         if (gridNum == 0) gridNum <- 1
         if (intNum == 0) intNum <- 1
