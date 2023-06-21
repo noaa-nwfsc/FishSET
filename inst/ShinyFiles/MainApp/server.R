@@ -5877,7 +5877,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       }, ignoreInit = FALSE) 
       
     
-      observeEvent(input$submitE, {
+      observeEvent(input$exp_submit, {
         
         showNotification('Function can take several minutes. A message will appear when done.',
                          type = 'message', duration = 20)
@@ -5892,7 +5892,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         empty_exp <- switch(input$empty_expectation, 'NA' = NA, '1e-04' = 1e-04, '0' = 0)
         
         q_test(values$dataset, project$name, input$exp_catch_var, price=price, 
-               defineGroup=defineGroup,temp.var=input$exp_temp_var, temporal = input$exp_temporal, 
+               defineGroup=defineGroup, temp.var=input$exp_temp_var, temporal = input$exp_temporal, 
                calc.method = input$exp_calc_method, lag.method = input$exp_lag_method, 
                empty.catch = empty_catch,  empty.expectation = empty_exp, 
                temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
