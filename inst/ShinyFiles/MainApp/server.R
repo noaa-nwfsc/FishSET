@@ -5178,12 +5178,12 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         output$CLRun <- renderUI({
           if (cList$pass) {
 
-              actionButton("submit", "Run model(s)",
+              actionButton("mod_submit", "Run model(s)",
                            style = "color: #fff; background-color: #6EC479; border-color:#000000;")
           }
         })
         
-        #shinyjs::toggleState("submit", condition = {cList$pass == TRUE})
+        #shinyjs::toggleState("mod_submit", condition = {cList$pass == TRUE})
         
         ec_required <- FALSE
         e_catch <- suppressWarnings(list_tables(project = project$name, type = "ec"))
@@ -5626,7 +5626,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       )
   
       # Run models shiny
-      observeEvent(input$submit, {
+      observeEvent(input$mod_submit, {
         
           removeModal()
           input_list <- reactiveValuesToList(input)
