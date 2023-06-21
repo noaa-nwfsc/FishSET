@@ -5402,13 +5402,13 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       })
       
       # inital parameter output
-      output$Inits <- renderUI({
+      output$mod_inits_ui <- renderUI({
         
-        req(input$initchoice)
+        req(input$mod_init_choice)
         
         if (numInits() > 0) {
           
-          if (input$initchoice == 'new') {
+          if (input$mod_init_choice == 'new') {
             
             i = seq_len(numInits())
             numwidth <- rep((1/numInits())*100, numInits())
@@ -5425,11 +5425,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
             
           } else {
             
-            x_temp <-  read_dat(paste0(locoutput(project$name), pull_shiny_output(project$name, type='table', fun=paste0("params_", input$modname))))
+            x_temp <- read_dat(paste0(locoutput(project$name), 
+                                      pull_shiny_output(project$name, type='table', 
+                                                        fun=paste0("params_", input$modname))))
             param_temp <- x_temp$estimate
             i = 1:length(param_temp)
             numwidth <- rep((1/numInits())*100, numInits())
             numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
+            
             UI <- paste0("splitLayout(",
                          "cellWidths = c(",numwidth,")",",",
                          paste0("textInput(",
@@ -5446,17 +5449,17 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         }
       })
       
-      output$paramsourcechoose <- renderUI(
-                 radioButtons('initchoice', "",
-                              if(length(grep(paste0("_", 'params', "_"), grep(".*\\.csv$", project_files(project$name)), value = TRUE))!=0){
-                                choices=c('Use output of previous model as parameter set' = 'prev','Choose parameter set' ='new')
-                                } else { choices=c('Choose parameter set' ='new')}, selected='new')
+      output$mod_param_choose <- renderUI(
+        radioButtons('mod_init_choice', "",
+                     if(length(grep(paste0("_", 'params', "_"), grep(".*\\.csv$", project_files(project$name)), value = TRUE))!=0){
+                       choices=c('Use output of previous model as parameter set' = 'prev','Choose parameter set' ='new')
+                     } else { choices=c('Choose parameter set' ='new')}, selected='new')
       )
-
-      output$paramtable <- renderUI({
+      
+      output$mod_param_tab_ui <- renderUI({
         if(length(grep(paste0("_", 'params', "_"), grep(".*\\.csv$", project_files(project$name)), value = TRUE))!=0){
-         param_table <- paste0(locoutput(project$name), pull_output(project$name, type='table', fun=paste0('params')))
-         param_table <- sub(".*params_", "", param_table)
+          param_table <- paste0(locoutput(project$name), pull_output(project$name, type='table', fun=paste0('params')))
+          param_table <- sub(".*params_", "", param_table)
           param_table <- gsub('.csv', '', param_table)
           selectInput('modname','Select previous model', choices=param_table)
         }
