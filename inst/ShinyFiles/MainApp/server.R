@@ -5330,15 +5330,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                   choices = mod_rv$exp, multiple = TRUE))
       })
       
-      observeEvent(input$mod_add_exp_test, {
-        
-        # combine each select input
-        exp_select <- grep('mod_select_exp_', names(input), value = TRUE)
-        exp_list <- lapply(exp_select, function(x) input[[x]])
-      })
-      
-      
-      
       # Data needed
       # TODO: check if this is a good idea, may remove necessary variables
       drop <- reactive({grep('date|port|processor|gear|target|lon|lat|permit|ifq', colnames(values$dataset), ignore.case=TRUE)})
@@ -5478,8 +5469,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         deletedRowIndices = list()
       )
       
-      
-      #model_table <- reactiveVal(model_table)
                      
       #access variable int outside of observer
       int_name <- reactive({
@@ -5493,14 +5482,15 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         req(project$name)
         
-        if (is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
-          
-          showNotification('Model not saved as at least one variable not defined.')
-          
-        } else {
-          
-          showNotification("Selected model parameters saved.", type='message', duration=10)
-        }
+        # TODO: check if this is necessary, otherwise remove (grid and ind can be NULL)
+        # if (is.null(input$mod_grid_vars)|is.null(input$mod_ind_vars)) {
+        #   
+        #   showNotification('Model not saved as at least one variable not defined.')
+        #   
+        # } else {
+        #   
+        #   showNotification("Selected model parameters saved.", type='message', duration=10)
+        # }
        
 
         if (input$model=='logit_correction' & input$startlocdefined =='create') {
@@ -5631,11 +5621,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         # Add the delete button column
        deleteButtonColumn(as.data.frame(rv$data[-9]), 'delete_button')
       )
-    
-#         output$mod_param_table <- DT::renderDT(
-#        model_table(), editable = T, server=TRUE
-#      )
- 
   
       # Run models shiny
       observeEvent(input$submit, {
@@ -5682,11 +5667,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           toggle_inputs(input_list, TRUE)
       })
       
-      
-    ## Explore models sections
-      #out_mod <- reactive({
-      
-      
       shinyInput = function(FUN, len, id, ...) { 
         inputs = character(len) 
         for (i in seq_len(len)) { 
@@ -5703,7 +5683,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         } else {
           data.frame('X1'=NA, 'X2'=NA, 'X3'=NA, 'X4'=NA)
         }
-        )#,Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_")))
+        )
       
       observeEvent(input$reload_btn, {
         this_table() <- this_table()
@@ -5711,7 +5691,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       observeEvent(input$delete_btn, {
         t = this_table()
-        if(!is.null(input$mytable_rows_selected)) {
+        if (!is.null(input$mytable_rows_selected)) {
           t <- t[-as.numeric(input$mytable_rows_selected),]
         }
         this_table(t)
@@ -5721,13 +5701,15 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # datatable with checkbox
       output$mytable <- DT::renderDT({
         data.frame(this_table(), select=shinyInput(checkboxInput,nrow(this_table()),"cbox_"))
-      }, colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  filter='top', server = TRUE, escape = FALSE,
-          options = list(dom = 't', paging=FALSE,
-        preDrawCallback = DT::JS('function() { 
+      }, 
+      colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  
+      filter='top', server = TRUE, escape = FALSE, 
+      options = list(dom = 't', paging=FALSE,
+      preDrawCallback = DT::JS('function() { 
                                  Shiny.unbindAll(this.api().table().node()); }'), 
         drawCallback = DT::JS('function() { 
-                              Shiny.bindAll(this.api().table().node()); } ') 
-        ) )
+                              Shiny.bindAll(this.api().table().node()); } ')) 
+      )
       
       
       # helper function for reading checkbox
@@ -5740,19 +5722,19 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       shinyDate = function(id, len) { 
         unlist(lapply(seq_len(len), function(i) { 
-          value=ifelse(input[[paste0(id, i)]]!=TRUE, '' , as.character(Sys.Date())) 
+          value=ifelse(input[[paste0(id, i)]]!=TRUE, '', as.character(Sys.Date())) 
         })) 
       }
       
       checkedsave <- reactive(cbind(
-        model = rownames(isolate(this_table())),#colnames(out.mod), 
+        model = rownames(isolate(this_table())),
         AIC=isolate(this_table()[,1]),
         AICc=isolate(this_table()[,2]),
         BIC=isolate(this_table()[,3]),
-        PseudoR2=isolate(this_table()[,4]),#t(out.mod), 
-        Selected = shinyValue("cbox_", nrow(this_table())),#t(out.mod))), 
+        PseudoR2=isolate(this_table()[,4]),, 
+        Selected = shinyValue("cbox_", nrow(this_table())),
         Date = shinyDate("cbox_", nrow(this_table())) 
-      ))#t(out.mod)))))
+      ))
       
       
       # When the Submit button is clicked, save the form data
@@ -5780,7 +5762,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         DBI::dbExecute(fishset_db, query)
         
         showNotification("Table saved to database")
-      DBI::dbDisconnect(fishset_db)
+        DBI::dbDisconnect(fishset_db)
       })
       
 
@@ -5793,9 +5775,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           
           model_out_view(tab, project$name)
           
-        } else {
-         data.frame('var1'=0, 'var2'=0)
-        }
+        } else data.frame('var1'=0, 'var2'=0)
       })
       
       output$modeltab <- DT::renderDT({
