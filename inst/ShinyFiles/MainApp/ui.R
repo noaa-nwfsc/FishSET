@@ -221,7 +221,7 @@ source("map_viewer_app.R", local = TRUE)
                              actionButton("meta_modal", "Metadata",
                                           style = "color: white; background-color: blue;"),
                              
-                             conditionalPanel("input.loadDat > 0", # update to a more reliable method
+                             conditionalPanel("input.loadDat > 0", # TODO: update to a more reliable method
                                 actionButton("confid_modal", "Confidentiality",
                                              style = "color: white; background-color: blue;"),
                                 actionButton("reset_modal", "Reset log",
@@ -239,10 +239,10 @@ source("map_viewer_app.R", local = TRUE)
                                 uiOutput("projects"), # define project name
                                 
                                column(4, 
-                                      radioButtons('loadmainsource', "Source primary data from:",
+                                      radioButtons('load_main_src', "Source primary data from:",
                                                    choices=c('Upload new file','FishSET database'), 
                                                    selected='Upload new file', inline=TRUE)
-                                      # uiOutput('main1')
+                                      
                                       ),
                                uiOutput('main_upload')),
                            
@@ -250,7 +250,7 @@ source("map_viewer_app.R", local = TRUE)
                                column(width = 8, offset = 2,
                                       uiOutput('ui.action2'))),
                              fluidRow(
-                               column(4, radioButtons('loadportsource', "Source port data from:", 
+                               column(4, radioButtons('load_port_src', "Source port data from:", 
                                                       choices=c('Upload new file','FishSET database'), 
                                                        inline=TRUE)),
                                uiOutput('port_upload')
@@ -265,7 +265,7 @@ source("map_viewer_app.R", local = TRUE)
                              uiOutput("PortAddtableMerge"),
                              
                              fluidRow(
-                               column(4, radioButtons('loadspatialsource', "Source spatial data from:", 
+                               column(4, radioButtons('load_spat_src', "Source spatial data from:", 
                                                       choices=c('Upload new file', 'FishSET database'), 
                                                       selected='Upload new file', inline=TRUE)),
                                radioButtons('filefolder', "", choices=c("Upload single file", "Upload shape files"), 
@@ -274,7 +274,7 @@ source("map_viewer_app.R", local = TRUE)
                              ),
                              
                              fluidRow(
-                                 column(4, radioButtons('loadgridsource', "Source gridded data from:", 
+                                 column(4, radioButtons('load_grid_src', "Source gridded data from:", 
                                                         choices=c('Upload new file','FishSET database'), 
                                                         selected='Upload new file', inline=TRUE)),
                                  uiOutput('grid_upload')
