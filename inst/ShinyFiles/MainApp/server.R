@@ -997,17 +997,15 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         folderpath(fs_path)
       })
       
-      
-      
       output$projects <- renderUI({
         
-        req(input$loadmainsource)
+        req(input$load_main_src)
 
-         if (input$loadmainsource == 'Upload new file') {
+         if (input$load_main_src == 'Upload new file') {
           
           textInput('projectname', 'Name of project', placeholder = 'Required to load data')
           
-        } else if (input$loadmainsource == 'FishSET database') {
+        } else if (input$load_main_src == 'FishSET database') {
           
         
             if(length(suppressWarnings(projects())) > 0) {
@@ -1023,15 +1021,15 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
   
       
       # assign project name
-      observeEvent(c(input$loadmainsource, input$project_select, input$loadDat), {
+      observeEvent(c(input$load_main_src, input$project_select, input$loadDat), {
         
-        req(input$loadmainsource)
+        req(input$load_main_src)
         
-        if (input$loadmainsource == 'Upload new file') {
+        if (input$load_main_src == 'Upload new file') {
             
             project$name <- input$projectname
           
-        } else if (input$loadmainsource == 'FishSET database') {
+        } else if (input$load_main_src == 'FishSET database') {
           
           project$name <- input$project_select
         }
@@ -1040,9 +1038,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       output$main_upload <- renderUI({    
       
-        req(input$loadmainsource)
+        req(input$load_main_src)
 
-        if (input$loadmainsource=='Upload new file') {
+        if (input$load_main_src=='Upload new file') {
             
             tagList(
               fluidRow(
@@ -1055,7 +1053,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                 
               ))
             
-          } else if (input$loadmainsource=='FishSET database') {
+          } else if (input$load_main_src=='FishSET database') {
                 
             if (length(suppressWarnings(projects())) > 0) {
               
@@ -1102,9 +1100,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # load only if project, file, or DB table change
       load_helper <- function(dat) {
 
-        dat_src <- switch(dat, "main" = input$loadmainsource, "port" = input$loadportsource,
-                          "spat" = input$loadspatialsource, "grid" = input$loadgridsource,
-                          "aux" = input$loadauxsource)
+        dat_src <- switch(dat, "main" = input$load_main_src, "port" = input$load_port_src,
+                          "spat" = input$load_spat_src, "grid" = input$load_grid_src,
+                          "aux" = input$load_aux_src)
         dat_file <- switch(dat, "main" = input$maindat, "port" = input$portdat, 
                            "spat" = spat_file(input$filefolder), "grid" = input$griddat,
                            "aux" = input$auxdat)
@@ -1154,12 +1152,12 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         if (!isTruthy(project$name)) {
           
-          if (input$loadmainsource == 'FishSET database') {
+          if (input$load_main_src == 'FishSET database') {
             
             showNotification("No project found. Please upload a new file.", 
                              type = 'message', duration = 10)
             
-          } else if (input$loadmainsource=='Upload new file') {
+          } else if (input$load_main_src=='Upload new file') {
             
             showNotification("Please enter a project name.", type='message', duration=10)
           }
@@ -1168,7 +1166,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         req(project$name)
         req(load_helper("main"))
         
-        if (input$loadmainsource=='FishSET database') {
+        if (input$load_main_src=='FishSET database') {
           
           if (table_exists(paste0(project$name, 'MainDataTable'), project$name)==FALSE) {
             
@@ -1187,7 +1185,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
             load_r$main <- load_r$main + 1
           }
          
-        } else if (input$loadmainsource=='Upload new file' & !is.null(input$maindat)) {
+        } else if (input$load_main_src=='Upload new file' & !is.null(input$maindat)) {
           
           if (!is_empty(input$mainadd)) {
             
@@ -1223,7 +1221,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
             values$dataset <- data.frame('var1'=0, 'var2'=0)
           }
           
-        } else if (input$loadmainsource=='Upload new file' & is.null(input$maindat)) {
+        } else if (input$load_main_src=='Upload new file' & is.null(input$maindat)) {
           
           showNotification("Select a main file to upload.", type='message', 
                            duration=10)
@@ -1239,13 +1237,13 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       ## Port ----
       output$port_upload <- renderUI({     
        
-        if(input$loadportsource=='Upload new file'){ 
+        if(input$load_port_src=='Upload new file'){ 
                            tagList(
                              fluidRow(
                                column(5, fileInput("portdat", "Choose port data file",
                                                    multiple = FALSE, placeholder = 'Required data'))
                              ))
-         } else if (input$loadportsource == 'FishSET database') {
+         } else if (input$load_port_src == 'FishSET database') {
            
             if (isTruthy(project$name)) {
               
@@ -1295,7 +1293,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         req(project$name)
         req(load_helper("port"))
           
-        if (input$loadportsource == 'FishSET database') {
+        if (input$load_port_src == 'FishSET database') {
           
            if (isTruthy(input$port_db_table)) {
 
@@ -1309,7 +1307,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
             load_r$port <- load_r$port + 1
           }
           
-        } else if (input$loadportsource == 'Upload new file' & !is.null(input$portdat)) {
+        } else if (input$load_port_src == 'Upload new file' & !is.null(input$portdat)) {
           # skip new file upload if user already merged multiple tables
           if (is.null(input$port_combine_save)) {
             
@@ -1440,7 +1438,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       ## Spatial ----
       output$spatial_upload <- renderUI({     
         
-        if (input$loadspatialsource == 'Upload new file') {
+        if (input$load_spat_src == 'Upload new file') {
           
           tagList(
             
@@ -1470,7 +1468,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
             } 
           )    
 
-        } else if (input$loadspatialsource == 'FishSET database') {
+        } else if (input$load_spat_src == 'FishSET database') {
           
           if (isTruthy(project$name)) {
             
@@ -1501,7 +1499,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         # reset spatial qaqc
         spat_qaqc_r <- reactiveValues(flag = FALSE, c_tab = NULL, remove = FALSE)
         
-        if (input$loadspatialsource=='FishSET database') {
+        if (input$load_spat_src=='FishSET database') {
           
           if (isTruthy(input$spat_db_table)) {
             
@@ -1626,7 +1624,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       ## Grid ----     
       output$grid_upload <- renderUI({     
 
-        if (input$loadgridsource=='Upload new file') {
+        if (input$load_grid_src=='Upload new file') {
           
           tagList(
             fluidRow(
@@ -1644,7 +1642,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                     )
            ))
           
-        } else if (input$loadgridsource == 'FishSET database') {
+        } else if (input$load_grid_src == 'FishSET database') {
             
           if (isTruthy(project$name)) {
             
@@ -1666,7 +1664,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         req(project$name)
         req(load_helper("grid"))
         
-        if (input$loadgridsource == 'FishSET database') {
+        if (input$load_grid_src == 'FishSET database') {
           
           if (isTruthy(input$grid_db_table)) {
             
@@ -1680,7 +1678,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                tab_type = "grid")
           }
           
-        } else if (input$loadgridsource == 'Upload new file' & !is.null(input$griddat)) {
+        } else if (input$load_grid_src == 'Upload new file' & !is.null(input$griddat)) {
           
           if (!isTruthy(input$GridName)) {
             
@@ -1747,7 +1745,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
  
       output$aux_upload <- renderUI({     
         
-        if(input$loadauxsource=='Upload new file') { 
+        if(input$load_aux_src=='Upload new file') { 
           tagList(
             fluidRow(
               column(5, fileInput("auxdat", "Choose auxiliary data file that links to primary data",
@@ -1758,7 +1756,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                column(5, uiOutput('auxNameUI'))
                              ))
           
-        } else if (input$loadauxsource == 'FishSET database') { 
+        } else if (input$load_aux_src == 'FishSET database') { 
           
           if (isTruthy(project$name)) {
             
@@ -1787,7 +1785,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         req(project$name)
         req(load_helper("aux"))
         
-        if (input$loadauxsource=='FishSET database') {
+        if (input$load_aux_src=='FishSET database') {
           
           if (isTruthy(input$aux_db_table)) {
             
@@ -1801,7 +1799,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
             load_r$aux <- load_r$aux + 1
           }
           
-        } else if (input$loadauxsource=='Upload new file' & !is.null(input$auxdat)) {
+        } else if (input$load_aux_src=='Upload new file' & !is.null(input$auxdat)) {
           
           if (isTruthy(input$AuxName)) {
             
@@ -6232,7 +6230,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       observe({
         req(input$uploadbookmark)
           req(bookmarkedstate()$loadDat==1)
-          if(bookmarkedstate()$loadmainsource=="FishSET database"){
+          if(bookmarkedstate()$load_main_src=="FishSET database"){
           updateTextInput(session, 'projectname', value = bookmarkedstate()$projectname)
           #values$dataset <- table_view(paste0(project$name, 'MainDataTable'))
           }
@@ -6242,7 +6240,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         req(input$uploadbookmark)
         req(project$name)
         req(bookmarkedstate()$loadDat==1)
-        if(bookmarkedstate()$loadmainsource=="FishSET database"){
+        if(bookmarkedstate()$load_main_src=="FishSET database"){
           values$dataset <- table_view(paste0(project$name, 'MainDataTable'), project$name)
         }
       })
@@ -6290,14 +6288,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         updateSelectInput(session, "ending_port", selected = bookmarkedstate()$ending_port)
         updateSelectInput(session, "fun_numeric", selected = bookmarkedstate()$fun_numeric)
         updateSelectInput(session, "fun_time", selected = bookmarkedstate()$fun_time)
-        updateSelectInput(session, "gridVariablesInclude", selected = bookmarkedstate()$gridVariablesInclude)
+        updateSelectInput(session, "mod_grid_vars", selected = bookmarkedstate()$mod_grid_vars)
         updateSelectInput(session, "exp_group", selected = bookmarkedstate()$exp_group)
         updateSelectInput(session, "haul_order", selected = bookmarkedstate()$haul_order)
         updateSelectInput(session, "Haul_Trip_IDVar", selected = bookmarkedstate()$Haul_Trip_IDVar)
         updateSelectInput(session, "haul_order_SL", selected = bookmarkedstate()$haul_order_SL)
         updateCheckboxInput(session, "hull_polygon_ac", value = bookmarkedstate()$hull_polygon_ac)
         updateSelectInput(session, "ID", selected = bookmarkedstate()$ID)
-        updateSelectInput(session, "indeVarsForModel", selected = bookmarkedstate()$indeVarsForModel)
+        updateSelectInput(session, "mod_ind_vars", selected = bookmarkedstate()$mod_ind_vars)
         updateSelectInput(session, "exp_lag_method", selected = bookmarkedstate()$exp_lag_method)
         updateSelectInput(session, "lat", selected = bookmarkedstate()$lat)
         updateSelectInput(session, "lat_dat_ac", selected = bookmarkedstate()$lat_dat_ac)
