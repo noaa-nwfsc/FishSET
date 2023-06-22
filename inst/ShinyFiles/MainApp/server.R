@@ -5259,8 +5259,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
             
             checkboxInput('mod_lockk', 'Location-specific catch parameter', value=FALSE),
             
-            selectInput('mod_price', 'Price variable', choices=c('none', find_value(values$dataset)), 
-                        selected='none', multiple=FALSE)),
+            selectizeInput('mod_price', 'Price variable', choices= find_value(values$dataset), 
+                        multiple = TRUE), options = list(maxItems = 1)),
         
           conditionalPanel(
             condition="input.model=='logit_correction'",
@@ -5277,10 +5277,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           tagList(
           conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='exists'",
             
-                           selectInput('mod_startloc', 'Initial location during choice occassion', 
-                                       choices=c('startingloc', names(values$dataset)), 
-                                       selected='startingloc', 
-                                       multiple=FALSE)),
+                           selectizeInput('mod_startloc', 'Initial location during choice occassion', 
+                                          choices=names(values$dataset), 
+                                          multiple = TRUE), options = list(maxItems = 1)),
           
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
                               
@@ -5448,14 +5447,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           eval(parse(text = UI))
         }
       })
-      
+      # TODO: update
       output$mod_param_choose <- renderUI(
         radioButtons('mod_init_choice', "",
                      if(length(grep(paste0("_", 'params', "_"), grep(".*\\.csv$", project_files(project$name)), value = TRUE))!=0){
                        choices=c('Use output of previous model as parameter set' = 'prev','Choose parameter set' ='new')
                      } else { choices=c('Choose parameter set' ='new')}, selected='new')
       )
-      
+      # TODO: update
       output$mod_param_tab_ui <- renderUI({
         if(length(grep(paste0("_", 'params', "_"), grep(".*\\.csv$", project_files(project$name)), value = TRUE))!=0){
           param_table <- paste0(locoutput(project$name), pull_output(project$name, type='table', fun=paste0('params')))
@@ -5489,6 +5488,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         req(project$name)
         
+        
+        
         # TODO: check if this is necessary, otherwise remove (grid and ind can be NULL)
         # if (is.null(input$mod_grid_vars)|is.null(input$mod_ind_vars)) {
         #   
@@ -5512,69 +5513,76 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         counter$countervalue <- counter$countervalue + 1
         
-        if(is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
-          
-          rv$data <- rbind(data.frame('mod_name'='', 
-                                'likelihood'='',
-                                'optimOpt'='',
-                                'inits'='',
-                                'methodname' = '', 
-                                'vars1'= '',
-                                'vars2'='', 
-                                'catch'='',
-                                'project'=project$name, 
-                                'price'='',
-                                'startloc'='',
-                                'polyn'='',
-                                'exp'='')
-                     , rv$data)#model_table())
-        } else {
-          
-          rv$data = rbind(data.frame('mod_name'=paste0(input$model, '_mod', counter$countervalue), 
-                               'likelihood'=input$model, 
-                               'optimOpt'=paste(input$mod_iter,input$mod_relTolX, input$mod_report_freq, input$mod_detail_report),
-                               'inits'=paste(int_name(), collapse=','),#noquote(paste0('input$int',1:numInits())),
-                               'methodname' = input$mod_optmeth, 
-                               'vars1'= paste(input$indeVarsForModel, collapse=','),
-                               'vars2'= input$gridVariablesInclude, 
-                               'catch'= input$mod_catch,
-                               'project'= project$name, 
-                               'price'= input$mod_price,
-                               'startloc'=  'startingloc',#if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
-                               'polyn'= input$mod_polyn,
-                               'exp' = paste(exp.name(), collapse=','))
-                    , rv$data)#model_table())
-        }
-      #  rv$data(t)#model_table(t)
+        # combine each select input
+        exp_select <- sort(grep('mod_select_exp_', names(input), value = TRUE))
         
+        if (!is_value_empty(exp_select))
+          mod_rv$exp_list <- lapply(exp_select, function(x) input[[x]])
         
-        ###Now save table to sql database. Will overwrite each time we add a model
+        # replace empties w/ empty string
+        str_rpl <- function(string) if (is_value_empty(string)) '' else string
+        
+        # reformat exp matrix list for mod table
+        if (!is_value_empty(mod_rv$exp_list)) {
+          
+          exp_list <- vapply(mod_rv$exp_list, 
+                             function(x) paste(x, collapse = ', '), 
+                             character(1))
+          
+          exp_list <- paste(exp_list, collapse = ' * ')
+          
+        } else exp_list <- NULL
+        
+        rv$data = 
+          rbind(
+            data.frame('mod_name'=paste0(input$model, '_mod', counter$countervalue), 
+                       'likelihood'=input$model, 
+                       'optimOpt'=paste(input$mod_iter, input$mod_relTolX, input$mod_report_freq, input$mod_detail_report),
+                       'inits'=paste(int_name(), collapse=','),
+                       'methodname' = input$mod_optmeth, 
+                       'vars1'= str_rpl(paste(input$mod_ind_vars, collapse=',')),
+                       'vars2'= str_rpl(input$mod_grid_vars), 
+                       'catch'= input$mod_catch,
+                       'project'= project$name, 
+                       'price'= str_rpl(input$mod_price),
+                       'startloc'= str_rpl(input$mod_startloc),# 'startingloc',
+                       'polyn'= input$mod_polyn,
+                       'exp' = str_rpl(exp_list)), 
+            rv$data)
+        
+        # TODO: include an option to load a previous saved model design table
+        
+        # Save table to sql database. Will overwrite each time we add a model
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))
-        #First, remove any old instances of the table
-        if(DBI::dbExistsTable(fishset_db, paste0(project$name,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==TRUE){
-          DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)), paste0(project$name, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))
-        }
         
-        if(DBI::dbExistsTable(fishset_db, paste0(project$name, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==FALSE){
-          DBI::dbExecute(fishset_db, paste0("CREATE TABLE ", paste0(project$name,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
-                                            "(mod_name TEXT, likelihood TEXT, optimOpt TEXT, inits TEXT, 
-                                            methodname TEXT, vars1 TEXT, vars2 TEXT,   catch TEXT, 
+        modDT <- paste0(project$name,'ModelDesignTable', format(Sys.Date(), format="%Y%m%d"))
+        
+        #First, remove any old instances of the table
+        if (table_exists(modDT, project$name)) table_remove(modDT, project$name)
+        
+        if (!table_exists(modDT, project$name)) {
+          
+          DBI::dbExecute(fishset_db, paste0("CREATE TABLE ", modDT,
+                                            "(mod_name TEXT, likelihood TEXT, optimOpt TEXT, inits TEXT,
+                                            methodname TEXT, vars1 TEXT, vars2 TEXT,   catch TEXT,
                                            lon TEXT, lat TEXT, project TEXT, price TEXT, startloc TEXT, polyn TEXT, exp TEXT)"))
         }
+
         # Construct the update query by looping over the data fields
         query <- sprintf(
           "INSERT INTO %s (%s) VALUES %s",
-          paste0(project$name,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
-          paste(names(data.frame(as.data.frame(isolate(rv$data #model_table()
+          modDT,
+          paste(names(data.frame(as.data.frame(isolate(rv$data
                                                        )))), collapse = ", "),
-          paste0("('", matrix(apply(as.data.frame(isolate(rv$data #model_table()
+          paste0("('", matrix(apply(as.data.frame(isolate(rv$data
                                                           )), 1, paste, collapse="','"), ncol=1), collapse=',', "')")
         )
         # Submit the update query and disconnect
         DBI::dbExecute(fishset_db, query)
         DBI::dbDisconnect(fishset_db)
         
-        
+        # reset exp select
+        mod_rv$exp_list <- NULL
       })
       
 #      observeEvent(input$resetModel, {
@@ -5632,46 +5640,50 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # Run models shiny
       observeEvent(input$mod_submit, {
         
-          removeModal()
-          input_list <- reactiveValuesToList(input)
-          toggle_inputs(input_list, FALSE)
-          #print('call model design function, call discrete_subroutine file')
-          rv$data <- subset(rv$data, mod_name!='')
-          
-
-         # q_test <- quietly_test(make_model_design)
-          
-          times <- nrow(rv$data)
-         
-          showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
-          make_model_design(project=as.character(rv$data$project[1]), catchID=as.character(rv$data$catch[1]), replace=TRUE, 
-                 likelihood=as.character(rv$data$likelihood[1]), initparams=as.character(rv$data$inits[1]), optimOpt=as.character(rv$data$optimOpt[1]),
-                  methodname =as.character(rv$data$methodname[1]), mod.name = as.character(rv$data$mod_name[1]),
-                 vars1=as.character(rv$data$vars1[1]), vars2=as.character(rv$data$vars2[1]), priceCol=as.character(rv$data$price[1]), 
-                 expectcatchmodels=as.character(rv$data$exp[1]), startloc=as.character(rv$data$startloc[1]), polyn=as.character(rv$data$polyn[1]))
-         
-       
-          if(times[1]>1){
-            for(i in 2:times){
+        removeModal()
+        input_list <- reactiveValuesToList(input)
+        toggle_inputs(input_list, FALSE)
+        rv$data <- subset(rv$data, mod_name!='')
+        
+        q_test <- quietly_test(make_model_design)
+        
+        times <- nrow(rv$data)
+        # Note: need to handle previous model files: delete or include?
+        
+        for(i in seq_len(times)) {
+          # re-format exp matrix list
+          if (!is.null(rv$data$exp[i])) {
             
-              make_model_design(project=as.character(rv$data$project[i]), catchID=as.character(rv$data$catch[i]), replace=FALSE, 
-                                likelihood=as.character(rv$data$likelihood[i]), initparams=as.character(rv$data$inits[i]), optimOpt=as.character(rv$data$optimOpt[i]),
-                                methodname =as.character(rv$data$methodname[i]), mod.name = as.character(rv$data$mod_name[i]),
-                                vars1=as.character(rv$data$vars1[i]), vars2=as.character(rv$data$vars2[i]), priceCol=as.character(rv$data$price[i]), 
-                                expectcatchmodels=as.character(rv$data$exp[i]), startloc=as.character(rv$data$startloc[i]), polyn=as.character(rv$data$polyn[i]))
-              showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
-            }
-          } 
-
-                showNotification('Model is running. Models can take 30 minutes.
-                                  All buttons are inactive while model function is running.
-                                  Check R console for progress.', type='message', duration=30)
+            exp_split <- unlist(strsplit(rv$data$exp[i], ' \\* '))
+            exp_list <- lapply(exp_split, function(x) unlist(strsplit(x, ', ')))
+            
+          } else exp_list <- NULL
           
-                discretefish_subroutine(project =rv$data$project[1], select.model=FALSE, explorestarts = TRUE, breakearly= TRUE, space=15, dev=5,
-                                        use.scalers=TRUE, scaler.func = NULL)             
+          str_rpl <- function(string) if (is_value_empty(string)) NULL else string
+          
+          make_model_design(project = rv$data$project[i], catchID = rv$data$catch[i], 
+                            replace = FALSE, likelihood = rv$data$likelihood[i], 
+                            initparams = rv$data$inits[i], optimOpt = rv$data$optimOpt[i],
+                            methodname = rv$data$methodname[i], mod.name = rv$data$mod_name[i],
+                            vars1 = str_rpl(rv$data$vars1[i]), vars2 = str_rpl(rv$data$vars2[i]), 
+                            priceCol = str_rpl(rv$data$price[i]), expectcatchmodels = exp_list,
+                            startloc = str_rpl(rv$data$startloc[i]), polyn = rv$data$polyn[i])
+          
+          showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
+        }
 
-                showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=30)
-          toggle_inputs(input_list, TRUE)
+        showNotification('Model is running. Models can take 30 minutes.
+                          All buttons are inactive while model function is running.
+                          Check R console for progress.', type='message', duration=30)
+  
+        # Run model(s)
+        discretefish_subroutine(project = rv$data$project[1], select.model = FALSE, 
+                                explorestarts = TRUE, breakearly = TRUE, space = 15, dev = 5,
+                                use.scalers = TRUE, scaler.func = NULL)      
+        
+        showNotification('Model run is complete. Check the `Compare Models` subtab to view output', 
+                         type='message', duration=30)
+        toggle_inputs(input_list, TRUE)
       })
       
       shinyInput = function(FUN, len, id, ...) { 
@@ -5749,13 +5761,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         req(project$name)
         # Connect to the database
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))
-#        if(overwrite_table==T){
-          if(DBI::dbExistsTable(fishset_db, 'modelChosen')==TRUE){
+        
+        if (DBI::dbExistsTable(fishset_db, 'modelChosen')) {
+          
             table_remove('modelChosen', project$name)
-            #DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), 'modelChosen')
         }
         
-        if(DBI::dbExistsTable(fishset_db, 'modelChosen')==FALSE){
+        if (!DBI::dbExistsTable(fishset_db, 'modelChosen')) {
+          
           DBI::dbExecute(fishset_db, "CREATE TABLE modelChosen(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, PseudoR2 TEXT, Selected TEXT, Date TEXT)")
         }
         # Construct the update query by looping over the data fields
