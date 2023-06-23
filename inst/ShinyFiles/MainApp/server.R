@@ -5281,12 +5281,12 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # 3) check if default model name is taken, generate new one if so
       mod_name_r <- reactive({
         
+        mod_nm_default <- paste0(input$model, '_mod1')
+        
         if (mod_rv$mod_design) {
           
           mod_list <- model_design_list(project$name)
           mod_names <- vapply(mod_list, function(x) x$mod.name, character(1))
-          
-          mod_nm_default <- paste0(input$model, '_mod1')
           
           if (mod_nm_default %in% mod_names) {
             
@@ -5307,9 +5307,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
             
             mod_nm_default <- mod_nm_r(mod_nm_default, mod_names, 1)
           }
-          
-          mod_nm_default
         }
+        
+        mod_nm_default
       })
       
       output$mod_name_ui <- renderUI({
@@ -5778,7 +5778,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                             vars1 = str_rpl(rv$data$vars1[i]), vars2 = str_rpl(rv$data$vars2[i]), 
                             priceCol = str_rpl(rv$data$price[i]), expectcatchmodels = exp_list,
                             startloc = str_rpl(rv$data$startloc[i]), polyn = rv$data$polyn[i],
-                            spat = rv$data$spat[i], spatID = rv$data$spatID[i])
+                            spat = str_rpl(rv$data$spat[i]), spatID = str_rpl(rv$data$spatID[i]))
           
           showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
         }
