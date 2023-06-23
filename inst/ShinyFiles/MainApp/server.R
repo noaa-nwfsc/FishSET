@@ -5812,6 +5812,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       } 
        
       temp <- isolate(paste0(project$name, "ModelFit"))
+      
       this_table <- reactive(
         if(DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)),
                                               paste0(project$name, 'ModelFit'))){
@@ -5831,11 +5832,11 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           t <- t[-as.numeric(input$mytable_rows_selected),]
         }
         this_table(t)
-        session$sendCustomMessage('unbind-DT', 'mytable')
+        session$sendCustomMessage('unbind-DT', 'mod_fit_out')
       })
       
       # datatable with checkbox
-      output$mytable <- DT::renderDT({
+      output$mod_fit_out <- DT::renderDT({
         data.frame(this_table(), select=shinyInput(checkboxInput,nrow(this_table()),"cbox_"))
       }, 
       colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  
@@ -5871,6 +5872,34 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         Selected = shinyValue("cbox_", nrow(this_table())),
         Date = shinyDate("cbox_", nrow(this_table())) 
       ))
+      
+      # pull most recent model params when compare tab is selected
+      observeEvent(input$mod_sub == 'model_compare', {
+        
+        mod_list <- paste0(project$name, 'ModelOut')
+        
+        if (table_exists(mod_list, project$name)) {
+          
+          mod_rv$mod_params <- model_params(mod_list, project$name)
+          # TODO: rownames dropped from list, simplify code
+          mod_params <- lapply(mod_rv$mod_params, tibble::rownames_to_column, var = 'term')
+          names(mod_params) <- names(mod_rv$mod_params)
+          mod_rv$mod_params <- mod_params
+          
+        } else mod_rv$mod_params <- NULL
+    
+      }, ignoreInit = TRUE)
+      
+      output$mod_param_out <- renderUI({
+        
+        if (!is.null(mod_rv$mod_params)) {
+          
+          tagList(
+            lapply(seq_along(mod_rv$mod_params), 
+                   function(i) list_to_html(mod_rv$mod_params[i]))
+          )
+        }
+      })
       
       
       # When the Submit button is clicked, save the form data
@@ -5915,6 +5944,10 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         } else data.frame('var1'=0, 'var2'=0)
       })
       
+      # TODO: better method/msg for missing convergence msg
+      mod_conv <- function(x) if (is_value_empty(x)) '' else x
+      
+      # TODO: update to work w/ zonal logit and non-zonal logit output
       output$modeltab <- DT::renderDT({
         
         modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), 
@@ -5932,7 +5965,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           for(i in 1:length(mod_sum_out())){
             
             modeltab[i,1] <- mod_sum_out()[[i]]$name
-            modeltab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
+            modeltab[i,2] <- mod_conv(mod_sum_out()[[i]]$optoutput$convergence)
             
             # modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
             # modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
@@ -5954,7 +5987,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       }, escape = FALSE)
       
       
-      output$errortab <- DT::renderDT({
+      output$mod_error_msg <- DT::renderDT({
 
           error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), Model_error=rep(NA, length(mod_sum_out())), Optimization_error=rep(NA, length(mod_sum_out())))
           #if(dim(mod_sum_out())[2]>2){ 
