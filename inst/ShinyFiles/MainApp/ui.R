@@ -1329,6 +1329,8 @@ source("map_viewer_app.R", local = TRUE)
                                      uiOutput("mod_inits_ui")
                                    ),
                                    
+                                   uiOutput('mod_spat_ui'),
+                                   
                                    DT::DTOutput('mod_param_table')
                                )
                              ))),
