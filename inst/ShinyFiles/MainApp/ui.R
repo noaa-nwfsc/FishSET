@@ -1285,6 +1285,8 @@ source("map_viewer_app.R", local = TRUE)
                                    uiOutput('mod_catch_out'),
                                    uiOutput('mod_logit_correction'),
                                    
+                                   uiOutput('mod_spat_ui'),
+                                   
                                    conditionalPanel(condition="input.model=='logit_c'",
                                                     
                                                     actionButton('mod_add_exp', 'Add expected catch entry',
@@ -1328,8 +1330,6 @@ source("map_viewer_app.R", local = TRUE)
                                      
                                      uiOutput("mod_inits_ui")
                                    ),
-                                   
-                                   uiOutput('mod_spat_ui'),
                                    
                                    DT::DTOutput('mod_param_table')
                                )
