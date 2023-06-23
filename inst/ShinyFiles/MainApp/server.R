@@ -5150,7 +5150,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                 p("Finalized dataset must be saved before modeling."))
           },
           
-          if (!mod_rv$alt) {
+          if (!mod_rv$alt_made) {
             
             div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
                 p("Alternative choice list must be saved before modeling."))
@@ -5491,10 +5491,11 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
      
       counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
       rv <- reactiveValues(
-        data = data.frame('mod_name'=NULL, 'likelihood'=NULL, 'optimOpt'=NULL, 'inits'=NULL, 
-                          'methodname'=NULL, 'vars1'=NULL,'vars2'=NULL, 'catch'=NULL,
-                          'project'=NULL, 'price'=NULL, 'startloc'=NULL, 'polyn'=NULL, 
-                          'exp'=NULL, 'spat' = NULL, 'spatID' = NULL),
+        data = data.frame('mod_name' = NULL, 'likelihood' = NULL, 'optimOpt' = NULL, 
+                          'inits'= NULL, 'methodname' = NULL, 'vars1' = NULL,
+                          'vars2' = NULL, 'catch' = NULL, 'project' = NULL, 
+                          'price' = NULL, 'startloc' = NULL, 'polyn' = NULL, 
+                          'exp' = NULL, 'spat' = NULL, 'spatID' = NULL),
         #model_table,
         deletedRows = NULL,
         deletedRowIndices = list()
@@ -5525,13 +5526,20 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           tagList(
             h5(strong('Alternative Choice: Nearest Point')),
             
-            selectInput('mod_spat', 'Select spatial table', 
-                        choices = list_tables(project$name, 'spat')),
-            # make this conditional on selecting spatial file
-            selectInput('mod_spatID', 'Select spatial ID column',
-                        choices = spatID_choices())
+            selectizeInput('mod_spat', 'Select spatial table', 
+                        choices = list_tables(project$name, 'spat'), 
+                        multiple = TRUE, options = list(maxItems = 1)),
+            
+            uiOutput('mod_spatID_ui')
+            
           )
         }
+      })
+      
+      output$mod_spatID_ui <- renderUI({
+        
+        selectInput('mod_spatID', 'Select spatial ID column',
+                    choices = spatID_choices())
       })
       
       # Add model design file 
@@ -5586,10 +5594,11 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         rv$data = 
           rbind(
-            data.frame('mod_name'=paste0(input$model, '_mod', counter$countervalue), 
-                       'likelihood'=input$model, 
-                       'optimOpt'=paste(input$mod_iter, input$mod_relTolX, input$mod_report_freq, input$mod_detail_report),
-                       'inits'=paste(int_name(), collapse=','),
+            data.frame('mod_name' = paste0(input$model, '_mod', counter$countervalue), 
+                       'likelihood' = input$model, 
+                       'optimOpt' = paste(input$mod_iter, input$mod_relTolX, 
+                                          input$mod_report_freq, input$mod_detail_report),
+                       'inits' = paste(int_name(), collapse=','),
                        'methodname' = input$mod_optmeth, 
                        'vars1'= str_rpl(paste(input$mod_ind_vars, collapse=',')),
                        'vars2'= str_rpl(input$mod_grid_vars), 
@@ -5610,15 +5619,17 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         modDT <- paste0(project$name,'ModelDesignTable', format(Sys.Date(), format="%Y%m%d"))
         
-        #First, remove any old instances of the table
+        # TODO: reevaluate this approach
+        # First, remove any old instances of the table
         if (table_exists(modDT, project$name)) table_remove(modDT, project$name)
         
         if (!table_exists(modDT, project$name)) {
           
-          DBI::dbExecute(fishset_db, paste0("CREATE TABLE ", modDT,
-                                            "(mod_name TEXT, likelihood TEXT, optimOpt TEXT, inits TEXT,
-                                            methodname TEXT, vars1 TEXT, vars2 TEXT,   catch TEXT,
-                                           lon TEXT, lat TEXT, project TEXT, price TEXT, startloc TEXT, polyn TEXT, exp TEXT)"))
+          DBI::dbExecute(fishset_db, paste0('CREATE TABLE ', modDT,
+                                            '(mod_name TEXT, likelihood TEXT, optimOpt TEXT, inits TEXT,
+                                            methodname TEXT, vars1 TEXT, vars2 TEXT, catch TEXT,
+                                            lon TEXT, lat TEXT, project TEXT, price TEXT, startloc 
+                                            TEXT, polyn TEXT, exp TEXT, spat TEXT, spatID TEXT)'))
         }
 
         # Construct the update query by looping over the data fields
@@ -5731,9 +5742,15 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                           Check R console for progress.', type='message', duration=30)
   
         # Run model(s)
-        discretefish_subroutine(project = rv$data$project[1], select.model = FALSE, 
+        # TODO: make these args available in the app (try modal pop-up)
+        
+        discretefish_subroutine(project = rv$data$project[1], select.model = FALSE,
                                 explorestarts = TRUE, breakearly = TRUE, space = 15, dev = 5,
-                                use.scalers = TRUE, scaler.func = NULL)      
+                                use.scalers = TRUE, scaler.func = NULL)
+        
+        # discretefish_subroutine(project = rv$data$project[1], select.model = FALSE, 
+        #                         explorestarts = TRUE, breakearly = TRUE, space = NULL, dev = NULL,
+        #                         use.scalers = FALSE, scaler.func = NULL)
         
         showNotification('Model run is complete. Check the `Compare Models` subtab to view output', 
                          type='message', duration=30)
