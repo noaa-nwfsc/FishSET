@@ -1270,6 +1270,8 @@ source("map_viewer_app.R", local = TRUE)
                                                               'EPM Weibull'='epm_weibull'),
                                                selected = 'logit_c'),
                                    
+                                   uiOutput('mod_name_ui'), 
+                                   
                                    selectInput('mod_optmeth', 'Optimization method', 
                                                choices=c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN"), 
                                                selected='BFGS'),

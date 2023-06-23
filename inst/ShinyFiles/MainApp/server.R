@@ -5106,7 +5106,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       }
       
       mod_rv <- reactiveValues(final = FALSE, exp = NULL, exp_select = NULL,
-                               alt_made = FALSE, alt_num = NULL, alt_choice = NULL)
+                               alt_made = FALSE, alt_num = NULL, alt_choice = NULL,
+                               mod_design = FALSE)
       
       # enable run model (modal) button if final table exists
       observeEvent(input$tabs == 'models', {
@@ -5135,7 +5136,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         }
         
         # check for existing model design files/tables
-        
+        mod_rv$mod_design <- table_exists(paste0(project$name, "ModelInputData"), project$name)
         
       
         shinyjs::toggleState("mod_check", condition = mod_rv$final) 
@@ -5272,6 +5273,50 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           )
         })
       })
+      
+      # generate a valid model name
+      
+      # 1) check for existing model design file
+      # 2) use input$model
+      # 3) check if default model name is taken, generate new one if so
+      mod_name_r <- reactive({
+        
+        if (mod_rv$mod_design) {
+          
+          mod_list <- model_design_list(project$name)
+          mod_names <- vapply(mod_list, function(x) x$mod.name, character(1))
+          
+          mod_nm_default <- paste0(input$model, '_mod1')
+          
+          if (mod_nm_default %in% mod_names) {
+            
+            # recursive naming function
+            mod_nm_r <- function(n1, n2, v1) {
+              
+              if (n1 %in% n2) {
+                
+                n1 <- gsub('\\d+', '', n1)
+                v1 <- v1 + 1
+                n1 <- paste0(n1, v1)
+                
+                if (n1 %in% n2) mod_nm_r(n1, n2, v1)
+                else n1
+                
+              } else n1
+            }
+            
+            mod_nm_default <- mod_nm_r(mod_nm_default, mod_names, 1)
+          }
+          
+          mod_nm_default
+        }
+      })
+      
+      output$mod_name_ui <- renderUI({
+        
+        textInput('mod_name', 'Type model name', value = mod_name_r())
+      })
+      
       
       output$mod_catch_out <- renderUI({
         tagList(
@@ -5594,7 +5639,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         rv$data = 
           rbind(
-            data.frame('mod_name' = paste0(input$model, '_mod', counter$countervalue), 
+            data.frame('mod_name' = input$mod_name, 
                        'likelihood' = input$model, 
                        'optimOpt' = paste(input$mod_iter, input$mod_relTolX, 
                                           input$mod_report_freq, input$mod_detail_report),
@@ -5617,7 +5662,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         # Save table to sql database. Will overwrite each time we add a model
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))
         
-        modDT <- paste0(project$name,'ModelDesignTable', format(Sys.Date(), format="%Y%m%d"))
+        modDT <- paste0(project$name, 'ModelDesignTable', format(Sys.Date(), format="%Y%m%d"))
         
         # TODO: reevaluate this approach
         # First, remove any old instances of the table
@@ -5732,7 +5777,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                             methodname = rv$data$methodname[i], mod.name = rv$data$mod_name[i],
                             vars1 = str_rpl(rv$data$vars1[i]), vars2 = str_rpl(rv$data$vars2[i]), 
                             priceCol = str_rpl(rv$data$price[i]), expectcatchmodels = exp_list,
-                            startloc = str_rpl(rv$data$startloc[i]), polyn = rv$data$polyn[i])
+                            startloc = str_rpl(rv$data$startloc[i]), polyn = rv$data$polyn[i],
+                            spat = rv$data$spat[i], spatID = rv$data$spatID[i])
           
           showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
         }
@@ -5744,13 +5790,13 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         # Run model(s)
         # TODO: make these args available in the app (try modal pop-up)
         
-        discretefish_subroutine(project = rv$data$project[1], select.model = FALSE,
-                                explorestarts = TRUE, breakearly = TRUE, space = 15, dev = 5,
-                                use.scalers = TRUE, scaler.func = NULL)
+        # discretefish_subroutine(project = rv$data$project[1], select.model = FALSE,
+        #                         explorestarts = TRUE, breakearly = TRUE, space = 15, dev = 5,
+        #                         use.scalers = TRUE, scaler.func = NULL)
         
-        # discretefish_subroutine(project = rv$data$project[1], select.model = FALSE, 
-        #                         explorestarts = TRUE, breakearly = TRUE, space = NULL, dev = NULL,
-        #                         use.scalers = FALSE, scaler.func = NULL)
+        discretefish_subroutine(project = rv$data$project[1], select.model = FALSE,
+                                explorestarts = TRUE, breakearly = TRUE, space = NULL, dev = NULL,
+                                use.scalers = FALSE, scaler.func = NULL)
         
         showNotification('Model run is complete. Check the `Compare Models` subtab to view output', 
                          type='message', duration=30)
