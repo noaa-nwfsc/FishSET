@@ -5600,7 +5600,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                        'polyn'= input$mod_polyn,
                        'exp' = str_rpl(exp_list),
                        'spat' = str_rpl(input$mod_spat),
-                       'spatID' str_rpl(input$mod_spatID)),
+                       'spatID' = str_rpl(input$mod_spatID)),
             rv$data)
         
         # TODO: include an option to load a previous saved model design table
