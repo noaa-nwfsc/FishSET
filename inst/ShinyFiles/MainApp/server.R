@@ -5106,7 +5106,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       }
       
       mod_rv <- reactiveValues(final = FALSE, exp = NULL, exp_select = NULL,
-                               alt = FALSE, altc = NULL)
+                               alt_made = FALSE, alt_num = NULL, alt_choice = NULL)
       
       # enable run model (modal) button if final table exists
       observeEvent(input$tabs == 'models', {
@@ -5124,12 +5124,21 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         mod_rv$exp <- names(e_list[!vapply(e_list, is.null, logical(1))])
         
         # check for alt choice list (check for dated as well)
-        mod_rv$alt <- table_exists(paste0(project$name, "AltMatrix"), project$name)
+        mod_rv$alt_made <- table_exists(paste0(project$name, "AltMatrix"), project$name)
         
         # retrieve # of alts if exists
-        if (mod_rv$alt) mod_rv$altc <- length(alt_choice_list(project$name)$greaterNZ)
+        if (mod_rv$alt_made) {
+          
+          alt_list <- alt_choice_list(project$name)
+          mod_rv$alt_num <- length(alt_list$greaterNZ)
+          mod_rv$alt_choice <- alt_list$alt_var
+        }
+        
+        # check for existing model design files/tables
+        
+        
       
-        shinyjs::toggleState("submit_modal", condition = mod_rv$final) 
+        shinyjs::toggleState("mod_check", condition = mod_rv$final) 
       })
       
       output$disableMsg <- renderUI({
@@ -5152,7 +5161,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       cList <- reactiveValues(out = NULL, pass = NULL)
       
       # checklist modal
-      observeEvent(input$submit_modal, {
+      observeEvent(input$mod_check, {
 
         showModal(
           modalDialog(title = "",
@@ -5160,12 +5169,12 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                       uiOutput("checklistMsg"),
 
                       footer = tagList(
-                        modalButton("Close"),
+                        modalButton("Close")#,
                         # shinyjs::disabled( # this approach doesn't work consistently
                         #   actionButton("submit", "Run model(s)",
                         #                style = "color: #fff; background-color: #6EC479; border-color:#000000;")
                         # )
-                        uiOutput("CLRun")
+                        # uiOutput("CLRun")
                       ),
                       easyClose = FALSE
           )
@@ -5176,11 +5185,25 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         cList$pass <- all(vapply(cList$out, function(x) x$pass, logical(1)))
         # find expected catch matrices (if logit_c used)
         
-        output$CLRun <- renderUI({
+        output$mod_add_run_bttn <- renderUI({
+          
           if (cList$pass) {
-
-              actionButton("mod_submit", "Run model(s)",
-                           style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+            tagList(
+              # TODO: disable add model until model checks have been passed
+              actionButton("mod_add", "Save model and add new model", 
+                           style="color: #fff; background-color: #337ab7; border-color: #800000;"),
+          
+              uiOutput('mod_run_bttn')
+            )
+          }
+        })
+        
+        output$mod_run_bttn <- renderUI({
+          
+          if (nrow(rv$data) > 0) {
+            
+            actionButton("mod_submit", "Run model(s)",
+                         style = "color: #fff; background-color: #6EC479; border-color:#000000;")
           }
         })
         
@@ -5381,21 +5404,21 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           
         } else if (input$model == 'logit_avgcat') {
           
-          gridNum*(mod_rv$altc-1)+intNum
+          gridNum*(mod_rv$alt_num-1)+intNum
           
         } else if (input$model == 'logit_correction') {
           
-          gridNum*mod_rv$altc + ((((polyn+1)*2)+2)*mod_rv$altc) + intNum +1+1
+          gridNum*mod_rv$alt_num + ((((polyn+1)*2)+2)*mod_rv$alt_num) + intNum +1+1
           
         } else {
           
           if (input$mod_lockk) {
             
-            gridNum*mod_rv$altc+intNum+alt+1
+            gridNum*mod_rv$alt_num+intNum+alt+1
             
           } else {
             
-            gridNum*mod_rv$altc+intNum+1+1
+            gridNum*mod_rv$alt_num+intNum+1+1
           }
         }
       })
@@ -5467,9 +5490,10 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
      
       counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
       rv <- reactiveValues(
-        data = data.frame('mod_name'='', 'likelihood'='', 'optimOpt'='', 'inits'='', 
-                          'methodname'='', 'vars1'='','vars2'='', 'catch'='',
-                           'project'='', 'price'='', 'startloc'='', 'polyn'='', 'exp'=''),
+        data = data.frame('mod_name'=NULL, 'likelihood'=NULL, 'optimOpt'=NULL, 'inits'=NULL, 
+                          'methodname'=NULL, 'vars1'=NULL,'vars2'=NULL, 'catch'=NULL,
+                          'project'=NULL, 'price'=NULL, 'startloc'=NULL, 'polyn'=NULL, 
+                          'exp'=NULL, 'spat' = NULL, 'spatID' = NULL),
         #model_table,
         deletedRows = NULL,
         deletedRowIndices = list()
