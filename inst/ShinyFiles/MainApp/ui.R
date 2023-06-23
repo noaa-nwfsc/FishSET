@@ -1226,16 +1226,21 @@ source("map_viewer_app.R", local = TRUE)
                                # actionButton("save_final_modal", "Save final table to FishSET database",
                                #              style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
                                
-                               actionButton("addModel", "Save model and add new model", 
-                                            style="color: #fff; background-color: #337ab7; border-color: #800000;"),
+                              
                                
                                tags$br(),
                                
-                               conditionalPanel("input.addModel!='0'",
-                                  shinyjs::disabled(
-                                   actionButton("submit_modal", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;")
-                                  )
-                               ),
+                               # conditionalPanel("input.mod_add!='0'",
+                               #                  
+                               #    shinyjs::disabled(
+                                   # actionButton("submit_modal", "Run model checks",
+                                   #              style="color: #fff; background-color: #6da363; border-color: #800000;"),
+                               #    )
+                               # ),
+                               
+                               actionButton("mod_check", "Run model checks",
+                                            style="color: #fff; background-color: #6da363; border-color: #800000;"), 
+                               uiOutput('mod_add_run_bttn'),
                                
                                tags$br(),tags$br(),
                                tags$p(tags$strong("More information"), tags$br(),
