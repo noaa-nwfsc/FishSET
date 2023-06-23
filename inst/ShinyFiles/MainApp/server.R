@@ -5158,6 +5158,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         )
       })
       
+      # model checklist reactives
       cList <- reactiveValues(out = NULL, pass = NULL)
       
       # checklist modal
@@ -5508,7 +5509,33 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         }))
       })
       
-      observeEvent(input$addModel, {
+      spatID_choices <- reactive({
+        
+        if (!is_value_empty(input$mod_spat)) {
+          
+          spat <- table_view(input$mod_spat, project$name)
+          colnames(spat)
+        }
+      })
+      
+      output$mod_spat_ui <- renderUI({
+        
+        if (mod_rv$alt_choice == 'nearest point') {
+          
+          tagList(
+            h5(strong('Alternative Choice: Nearest Point')),
+            
+            selectInput('mod_spat', 'Select spatial table', 
+                        choices = list_tables(project$name, 'spat')),
+            # make this conditional on selecting spatial file
+            selectInput('mod_spatID', 'Select spatial ID column',
+                        choices = spatID_choices())
+          )
+        }
+      })
+      
+      # Add model design file 
+      observeEvent(input$mod_add, {
         
         req(project$name)
         
@@ -5571,7 +5598,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                        'price'= str_rpl(input$mod_price),
                        'startloc'= str_rpl(input$mod_startloc),# 'startingloc',
                        'polyn'= input$mod_polyn,
-                       'exp' = str_rpl(exp_list)), 
+                       'exp' = str_rpl(exp_list),
+                       'spat' = str_rpl(input$mod_spat),
+                       'spatID' str_rpl(input$mod_spatID)),
             rv$data)
         
         # TODO: include an option to load a previous saved model design table
@@ -5619,6 +5648,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       }
       
       observeEvent(input$deletePressed, {
+        
         rowNum <- parseDeleteEvent(input$deletePressed)
         dataRow <- rv$data[rowNum,]
         
