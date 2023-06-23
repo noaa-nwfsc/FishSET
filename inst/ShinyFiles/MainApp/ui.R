@@ -1205,8 +1205,8 @@ source("map_viewer_app.R", local = TRUE)
       # Model design and Run tabset panel ----
                   #---
                    tabPanel("Models", value = "models",
-                            tabsetPanel(
-                                tabPanel("Run model(s)",
+                            tabsetPanel(id = 'mod_sub',
+                                tabPanel("Run model(s)", value = 'model_run',
                            sidebarLayout(
                              sidebarPanel(
                                tags$button(
@@ -1337,7 +1337,7 @@ source("map_viewer_app.R", local = TRUE)
                                )
                              ))),
                            
-                           tabPanel("Compare models",
+                           tabPanel("Compare models", value = 'model_compare',
                                     sidebarLayout(
                                       sidebarPanel(
                                         tags$br(),tags$br(),
@@ -1356,8 +1356,11 @@ source("map_viewer_app.R", local = TRUE)
                                         ), width=2),
                                       mainPanel(
                                         h3('Model Output'),
+                                        
+                                        uiOutput('mod_param_out'), 
+                                        
                                         h4("Measures of fit"),
-                                        DT::DTOutput("mytable"),
+                                        DT::DTOutput("mod_fit_out"),
                                         tags$script(HTML("Shiny.addCustomMessageHandler('unbind-DT', function(id) {
                                                          Shiny.unbindAll($('#'+id).find('table').DataTable().table().node());})")),
                                         tags$br(),
@@ -1365,7 +1368,7 @@ source("map_viewer_app.R", local = TRUE)
                                         DT::DTOutput('modeltab'),
                                         tags$br(),
                                         h4('Error messages'),
-                                        DT::DTOutput('errortab'),
+                                        DT::DTOutput('mod_error_msg'),
                                         width=10
                                         )
                                       )  )
