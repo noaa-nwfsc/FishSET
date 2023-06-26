@@ -5116,13 +5116,17 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         # check if final table exists
         mod_rv$final <- table_exists(paste0(project$name, "MainDataTable_final"), project$name)
+        # check if expected catch table exists
+        exp_exists <- table_exists(paste0(project$name, "ExpectedCatch"), project$name)
         
-        # list the names of existing expected catch matrices
-        e_list <- expected_catch_list(project$name)
-        # remove units and scale entry
-        e_list <- e_list[!grepl('^scale$|^units$', names(e_list))]
-        # save names of matrices that aren't empty
-        mod_rv$exp <- names(e_list[!vapply(e_list, is.null, logical(1))])
+        if (exp_exists) {
+          # list the names of existing expected catch matrices
+          e_list <- expected_catch_list(project$name)
+          # remove units and scale entry
+          e_list <- e_list[!grepl('^scale$|^units$', names(e_list))]
+          # save names of matrices that aren't empty
+          mod_rv$exp <- names(e_list[!vapply(e_list, is.null, logical(1))])
+        }
         
         # check for alt choice list (check for dated as well)
         mod_rv$alt_made <- table_exists(paste0(project$name, "AltMatrix"), project$name)
@@ -5795,7 +5799,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         #                         use.scalers = TRUE, scaler.func = NULL)
         
         discretefish_subroutine(project = rv$data$project[1], select.model = FALSE,
-                                explorestarts = TRUE, breakearly = TRUE, space = NULL, dev = NULL,
+                                explorestarts = FALSE, breakearly = TRUE, space = NULL, dev = NULL,
                                 use.scalers = FALSE, scaler.func = NULL)
         
         showNotification('Model run is complete. Check the `Compare Models` subtab to view output', 
