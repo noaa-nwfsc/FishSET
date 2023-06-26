@@ -1289,6 +1289,10 @@ source("map_viewer_app.R", local = TRUE)
                                    
                                    uiOutput('mod_spat_ui'),
                                    
+                                   # TODO: add info icon (add_prompter())about how this arg is used
+                                   textInput('mod_spat_crs', 'EPSG code',
+                                                   value = '', placeholder = 'e.g. 4326'),
+                                   
                                    conditionalPanel(condition="input.model=='logit_c'",
                                                     
                                                     actionButton('mod_add_exp', 'Add expected catch entry',
