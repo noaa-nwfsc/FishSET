@@ -4945,7 +4945,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         altc$zone_cent <- suppressWarnings(grep('ZoneCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
         altc$fish_cent <- suppressWarnings(grep('FishCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
-      })
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
       
       output$altc_spat_ui <- renderUI({
         
@@ -5024,7 +5024,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       observeEvent(input$tabs == 'expectedCatch', {
         
         exp_react$altc_exists <- length(suppressWarnings(list_tables(project$name, 'altc'))) > 0
-      })
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
       
       # check if alt choice list exists
       output$exp_altc_check <- renderUI({
@@ -5140,7 +5140,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
       
         shinyjs::toggleState("mod_check", condition = mod_rv$final) 
-      })
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
       
       output$disableMsg <- renderUI({
         
