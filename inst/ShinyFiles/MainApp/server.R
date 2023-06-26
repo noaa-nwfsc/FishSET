@@ -5279,10 +5279,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       })
       
       # generate a valid model name
-      
-      # 1) check for existing model design file
-      # 2) use input$model
-      # 3) check if default model name is taken, generate new one if so
+      # TODO: check model table
       mod_name_r <- reactive({
         
         mod_nm_default <- paste0(input$model, '_mod1')
@@ -5641,6 +5638,10 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           
         } else exp_list <- NULL
         
+        # CRS 
+        mod_crs <- input$mod_spat_crs
+        if (mod_crs == 'NA') mod_crs <- NA
+        
         rv$data = 
           rbind(
             data.frame('mod_name' = input$mod_name, 
@@ -5658,7 +5659,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                        'polyn'= input$mod_polyn,
                        'exp' = str_rpl(exp_list),
                        'spat' = str_rpl(input$mod_spat),
-                       'spatID' = str_rpl(input$mod_spatID)),
+                       'spatID' = str_rpl(input$mod_spatID),
+                       'crs' = str_rpl(mod_crs)),
             rv$data)
         
         # TODO: include an option to load a previous saved model design table
@@ -5678,7 +5680,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                             '(mod_name TEXT, likelihood TEXT, optimOpt TEXT, inits TEXT,
                                             methodname TEXT, vars1 TEXT, vars2 TEXT, catch TEXT,
                                             lon TEXT, lat TEXT, project TEXT, price TEXT, startloc 
-                                            TEXT, polyn TEXT, exp TEXT, spat TEXT, spatID TEXT)'))
+                                            TEXT, polyn TEXT, exp TEXT, spat TEXT, spatID TEXT,
+                                            crs TEXT)'))
         }
 
         # Construct the update query by looping over the data fields
@@ -5764,7 +5767,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         times <- nrow(rv$data)
         # Note: need to handle previous model files: delete or include?
         
-        for(i in seq_len(times)) {
+        for (i in seq_len(times)) {
           # re-format exp matrix list
           if (!is.null(rv$data$exp[i])) {
             
@@ -5782,7 +5785,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                             vars1 = str_rpl(rv$data$vars1[i]), vars2 = str_rpl(rv$data$vars2[i]), 
                             priceCol = str_rpl(rv$data$price[i]), expectcatchmodels = exp_list,
                             startloc = str_rpl(rv$data$startloc[i]), polyn = rv$data$polyn[i],
-                            spat = str_rpl(rv$data$spat[i]), spatID = str_rpl(rv$data$spatID[i]))
+                            spat = str_rpl(rv$data$spat[i]), spatID = str_rpl(rv$data$spatID[i]),
+                            crs = rv$data$crs[i])
           
           showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
         }
