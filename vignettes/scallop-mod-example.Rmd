@@ -7,7 +7,7 @@ output:
     fig_width: 6
     fig_height: 4
 vignette: >
-  %\VignetteIndexEntry{scallop-example}
+  %\VignetteIndexEntry{Scallop Conditional Logit Model Example}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 editor_options: 
