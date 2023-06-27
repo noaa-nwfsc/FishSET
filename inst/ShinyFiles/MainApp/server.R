@@ -5778,15 +5778,15 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           
           str_rpl <- function(string) if (is_value_empty(string)) NULL else string
           
-          make_model_design(project = rv$data$project[i], catchID = rv$data$catch[i], 
-                            replace = FALSE, likelihood = rv$data$likelihood[i], 
-                            initparams = rv$data$inits[i], optimOpt = rv$data$optimOpt[i],
-                            methodname = rv$data$methodname[i], mod.name = rv$data$mod_name[i],
-                            vars1 = str_rpl(rv$data$vars1[i]), vars2 = str_rpl(rv$data$vars2[i]), 
-                            priceCol = str_rpl(rv$data$price[i]), expectcatchmodels = exp_list,
-                            startloc = str_rpl(rv$data$startloc[i]), polyn = rv$data$polyn[i],
-                            spat = str_rpl(rv$data$spat[i]), spatID = str_rpl(rv$data$spatID[i]),
-                            crs = rv$data$crs[i])
+          q_test(project = rv$data$project[i], catchID = rv$data$catch[i], 
+                 replace = FALSE, likelihood = rv$data$likelihood[i], 
+                 initparams = rv$data$inits[i], optimOpt = rv$data$optimOpt[i],
+                 methodname = rv$data$methodname[i], mod.name = rv$data$mod_name[i],
+                 vars1 = str_rpl(rv$data$vars1[i]), vars2 = str_rpl(rv$data$vars2[i]), 
+                 priceCol = str_rpl(rv$data$price[i]), expectcatchmodels = exp_list,
+                 startloc = str_rpl(rv$data$startloc[i]), polyn = rv$data$polyn[i],
+                 spat = str_rpl(rv$data$spat[i]), spatID = str_rpl(rv$data$spatID[i]),
+                 crs = rv$data$crs[i])
           
           showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
         }
@@ -5898,16 +5898,17 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
     
       }, ignoreInit = TRUE)
       
-      output$mod_param_out <- renderUI({
-        
-        if (!is.null(mod_rv$mod_params)) {
-          
-          tagList(
-            lapply(seq_along(mod_rv$mod_params), 
-                   function(i) list_to_html(mod_rv$mod_params[i]))
-          )
-        }
-      })
+      
+      # output$mod_param_out <- renderUI({
+      #   
+      #   if (!is.null(mod_rv$mod_params)) {
+      #     
+      #     tagList(
+      #       lapply(seq_along(mod_rv$mod_params), 
+      #              function(i) list_to_html(mod_rv$mod_params[i]))
+      #     )
+      #   }
+      # })
       
       
       # When the Submit button is clicked, save the form data
@@ -5956,7 +5957,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       mod_conv <- function(x) if (is_value_empty(x)) '' else x
       
       # TODO: update to work w/ zonal logit and non-zonal logit output
-      output$modeltab <- DT::renderDT({
+      output$mod_model_tab <- DT::renderDT({
         
         modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), 
                                Covergence=rep(NA, length(mod_sum_out())), 
@@ -5970,6 +5971,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           
         } else {
           
+          # TODO: update for zonal logit (logit_avgcat)
           for(i in 1:length(mod_sum_out())){
             
             modeltab[i,1] <- mod_sum_out()[[i]]$name
@@ -5978,16 +5980,18 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
             # modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
             # modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
             
-            choice_nms <- levels(factor(mod_sum_out()[[i]]$choice.table[, 1]))
+            # choice_nms <- levels(factor(mod_sum_out()[[i]]$choice.table[, 1]))
             
-            par_tab <- round(mod_sum_out()[[i]]$OutLogit, 3)
-            colnames(par_tab) <- c("estimate", "std_error", "t_value") 
-            rownames(par_tab) <- choice_nms
-            modeltab[i,3] <- to_html_table(par_tab, rownames = TRUE)
+            # par_tab <- round(mod_sum_out()[[i]]$OutLogit, 3)
+            # colnames(par_tab) <- c("estimate", "std_error", "t_value") 
+            # rownames(par_tab) <- choice_nms
+            model_out <- mod_sum_out()[[i]]$OutLogit
+            modeltab[i,3] <- to_html_table(model_out, rownames = TRUE, digits = 3)
             
             hess <- round(mod_sum_out()[[i]]$H1, 5)
-            colnames(hess) <- choice_nms
-            modeltab[i,4] <- to_html_table(hess)
+            # colnames(hess) <- choice_nms
+            colnames(hess) <- row.names(model_out)
+            modeltab[i,4] <- to_html_table(hess, digits = 5)
           }
         }
         
