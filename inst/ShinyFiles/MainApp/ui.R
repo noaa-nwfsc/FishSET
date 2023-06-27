@@ -1359,17 +1359,15 @@ source("map_viewer_app.R", local = TRUE)
                                           "Close window"
                                         ), width=2),
                                       mainPanel(
-                                        h3('Model Output'),
-                                        
-                                        uiOutput('mod_param_out'), 
+                                        h4('Model Output'),
+                                        DT::DTOutput('mod_model_tab'),
+                                        # uiOutput('mod_param_out'), 
                                         
                                         h4("Measures of fit"),
                                         DT::DTOutput("mod_fit_out"),
                                         tags$script(HTML("Shiny.addCustomMessageHandler('unbind-DT', function(id) {
                                                          Shiny.unbindAll($('#'+id).find('table').DataTable().table().node());})")),
-                                        tags$br(),
-                                        h4('Model output (convergence, SE, Hessian)'),
-                                        DT::DTOutput('modeltab'),
+                                       
                                         tags$br(),
                                         h4('Error messages'),
                                         DT::DTOutput('mod_error_msg'),
