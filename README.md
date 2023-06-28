@@ -63,7 +63,11 @@ If there is an ‘.Renviron’ in that folder, add this line:
 ```
 GITLAB_PAT="glpat-the rest of your pat here"
 ```
-Don’t forget to save the file. If there isn’t an ‘.Renviron’ in that folder, create one using a text editor and add that line.
+Don’t forget to save the file. If there isn’t an ‘.Renviron’ in that folder, create one using a text editor and add that line. Alternatively, rund the command:
+```
+Sys.setenv(GITLAB_PAT="glpat-the rest of your pat here")
+```
+in which case, step 6 may be skipped as the R session does not need to be restarted.
 
 6. Restart R (Session→ Restart R should do the trick).
 
