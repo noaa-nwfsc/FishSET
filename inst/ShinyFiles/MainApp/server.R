@@ -5376,10 +5376,13 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         )
       })
       
-      output$mod_exp_select_ui <- renderUI({
+      output$mod_select_exp_ui <- renderUI({
         
-        selectInput('mod_select_exp_1', 'Select matrices',
-                    choices = mod_rv$exp, multiple = TRUE)
+        div(
+          class = 'mod-select-exp-container',
+          selectInput('mod_select_exp_1', 'Select matrices',
+                      choices = mod_rv$exp, multiple = TRUE)
+        )
       })
       
       observeEvent(input$mod_add_exp, {
@@ -5393,11 +5396,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       observeEvent(input$mod_add_exp_reset, {
         
-        removeUI(selector = '#add-exp-section')
+        removeUI(selector = '.mod-select-exp-container')
         
         insertUI('#mod_add_exp_reset', where = 'afterEnd',
-                 ui = selectInput('mod_select_exp_1', 'Select matrices',
-                                  choices = mod_rv$exp, multiple = TRUE))
+                 ui = div(class = 'mod-select-exp-container',
+                          selectInput('mod_select_exp_1', 'Select matrices',
+                                      choices = mod_rv$exp, multiple = TRUE)
+                          )
+                 )
       })
       
       # Data needed
@@ -5821,14 +5827,15 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
        
       temp <- isolate(paste0(project$name, "ModelFit"))
       
-      this_table <- reactive(
-        if(DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)),
+      this_table <- reactive({
+        
+        if (DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)),
                                               paste0(project$name, 'ModelFit'))){
           data.frame(t(model_fit(project$name)))
         } else {
           data.frame('X1'=NA, 'X2'=NA, 'X3'=NA, 'X4'=NA)
         }
-        )
+        })
       
       observeEvent(input$reload_btn, {
         this_table() <- this_table()
@@ -5845,7 +5852,10 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       # datatable with checkbox
       output$mod_fit_out <- DT::renderDT({
-        data.frame(this_table(), select=shinyInput(checkboxInput,nrow(this_table()),"cbox_"))
+        data.frame(this_table(), 
+                   select=shinyInput(checkboxInput,
+                                     nrow(this_table()),
+                                     "cbox_"))
       }, 
       colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  
       filter='top', server = TRUE, escape = FALSE, 
@@ -5975,7 +5985,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           for(i in 1:length(mod_sum_out())){
             
             modeltab[i,1] <- mod_sum_out()[[i]]$name
-            modeltab[i,2] <- mod_conv(mod_sum_out()[[i]]$optoutput$convergence)
+            modeltab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
             
             # modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
             # modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
