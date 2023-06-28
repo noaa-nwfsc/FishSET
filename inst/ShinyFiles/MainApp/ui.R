@@ -1289,6 +1289,17 @@ source("map_viewer_app.R", local = TRUE)
                                    
                                    conditionalPanel(condition="input.model=='logit_c'",
                                                     
+                                                    add_prompter(
+                                                      h4(list('Select Expected Catch Matrix'), icon('info-circle', verify_fa = FALSE)),
+                                                      position = "bottom", type='info', size='medium',
+                                                      message = 'Required for conditional logit. 
+                                                      A model will be run for each additional entry.
+                                                      Do not leave any entries blank. Click "Reset"
+                                                      button to clear the list.
+                                                      '
+                                                      ),
+                                                    tags$br(),
+                                                    
                                                     actionButton('mod_add_exp', 'Add expected catch entry',
                                                                  style = 'background-color: blue; color: white;'),
                                                     
@@ -1300,9 +1311,15 @@ source("map_viewer_app.R", local = TRUE)
                                    
                                    uiOutput('mod_spat_ui'),
                                    
-                                   # TODO: add info icon (add_prompter())about how this arg is used
-                                   textInput('mod_spat_crs', 'EPSG code',
-                                             value = '', placeholder = 'e.g. 4326'),
+                                   add_prompter(
+                                     
+                                     textInput('mod_spat_crs', label = list('EPSG code', icon('info-circle', verify_fa = FALSE)),
+                                               value = '', placeholder = 'e.g. 4326'),
+                                     position = "bottom", type='info', size='medium', 
+                                     message = 'The EPSG code that determines the coordinate 
+                                     reference system (CRS) to use when creating the distance 
+                                     matrix. Defaults to WGS 84 (EPSG 4326).'
+                                   ),
                                    
                                    h3('Model parameters'),
                                    
