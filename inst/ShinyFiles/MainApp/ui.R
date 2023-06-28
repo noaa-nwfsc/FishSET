@@ -218,6 +218,8 @@ source("map_viewer_app.R", local = TRUE)
                              actionButton("delete_tabs_bttn", "Manage Tables",
                                           style = "color: white; background-color: blue;"),
                              
+                             uiOutput('load_manage_proj_ui'), 
+                             
                              actionButton("meta_modal", "Metadata",
                                           style = "color: white; background-color: blue;"),
                              
@@ -1290,6 +1292,7 @@ source("map_viewer_app.R", local = TRUE)
                                    conditionalPanel(condition="input.model=='logit_c'",
                                                     
                                                     add_prompter(
+                                                      
                                                       h4(list('Select Expected Catch Matrix'), icon('info-circle', verify_fa = FALSE)),
                                                       position = "bottom", type='info', size='medium',
                                                       message = 'Required for conditional logit. 
@@ -1298,6 +1301,7 @@ source("map_viewer_app.R", local = TRUE)
                                                       button to clear the list.
                                                       '
                                                       ),
+                                                    
                                                     tags$br(),
                                                     
                                                     actionButton('mod_add_exp', 'Add expected catch entry',

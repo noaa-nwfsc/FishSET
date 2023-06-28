@@ -1018,6 +1018,66 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           }
         }
       })
+      
+      
+      output$load_manage_proj_ui <- renderUI({
+        
+        if (!is_value_empty(projects())) {
+          
+          actionButton('load_manage_proj', 'Manage Projects', 
+                       style = "color: white; background-color: blue;")
+        }
+      })
+      
+      # Manage Projects
+      
+      show_proj_modal <- function() {
+        
+        showModal(
+          modalDialog(title = "Manage Projects",
+                      
+                      uiOutput('load_proj_modal_ui'),
+                      
+                      footer = tagList(
+                        modalButton("Close"),
+                        actionButton("delete_proj", "Delete Project", 
+                                     style = "color: white; background-color: red;")
+                      ),
+                      easyClose = FALSE, size = "l"))
+      }
+      
+      proj_r <- reactiveValues(projects = NULL)
+      
+      observeEvent(input$load_manage_proj, {
+        
+        proj_r$projects <- projects()
+        
+        show_proj_modal()
+        
+        output$load_proj_modal_ui <- renderUI({
+          
+          checkboxGroupInput('load_proj_cb', 'Select which projects to delete',
+                             choices = proj_r$projects)
+        })
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
+      
+      observeEvent(input$delete_proj, {
+        
+        if (is_value_empty(input$load_proj_cb)) {
+          
+          showNotification('No projects selected')
+          
+        } else {
+          # TODO: figure out why this won't delete projects
+          # could be that a seperate action is keeping the file in use
+          q_test <- quietly_test(erase_project, show_msg = TRUE)
+          lapply(input$load_project_cb, q_test)
+          proj_r$projects <- projects()
+          removeModal()
+        }
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
   
       
       # assign project name
@@ -5377,7 +5437,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       })
       
       output$mod_select_exp_ui <- renderUI({
-        
+        # wrap select UI in a div container so it can be removed as a group
         div(
           class = 'mod-select-exp-container',
           selectInput('mod_select_exp_1', 'Select matrices',
@@ -5395,9 +5455,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       })
       
       observeEvent(input$mod_add_exp_reset, {
-        
+        # remove old exp selector container
         removeUI(selector = '.mod-select-exp-container')
-        
+        # insert new exp selector container
         insertUI('#mod_add_exp_reset', where = 'afterEnd',
                  ui = div(class = 'mod-select-exp-container',
                           selectInput('mod_select_exp_1', 'Select matrices',
@@ -5669,7 +5729,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                        'crs' = str_rpl(mod_crs)),
             rv$data)
         
-        # TODO: include an option to load a previous saved model design table
+        # TODO: include an option to load a previously saved model design table
         
         # Save table to sql database. Will overwrite each time we add a model
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))
