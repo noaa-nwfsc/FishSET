@@ -241,6 +241,7 @@ erase_project <- function(project) {
   if (project_exists(project)) {
     
     unlink(paste0(locproject(),  project), recursive = TRUE)
+    message('Project ', project, ' deleted')
   
   } else {
     
