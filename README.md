@@ -63,7 +63,9 @@ If there is an ‘.Renviron’ in that folder, add this line:
 ```
 GITLAB_PAT="glpat-the rest of your pat here"
 ```
-Don’t forget to save the file. If there isn’t an ‘.Renviron’ in that folder, create one using a text editor and add that line. Alternatively, rund the command:
+Don’t forget to save the file. If there isn’t an ‘.Renviron’ in that folder, create one using a text editor and add that line. 
+
+Alternatively, instead of creating an ‘.Renviron’ file, you may run the following command to add the token to your environmental variables:
 ```
 Sys.setenv(GITLAB_PAT="glpat-the rest of your pat here")
 ```
