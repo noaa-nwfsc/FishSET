@@ -1287,12 +1287,6 @@ source("map_viewer_app.R", local = TRUE)
                                    uiOutput('mod_catch_out'),
                                    uiOutput('mod_logit_correction'),
                                    
-                                   uiOutput('mod_spat_ui'),
-                                   
-                                   # TODO: add info icon (add_prompter())about how this arg is used
-                                   textInput('mod_spat_crs', 'EPSG code',
-                                                   value = '', placeholder = 'e.g. 4326'),
-                                   
                                    conditionalPanel(condition="input.model=='logit_c'",
                                                     
                                                     actionButton('mod_add_exp', 'Add expected catch entry',
@@ -1301,8 +1295,14 @@ source("map_viewer_app.R", local = TRUE)
                                                     actionButton('mod_add_exp_reset', 'Reset',
                                                                  style = 'background-color: red; color: white;'),
                                                     
-                                                    uiOutput('mod_exp_select_ui')
+                                                    uiOutput('mod_select_exp_ui')
                                    ),
+                                   
+                                   uiOutput('mod_spat_ui'),
+                                   
+                                   # TODO: add info icon (add_prompter())about how this arg is used
+                                   textInput('mod_spat_crs', 'EPSG code',
+                                             value = '', placeholder = 'e.g. 4326'),
                                    
                                    h3('Model parameters'),
                                    
