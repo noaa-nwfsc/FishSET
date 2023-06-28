@@ -5235,8 +5235,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                       uiOutput("checklistMsg"),
 
                       footer = tagList(
-                        modalButton("Close")#,
-                        # shinyjs::disabled( # this approach doesn't work consistently
+                        modalButton("Close")
+                        # TODO: find out why this approach doesn't work consistently
+                        # shinyjs::disabled( 
                         #   actionButton("submit", "Run model(s)",
                         #                style = "color: #fff; background-color: #6EC479; border-color:#000000;")
                         # )
@@ -5583,14 +5584,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           eval(parse(text = UI))
         }
       })
-      # TODO: update
+      # TODO: update/tidy
       output$mod_param_choose <- renderUI(
         radioButtons('mod_init_choice', "",
                      if(length(grep(paste0("_", 'params', "_"), grep(".*\\.csv$", project_files(project$name)), value = TRUE))!=0){
                        choices=c('Use output of previous model as parameter set' = 'prev','Choose parameter set' ='new')
                      } else { choices=c('Choose parameter set' ='new')}, selected='new')
       )
-      # TODO: update
+      # TODO: update/tidy
       output$mod_param_tab_ui <- renderUI({
         if(length(grep(paste0("_", 'params', "_"), grep(".*\\.csv$", project_files(project$name)), value = TRUE))!=0){
           param_table <- paste0(locoutput(project$name), pull_output(project$name, type='table', fun=paste0('params')))
@@ -5658,8 +5659,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       observeEvent(input$mod_add, {
         
         req(project$name)
-        
-        
         
         # TODO: check if this is necessary, otherwise remove (grid and ind can be NULL)
         # if (is.null(input$mod_grid_vars)|is.null(input$mod_ind_vars)) {
@@ -5828,7 +5827,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         toggle_inputs(input_list, FALSE)
         rv$data <- subset(rv$data, mod_name!='')
         
-        q_test <- quietly_test(make_model_design)
+        q_test <- quietly_test(make_model_design, show_msg = TRUE)
         
         times <- nrow(rv$data)
         # Note: need to handle previous model files: delete or include?
@@ -5887,7 +5886,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
        
       temp <- isolate(paste0(project$name, "ModelFit"))
       
-      this_table <- reactive({
+      mod_fit <- reactive({
         
         if (DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)),
                                               paste0(project$name, 'ModelFit'))){
@@ -5898,23 +5897,23 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         })
       
       observeEvent(input$reload_btn, {
-        this_table() <- this_table()
+        mod_fit() <- mod_fit()
       },ignoreInit = TRUE)
       
       observeEvent(input$delete_btn, {
-        t = this_table()
+        t = mod_fit()
         if (!is.null(input$mytable_rows_selected)) {
           t <- t[-as.numeric(input$mytable_rows_selected),]
         }
-        this_table(t)
+        mod_fit(t)
         session$sendCustomMessage('unbind-DT', 'mod_fit_out')
       })
       
       # datatable with checkbox
       output$mod_fit_out <- DT::renderDT({
-        data.frame(this_table(), 
+        data.frame(mod_fit(), 
                    select=shinyInput(checkboxInput,
-                                     nrow(this_table()),
+                                     nrow(mod_fit()),
                                      "cbox_"))
       }, 
       colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  
@@ -5942,13 +5941,13 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       }
       
       checkedsave <- reactive(cbind(
-        model = rownames(isolate(this_table())),
-        AIC=isolate(this_table()[,1]),
-        AICc=isolate(this_table()[,2]),
-        BIC=isolate(this_table()[,3]),
-        PseudoR2=isolate(this_table()[,4]),, 
-        Selected = shinyValue("cbox_", nrow(this_table())),
-        Date = shinyDate("cbox_", nrow(this_table())) 
+        model = rownames(isolate(mod_fit())),
+        AIC=isolate(mod_fit()[,1]),
+        AICc=isolate(mod_fit()[,2]),
+        BIC=isolate(mod_fit()[,3]),
+        PseudoR2=isolate(mod_fit()[,4]),, 
+        Selected = shinyValue("cbox_", nrow(mod_fit())),
+        Date = shinyDate("cbox_", nrow(mod_fit())) 
       ))
       
       # pull most recent model params when compare tab is selected
@@ -5968,7 +5967,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
     
       }, ignoreInit = TRUE)
       
-      
+      # Note: this is a simpler version of model output
       # output$mod_param_out <- renderUI({
       #   
       #   if (!is.null(mod_rv$mod_params)) {
@@ -6014,13 +6013,13 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       #Add in two more tables for model evaulations
       mod_sum_out <- reactive({
         
-        tab <- paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d"))
+        tab <- paste0(project$name, 'modelOut')
                       
         if (table_exists(tab, project$name)) {
           
           model_out_view(tab, project$name)
           
-        } else data.frame('var1'=0, 'var2'=0)
+        } #else data.frame('var1'=0, 'var2'=0)
       })
       
       # TODO: better method/msg for missing convergence msg
@@ -6029,59 +6028,59 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # TODO: update to work w/ zonal logit and non-zonal logit output
       output$mod_model_tab <- DT::renderDT({
         
-        modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), 
-                               Covergence=rep(NA, length(mod_sum_out())), 
-                               # Stand_Errors=rep(NA, length(mod_sum_out())), 
-                               Estimates=rep(NA, length(mod_sum_out())), 
-                               Hessian=rep(NA, length(mod_sum_out())))
-        
-        if (is.data.frame(mod_sum_out())) {
-          
-          modeltab <- modeltab
-          
-        } else {
-          
+        if (!is_value_empty(mod_sum_out())) {
           # TODO: update for zonal logit (logit_avgcat)
-          for(i in 1:length(mod_sum_out())){
-            
-            modeltab[i,1] <- mod_sum_out()[[i]]$name
-            modeltab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
-            
-            # modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
-            # modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
-            
-            # choice_nms <- levels(factor(mod_sum_out()[[i]]$choice.table[, 1]))
-            
-            # par_tab <- round(mod_sum_out()[[i]]$OutLogit, 3)
-            # colnames(par_tab) <- c("estimate", "std_error", "t_value") 
-            # rownames(par_tab) <- choice_nms
-            model_out <- mod_sum_out()[[i]]$OutLogit
-            modeltab[i,3] <- to_html_table(model_out, rownames = TRUE, digits = 3)
-            
-            hess <- round(mod_sum_out()[[i]]$H1, 5)
-            # colnames(hess) <- choice_nms
-            colnames(hess) <- row.names(model_out)
-            modeltab[i,4] <- to_html_table(hess, digits = 5)
-          }
-        }
+          mod_tab <- data.frame(Model_name=rep(NA, length(mod_sum_out())),
+                                Covergence=rep(NA, length(mod_sum_out())),
+                                # Stand_Errors=rep(NA, length(mod_sum_out())),
+                                Estimates=rep(NA, length(mod_sum_out())),
+                                Hessian=rep(NA, length(mod_sum_out())))
         
-        return(modeltab)
-      }, escape = FALSE)
+        for (i in 1:length(mod_sum_out())){
+          
+          mod_tab[i,1] <- mod_sum_out()[[i]]$name
+          mod_tab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
+          
+          # mod_tab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
+          # mod_tab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
+          
+          # choice_nms <- levels(factor(mod_sum_out()[[i]]$choice.table[, 1]))
+          
+          # par_tab <- round(mod_sum_out()[[i]]$OutLogit, 3)
+          # colnames(par_tab) <- c("estimate", "std_error", "t_value") 
+          # rownames(par_tab) <- choice_nms
+          model_out <- mod_sum_out()[[i]]$OutLogit
+          mod_tab[i,3] <- to_html_table(model_out, rownames = TRUE, digits = 3)
+          
+          hess <- round(mod_sum_out()[[i]]$H1, 5)
+          # colnames(hess) <- choice_nms
+          colnames(hess) <- row.names(model_out)
+          mod_tab[i,4] <- to_html_table(hess, digits = 5)
+         }
+          
+          return(mod_tab)
+        }
+    }, escape = FALSE)
       
       
       output$mod_error_msg <- DT::renderDT({
-
-          error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), Model_error=rep(NA, length(mod_sum_out())), Optimization_error=rep(NA, length(mod_sum_out())))
-          #if(dim(mod_sum_out())[2]>2){ 
-          if(is.data.frame(mod_sum_out())){
-            error_out <- error_out
-          } else {
+        
+        if (!is_value_empty(mod_sum_out())) {
+          
+          error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), 
+                                  Model_error=rep(NA, length(mod_sum_out())), 
+                                  Optimization_error=rep(NA, length(mod_sum_out())))
+          
           for(i in 1: length(mod_sum_out())){
-              error_out[i,1] <- mod_sum_out()[[i]]$name
-              error_out[i,2] <- ifelse(is.null(mod_sum_out()[[i]]$errorExplain), 'No error reported', toString(mod_sum_out()[[i]]$errorExplain))
-              error_out[i,3] <- ifelse(is.null(mod_sum_out()[[i]]$optoutput$optim_message), 'No message reported', toString(mod_sum_out()[[i]]$optoutput$optim_message))
-            }}
+            error_out[i,1] <- mod_sum_out()[[i]]$name
+            error_out[i,2] <- ifelse(is.null(mod_sum_out()[[i]]$errorExplain), 
+                                     'No error reported', toString(mod_sum_out()[[i]]$errorExplain))
+            error_out[i,3] <- ifelse(is.null(mod_sum_out()[[i]]$optoutput$optim_message), 
+                                     'No message reported', toString(mod_sum_out()[[i]]$optoutput$optim_message))
+          }
+          
           return(error_out)
+        }
       })
       
       
