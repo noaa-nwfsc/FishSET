@@ -4931,22 +4931,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                      type = 'info', size = 'medium', position = 'top')
                    )
           ),     
-              
-          conditionalPanel("['zone', 'fish', 'port'].includes(input.altc_occasion)",
-                           
-                           selectInput('altc_occ_var', 'Choose occasion ID variable',
-                                       choices = colnames(values$dataset))),
           
-          conditionalPanel('input.altc_occasion == "lon-lat"', 
-                           
-                           h5(tags$em('Longitude must be specified before latitude.')),
-                           
-                           selectizeInput('altc_occ_var', 'Choose longitude and latitude occasion columns', 
-                                          choices = find_lonlat(values$dataset), 
-                                          options = list(maxItems = 2, create = TRUE, 
-                                                         placeholder = 'Select or type variable name'),
-                                          multiple = TRUE)
-                           ),
+          uiOutput('altc_occ_var_ui'),
          
           conditionalPanel("input.altc_occasion=='zone'||input.altc_alt_var=='zone'",
                            
@@ -4974,6 +4960,29 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       # tracking/updating zonal and fishing centroid tables
       altc <- reactiveValues(zone_cent = NULL, fish_cent = NULL)
+      
+      
+      output$altc_occ_var_ui <- renderUI({
+        
+        if (input$altc_occasion == 'lon-lat') {
+          
+          tagList(
+            h5(tags$em('Longitude must be specified before latitude.')),
+            
+            selectizeInput('altc_occ_var', 'Choose longitude and latitude occasion columns', 
+                           choices = find_lonlat(values$dataset), 
+                           options = list(maxItems = 2, create = TRUE, 
+                                          placeholder = 'Select or type variable name'),
+                           multiple = TRUE)
+          )
+          
+        } else {
+          
+          selectInput('altc_occ_var', 'Choose occasion ID variable',
+                      choices = colnames(values$dataset))
+        }
+        
+      })
       
       output$altc_zone_cent_ui <- renderUI({
         
@@ -5073,6 +5082,25 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           fishset_theme()
         })
       
+      # Save alternative choice 
+      observeEvent(input$altc_save, {
+        # switch to values that function accepts
+        occ_type <- switch(input$altc_occasion, 'zone' = 'zonal centroid', 
+                           'fish' = 'fishing centroid', 'port' = 'port', 'lon-lat' = 'lon-lat')
+        
+        alt_type <- switch(input$altc_alt_var, 'zone' = 'zonal centroid', 
+                           'fish' = 'fishing centroid', 'near' = 'nearest point')
+        
+        q_test <- quietly_test(create_alternative_choice, show_msg = TRUE)
+        
+        q_test(dat=values$dataset, project=project$name, occasion=occ_type,
+               occasion_var=input$altc_occ_var, alt_var=alt_type, 
+               dist.unit=input$altc_dist, min.haul=input$altc_min_haul, 
+               spat=spatdat$dataset, zoneID=input$altc_zoneID, spatID = input$altc_spatID,
+               zone.cent.name=input$altc_zone_cent, fish.cent.name=input$altc_fish_cent)
+        
+      }, ignoreInit = FALSE) 
+      
       #---
       
       # EXPECTED CATCH ----     
@@ -5152,6 +5180,30 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           sparsplot(project = project$name, x = sparstable_dat())
         }
       })
+      
+      # Run expected catch
+      observeEvent(input$exp_submit, {
+        
+        showNotification('Function can take several minutes. A message will appear when done.',
+                         type = 'message', duration = 20)
+        
+        q_test <- quietly_test(create_expectations)
+        
+        defineGroup <- if (input$exp_group == 'No group') NULL else input$exp_group
+        defaults <- if (is_value_empty(input$exp_default)) FALSE else input$exp_default
+        price <- if (input$exp_price == 'none') NULL else input$exp_price
+        empty_catch <- switch(input$empty_expectation, 'NA' = NA, '0' = 0, 
+                              allCatch = 'allCatch', groupCatch = 'groupCatch')
+        empty_exp <- switch(input$empty_expectation, 'NA' = NA, '1e-04' = 1e-04, '0' = 0)
+        
+        q_test(values$dataset, project$name, input$exp_catch_var, price=price, 
+               defineGroup=defineGroup, temp.var=input$exp_temp_var, temporal = input$exp_temporal, 
+               calc.method = input$exp_calc_method, lag.method = input$exp_lag_method, 
+               empty.catch = empty_catch,  empty.expectation = empty_exp, 
+               temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
+               year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
+               default.exp = defaults, replace.output = input$exp_replace_output)
+      }) 
       
       #---
       
@@ -5969,13 +6021,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       #   mod_fit() <- mod_fit()
       # },ignoreInit = TRUE)
       
+      # TODO: fix this
       observeEvent(input$delete_btn, {
         
-        t = mod_fit()
+        temp = mod_fit()
         if (!is.null(input$mytable_rows_selected)) {
-          t <- t[-as.numeric(input$mytable_rows_selected),]
+          temp <- temp[-as.numeric(input$mytable_rows_selected),]
         }
-        mod_fit(t)
+        mod_fit(temp)
         session$sendCustomMessage('unbind-DT', 'mod_fit_out')
       })
       
@@ -6060,7 +6113,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       #   }
       # })
       
-      
+      # TODO: fix this
       # When the Submit button is clicked, save the form data
       observeEvent(input$submit_ms, {
         req(project$name)
@@ -6090,60 +6143,13 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         DBI::dbDisconnect(fishset_db)
       })
       
-      #---
-      #Run functions ----
-      #---
-      # Alternative choice 
-      observeEvent(input$saveALT, {
-        # switch to values that function accepts
-        occ_type <- switch(input$altc_occasion, 'zone' = 'zonal centroid', 
-                           'fish' = 'fishing centroid', 'port' = 'port', 'lon-lat' = 'lon-lat')
-        
-        alt_type <- switch(input$altc_alt_var, 'zone' = 'zonal centroid', 
-                           'fish' = 'fishing centroid', 'near' = 'nearest point')
-        
-        q_test <- quietly_test(create_alternative_choice, show_msg = TRUE)
-        
-        q_test(dat=values$dataset, project=project$name, occasion=occ_type,
-               occasion_var=input$altc_occ_var, alt_var=alt_type, 
-               dist.unit=input$altc_dist, min.haul=input$altc_min_haul, 
-               spat=spatdat$dataset, zoneID=input$altc_zoneID, spatID = input$altc_spatID,
-               zone.cent.name=input$altc_zone_cent, fish.cent.name=input$altc_fish_cent)
-              
-      }, ignoreInit = FALSE) 
+
       
-    
-      observeEvent(input$exp_submit, {
-        
-        showNotification('Function can take several minutes. A message will appear when done.',
-                         type = 'message', duration = 20)
-        
-        q_test <- quietly_test(create_expectations)
-        
-        defineGroup <- if (input$exp_group == 'No group') NULL else input$exp_group
-        defaults <- if (is_value_empty(input$exp_default)) FALSE else input$exp_default
-        price <- if (input$exp_price == 'none') NULL else input$exp_price
-        empty_catch <- switch(input$empty_expectation, 'NA' = NA, '0' = 0, 
-                              allCatch = 'allCatch', groupCatch = 'groupCatch')
-        empty_exp <- switch(input$empty_expectation, 'NA' = NA, '1e-04' = 1e-04, '0' = 0)
-        
-        q_test(values$dataset, project$name, input$exp_catch_var, price=price, 
-               defineGroup=defineGroup, temp.var=input$exp_temp_var, temporal = input$exp_temporal, 
-               calc.method = input$exp_calc_method, lag.method = input$exp_lag_method, 
-               empty.catch = empty_catch,  empty.expectation = empty_exp, 
-               temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
-               year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
-               default.exp = defaults, replace.output = input$exp_replace_output)
-      }) 
-      
-     
-       ####---
-      ##Resetting inputs
+      ## Resetting inputs
       observeEvent(input$refresh1,{
         
         updateCheckboxInput(session, 'Outlier_Filter', value=FALSE)
-      })
-      ###---              
+      })         
       
       ### ---  
       # Save output ----   
@@ -6448,7 +6454,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       #Stop shiny ----
       ##---
       observeEvent(c(input$closeDat, input$closeQAQC, input$closeExplore, 
-                     input$closeAnalysis, input$closeNew, input$closeAlt, 
+                     input$closeAnalysis, input$closeNew, input$altc_close, 
                      input$closeEC, input$closeModel, input$closeCM, input$closeB, 
                      input$closeRerun), {
         stopApp()

@@ -1023,7 +1023,7 @@ source("map_viewer_app.R", local = TRUE)
                            sidebarLayout(
                              sidebarPanel(
                                tags$button(
-                                 id = 'closeAlt',
+                                 id = 'altc_close',
                                  type = "button",
                                  style="color: #fff; background-color: #FF6347; border-color: #800000;",
                                  class = "btn action-button",
@@ -1035,7 +1035,7 @@ source("map_viewer_app.R", local = TRUE)
                                             style = "color: white; background-color: blue;" 
                                ),
                                
-                               actionButton('saveALT','Save choices', style = "color: white; background-color: green;"), 
+                               actionButton('altc_save','Save choices', style = "color: white; background-color: green;"), 
                                               
                                actionButton('callTextDownloadAlt','Save notes'),
                                textInput('notesAltc', "Notes", value = NULL, 
