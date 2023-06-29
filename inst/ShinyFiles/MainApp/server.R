@@ -5876,31 +5876,101 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         toggle_inputs(input_list, TRUE)
       })
       
-      shinyInput = function(FUN, len, id, ...) { 
-        inputs = character(len) 
-        for (i in seq_len(len)) { 
-          inputs[i] = as.character(FUN(paste0(id, i), label = NULL, ...)) 
-        } 
-        inputs 
-      } 
-       
-      temp <- isolate(paste0(project$name, "ModelFit"))
+      #Add in two more tables for model evaluations
+      mod_sum_out <- reactive({
+        
+        tab <- paste0(project$name, 'modelOut')
+        
+        if (table_exists(tab, project$name)) {
+          
+          model_out_view(tab, project$name)
+        }
+      })
+      
+      ## Model Output ----
+      # TODO: better method/msg for missing convergence msg
+      mod_conv <- function(x) if (is_value_empty(x)) '' else x
+      
+      # TODO: update to work w/ zonal logit and non-zonal logit output
+      output$mod_model_tab <- DT::renderDT({
+        
+        if (!is_value_empty(mod_sum_out())) {
+          
+          # TODO: update for zonal logit (logit_avgcat)
+          mod_tab <- data.frame(Model_name=rep(NA, length(mod_sum_out())),
+                                Covergence=rep(NA, length(mod_sum_out())),
+                                # Stand_Errors=rep(NA, length(mod_sum_out())),
+                                Estimates=rep(NA, length(mod_sum_out())),
+                                Hessian=rep(NA, length(mod_sum_out())))
+          
+          for (i in seq_along(mod_sum_out())) {
+            
+            mod_tab[i,1] <- mod_sum_out()[[i]]$name
+            mod_tab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
+            
+            # mod_tab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
+            # mod_tab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
+            
+            # choice_nms <- levels(factor(mod_sum_out()[[i]]$choice.table[, 1]))
+            
+            # par_tab <- round(mod_sum_out()[[i]]$OutLogit, 3)
+            # colnames(par_tab) <- c("estimate", "std_error", "t_value") 
+            # rownames(par_tab) <- choice_nms
+            model_out <- mod_sum_out()[[i]]$OutLogit
+            mod_tab[i,3] <- to_html_table(model_out, rownames = TRUE, digits = 3)
+            
+            hess <- round(mod_sum_out()[[i]]$H1, 5)
+            # colnames(hess) <- choice_nms
+            colnames(hess) <- row.names(model_out)
+            mod_tab[i,4] <- to_html_table(hess, digits = 5)
+          }
+          
+          return(mod_tab)
+        }
+      }, escape = FALSE)
+      
+      ## Model Error ----
+      output$mod_error_msg <- DT::renderDT({
+        
+        if (!is_value_empty(mod_sum_out())) {
+          
+          error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), 
+                                  Model_error=rep(NA, length(mod_sum_out())), 
+                                  Optimization_error=rep(NA, length(mod_sum_out())))
+          
+          for (i in seq_along(mod_sum_out())) {
+            
+            error_out[i,1] <- mod_sum_out()[[i]]$name
+            error_out[i,2] <- ifelse(is.null(mod_sum_out()[[i]]$errorExplain), 
+                                     'No error reported', toString(mod_sum_out()[[i]]$errorExplain))
+            error_out[i,3] <- ifelse(is.null(mod_sum_out()[[i]]$optoutput$optim_message), 
+                                     'No message reported', toString(mod_sum_out()[[i]]$optoutput$optim_message))
+          }
+          
+          return(error_out)
+        }
+      })
+      
+      ## Model Fit ----
       
       mod_fit <- reactive({
         
-        if (DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)),
-                                              paste0(project$name, 'ModelFit'))){
-          data.frame(t(model_fit(project$name)))
-        } else {
-          data.frame('X1'=NA, 'X2'=NA, 'X3'=NA, 'X4'=NA)
+        input$reload_btn
+        fit_tab <- paste0(project$name, 'ModelFit')
+        
+        if (table_exists(fit_tab, project$name)) {
+          # TODO: improve model_fit() output 
+          mf_out <- as.data.frame(t(model_fit(project$name)))
+          tibble::rownames_to_column(mf_out, 'model')
         }
-        })
+      })
       
-      observeEvent(input$reload_btn, {
-        mod_fit() <- mod_fit()
-      },ignoreInit = TRUE)
+      # observeEvent(input$reload_btn, {
+      #   mod_fit() <- mod_fit()
+      # },ignoreInit = TRUE)
       
       observeEvent(input$delete_btn, {
+        
         t = mod_fit()
         if (!is.null(input$mytable_rows_selected)) {
           t <- t[-as.numeric(input$mytable_rows_selected),]
@@ -5909,8 +5979,17 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         session$sendCustomMessage('unbind-DT', 'mod_fit_out')
       })
       
+      shinyInput = function(FUN, len, id, ...) { 
+        inputs = character(len) 
+        for (i in seq_len(len)) { 
+          inputs[i] = as.character(FUN(paste0(id, i), label = NULL, ...)) 
+        } 
+        inputs 
+      } 
+      
       # datatable with checkbox
       output$mod_fit_out <- DT::renderDT({
+        
         data.frame(mod_fit(), 
                    select=shinyInput(checkboxInput,
                                      nrow(mod_fit()),
@@ -5919,12 +5998,10 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  
       filter='top', server = TRUE, escape = FALSE, 
       options = list(dom = 't', paging=FALSE,
-      preDrawCallback = DT::JS('function() { 
-                                 Shiny.unbindAll(this.api().table().node()); }'), 
-        drawCallback = DT::JS('function() { 
-                              Shiny.bindAll(this.api().table().node()); } ')) 
+                     preDrawCallback = DT::JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
+                     drawCallback = DT::JS('function() { Shiny.bindAll(this.api().table().node()); } ')
+                     ) 
       )
-      
       
       # helper function for reading checkbox
       shinyValue = function(id, len) { 
@@ -5940,32 +6017,36 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         })) 
       }
       
-      checkedsave <- reactive(cbind(
-        model = rownames(isolate(mod_fit())),
-        AIC=isolate(mod_fit()[,1]),
-        AICc=isolate(mod_fit()[,2]),
-        BIC=isolate(mod_fit()[,3]),
-        PseudoR2=isolate(mod_fit()[,4]),, 
-        Selected = shinyValue("cbox_", nrow(mod_fit())),
-        Date = shinyDate("cbox_", nrow(mod_fit())) 
-      ))
+      checkedsave <- 
+        reactive({
+          
+          cbind(model = rownames(isolate(mod_fit())),
+                AIC=isolate(mod_fit()[,1]),
+                AICc=isolate(mod_fit()[,2]),
+                BIC=isolate(mod_fit()[,3]),
+                PseudoR2=isolate(mod_fit()[,4]), 
+                Selected = shinyValue("cbox_", nrow(mod_fit())),
+                Date = shinyDate("cbox_", nrow(mod_fit())) 
+                )
+          })
       
+      # Note: this is a simpler version of model output
       # pull most recent model params when compare tab is selected
-      observeEvent(input$mod_sub == 'model_compare', {
-        
-        mod_list <- paste0(project$name, 'ModelOut')
-        
-        if (table_exists(mod_list, project$name)) {
-          
-          mod_rv$mod_params <- model_params(mod_list, project$name)
-          # TODO: rownames dropped from list, simplify code
-          mod_params <- lapply(mod_rv$mod_params, tibble::rownames_to_column, var = 'term')
-          names(mod_params) <- names(mod_rv$mod_params)
-          mod_rv$mod_params <- mod_params
-          
-        } else mod_rv$mod_params <- NULL
-    
-      }, ignoreInit = TRUE)
+      # observeEvent(input$mod_sub == 'model_compare', {
+      #   
+      #   mod_list <- paste0(project$name, 'ModelOut')
+      #   
+      #   if (table_exists(mod_list, project$name)) {
+      #     
+      #     mod_rv$mod_params <- model_params(mod_list, project$name)
+      #     # TODO: rownames dropped from list, simplify code
+      #     mod_params <- lapply(mod_rv$mod_params, tibble::rownames_to_column, var = 'term')
+      #     names(mod_params) <- names(mod_rv$mod_params)
+      #     mod_rv$mod_params <- mod_params
+      #     
+      #   } else mod_rv$mod_params <- NULL
+      # 
+      # }, ignoreInit = TRUE)
       
       # Note: this is a simpler version of model output
       # output$mod_param_out <- renderUI({
@@ -6008,82 +6089,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         showNotification("Table saved to database")
         DBI::dbDisconnect(fishset_db)
       })
-      
-
-      #Add in two more tables for model evaulations
-      mod_sum_out <- reactive({
-        
-        tab <- paste0(project$name, 'modelOut')
-                      
-        if (table_exists(tab, project$name)) {
-          
-          model_out_view(tab, project$name)
-          
-        } #else data.frame('var1'=0, 'var2'=0)
-      })
-      
-      # TODO: better method/msg for missing convergence msg
-      mod_conv <- function(x) if (is_value_empty(x)) '' else x
-      
-      # TODO: update to work w/ zonal logit and non-zonal logit output
-      output$mod_model_tab <- DT::renderDT({
-        
-        if (!is_value_empty(mod_sum_out())) {
-          # TODO: update for zonal logit (logit_avgcat)
-          mod_tab <- data.frame(Model_name=rep(NA, length(mod_sum_out())),
-                                Covergence=rep(NA, length(mod_sum_out())),
-                                # Stand_Errors=rep(NA, length(mod_sum_out())),
-                                Estimates=rep(NA, length(mod_sum_out())),
-                                Hessian=rep(NA, length(mod_sum_out())))
-        
-        for (i in 1:length(mod_sum_out())){
-          
-          mod_tab[i,1] <- mod_sum_out()[[i]]$name
-          mod_tab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
-          
-          # mod_tab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
-          # mod_tab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
-          
-          # choice_nms <- levels(factor(mod_sum_out()[[i]]$choice.table[, 1]))
-          
-          # par_tab <- round(mod_sum_out()[[i]]$OutLogit, 3)
-          # colnames(par_tab) <- c("estimate", "std_error", "t_value") 
-          # rownames(par_tab) <- choice_nms
-          model_out <- mod_sum_out()[[i]]$OutLogit
-          mod_tab[i,3] <- to_html_table(model_out, rownames = TRUE, digits = 3)
-          
-          hess <- round(mod_sum_out()[[i]]$H1, 5)
-          # colnames(hess) <- choice_nms
-          colnames(hess) <- row.names(model_out)
-          mod_tab[i,4] <- to_html_table(hess, digits = 5)
-         }
-          
-          return(mod_tab)
-        }
-    }, escape = FALSE)
-      
-      
-      output$mod_error_msg <- DT::renderDT({
-        
-        if (!is_value_empty(mod_sum_out())) {
-          
-          error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), 
-                                  Model_error=rep(NA, length(mod_sum_out())), 
-                                  Optimization_error=rep(NA, length(mod_sum_out())))
-          
-          for(i in 1: length(mod_sum_out())){
-            error_out[i,1] <- mod_sum_out()[[i]]$name
-            error_out[i,2] <- ifelse(is.null(mod_sum_out()[[i]]$errorExplain), 
-                                     'No error reported', toString(mod_sum_out()[[i]]$errorExplain))
-            error_out[i,3] <- ifelse(is.null(mod_sum_out()[[i]]$optoutput$optim_message), 
-                                     'No message reported', toString(mod_sum_out()[[i]]$optoutput$optim_message))
-          }
-          
-          return(error_out)
-        }
-      })
-      
-      
       
       #---
       #Run functions ----
