@@ -5871,7 +5871,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
        deleteButtonColumn(as.data.frame(rv$data[-9]), 'delete_button')
       )
   
-      # Run models shiny
+      ## Save/run models ----
       observeEvent(input$mod_submit, {
         
         removeModal()
@@ -5893,13 +5893,16 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
             
           } else exp_list <- NULL
           
+          if (!is_value_empty(rv$data$vars1[i])) vars1 <- unlist(strsplit(rv$data$vars1[i], ','))
+          else vars1 <- rv$data$vars1[i]
+          
           str_rpl <- function(string) if (is_value_empty(string)) NULL else string
           
           q_test(project = rv$data$project[i], catchID = rv$data$catch[i], 
                  replace = FALSE, likelihood = rv$data$likelihood[i], 
                  initparams = rv$data$inits[i], optimOpt = rv$data$optimOpt[i],
                  methodname = rv$data$methodname[i], mod.name = rv$data$mod_name[i],
-                 vars1 = str_rpl(rv$data$vars1[i]), vars2 = str_rpl(rv$data$vars2[i]), 
+                 vars1 = str_rpl(vars1), vars2 = str_rpl(rv$data$vars2[i]), 
                  priceCol = str_rpl(rv$data$price[i]), expectcatchmodels = exp_list,
                  startloc = str_rpl(rv$data$startloc[i]), polyn = rv$data$polyn[i],
                  spat = str_rpl(rv$data$spat[i]), spatID = str_rpl(rv$data$spatID[i]),
