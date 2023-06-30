@@ -5205,6 +5205,55 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                default.exp = defaults, replace.output = input$exp_replace_output)
       }) 
       
+     
+      ## Merge exp ----
+      exp_r <- reactiveValues(ec_names = NULL)
+      
+      observeEvent(input$exp_tab == 'exp_merge' | input$exp_merge_reload, {
+        
+        req(project$name)
+        
+        exp_r$ec_names <- exp_catch_names(project$name)
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
+      
+      output$exp_merge_ui <- renderUI({
+        
+        tagList(
+          
+          selectInput('exp_merge_date', 'Date column',
+                      choices = date_cols(values$dataset)),
+          
+          selectInput('exp_merge_zoneID', 'Zone Identifier Column',
+                      choices = colnames(values$dataset)),
+          
+          selectizeInput('exp_merge_select', 'Select one or more expected catch matrix to merge',
+                         choices = exp_r$ec_names, multiple = TRUE)
+          
+        )
+      })
+      
+      output$exp_merge_tab <- DT::renderDT(head(values$dataset))
+      
+      observeEvent(input$exp_merge_run, {
+        
+        req(project$name)
+        req(input$exp_merge_select)
+        
+        q_test <- quietly_test(merge_expected_catch, show_msg = TRUE)
+        
+        values$dataset <- 
+          q_test(dat = values$dataset, 
+                 project = project$name, 
+                 zoneID = input$exp_merge_zoneID,
+                 date = input$exp_merge_date,
+                 exp.name = input$exp_merge_select,
+                 new.name = NULL,
+                 ec.table = NULL,
+                 log_fun = TRUE)
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
+      
       #---
       
       # MODEL PARAMETERS ----
@@ -5541,11 +5590,11 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       output$mod_grid_var_ui <- renderUI({
         
-        gridvariables <- c('none')
+        # gridvariables <- c('none')
         
-        add_prompter(selectInput('mod_grid_vars', 
-                                 label = list(gridlab(), icon('info-circle', verify_fa = FALSE)),
-                                 multiple=TRUE, choices = gridvariables, selected = ''),
+        add_prompter(selectizeInput('mod_grid_vars', 
+                                    label = list(gridlab(), icon('info-circle', verify_fa = FALSE)),
+                                    multiple=TRUE, choices = colnames(values$dataset)),
                      
                    position = "bottom", type='info', size='medium', 
                    message = "Generally, variables that vary by zonal alternatives 
