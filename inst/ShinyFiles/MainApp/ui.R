@@ -1068,141 +1068,168 @@ source("map_viewer_app.R", local = TRUE)
       # Expected catch tabset panel ----
                   #---
                   tabPanel("Expected Catch/Revenue", value = "expectedCatch",
-                           sidebarLayout(
-                             sidebarPanel(
-                               tags$button(
-                                 id = 'closeEC',
-                                 type = "button",
-                                 style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                 class = "btn action-button",
-                                 onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                 "Close app"
-                               ),
-                               actionButton("refreshEC", "Refresh data", 
-                                            style = "color: white; background-color: blue;" 
-                               ),
-                               tags$br(),
-                               actionButton("exp_submit", "Run expected catch/revenue function", 
-                                            style="color: #fff; background-color: #6da363; border-color: #800000;"), 
-                               tags$br(),tags$br(), 
-                               actionButton('callTextDownloadEC','Save notes'),
-                               textInput('notesEC', "Notes", value=NULL, 
-                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-
-                               uiOutput('exp_ui'),
-                               
-                               add_prompter(div(
-                                            div(style="display:inline-block; width: 145px;", h4('Temporal options')), 
-                                            div(style="display:inline-block; width: 10px;", icon('info-circle', verify_fa = FALSE))),
-                                          position = "right", type='info', size='large', 
-                                          message = 'Use the entire temporal record of catch or take the timeline of catch into account. 
+                           
+                    tabsetPanel(id = 'exp_tab', 
+                      
+                      tabPanel(title = 'create expected catch', value = 'exp_create', 
+                               sidebarLayout(
+                                 sidebarPanel(
+                                   tags$button(
+                                     id = 'closeEC',
+                                     type = "button",
+                                     style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                     class = "btn action-button",
+                                     onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                     "Close app"
+                                   ),
+                                   actionButton("refreshEC", "Refresh data", 
+                                                style = "color: white; background-color: blue;" 
+                                   ),
+                                   tags$br(),
+                                   actionButton("exp_submit", "Run expected catch/revenue function", 
+                                                style="color: #fff; background-color: #6da363; border-color: #800000;"), 
+                                   tags$br(),tags$br(), 
+                                   actionButton('callTextDownloadEC','Save notes'),
+                                   textInput('notesEC', "Notes", value=NULL, 
+                                             placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                   
+                                   uiOutput('exp_ui'),
+                                   
+                                   add_prompter(div(
+                                     div(style="display:inline-block; width: 145px;", h4('Temporal options')), 
+                                     div(style="display:inline-block; width: 10px;", icon('info-circle', verify_fa = FALSE))),
+                                     position = "right", type='info', size='large', 
+                                     message = 'Use the entire temporal record of catch or take the timeline of catch into account. 
                                   When timeline is considered, catch for a given day is the average for the defined number of days (window), 
                                   shifted to the past by the defined number of days (lag). For example, a window of 3 days and lag of 1 day means we take the 
                                   average catch over three days starting one day prior to the given date.'),
-                               
-                               div(style = "margin-left:19px;font-size: 12px", 
-                                   selectInput('exp_temporal', 'Method to sort time:', 
-                                               choices = c('Entire record of catch (no time)', 
-                                                           'Daily timeline'='daily', 
-                                                           'Sequential order'='sequential'),
-                                               selected = 'daily')),
-                               
-                               uiOutput('exp_temp_var_ui'),
-                               
-                               conditionalPanel("input.exp_temporal!='Entire record of catch (no time)'",
-                                                style = "margin-left:19px;font-size: 12px",
-                                                
-                                                numericInput('exp_temp_year', 'No. of years to go back if expected catch based on previous year(s) catch ', 
-                                                             value=0, min=0, max=''),
-                                                
-                                                numericInput('exp_temp_window', 'Window size (days) to average over', value = 7, min=0),
-                               
-                                                numericInput('exp_temp_lag', 'Time lag (in days) ', value = 0, min=0, max=''),
-                               
-                                                selectInput('exp_calc_method','Expectation calculation:', 
-                                                            choices = c("Standard average"="standardAverage", 
-                                                                        "Simple lag regression of means"="simpleLag")
-                                                            )), #"Weights of regressed groups"="weights"
-                               
-                               conditionalPanel("input.exp_temporal!='Entire record of catch (no time)'", 
-                                                selectInput('exp_lag_method', 'Method to average across time steps', 
-                                                            choices= c("Entire time period"="simple", "Grouped time periods"="grouped")),
-                                                
-                                                h4('Averaging options')),
-                               
-                               conditionalPanel("input.exp_temporal!='Entire record of catch (no time)'", 
-                                  div(style = "margin-left:19px; font-size: 12px", 
-                                      selectInput('exp_empty_catch', 'Replace empty catch with:', 
-                                                  choices = c("NA: NA's removed when averaging"='NA', '0', 
-                                                              'Mean of all catch' ="allCatch", 
-                                                              'Mean of grouped catch' = "groupedCatch"))) 
-                               ),
-                               
-                               h4('Expected Catch/Dummy options'), 
-                               
-                               div(style = "margin-left:19px; font-size: 12px",
-                                   selectInput('empty_expectation', 'Replace empty expected catch with:', 
-                                               choices = c("NA: NA's removed when averaging"='NA', 1e-04, 0))),  
-                               
-                               div(style = "margin-left:19px; font-size: 14px",
-                                   checkboxInput('exp_dummy', 'Output dummy variable for originally missing values?', 
-                                                 value = FALSE)),
-                               
-                               checkboxInput('exp_replace_output', 'Replace previously saved expected catch output with new output', 
-                                             value = FALSE),
-                               ##Inline scripting 
-                               textInput("exprEC", label = "Enter an R expression",
-                                         value = "values$dataset"),
-                               actionButton("runEC", "Run", class = "btn-success"),
-                               div(style = "margin-top: 2em;",
-                                   uiOutput('resultEC'))
-                               ),
-                             
-                             mainPanel(
-                               tags$br(),tags$br(),
-                               h4(tags$b('Compute expected catch for each observation and zone')),
-                               
-                               uiOutput('exp_altc_check'),
-                               
-                               tags$p(
-                                      tags$br(), 
-                                      'Function returns the expected catch or expected revenue data frame based on selected parameters.',
-                                      'Output saved in FishSET database. Previously saved expected catch/revenue output will be written over if the', 
-                                      tags$i('Replace previously saved'), 'box is checked. Leaving the box unchecked will add new output to existing output.',
+                                  
+                                  div(style = "margin-left:19px;font-size: 12px", 
+                                      selectInput('exp_temporal', 'Method to sort time:', 
+                                                  choices = c('Entire record of catch (no time)', 
+                                                              'Daily timeline'='daily', 
+                                                              'Sequential order'='sequential'),
+                                                  selected = 'daily')),
+                                  
+                                  uiOutput('exp_temp_var_ui'),
+                                  
+                                  conditionalPanel("input.exp_temporal!='Entire record of catch (no time)'",
+                                                   style = "margin-left:19px;font-size: 12px",
+                                                   
+                                                   numericInput('exp_temp_year', 'No. of years to go back if expected catch based on previous year(s) catch ', 
+                                                                value=0, min=0, max=''),
+                                                   
+                                                   numericInput('exp_temp_window', 'Window size (days) to average over', value = 7, min=0),
+                                                   
+                                                   numericInput('exp_temp_lag', 'Time lag (in days) ', value = 0, min=0, max=''),
+                                                   
+                                                   selectInput('exp_calc_method','Expectation calculation:', 
+                                                               choices = c("Standard average"="standardAverage", 
+                                                                           "Simple lag regression of means"="simpleLag")
+                                                   )), #"Weights of regressed groups"="weights"
+                                  
+                                  conditionalPanel("input.exp_temporal!='Entire record of catch (no time)'", 
+                                                   selectInput('exp_lag_method', 'Method to average across time steps', 
+                                                               choices= c("Entire time period"="simple", "Grouped time periods"="grouped")),
+                                                   
+                                                   h4('Averaging options')),
+                                  
+                                  conditionalPanel("input.exp_temporal!='Entire record of catch (no time)'", 
+                                                   div(style = "margin-left:19px; font-size: 12px", 
+                                                       selectInput('exp_empty_catch', 'Replace empty catch with:', 
+                                                                   choices = c("NA: NA's removed when averaging"='NA', '0', 
+                                                                               'Mean of all catch' ="allCatch", 
+                                                                               'Mean of grouped catch' = "groupedCatch"))) 
+                                  ),
+                                  
+                                  h4('Expected Catch/Dummy options'), 
+                                  
+                                  div(style = "margin-left:19px; font-size: 12px",
+                                      selectInput('empty_expectation', 'Replace empty expected catch with:', 
+                                                  choices = c("NA: NA's removed when averaging"='NA', 1e-04, 0))),  
+                                  
+                                  div(style = "margin-left:19px; font-size: 14px",
+                                      checkboxInput('exp_dummy', 'Output dummy variable for originally missing values?', 
+                                                    value = FALSE)),
+                                  
+                                  checkboxInput('exp_replace_output', 'Replace previously saved expected catch output with new output', 
+                                                value = FALSE),
+                                  ##Inline scripting 
+                                  textInput("exprEC", label = "Enter an R expression",
+                                            value = "values$dataset"),
+                                  actionButton("runEC", "Run", class = "btn-success"),
+                                  div(style = "margin-top: 2em;",
+                                      uiOutput('resultEC'))
+                                 ),
+                                 
+                                 mainPanel(
+                                   tags$br(),tags$br(),
+                                   h4(tags$b('Compute expected catch for each observation and zone')),
+                                   
+                                   uiOutput('exp_altc_check'),
+                                   
+                                   tags$p(
+                                     tags$br(), 
+                                     'Function returns the expected catch or expected revenue data frame based on selected parameters.',
+                                     'Output saved in FishSET database. Previously saved expected catch/revenue output will be written over if the', 
+                                     tags$i('Replace previously saved'), 'box is checked. Leaving the box unchecked will add new output to existing output.',
                                      
-                                       tags$br(), tags$br(),
-                                      
-                                      h4(tags$b('Default Matrices')), tags$br(),
-                                      'There are four optional matrix settings:', 
-                                      tags$br(), tags$br(),
-                                      tags$b('Recent expected catch:'), 'Expected catch/revenue based on catch of the previous two days (two day window, no lag).', 
-                                      'In this case, there is no grouping, and catch for entire fleet is used.',
-                                      tags$br(), tags$br(), 
-                                      tags$b('Older expected catch:'), 'Expected catch/revenue based on catch for the previous seven days', 
-                                      ' (seven day window) starting two days previously (two day lag). Vessels are grouped (or not) based on group widget.',
-                                      tags$br(), tags$br(),
-                                      tags$b('Oldest expected catch:'), 'Expected catch/revenue based on catch for the previous seven days',
-                                      'starting eight days previously (eight day lag). Vessels are grouped (or not) based on group widget.',
-                                      tags$br(), tags$br(),
-                                      tags$b('Logbook expected catch:'), 'Expected catch/revenue based on catch in the previous 14 days', 
-                                      '(14 day window) starting one year and seven days previously. Can only be used if a group variable is provided.',
-                               ),
+                                     tags$br(), tags$br(),
+                                     
+                                     h4(tags$b('Default Matrices')), tags$br(),
+                                     'There are four optional matrix settings:', 
+                                     tags$br(), tags$br(),
+                                     tags$b('Recent expected catch:'), 'Expected catch/revenue based on catch of the previous two days (two day window, no lag).', 
+                                     'In this case, there is no grouping, and catch for entire fleet is used.',
+                                     tags$br(), tags$br(), 
+                                     tags$b('Older expected catch:'), 'Expected catch/revenue based on catch for the previous seven days', 
+                                     ' (seven day window) starting two days previously (two day lag). Vessels are grouped (or not) based on group widget.',
+                                     tags$br(), tags$br(),
+                                     tags$b('Oldest expected catch:'), 'Expected catch/revenue based on catch for the previous seven days',
+                                     'starting eight days previously (eight day lag). Vessels are grouped (or not) based on group widget.',
+                                     tags$br(), tags$br(),
+                                     tags$b('Logbook expected catch:'), 'Expected catch/revenue based on catch in the previous 14 days', 
+                                     '(14 day window) starting one year and seven days previously. Can only be used if a group variable is provided.',
+                                   ),
+                                   
+                                   checkboxGroupInput('exp_default', 'Select default matrices to include',
+                                                      choices = c('Recent' = 'recent', 'Older' = 'older', 
+                                                                  'Oldest' = 'oldest', 'Logbook' = 'logbook')),
+                                   
+                                   tags$br(), tags$br(),
+                                   
+                                   conditionalPanel("input.exp_temp_var!='none'",
+                                                    tagList(
+                                                      h4(tags$b('Sparsity of observations by time period and zone')),
+                                                      h5('Higher values indicate greater sparsity.'),
+                                                      DT::DTOutput('spars_table'),
+                                                      shinycssloaders::withSpinner(plotOutput('spars_plot'))
+                                                    ))
+                                 )
+                               )
                                
-                               checkboxGroupInput('exp_default', 'Select default matrices to include',
-                                                  choices = c('Recent' = 'recent', 'Older' = 'older', 
-                                                              'Oldest' = 'oldest', 'Logbook' = 'logbook')),
-                                      
-                               tags$br(), tags$br(),
-                                      
-                               conditionalPanel("input.exp_temp_var!='none'",
-                                                tagList(
-                                                  h4(tags$b('Sparsity of observations by time period and zone')),
-                                                  h5('Higher values indicate greater sparsity.'),
-                                                  DT::DTOutput('spars_table'),
-                                                  shinycssloaders::withSpinner(plotOutput('spars_plot'))
-                                                ))
-                             )
-                             )),
+                               ),
+                      
+                      tabPanel(title ='merge expected catch', value = 'exp_merge',
+                        
+                        sidebarLayout(
+                          
+                          sidebarPanel(
+                            actionButton('exp_merge_run', 'Merge expected catch'),
+                            actionButton('exp_merge_reload', 'Refresh expected catch list'),
+                            
+                            uiOutput('exp_merge_ui')
+                          ),
+                          
+                          mainPanel(
+                            
+                            DT::dataTableOutput('exp_merge_tab')
+                            
+                          )
+                        )
+                      )
+                    )
+                  ),
                   #---
       # Model design and Run tabset panel ----
                   #---
