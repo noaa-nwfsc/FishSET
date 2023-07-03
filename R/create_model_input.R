@@ -41,7 +41,7 @@ create_model_input <-
     
     if (!is.null(mod.name)) {
       
-      x <- x_temp[[which(lapply( x_temp , "[[" , "mod.name" ) == mod.name)]]
+      x <- x_temp[[which(lapply( x_temp , "[[" , "mod.name") == mod.name)]]
       
     } else {
       
@@ -69,6 +69,7 @@ create_model_input <-
   mod.name <- unlist(x$mod.name)
   fr <- x$likelihood
     
+  # TODO: updates scaler section so that 
   if (use.scalers) {
     
     if (is.null(scaler.func)) {

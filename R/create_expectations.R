@@ -261,7 +261,7 @@ create_expectations <-
   sscale <- 10^(r - 1)
 
   # exp catch list ----
-
+# TODO: Save key args to list (window, lag/year lag, temporal, etc.)
   ExpectedCatch <- list(
     recent = recent_exp$exp,
     recent_dummy = recent_exp$dummy,

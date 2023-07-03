@@ -6143,6 +6143,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         # Connect to the database
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))
         
+        # TODO: revisit this action
         if (DBI::dbExistsTable(fishset_db, 'modelChosen')) {
           
             table_remove('modelChosen', project$name)
