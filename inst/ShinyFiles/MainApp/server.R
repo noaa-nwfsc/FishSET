@@ -5596,7 +5596,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                     label = list(gridlab(), icon('info-circle', verify_fa = FALSE)),
                                     multiple=TRUE, choices = colnames(values$dataset)),
                      
-                   position = "bottom", type='info', size='medium', 
+                   position = "top", type='info', size='medium', 
                    message = "Generally, variables that vary by zonal alternatives 
                    or are interacted with zonal constants. See Likelihood functions 
                    sections of the FishSET Help Manual for details. Select 'none' 
@@ -6058,30 +6058,30 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       ## Model Fit ----
       
-      mod_fit <- reactive({
+      mod_compare <- reactiveValues(fit = NULL)
+      
+      observeEvent(c(input$mod_sub == 'model_compare', input$mod_reload), {
         
-        input$mod_reload
         fit_tab <- paste0(project$name, 'ModelFit')
         
         if (table_exists(fit_tab, project$name)) {
-          # TODO: improve model_fit() output 
+          
           mf_out <- as.data.frame(t(model_fit(project$name)))
-          tibble::rownames_to_column(mf_out, 'model')
+          mod_compare$fit <- tibble::rownames_to_column(mf_out, 'model')
         }
-      })
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
       
-      # observeEvent(input$mod_reload, {
-      #   mod_fit() <- mod_fit()
-      # },ignoreInit = TRUE)
       
-      # TODO: fix this
       observeEvent(input$mod_delete, {
         
-        temp = mod_fit()
-        if (!is.null(input$mytable_rows_selected)) {
-          temp <- temp[-as.numeric(input$mytable_rows_selected),]
+        temp = mod_compare$fit
+        
+        if (!is.null(input$mod_fit_out_rows_selected)) {
+          temp <- temp[-as.numeric(input$mod_fit_out_rows_selected),]
         }
-        mod_fit(temp)
+        
+        mod_compare$fit <- temp
         session$sendCustomMessage('unbind-DT', 'mod_fit_out')
       })
       
@@ -6096,9 +6096,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # datatable with checkbox
       output$mod_fit_out <- DT::renderDT({
         
-        data.frame(mod_fit(), 
+        data.frame(mod_compare$fit, 
                    select=shinyInput(checkboxInput,
-                                     nrow(mod_fit()),
+                                     nrow(mod_compare$fit),
                                      "cbox_"))
       }, 
       colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  
@@ -6126,45 +6126,15 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       checkedsave <- 
         reactive({
           
-          cbind(model = rownames(isolate(mod_fit())),
-                AIC=isolate(mod_fit()[,1]),
-                AICc=isolate(mod_fit()[,2]),
-                BIC=isolate(mod_fit()[,3]),
-                PseudoR2=isolate(mod_fit()[,4]), 
-                Selected = shinyValue("cbox_", nrow(mod_fit())),
-                Date = shinyDate("cbox_", nrow(mod_fit())) 
+          cbind(model = rownames(isolate(mod_compare$fit)),
+                AIC=isolate(mod_compare$fit[,1]),
+                AICc=isolate(mod_compare$fit[,2]),
+                BIC=isolate(mod_compare$fit[,3]),
+                PseudoR2=isolate(mod_compare$fit[,4]), 
+                Selected = shinyValue("cbox_", nrow(mod_compare$fit)),
+                Date = shinyDate("cbox_", nrow(mod_compare$fit)) 
                 )
           })
-      
-      # Note: this is a simpler version of model output
-      # pull most recent model params when compare tab is selected
-      # observeEvent(input$mod_sub == 'model_compare', {
-      #   
-      #   mod_list <- paste0(project$name, 'ModelOut')
-      #   
-      #   if (table_exists(mod_list, project$name)) {
-      #     
-      #     mod_rv$mod_params <- model_params(mod_list, project$name)
-      #     # TODO: rownames dropped from list, simplify code
-      #     mod_params <- lapply(mod_rv$mod_params, tibble::rownames_to_column, var = 'term')
-      #     names(mod_params) <- names(mod_rv$mod_params)
-      #     mod_rv$mod_params <- mod_params
-      #     
-      #   } else mod_rv$mod_params <- NULL
-      # 
-      # }, ignoreInit = TRUE)
-      
-      # Note: this is a simpler version of model output
-      # output$mod_param_out <- renderUI({
-      #   
-      #   if (!is.null(mod_rv$mod_params)) {
-      #     
-      #     tagList(
-      #       lapply(seq_along(mod_rv$mod_params), 
-      #              function(i) list_to_html(mod_rv$mod_params[i]))
-      #     )
-      #   }
-      # })
       
       # TODO: fix this
       # When the Submit button is clicked, save the form data
