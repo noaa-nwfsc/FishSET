@@ -5209,7 +5209,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       ## Merge exp ----
       exp_r <- reactiveValues(ec_names = NULL)
       
-      observeEvent(input$exp_tab == 'exp_merge' | input$exp_merge_reload, {
+      observeEvent(c(input$exp_tab == 'exp_merge', input$exp_merge_reload), {
         
         req(project$name)
         
@@ -5228,9 +5228,23 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                       choices = colnames(values$dataset)),
           
           selectizeInput('exp_merge_select', 'Select one or more expected catch matrix to merge',
-                         choices = exp_r$ec_names, multiple = TRUE)
+                         choices = exp_r$ec_names, multiple = TRUE),
+          
+          uiOutput('exp_merge_name_ui')
           
         )
+      })
+      
+      output$exp_merge_name_ui <- renderUI({
+        
+        if (!is_value_empty(input$exp_merge_select)) {
+      
+          lapply(seq_along(input$exp_merge_select), function(i) {
+            
+            textInput(paste0('exp_merge_name_', i), 'Name of new column:',
+                      value = input$exp_merge_select[i])
+          })
+        }
       })
       
       output$exp_merge_tab <- DT::renderDT(head(values$dataset))
@@ -5240,6 +5254,10 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         req(project$name)
         req(input$exp_merge_select)
         
+        new_names <- vapply(seq_along(input$exp_merge_select), 
+                            function(i) input[[paste0('exp_merge_name_', i)]],
+                            character(1))
+        
         q_test <- quietly_test(merge_expected_catch, show_msg = TRUE)
         
         values$dataset <- 
@@ -5248,7 +5266,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                  zoneID = input$exp_merge_zoneID,
                  date = input$exp_merge_date,
                  exp.name = input$exp_merge_select,
-                 new.name = NULL,
+                 new.name = new_names,
                  ec.table = NULL,
                  log_fun = TRUE)
         
