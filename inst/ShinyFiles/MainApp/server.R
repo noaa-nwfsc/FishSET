@@ -5972,8 +5972,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         #                         use.scalers = TRUE, scaler.func = NULL)
         
         discretefish_subroutine(project = rv$data$project[1], select.model = FALSE,
-                                explorestarts = FALSE, breakearly = TRUE, space = NULL, dev = NULL,
-                                use.scalers = FALSE, scaler.func = NULL)
+                                explorestarts = FALSE, breakearly = TRUE, space = NULL, 
+                                dev = NULL, use.scalers = FALSE, scaler.func = NULL)
         
         showNotification('Model run is complete. Check the `Compare Models` subtab to view output', 
                          type='message', duration=30)
@@ -5983,12 +5983,40 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       #Add in two more tables for model evaluations
       mod_sum_out <- reactive({
         
+        input$mod_reload
+        
         tab <- paste0(project$name, 'modelOut')
         
         if (table_exists(tab, project$name)) {
           
           model_out_view(tab, project$name)
         }
+      })
+      
+      
+      mod_params_out <- reactive({
+        
+        input$mod_reload
+        
+        mod_tab <- data.frame(Model_name=rep(NA, length(mod_sum_out())),
+                              Covergence=rep(NA, length(mod_sum_out())),
+                              # Stand_Errors=rep(NA, length(mod_sum_out())),
+                              Estimates=rep(NA, length(mod_sum_out())),
+                              Hessian=rep(NA, length(mod_sum_out())))
+        
+        for (i in seq_along(mod_sum_out())) {
+          
+          mod_tab[i,1] <- mod_sum_out()[[i]]$name
+          mod_tab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
+          model_out <- mod_sum_out()[[i]]$OutLogit
+          mod_tab[i,3] <- to_html_table(model_out, rownames = TRUE, digits = 3)
+          
+          hess <- round(mod_sum_out()[[i]]$H1, 5)
+          colnames(hess) <- row.names(model_out)
+          mod_tab[i,4] <- to_html_table(hess, digits = 5)
+        }
+        
+        return(mod_tab)
       })
       
       ## Model Output ----
@@ -5998,68 +6026,41 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # TODO: update to work w/ zonal logit and non-zonal logit output
       output$mod_model_tab <- DT::renderDT({
         
-        if (!is_value_empty(mod_sum_out())) {
-          
-          # TODO: update for zonal logit (logit_avgcat)
-          mod_tab <- data.frame(Model_name=rep(NA, length(mod_sum_out())),
-                                Covergence=rep(NA, length(mod_sum_out())),
-                                # Stand_Errors=rep(NA, length(mod_sum_out())),
-                                Estimates=rep(NA, length(mod_sum_out())),
-                                Hessian=rep(NA, length(mod_sum_out())))
-          
-          for (i in seq_along(mod_sum_out())) {
-            
-            mod_tab[i,1] <- mod_sum_out()[[i]]$name
-            mod_tab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
-            
-            # mod_tab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
-            # mod_tab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
-            
-            # choice_nms <- levels(factor(mod_sum_out()[[i]]$choice.table[, 1]))
-            
-            # par_tab <- round(mod_sum_out()[[i]]$OutLogit, 3)
-            # colnames(par_tab) <- c("estimate", "std_error", "t_value") 
-            # rownames(par_tab) <- choice_nms
-            model_out <- mod_sum_out()[[i]]$OutLogit
-            mod_tab[i,3] <- to_html_table(model_out, rownames = TRUE, digits = 3)
-            
-            hess <- round(mod_sum_out()[[i]]$H1, 5)
-            # colnames(hess) <- choice_nms
-            colnames(hess) <- row.names(model_out)
-            mod_tab[i,4] <- to_html_table(hess, digits = 5)
-          }
-          
-          return(mod_tab)
-        }
+        if (!is_value_empty(mod_sum_out())) mod_params_out()
       }, escape = FALSE)
       
       ## Model Error ----
+      
+      mod_err_out <- reactive({
+        
+        input$mod_reload
+        
+        error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), 
+                                Model_error=rep(NA, length(mod_sum_out())), 
+                                Optimization_error=rep(NA, length(mod_sum_out())))
+        
+        for (i in seq_along(mod_sum_out())) {
+          
+          error_out[i,1] <- mod_sum_out()[[i]]$name
+          error_out[i,2] <- ifelse(is.null(mod_sum_out()[[i]]$errorExplain), 
+                                   'No error reported', toString(mod_sum_out()[[i]]$errorExplain))
+          error_out[i,3] <- ifelse(is.null(mod_sum_out()[[i]]$optoutput$optim_message), 
+                                   'No message reported', toString(mod_sum_out()[[i]]$optoutput$optim_message))
+        }
+        
+        return(error_out)
+      })
+      
       output$mod_error_msg <- DT::renderDT({
         
-        if (!is_value_empty(mod_sum_out())) {
-          
-          error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), 
-                                  Model_error=rep(NA, length(mod_sum_out())), 
-                                  Optimization_error=rep(NA, length(mod_sum_out())))
-          
-          for (i in seq_along(mod_sum_out())) {
-            
-            error_out[i,1] <- mod_sum_out()[[i]]$name
-            error_out[i,2] <- ifelse(is.null(mod_sum_out()[[i]]$errorExplain), 
-                                     'No error reported', toString(mod_sum_out()[[i]]$errorExplain))
-            error_out[i,3] <- ifelse(is.null(mod_sum_out()[[i]]$optoutput$optim_message), 
-                                     'No message reported', toString(mod_sum_out()[[i]]$optoutput$optim_message))
-          }
-          
-          return(error_out)
-        }
+        if (!is_value_empty(mod_sum_out())) mod_err_out()
       })
       
       ## Model Fit ----
       
       mod_fit <- reactive({
         
-        input$reload_btn
+        input$mod_reload
         fit_tab <- paste0(project$name, 'ModelFit')
         
         if (table_exists(fit_tab, project$name)) {
@@ -6069,12 +6070,12 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         }
       })
       
-      # observeEvent(input$reload_btn, {
+      # observeEvent(input$mod_reload, {
       #   mod_fit() <- mod_fit()
       # },ignoreInit = TRUE)
       
       # TODO: fix this
-      observeEvent(input$delete_btn, {
+      observeEvent(input$mod_delete, {
         
         temp = mod_fit()
         if (!is.null(input$mytable_rows_selected)) {
@@ -6167,7 +6168,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       # TODO: fix this
       # When the Submit button is clicked, save the form data
-      observeEvent(input$submit_ms, {
+      observeEvent(input$mod_save_table, {
         req(project$name)
         # Connect to the database
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))
