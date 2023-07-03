@@ -1393,10 +1393,10 @@ source("map_viewer_app.R", local = TRUE)
                                     sidebarLayout(
                                       sidebarPanel(
                                         tags$br(),tags$br(),
-                                        actionButton("reload_btn", "Reload model output"),
-                                        actionButton("delete_btn", "Delete row"),
+                                        actionButton("mod_reload", "Reload model output"),
+                                        actionButton("mod_delete", "Delete row"),
                                         h3(''),
-                                        actionButton("submit_ms", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;"),
+                                        actionButton("mod_save_table", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;"),
                                         tags$br(),tags$br(),
                                         tags$button(
                                           id = 'closeCM',
