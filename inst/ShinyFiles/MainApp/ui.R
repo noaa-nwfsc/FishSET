@@ -1218,6 +1218,10 @@ source("map_viewer_app.R", local = TRUE)
                             actionButton('exp_merge_run', 'Merge expected catch'),
                             actionButton('exp_merge_reload', 'Refresh expected catch list'),
                             
+                            tags$br(),
+                            
+                            p(strong('Merge an expected catch matrix to the primary data')),
+                            
                             uiOutput('exp_merge_ui')
                           ),
                           
