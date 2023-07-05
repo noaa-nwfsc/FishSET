@@ -138,7 +138,7 @@ create_model_input <-
       # use exp.names to pull specified exp matrix
       expected.catch <- expected.catch[exp.names]
       
-      expname <- paste0(fr, '.', paste0(names(expected.catch), collapse = '.'))
+      expname <- paste0(names(expected.catch), collapse = '.')
       is_dummy <- grepl("_dummy", names(expected.catch))
 
       ec_grid <- lapply(seq_along(expected.catch), function(i) {
@@ -150,7 +150,8 @@ create_model_input <-
       names(ec_grid) <- names(expected.catch)
       # add ec matrices to griddat
       griddat <- c(griddat, ec_grid)
-    }
+      
+    } else expname <- NULL
     
   } else { # Do not scale variables
     
@@ -160,10 +161,11 @@ create_model_input <-
     if (!is_value_empty(exp.names)) {
       # use exp.names to pull specified exp matrix
       expected.catch <- expected.catch[exp.names]
-      expname <- paste0(fr, '.', paste0(names(expected.catch), collapse = '.'))
+      expname <- paste0(names(expected.catch), collapse = '.')
       # add ec matrices to griddat
       griddat <- c(griddat, expected.catch)
-    }
+      
+    } else expname <- NULL
   }
   
   if (fr == "logit_correction" & all(is.na(startingloc))) {
@@ -183,7 +185,6 @@ create_model_input <-
       intdat = intdat,
       pricedat = x$epmDefaultPrice
     )
-    expname <- fr
     
   } else if (fr == "logit_correction") {
     
@@ -194,7 +195,6 @@ create_model_input <-
       polyn = as.data.frame(x$polyn),
       distance = list(distance)
     )
-    expname <- fr
     
   } else if (fr == "logit_avgcat") {
     
@@ -202,7 +202,6 @@ create_model_input <-
       griddat = griddat,
       intdat = intdat
     )
-    expname <- fr
     
   } else if (fr == "logit_c") {
     

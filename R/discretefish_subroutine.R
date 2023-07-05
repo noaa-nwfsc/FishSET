@@ -376,7 +376,11 @@ discretefish_subroutine <-
       
       PseudoR2 <- round((LL_start - LL) / LL_start, 3)
       
-      modOutName <- paste0(datamatrix$expname, ".", x_temp[[i]][["mod.name"]])
+      if (!is.null(datamatrix$expname)) {
+        
+        modOutName <- paste0(c(x_temp[[i]][["mod.name"]], datamatrix$expname), collapse = '.')
+        
+      } else modOutName <- x_temp[[i]][["mod.name"]]
       
       if (!exists("mod.out")) {
         
@@ -392,7 +396,7 @@ discretefish_subroutine <-
       }
 
       if (i == 1) {
-        
+        # TODO: changes this once new saving/deleting scheme is in place
         if (table_exists(paste0(project, "ModelFit"), project)) {
           
           table_remove(paste0(project, "ModelFit"), project)
@@ -549,7 +553,8 @@ discretefish_subroutine <-
         )
       } 
       
-      # save model output ----  
+      # save model output ---- 
+        # TODO: change this once new saving/deleting scheme is in place
       raw_sql <- paste0(project, "ModelOut")
       single_sql <- paste0(project, "ModelOut", format(Sys.Date(), format = "%Y%m%d"))
       
