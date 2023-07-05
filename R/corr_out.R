@@ -186,9 +186,9 @@ corr_plot <- function(corr, p.val, show_coef, project) {
   
   p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, 
                                                               vjust = 1, 
-                                                              size = 7, 
+                                                              size = 8, 
                                                               hjust = 1), 
-                          axis.text.y = ggplot2::element_text(size = 7)) + 
+                          axis.text.y = ggplot2::element_text(size = 8)) + 
     ggplot2::coord_fixed()
   
   p <- p + ggplot2::ggtitle(paste("Correlation matrix plot for", project, "data"))
