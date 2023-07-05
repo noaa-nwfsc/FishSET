@@ -1400,10 +1400,16 @@ expand_data <- function(dataset, project, date = NULL, value, sub_date = NULL,
     per_cols <- unique(c(period, group, facet_by))
     
     if ("cal_date" %in% per_cols) add_per <- "day"
+    else if ('weekday' %in% per_cols) add_per <- 'day'
+    else if ('weekday_abv' %in% per_cols) add_per <- 'day'
+    else if ('day_of_month' %in% per_cols) add_per <- 'day'
+    else if ('day_of_year' %in% per_cols) add_per <- 'day'
     else if ("week" %in% per_cols) add_per <- "week"
     else if ("month" %in% per_cols) add_per <- "month"
+    else if ('year_month' %in% per_cols) add_per <- 'month'
+    else if ('month_year' %in% per_cols) add_per <- 'month'
     else if ("year" %in% per_cols) add_per <- "year"
-    else add_per <- period
+    else stop('invalid period used.')
     
     if (!is.null(add_per)) {
       # create full dates
@@ -1613,7 +1619,7 @@ period_check <- function(period, date) {
       
     } else {
       
-      switch(period, year_month = "%Y-%m", month_year = "%Y-%m", year = "%Y",
+      switch(period, year_month = "%Y-%m", month_year = "%m-%Y", year = "%Y",
              month = "%b", week = "%U", weekday = "%a", day_of_month = "%d", 
              day_of_year = "%j", cal_date = NULL)
     }

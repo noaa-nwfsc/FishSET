@@ -219,12 +219,14 @@ species_catch <- function(dat,
     
   } else facet <- facet_no_date
   
-  dataset <- expand_data(dataset, project, date = date, value = species, 
-                               period = period, group = group_no_date, 
-                               facet_by = facet, fun = "sum")
   
   # period ----
   p_code <- period_check(period, date)
+  
+  # add missing values ----
+  dataset <- expand_data(dataset, project, date = date, value = species, 
+                               period = period, group = group_no_date, 
+                               facet_by = facet, fun = "sum")
   
   if (!is.null(period)) {
     if (period != "cal_date") dataset[[period]] <- format(dataset[[date]], p_code)
