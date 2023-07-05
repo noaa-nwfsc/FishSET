@@ -277,7 +277,6 @@ discretefish_subroutine <-
       controlin <- list(trace = detailreport, maxit = mIter, reltol = relTolX, REPORT = reportfreq)
       
       # track run time
-      # if (i >= 4) browser()
       mod_time <- system.time({
         res <- 
           tryCatch({
@@ -322,11 +321,9 @@ discretefish_subroutine <-
           
         } else {
           # TODO: overwrites model data if more than one expected catch matrix is used
-          # x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
           x_ldgcheck <- unserialize(DBI::dbGetQuery(fishset_db, 
                                                     paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
           table_remove(single_sql, project = project)
-          # LDGlobalCheck <- c(x, LDGlobalCheck)
           LDGlobalCheck <- c(x_ldgcheck, LDGlobalCheck)
         }
       }
@@ -587,8 +584,6 @@ discretefish_subroutine <-
     
   # select model app ----
   if (select.model == TRUE) {
-    #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
-    #   print(DT::datatable(t(round(out.mod, 5)), filter='top'))
     
     shiny::runApp(list(
       ui = shiny::basicPage(
@@ -704,7 +699,6 @@ discretefish_subroutine <-
       unserialize(
         DBI::dbGetQuery(fishset_db, 
                         paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
-    # return(out)
   }
 }
 
