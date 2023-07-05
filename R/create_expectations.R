@@ -263,6 +263,9 @@ create_expectations <-
   # exp catch list ----
 # TODO: Save key args to list (window, lag/year lag, temporal, etc.)
   ExpectedCatch <- list(
+    scale = sscale,
+    # TODO: Use alternative approach for determining units
+    units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS"), # units of catch data
     recent = recent_exp$exp,
     recent_dummy = recent_exp$dummy,
     older = older_exp$exp,
@@ -271,11 +274,8 @@ create_expectations <-
     oldest_dummy = oldest_exp$dummy,
     logbook = logbook_exp$exp,
     logbook_dummy = logbook_exp$dummy,
-    user1 = user_exp$exp,
-    user1_dummy = user_exp$dummy,
-    scale = sscale,
-    # TODO: Use alternative approach for determining units
-    units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS") # units of catch data
+    exp1 = user_exp$exp,
+    exp1_dummy = user_exp$dummy
   )
   
   # TODO: only include default options that were actually run
@@ -315,22 +315,38 @@ create_expectations <-
   
   if (replace.output == FALSE) {
     
+    # recursive naming function
+    exp_nm_r <- function(n1, n2, v1) {
+      # check if new names match any existing names
+      if (n1 %in% n2) {
+        # replace digit w/ new value
+        n1 <- gsub('\\d+', v1, n1)
+        
+        if (n1 %in% n2) {
+          # if still matches, add 1 to new values and rerun func
+          v1 <- v1 + 1
+          exp_nm_r(n1, n2, v1)
+          
+        } else n1
+        
+      } else n1
+    }
+    
     if (table_exists(single_sql, project)) {
       # TODO: check if any default options from previous ec run weren't include but 
       # have been added in most recent run. These should be added.
       ExpectedCatchOld <- unserialize_table(single_sql, project)
       
-      ExpectedCatch <- c(ExpectedCatchOld, 
-                         list(user1 = ExpectedCatch$user1, 
-                              user1_dummy = ExpectedCatch$user1_dummy))
-      # update user_exp names
-      user_ind <- grep("user\\d+$", names(ExpectedCatch))
-      i <- length(user_ind)
-      names(ExpectedCatch)[user_ind] <- paste0("user", seq_len(i))
-      # update user_dummy names
-      dum_ind <- grep("user_dummy\\d+", names(ExpectedCatch))
-      i <- length(dum_ind)
-      names(ExpectedCatch)[dum_ind] <- paste0("user_dummy", seq_len(i))
+      exp_names <- names(ExpectedCatchOld)[!names(ExpectedCatchOld) %in% c('scale', 'units')]
+      exp_new_names <- c('exp1', 'exp1_dummy')
+      
+      exp_new_names <- vapply(exp_new_names, 
+                              function(x) exp_nm_r(x, exp_names, 1), 
+                              character(1))
+      
+      ExpectedCatch <- c(ExpectedCatchOld,
+                         setNames(list(ExpectedCatch$exp1, ExpectedCatch$exp1_dummy),
+                                  exp_new_names))
     }
   }
 
