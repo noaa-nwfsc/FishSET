@@ -6161,20 +6161,21 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         # Connect to the database
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))
         
+        mod_chosen <- paste0(project$name, 'ModelChosen')
+        
         # TODO: revisit this action
-        if (DBI::dbExistsTable(fishset_db, 'modelChosen')) {
+        if (table_exists(mod_chosen, project$name)) {
           
-            table_remove('modelChosen', project$name)
+          table_remove(mod_chosen, project$name)
         }
         
-        if (!DBI::dbExistsTable(fishset_db, 'modelChosen')) {
-          
-          DBI::dbExecute(fishset_db, "CREATE TABLE modelChosen(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, PseudoR2 TEXT, Selected TEXT, Date TEXT)")
-        }
+        DBI::dbExecute(fishset_db, paste('CREATE TABLE', mod_chosen, 
+                                         '(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, 
+                                         PseudoR2 TEXT, Selected TEXT, Date TEXT)'))
         # Construct the update query by looping over the data fields
         query <- sprintf(
           "INSERT INTO %s (%s) VALUES %s",
-          "modelChosen", 
+          mod_chosen, 
           paste(names(data.frame(as.data.frame(isolate(checkedsave())))), collapse = ", "),
           paste0("('", matrix(apply(as.data.frame(isolate(checkedsave())), 1, paste, collapse="','"), ncol=1), collapse=',', "')")
         )
