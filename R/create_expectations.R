@@ -278,36 +278,6 @@ create_expectations <-
     exp1_dummy = user_exp$dummy
   )
   
-  # TODO: only include default options that were actually run
-  # Note: need to figure out how to handle case where default was run but not dummy,
-  # then the same default was run again but w/ dummy. Replace older version? Update just dummy?
-  if (FALSE) {
-    
-    ec_out <- ExpectedCatch
-    ExpectedCatch <- list()
-    # index version
-    for (i in seq_along(ec_out)) {
-      
-      if (!is_value_empty(ec_out[[i]])) {
-        
-        ExpectedCatch[[i]] <- ec_out[[i]] 
-        names(ExpectedCatch)[[i]] <- names(ec_out)[[i]]
-      }
-    }
-    # named version (simpler)
-    for (nm in names(ec_out)) {
-      
-      if (!is_value_empty(ec_out[[nm]])) {
-        
-        ExpectedCatch[[nm]] <- ec_out[[nm]] 
-      }
-    }
-    
-    ExpectedCatch$scale <- sscale
-    ExpectedCatch$units <- ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS")
-  }
-  
-
   single_sql <- paste0(project, "ExpectedCatch")
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
