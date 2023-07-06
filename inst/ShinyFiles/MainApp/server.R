@@ -6037,6 +6037,25 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         return(mod_tab)
       })
       
+      ## Model list ----
+      
+      mod_design_list_r <- reactive({
+        
+        req(project$name)
+        req(mod_rv$mod_design)
+        
+        input$mod_list_reload
+        
+        mdl <- model_design_list(project$name)
+        names(mdl) <- model_names(project$name)
+        mdl
+      })
+      
+      output$mod_list_ui <- renderPrint({
+        
+        str(mod_design_list_r())
+        })
+   
       ## Model Output ----
       # TODO: better method/msg for missing convergence msg
       mod_conv <- function(x) if (is_value_empty(x)) '' else x

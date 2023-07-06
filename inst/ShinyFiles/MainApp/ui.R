@@ -1170,7 +1170,7 @@ source("map_viewer_app.R", local = TRUE)
                                    
                                    tags$p(
                                      tags$br(), 
-                                     'Function returns the expected catch or expected revenue data frame based on selected parameters.',
+                                     'This tab creates the expected catch or expected revenue data frame based on selected parameters.',
                                      'Output saved in FishSET database. Previously saved expected catch/revenue output will be written over if the', 
                                      tags$i('Replace previously saved'), 'box is checked. Leaving the box unchecked will add new output to existing output.',
                                      
@@ -1228,7 +1228,6 @@ source("map_viewer_app.R", local = TRUE)
                           mainPanel(
                             
                             DT::dataTableOutput('exp_merge_tab')
-                            
                           )
                         )
                       )
@@ -1392,6 +1391,25 @@ source("map_viewer_app.R", local = TRUE)
                                    DT::DTOutput('mod_param_table')
                                )
                              ))),
+                           
+                           tabPanel('View model list', value = 'model_list',
+                              
+                              sidebarLayout(
+                                  
+                                  sidebarPanel(
+                                    
+                                    actionButton('mod_list_reload', 'Reload model list',
+                                                 style = 'background-color: blue; color: white;'),
+                                    
+                                    
+                                  ),
+                                  
+                                  mainPanel(
+                                    
+                                    verbatimTextOutput('mod_list_ui')
+                                  )
+                                )
+                              ),
                            
                            tabPanel("Compare models", value = 'model_compare',
                                     sidebarLayout(
