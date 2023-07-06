@@ -333,17 +333,30 @@ create_expectations <-
     }
     
     if (table_exists(single_sql, project)) {
-      # TODO: check if any default options from previous ec run weren't include but 
-      # have been added in most recent run. These should be added.
-      ExpectedCatchOld <- unserialize_table(single_sql, project)
       
+      # get previous list
+      ExpectedCatchOld <- unserialize_table(single_sql, project)
+      # names of all matrices
       exp_names <- names(ExpectedCatchOld)[!names(ExpectedCatchOld) %in% c('scale', 'units')]
       exp_new_names <- c('exp1', 'exp1_dummy')
-      
+      # generate new names
       exp_new_names <- vapply(exp_new_names, 
                               function(x) exp_nm_r(x, exp_names, 1), 
                               character(1))
+      # get default exp names
+      exp_names2 <- names(ExpectedCatch)[!names(ExpectedCatch) %in% c('scale', 'units', 'exp1', 'exp1_dummy')]
+      # see if default was run
+      non_empty_exp <- vapply(exp_names2, function(x) !is.null(ExpectedCatch[[x]]), logical(1))
       
+      # update expected catch list 
+      if (any(non_empty_exp)) {
+        
+        for (i in names(non_empty_exp)[non_empty_exp]) {
+          
+          ExpectedCatchOld[[i]] <- ExpectedCatch[[i]]
+        }
+      }
+      # merge previous list into newest list
       ExpectedCatch <- c(ExpectedCatchOld,
                          setNames(list(ExpectedCatch$exp1, ExpectedCatch$exp1_dummy),
                                   exp_new_names))
