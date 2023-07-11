@@ -13,7 +13,7 @@
 #'   order as `exp.name`. 
 #' @param ec.table Optional, the name of a specific expected catch table to use.
 #'   Defaults to `projectnameExpectedCatch`. 
-#' @param log_fun For interal use. Whether to log the function call. 
+#' @param log_fun For internal use. Whether to log the function call. 
 #' @md
 #' @export
 #' @returns Merges an expected catch matrix created using [create_expectations()]

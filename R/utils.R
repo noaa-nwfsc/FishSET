@@ -113,6 +113,7 @@ update_folderpath <- function() {
   pos <- 1
   envir = as.environment(pos)
   assign('folderpath', proj_dir, envir = envir)
+  fs_path
 }
 
 project_exists <- function(project) {
@@ -240,6 +241,7 @@ erase_project <- function(project) {
   if (project_exists(project)) {
     
     unlink(paste0(locproject(),  project), recursive = TRUE)
+    message('Project ', project, ' deleted')
   
   } else {
     
@@ -1398,10 +1400,16 @@ expand_data <- function(dataset, project, date = NULL, value, sub_date = NULL,
     per_cols <- unique(c(period, group, facet_by))
     
     if ("cal_date" %in% per_cols) add_per <- "day"
+    else if ('weekday' %in% per_cols) add_per <- 'day'
+    else if ('weekday_abv' %in% per_cols) add_per <- 'day'
+    else if ('day_of_month' %in% per_cols) add_per <- 'day'
+    else if ('day_of_year' %in% per_cols) add_per <- 'day'
     else if ("week" %in% per_cols) add_per <- "week"
     else if ("month" %in% per_cols) add_per <- "month"
+    else if ('year_month' %in% per_cols) add_per <- 'month'
+    else if ('month_year' %in% per_cols) add_per <- 'month'
     else if ("year" %in% per_cols) add_per <- "year"
-    else add_per <- period
+    else stop('invalid period used.')
     
     if (!is.null(add_per)) {
       # create full dates
@@ -1611,7 +1619,7 @@ period_check <- function(period, date) {
       
     } else {
       
-      switch(period, year_month = "%Y-%m", month_year = "%Y-%m", year = "%Y",
+      switch(period, year_month = "%Y-%m", month_year = "%m-%Y", year = "%Y",
              month = "%b", week = "%U", weekday = "%a", day_of_month = "%d", 
              day_of_year = "%j", cal_date = NULL)
     }
@@ -2513,7 +2521,16 @@ find_datetime <- function(dat) {
   #' @keywords internal
   #' @export
   
-  grep('date|hour|time|year', colnames(dat), ignore.case = TRUE, value = TRUE)
+  c_nms <- grep('date|hour|time|year|day', colnames(dat), 
+                ignore.case = TRUE, value = TRUE)
+  
+  c_class <- vapply(dat, function(d) {
+    
+    any(lubridate::is.Date(d), lubridate::is.POSIXt(d))
+  }, logical(1))
+  
+  out <- names(dat)[c_class]
+  unique(out, c_nms)
 }
 
 find_catch <- function(dat) {

@@ -51,6 +51,7 @@ previous_loc <- function(dat,
                          lon = NULL,
                          lat = NULL) {
   
+  # TODO: add function to app
   # Note: two scenarios for previous area: port is within zone dataset or is not. 
   # if inside a zone, return the zone the port is in. If outside the zone, return the
   # name of the port. Convert variable to character. 
