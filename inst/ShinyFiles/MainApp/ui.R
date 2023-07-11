@@ -218,10 +218,12 @@ source("map_viewer_app.R", local = TRUE)
                              actionButton("delete_tabs_bttn", "Manage Tables",
                                           style = "color: white; background-color: blue;"),
                              
+                             uiOutput('load_manage_proj_ui'), 
+                             
                              actionButton("meta_modal", "Metadata",
                                           style = "color: white; background-color: blue;"),
                              
-                             conditionalPanel("input.loadDat > 0", # update to a more reliable method
+                             conditionalPanel("input.loadDat > 0", # TODO: update to a more reliable method
                                 actionButton("confid_modal", "Confidentiality",
                                              style = "color: white; background-color: blue;"),
                                 actionButton("reset_modal", "Reset log",
@@ -232,15 +234,17 @@ source("map_viewer_app.R", local = TRUE)
                              tags$br(), tags$br(),
                              fluidRow(
                                
+                               actionButton('change_fs_folder', 'Change FishSET Folder',
+                                            style = "color: white; background-color: blue;"), 
                                uiOutput('fish_folder_path'), 
                               
                                 uiOutput("projects"), # define project name
                                 
                                column(4, 
-                                      radioButtons('loadmainsource', "Source primary data from:",
+                                      radioButtons('load_main_src', "Source primary data from:",
                                                    choices=c('Upload new file','FishSET database'), 
                                                    selected='Upload new file', inline=TRUE)
-                                      # uiOutput('main1')
+                                      
                                       ),
                                uiOutput('main_upload')),
                            
@@ -248,7 +252,7 @@ source("map_viewer_app.R", local = TRUE)
                                column(width = 8, offset = 2,
                                       uiOutput('ui.action2'))),
                              fluidRow(
-                               column(4, radioButtons('loadportsource', "Source port data from:", 
+                               column(4, radioButtons('load_port_src', "Source port data from:", 
                                                       choices=c('Upload new file','FishSET database'), 
                                                        inline=TRUE)),
                                uiOutput('port_upload')
@@ -263,7 +267,7 @@ source("map_viewer_app.R", local = TRUE)
                              uiOutput("PortAddtableMerge"),
                              
                              fluidRow(
-                               column(4, radioButtons('loadspatialsource', "Source spatial data from:", 
+                               column(4, radioButtons('load_spat_src', "Source spatial data from:", 
                                                       choices=c('Upload new file', 'FishSET database'), 
                                                       selected='Upload new file', inline=TRUE)),
                                radioButtons('filefolder', "", choices=c("Upload single file", "Upload shape files"), 
@@ -272,7 +276,7 @@ source("map_viewer_app.R", local = TRUE)
                              ),
                              
                              fluidRow(
-                                 column(4, radioButtons('loadgridsource', "Source gridded data from:", 
+                                 column(4, radioButtons('load_grid_src', "Source gridded data from:", 
                                                         choices=c('Upload new file','FishSET database'), 
                                                         selected='Upload new file', inline=TRUE)),
                                  uiOutput('grid_upload')
@@ -283,7 +287,7 @@ source("map_viewer_app.R", local = TRUE)
                              tags$br(),
                             
                              fluidRow(
-                               column(4, radioButtons('loadauxsource', "Source auxiliary data from:", 
+                               column(4, radioButtons('load_aux_src', "Source auxiliary data from:", 
                                                       choices=c('Upload new file','FishSET database'), 
                                                       selected='Upload new file', inline=TRUE)),
                                uiOutput('aux_upload')
@@ -835,6 +839,7 @@ source("map_viewer_app.R", local = TRUE)
                                conditionalPanel("input.VarCreateTop=='Spatial functions'",
                                                 selectInput('dist','Functions', 
                                                             choices = c('Assign observations to zones'='zone', 
+                                                                        'Zonal centroid' = 'zone_cent',
                                                                         'Fishery centroid' = 'fish_cent',
                                                                         'Distance between two points'='create_dist_between',
                                                                         'Midpoint location (lon/lat) for each haul'='create_mid_haul',
@@ -848,7 +853,7 @@ source("map_viewer_app.R", local = TRUE)
                                conditionalPanel("input.trip!='haul_to_trip'||input.trip!='trip_centroid'", 
                                                 
                                                 add_prompter(
-                                                   textInput('varname', list('Name of new variable', icon('info-circle')), 
+                                                   textInput('varname', list('Name of new variable', icon('info-circle', verify_fa = FALSE)), 
                                                              value = '', placeholder = ''),
                                                    position = "bottom", type='info', size='medium', 
                                                    message = "If left empty, default names will be supplied.")),
@@ -942,6 +947,10 @@ source("map_viewer_app.R", local = TRUE)
                                   uiOutput('zone_assign_2')
                                                 ),
                                
+                               conditionalPanel(condition = "input.VarCreateTop=='Spatial functions'&input.dist=='zone_cent'",
+                                                uiOutput('zone_cent_ui')
+                                                ),
+                               
                                conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='fish_cent'",
                                   uiOutput('fish_weight_cent'), 
                                   uiOutput('fish_weight_cent_2'), 
@@ -1014,31 +1023,24 @@ source("map_viewer_app.R", local = TRUE)
                            sidebarLayout(
                              sidebarPanel(
                                tags$button(
-                                 id = 'closeAlt',
+                                 id = 'altc_close',
                                  type = "button",
                                  style="color: #fff; background-color: #FF6347; border-color: #800000;",
                                  class = "btn action-button",
                                  onclick = "setTimeout(function(){window.close();},500);",  # close browser
                                  "Close app"
                                ),
+                               
                                actionButton("refreshZ", "Refresh data", 
                                             style = "color: white; background-color: blue;" 
                                ),
-                               #runcodeUI (code='', type='ace'),
-                               # actionButton("eval", "Evaluate"),
-                               radioButtons('choiceTab', '', choices=c( #basic parameters to populate elsewhere like catch, price
-                                                                       'Select variables that define alternative fishing choices'='distm',
-                                                                       #'Calculate zonal centroid'='zone', #calculate zonal centroid
-                                                                       'Select catch and price variables'='primary')),#, #calculate distance matrix
-                               conditionalPanel("input.choiceTab=='distm'",
-                                                actionButton('saveALT','Save choices', style = "color: white; background-color: green;")),
                                
-                               #conditionalPanel("input.choiceTab=='zone'",
-                               #                 actionButton('savecentroid','Calculate zonal centroid', style = "color: white; background-color: green;")),
+                               actionButton('altc_save','Save choices', style = "color: white; background-color: green;"), 
+                                              
                                actionButton('callTextDownloadAlt','Save notes'),
-                               textInput('notesAltc', "Notes", value=NULL, 
+                               textInput('notesAltc', "Notes", value = NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                               ##Inline scripting 
+                               # Inline scripting 
                                textInput("exprZ", label = "Enter an R expression",
                                          value = "values$dataset"),
                                actionButton("runZ", "Run", class = "btn-success"),
@@ -1046,148 +1048,197 @@ source("map_viewer_app.R", local = TRUE)
                                    uiOutput('resultZ')
                                )
                              ),
+                             
                              mainPanel(
-                               #BASELINE
-                               verbatimTextOutput("output"),
-                              
-                               #--------#
-                               #CENTROID
-                               #uiOutput('conditionalInput2'),
-                               #uiOutput('cond2'),
-                               #runs assignment column and find_centroid functions
-                               #--------#
-                               #DISTANCE MATRIX
-                               uiOutput('conditionalInput3a'),
-                               uiOutput('distZonea'),
-                               uiOutput('distZoneb'),
-                              
-                              uiOutput('conditionalInput3'),
+                               
+                              uiOutput('altc_ui'),
                               
                               div(style="display: inline-block;vertical-align:top; width: 500px;",
-                                   conditionalPanel("input.choiceTab=='distm'",
-                                                    plotOutput('zoneIDNumbers_plot'))),
+                                  
+                                  plotOutput('altc_zone_plot')),
+                              
                                div(style="display: inline-block;vertical-align:top; width: 160px;",
-                                   conditionalPanel("input.choiceTab=='distm'", 
-                                                    textOutput('zoneIDText'))),
-                               #--------# 
-                               uiOutput('conditionalInput1')
-                               #EXPECTED CATCH
+                                   
+                                   textOutput('zoneIDText')),
+                              
+                              plotOutput('zone_include_plot')
                              )
                            )),
                   #---
       # Expected catch tabset panel ----
                   #---
                   tabPanel("Expected Catch/Revenue", value = "expectedCatch",
-                           sidebarLayout(
-                             sidebarPanel(
-                               tags$button(
-                                 id = 'closeEC',
-                                 type = "button",
-                                 style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                 class = "btn action-button",
-                                 onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                 "Close app"
-                               ),
-                               actionButton("refreshEC", "Refresh data", 
-                                            style = "color: white; background-color: blue;" 
-                               ),
-                               tags$br(),
-                               actionButton("submitE", "Run expected catch/revenue function", style="color: #fff; background-color: #6da363; border-color: #800000;"), 
-                               tags$br(),tags$br(), 
-                               actionButton('callTextDownloadEC','Save notes'),
-                               textInput('notesEC', "Notes", value=NULL, 
-                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-
-                               uiOutput('selectcp'),
-                               #h5('Compute expectations for the entire fleet or by defined groups'),
-                               
-                               add_prompter(div(
-                                            div(style="display:inline-block; width: 145px;", h4('Temporal options')), 
-                                            div(style="display:inline-block; width: 10px;", icon('info-circle'))),
-                                          position = "right", type='info', size='large', 
-                                          message = 'Use the entire temporal record of catch or take the timeline of catch into account. 
+                           
+                    tabsetPanel(id = 'exp_tab', 
+                      
+                      tabPanel(title = 'create expected catch', value = 'exp_create', 
+                               sidebarLayout(
+                                 sidebarPanel(
+                                   tags$button(
+                                     id = 'closeEC',
+                                     type = "button",
+                                     style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                     class = "btn action-button",
+                                     onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                     "Close app"
+                                   ),
+                                   actionButton("refreshEC", "Refresh data", 
+                                                style = "color: white; background-color: blue;" 
+                                   ),
+                                   tags$br(),
+                                   actionButton("exp_submit", "Run expected catch/revenue function", 
+                                                style="color: #fff; background-color: #6da363; border-color: #800000;"), 
+                                   tags$br(),tags$br(), 
+                                   actionButton('callTextDownloadEC','Save notes'),
+                                   textInput('notesEC', "Notes", value=NULL, 
+                                             placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                   
+                                   uiOutput('exp_ui'),
+                                   
+                                   add_prompter(div(
+                                     div(style="display:inline-block; width: 145px;", h4('Temporal options')), 
+                                     div(style="display:inline-block; width: 10px;", icon('info-circle', verify_fa = FALSE))),
+                                     position = "right", type='info', size='large', 
+                                     message = 'Use the entire temporal record of catch or take the timeline of catch into account. 
                                   When timeline is considered, catch for a given day is the average for the defined number of days (window), 
                                   shifted to the past by the defined number of days (lag). For example, a window of 3 days and lag of 1 day means we take the 
                                   average catch over three days starting one day prior to the given date.'),
-                               div(style = "margin-left:19px;font-size: 12px", 
-                                   selectInput('temporal', 'Method to sort time:', c('Entire record of catch (no time)', 'Daily timeline'='daily', 'Sequential order'='sequential'))),
-                               uiOutput('expcatch'),
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'",
-                                                style = "margin-left:19px;font-size: 12px",
-                                                  numericInput('temp_year', 'No. of years to go back if expected catch based on from previous year(s) catch ', value=0, min=0, max='')),
-                               #if(input$temporal!='Entire record of catch (no time)') {h5('Moving window averaging parameters')},
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'",
-                                                style = "margin-left:19px;font-size: 12px", 
-                                                  numericInput('temp_window', 'Window size (days) to average over', value = 7, min=0)),
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
-                                                style = "margin-left:19px;font-size: 12px", 
-                                                  numericInput('temp_lag', 'Time lag (in days) ', value = 0, min=0, max='')),
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
-                                                style = "margin-left:19px;font-size: 12px", 
-                                                  selectInput('calc_method','Expectation calculation:', 
-                                                            choices = c("Standard average"="standardAverage", 
-                                                                        "Simple lag regression of means"="simpleLag"#, 
-                                                                        #"Weights of regressed groups"="weights"
-                                                            ))), 
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
-                                                selectInput('lag_method', 'Method to average across time steps', 
-                                                            choices= c("Entire time period"="simple", "Grouped time periods"="grouped"))),
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
-                                      h4('Averaging options')),
-                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
-                                  div(style = "margin-left:19px; font-size: 12px", 
-                                      selectInput('empty_catch', 'Replace empty catch with:', 
-                                                  choices = c("NA: NA's removed when averaging"='NA', '0', 'Mean of all catch' ="allCatch", 
-                                                              'Mean of grouped catch' = "groupedCatch"))) 
-                               ),#h6("Note: Na's removed when averaging"), 
-                               h4('Expected Catch/Dummy options'), 
-                               div(style = "margin-left:19px; font-size: 12px",
-                                   selectInput('empty_expectation', 'Replace empty expected catch with:', 
-                                               choices = c("NA: NA's removed when averaging"='NA', 1e-04, 0))),  
-                               #h6("Note: Na's removed when averaging"),
-                               div(style = "margin-left:19px; font-size: 14px",
-                                   checkboxInput('dummy_exp', 'Output dummy variable for originally missing values?', value=FALSE)),
-                               checkboxInput('replace_output', 'Replace previously saved expected catch output with new output', value=FALSE),
-                               ##Inline scripting 
-                               textInput("exprEC", label = "Enter an R expression",
-                                         value = "values$dataset"),
-                               actionButton("runEC", "Run", class = "btn-success"),
-                               div(style = "margin-top: 2em;",
-                                   uiOutput('resultEC')
+                                  
+                                  div(style = "margin-left:19px;font-size: 12px", 
+                                      selectInput('exp_temporal', 'Method to sort time:', 
+                                                  choices = c('Entire record of catch (no time)', 
+                                                              'Daily timeline'='daily', 
+                                                              'Sequential order'='sequential'),
+                                                  selected = 'daily')),
+                                  
+                                  uiOutput('exp_temp_var_ui'),
+                                  
+                                  conditionalPanel("input.exp_temporal!='Entire record of catch (no time)'",
+                                                   style = "margin-left:19px;font-size: 12px",
+                                                   
+                                                   numericInput('exp_temp_year', 'No. of years to go back if expected catch based on previous year(s) catch ', 
+                                                                value=0, min=0, max=''),
+                                                   
+                                                   numericInput('exp_temp_window', 'Window size (days) to average over', value = 7, min=0),
+                                                   
+                                                   numericInput('exp_temp_lag', 'Time lag (in days) ', value = 0, min=0, max=''),
+                                                   
+                                                   selectInput('exp_calc_method','Expectation calculation:', 
+                                                               choices = c("Standard average"="standardAverage", 
+                                                                           "Simple lag regression of means"="simpleLag")
+                                                   )), #"Weights of regressed groups"="weights"
+                                  
+                                  conditionalPanel("input.exp_temporal!='Entire record of catch (no time)'", 
+                                                   selectInput('exp_lag_method', 'Method to average across time steps', 
+                                                               choices= c("Entire time period"="simple", "Grouped time periods"="grouped")),
+                                                   
+                                                   h4('Averaging options')),
+                                  
+                                  conditionalPanel("input.exp_temporal!='Entire record of catch (no time)'", 
+                                                   div(style = "margin-left:19px; font-size: 12px", 
+                                                       selectInput('exp_empty_catch', 'Replace empty catch with:', 
+                                                                   choices = c("NA: NA's removed when averaging"='NA', '0', 
+                                                                               'Mean of all catch' ="allCatch", 
+                                                                               'Mean of grouped catch' = "groupedCatch"))) 
+                                  ),
+                                  
+                                  h4('Expected Catch/Dummy options'), 
+                                  
+                                  div(style = "margin-left:19px; font-size: 12px",
+                                      selectInput('empty_expectation', 'Replace empty expected catch with:', 
+                                                  choices = c("NA: NA's removed when averaging"='NA', 1e-04, 0))),  
+                                  
+                                  div(style = "margin-left:19px; font-size: 14px",
+                                      checkboxInput('exp_dummy', 'Output dummy variable for originally missing values?', 
+                                                    value = FALSE)),
+                                  
+                                  checkboxInput('exp_replace_output', 'Replace previously saved expected catch output with new output', 
+                                                value = FALSE),
+                                  ##Inline scripting 
+                                  textInput("exprEC", label = "Enter an R expression",
+                                            value = "values$dataset"),
+                                  actionButton("runEC", "Run", class = "btn-success"),
+                                  div(style = "margin-top: 2em;",
+                                      uiOutput('resultEC'))
+                                 ),
+                                 
+                                 mainPanel(
+                                   tags$br(),tags$br(),
+                                   h4(tags$b('Compute expected catch for each observation and zone')),
+                                   
+                                   uiOutput('exp_altc_check'),
+                                   
+                                   tags$p(
+                                     tags$br(), 
+                                     'This tab creates the expected catch or expected revenue data frame based on selected parameters.',
+                                     'Output saved in FishSET database. Previously saved expected catch/revenue output will be written over if the', 
+                                     tags$i('Replace previously saved'), 'box is checked. Leaving the box unchecked will add new output to existing output.',
+                                     
+                                     tags$br(), tags$br(),
+                                     
+                                     h4(tags$b('Default Matrices')), tags$br(),
+                                     'There are four optional matrix settings:', 
+                                     tags$br(), tags$br(),
+                                     tags$b('Recent expected catch:'), 'Expected catch/revenue based on catch of the previous two days (two day window, no lag).', 
+                                     'In this case, there is no grouping, and catch for entire fleet is used.',
+                                     tags$br(), tags$br(), 
+                                     tags$b('Older expected catch:'), 'Expected catch/revenue based on catch for the previous seven days', 
+                                     ' (seven day window) starting two days previously (two day lag). Vessels are grouped (or not) based on group widget.',
+                                     tags$br(), tags$br(),
+                                     tags$b('Oldest expected catch:'), 'Expected catch/revenue based on catch for the previous seven days',
+                                     'starting eight days previously (eight day lag). Vessels are grouped (or not) based on group widget.',
+                                     tags$br(), tags$br(),
+                                     tags$b('Logbook expected catch:'), 'Expected catch/revenue based on catch in the previous 14 days', 
+                                     '(14 day window) starting one year and seven days previously. Can only be used if a group variable is provided.',
+                                   ),
+                                   
+                                   checkboxGroupInput('exp_default', 'Select default matrices to include',
+                                                      choices = c('Recent' = 'recent', 'Older' = 'older', 
+                                                                  'Oldest' = 'oldest', 'Logbook' = 'logbook')),
+                                   
+                                   tags$br(), tags$br(),
+                                   
+                                   conditionalPanel("input.exp_temp_var!='none'",
+                                                    tagList(
+                                                      h4(tags$b('Sparsity of observations by time period and zone')),
+                                                      h5('Higher values indicate greater sparsity.'),
+                                                      DT::DTOutput('spars_table'),
+                                                      shinycssloaders::withSpinner(plotOutput('spars_plot'))
+                                                    ))
+                                 )
                                )
+                               
                                ),
-                             mainPanel(
-                               tags$br(),tags$br(),
-                               tags$p('Compute expected catch for each observation and zone.', 
-                                      tags$br(), tags$br(),
-                                      'Function returns the expected catch or expected revenue data frame based on selected parameters.',
-                                      tags$br(), tags$br(),
-                                      icon('exclamation-circle'), tags$b('Three default matrices are also all computed:'),  icon('exclamation-circle'),
-                                      tags$br(),
-                                      tags$b('Short-term expected catch:'), 'Expected catch/revenue based on catch of the previous two days.',
-                                      tags$br(),
-                                      tags$b('Medium-term expected catch:'), 'Expected catch/revenue based on catch for the previous seven days.', 
-                                      tags$br(),
-                                      tags$b('Long-term expected catch:'), 'Expected catch/revenue based on catch in the previous year.', 
-                                      tags$br(), tags$br(),
-                                      'Output saved in FishSET database. Previously saved expected catch/revenue output will be written over if the', 
-                                      tags$i('Replace previously saved'), 'box is checked. Leaving the box unchecked will add new output to existing output.'),
-                               tags$br(), tags$br(),
-                               conditionalPanel("input.temp_var!='none'",
-                                                tagList(
-                                     h4('Sparsity of observations by time period and zone.'),
-                                     h5('Higher values indicate greater sparsity.'),
-                                    DT::DTOutput('spars_table'),
-                                    shinycssloaders::withSpinner(plotOutput('spars_plot'))
-                                                ))
-                             )
-                             )),
+                      
+                      tabPanel(title ='merge expected catch', value = 'exp_merge',
+                        
+                        sidebarLayout(
+                          
+                          sidebarPanel(
+                            actionButton('exp_merge_run', 'Merge expected catch'),
+                            actionButton('exp_merge_reload', 'Refresh expected catch list'),
+                            
+                            tags$br(),
+                            
+                            p(strong('Merge an expected catch matrix to the primary data')),
+                            
+                            uiOutput('exp_merge_ui')
+                          ),
+                          
+                          mainPanel(
+                            
+                            DT::dataTableOutput('exp_merge_tab')
+                          )
+                        )
+                      )
+                    )
+                  ),
                   #---
       # Model design and Run tabset panel ----
                   #---
                    tabPanel("Models", value = "models",
-                            tabsetPanel(
-                                tabPanel("Run model(s)",
+                            tabsetPanel(id = 'mod_sub',
+                                tabPanel("Run model(s)", value = 'model_run',
                            sidebarLayout(
                              sidebarPanel(
                                tags$button(
@@ -1203,18 +1254,30 @@ source("map_viewer_app.R", local = TRUE)
                                # Models can't be run if final dataset not detected
                                uiOutput("disableMsg"),
                                
-                                 actionButton("addModel", "Save model and add new model", 
-                                              style="color: #fff; background-color: #337ab7; border-color: #800000;"),
+                               # TODO: consider adding final data save bttn to models tab
+                               # actionButton("save_final_modal", "Save final table to FishSET database",
+                               #              style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+                               
+                              
                                
                                tags$br(),
-                               conditionalPanel("input.addModel!='0'",
-                                  shinyjs::disabled(
-                                   actionButton("submit_modal", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;")
-                                  )
-                               ),
+                               
+                               # conditionalPanel("input.mod_add!='0'",
+                               #                  
+                               #    shinyjs::disabled(
+                                   # actionButton("submit_modal", "Run model checks",
+                                   #              style="color: #fff; background-color: #6da363; border-color: #800000;"),
+                               #    )
+                               # ),
+                               
+                               actionButton("mod_check", "Run model checks",
+                                            style="color: #fff; background-color: #6da363; border-color: #800000;"), 
+                               uiOutput('mod_add_run_bttn'),
+                               
                                tags$br(),tags$br(),
                                tags$p(tags$strong("More information"), tags$br(),
                                       "Model parameter table is editable. Double click a cell to edit."),
+                               
                                actionButton('callTextDownloadModels','Save notes'),
                                textInput('notesModel', "Notes", value=NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
@@ -1224,42 +1287,90 @@ source("map_viewer_app.R", local = TRUE)
                                actionButton("runM", "Run", class = "btn-success"),
                                div(style = "margin-top: 2em;", uiOutput('resultM'))
                              ),
+                             
                              mainPanel(
                                div(id = "form",
-                                   #h4('Alternative choice matrix parameters'),
-                                   #selectInput("alternatives", label = "Create alternative choice matrix from",
-                                   #            choices = list("Loaded data" = 'loadedData', "Grid data" = "griddedData"),
-                                  #             selected = 'loadedData'),
-                                   #uiOutput('latlonB'),
-                                   #uiOutput('portmd'),
+                                   
                                    h4('Likelihood function'),
+                                   
                                    selectInput("model", label = "",
-                                               choices = list("Conditional logit" = 'logit_c', "Average catch" = "logit_avgcat", "Logit Dahl correction" = "logit_correction",
-                                                              'EPM normal'='epm_normal', 'EPM lognormal'='epm_lognormal', 'EPM Weibull'='epm_weibull'),
+                                               choices = list("Conditional logit" = 'logit_c', 
+                                                              "Average catch" = "logit_avgcat", 
+                                                              "Logit Dahl correction" = "logit_correction",
+                                                              'EPM normal'='epm_normal', 
+                                                              'EPM lognormal'='epm_lognormal', 
+                                                              'EPM Weibull'='epm_weibull'),
                                                selected = 'logit_c'),
-                                   selectInput('optmeth', 'Optimization method', 
-                                               choices=c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN"), selected='BFGS'),
+                                   
+                                   uiOutput('mod_name_ui'), 
+                                   
+                                   selectInput('mod_optmeth', 'Optimization method', 
+                                               choices=c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN"), 
+                                               selected='BFGS'),
+                                   
                                    h4('Select variables to include in model'),
-                                   div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('indvariables')),
-                                   div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('gridvariables')),
-                                   uiOutput('catch_out'),
-                                   uiOutput('logit_correction_extra'),
-                                   uiOutput('logit_c_extra'),
+                                   
+                                   div(style="display: inline-block;vertical-align:top; width: 250px;", 
+                                       uiOutput('mod_ind_var_ui')),
+                                   
+                                   div(style="display: inline-block;vertical-align:top; width: 250px;", 
+                                       uiOutput('mod_grid_var_ui')),
+                                   
+                                   uiOutput('mod_catch_out'),
+                                   uiOutput('mod_logit_correction'),
+                                   
+                                   conditionalPanel(condition="input.model=='logit_c'",
+                                                    
+                                                    add_prompter(
+                                                      
+                                                      h4(list('Select Expected Catch Matrix'), icon('info-circle', verify_fa = FALSE)),
+                                                      position = "bottom", type='info', size='medium',
+                                                      message = 'Required for conditional logit. 
+                                                      A model will be run for each additional entry.
+                                                      Do not leave any entries blank. Click "Reset"
+                                                      button to clear the list.
+                                                      '
+                                                      ),
+                                                    
+                                                    tags$br(),
+                                                    
+                                                    actionButton('mod_add_exp', 'Add expected catch entry',
+                                                                 style = 'background-color: blue; color: white;'),
+                                                    
+                                                    actionButton('mod_add_exp_reset', 'Reset',
+                                                                 style = 'background-color: red; color: white;'),
+                                                    
+                                                    uiOutput('mod_select_exp_ui')
+                                   ),
+                                   
+                                   uiOutput('mod_spat_ui'),
+                                   
+                                   add_prompter(
+                                     
+                                     textInput('mod_spat_crs', label = list('EPSG code', icon('info-circle', verify_fa = FALSE)),
+                                               value = '', placeholder = 'e.g. 4326'),
+                                     position = "bottom", type='info', size='medium', 
+                                     message = 'The EPSG code that determines the coordinate 
+                                     reference system (CRS) to use when creating the distance 
+                                     matrix. Defaults to WGS 84 (EPSG 4326).'
+                                   ),
+                                   
                                    h3('Model parameters'),
                                    
                                    fluidRow(
                                      h4("Optimization options"),
                                      splitLayout(cellWidths = c("22%", "22%", "22%", "22%"),
-                                                 numericInput("mIter", "max iterations", value = 100000),
-                                                 numericInput("relTolX", "tolerance of x", value = 0.00000001),
-                                                 numericInput("reportfreq", "report frequency", value = 1),
-                                                 numericInput("detailreport", "detailed report", value = 1, max=6)
+                                                 numericInput("mod_iter", "max iterations", value = 100),
+                                                 numericInput("mod_relTolX", "tolerance of x", value = 0.00000001),
+                                                 numericInput("mod_report_freq", "report frequency", value = 1),
+                                                 numericInput("mod_detail_report", "detailed report", value = 1, max=6)
                                      )
                                    ),
+                                   
                                    fluidRow(
                                      add_prompter(div(
                                        div(style="display: inline-block; width: 145px ;", h4('Initial parameters')), 
-                                       div(style="display: inline-block; width: 5px ;", icon('info-circle'))),
+                                       div(style="display: inline-block; width: 5px ;", icon('info-circle', verify_fa = FALSE))),
                                         position = "bottom", type='info', size='large', 
                                         message = tags$p("Starting values can be changed. 
                                         The function will explore the parameter space to find better starting values. 
@@ -1268,24 +1379,46 @@ source("map_viewer_app.R", local = TRUE)
                                         Logit correction:  marginal utility from catch, catch-function parameters, polynomial starting parameters, travel-distance parameters, catch sigma
                                         EPM likelihood functions:  catch-function parameters, travel-distance parameters, catch sigma(s), scale parameter 
                                         See Likelihood section of Help Manual for more details.")),
-                                     uiOutput('paramsourcechoose'),
+                                     
+                                     uiOutput('mod_param_choose'),
+                                     
                                      conditionalPanel(condition="input.initchoice=='prev'",
-                                            uiOutput("paramtable")),
-                                     uiOutput("Inits")
-                                   
+                                            uiOutput("mod_param_table_ui")),
+                                     
+                                     uiOutput("mod_inits_ui")
                                    ),
                                    
                                    DT::DTOutput('mod_param_table')
                                )
                              ))),
-                           tabPanel("Compare models",
+                           
+                           tabPanel('View model list', value = 'model_list',
+                              
+                              sidebarLayout(
+                                  
+                                  sidebarPanel(
+                                    
+                                    actionButton('mod_list_reload', 'Reload model list',
+                                                 style = 'background-color: blue; color: white;'),
+                                    
+                                    
+                                  ),
+                                  
+                                  mainPanel(
+                                    
+                                    verbatimTextOutput('mod_list_ui')
+                                  )
+                                )
+                              ),
+                           
+                           tabPanel("Compare models", value = 'model_compare',
                                     sidebarLayout(
                                       sidebarPanel(
                                         tags$br(),tags$br(),
-                                        actionButton("reload_btn", "Reload model output"),
-                                        actionButton("delete_btn", "Delete row"),
+                                        actionButton("mod_reload", "Reload model output"),
+                                        actionButton("mod_delete", "Delete row"),
                                         h3(''),
-                                        actionButton("submit_ms", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;"),
+                                        actionButton("mod_save_table", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;"),
                                         tags$br(),tags$br(),
                                         tags$button(
                                           id = 'closeCM',
@@ -1296,17 +1429,18 @@ source("map_viewer_app.R", local = TRUE)
                                           "Close window"
                                         ), width=2),
                                       mainPanel(
-                                        h3('Model Output'),
+                                        h4('Model Output'),
+                                        DT::DTOutput('mod_model_tab'),
+                                        # uiOutput('mod_param_out'), 
+                                        
                                         h4("Measures of fit"),
-                                        DT::DTOutput("mytable"),
+                                        DT::DTOutput("mod_fit_out"),
                                         tags$script(HTML("Shiny.addCustomMessageHandler('unbind-DT', function(id) {
                                                          Shiny.unbindAll($('#'+id).find('table').DataTable().table().node());})")),
-                                        tags$br(),
-                                        h4('Model output (convergence, SE, Hessian)'),
-                                        DT::DTOutput('modeltab'),
+                                       
                                         tags$br(),
                                         h4('Error messages'),
-                                        DT::DTOutput('errortab'),
+                                        DT::DTOutput('mod_error_msg'),
                                         width=10
                                         )
                                       )  )

@@ -573,13 +573,9 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
     # check if project folder exists
     check_proj(project)
     
-    # convert date columns
-    n <- grep("DATE", colnames(dataset), ignore.case = TRUE, value = TRUE)
-    
-    dataset[n] <- lapply(n, function(x) {
-      
-      format(date_parser(dataset[[x]]), "%Y-%m-%d %H:%M:%S")
-    })
+    # convert date columns to character (sqlite coerces to numeric)
+    d_cols <- date_cols(dataset)
+    dataset[d_cols] <- lapply(d_cols, function(d) as.character(dataset[[d]]))
     
     # Save tables to FishSET DB
     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
@@ -608,6 +604,9 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
     if (work_tab_exists == FALSE | over_write == TRUE) {
       
       DBI::dbWriteTable(fishset_db, work_tab_name, dataset, overwrite = over_write)
+      
+      # convert date variables back to date
+      dataset[d_cols] <- lapply(dataset[d_cols], date_parser)
 
       # log function
       load_maindata_function <- list()

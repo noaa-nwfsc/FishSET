@@ -319,10 +319,22 @@ calc_exp <- function(dataset,
     # TODO: No code for calc.method = weights (not in Matlab code either)
     
     # dummy ----
+    exp_dates <- rownames(ec_small)
+    
     if (dummy.exp) {
       
       dum_matrix <- !is.na(ec_small)
       dum_matrix <- apply(dum_matrix, 2, as.numeric)
+      
+      dum_matrix <- lapply(date, function(x) {
+        
+        ind <- which(exp_dates == x)
+        dum_matrix[ind, , drop = FALSE]
+      })
+      
+      dum_matrix <- do.call(rbind, dum_matrix)
+      # order columns
+      dum_matrix <- dum_matrix[, order(colnames(dum_matrix))]
       
     } else {
       
@@ -351,8 +363,6 @@ calc_exp <- function(dataset,
     
     # convert to occasion (n obs by altc) ----
     # TODO: find faster method for this
-    
-    exp_dates <- rownames(ec_small)
     
     exp_matrix <- lapply(date, function(x) {
       

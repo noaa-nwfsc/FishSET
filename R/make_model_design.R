@@ -380,9 +380,9 @@ make_model_design <-
  
   # Alt choice ----
   # get alt choice list
-  if (table_exists(paste0(project, "altmatrix"), project)) {
+  if (table_exists(paste0(project, "AltMatrix"), project)) {
     
-    Alt <- unserialize_table(paste0(project, "altmatrix"), project)
+    Alt <- unserialize_table(paste0(project, "AltMatrix"), project)
     
   } else {
     

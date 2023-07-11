@@ -189,30 +189,21 @@ table_view <- function(table, project) {
       tab_out <- DBI::dbGetQuery(fishset_db, 
                                  paste0("SELECT * FROM", paste0("'", noquote(table), "'")))
       
-      # TODO: need a better method for converting back to date
-      # Ex: this approach won't convert a date column named "TRIP_START"
-      # Alternative would be to save all date variables as character then check
-      # if any columns have a date format (date_cols())
-      # Best if character conversion was done in a table saving function
+      # TODO: convert date-time columns to date-time
       
-      # convert date and date-time from numeric
-      d_cols <- grep("date", names(tab_out), ignore.case = TRUE, value = TRUE)
-      dt_cols <- grep("date.*time", names(tab_out), ignore.case = TRUE, value = TRUE)
+      # # # convert date and date-time from numeric
+      # dt_cols <- grep("date.*time", names(tab_out), ignore.case = TRUE, value = TRUE)
+      # 
+      # dt_numeric <- numeric_cols(tab_out[dt_cols], out = "names")
+      # 
+      # if (length(dt_numeric) > 0) {
+      #   # date-time saved as secs since 1970-01-01
+      #   tab_out[dt_numeric] <- lapply(tab_out[dt_numeric], lubridate::as_datetime)
+      # }
       
-      d_cols <- d_cols[!d_cols %in% dt_cols]
-      
-      date_numeric <- numeric_cols(tab_out[d_cols], out = "names")
-      dt_numeric <- numeric_cols(tab_out[dt_cols], out = "names")
-      
-      if (length(date_numeric) > 0) {
-        # date saved as days since 1970-01-01
-        tab_out[date_numeric] <- lapply(tab_out[date_numeric], lubridate::as_date)
-      }
-      
-      if (length(dt_numeric) > 0) {
-        # date-time saved as secs since 1970-01-01
-        tab_out[dt_numeric] <- lapply(tab_out[dt_numeric], lubridate::as_datetime)
-      }
+      # convert date variables back to date
+      d_cols <- date_cols(tab_out)
+      tab_out[d_cols] <- lapply(tab_out[d_cols], date_parser)
       
       tibble::as_tibble(tab_out)
     }
@@ -595,7 +586,7 @@ list_tables <- function(project, type = "main") {
   #' @param project A project name to show main tables by. 
   #' @param type the type of fishset_db table to search for. Options include 
   #'   "main" (MainDataTable), "port" (PortTable), "spat" (SpatTable), "grid" 
-  #'   (GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (altmatrix), 
+  #'   (GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (AltMatrix), 
   #'   "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
   #'   "filter" (FilterTable), "centroid" (Centroid or FishCentroid),  "model" 
   #'   (ModelOut), "model data" or "model design" (ModelInputData).
@@ -620,7 +611,7 @@ list_tables <- function(project, type = "main") {
   sql_tab <- 
     switch(type, 
            "info" = "MainDataTableInfo", "main" = "MainDataTable", "ec" = "ExpectedCatch", 
-           "altc" = "altmatrix", "port" = "PortTable", "gc" = "ldglobalcheck", 
+           "altc" = "AltMatrix", "port" = "PortTable", "gc" = "ldglobalcheck", 
            "fleet" = "FleetTable", "model" = "ModelOut", "model data" = "ModelInputData", 
            "model design" = "ModelInputData", "grid" = "GridTable", "aux" = "AuxTable",
            "spat" = "SpatTable", "filter" = "FilterTable", "centroid" = "Centroid")
@@ -710,7 +701,7 @@ fishset_tables <- function(project = NULL) {
     
     # add a type column (order matters)
     db_type <- c("MainDataTableInfo", "MainDataTable\\d{8}", "MainDataTable_final", 
-                 "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable\\d{8}",
+                 "MainDataTable", "ExpectedCatch", "AltMatrix", "PortTable\\d{8}",
                  "PortTable", "ldglobalcheck", "FleetTable", "ModelOut", "ModelFit",
                  "ModelInputData", "modelDesignTable", "FilterTable", "GridTable\\d{8}",  
                  "GridTable", "AuxTable\\d{8}", "AuxTable", "SpatTable\\d{8}", "SpatTable")
@@ -736,7 +727,7 @@ fishset_tables <- function(project = NULL) {
         switch(i, 
                "MainDataTable" = "main table", "MainDataTable_final" = "final table", 
                "MainDataTable_raw" = "raw main table", "ExpectedCatch" = "expected catch matrix", 
-               "altmatrix" = "alt choice matrix", "PortTable_raw" = "raw port table",
+               "AltMatrix" = "alt choice matrix", "PortTable_raw" = "raw port table",
                "PortTable" = "port table", "MainDataTableInfo" = "info table",
                "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
                "FleetTable" = "fleet table", "ModelOut" = "model output", 
@@ -788,7 +779,7 @@ alt_choice_list <- function(project, name = NULL) {
   #' 
   #' @param project Name of project.
   #' @param name Name of Alternative Choice list in the FishSET database. 
-  #'   The table name will contain the string "altmatrix". If \code{NULL}, the 
+  #'   The table name will contain the string "AltMatrix". If \code{NULL}, the 
   #'   default table is returned. Use \code{\link{tables_database}} to see a list 
   #'   of FishSET database tables by project. 
   #' @export
@@ -800,7 +791,7 @@ alt_choice_list <- function(project, name = NULL) {
     
   } else {
     
-    unserialize_table(paste0(project, 'altmatrix'), project)
+    unserialize_table(paste0(project, 'AltMatrix'), project)
   }
 }
 

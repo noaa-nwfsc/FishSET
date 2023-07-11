@@ -120,7 +120,7 @@ create_expectations <-
            temp.lag = 0,
            year.lag = 0,
            dummy.exp = FALSE,
-           default.exp = TRUE,
+           default.exp = FALSE,
            replace.output = TRUE) {
   
   # TODO: custom names, need exp.name arg
@@ -138,7 +138,7 @@ create_expectations <-
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  Alt <- unserialize_table(paste0(project, "altmatrix"), project)
+  Alt <- unserialize_table(paste0(project, "AltMatrix"), project)
 
   # checks ----
   
@@ -261,8 +261,11 @@ create_expectations <-
   sscale <- 10^(r - 1)
 
   # exp catch list ----
-
+# TODO: Save key args to list (window, lag/year lag, temporal, etc.)
   ExpectedCatch <- list(
+    scale = sscale,
+    # TODO: Use alternative approach for determining units
+    units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS"), # units of catch data
     recent = recent_exp$exp,
     recent_dummy = recent_exp$dummy,
     older = older_exp$exp,
@@ -271,43 +274,10 @@ create_expectations <-
     oldest_dummy = oldest_exp$dummy,
     logbook = logbook_exp$exp,
     logbook_dummy = logbook_exp$dummy,
-    user1 = user_exp$exp,
-    user1_dummy = user_exp$dummy,
-    scale = sscale,
-    # TODO: Use alternative approach for determining units
-    units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS") # units of catch data
+    exp1 = user_exp$exp,
+    exp1_dummy = user_exp$dummy
   )
   
-  # TODO: only include default options that were actually run
-  # Note: need to figure out how to handle case where default was run but not dummy,
-  # then the same default was run again but w/ dummy. Replace older version? Update just dummy?
-  if (FALSE) {
-    
-    ec_out <- ExpectedCatch
-    ExpectedCatch <- list()
-    # index version
-    for (i in seq_along(ec_out)) {
-      
-      if (!is_value_empty(ec_out[[i]])) {
-        
-        ExpectedCatch[[i]] <- ec_out[[i]] 
-        names(ExpectedCatch)[[i]] <- names(ec_out)[[i]]
-      }
-    }
-    # named version (simpler)
-    for (nm in names(ec_out)) {
-      
-      if (!is_value_empty(ec_out[[nm]])) {
-        
-        ExpectedCatch[[nm]] <- ec_out[[nm]] 
-      }
-    }
-    
-    ExpectedCatch$scale <- sscale
-    ExpectedCatch$units <- ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS")
-  }
-  
-
   single_sql <- paste0(project, "ExpectedCatch")
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
@@ -315,22 +285,51 @@ create_expectations <-
   
   if (replace.output == FALSE) {
     
+    # recursive naming function
+    exp_nm_r <- function(n1, n2, v1) {
+      # check if new names match any existing names
+      if (n1 %in% n2) {
+        # replace digit w/ new value
+        n1 <- gsub('\\d+', v1, n1)
+        
+        if (n1 %in% n2) {
+          # if still matches, add 1 to new values and rerun func
+          v1 <- v1 + 1
+          exp_nm_r(n1, n2, v1)
+          
+        } else n1
+        
+      } else n1
+    }
+    
     if (table_exists(single_sql, project)) {
-      # TODO: check if any default options from previous ec run weren't include but 
-      # have been added in most recent run. These should be added.
-      ExpectedCatchOld <- unserialize_table(single_sql, project)
       
-      ExpectedCatch <- c(ExpectedCatchOld, 
-                         list(user1 = ExpectedCatch$user1, 
-                              user1_dummy = ExpectedCatch$user1_dummy))
-      # update user_exp names
-      user_ind <- grep("user\\d+$", names(ExpectedCatch))
-      i <- length(user_ind)
-      names(ExpectedCatch)[user_ind] <- paste0("user", seq_len(i))
-      # update user_dummy names
-      dum_ind <- grep("user_dummy\\d+", names(ExpectedCatch))
-      i <- length(dum_ind)
-      names(ExpectedCatch)[dum_ind] <- paste0("user_dummy", seq_len(i))
+      # get previous list
+      ExpectedCatchOld <- unserialize_table(single_sql, project)
+      # names of all matrices
+      exp_names <- names(ExpectedCatchOld)[!names(ExpectedCatchOld) %in% c('scale', 'units')]
+      exp_new_names <- c('exp1', 'exp1_dummy')
+      # generate new names
+      exp_new_names <- vapply(exp_new_names, 
+                              function(x) exp_nm_r(x, exp_names, 1), 
+                              character(1))
+      # get default exp names
+      exp_names2 <- names(ExpectedCatch)[!names(ExpectedCatch) %in% c('scale', 'units', 'exp1', 'exp1_dummy')]
+      # see if default was run
+      non_empty_exp <- vapply(exp_names2, function(x) !is.null(ExpectedCatch[[x]]), logical(1))
+      
+      # update expected catch list 
+      if (any(non_empty_exp)) {
+        
+        for (i in names(non_empty_exp)[non_empty_exp]) {
+          
+          ExpectedCatchOld[[i]] <- ExpectedCatch[[i]]
+        }
+      }
+      # merge previous list into newest list
+      ExpectedCatch <- c(ExpectedCatchOld,
+                         setNames(list(ExpectedCatch$exp1, ExpectedCatch$exp1_dummy),
+                                  exp_new_names))
     }
   }
 
@@ -344,6 +343,8 @@ create_expectations <-
   DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:data)"),
     params = list(data = list(serialize(ExpectedCatch, NULL)))
   )
+  
+  message('Expected catch/revenue matrix saved to FishSET database')
 
   create_expectations_function <- list()
   create_expectations_function$functionID <- "create_expectations"

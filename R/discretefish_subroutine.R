@@ -277,7 +277,6 @@ discretefish_subroutine <-
       controlin <- list(trace = detailreport, maxit = mIter, reltol = relTolX, REPORT = reportfreq)
       
       # track run time
-      # if (i >= 4) browser()
       mod_time <- system.time({
         res <- 
           tryCatch({
@@ -322,11 +321,9 @@ discretefish_subroutine <-
           
         } else {
           # TODO: overwrites model data if more than one expected catch matrix is used
-          # x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
           x_ldgcheck <- unserialize(DBI::dbGetQuery(fishset_db, 
                                                     paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
           table_remove(single_sql, project = project)
-          # LDGlobalCheck <- c(x, LDGlobalCheck)
           LDGlobalCheck <- c(x_ldgcheck, LDGlobalCheck)
         }
       }
@@ -376,7 +373,11 @@ discretefish_subroutine <-
       
       PseudoR2 <- round((LL_start - LL) / LL_start, 3)
       
-      modOutName <- paste0(datamatrix$expname, ".", x_temp[[i]][["mod.name"]])
+      if (!is.null(datamatrix$expname)) {
+        
+        modOutName <- paste0(c(x_temp[[i]][["mod.name"]], datamatrix$expname), collapse = '.')
+        
+      } else modOutName <- x_temp[[i]][["mod.name"]]
       
       if (!exists("mod.out")) {
         
@@ -392,7 +393,7 @@ discretefish_subroutine <-
       }
 
       if (i == 1) {
-        
+        # TODO: changes this once new saving/deleting scheme is in place
         if (table_exists(paste0(project, "ModelFit"), project)) {
           
           table_remove(paste0(project, "ModelFit"), project)
@@ -549,7 +550,8 @@ discretefish_subroutine <-
         )
       } 
       
-      # save model output ----  
+      # save model output ---- 
+        # TODO: change this once new saving/deleting scheme is in place
       raw_sql <- paste0(project, "ModelOut")
       single_sql <- paste0(project, "ModelOut", format(Sys.Date(), format = "%Y%m%d"))
       
@@ -582,8 +584,6 @@ discretefish_subroutine <-
     
   # select model app ----
   if (select.model == TRUE) {
-    #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
-    #   print(DT::datatable(t(round(out.mod, 5)), filter='top'))
     
     shiny::runApp(list(
       ui = shiny::basicPage(
@@ -699,7 +699,6 @@ discretefish_subroutine <-
       unserialize(
         DBI::dbGetQuery(fishset_db, 
                         paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
-    # return(out)
   }
 }
 
