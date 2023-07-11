@@ -9,6 +9,9 @@ if(!exists("default_search")) {default_search <- ""}
 # default column search values
 if (!exists("default_search_columns")) {default_search_columns <- NULL}
 
+# check for FishSET folder 
+fs_exist <- exists("folderpath", where = ".GlobalEnv")
+
     ### SERVER SIDE    
     server = function(input, output, session) {
       options(shiny.maxRequestSize = 8000*1024^2)
@@ -968,35 +971,41 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       ###---
       
-      folderpath <- reactiveVal()
+      # Allow users to change FishSET folders easily.
+      folderpath <- reactiveVal({
+        
+        if (fs_exist) get("folderpath", envir = as.environment(1L))
+      })
       
+      # Show path of current FS folder
       output$fish_folder_path <- renderUI({
         
-        if (exists("folderpath", where = ".GlobalEnv")) {
-          
-          folderpath(get("folderpath", envir = as.environment(1L)))
+        if (!is_value_empty(folderpath())) {
           
           p(tags$strong('Currently set to ', folderpath()))
           
         } else {
           
-          loc()
-          # Sys.sleep(.25)
-          # folderpath(get("folderpath", envir = as.environment(1L)))
+          p('No FishSET Folder found. Please select "Update FishSET Folder".')
         }
-        
       })
       
+      # update FS folder path
+      observeEvent(input$change_fs_folder, {
+        
+        fs_path <- update_folderpath()
+        folderpath(fs_path)
+      })
       
       output$projects <- renderUI({
         
-        req(input$loadmainsource)
+        req(input$load_main_src)
 
-         if (input$loadmainsource == 'Upload new file') {
+         if (input$load_main_src == 'Upload new file') {
           
           textInput('projectname', 'Name of project', placeholder = 'Required to load data')
           
-        } else if (input$loadmainsource == 'FishSET database') {
+        } else if (input$load_main_src == 'FishSET database') {
           
         
             if(length(suppressWarnings(projects())) > 0) {
@@ -1009,18 +1018,78 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           }
         }
       })
+      
+      
+      output$load_manage_proj_ui <- renderUI({
+        
+        if (!is_value_empty(projects())) {
+          
+          actionButton('load_manage_proj', 'Manage Projects', 
+                       style = "color: white; background-color: blue;")
+        }
+      })
+      
+      # Manage Projects
+      
+      show_proj_modal <- function() {
+        
+        showModal(
+          modalDialog(title = "Manage Projects",
+                      
+                      uiOutput('load_proj_modal_ui'),
+                      
+                      footer = tagList(
+                        modalButton("Close"),
+                        actionButton("delete_proj", "Delete Project", 
+                                     style = "color: white; background-color: red;")
+                      ),
+                      easyClose = FALSE, size = "l"))
+      }
+      
+      proj_r <- reactiveValues(projects = NULL)
+      
+      observeEvent(input$load_manage_proj, {
+        
+        proj_r$projects <- projects()
+        
+        show_proj_modal()
+        
+        output$load_proj_modal_ui <- renderUI({
+          
+          checkboxGroupInput('load_proj_cb', 'Select which projects to delete',
+                             choices = proj_r$projects)
+        })
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
+      
+      observeEvent(input$delete_proj, {
+        
+        if (is_value_empty(input$load_proj_cb)) {
+          
+          showNotification('No projects selected')
+          
+        } else {
+          # TODO: figure out why this won't delete projects
+          # could be that a seperate action is keeping the file in use
+          q_test <- quietly_test(erase_project, show_msg = TRUE)
+          lapply(input$load_project_cb, q_test)
+          proj_r$projects <- projects()
+          removeModal()
+        }
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
   
       
       # assign project name
-      observeEvent(c(input$loadmainsource, input$project_select, input$loadDat), {
+      observeEvent(c(input$load_main_src, input$project_select, input$loadDat), {
         
-        req(input$loadmainsource)
+        req(input$load_main_src)
         
-        if (input$loadmainsource == 'Upload new file') {
+        if (input$load_main_src == 'Upload new file') {
             
             project$name <- input$projectname
           
-        } else if (input$loadmainsource == 'FishSET database') {
+        } else if (input$load_main_src == 'FishSET database') {
           
           project$name <- input$project_select
         }
@@ -1029,9 +1098,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       output$main_upload <- renderUI({    
       
-        req(input$loadmainsource)
+        req(input$load_main_src)
 
-        if (input$loadmainsource=='Upload new file') {
+        if (input$load_main_src=='Upload new file') {
             
             tagList(
               fluidRow(
@@ -1044,24 +1113,21 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                 
               ))
             
-          } else if (input$loadmainsource=='FishSET database') {
-            
-           # if (dir.exists(normalizePath('~/FishSETFolder'))){
+          } else if (input$load_main_src=='FishSET database') {
                 
-              if (length(suppressWarnings(projects())) > 0) {
-                
-                if (isTruthy(project$name)) {
-                    
-                    tagList(
-                      fluidRow(
-                        column(5,
-                               selectInput("main_db_table", "Choose a main table",
-                                           choices = main_tables(project$name, show_all = FALSE))
-                        ))
-                    )
-                }
+            if (length(suppressWarnings(projects())) > 0) {
+              
+              if (isTruthy(project$name)) {
+                  
+                  tagList(
+                    fluidRow(
+                      column(5,
+                             selectInput("main_db_table", "Choose a main table",
+                                         choices = main_tables(project$name, show_all = FALSE))
+                      ))
+                  )
               }
-           # }
+            }
           }
       })
  
@@ -1094,9 +1160,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       # load only if project, file, or DB table change
       load_helper <- function(dat) {
 
-        dat_src <- switch(dat, "main" = input$loadmainsource, "port" = input$loadportsource,
-                          "spat" = input$loadspatialsource, "grid" = input$loadgridsource,
-                          "aux" = input$loadauxsource)
+        dat_src <- switch(dat, "main" = input$load_main_src, "port" = input$load_port_src,
+                          "spat" = input$load_spat_src, "grid" = input$load_grid_src,
+                          "aux" = input$load_aux_src)
         dat_file <- switch(dat, "main" = input$maindat, "port" = input$portdat, 
                            "spat" = spat_file(input$filefolder), "grid" = input$griddat,
                            "aux" = input$auxdat)
@@ -1146,12 +1212,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         if (!isTruthy(project$name)) {
           
-          if (input$loadmainsource == 'FishSET database') {
+          if (input$load_main_src == 'FishSET database') {
             
             showNotification("No project found. Please upload a new file.", 
                              type = 'message', duration = 10)
             
-          } else if (input$loadmainsource=='Upload new file') {
+          } else if (input$load_main_src=='Upload new file') {
             
             showNotification("Please enter a project name.", type='message', duration=10)
           }
@@ -1160,7 +1226,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         req(project$name)
         req(load_helper("main"))
         
-        if (input$loadmainsource=='FishSET database') {
+        if (input$load_main_src=='FishSET database') {
           
           if (table_exists(paste0(project$name, 'MainDataTable'), project$name)==FALSE) {
             
@@ -1179,7 +1245,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             load_r$main <- load_r$main + 1
           }
          
-        } else if (input$loadmainsource=='Upload new file' & !is.null(input$maindat)) {
+        } else if (input$load_main_src=='Upload new file' & !is.null(input$maindat)) {
           
           if (!is_empty(input$mainadd)) {
             
@@ -1215,7 +1281,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             values$dataset <- data.frame('var1'=0, 'var2'=0)
           }
           
-        } else if (input$loadmainsource=='Upload new file' & is.null(input$maindat)) {
+        } else if (input$load_main_src=='Upload new file' & is.null(input$maindat)) {
           
           showNotification("Select a main file to upload.", type='message', 
                            duration=10)
@@ -1231,14 +1297,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       ## Port ----
       output$port_upload <- renderUI({     
        
-        if(input$loadportsource=='Upload new file'){ 
+        if(input$load_port_src=='Upload new file'){ 
                            tagList(
                              fluidRow(
                                column(5, fileInput("portdat", "Choose port data file",
                                                    multiple = FALSE, placeholder = 'Required data'))
-                               #column(1, uiOutput('ui.actionP'))
                              ))
-         } else if (input$loadportsource == 'FishSET database') {
+         } else if (input$load_port_src == 'FishSET database') {
            
             if (isTruthy(project$name)) {
               
@@ -1288,7 +1353,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         req(project$name)
         req(load_helper("port"))
           
-        if (input$loadportsource == 'FishSET database') {
+        if (input$load_port_src == 'FishSET database') {
           
            if (isTruthy(input$port_db_table)) {
 
@@ -1302,7 +1367,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             load_r$port <- load_r$port + 1
           }
           
-        } else if (input$loadportsource == 'Upload new file' & !is.null(input$portdat)) {
+        } else if (input$load_port_src == 'Upload new file' & !is.null(input$portdat)) {
           # skip new file upload if user already merged multiple tables
           if (is.null(input$port_combine_save)) {
             
@@ -1433,7 +1498,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       ## Spatial ----
       output$spatial_upload <- renderUI({     
         
-        if (input$loadspatialsource == 'Upload new file') {
+        if (input$load_spat_src == 'Upload new file') {
           
           tagList(
             
@@ -1463,7 +1528,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             } 
           )    
 
-        } else if (input$loadspatialsource == 'FishSET database') {
+        } else if (input$load_spat_src == 'FishSET database') {
           
           if (isTruthy(project$name)) {
             
@@ -1494,7 +1559,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         # reset spatial qaqc
         spat_qaqc_r <- reactiveValues(flag = FALSE, c_tab = NULL, remove = FALSE)
         
-        if (input$loadspatialsource=='FishSET database') {
+        if (input$load_spat_src=='FishSET database') {
           
           if (isTruthy(input$spat_db_table)) {
             
@@ -1619,7 +1684,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       ## Grid ----     
       output$grid_upload <- renderUI({     
 
-        if (input$loadgridsource=='Upload new file') {
+        if (input$load_grid_src=='Upload new file') {
           
           tagList(
             fluidRow(
@@ -1637,7 +1702,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                     )
            ))
           
-        } else if (input$loadgridsource == 'FishSET database') {
+        } else if (input$load_grid_src == 'FishSET database') {
             
           if (isTruthy(project$name)) {
             
@@ -1659,7 +1724,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         req(project$name)
         req(load_helper("grid"))
         
-        if (input$loadgridsource == 'FishSET database') {
+        if (input$load_grid_src == 'FishSET database') {
           
           if (isTruthy(input$grid_db_table)) {
             
@@ -1673,7 +1738,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                tab_type = "grid")
           }
           
-        } else if (input$loadgridsource == 'Upload new file' & !is.null(input$griddat)) {
+        } else if (input$load_grid_src == 'Upload new file' & !is.null(input$griddat)) {
           
           if (!isTruthy(input$GridName)) {
             
@@ -1740,7 +1805,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
  
       output$aux_upload <- renderUI({     
         
-        if(input$loadauxsource=='Upload new file') { 
+        if(input$load_aux_src=='Upload new file') { 
           tagList(
             fluidRow(
               column(5, fileInput("auxdat", "Choose auxiliary data file that links to primary data",
@@ -1751,7 +1816,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                column(5, uiOutput('auxNameUI'))
                              ))
           
-        } else if (input$loadauxsource == 'FishSET database') { 
+        } else if (input$load_aux_src == 'FishSET database') { 
           
           if (isTruthy(project$name)) {
             
@@ -1780,7 +1845,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         req(project$name)
         req(load_helper("aux"))
         
-        if (input$loadauxsource=='FishSET database') {
+        if (input$load_aux_src=='FishSET database') {
           
           if (isTruthy(input$aux_db_table)) {
             
@@ -1794,7 +1859,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             load_r$aux <- load_r$aux + 1
           }
           
-        } else if (input$loadauxsource=='Upload new file' & !is.null(input$auxdat)) {
+        } else if (input$load_aux_src=='Upload new file' & !is.null(input$auxdat)) {
           
           if (isTruthy(input$AuxName)) {
             
@@ -4317,15 +4382,48 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                            options = list(create = TRUE, maxItem = 1, 
                                           placeholder = 'Select or type LONGITUDE variable name')),
             
-                selectizeInput('lon_grid_zone',  'Longitude from spatial data', 
-                               choices=names(as.data.frame(spatdat$dataset)), multiple = TRUE,
-                               options = list(create = TRUE, maxItem = 1, 
-                                              placeholder = 'Select or type LONGITUDE variable name'))
+            selectizeInput('lon_grid_zone',  'Longitude from spatial data', 
+                           choices=names(as.data.frame(spatdat$dataset)), multiple = TRUE,
+                           options = list(create = TRUE, maxItem = 1, 
+                                          placeholder = 'Select or type LONGITUDE variable name'))
          )
        } 
       })
       
-      # Fishing centroid
+      # Zonal Centroid UI
+      output$zone_cent_ui <- renderUI({
+        tagList(
+          
+          if (names(spatdat$dataset)[1]=='var1') {
+            
+            return(
+              tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
+            )
+            
+          },
+          
+          selectInput('zone_cent_spatID', 'Select zone ID from spatial data',
+                      choices = names(spatdat$dataset)),
+          
+          textInput('zone_cent_name', 'Name for new centroid table', 
+                    placeholder = 'Ex: NMFSAreas'),
+          
+          checkboxInput('zone_cent_join', 'Join zonal centroids to primary data',
+                        value = FALSE),
+          
+          conditionalPanel(condition = 'input.zone_cent_join',
+                           
+                           selectInput('zone_cent_zoneID', 'Select zonal ID from primary data',
+                                       choices = names(values$dataset))
+                           
+                           ) 
+    
+        )
+        
+      })
+      
+      
+      # Fishing centroid UI
       output$fish_weight_cent <- renderUI({
         
         tagList(
@@ -4561,6 +4659,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       # Run data creation function 
       observeEvent(input$runNew, {
         
+        output_except <- FALSE # for create_centroid side-effect (otherwise error)
+        
         if (input$VarCreateTop == 'Dummy variables' & input$dummyfunc == 'From policy dates') {
           
           q_test <- quietly_test(dummy_num)
@@ -4661,14 +4761,32 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                             lon.spat = input$lon_grid_zone, lat.spat = input$lat_grid_zone, 
                             hull.polygon = input$hull_polygon_zone, epsg = NULL)
           notif <- "Zone assignment column"
+        
+        } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'zone_cent') {
+          
+          q_test <- quietly_test(create_centroid, show_msg = TRUE)
+          
+          if (input$zone_cent_join) {
+            # create centroid table, join centroids to primary data
+            output <- q_test(dat = values$dataset, spat = spatdat$dataset, project = project$name,
+                             spatID = input$zone_cent_spatID, zoneID = input$zone_cent_zoneID,
+                             cent.name = input$zone_cent_name, output = 'dataset')
+          } else {
+            # save centroid table, don't join to primary data
+            q_test(project = project$name, spat = spatdat$dataset, spatID = input$zone_cent_spatID, 
+                   cent.name = input$zone_cent_name, output = 'centroid table')
+            output <- NULL; output_except <- TRUE;
+          }
+          
+          notif <- 'Zonal centroid'
           
         } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'fish_cent') {
-          
+          # TODO: update to use create_centroid -- fishing centroid
           q_test <- quietly_test(find_fishing_centroid)
-          output <-  q_test(dat = values$dataset, project$name, spat = spatdat$dataset, 
-                            lon.dat = input$lon_dat_cent, lat.dat = input$lat_dat_cent, 
-                            cat = input$cat_cent, weight.var = input$weight_var_cent,
-                            lon.spat = input$lon_grid_cent,lat.spat = input$lat_grid_cent)
+          output <- q_test(dat = values$dataset, project$name, spat = spatdat$dataset, 
+                           lon.dat = input$lon_dat_cent, lat.dat = input$lat_dat_cent, 
+                           cat = input$cat_cent, weight.var = input$weight_var_cent,
+                           lon.spat = input$lon_grid_cent,lat.spat = input$lat_grid_cent)
           notif <- "Fishing centroid"
           
         } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'create_dist_between') {
@@ -4751,9 +4869,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
         } else {
           
-          showNotification(paste(notif, "could not be created."), type = "error")
+          if (!output_except) {
+            
+            showNotification(paste(notif, "could not be created."), type = "error")
+          }
         }
-        
       })
       
       output$output_table_create <- DT::renderDT(
@@ -4779,216 +4899,378 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       # ZONAL DEFINITION ----
       
       #---
-      
-      #Choose variables to pass on
-      output$conditionalInput1 <- renderUI({
-        conditionalPanel("input.choiceTab=='primary'",
-                         tagList(
-                           selectizeInput('catchBase','Column name containing catch data',
-                                          choices = numeric_cols(values$dataset),
-                                          options = list(create = TRUE, placeholder='Select or type column name')),
-                           selectizeInput('priceBase', 'Column name containing price or value data', 
-                                          choices=c('none selected'='none', find_value(values$dataset)),
-                                          selected='none', options = list(create = TRUE, placeholder='Select or type column name')),
-                           div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectizeInput('latBase', 'Occurrence latitude', choices=c('', find_lat(values$dataset)), 
-                                           selected='', options = list(create = TRUE, placeholder='Select or type LATITUDE column name'))),
-                           div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectizeInput('lonBase', 'Occurrence longitude', choices=c('',find_lon(values$dataset)),
-                                              selected='', options = list(create = TRUE, placeholder='Select or type LONGITUDE column name')))
-                         ))
-      })
-   
-
-      output$conditionalInput3a <- renderUI({
-        conditionalPanel(condition="input.choiceTab=='distm'",
-                         selectInput('distMsource', 'Should distance matrix come from', 
-                                     choices=c('Primary haul- or trip-level data'='primary', 'Gridded data'='gridded'), 
-                                     selected='primary')
-        )
-      })
         
-      output$conditionalInput3 <- renderUI({
+      output$altc_ui <- renderUI({
         tagList(
-        conditionalPanel(condition="input.choiceTab=='distm' && input.distMsource == 'primary'",
-                         tagList(
-                          add_prompter(
-                            div(
-                              div(style="display: inline-block; width: 415px ;", h5(tags$b('Define how alternative fishing choices are calculated between'))),
-                              div(style="display: inline-block; width: 5px ;", icon('info-circle'))),
-                                     position = "bottom", type='info', size='medium', 
-                                     message = "To change occurrent or alternative choice selection, click on 'Centroid of zonal assignment' and delete."),
-                           div(style="display: inline-block;vertical-align:top; width: 160px;",
-                               selectizeInput('occasion_ac', 'occurrence:', 
-                                           choices=c('Centroid of zonal assignment'='centroid', 
-                                                     grep('lat|lon|port', names(values$dataset), ignore.case=TRUE, value = TRUE)),
-                                           selected='', options = list(maxItems=2))), #Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
-                           div(style="display: inline-block;vertical-align:top; width: 170px;",
-                               selectizeInput('alt_var_ac', 'and alternative location', 
-                                              choices=c('Centroid of zonal assignment'='centroid', 
-                                                       find_lonlat(values$dataset)), 
-                                              selected='', options = list(maxItems = 2))),
-                          h5(tags$em('Longitude must be specified before latitude.')),
-                           selectizeInput('dist_ac','Distance units', choices=c('miles','kilometers','meters'), selected='miles'),
-                           numericInput('min_haul_ac', 'Include zones with more hauls than', min=1, max=1000, value=1)#,
-                         )
-                         ),
-        conditionalPanel(condition="input.alt_var_ac.length > 1 || input.occasion_ac.length >1",
-                         tagList(
-                           h5(tags$b('Calculate centroids for fishery/regulatory zones.')),
-                         selectInput('cat_altfc', 'Individual areas/zones from the spatial dataset', 
-                                     choices=names(as.data.frame(spatdat$dataset))),
-                         )),
-        conditionalPanel(condition="input.choiceTab=='distm' && input.distMsource == 'gridded'",
-                         fileInput("gridded.dat", "Load gridded data file", multiple = FALSE, placeholder = '')
-                         
+          
+          h5(tags$b('Define how alternative fishing choices are calculated between occurance and alternative location')),
+                  
+          fluidRow(
+            column(5,
+                   add_prompter(
+                     
+                     selectizeInput('altc_occasion', 'occurrence:', 
+                                    choices=c('Centroid of zonal assignment' = 'zone',
+                                              'Fishing centroid' = 'fish', 'Port' = 'port', 
+                                              'Lon-Lat Coordinates' = 'lon-lat')),
+                  
+                     message = 'A centroid table must be saved to the FishSET database to be used as trip/haul occurances',
+                     type = 'info', size = 'medium', position = 'top')
+                   ),
+           
+            column(5, 
+                   add_prompter(
+                   
+                     selectizeInput('altc_alt_var', 'alternative location:', 
+                                    
+                                    choices=c('Centroid of zonal assignment' = 'zone',
+                                              'Fishing centroid' = 'fish', 
+                                              'Nearest Point' = 'near')),
+                   
+                     message = 'A centroid table must be saved to the FishSET database to be used as trip/haul occurances',
+                     type = 'info', size = 'medium', position = 'top')
+                   )
+          ),     
+          
+          uiOutput('altc_occ_var_ui'),
+         
+          conditionalPanel("input.altc_occasion=='zone'||input.altc_alt_var=='zone'",
+                           
+                           uiOutput('altc_zone_cent_ui')),
+          
+          conditionalPanel("input.altc_occasion=='fish'||input.altc_alt_var=='fish'",
+                           
+                           uiOutput('altc_fish_cent_ui')),
+          
+          conditionalPanel("input.altc_alt_var=='near'", 
+                           
+                           uiOutput('altc_spat_ui')),
+          
+          selectizeInput('altc_zoneID', 'Column containing zone identifier', 
+                         choices = colnames(values$dataset), options = list(maxItems = 1), 
+                         multiple = TRUE),
+          
+          selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
+                         selected = 'miles'),
+          
+          numericInput('altc_min_haul', 'Include zones with more hauls than', 
+                       min = 1, max = 1000, value = 1)
         )
-        )
       })
       
-    #input$min_haul_ac
-      zoneIDNumbers_dat <- reactive({
-        if(!any(colnames(values$dataset)=='ZoneID') && input$datzone==TRUE){
-        temp <- data.frame(table(values$dataset[[input$distMatrixZone]]))
-        temp2 <- values$dataset[which(values$dataset[[input$distMatrixZone]] %in% temp[which(temp$Freq > input$min_haul_ac),1]), ]
-        ggplot2::ggplot(temp2, ggplot2::aes(x=.data[[input$distMatrixZone]])) + 
-          ggplot2::geom_bar() + ggplot2::theme_bw() + 
-          ggplot2::theme(panel.border = ggplot2::element_blank(), 
-                         panel.grid.major = ggplot2::element_blank(),
-                         panel.grid.minor = ggplot2::element_blank(), 
-                         axis.line = ggplot2::element_line(colour = "black"))
-          #warning('This step cannot be completed. Observations not assigned to zones.')
-        } else if(any(colnames(values$dataset)=='ZoneID')) {
-          temp <- data.frame(table(values$dataset$ZoneID))
-          temp2 <- values$dataset[which(values$dataset$ZoneID %in% temp[which(temp$Freq > input$min_haul_ac),1]), ]
-           ggplot2::ggplot(temp2, ggplot2::aes(x=ZoneID)) + 
-            ggplot2::geom_bar() + ggplot2::theme_bw() + 
-            ggplot2::theme(panel.border = ggplot2::element_blank(), 
-                           panel.grid.major = ggplot2::element_blank(),
-                           panel.grid.minor = ggplot2::element_blank(), 
-                           axis.line = ggplot2::element_line(colour = "black"))
+      # tracking/updating zonal and fishing centroid tables
+      altc <- reactiveValues(zone_cent = NULL, fish_cent = NULL)
+      
+      
+      output$altc_occ_var_ui <- renderUI({
+        
+        if (input$altc_occasion == 'lon-lat') {
+          
+          tagList(
+            h5(tags$em('Longitude must be specified before latitude.')),
+            
+            selectizeInput('altc_occ_var', 'Choose longitude and latitude occasion columns', 
+                           choices = find_lonlat(values$dataset), 
+                           options = list(maxItems = 2, create = TRUE, 
+                                          placeholder = 'Select or type variable name'),
+                           multiple = TRUE)
+          )
+          
         } else {
-          return()
+          
+          selectInput('altc_occ_var', 'Choose occasion ID variable',
+                      choices = colnames(values$dataset))
         }
+        
       })
       
-      output$distZonea <- renderUI({
-        if(any(colnames(values$dataset)=='ZoneID')){
-          return()
-        } else {
-          conditionalPanel(condition="input.choiceTab=='distm'",
-          checkboxInput('datzone', 'Primary data contains a zone/area assignment variable', value=FALSE)) 
+      output$altc_zone_cent_ui <- renderUI({
+        
+        if (is_value_empty(altc$zone_cent)) {
+          
+          return(h5('No zonal centroid tables exist. Create centroid tables on the Compute New Variables tab.', style="color:red"))
         }
+        
+        selectInput('altc_zone_cent', 'Select a zonal centroid table',
+                    choices = altc$zone_cent)
       })
       
-      output$distZoneb <- renderUI({
-        if(input$choiceTab=='distm' & !any(colnames(values$dataset)=='ZoneID')){
-              if(input$datzone==TRUE){
-                         selectInput('distMatrixZone', 'Column containing zone identifier', choices = c('', colnames(values$dataset)), selected='')
-               } else{
-                  return()
-               }
-           }
+      output$altc_fish_cent_ui <- renderUI({
+        
+        fish_cent_tabs <- 
+          suppressWarnings(grep('FishCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
+        
+        if (is_value_empty(altc$fish_cent)) {
+          
+          return(h5('No fishing centroid tables exist. Create centroid tables on the Compute New Variables tab.', style="color:red"))
+        }
+        
+        selectInput('altc_fish_cent', 'Select a fishing centroid table',
+                    choices = altc$fish_cent)
+      })
+      
+      # update zone/fish centroid tab list when alt choice tab is selected
+      observeEvent(input$tabs == 'altc', { 
+        
+        altc$zone_cent <- suppressWarnings(grep('ZoneCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
+        altc$fish_cent <- suppressWarnings(grep('FishCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
+      
+      output$altc_spat_ui <- renderUI({
+        
+        if (names(spatdat$dataset)[1]=='var1') {
+          
+          return(h5('Spatial data file not loaded. Please load on Upload Data tab.', style="color:red"))
+        }
+          
+        selectInput('altc_spatID', "Select zone ID column from spatial dataset",
+                    choices = colnames(spatdat$dataset))
       })
       
       output$zoneIDText <- renderText({
-        if(!any(colnames(values$dataset)=='ZoneID') && input$datzone==TRUE){
-          temp <- data.frame(table(values$dataset[[input$distMatrixZone]]))
-          paste('number of records:',dim(values$dataset[which(values$dataset[[input$distMatrixZone]] %in% temp[which(temp$Freq > input$min_haul_ac),1]), ])[1], 
-                '\nnumber of zones:', nrow(temp[which(temp$Freq > input$min_haul_ac),]))
-        } else if(any(colnames(values$dataset)=='ZoneID')){
-          temp <- data.frame(table(values$dataset$ZoneID))
-          paste('number of records:',dim(values$dataset[which(values$dataset$ZoneID %in% temp[which(temp$Freq > input$min_haul_ac),1]), ])[1], 
-                '\nnumber of zones:', nrow(temp[which(temp$Freq > input$min_haul_ac),]))
-        } else {
-          return()
+    
+        if (!is_value_empty(input$altc_zoneID)) {
+          
+          temp <- data.frame(table(values$dataset[[input$altc_zoneID]]))
+          paste('number of records:',
+                dim(values$dataset[which(values$dataset[[input$altc_zoneID]] %in% 
+                                           temp[which(temp$Freq > input$altc_min_haul),1]), ])[1], 
+                '\nnumber of zones:', nrow(temp[which(temp$Freq > input$altc_min_haul),]))
         }
       })
       
-      output$zoneIDNumbers_plot <- renderPlot(zoneIDNumbers_dat())
+      # zone freq table
+      zone_freq <- reactive({
+        
+        req(input$altc_min_haul)
+        req(input$altc_zoneID)
+        
+        freq_tab <- agg_helper(values$dataset, value = input$altc_zoneID, 
+                               count = TRUE, fun = NULL)
+        freq_tab$include <- freq_tab$n >= input$altc_min_haul
+        freq_tab
+      })
       
+      # barplot of zone freq
+      zoneIDNumbers_dat <- reactive({
+        
+        req(input$altc_zoneID)
+        
+        dat <- zone_freq()
+        z_sym <- rlang::sym(input$altc_zoneID)
+        
+        ggplot2::ggplot(dat[dat$include, ]) +
+          ggplot2::geom_col(ggplot2::aes(x=!!z_sym, y = n)) + 
+          fishset_theme()
+      })
       
-     
+      output$altc_zone_plot <- renderPlot(zoneIDNumbers_dat())
+      
+      # map showing which zones will be included
+      output$zone_include_plot <- renderPlot({
+        
+        req(input$altc_spatID)
+        req(input$altc_zoneID)
+        
+        join_by <- stats::setNames(input$altc_zoneID, input$altc_spatID)
+        spat <- dplyr::left_join(spatdat$dataset[input$altc_spatID], zone_freq(), by = join_by)
+        
+        ggplot2::ggplot() +  
+          ggplot2::geom_sf(data = spat, 
+                           ggplot2::aes(fill = include), color = "black", alpha = .8) +
+          ggplot2::scale_fill_manual(breaks = c(TRUE, FALSE), values=c('green', 'grey20')) + 
+          fishset_theme()
+        })
+      
+      # Save alternative choice 
+      observeEvent(input$altc_save, {
+        # switch to values that function accepts
+        occ_type <- switch(input$altc_occasion, 'zone' = 'zonal centroid', 
+                           'fish' = 'fishing centroid', 'port' = 'port', 'lon-lat' = 'lon-lat')
+        
+        alt_type <- switch(input$altc_alt_var, 'zone' = 'zonal centroid', 
+                           'fish' = 'fishing centroid', 'near' = 'nearest point')
+        
+        q_test <- quietly_test(create_alternative_choice, show_msg = TRUE)
+        
+        q_test(dat=values$dataset, project=project$name, occasion=occ_type,
+               occasion_var=input$altc_occ_var, alt_var=alt_type, 
+               dist.unit=input$altc_dist, min.haul=input$altc_min_haul, 
+               spat=spatdat$dataset, zoneID=input$altc_zoneID, spatID = input$altc_spatID,
+               zone.cent.name=input$altc_zone_cent, fish.cent.name=input$altc_fish_cent)
+        
+      }, ignoreInit = FALSE) 
+      
       #---
       
       # EXPECTED CATCH ----     
       
       #---
+      exp_react <- reactiveValues(altc_exists = FALSE)
       
-      output$selectcp <- renderUI({
+      # check if alt choice list exists when exp catch tab is selected
+      observeEvent(input$tabs == 'expectedCatch', {
+        
+        exp_react$altc_exists <- length(suppressWarnings(list_tables(project$name, 'altc'))) > 0
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
+      
+      # check if alt choice list exists
+      output$exp_altc_check <- renderUI({
+        
+        if (!exp_react$altc_exists) {
+          
+          tagList(
+            
+            tags$b(),
+            h4(tags$b('Alternative choice matrix does not exist. Go to the ', 
+                      'Define Alternative Fishing Choices tab.'), style='color: red;'))
+        }
+      })
+      
+      output$exp_ui <- renderUI({
         tagList(
-          selectInput('catche','Catch variable for averaging',
-                      choices=c(input$catchBase, numeric_cols(values$dataset)),
-                      selected=input$catchBase),
-          selectizeInput('price', 'If expected revenue is to be calculated, column name containing price or value data', 
-                         choices=c(input$priceBase, "none", find_value(values$dataset)),
+          selectInput('exp_catch_var','Catch variable for averaging',
+                      choices = numeric_cols(values$dataset)),
+          
+          selectizeInput('exp_price', 'If expected revenue is to be calculated, column name containing price or value data', 
+                         choices = c("none", find_value(values$dataset)),
                                    options = list(create = TRUE, placeholder='Select or type column name')),
-          selectizeInput('group','Choose column name containing data that defines groups',
+          
+          selectizeInput('exp_group','Choose column name containing data that defines groups',
                          choices=c('No group', category_cols(values$dataset))),
-          selectizeInput('zoneidep', 'Column containing zone identifier', choices=c('', 'ZoneID', colnames(values$dataset)), selected='')
+          # zoneID used for sparsity plots
+          selectizeInput('exp_zoneID', 'Column containing zone identifier', choices = colnames(values$dataset),
+                         options = list(maxItems = 1), multiple = TRUE)
         )
       })
       
-      output$expcatch <-  renderUI({
-        conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'",
+      output$exp_temp_var_ui <-  renderUI({
+        
+        conditionalPanel(condition="input.exp_temporal!='Entire record of catch (no time)'",
                          style = "margin-left:19px;font-size: 12px", 
-                         selectizeInput('temp_var', 'Column name containing temporal data for averaging', 
-                                     choices=c('none', find_datetime(values$dataset)),
-                                     selected='none', options = list(create = TRUE, placeholder='Select or type column name')))
+                         
+                         selectizeInput('exp_temp_var', 'Column name containing temporal data for averaging', 
+                                        choices=c('none', find_datetime(values$dataset)),
+                                        selected='none', options = list(create = TRUE, placeholder='Select or type column name')))
       })
       
+      # Sparsity table
       sparstable_dat <- reactive({
         
-        if (!any(colnames(values$dataset)=='ZoneID') & !any(colnames(values$dataset)==input$zoneidep)) {
-          
-          return()
-          
-        } else if (is_empty(input$catche)) {
-          
-          return()
-          
-        } else if (input$temp_var=='none') {
-          
-          return()
-          
-        } else {
-          
-          if (any(colnames(values$dataset)=='ZoneID')) {
-            
-            sparsetable(values$dataset, project=project$name, timevar=input$temp_var, 
-                        zonevar='ZoneID', var=input$catche)
-            
-          } else {
-            
-            sparsetable(values$dataset, project=project$name, timevar=input$temp_var, 
-                        zonevar=input$zoneidep, var=input$catche)
-          }
+        req(input$exp_temp_var)
+        req(input$exp_zoneID)
+        
+        if (!is_value_empty(input$exp_catch_var) & input$exp_temp_var!='none') {
+  
+          sparsetable(values$dataset, project=project$name, timevar=input$exp_temp_var, 
+                      zonevar=input$exp_zoneID, var=input$exp_catch_var)
         }
       })
-      
       
       output$spars_table <- DT::renderDT(sparstable_dat(), server=TRUE)
       
+      # sparsity plot
       output$spars_plot <- renderPlot({
         
-        if (!any(colnames(values$dataset)=='ZoneID')& !any(colnames(values$dataset)==input$zoneidep)) {
+        req(input$exp_temp_var)
+        req(input$exp_zoneID)
+        
+        if (!is_value_empty(input$exp_catch_var) & input$exp_temp_var!='none') {
           
-          return()
-          
-        } else if (is_empty(input$catche)) {
-          
-          return()
-          
-        } else if (input$temp_var=='none') {
-          
-          return()
-          
-        } else {
-          
-          message(sparsplot(project=project$name, x=sparstable_dat()))
+          sparsplot(project = project$name, x = sparstable_dat())
         }
       })
       
+      # Run expected catch
+      observeEvent(input$exp_submit, {
+        
+        showNotification('Function can take several minutes. A message will appear when done.',
+                         type = 'message', duration = 20)
+        
+        q_test <- quietly_test(create_expectations)
+        
+        defineGroup <- if (input$exp_group == 'No group') NULL else input$exp_group
+        defaults <- if (is_value_empty(input$exp_default)) FALSE else input$exp_default
+        price <- if (input$exp_price == 'none') NULL else input$exp_price
+        empty_catch <- switch(input$empty_expectation, 'NA' = NA, '0' = 0, 
+                              allCatch = 'allCatch', groupCatch = 'groupCatch')
+        empty_exp <- switch(input$empty_expectation, 'NA' = NA, '1e-04' = 1e-04, '0' = 0)
+        
+        q_test(values$dataset, project$name, input$exp_catch_var, price=price, 
+               defineGroup=defineGroup, temp.var=input$exp_temp_var, temporal = input$exp_temporal, 
+               calc.method = input$exp_calc_method, lag.method = input$exp_lag_method, 
+               empty.catch = empty_catch,  empty.expectation = empty_exp, 
+               temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
+               year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
+               default.exp = defaults, replace.output = input$exp_replace_output)
+      }) 
+      
+     
+      ## Merge exp ----
+      exp_r <- reactiveValues(ec_names = NULL)
+      
+      observeEvent(c(input$exp_tab == 'exp_merge', input$exp_merge_reload), {
+        
+        req(project$name)
+        
+        exp_r$ec_names <- exp_catch_names(project$name)
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
+      
+      output$exp_merge_ui <- renderUI({
+        
+        tagList(
+          
+          selectInput('exp_merge_date', 'Date column',
+                      choices = date_cols(values$dataset)),
+          
+          selectInput('exp_merge_zoneID', 'Zone Identifier Column',
+                      choices = colnames(values$dataset)),
+          
+          selectizeInput('exp_merge_select', 'Select one or more expected catch matrix to merge',
+                         choices = exp_r$ec_names, multiple = TRUE),
+          
+          uiOutput('exp_merge_name_ui')
+          
+        )
+      })
+      
+      output$exp_merge_name_ui <- renderUI({
+        
+        if (!is_value_empty(input$exp_merge_select)) {
+      
+          lapply(seq_along(input$exp_merge_select), function(i) {
+            
+            textInput(paste0('exp_merge_name_', i), 'Name of new column:',
+                      value = input$exp_merge_select[i])
+          })
+        }
+      })
+      
+      output$exp_merge_tab <- DT::renderDT(head(values$dataset))
+      
+      observeEvent(input$exp_merge_run, {
+        
+        req(project$name)
+        req(input$exp_merge_select)
+        
+        new_names <- vapply(seq_along(input$exp_merge_select), 
+                            function(i) input[[paste0('exp_merge_name_', i)]],
+                            character(1))
+        
+        q_test <- quietly_test(merge_expected_catch, show_msg = TRUE)
+        
+        values$dataset <- 
+          q_test(dat = values$dataset, 
+                 project = project$name, 
+                 zoneID = input$exp_merge_zoneID,
+                 date = input$exp_merge_date,
+                 exp.name = input$exp_merge_select,
+                 new.name = new_names,
+                 ec.table = NULL,
+                 log_fun = TRUE)
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
       
       #---
       
@@ -5002,27 +5284,69 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         tags$div(style="display:inline-block;", x)
       }
       
+      mod_rv <- reactiveValues(final = FALSE, exp = NULL, exp_select = NULL,
+                               alt_made = FALSE, alt_num = NULL, alt_choice = NULL,
+                               mod_design = FALSE)
+      
       # enable run model (modal) button if final table exists
       observeEvent(input$tabs == 'models', {
         
         req(isTruthy(project$name))
         
-        shinyjs::toggleState("submit_modal", 
-                             condition = {table_exists(paste0(project$name, "MainDataTable_final"), project$name)})
-      })
+        # check if final table exists
+        mod_rv$final <- table_exists(paste0(project$name, "MainDataTable_final"), project$name)
+        # check if expected catch table exists
+        exp_exists <- table_exists(paste0(project$name, "ExpectedCatch"), project$name)
+        
+        if (exp_exists) {
+          # list the names of existing expected catch matrices
+          e_list <- expected_catch_list(project$name)
+          # remove units and scale entry
+          e_list <- e_list[!grepl('^scale$|^units$', names(e_list))]
+          # save names of matrices that aren't empty
+          mod_rv$exp <- names(e_list[!vapply(e_list, is.null, logical(1))])
+        }
+        
+        # check for alt choice list (check for dated as well)
+        mod_rv$alt_made <- table_exists(paste0(project$name, "AltMatrix"), project$name)
+        
+        # retrieve # of alts if exists
+        if (mod_rv$alt_made) {
+          
+          alt_list <- alt_choice_list(project$name)
+          mod_rv$alt_num <- length(alt_list$greaterNZ)
+          mod_rv$alt_choice <- alt_list$alt_var
+        }
+        
+        # check for existing model design files/tables
+        mod_rv$mod_design <- table_exists(paste0(project$name, "ModelInputData"), project$name)
+        
+      
+        shinyjs::toggleState("mod_check", condition = mod_rv$final) 
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
       
       output$disableMsg <- renderUI({
-        if (!table_exists(paste0(project$name, "MainDataTable_final"), project$name)) {
+        
+        tagList(
+          if (!mod_rv$final) {
+            
+            div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
+                p("Finalized dataset must be saved before modeling."))
+          },
           
-          div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
-              p("Finalized dataset must be saved before modeling."))
-        }
+          if (!mod_rv$alt_made) {
+            
+            div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
+                p("Alternative choice list must be saved before modeling."))
+          }
+        )
       })
       
+      # model checklist reactives
       cList <- reactiveValues(out = NULL, pass = NULL)
       
       # checklist modal
-      observeEvent(input$submit_modal, {
+      observeEvent(input$mod_check, {
 
         showModal(
           modalDialog(title = "",
@@ -5030,12 +5354,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                       uiOutput("checklistMsg"),
 
                       footer = tagList(
-                        modalButton("Close"),
-                        # shinyjs::disabled( # this approach doesn't work consistently
+                        modalButton("Close")
+                        # TODO: find out why this approach doesn't work consistently
+                        # shinyjs::disabled( 
                         #   actionButton("submit", "Run model(s)",
                         #                style = "color: #fff; background-color: #6EC479; border-color:#000000;")
                         # )
-                        uiOutput("CLRun")
+                        # uiOutput("CLRun")
                       ),
                       easyClose = FALSE
           )
@@ -5046,15 +5371,29 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         cList$pass <- all(vapply(cList$out, function(x) x$pass, logical(1)))
         # find expected catch matrices (if logit_c used)
         
-        output$CLRun <- renderUI({
+        output$mod_add_run_bttn <- renderUI({
+          
           if (cList$pass) {
-
-              actionButton("submit", "Run model(s)",
-                           style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+            tagList(
+              # TODO: disable add model until model checks have been passed
+              actionButton("mod_add", "Save model and add new model", 
+                           style="color: #fff; background-color: #337ab7; border-color: #800000;"),
+          
+              uiOutput('mod_run_bttn')
+            )
           }
         })
         
-        #shinyjs::toggleState("submit", condition = {cList$pass == TRUE})
+        output$mod_run_bttn <- renderUI({
+          
+          if (nrow(rv$data) > 0) {
+            
+            actionButton("mod_submit", "Run model(s)",
+                         style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+          }
+        })
+        
+        #shinyjs::toggleState("mod_submit", condition = {cList$pass == TRUE})
         
         ec_required <- FALSE
         e_catch <- suppressWarnings(list_tables(project = project$name, type = "ec"))
@@ -5119,211 +5458,263 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         })
       })
       
-      output$catch_out <- renderUI({
+      # generate a valid model name
+      # TODO: check model table
+      mod_name_r <- reactive({
+        
+        mod_nm_default <- paste0(input$model, '_mod1')
+        
+        if (mod_rv$mod_design) {
+          
+          mod_list <- model_design_list(project$name)
+          mod_names <- vapply(mod_list, function(x) x$mod.name, character(1))
+          
+          if (mod_nm_default %in% mod_names) {
+            
+            # recursive naming function
+            mod_nm_r <- function(n1, n2, v1) {
+              
+              if (n1 %in% n2) {
+                
+                n1 <- gsub('\\d+', '', n1)
+                v1 <- v1 + 1
+                n1 <- paste0(n1, v1)
+                
+                if (n1 %in% n2) mod_nm_r(n1, n2, v1)
+                else n1
+                
+              } else n1
+            }
+            
+            mod_nm_default <- mod_nm_r(mod_nm_default, mod_names, 1)
+          }
+        }
+        
+        mod_nm_default
+      })
+      
+      output$mod_name_ui <- renderUI({
+        
+        textInput('mod_name', 'Type model name', value = mod_name_r())
+      })
+      
+      
+      output$mod_catch_out <- renderUI({
         tagList(
-          selectInput('catch','Column name containing catch data',
-                      choices=c(input$catchBase, numeric_cols(values$dataset)), 
-                      selected=input$catchBase),
+          selectInput('mod_catch','Column name containing catch data',
+                      choices = numeric_cols(values$dataset)),
+          
           conditionalPanel(
-            condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
-            checkboxInput('lockk', 'Location-specific catch parameter', value=FALSE)),
-          conditionalPanel(condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
-            selectInput('price', 'Price variable', choices=c(input$priceBase,'none', find_value(values$dataset)), 
-                        selected='none', multiple=FALSE)),
-        #logit correction
-          conditionalPanel(condition="input.model=='logit_correction'",
-            numericInput('polyn', 'Correction polynomial degree', value=2)),
-          conditionalPanel(condition="input.model=='logit_correction'",
-                           radioButtons('startlocdefined', 'Starting location variable', choices=c('Exists in data frame'='exists', 'Create variable'='create'))
-        ))
-        })
-      output$logit_correction_extra <- renderUI({
+            condition = "['epm_normal', 'epm_lognormal', 'epm_weibull'].includes(input.model)",
+            
+            checkboxInput('mod_lockk', 'Location-specific catch parameter', value=FALSE),
+            
+            selectizeInput('mod_price', 'Price variable', choices= find_value(values$dataset), 
+                        multiple = TRUE), options = list(maxItems = 1)),
+        
+          conditionalPanel(
+            condition="input.model=='logit_correction'",
+            
+            numericInput('mod_polyn', 'Correction polynomial degree', value=2),
+            
+            radioButtons('startlocdefined', 'Starting location variable', 
+                         choices=c('Exists in data frame'='exists', 'Create variable'='create')))
+        )
+      })
+      
+      output$mod_logit_correction <- renderUI({
+        
           tagList(
           conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='exists'",
-            selectInput('startloc_mod', 'Initial location during choice occassion', choices=c('startingloc', names(values$dataset)), 
-                        selected='startingloc', 
-                        multiple=FALSE)),
+            
+                           selectizeInput('mod_startloc', 'Initial location during choice occassion', 
+                                          choices=names(values$dataset), 
+                                          multiple = TRUE), options = list(maxItems = 1)),
+          
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                              if(names(spatdat$dataset)[1]=='var1'){
-                                                 tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
-                              }),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectInput('trip_id_SL_mod', 'Variable that identifies unique trips', choices=c('',names(values$dataset)), selectize=TRUE)),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectInput('haul_order_SL_mod', 'Variable that identifies haul order within a trip. Can be time, coded variable, etc.',
-                                            choices=c('', names(values$dataset)), selectize=TRUE)),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectizeInput('starting_port_SL_mod',  "Variable that identifies port at start of trip", 
-                                            choices=find_port(values$dataset), 
-                                            options = list(create = TRUE, placeholder='Select or type variable name'))),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectizeInput('lon_dat_SL_mod', "Longitude variable in primary data table", 
-                                            choices= find_lon(values$dataset), 
-                                            options = list(create = TRUE, placeholder='Select or type variable name'))), 
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectizeInput('lat_dat_SL_mod', "Latitude variable in primary data table", 
-                                            choices= find_lat(values$dataset), 
-                                            options = list(create = TRUE, placeholder='Select or type variable name'))),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                           if(any(class(spatdat$dataset)=='sf')==FALSE){
-                                                selectInput('lat_grid_SL_mod', 'Select vector containing latitude data from spatial data',
-                                                            choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE)
-                              }),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             if(any(class(spatdat$dataset)=='sf')==FALSE){
-                                selectInput('lon_grid_SL_mod', 'Select vector containing longitude data from spatial data', 
-                                                             choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE, selectize=TRUE)
-                              }),
-            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectInput('cat_SL_mod', "Property from spatial data file identifying zones or areas", choices= names(as.data.frame(spatdat$dataset)), selectize=TRUE)
-                         
+                              
+                             selectInput('mod_trip_id_SL', 'Variable that identifies unique trips', 
+                                         choices=names(values$dataset), selectize=TRUE),
+                             
+                             selectInput('mod_haul_order_SL', 'Variable that identifies haul order within a trip. Can be time, coded variable, etc.',
+                                         choices=names(values$dataset), selectize=TRUE),
+                             
+                             selectizeInput('mod_starting_port_SL', "Variable that identifies port at start of trip", 
+                                            choices = list_tables(project$name, type = 'port')),
+                             
+                             if (names(spatdat$dataset)[1]=='var1') {
+                               
+                               tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
+                             },
+                             
+                             selectInput('mod_spatID_SL', "Property from spatial data file identifying zones or areas", 
+                                         choices= names(spatdat$dataset), selectize=TRUE),
+                             
+                             selectInput('mod_zoneID_SL', "Column from primary data identifying zones or areas", 
+                                         choices= names(spatdat$dataset), selectize=TRUE)
                         )
         )
       })
-      output$logit_c_extra <- renderUI({
-        tagList(
-          conditionalPanel(condition="input.model=='logit_c'",
-                           selectInput('logitcextra', 'Selected expected catch/revenue matrices to include in model', 
-                                       choices=c('All matrices'='all', 'Run each matrix in separate model'='individual', 
-                                                 'Select a subset of matrices to run in model'='subset'),
-                                       selected='all', multiple=FALSE)),
-          conditionalPanel(condition="input.model=='logit_c' & input.logitcextra=='subset'", 
-                           selectInput('logitcextrasub', 'Select one or more expected catch/revenue matrices to include', 
-                                       choices=c( 'User-defined matrix'='user', 'Short-term matrix'='short', 'Medium-term matrix'='medium',  'Long-term matrix'='long'), multiple=TRUE))
-          )
+      
+      output$mod_select_exp_ui <- renderUI({
+        # wrap select UI in a div container so it can be removed as a group
+        div(
+          class = 'mod-select-exp-container',
+          selectInput('mod_select_exp_1', 'Select matrices',
+                      choices = mod_rv$exp, multiple = TRUE)
+        )
       })
       
-      exp.name <- reactive({
-        if(input$logitcextra!='subset'){
-          return(input$logitcextra)
-        } else {
-          return(input$logitcextrasub)
-        }
+      observeEvent(input$mod_add_exp, {
+
+        insertUI(selector = '#mod_select_exp_1',
+                 where = 'afterEnd',
+                 ui = selectInput(paste0('mod_select_exp_', input$mod_add_exp + 1),
+                                  label = '', choices = mod_rv$exp, multiple = TRUE)
+                 )
+      })
+      
+      observeEvent(input$mod_add_exp_reset, {
+        # remove old exp selector container
+        removeUI(selector = '.mod-select-exp-container')
+        # insert new exp selector container
+        insertUI('#mod_add_exp_reset', where = 'afterEnd',
+                 ui = div(class = 'mod-select-exp-container',
+                          selectInput('mod_select_exp_1', 'Select matrices',
+                                      choices = mod_rv$exp, multiple = TRUE)
+                          )
+                 )
       })
       
       # Data needed
-      ## Alternative choices
-      Alt_vars <- reactive({
-        if(!exists("Alt")) {
-        if(!exists('AltMatrixName')) {
-          if(DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)), paste0(project$name, 'altmatrix'))){
-          return(unserialize(DBI::dbGetQuery( DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)), paste0("SELECT AlternativeMatrix FROM ", 
-                                                                                              project$name, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]]))
-          } else {
-            warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
-            return(data.frame('choice'=NA, 'X2'=NA, 'X3'=NA))
-        }
-          DBI::dbDisconnect( DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
-        }} else {
-        return(Alt)
-        }
-      })
-          
-      choice <- reactive({Alt_vars()$choice})
-      alt <- reactive({
-        if(dim(table(unique(choice()))) > 100) {
-          return(100)
-        } else {
-          return(dim(table(unique(choice()))))
-        } 
-        })
-      
+      # TODO: check if this is a good idea, may remove necessary variables
       drop <- reactive({grep('date|port|processor|gear|target|lon|lat|permit|ifq', colnames(values$dataset), ignore.case=TRUE)})
       
-      intlab <- renderText({
-        if(input$model=='logit_c') { label='travel-distance variables'} else { label='travel-distance variables'}
-      })
-      output$indvariables <- renderUI ({
+      output$mod_ind_var_ui <- renderUI({
+        
         intvariables <- c('none', colnames(values$dataset[,-drop()]))
-        selectInput('indeVarsForModel', label = intlab(), multiple=TRUE,
-                    choices = intvariables, selected = '')#)
+        selectInput('mod_ind_vars', label = 'travel-distance variables', multiple=TRUE,
+                    choices = intvariables, selected = '')
       })
       
-      gridlab <- renderText({
-        if(input$model=='logit_c') { 
-          label='alternative-specific variables'} else if(input$model=='logit_avgcat') { 
-            label='alternative-specific variables'} else { label='catch-function variables'}
+      gridlab <- reactive({
+        
+        if (input$model %in% c('logit_c', 'logit_avgcat')) { 
+          
+          'alternative-specific variables'
+        
+        } else label='catch-function variables'
       })
       
-      output$gridvariables <- renderUI ({
-        gridvariables <- c('none')
-        add_prompter(selectInput('gridVariablesInclude', label = list(gridlab(), icon('info-circle')), multiple=TRUE,
-                    choices = gridvariables, selected = ''),
-                   position = "bottom", type='info', size='medium', message = "Generally, variables that vary by zonal alternatives or are interacted with zonal constants. 
-                    See Likelihood functions sections of the FishSET Help Manual for details. Select 'none' if no variables are to be included.")
+      output$mod_grid_var_ui <- renderUI({
+        
+        # gridvariables <- c('none')
+        
+        add_prompter(selectizeInput('mod_grid_vars', 
+                                    label = list(gridlab(), icon('info-circle', verify_fa = FALSE)),
+                                    multiple=TRUE, choices = colnames(values$dataset)),
+                     
+                   position = "top", type='info', size='medium', 
+                   message = "Generally, variables that vary by zonal alternatives 
+                   or are interacted with zonal constants. See Likelihood functions 
+                   sections of the FishSET Help Manual for details. Select 'none' 
+                   if no variables are to be included.")
       })
       
-      output$portmd <- renderUI ({
-      selectInput("port.datMD", "Choose file from the FishSET database containing port data", 
-                                       choices=tables_database(project$name)[grep('port', tables_database(project$name), ignore.case=TRUE)], multiple = FALSE)#,
-      })
-      
+      # Determine the # of parameters needed
       numInits <- reactive({
-        polyn <- input$polyn
-        gridNum <- as.integer(as.factor(length(input$gridVariablesInclude)))
-        intNum <- as.integer(length(input$indeVarsForModel))
-        if(input$model == 'logit_c'){
-          numInits <- gridNum+intNum
-        } else if(input$model == 'logit_avgcat') {
-          numInits <- gridNum*(alt()-1)+intNum
-        } else if(input$model == 'logit_correction'){
-          numInits <- gridNum*alt() + ((((polyn+1)*2)+2)*alt()) + intNum  +1+1
+        
+        polyn <- input$mod_polyn
+        gridNum <- length(input$mod_grid_vars)
+        intNum <- length(input$mod_ind_vars)
+        
+        if (gridNum == 0) gridNum <- 1
+        if (intNum == 0) intNum <- 1
+        
+        if (input$model == 'logit_c') {
+          
+          gridNum+intNum
+          
+        } else if (input$model == 'logit_avgcat') {
+          
+          gridNum*(mod_rv$alt_num-1)+intNum
+          
+        } else if (input$model == 'logit_correction') {
+          
+          gridNum*mod_rv$alt_num + ((((polyn+1)*2)+2)*mod_rv$alt_num) + intNum +1+1
+          
         } else {
-          if(input$lockk=='TRUE'){
-            numInits <- gridNum*alt()+intNum+alt+1
+          
+          if (input$mod_lockk) {
+            
+            gridNum*mod_rv$alt_num+intNum+alt+1
+            
           } else {
-            numInits <- gridNum*alt()+intNum+1+1
+            
+            gridNum*mod_rv$alt_num+intNum+1+1
           }
         }
       })
       
-
-      output$Inits <- renderUI({
-        req(input$initchoice)
-        if(input$initchoice=='new'){
-        i = 1:numInits()
-        numwidth <- rep((1/numInits())*100, numInits())
-        numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
-        UI <- paste0("splitLayout(",
-                     "cellWidths = c(",numwidth,")",",",
-                     paste0("textInput(",
-                            "'int", i, "', ",
-                            paste0("''"), ",",
-                            value=1,
-                            ")",
-                            collapse = ", "),
-                     ")")
-        } else {
-          x_temp <-  read_dat(paste0(locoutput(project$name), pull_shiny_output(project$name, type='table', fun=paste0("params_", input$modname))))
-          param_temp <- x_temp$estimate
-          i = 1:length(param_temp)
-          numwidth <- rep((1/numInits())*100, numInits())
-          numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
-          UI <- paste0("splitLayout(",
-                       "cellWidths = c(",numwidth,")",",",
-                       paste0("textInput(",
-                              "'int", i, "', ",
-                              paste0("''"), ",",
-                              value=param_temp[i],
-                              #"width='",1/numInits*100,"%'",#50px'",
-                              ")",
-                              collapse = ", "),
-                       ")")
+      # inital parameter output
+      output$mod_inits_ui <- renderUI({
+        
+        req(input$mod_init_choice)
+        
+        if (numInits() > 0) {
+          
+          if (input$mod_init_choice == 'new') {
+            
+            i = seq_len(numInits())
+            numwidth <- rep((1/numInits())*100, numInits())
+            numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
+            UI <- paste0("splitLayout(",
+                         "cellWidths = c(",numwidth,")",",",
+                         paste0("textInput(",
+                                "'int", i, "', ",
+                                paste0("''"), ",",
+                                value=1,
+                                ")",
+                                collapse = ", "),
+                         ")")
+            
+          } else {
+            
+            x_temp <- read_dat(paste0(locoutput(project$name), 
+                                      pull_shiny_output(project$name, type='table', 
+                                                        fun=paste0("params_", input$modname))))
+            param_temp <- x_temp$estimate
+            i = 1:length(param_temp)
+            numwidth <- rep((1/numInits())*100, numInits())
+            numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
+            
+            UI <- paste0("splitLayout(",
+                         "cellWidths = c(",numwidth,")",",",
+                         paste0("textInput(",
+                                "'int", i, "', ",
+                                paste0("''"), ",",
+                                value=param_temp[i],
+                                #"width='",1/numInits*100,"%'",#50px'",
+                                ")",
+                                collapse = ", "),
+                         ")")
+          }
+          
+          eval(parse(text = UI))
         }
-        eval(parse(text = UI))
       })
-      
-      output$paramsourcechoose <- renderUI(
-                 radioButtons('initchoice', "",
-                              if(length(grep(paste0("_", 'params', "_"), grep(".*\\.csv$", project_files(project$name)), value = TRUE))!=0){
-                                choices=c('Use output of previous model as parameter set' = 'prev','Choose parameter set' ='new')
-                                } else { choices=c('Choose parameter set' ='new')}, selected='new')
+      # TODO: update/tidy
+      output$mod_param_choose <- renderUI(
+        radioButtons('mod_init_choice', "",
+                     if(length(grep(paste0("_", 'params', "_"), grep(".*\\.csv$", project_files(project$name)), value = TRUE))!=0){
+                       choices=c('Use output of previous model as parameter set' = 'prev','Choose parameter set' ='new')
+                     } else { choices=c('Choose parameter set' ='new')}, selected='new')
       )
-
-      output$paramtable <- renderUI({
+      # TODO: update/tidy
+      output$mod_param_tab_ui <- renderUI({
         if(length(grep(paste0("_", 'params', "_"), grep(".*\\.csv$", project_files(project$name)), value = TRUE))!=0){
-         param_table <- paste0(locoutput(project$name), pull_output(project$name, type='table', fun=paste0('params')))
-         param_table <- sub(".*params_", "", param_table)
+          param_table <- paste0(locoutput(project$name), pull_output(project$name, type='table', fun=paste0('params')))
+          param_table <- sub(".*params_", "", param_table)
           param_table <- gsub('.csv', '', param_table)
           selectInput('modname','Select previous model', choices=param_table)
         }
@@ -5332,16 +5723,16 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
      
       counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
       rv <- reactiveValues(
-        data = data.frame('mod_name'='', 'likelihood'='', 'optimOpt'='', 'inits'='', 
-                          'methodname'='', 'vars1'='','vars2'='', 'catch'='',
-                           'project'='', 'price'='', 'startloc'='', 'polyn'='', 'exp'=''),
+        data = data.frame('mod_name' = NULL, 'likelihood' = NULL, 'optimOpt' = NULL, 
+                          'inits'= NULL, 'methodname' = NULL, 'vars1' = NULL,
+                          'vars2' = NULL, 'catch' = NULL, 'project' = NULL, 
+                          'price' = NULL, 'startloc' = NULL, 'polyn' = NULL, 
+                          'exp' = NULL, 'spat' = NULL, 'spatID' = NULL),
         #model_table,
         deletedRows = NULL,
         deletedRowIndices = list()
       )
       
-      
-      #model_table <- reactiveVal(model_table)
                      
       #access variable int outside of observer
       int_name <- reactive({
@@ -5351,84 +5742,147 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }))
       })
       
-      observeEvent(input$addModel, {
-        req(project$name)
-        if(is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
-          showNotification('Model not saved as at least one variable not defined.')
-        } else {
-          showNotification("Selected model parameters saved.", type='message', duration=10)
+      spatID_choices <- reactive({
+        
+        if (!is_value_empty(input$mod_spat)) {
+          
+          spat <- table_view(input$mod_spat, project$name)
+          colnames(spat)
         }
+      })
+      
+      output$mod_spat_ui <- renderUI({
+        
+        if (mod_rv$alt_choice == 'nearest point') {
+          
+          tagList(
+            h5(strong('Alternative Choice: Nearest Point')),
+            
+            selectizeInput('mod_spat', 'Select spatial table', 
+                        choices = list_tables(project$name, 'spat'), 
+                        multiple = TRUE, options = list(maxItems = 1)),
+            
+            uiOutput('mod_spatID_ui')
+            
+          )
+        }
+      })
+      
+      output$mod_spatID_ui <- renderUI({
+        
+        selectInput('mod_spatID', 'Select spatial ID column',
+                    choices = spatID_choices())
+      })
+      
+      # Add model design file 
+      observeEvent(input$mod_add, {
+        
+        req(project$name)
+        
+        # TODO: check if this is necessary, otherwise remove (grid and ind can be NULL)
+        # if (is.null(input$mod_grid_vars)|is.null(input$mod_ind_vars)) {
+        #   
+        #   showNotification('Model not saved as at least one variable not defined.')
+        #   
+        # } else {
+        #   
+        #   showNotification("Selected model parameters saved.", type='message', duration=10)
+        # }
        
 
-        if(input$model=='logit_correction' & input$startlocdefined =='create'){
-          values$dataset$startingloc <- create_startingloc(dat=values$dataset, spat=spatdat$dataset, portTable=input$port.datMD, 
-                                            trip_id=input$trip_id_SL_mod, haul_order=input$haul_order_SL_mod, starting_port=input$starting_port_SL_mod, 
-                                            lon.dat=input$lon_dat_SL_mod, lat.dat=input$lat_dat_SL_mod, cat=input$cat_SL_mod, 
-                                            lon.spat=input$lat_grid_SL, lat.spat=input$lat_grid_SL_mod)
+        if (input$model=='logit_correction' & input$startlocdefined =='create') {
+          # TODO: replace with previous_loc() 
+          # Also, consider moving to data creation tab
+          values$dataset$startingloc <- 
+            create_startingloc(dat=values$dataset, spat=spatdat$dataset, port=input$mod_port_SL,
+                               trip_id=input$mod_trip_id_SL, haul_order=input$mod_haul_order_SL, 
+                               starting_port=input$mod_starting_port_SL, 
+                               zoneID=input$mod_zoneID_SL, spatID = input$mod_spatID_SL)
         } 
+        
         counter$countervalue <- counter$countervalue + 1
         
-        if(is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
-          rv$data <- rbind(data.frame('mod_name'='', 
-                                'likelihood'='',
-                                'optimOpt'='',
-                                'inits'='',
-                                'methodname' = '', 
-                                'vars1'= '',
-                                'vars2'='', 
-                                'catch'='',
-                                'project'=project$name, 
-                                'price'='',
-                                'startloc'='',
-                                'polyn'='',
-                                'exp'='')
-                     , rv$data)#model_table())
-        } else {
-          rv$data = rbind(data.frame('mod_name'=paste0(input$model, '_mod', counter$countervalue), 
-                               'likelihood'=input$model, 
-                               'optimOpt'=paste(input$mIter,input$relTolX, input$reportfreq, input$detailreport),
-                               'inits'=paste(int_name(), collapse=','),#noquote(paste0('input$int',1:numInits())),
-                               'methodname' = input$optmeth, 
-                               'vars1'= paste(input$indeVarsForModel, collapse=','),
-                               'vars2'= input$gridVariablesInclude, 
-                               'catch'= input$catch,
-                               'project'= project$name, 
-                               'price'= input$price,
-                               'startloc'=  'startingloc',#if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
-                               'polyn'= input$polyn,
-                               'exp' = paste(exp.name(), collapse=','))
-                    , rv$data)#model_table())
-        }
-      #  rv$data(t)#model_table(t)
+        # combine each select input
+        exp_select <- sort(grep('mod_select_exp_', names(input), value = TRUE))
         
+        if (!is_value_empty(exp_select))
+          mod_rv$exp_list <- lapply(exp_select, function(x) input[[x]])
         
-        ###Now save table to sql database. Will overwrite each time we add a model
+        # replace empties w/ empty string
+        str_rpl <- function(string) if (is_value_empty(string)) '' else string
+        
+        # reformat exp matrix list for mod table
+        if (!is_value_empty(mod_rv$exp_list)) {
+          
+          exp_list <- vapply(mod_rv$exp_list, 
+                             function(x) paste(x, collapse = ', '), 
+                             character(1))
+          
+          exp_list <- paste(exp_list, collapse = ' * ')
+          
+        } else exp_list <- NULL
+        
+        # CRS 
+        mod_crs <- input$mod_spat_crs
+        if (mod_crs == 'NA') mod_crs <- NA
+        
+        rv$data = 
+          rbind(
+            data.frame('mod_name' = input$mod_name, 
+                       'likelihood' = input$model, 
+                       'optimOpt' = paste(input$mod_iter, input$mod_relTolX, 
+                                          input$mod_report_freq, input$mod_detail_report),
+                       'inits' = paste(int_name(), collapse=','),
+                       'methodname' = input$mod_optmeth, 
+                       'vars1'= str_rpl(paste(input$mod_ind_vars, collapse=',')),
+                       'vars2'= str_rpl(input$mod_grid_vars), 
+                       'catch'= input$mod_catch,
+                       'project'= project$name, 
+                       'price'= str_rpl(input$mod_price),
+                       'startloc'= str_rpl(input$mod_startloc),# 'startingloc',
+                       'polyn'= input$mod_polyn,
+                       'exp' = str_rpl(exp_list),
+                       'spat' = str_rpl(input$mod_spat),
+                       'spatID' = str_rpl(input$mod_spatID),
+                       'crs' = str_rpl(mod_crs)),
+            rv$data)
+        
+        # TODO: include an option to load a previously saved model design table
+        
+        # Save table to sql database. Will overwrite each time we add a model
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))
-        #First, remove any old instances of the table
-        if(DBI::dbExistsTable(fishset_db, paste0(project$name,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==TRUE){
-          DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)), paste0(project$name, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))
-        }
         
-        if(DBI::dbExistsTable(fishset_db, paste0(project$name, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==FALSE){
-          DBI::dbExecute(fishset_db, paste0("CREATE TABLE ", paste0(project$name,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
-                                            "(mod_name TEXT, likelihood TEXT, optimOpt TEXT, inits TEXT, 
-                                            methodname TEXT, vars1 TEXT, vars2 TEXT,   catch TEXT, 
-                                           lon TEXT, lat TEXT, project TEXT, price TEXT, startloc TEXT, polyn TEXT, exp TEXT)"))
+        modDT <- paste0(project$name, 'ModelDesignTable', format(Sys.Date(), format="%Y%m%d"))
+        
+        # TODO: reevaluate this approach
+        # First, remove any old instances of the table
+        if (table_exists(modDT, project$name)) table_remove(modDT, project$name)
+        
+        if (!table_exists(modDT, project$name)) {
+          
+          DBI::dbExecute(fishset_db, paste0('CREATE TABLE ', modDT,
+                                            '(mod_name TEXT, likelihood TEXT, optimOpt TEXT, inits TEXT,
+                                            methodname TEXT, vars1 TEXT, vars2 TEXT, catch TEXT,
+                                            lon TEXT, lat TEXT, project TEXT, price TEXT, startloc 
+                                            TEXT, polyn TEXT, exp TEXT, spat TEXT, spatID TEXT,
+                                            crs TEXT)'))
         }
+
         # Construct the update query by looping over the data fields
         query <- sprintf(
           "INSERT INTO %s (%s) VALUES %s",
-          paste0(project$name,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
-          paste(names(data.frame(as.data.frame(isolate(rv$data #model_table()
+          modDT,
+          paste(names(data.frame(as.data.frame(isolate(rv$data
                                                        )))), collapse = ", "),
-          paste0("('", matrix(apply(as.data.frame(isolate(rv$data #model_table()
+          paste0("('", matrix(apply(as.data.frame(isolate(rv$data
                                                           )), 1, paste, collapse="','"), ncol=1), collapse=',', "')")
         )
         # Submit the update query and disconnect
         DBI::dbExecute(fishset_db, query)
         DBI::dbDisconnect(fishset_db)
         
-        
+        # reset exp select
+        mod_rv$exp_list <- NULL
       })
       
 #      observeEvent(input$resetModel, {
@@ -5441,6 +5895,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       }
       
       observeEvent(input$deletePressed, {
+        
         rowNum <- parseDeleteEvent(input$deletePressed)
         dataRow <- rv$data[rowNum,]
         
@@ -5482,61 +5937,190 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         # Add the delete button column
        deleteButtonColumn(as.data.frame(rv$data[-9]), 'delete_button')
       )
-    
-#         output$mod_param_table <- DT::renderDT(
-#        model_table(), editable = T, server=TRUE
-#      )
- 
   
-      # Run models shiny
-      observeEvent(input$submit, {
+      ## Save/run models ----
+      observeEvent(input$mod_submit, {
         
-          removeModal()
-          input_list <- reactiveValuesToList(input)
-          toggle_inputs(input_list,F)
-          #print('call model design function, call discrete_subroutine file')
-          rv$data <- subset(rv$data, mod_name!='')
-          
-
-         # q_test <- quietly_test(make_model_design)
-          
-          times <- nrow(rv$data)
-         
-          showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
-          make_model_design(project=as.character(rv$data$project[1]), catchID=as.character(rv$data$catch[1]), replace=TRUE, 
-                 likelihood=as.character(rv$data$likelihood[1]), initparams=as.character(rv$data$inits[1]), optimOpt=as.character(rv$data$optimOpt[1]),
-                  methodname =as.character(rv$data$methodname[1]), mod.name = as.character(rv$data$mod_name[1]),
-                 vars1=as.character(rv$data$vars1[1]), vars2=as.character(rv$data$vars2[1]), priceCol=as.character(rv$data$price[1]), 
-                 expectcatchmodels=as.character(rv$data$exp[1]), startloc=as.character(rv$data$startloc[1]), polyn=as.character(rv$data$polyn[1]))
-         
-       
-          if(times[1]>1){
-            for(i in 2:times){
+        removeModal()
+        input_list <- reactiveValuesToList(input)
+        toggle_inputs(input_list, FALSE)
+        rv$data <- subset(rv$data, mod_name!='')
+        
+        q_test <- quietly_test(make_model_design, show_msg = TRUE)
+        
+        times <- nrow(rv$data)
+        # Note: need to handle previous model files: delete or include?
+        
+        for (i in seq_len(times)) {
+          # re-format exp matrix list
+          if (!is.null(rv$data$exp[i])) {
             
-              make_model_design(project=as.character(rv$data$project[i]), catchID=as.character(rv$data$catch[i]), replace=FALSE, 
-                                likelihood=as.character(rv$data$likelihood[i]), initparams=as.character(rv$data$inits[i]), optimOpt=as.character(rv$data$optimOpt[i]),
-                                methodname =as.character(rv$data$methodname[i]), mod.name = as.character(rv$data$mod_name[i]),
-                                vars1=as.character(rv$data$vars1[i]), vars2=as.character(rv$data$vars2[i]), priceCol=as.character(rv$data$price[i]), 
-                                expectcatchmodels=as.character(rv$data$exp[i]), startloc=as.character(rv$data$startloc[i]), polyn=as.character(rv$data$polyn[i]))
-              showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
-            }
-          } 
-
-                showNotification('Model is running. Models can take 30 minutes.
-                                  All buttons are inactive while model function is running.
-                                  Check R console for progress.', type='message', duration=30)
+            exp_split <- unlist(strsplit(rv$data$exp[i], ' \\* '))
+            exp_list <- lapply(exp_split, function(x) unlist(strsplit(x, ', ')))
+            
+          } else exp_list <- NULL
           
-                discretefish_subroutine(project =rv$data$project[1], select.model=FALSE, explorestarts = TRUE, breakearly= TRUE, space=15, dev=5,
-                                        use.scalers=TRUE, scaler.func = NULL)             
+          if (!is_value_empty(rv$data$vars1[i])) vars1 <- unlist(strsplit(rv$data$vars1[i], ','))
+          else vars1 <- rv$data$vars1[i]
+          
+          str_rpl <- function(string) if (is_value_empty(string)) NULL else string
+          
+          q_test(project = rv$data$project[i], catchID = rv$data$catch[i], 
+                 replace = FALSE, likelihood = rv$data$likelihood[i], 
+                 initparams = rv$data$inits[i], optimOpt = rv$data$optimOpt[i],
+                 methodname = rv$data$methodname[i], mod.name = rv$data$mod_name[i],
+                 vars1 = str_rpl(vars1), vars2 = str_rpl(rv$data$vars2[i]), 
+                 priceCol = str_rpl(rv$data$price[i]), expectcatchmodels = exp_list,
+                 startloc = str_rpl(rv$data$startloc[i]), polyn = rv$data$polyn[i],
+                 spat = str_rpl(rv$data$spat[i]), spatID = str_rpl(rv$data$spatID[i]),
+                 crs = rv$data$crs[i])
+          
+          showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
+        }
 
-                showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=30)
-          toggle_inputs(input_list,T)
+        showNotification('Model is running. Models can take 30 minutes.
+                          All buttons are inactive while model function is running.
+                          Check R console for progress.', type='message', duration=30)
+  
+        # Run model(s)
+        # TODO: make these args available in the app (try modal pop-up)
+        
+        # discretefish_subroutine(project = rv$data$project[1], select.model = FALSE,
+        #                         explorestarts = TRUE, breakearly = TRUE, space = 15, dev = 5,
+        #                         use.scalers = TRUE, scaler.func = NULL)
+        
+        discretefish_subroutine(project = rv$data$project[1], select.model = FALSE,
+                                explorestarts = FALSE, breakearly = TRUE, space = NULL, 
+                                dev = NULL, use.scalers = FALSE, scaler.func = NULL)
+        
+        showNotification('Model run is complete. Check the `Compare Models` subtab to view output', 
+                         type='message', duration=30)
+        toggle_inputs(input_list, TRUE)
+      })
+      
+      #Add in two more tables for model evaluations
+      mod_sum_out <- reactive({
+        
+        input$mod_reload
+        
+        tab <- paste0(project$name, 'modelOut')
+        
+        if (table_exists(tab, project$name)) {
+          
+          model_out_view(tab, project$name)
+        }
       })
       
       
-    ## Explore models sections
-      #out_mod <- reactive({
+      mod_params_out <- reactive({
+        
+        input$mod_reload
+        
+        mod_tab <- data.frame(Model_name=rep(NA, length(mod_sum_out())),
+                              Covergence=rep(NA, length(mod_sum_out())),
+                              # Stand_Errors=rep(NA, length(mod_sum_out())),
+                              Estimates=rep(NA, length(mod_sum_out())),
+                              Hessian=rep(NA, length(mod_sum_out())))
+        
+        for (i in seq_along(mod_sum_out())) {
+          
+          mod_tab[i,1] <- mod_sum_out()[[i]]$name
+          mod_tab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
+          model_out <- mod_sum_out()[[i]]$OutLogit
+          mod_tab[i,3] <- to_html_table(model_out, rownames = TRUE, digits = 3)
+          
+          hess <- round(mod_sum_out()[[i]]$H1, 5)
+          colnames(hess) <- row.names(model_out)
+          mod_tab[i,4] <- to_html_table(hess, digits = 5)
+        }
+        
+        return(mod_tab)
+      })
       
+      ## Model list ----
+      
+      mod_design_list_r <- reactive({
+        
+        req(project$name)
+        req(mod_rv$mod_design)
+        
+        input$mod_list_reload
+        
+        mdl <- model_design_list(project$name)
+        names(mdl) <- model_names(project$name)
+        mdl
+      })
+      
+      output$mod_list_ui <- renderPrint({
+        
+        str(mod_design_list_r())
+        })
+   
+      ## Model Output ----
+      # TODO: better method/msg for missing convergence msg
+      mod_conv <- function(x) if (is_value_empty(x)) '' else x
+      
+      # TODO: update to work w/ zonal logit and non-zonal logit output
+      output$mod_model_tab <- DT::renderDT({
+        
+        if (!is_value_empty(mod_sum_out())) mod_params_out()
+      }, escape = FALSE)
+      
+      ## Model Error ----
+      
+      mod_err_out <- reactive({
+        
+        input$mod_reload
+        
+        error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), 
+                                Model_error=rep(NA, length(mod_sum_out())), 
+                                Optimization_error=rep(NA, length(mod_sum_out())))
+        
+        for (i in seq_along(mod_sum_out())) {
+          
+          error_out[i,1] <- mod_sum_out()[[i]]$name
+          error_out[i,2] <- ifelse(is.null(mod_sum_out()[[i]]$errorExplain), 
+                                   'No error reported', toString(mod_sum_out()[[i]]$errorExplain))
+          error_out[i,3] <- ifelse(is.null(mod_sum_out()[[i]]$optoutput$optim_message), 
+                                   'No message reported', toString(mod_sum_out()[[i]]$optoutput$optim_message))
+        }
+        
+        return(error_out)
+      })
+      
+      output$mod_error_msg <- DT::renderDT({
+        
+        if (!is_value_empty(mod_sum_out())) mod_err_out()
+      })
+      
+      ## Model Fit ----
+      
+      mod_compare <- reactiveValues(fit = NULL)
+      
+      observeEvent(c(input$mod_sub == 'model_compare', input$mod_reload), {
+        
+        fit_tab <- paste0(project$name, 'ModelFit')
+        
+        if (table_exists(fit_tab, project$name)) {
+          
+          mf_out <- as.data.frame(t(model_fit(project$name)))
+          mod_compare$fit <- tibble::rownames_to_column(mf_out, 'model')
+        }
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
+      
+      
+      observeEvent(input$mod_delete, {
+        
+        temp = mod_compare$fit
+        
+        if (!is.null(input$mod_fit_out_rows_selected)) {
+          temp <- temp[-as.numeric(input$mod_fit_out_rows_selected),]
+        }
+        
+        mod_compare$fit <- temp
+        session$sendCustomMessage('unbind-DT', 'mod_fit_out')
+      })
       
       shinyInput = function(FUN, len, id, ...) { 
         inputs = character(len) 
@@ -5545,41 +6129,22 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } 
         inputs 
       } 
-       
-      temp <- isolate(paste0(project$name, "ModelFit"))
-      this_table <- reactive(
-        if(DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)),
-                                              paste0(project$name, 'ModelFit'))){
-          data.frame(t(model_fit(project$name)))
-        } else {
-          data.frame('X1'=NA, 'X2'=NA, 'X3'=NA, 'X4'=NA)
-        }
-        )#,Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_")))
-      
-      observeEvent(input$reload_btn, {
-        this_table() <- this_table()
-      },ignoreInit = TRUE)
-      
-      observeEvent(input$delete_btn, {
-        t = this_table()
-        if(!is.null(input$mytable_rows_selected)) {
-          t <- t[-as.numeric(input$mytable_rows_selected),]
-        }
-        this_table(t)
-        session$sendCustomMessage('unbind-DT', 'mytable')
-      })
       
       # datatable with checkbox
-      output$mytable <- DT::renderDT({
-        data.frame(this_table(), select=shinyInput(checkboxInput,nrow(this_table()),"cbox_"))
-      }, colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  filter='top', server = TRUE, escape = FALSE,
-          options = list(dom = 't', paging=FALSE,
-        preDrawCallback = DT::JS('function() { 
-                                 Shiny.unbindAll(this.api().table().node()); }'), 
-        drawCallback = DT::JS('function() { 
-                              Shiny.bindAll(this.api().table().node()); } ') 
-        ) )
-      
+      output$mod_fit_out <- DT::renderDT({
+        
+        data.frame(mod_compare$fit, 
+                   select=shinyInput(checkboxInput,
+                                     nrow(mod_compare$fit),
+                                     "cbox_"))
+      }, 
+      colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  
+      filter='top', server = TRUE, escape = FALSE, 
+      options = list(dom = 't', paging=FALSE,
+                     preDrawCallback = DT::JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
+                     drawCallback = DT::JS('function() { Shiny.bindAll(this.api().table().node()); } ')
+                     ) 
+      )
       
       # helper function for reading checkbox
       shinyValue = function(id, len) { 
@@ -5591,39 +6156,45 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       shinyDate = function(id, len) { 
         unlist(lapply(seq_len(len), function(i) { 
-          value=ifelse(input[[paste0(id, i)]]!=TRUE, '' , as.character(Sys.Date())) 
+          value=ifelse(input[[paste0(id, i)]]!=TRUE, '', as.character(Sys.Date())) 
         })) 
       }
       
-      checkedsave <- reactive(cbind(
-        model = rownames(isolate(this_table())),#colnames(out.mod), 
-        AIC=isolate(this_table()[,1]),
-        AICc=isolate(this_table()[,2]),
-        BIC=isolate(this_table()[,3]),
-        PseudoR2=isolate(this_table()[,4]),#t(out.mod), 
-        Selected = shinyValue("cbox_", nrow(this_table())),#t(out.mod))), 
-        Date = shinyDate("cbox_", nrow(this_table())) 
-      ))#t(out.mod)))))
+      checkedsave <- 
+        reactive({
+          
+          cbind(model = rownames(isolate(mod_compare$fit)),
+                AIC=isolate(mod_compare$fit[,1]),
+                AICc=isolate(mod_compare$fit[,2]),
+                BIC=isolate(mod_compare$fit[,3]),
+                PseudoR2=isolate(mod_compare$fit[,4]), 
+                Selected = shinyValue("cbox_", nrow(mod_compare$fit)),
+                Date = shinyDate("cbox_", nrow(mod_compare$fit)) 
+                )
+          })
       
-      
+      # TODO: fix this
       # When the Submit button is clicked, save the form data
-      observeEvent(input$submit_ms, {
+      observeEvent(input$mod_save_table, {
         req(project$name)
         # Connect to the database
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))
-#        if(overwrite_table==T){
-          if(DBI::dbExistsTable(fishset_db, 'modelChosen')==TRUE){
-            table_remove('modelChosen', project$name)
-            #DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), 'modelChosen')
+        
+        mod_chosen <- paste0(project$name, 'ModelChosen')
+        
+        # TODO: revisit this action
+        if (table_exists(mod_chosen, project$name)) {
+          
+          table_remove(mod_chosen, project$name)
         }
         
-        if(DBI::dbExistsTable(fishset_db, 'modelChosen')==FALSE){
-          DBI::dbExecute(fishset_db, "CREATE TABLE modelChosen(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, PseudoR2 TEXT, Selected TEXT, Date TEXT)")
-        }
+        DBI::dbExecute(fishset_db, paste('CREATE TABLE', mod_chosen, 
+                                         '(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, 
+                                         PseudoR2 TEXT, Selected TEXT, Date TEXT)'))
         # Construct the update query by looping over the data fields
         query <- sprintf(
           "INSERT INTO %s (%s) VALUES %s",
-          "modelChosen", 
+          mod_chosen, 
           paste(names(data.frame(as.data.frame(isolate(checkedsave())))), collapse = ", "),
           paste0("('", matrix(apply(as.data.frame(isolate(checkedsave())), 1, paste, collapse="','"), ncol=1), collapse=',', "')")
         )
@@ -5631,121 +6202,16 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         DBI::dbExecute(fishset_db, query)
         
         showNotification("Table saved to database")
-      DBI::dbDisconnect(fishset_db)
+        DBI::dbDisconnect(fishset_db)
       })
       
 
-      #Add in two more tables for model evaulations
-      mod_sum_out <- reactive({
-        
-        tab <- paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d"))
-                      
-        if (table_exists(tab, project$name)) {
-          
-          model_out_view(tab, project$name)
-          
-        } else {
-         data.frame('var1'=0, 'var2'=0)
-        }
-      })
       
-      output$modeltab <- DT::renderDT({
-        
-        modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), 
-                               Covergence=rep(NA, length(mod_sum_out())), 
-                               # Stand_Errors=rep(NA, length(mod_sum_out())), 
-                               Estimates=rep(NA, length(mod_sum_out())), 
-                               Hessian=rep(NA, length(mod_sum_out())))
-        
-        if (is.data.frame(mod_sum_out())) {
-          
-          modeltab <- modeltab
-          
-        } else {
-          
-          for(i in 1:length(mod_sum_out())){
-            
-            modeltab[i,1] <- mod_sum_out()[[i]]$name
-            modeltab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
-            
-            # modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
-            # modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
-            
-            choice_nms <- levels(factor(mod_sum_out()[[i]]$choice.table[, 1]))
-            
-            par_tab <- round(mod_sum_out()[[i]]$OutLogit, 3)
-            colnames(par_tab) <- c("estimate", "std_error", "t_value") 
-            rownames(par_tab) <- choice_nms
-            modeltab[i,3] <- to_html_table(par_tab, rownames = TRUE)
-            
-            hess <- round(mod_sum_out()[[i]]$H1, 5)
-            colnames(hess) <- choice_nms
-            modeltab[i,4] <- to_html_table(hess)
-          }
-        }
-        
-        return(modeltab)
-      }, escape = FALSE)
-      
-      
-      output$errortab <- DT::renderDT({
-
-          error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), Model_error=rep(NA, length(mod_sum_out())), Optimization_error=rep(NA, length(mod_sum_out())))
-          #if(dim(mod_sum_out())[2]>2){ 
-          if(is.data.frame(mod_sum_out())){
-            error_out <- error_out
-          } else {
-          for(i in 1: length(mod_sum_out())){
-              error_out[i,1] <- mod_sum_out()[[i]]$name
-              error_out[i,2] <- ifelse(is.null(mod_sum_out()[[i]]$errorExplain), 'No error reported', toString(mod_sum_out()[[i]]$errorExplain))
-              error_out[i,3] <- ifelse(is.null(mod_sum_out()[[i]]$optoutput$optim_message), 'No message reported', toString(mod_sum_out()[[i]]$optoutput$optim_message))
-            }}
-          return(error_out)
-      })
-      
-      
-      
-      #---
-      #Run functions ----
-      #---
-      observeEvent(input$saveALT, {
-              showNotification('Function can take a couple minutes. A message will appear when done.',
-                               type='message', duration=20)
-             create_alternative_choice(values$dataset, project=project$name, occasion=input$occasion_ac, alt_var=input$alt_var_ac, 
-                                  dist.unit=input$dist_ac, min.haul=input$min_haul_ac, spat=spatdat$dataset, cat=input$cat_altfc, 
-                                  zoneID=input$distMatrixZone, hull.polygon=input$hull_polygon_ac, 
-                                  griddedDat=NULL, lon.spat=input$long_grid_altc, lat.spat=input$lat_grid_altc, 
-                                  closest.pt=input$closest_pt_ac)
-              showNotification('Completed. Alternative choice matrix updated', type='message', duration=10)
-      }, ignoreInit = F) 
-      
-      
-      observeEvent(input$savecentroid, {
-        q_test <- quietly_test(find_centroid)
-        q_test(spat=spatdat$dataset, project = project$name, spatID = input$cat_altc, lon.spat = input$long_grid_altc, lat.spat = input$lat_grid_altc)
-        showNotification('Geographic centroid of zones calculated and saved')
-      }, ignoreInit = FALSE)
-      
-                    
-      observeEvent(input$submitE, {
-        showNotification('Function can take a couple minutes. A message will appear when done.',
-                         type='message', duration=20)
-                create_expectations(values$dataset, project$name, input$catche, price=input$price, 
-                                    defineGroup=if(grepl('No group',input$group)){'fleet'} else {input$group},  
-                            temp.var=input$temp_var, temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
-                            empty.catch = input$empty_catch, empty.expectation = input$empty_expectation, temp.window = input$temp_window,  
-                            temp.lag = input$temp_lag, year.lag=input$temp_year, dummy.exp = input$dummy_exp, replace.output = TRUE)
-        showNotification('Completed. Expectated catch matrices updated', type='message', duration=10)
-      }) 
-      
-     
-       ####---
-      ##Resetting inputs
+      ## Resetting inputs
       observeEvent(input$refresh1,{
         
         updateCheckboxInput(session, 'Outlier_Filter', value=FALSE)
-      })
-      ###---              
+      })         
       
       ### ---  
       # Save output ----   
@@ -5822,29 +6288,22 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       # Save final Dataset ----
       save_final <- reactiveValues()
 
-            #observeEvent(input$save_final_modal, {
       saveModal <- function(ns) {  
-      #  showModal(
-
-          modalDialog(title = "Save the final version of the data before modeling",
-                      # TODO: check uniqueID select, not sure it works as intended 
-                      selectInput("final_uniqueID", "Select column containing unique occurrence identifier",
-                                  if(any(duplicated(values$dataset))==FALSE){
-                                    choices = c(RowID = rownames(values$dataset), names(values$dataset))
-                                    } else {
-                                      choices = names(values$dataset)
-                                      }),
-
-                      shinycssloaders::withSpinner(uiOutput("checkMsg")),
-                      
-                      footer = tagList(
-                        modalButton("Close"),
-                        actionButton("save_final_table", "Save", 
-                                     style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+        
+        modalDialog(title = "Save the final version of the data before modeling",
+                    # TODO: check uniqueID select, not sure it works as intended 
+                    selectInput("final_uniqueID", "Select column containing unique occurrence identifier",
+                                choices = names(values$dataset)),
+                    
+                    shinycssloaders::withSpinner(uiOutput("checkMsg")),
+                    
+                    footer = tagList(
+                      modalButton("Close"),
+                      actionButton("save_final_table", "Save", 
+                                   style = "color: #fff; background-color: #6EC479; border-color:#000000;")
                       )
           )
-      #  )
-      }#)
+      }
          
       observeEvent(input$save_final_modal, {
         
@@ -6057,7 +6516,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #Stop shiny ----
       ##---
       observeEvent(c(input$closeDat, input$closeQAQC, input$closeExplore, 
-                     input$closeAnalysis, input$closeNew, input$closeAlt, 
+                     input$closeAnalysis, input$closeNew, input$altc_close, 
                      input$closeEC, input$closeModel, input$closeCM, input$closeB, 
                      input$closeRerun), {
         stopApp()
@@ -6075,7 +6534,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       observe({
         req(input$uploadbookmark)
           req(bookmarkedstate()$loadDat==1)
-          if(bookmarkedstate()$loadmainsource=="FishSET database"){
+          if(bookmarkedstate()$load_main_src=="FishSET database"){
           updateTextInput(session, 'projectname', value = bookmarkedstate()$projectname)
           #values$dataset <- table_view(paste0(project$name, 'MainDataTable'))
           }
@@ -6085,7 +6544,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         req(input$uploadbookmark)
         req(project$name)
         req(bookmarkedstate()$loadDat==1)
-        if(bookmarkedstate()$loadmainsource=="FishSET database"){
+        if(bookmarkedstate()$load_main_src=="FishSET database"){
           values$dataset <- table_view(paste0(project$name, 'MainDataTable'), project$name)
         }
       })
@@ -6094,14 +6553,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         req(project$name)
         if(colnames(values$dataset)[1]!='var1'){
           #---
-        updateSelectInput(session, "alt_var_ac", selected = bookmarkedstate()$alt_var_ac)
-        updateSelectInput(session, "calc_method", selected = bookmarkedstate()$calc_method)
+        updateSelectInput(session, "altc_alt_var", selected = bookmarkedstate()$altc_alt_var)
+        updateSelectInput(session, "exp_calc_method", selected = bookmarkedstate()$exp_calc_method)
         updateSelectInput(session, "cat", selected = bookmarkedstate()$cat)
         updateSelectInput(session, "cat_altc", selected = bookmarkedstate()$cat_altc)
         updateSelectInput(session, "cat_SL", selected = bookmarkedstate()$cat_SL)
         updateSelectInput(session, "catch", selected = bookmarkedstate()$catch)
-        updateSelectInput(session, "catchBase", selected = bookmarkedstate()$catchBase)
-        updateSelectInput(session, "catche", selected = bookmarkedstate()$catche)
+        updateSelectInput(session, "exp_catch_var", selected = bookmarkedstate()$exp_catch_var)
         updateRadioButtons(session, 'checks', selected = bookmarkedstate()$checks)
         updateRadioButtons(session, 'choiceTab', selected=bookmarkedstate()$choiceTab)
         updateCheckboxInput(session, 'sp_colgeartype', value=bookmarkedstate()$sp_colgeartype)
@@ -6112,11 +6570,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         updateSelectInput(session, "corr_select", selected = bookmarkedstate()$corr_select)
         updateSelectInput(session, "create_method", selected = bookmarkedstate()$create_method)
         updateSelectInput(session, "define_format", selected = bookmarkedstate()$define_format)
-        updateNumericInput(session, "detailreport", value = bookmarkedstate()$detailreport)
+        updateNumericInput(session, "mod_detail_report", value = bookmarkedstate()$mod_detail_report)
         updateSelectInput(session, "dist", selected = bookmarkedstate()$dist)
-        updateSelectInput(session, "dist_ac", selected = bookmarkedstate()$dist_ac)
+        updateSelectInput(session, "altc_dist", selected = bookmarkedstate()$altc_dist)
         updateSelectInput(session, "dummclosfunc", selected = bookmarkedstate()$dummclosfunc)
-        updateCheckboxInput(session, "dummy_exp", value = bookmarkedstate()$dummy_exp)
+        updateCheckboxInput(session, "exp_dummy", value = bookmarkedstate()$exp_dummy)
         updateSelectInput(session, "dummyfunc", selected = bookmarkedstate()$dummyfunc)
         updateSelectInput(session, "dummypolydate", selected = bookmarkedstate()$dummypolydate)
         updateSelectInput(session, "dummypolyfunc", selected = bookmarkedstate()$dummypolyfunc)
@@ -6126,7 +6584,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         updateSelectInput(session, "dur_start", selected = bookmarkedstate()$dur_start)
         updateSelectInput(session, "dur_start2", selected = bookmarkedstate()$dur_start2)
         updateSelectInput(session, "dur_units", selected = bookmarkedstate()$dur_units)
-        updateSelectInput(session, "empty_catch", selected = bookmarkedstate()$empty_catch)
+        updateSelectInput(session, "exp_empty_catch", selected = bookmarkedstate()$exp_empty_catch)
         updateSelectInput(session, "empty_expectation", selected = bookmarkedstate()$empty_expectation)
         updateSelectInput(session, "end", selected = bookmarkedstate()$end)
         updateSelectInput(session, "end_latlon", selected = bookmarkedstate()$end_latlon)
@@ -6134,56 +6592,54 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         updateSelectInput(session, "ending_port", selected = bookmarkedstate()$ending_port)
         updateSelectInput(session, "fun_numeric", selected = bookmarkedstate()$fun_numeric)
         updateSelectInput(session, "fun_time", selected = bookmarkedstate()$fun_time)
-        updateSelectInput(session, "gridVariablesInclude", selected = bookmarkedstate()$gridVariablesInclude)
-        updateSelectInput(session, "group", selected = bookmarkedstate()$group)
+        updateSelectInput(session, "mod_grid_vars", selected = bookmarkedstate()$mod_grid_vars)
+        updateSelectInput(session, "exp_group", selected = bookmarkedstate()$exp_group)
         updateSelectInput(session, "haul_order", selected = bookmarkedstate()$haul_order)
         updateSelectInput(session, "Haul_Trip_IDVar", selected = bookmarkedstate()$Haul_Trip_IDVar)
         updateSelectInput(session, "haul_order_SL", selected = bookmarkedstate()$haul_order_SL)
         updateCheckboxInput(session, "hull_polygon_ac", value = bookmarkedstate()$hull_polygon_ac)
         updateSelectInput(session, "ID", selected = bookmarkedstate()$ID)
-        updateSelectInput(session, "indeVarsForModel", selected = bookmarkedstate()$indeVarsForModel)
-        updateSelectInput(session, "lag_method", selected = bookmarkedstate()$lag_method)
+        updateSelectInput(session, "mod_ind_vars", selected = bookmarkedstate()$mod_ind_vars)
+        updateSelectInput(session, "exp_lag_method", selected = bookmarkedstate()$exp_lag_method)
         updateSelectInput(session, "lat", selected = bookmarkedstate()$lat)
         updateSelectInput(session, "lat_dat_ac", selected = bookmarkedstate()$lat_dat_ac)
         updateSelectInput(session, "lat_dat_SL", selected = bookmarkedstate()$lat_dat_SL)
         updateSelectInput(session, "lat_grid_SL", selected = bookmarkedstate()$lat_grid_SL)
         updateSelectInput(session, "lat_grid_altc", selected = bookmarkedstate()$lat_grid_altc)
-        updateSelectInput(session, "latBase", selected = bookmarkedstate()$latBase)
         updateCheckboxInput(session, "LatLon_Filter", value = bookmarkedstate()$LatLon_Filter)
-        updateCheckboxInput(session, "lockk", value = bookmarkedstate()$lockk)
+        updateCheckboxInput(session, "mod_lockk", value = bookmarkedstate()$mod_lockk)
         updateSelectInput(session, "lon", selected = bookmarkedstate()$lon)
         updateSelectInput(session, "lon_dat", selected = bookmarkedstate()$lon_dat)
         updateSelectInput(session, "lon_dat_ac", selected = bookmarkedstate()$lon_dat_ac)
         updateSelectInput(session, "lon_dat_SL", selected = bookmarkedstate()$lon_dat_SL)
         updateSelectInput(session, "long_grid", selected = bookmarkedstate()$long_grid)
         updateSelectInput(session, "lon_grid_SL", selected = bookmarkedstate()$lon_grid_SL)
-        updateSelectInput(session, "lonBase", selected = bookmarkedstate()$lonBase)
         updateSelectInput(session, "long_grid_altc", selected = bookmarkedstate()$long_grid_altc)
         updateSelectInput(session, "mid_end", selected = bookmarkedstate()$mid_end)
         updateSelectInput(session, "mid_start", selected = bookmarkedstate()$mid_start)
-        updateNumericInput(session, "min_haul_ac", value = bookmarkedstate()$min_haul_ac)
-        updateNumericInput(session, "mIter", value = bookmarkedstate()$mIter)
+        updateNumericInput(session, "altc_min_haul", value = bookmarkedstate()$altc_min_haul)
+        updateNumericInput(session, "mod_iter", value = bookmarkedstate()$mod_iter)
         updateSelectInput(session, "mtgtcat", selected = bookmarkedstate()$mtgtcat)
         updateSelectInput(session, "mtgtlonlat", selected = bookmarkedstate()$mtgtlonlat)
         updateSelectInput(session, "NA_Filter", selected = bookmarkedstate()$NA_Filter)
         updateSelectInput(session, "NAN_Filter", selected = bookmarkedstate()$NAN_Filter)
         updateSelectInput(session, "numfunc", selected = bookmarkedstate()$numfunc)
-        updateSelectInput(session, "occasion_ac", selected = bookmarkedstate()$occasion_ac)
+        updateSelectInput(session, "altc_occasion", selected = bookmarkedstate()$altc_occasion)
         updateSelectInput(session, "plot_table", selected = bookmarkedstate()$plot_table)
         updateSelectInput(session, "plot_type", selected = bookmarkedstate()$plot_type)
         updateTextInput(session, 'polyear', value = bookmarkedstate()$polyear)
-        updateNumericInput(session, "polyn", value = bookmarkedstate()$polyn)
+        updateNumericInput(session, "mod_polyn", value = bookmarkedstate()$mod_polyn)
         updateSelectInput(session, "port_dat_dist", selected = bookmarkedstate()$port_dat_dist)
         updateSelectInput(session, "port_end", selected = bookmarkedstate()$port_end)
         updateSelectInput(session, "port_start", selected = bookmarkedstate()$port_start)
-        updateSelectInput(session, "price", selected = bookmarkedstate()$price)
-        updateSelectInput(session, "priceBase", selected = bookmarkedstate()$priceBase)
+        updateSelectInput(session, "exp_price", selected = bookmarkedstate()$exp_price)
+        updateSelectInput(session, "mod_price", selected = bookmarkedstate()$mod_price)
         updateTextInput(session, 'projectname', value = bookmarkedstate()$projectname)
         updateSelectInput(session, "p2fun", selected = bookmarkedstate()$p2fun)
         updateSelectInput(session, "p3fun", selected = bookmarkedstate()$p3fun)
         updateNumericInput(session, "quant_cat", value = bookmarkedstate()$quant_cat)
-        updateNumericInput(session, "relTolX", value = bookmarkedstate()$relTolX)
-        updateNumericInput(session, "reportfreq", value = bookmarkedstate()$reportfreq)
+        updateNumericInput(session, "mod_relTolX", value = bookmarkedstate()$mod_relTolX)
+        updateNumericInput(session, "mod_report_freq", value = bookmarkedstate()$mod_report_freq)
         updateSelectInput(session, "sp_col", selected = bookmarkedstate()$sp_col)
         updateSelectInput(session, "start", selected = bookmarkedstate()$start)
         updateSelectInput(session, "start_latlon", selected = bookmarkedstate()$start_latlon)
@@ -6192,11 +6648,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         updateSelectInput(session, "starting_port_SL", selected = bookmarkedstate()$starting_port_SL)
         updateSelectInput(session, "startloc", selected = bookmarkedstate()$startloc)
         updateTextInput(session, "target", value = bookmarkedstate()$target)
-        updateNumericInput(session, "temp_lag", value = bookmarkedstate()$temp_lag)
-        updateNumericInput(session, "temp_window", value = bookmarkedstate()$temp_window)
-        updateSelectInput(session, "temporal", selected = bookmarkedstate()$temporal)
-        updateNumericInput(session, "temp_year", value = bookmarkedstate()$temp_year)
-        updateSelectInput(session, "temp_var", selected = bookmarkedstate()$temp_var)
+        updateNumericInput(session, "exp_temp_lag", value = bookmarkedstate()$exp_temp_lag)
+        updateNumericInput(session, "exp_temp_window", value = bookmarkedstate()$exp_temp_window)
+        updateSelectInput(session, "exp_temporal", selected = bookmarkedstate()$exp_temporal)
+        updateNumericInput(session, "exp_temp_year", value = bookmarkedstate()$exp_temp_year)
+        updateSelectInput(session, "exp_temp_var", selected = bookmarkedstate()$exp_temp_var)
         updateSelectInput(session, "TimeVar", selected = bookmarkedstate()$TimeVar)
         updateSelectInput(session, "trans", selected = bookmarkedstate()$trans)
         updateSelectInput(session, "trans_var_name", selected = bookmarkedstate()$trans_var_name)
