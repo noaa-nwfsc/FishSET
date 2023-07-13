@@ -24,17 +24,27 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
   # delete_nested. 
   
   is_nested <- vapply(model.names, function(x) (!x %in% mdf_n) & (x %in% mot_n), logical(1))
+  # alt
+  is_nested <- vapply(model.names, function(x) grepl('\\.', model.names), logical(1))
   
-  mot_match <- lapply(model.names, function(x) grep(paste0('^', x), mot_n))
+  mot_match <- lapply(model.names[!is_nested], function(x) grep(paste0('^', x), mot_n))
   
-  lapply(mot_match, function(x) {
+  # TODO: check if model has/hasn't been run yet. If not, only delete from MDF
+  if (length(mot_match) > 0) {
     
-    if (length(x) > 1 & !delete_nested) {
+    lapply(mot_match, function(x) {
       
-      stop('Nested models found. To delete nested models set delete_nested = TRUE.', 
-           call. = FALSE)
-    }
-  })
+      if (length(x) > 1 & !delete_nested) {
+        
+        stop('Nested models found. To delete nested models set delete_nested = TRUE.', 
+             call. = FALSE)
+      }
+    })
+    # make sure that mixed batch of nested/non-nested can be deleted properly
+  } 
+    
+  mot_match <- c(mot_match, which(mot_n %in% model.names))
+
   
   # model output table ----
   
@@ -67,7 +77,7 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
                       logical(1))
       
       # remove nested model from list
-      mdf[[m_ind]]$expectcatchmodels <- mdf[[m_ind]]$expectcatchmodels[-n_ind]
+      mdf[[m_ind]]$expectcatchmodels <- mdf[[m_ind]]$expectcatchmodels[-which(n_ind)]
     }
   }
   
@@ -87,30 +97,30 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
   
   ## MDF ----
  
-  # mdf_tab_nm <- paste0(project, 'ModelInputData')
-  # table_remove(mdf_tab_nm, project)
-  # 
-  # DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", mdf_tab_nm, "(ModelInputData MODELINPUTDATA)"))
-  # DBI::dbExecute(fishset_db, paste("INSERT INTO", mdf_tab_nm, "VALUES (:ModelInputData)"),
-  #                params = list(ModelInputData = list(serialize(mdf, NULL))))
-  # 
-  # # MOT ----
-  # 
-  # mot_tab_nm <- paste0(project, "ModelOut")
-  # 
-  # table_remove(mdf_tab_nm, project)
-  # 
-  # DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", mot_tab_nm, "(data ModelOut)"))
-  # DBI::dbExecute(fishset_db, paste("INSERT INTO", mot_tab_nm, "VALUES (:data)"),
-  #                params = list(data = list(serialize(mot, NULL))))
-  # 
-  # # log function
-  # 
-  # delete_models_function <- list()
-  # delete_models_function$functionID <- "delete_models"
-  # delete_models_function$args <- list(project, model.names, delete_nested)
-  # 
-  # log_call(project, delete_models_function)
+  mdf_tab_nm <- paste0(project, 'ModelInputData')
+  table_remove(mdf_tab_nm, project)
+
+  DBI::dbExecute(fishset_db, paste("CREATE TABLE", mdf_tab_nm, "(ModelInputData MODELINPUTDATA)"))
+  DBI::dbExecute(fishset_db, paste("INSERT INTO", mdf_tab_nm, "VALUES (:ModelInputData)"),
+                 params = list(ModelInputData = list(serialize(mdf, NULL))))
+
+  # MOT ----
+
+  mot_tab_nm <- paste0(project, "ModelOut")
+
+  table_remove(mot_tab_nm, project)
+
+  DBI::dbExecute(fishset_db, paste("CREATE TABLE", mot_tab_nm, "(data ModelOut)"))
+  DBI::dbExecute(fishset_db, paste("INSERT INTO", mot_tab_nm, "VALUES (:data)"),
+                 params = list(data = list(serialize(mot, NULL))))
+
+  # log function
+
+  delete_models_function <- list()
+  delete_models_function$functionID <- "delete_models"
+  delete_models_function$args <- list(project, model.names, delete_nested)
+
+  log_call(project, delete_models_function)
   
   message('The following models have been deleted: ', paste(model.names, collapse = ', '))
 }
