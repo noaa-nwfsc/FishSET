@@ -5623,7 +5623,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       # Determine the # of parameters needed
       numInits <- reactive({
-        
+        # TODO account for expected catch matrices
         polyn <- input$mod_polyn
         gridNum <- length(input$mod_grid_vars)
         intNum <- length(input$mod_ind_vars)
