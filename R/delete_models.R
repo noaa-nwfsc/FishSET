@@ -1,56 +1,114 @@
 delete_models <- function(project, model.names, delete_nested = FALSE) {
   
-  mdf <- model_design_list(project)
-  # TODO: have model output funcs take single arg (project)
-  mot <- model_out_view(paste0(project, 'ModelOut'), project)
-  
-  mot_n <- vapply(mot, function(x) x$name, character(1))
-  mdf_n <- model_names(project)
-  
-  # check for unlisted models
-  
-  does_not_exist <- vapply(model.names, function(x) !x %in% c(mdf_n, mot_n), logical(1))
-  
-  if (any(does_not_exist)) {
-    
-    stop('The following models could not be found: ', 
-         paste(names(does_not_exist)[does_not_exist], collapse = ', '), 
-         call. = FALSE)
-  }
-  
   # check if user supplied specific nested model name (ex. logit_c_mod1.exp1) 
   # or general model name (logit_c_mod1). If general, check if delete_nested = TRUE.
   # If TRUE all nested models will be deleted. If nested model name provided ignore
   # delete_nested. 
   
-  is_nested <- vapply(model.names, function(x) (!x %in% mdf_n) & (x %in% mot_n), logical(1))
-  # alt
-  is_nested <- vapply(model.names, function(x) grepl('\\.', model.names), logical(1))
+  mdf_tab_nm <- paste0(project, 'ModelInputData')
+  mot_tab_nm <- paste0(project, "ModelOut")
+  mdf_exists <- table_exists(mdf_tab_nm, project)
+  mot_exists <- table_exists(mot_tab_nm, project)
   
-  mot_match <- lapply(model.names[!is_nested], function(x) grep(paste0('^', x), mot_n))
-  
-  # TODO: check if model has/hasn't been run yet. If not, only delete from MDF
-  if (length(mot_match) > 0) {
+  if (!mdf_exists) {
     
-    lapply(mot_match, function(x) {
+    stop('Model design table does not exist.', call. = FALSE)
+  }
+  
+  mdf <- mdf_copy <- model_design_list(project)
+  mdf_n <- model_names(project)
+  # nested names
+  mdf_nn <- lapply(mdf, function(x) {
+    
+    if (!is.null(x$expectcatchmodels)) {
       
-      if (length(x) > 1 & !delete_nested) {
+      vapply(x$expectcatchmodels, function(y) {
         
-        stop('Nested models found. To delete nested models set delete_nested = TRUE.', 
-             call. = FALSE)
-      }
-    })
-    # make sure that mixed batch of nested/non-nested can be deleted properly
-  } 
+        paste0(c(x$mod.name, y), collapse = '.')
+      }, character(1))
+      
+    } else x$mod.name
     
-  mot_match <- c(mot_match, which(mot_n %in% model.names))
-
+  })
   
+  names(mdf_nn) <- mdf_n
+  
+  is_nested <- vapply(mdf_n, function(x) !x %in% mdf_nn[[x]], logical(1))
+
   # model output table ----
   
-  mot <- mot[-unlist(mot_match)]
+  if (mot_exists) {
+    
+    # TODO: have model output funcs take single arg (project)
+    mot <- mot_copy <- model_out_view(paste0(project, 'ModelOut'), project)
+    
+    mot_n <- vapply(mot, function(x) x$name, character(1))
+    
+    # delete unnested models
+    unnested <- model.names[model.names %in% mot_n]
+    mot_ind <- vector('integer')
+    
+    if (length(unnested) > 0) {
+      
+      mot_ind <- c(mot_ind, which(unnested %in% mot_n))
+    }
+    
+    # delete nested models
+    if (any(!model.names %in% mot_n)) {
+      
+      nomatch <- model.names[!model.names %in% mot_n]
+      
+      # If model name isn't in MOT:
+      # 1) user entered general model name 
+      # 2) user hasn't run the model yet and is only deleting it from MDF
+      # 3) user mistypes model name
+      for (i in nomatch) {
+        
+        if (i %in% mdf_n) {
+          # check if nested models were run
+          if (all(mdf_nn[[i]] %in% mot_n)) {
+            
+            if (delete_nested) {
+              
+              # index of models to remove
+              mot_ind <- c(mot_ind, which(mot_n %in% mdf_nn[[i]]))
+              
+            } else {
+              
+              stop(i, ' contains nested models. Set delete_nested = TRUE to delete.',
+                   call. = FALSE)
+            }
+          } # do nothing, model not run yet
+          
+        } else {
+          
+          stop(i, ' does not exist.', call. = FALSE)
+        }
+      }
+    }
+    
+    if (length(mot_ind) > 0) {
+      
+      mot <- mot[-mot_ind]
+    }
+  }
+  
+    # Note: this will fail to detect nested models that haven't been run
+  # check for unlisted models
+  
+  # does_not_exist <- vapply(model.names, function(x) !x %in% c(mdf_n, mot_n), logical(1))
+  # 
+  # if (any(does_not_exist)) {
+  #   
+  #   stop('The following models could not be found: ', 
+  #        paste(names(does_not_exist)[does_not_exist], collapse = ', '), 
+  #        call. = FALSE)
+  # }
   
   # model design file ----
+  
+    
+    browser()
   
   # delete specified nested models
   if (any(is_nested)) {
@@ -91,13 +149,13 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
   }
   
   # save updated tables ----
-  
+  browser()
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
   ## MDF ----
- 
-  mdf_tab_nm <- paste0(project, 'ModelInputData')
+ # TODO: save mdf and mot independently
+  
   table_remove(mdf_tab_nm, project)
 
   DBI::dbExecute(fishset_db, paste("CREATE TABLE", mdf_tab_nm, "(ModelInputData MODELINPUTDATA)"))
@@ -105,8 +163,6 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
                  params = list(ModelInputData = list(serialize(mdf, NULL))))
 
   # MOT ----
-
-  mot_tab_nm <- paste0(project, "ModelOut")
 
   table_remove(mot_tab_nm, project)
 
