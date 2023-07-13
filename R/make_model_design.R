@@ -304,6 +304,7 @@ make_model_design <-
   
   if (mod_dsn_exists) mod_nms <- model_names(project)
   
+  # TODO: make periods ('.') an illegal character for model name (reserved for expected catch matrices)
   if (is_value_empty(mod.name)) {
     
     mod.name <- likelihood
