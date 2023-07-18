@@ -4,12 +4,14 @@
 \alias{to_html_table}
 \title{Convert dataframe/matrix to html table}
 \usage{
-to_html_table(x, rownames = FALSE)
+to_html_table(x, rownames = FALSE, ...)
 }
 \arguments{
 \item{x}{A vector or list object.}
 
 \item{rownames}{Logical, whether to show rownames.}
+
+\item{...}{Arguments to pass to \code{\link{shiny::renderTable}}}
 }
 \value{
 Returns an HTML table or (if the object is not a matrix or dataframe)
