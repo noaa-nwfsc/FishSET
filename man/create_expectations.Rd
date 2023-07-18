@@ -20,7 +20,7 @@ create_expectations(
   temp.lag = 0,
   year.lag = 0,
   dummy.exp = FALSE,
-  default.exp = TRUE,
+  default.exp = FALSE,
   replace.output = TRUE
 )
 }
