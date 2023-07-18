@@ -1,9 +1,37 @@
 delete_models <- function(project, model.names, delete_nested = FALSE) {
+  #' Delete models from FishSET Database
+  #' 
+  #' Delete models from the model design file (MDF) and the model output table 
+  #' (MOT).
+  #' 
+  #' @param project String, name of project.
+  #' @param model.names String, name of models to delete. Use [model_names()] to
+  #' see model names from the model design file. 
+  #' @param delete_nested Logical, whether to delete a model containing nested 
+  #' models. Defaults to `FALSE`.
+  #' @md
+  #' @details Nested models are conditional logit models that include more than 
+  #' one expected catch/revenue model. For example, if a conditional logit model 
+  #' named `'logit_c_mod1'` was saved to the MDF with the argument 
+  #' `expectcatchmodels = list('exp1', 'recent', 'older')`, then `'logit_c_mod1`
+  #' will include three separate models, each using a different expected catch 
+  #' matrix. To delete all three models, enter `model.names = 'logit_c_mod1'` and
+  #' set `delete_nested = TRUE`. To delete one or more specific nested models, use 
+  #' `model.names = 'logit_c_mod1.exp1'`, i.e. the original model name, a period, and 
+  #' the name of the expected catch matrix used in the model. 
+  #' 
+  #' @seealso [model_design_list()], [model_out_view()]
+  #' @export
+  #' @importFrom DBI dbConnect dbDisconnect dbExecute
+  #' @importFrom RSQLite SQLite
+  #' 
   
   # check if user supplied specific nested model name (ex. logit_c_mod1.exp1) 
   # or general model name (logit_c_mod1). If general, check if delete_nested = TRUE.
-  # If TRUE all nested models will be deleted. If nested model name provided ignore
+  # If TRUE all nested models will be deleted. If specific nested model name provided ignore
   # delete_nested. 
+  
+  # TODO: Need to check if user is removing all models, then only need to use table_remove()
   
   mdf_tab_nm <- paste0(project, 'ModelInputData')
   mot_tab_nm <- paste0(project, "ModelOut")
@@ -151,13 +179,22 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
     mdf <- mdf[-m_ind]
   }
   
+  # typos/non-existent model names
+  if (any(!model.names %in% c(nested_mods_specifc, nested_mods_general, unnested_mods))) {
+    
+    stop('The following models could not be found: ', 
+         paste(model.names[!model.names %in% 
+                             c(nested_mods_specifc, nested_mods_general, unnested_mods)], 
+               collapse = ', '),
+         call. = FALSE)
+  }
+  
   # save updated tables ----
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
   ## MDF ----
-  # TODO: save mdf and mot independently
   
   table_remove(mdf_tab_nm, project)
 
