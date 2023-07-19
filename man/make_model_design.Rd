@@ -7,7 +7,6 @@
 make_model_design(
   project,
   catchID,
-  replace = TRUE,
   likelihood = NULL,
   initparams = NULL,
   optimOpt = c(100, 1e-08, 1, 1),
@@ -28,9 +27,6 @@ make_model_design(
 \item{project}{String, name of project.}
 
 \item{catchID}{String, variable from \code{dat} that contains catch data.}
-
-\item{replace}{Logical, should the model design file be replaced? If \code{FALSE},
-appends to existing model design file. Defaults to \code{TRUE}.}
 
 \item{likelihood}{String, name of likelihood function. Details on likelihood
 specific initial parameter specification can be found in
@@ -267,7 +263,7 @@ Variable names details: \cr
 \examples{
 \dontrun{
 make_model_design("pollock", catchID= "OFFICIAL_TOTAL_CATCH",  
-  replace=FALSE, likelihood='logit_avgcat', 
+  likelihood='logit_avgcat', 
   vars1=NULL, vars2=NULL, initparams=c(-0.5,0.5),
   optimOpt=c(100000, 1.0e-08, 1, 1), methodname = "BFGS", mod.name = "logit4"
 )

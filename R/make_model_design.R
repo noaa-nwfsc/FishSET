@@ -5,8 +5,6 @@
 #'
 #' @param project String, name of project.
 #' @param catchID  String, variable from `dat` that contains catch data.
-#' @param replace Logical, should the model design file be replaced? If `FALSE`, 
-#'   appends to existing model design file. Defaults to `TRUE`.
 #' @param likelihood String, name of likelihood function. Details on likelihood 
 #'   specific initial parameter specification can be found in 
 #'   [discretefish_subroutine()] documentation.
@@ -223,7 +221,7 @@
 #' @examples
 #' \dontrun{
 #' make_model_design("pollock", catchID= "OFFICIAL_TOTAL_CATCH",  
-#'   replace=FALSE, likelihood='logit_avgcat', 
+#'   likelihood='logit_avgcat', 
 #'   vars1=NULL, vars2=NULL, initparams=c(-0.5,0.5),
 #'   optimOpt=c(100000, 1.0e-08, 1, 1), methodname = "BFGS", mod.name = "logit4"
 #' )
@@ -233,7 +231,6 @@ make_model_design <-
   
   function(project,
            catchID,
-           replace = TRUE,
            likelihood = NULL,
            initparams = NULL,
            optimOpt = c(100, 1.0e-08, 1, 1), # tolerance may be low
@@ -323,7 +320,7 @@ make_model_design <-
     
     if (mod_dsn_exists) {
       
-      if (mod.name %in% mod_nms & !replace) {
+      if (mod.name %in% mod_nms) {
         
         stop("Model name '", mod.name, "' exists. Enter a unique name. Current ",
              "model names are: ", paste0(model_names(project), collapse = ", "), 
@@ -667,11 +664,12 @@ make_model_design <-
     )
   
     single_sql <- paste0(project, "ModelInputData")
-    date_sql <- paste0(project, "ModelInputData", format(Sys.Date(), format = "%Y%m%d"))
+    # Note: disabled dated model design list, not sure this should be duplicated
+    # date_sql <- paste0(project, "ModelInputData", format(Sys.Date(), format = "%Y%m%d"))
     
-    if (table_exists(single_sql, project) & replace == FALSE) {
+    if (table_exists(single_sql, project)) {
       
-      ModelInputData <- unserialize_table(paste0(project, "ModelInputData"), project)
+      ModelInputData <- model_design_list(project)
       ModelInputData[[length(ModelInputData) + 1]] <- modelInputData_tosave
       
     } else {
@@ -682,24 +680,25 @@ make_model_design <-
     
     if (table_exists(single_sql, project)) table_remove(single_sql, project)
     
-    if (table_exists(date_sql, project)) table_remove(date_sql, project)
+    # if (table_exists(date_sql, project)) table_remove(date_sql, project)
     
   
     DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
     DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"),
                    params = list(ModelInputData = list(serialize(ModelInputData, NULL)))
     )
-    DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(ModelInputData MODELINPUTDATA)"))
-    DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:ModelInputData)"),
-                   params = list(ModelInputData = list(serialize(ModelInputData, NULL)))
-    )
+    
+    # DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(ModelInputData MODELINPUTDATA)"))
+    # DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:ModelInputData)"),
+    #                params = list(ModelInputData = list(serialize(ModelInputData, NULL)))
+    # )
     
     make_model_design_function <- list()
     make_model_design_function$functionID <- "make_model_design"
     make_model_design_function$args <- list(
-      project, catchID, replace,  likelihood,initparams, optimOpt, 
-      methodname, as.character(mod.name), vars1, vars2, priceCol,
-      expectcatchmodels, startloc, polyn, spat, spatID, crs
+      project, catchID, likelihood,initparams, optimOpt, methodname, 
+      as.character(mod.name), vars1, vars2, priceCol, expectcatchmodels, 
+      startloc, polyn, spat, spatID, crs
     )
     make_model_design_function$kwargs <- list()
     
