@@ -440,49 +440,22 @@ discretefish_subroutine <-
         
       } else modOutName <- mdf[[i]][["mod.name"]]
       
-      if (!exists("mod.out")) {
-        
-        mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
-        mod.out[, 1] <- c(AIC, AICc, BIC, PseudoR2)
-        rownames(mod.out) <- c("AIC", "AICc", "BIC", "PseudoR2")
-        colnames(mod.out) <- modOutName
-        
-      } else {
-        
-        temp <- data.frame(c(AIC, AICc, BIC, PseudoR2))
-        colnames(temp) <- modOutName
-      }
+      mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
+      mod.out[, 1] <- c(AIC, AICc, BIC, PseudoR2)
+      rownames(mod.out) <- c("AIC", "AICc", "BIC", "PseudoR2")
+      colnames(mod.out) <- modOutName
 
-      if (i == 1) {
-        # TODO: changes this once new saving/deleting scheme is in place
-        if (table_exists(paste0(project, "ModelFit"), project)) {
-          
-          table_remove(paste0(project, "ModelFit"), project)
-        }
+      mft_tab_nm <- paste0(project, "ModelFit")
+      
+      if (table_exists(mft_tab_nm, project)) {
         
-        DBI::dbWriteTable(fishset_db, paste0(project, "ModelFit"), mod.out)
+        mft <- model_fit(project)
+        
+        DBI::dbWriteTable(fishset_db, mft_tab_nm, cbind(mft, mod.out), overwrite = TRUE)
         
       } else {
         
-        out.mod <- DBI::dbReadTable(fishset_db, paste0(project, "ModelFit"))
-        
-        if (exists("temp")) {
-          
-          out.mod <- cbind(out.mod, temp)
-          
-        } else {
-          
-          out.mod <- cbind(out.mod, mod.out)
-        }
-        
-        if (any(duplicated(colnames(out.mod)))) {
-          
-          warning("Duplicate columns names. Adding numeric identifer to make colnames unique.",
-                  call. = FALSE)
-          colnames(out.mod) <- paste0(colnames(out.mod), 1:length(colnames(out.mod)))
-        }
-        
-        DBI::dbWriteTable(fishset_db, paste0(project, "ModelFit"), out.mod, overwrite = TRUE)
+        DBI::dbWriteTable(fishset_db, mft_tab_nm, mod.out)
       }
       
       ## Full model output ----
@@ -646,6 +619,7 @@ discretefish_subroutine <-
     # out.mod <<- out.mod
     
   # select model app ----
+  
   if (select.model == TRUE) {
     
     shiny::runApp(list(
