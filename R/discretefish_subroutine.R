@@ -5,6 +5,7 @@
 #' choices and expected catch cases. Output is saved to the FishSET database.
 #'
 #' @param project  String, name of project.
+#' @param run String 
 #' @param select.model Return an interactive data table that allows users to 
 #'   select and save table of best models based on measures of fit.
 #' @param explorestarts Logical, should starting parameters value space be explored? 
@@ -109,6 +110,7 @@
 discretefish_subroutine <-
   
   function(project,
+           run = 'new',
            select.model = FALSE,
            explorestarts = TRUE,
            breakearly = TRUE,
@@ -128,18 +130,77 @@ discretefish_subroutine <-
   # Call in datasets
   if (table_exists(paste0(project, "ModelInputData"), project)) {
     
-    x_temp <- unserialize_table(paste0(project, "ModelInputData"), project)
+    mdf <- model_design_list(project)
     
   } else {
     
     stop('Model input table does not exist.', call. = FALSE)
   }
 
-
+  # TODO: create new arg "run" with three options:
+  # run = 'new': only run models in MDF that haven't been run yet
+  # run = 'all': run all models in MDF
+  # run = names of models to run: a character vector of model names to run
   
-  for (i in 1:length(x_temp)) { # loop thru each model
+  # model names from MDF
+  mdf_n <- model_names(project)
+  # full names (as they would be in MOT)
+  mdf_nn <- lapply(mdf, function(x) {
+    
+    if (!is.null(x$expectcatchmodels)) {
+      # if exp matrices included, created full model name
+      vapply(x$expectcatchmodels, function(y) {
+        
+        paste0(c(x$mod.name, y), collapse = '.')
+      }, character(1))
+      # otherwise, return unnested name
+    } else x$mod.name
+  })
+  
+  names(mdf_nn) <- mdf_n
+  
+  mot_exists <- table_exists(paste0(project, 'ModelOut'), project)
+  
+  if (run == 'new') { # run new models
+    
+    if (mot_exists) {
+      
+      mot <- model_out_view(paste0(project, 'ModelOut'), project)
+      mot_n <- vapply(mot, function(x) x$name, character(1))
+      
+      is_new_mod <- vapply(mdf_n, function(x) {
+        
+        all(!mdf_nn[[x]] %in% mot_n)
+      }, logical(1))
+      
+      if (any(is_new_mod)) {
+        
+        mdf <- mdf[which(is_new_mod)]
+        
+      } else {
+        
+        stop('No new models to run. To rerun models, set run = "all".', call. = FALSE)
+      }
+      
+      
+    } # else run all models 
+    
+  } else if (run != 'all') { # run select models
+    
+    if (all(!run %in% mdf_n)) {
+      
+      stop('The following models are not in the model design file: ',
+           paste0(run[!run %in% mdf_n], collapse = ', '), 
+           call. = FALSE)
+    }
+    
+    mdf <- mdf[which(mdf_n %in% run)]
+    
+  } # else run all models
+  
+  for (i in seq_along(mdf)) { # loop thru each model
 
-    x <- x_temp[[i]]
+    x <- mdf[[i]]
     
     length.exp.names <-length(x$expectcatchmodels)
     
@@ -215,7 +276,7 @@ discretefish_subroutine <-
       } else if (fr == 'logit_correction') {
         
         numInits <- gridNum * max(datamatrix$choice) + intNum + 
-          ((((as.numeric(x_temp[[i]]$polyn)+1)*2)+2)*max(datamatrix$choice)) +1+1
+          ((((as.numeric(mdf[[i]]$polyn)+1)*2)+2)*max(datamatrix$choice)) +1+1
         
       } else {
         
@@ -284,10 +345,10 @@ discretefish_subroutine <-
             stats::optim(starts2, fr.name,
                          dat = datamatrix$d, otherdat = datamatrix$otherdat,
                          alts = max(datamatrix$choice),
-                         method = as.character(x_temp[[i]][['methodname']]),
+                         method = as.character(mdf[[i]][['methodname']]),
                          control = controlin, hessian = TRUE, project = project,
                          expname = datamatrix$expname,
-                         mod.name = as.character(unlist(x_temp[[i]][['mod.name']])))
+                         mod.name = as.character(unlist(mdf[[i]][['mod.name']])))
         },
         
         error = function(e) {
@@ -340,9 +401,9 @@ discretefish_subroutine <-
         
         print(
           list(
-          error = paste('optimization error for', x_temp[[i]]$mod.name,
+          error = paste('optimization error for', mdf[[i]]$mod.name,
                         ', check LDGlobalCheck'),
-          name = names(x_temp[[i]][["gridVaryingVariables"]])[i], 
+          name = names(mdf[[i]][["gridVaryingVariables"]])[i], 
           errorExplain = res, OutLogit = OutLogit, optoutput = optoutput,
           seoutmat2 = seoutmat2, MCM = MCM, H1 = H1
           )
@@ -375,9 +436,9 @@ discretefish_subroutine <-
       
       if (!is.null(datamatrix$expname)) {
         
-        modOutName <- paste0(c(x_temp[[i]][["mod.name"]], datamatrix$expname), collapse = '.')
+        modOutName <- paste0(c(mdf[[i]][["mod.name"]], datamatrix$expname), collapse = '.')
         
-      } else modOutName <- x_temp[[i]][["mod.name"]]
+      } else modOutName <- mdf[[i]][["mod.name"]]
       
       if (!exists("mod.out")) {
         
@@ -512,14 +573,14 @@ discretefish_subroutine <-
         }
         
         # TODO: make sure this works for each model type
-        p_names <- unlist(lapply(x_temp[[i]]$bCHeader[-1], names))
-        grid_vars <- names(x_temp[[i]]$bCHeader$gridVariablesInclude)
-        ind_vars <- names(x_temp[[i]]$bCHeader$indeVarsForModel)
+        p_names <- unlist(lapply(mdf[[i]]$bCHeader[-1], names))
+        grid_vars <- names(mdf[[i]]$bCHeader$gridVariablesInclude)
+        ind_vars <- names(mdf[[i]]$bCHeader$indeVarsForModel)
         ec_names <- x$expectcatchmodels[[j]]
         
         if (fr == "logit_avgcat") {
           
-          z_names <- sort(unique(x_temp[[i]]$choice$choice))[-1]
+          z_names <- sort(unique(mdf[[i]]$choice$choice))[-1]
           n1 <- unlist(lapply(grid_vars, function(x) as.character(interaction(x, z_names)))) 
           rownames(OutLogit) <- c(n1, ind_vars) 
           
@@ -528,7 +589,7 @@ discretefish_subroutine <-
           rownames(OutLogit) <- c(ec_names, p_names)
         }
         # save to output folder
-        save_table(OutLogit, project = project, x_temp[[i]]$mod.name)
+        save_table(OutLogit, project = project, mdf[[i]]$mod.name)
         
       if (!exists("ModelOut")) {
         
@@ -551,7 +612,9 @@ discretefish_subroutine <-
       } 
       
       # save model output ---- 
-        # TODO: change this once new saving/deleting scheme is in place
+      # TODO: update model output table (MOT) if it exists, otherwise create new table.
+      # if rerunning certain models, then update that model's entry in the MOT. 
+        
       raw_sql <- paste0(project, "ModelOut")
       single_sql <- paste0(project, "ModelOut", format(Sys.Date(), format = "%Y%m%d"))
       
