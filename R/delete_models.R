@@ -32,6 +32,7 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
   # delete_nested. 
   
   # TODO: Need to check if user is removing all models, then only need to use table_remove()
+  # TODO: include modelFit table
   
   mdf_tab_nm <- paste0(project, 'ModelInputData')
   mot_tab_nm <- paste0(project, "ModelOut")
@@ -70,8 +71,10 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
     
     # TODO: have model output funcs take single arg (project)
     mot <- model_out_view(paste0(project, 'ModelOut'), project)
-    
     mot_n <- vapply(mot, function(x) x$name, character(1))
+    
+    # get model fit table (MFT)
+    mft <- model_fit(project)
     
     # delete unnested models
     unnested <- model.names[model.names %in% mot_n]
@@ -119,6 +122,7 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
     if (length(mot_ind) > 0) {
       
       mot <- mot[-mot_ind]
+      mft <- mft[-mot_ind]
       update_mot <- TRUE
     }
   }
@@ -211,6 +215,8 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
     DBI::dbExecute(fishset_db, paste("CREATE TABLE", mot_tab_nm, "(data ModelOut)"))
     DBI::dbExecute(fishset_db, paste("INSERT INTO", mot_tab_nm, "VALUES (:data)"),
                    params = list(data = list(serialize(mot, NULL))))
+    
+    DBI::dbWriteTable(fishset_db, paste0(project, 'ModelFit'), mft, overwrite = TRUE)
   }
 
   # log function
