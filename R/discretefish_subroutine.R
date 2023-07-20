@@ -5,7 +5,12 @@
 #' choices and expected catch cases. Output is saved to the FishSET database.
 #'
 #' @param project  String, name of project.
-#' @param run String 
+#' @param run String, how models should be run. \code{'new'} will only run models
+#'   that exist in the model design file but not in the model output table. \code{'all'}
+#'   will run all models in the model design file, replacing existing model output. 
+#'   The third option is to enter a vector of model names to run (use 
+#'   \code{\link{model_names()}} to see current model names). 
+#'   If the specified model already has output it will be replaced.  
 #' @param select.model Return an interactive data table that allows users to 
 #'   select and save table of best models based on measures of fit.
 #' @param explorestarts Logical, should starting parameters value space be explored? 
@@ -181,8 +186,6 @@ discretefish_subroutine <-
         
         stop('No new models to run. To rerun models, set run = "all".', call. = FALSE)
       }
-      
-      
     } # else run all models 
     
   } else if (run != 'all') { # run select models
@@ -198,6 +201,8 @@ discretefish_subroutine <-
     
   } # else run all models
   
+  ModelOut <- list()
+  
   for (i in seq_along(mdf)) { # loop thru each model
 
     x <- mdf[[i]]
@@ -208,6 +213,7 @@ discretefish_subroutine <-
     
     # data matrix ----
     # loop thru expected catch matrices (loops once if no matrix)
+    
     for (j in seq_len(length.exp.names)) {
       
       if (is_value_empty(x$expectcatchmodels)) {
@@ -451,11 +457,20 @@ discretefish_subroutine <-
         
         mft <- model_fit(project)
         
-        DBI::dbWriteTable(fishset_db, mft_tab_nm, cbind(mft, mod.out), overwrite = TRUE)
+        if (!run %in% 'new') { # selected models
+          # TODO: using name method below for all cases may be simpler
+          mft[[modOutName]] <- mod.out[[modOutName]]
+          DBI::dbWriteTable(fishset_db, mft_tab_nm, mft, overwrite = TRUE)
+          
+        } else {
+          
+          DBI::dbWriteTable(fishset_db, mft_tab_nm, cbind(mft, mod.out), overwrite = TRUE)
+        }
         
       } else {
         
         DBI::dbWriteTable(fishset_db, mft_tab_nm, mod.out)
+        mft <- model_fit(project) # for use in model select app
       }
       
       ## Full model output ----
@@ -564,59 +579,97 @@ discretefish_subroutine <-
         # save to output folder
         save_table(OutLogit, project = project, mdf[[i]]$mod.name)
         
-      if (!exists("ModelOut")) {
-        
-        ModelOut <- list()
-        ModelOut[[1]] <- list(
-          name = modOutName, errorExplain = errorExplain, 
-          OutLogit = OutLogit, optoutput = optoutput, seoutmat2 = seoutmat2, 
-          MCM = MCM, H1 = H1, choice.table = datamatrix$choice.table, 
-          params = q2, modTime = mod_time
-        )
-        
-      } else {
-        
-        ModelOut[[length(ModelOut) + 1]] <- list(
-          name = modOutName, errorExplain = errorExplain, 
-          OutLogit = OutLogit, optoutput = optoutput, seoutmat2 = seoutmat2, 
-          MCM = MCM, H1 = H1, choice.table = datamatrix$choice.table, 
-          params = q2, modTime = mod_time
-        )
-      } 
-      
-      # save model output ---- 
-      # TODO: update model output table (MOT) if it exists, otherwise create new table.
-      # if rerunning certain models, then update that model's entry in the MOT. 
-        
-      raw_sql <- paste0(project, "ModelOut")
-      single_sql <- paste0(project, "ModelOut", format(Sys.Date(), format = "%Y%m%d"))
-      
-      if (table_exists(single_sql, project)) {
-        
-        table_remove(single_sql, project)
-      }
-      
-      if (table_exists(raw_sql, project)) {
-        
-        table_remove(raw_sql, project)
-      }
-      
-      # Save ModelOut table to FSDB
-      second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
-      raw_second_sql <- paste("INSERT INTO", raw_sql, "VALUES (:data)")
-      DBI::dbExecute(fishset_db, 
-                     paste("CREATE TABLE IF NOT EXISTS", single_sql, "(data ModelOut)"))
-      DBI::dbExecute(fishset_db, second_sql, 
-                     params = list(data = list(serialize(ModelOut, NULL))))
-      DBI::dbExecute(fishset_db, 
-                     paste("CREATE TABLE IF NOT EXISTS", raw_sql, "(data ModelOut)"))
-      DBI::dbExecute(fishset_db, raw_second_sql, 
-                     params = list(data = list(serialize(ModelOut, NULL))))
+        if (run == 'all') {
 
+          ModelOut[[length(ModelOut) + 1]] <- list(
+            name = modOutName, errorExplain = errorExplain,
+            OutLogit = OutLogit, optoutput = optoutput, seoutmat2 = seoutmat2,
+            MCM = MCM, H1 = H1, choice.table = datamatrix$choice.table,
+            params = q2, modTime = mod_time
+          )
+
+        } else {
+
+          ModelOut <- list(
+            name = modOutName, errorExplain = errorExplain, 
+            OutLogit = OutLogit, optoutput = optoutput, seoutmat2 = seoutmat2, 
+            MCM = MCM, H1 = H1, choice.table = datamatrix$choice.table, 
+            params = q2, modTime = mod_time
+          )
+        }
+        
+        # save model output ---- 
+        
+        # run = 'new': add to mot (unless mot doesn't exist, then create new mot)
+        # run = 'all': overwrite existing mot
+        # run = select: add new models, replace existing models (unless mot doesn't 
+        # exist, then create new mot)
+        
+        # Note: would be more efficient to save everything after all models have
+        # been run, but if function breaks all output is lost. Worth tradeoff?
+         
+        mot_tab_nm <- paste0(project, "ModelOut")
+        mot_exists <- table_exists(mot_tab_nm, project)
+        
+        if (run == 'new') {
+          
+          if (mot_exists) {
+            
+            mot <- model_out_view(mot_tab_nm, project)
+            
+            table_remove(mot_tab_nm, project)
+            # add new model
+            mot[[length(mot) + 1]] <- ModelOut
+            
+            mot_to_save <- mot
+            
+          } else {
+            # new mot 
+            mot_to_save <- list(ModelOut)
+          }
+          
+        } else if (run == 'all') {
+          
+          table_remove(mot_tab_nm, project)
+          
+          mot_to_save <- ModelOut
+          
+        } else { # selected models
+          
+          if (mot_exists) {
+            
+            mot <- model_out_view(mot_tab_nm, project)
+            table_remove(mot_tab_nm, project)
+            
+            mot_n <- vapply(mot, function(x) x$name, character(1)) 
+            
+            if (modOutName %in% mot_n) {
+              #replace existing model
+              mot[[which(mot_n %in% modOutName)]] <- ModelOut
+              
+            } else {
+              # add new model
+              mot[[length(mot) + 1]] <- ModelOut
+            }
+            
+            mot_to_save <- mot
+            
+          } else {
+            # new mot
+            mot_to_save <- list(ModelOut)
+          }
+        }
+        
+        # Save ModelOut table to FSDB
+        raw_sql <- paste("INSERT INTO", mot_tab_nm, "VALUES (:data)")
+        
+        DBI::dbExecute(fishset_db, 
+                       paste("CREATE TABLE IF NOT EXISTS", mot_tab_nm, "(data ModelOut)"))
+        DBI::dbExecute(fishset_db, raw_sql, 
+                       params = list(data = list(serialize(mot_to_save, NULL))))
       } 
     } # End looping through expected catch cases
   } # end looping through model choices
-    # out.mod <<- out.mod
     
   # select model app ----
   
@@ -650,7 +703,7 @@ discretefish_subroutine <-
         # datatable with checkbox
         output$mytable <- shiny::renderDataTable({
           
-            data.frame(t(out.mod), Select = shinyInput(checkboxInput, nrow(t(out.mod)), "cbox_"))
+            data.frame(t(mft), Select = shinyInput(checkboxInput, nrow(t(mft)), "cbox_"))
           },
           colnames = c("model", "AIC", "AICc", "BIC", "PseudoR2"),
           filter = "top",
@@ -686,9 +739,9 @@ discretefish_subroutine <-
         }
         
         checkedsave <- reactive(cbind(
-          model = colnames(out.mod), t(out.mod),
-          selected = shinyValue("cbox_", nrow(t(out.mod))),
-          Date = shinyDate("cbox_", nrow(t(out.mod)))
+          model = colnames(mft), t(mft),
+          selected = shinyValue("cbox_", nrow(t(mft))),
+          Date = shinyDate("cbox_", nrow(t(mft)))
         ))
         
         
