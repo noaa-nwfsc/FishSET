@@ -22,7 +22,7 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
   #' 
   #' @seealso [model_design_list()], [model_out_view()]
   #' @export
-  #' @importFrom DBI dbConnect dbDisconnect dbExecute
+  #' @importFrom DBI dbConnect dbDisconnect dbExecute dbWriteTable
   #' @importFrom RSQLite SQLite
   #' 
   
