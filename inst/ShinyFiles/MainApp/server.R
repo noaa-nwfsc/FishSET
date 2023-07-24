@@ -5985,10 +5985,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         # Run model(s)
         # TODO: make these args available in the app (try modal pop-up)
         
-        # discretefish_subroutine(project = rv$data$project[1], select.model = FALSE,
-        #                         explorestarts = TRUE, breakearly = TRUE, space = 15, dev = 5,
-        #                         use.scalers = TRUE, scaler.func = NULL)
-        
         discretefish_subroutine(project = rv$data$project[1], select.model = FALSE,
                                 explorestarts = FALSE, breakearly = TRUE, space = NULL, 
                                 dev = NULL, use.scalers = FALSE, scaler.func = NULL)
@@ -6065,6 +6061,57 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         if (!is_value_empty(mod_sum_out())) mod_params_out()
       }, escape = FALSE)
+      
+      ## model manage ----
+      
+      mod_del_select <- reactive({
+        
+        req(input$mod_man_mod_type)
+        
+        mod_n <- vapply(mod_design_list_r(), function(x) x$mod.name, character(1))
+        
+        mdf_nn <- lapply(mod_design_list_r(), function(x) {
+          
+          if (!is.null(x$expectcatchmodels)) {
+            # if exp matrices included, created full model name
+            vapply(x$expectcatchmodels, function(y) {
+              
+              paste0(c(x$mod.name, y), collapse = '.')
+            }, character(1))
+            # otherwise, return unnested name
+          } else x$mod.name
+        })
+        
+        if (input$mod_man_mod_type == 'nested model') {
+          
+          unlist(mdf_nn, use.names = FALSE)
+          
+        } else mod_n
+      })
+      
+      
+      
+      output$mod_man_ui <- renderUI({
+        
+        tagList(
+        
+          selectizeInput('mod_man_select', 'Select model(s) to delete',
+                         choices = mod_del_select(), multiple = TRUE)
+        )
+      })
+      
+      observeEvent(input$mod_delete, {
+        
+        q_test <- quietly_test(delete_models, show_msg = TRUE) 
+        
+        q_test(project = project$name, model.names = input$mod_man_select, 
+               delete_nested = TRUE)
+        
+        # refresh model list/output
+        input$mod_list_reload
+        input$mod_reload
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
       
       ## Model Error ----
       
