@@ -141,7 +141,7 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
   # throw error if delete_nest = FALSE
   if (any(model.names %in% nest_n) & !delete_nested) {
     
-    stop('')
+    stop('Nested models detected. To delete set delete_nested = TRUE.', call. = FALSE)
   }
   
   # delete specific nested models
