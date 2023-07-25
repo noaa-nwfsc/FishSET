@@ -1,4 +1,4 @@
-delete_models <- function(project, model.names, delete_nested = FALSE) {
+delete_models <- function(project, model.names, delete.nested = FALSE) {
   #' Delete models from FishSET Database
   #' 
   #' Delete models from the model design file (MDF) and the model output table 
@@ -7,7 +7,7 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
   #' @param project String, name of project.
   #' @param model.names String, name of models to delete. Use [model_names()] to
   #' see model names from the model design file. 
-  #' @param delete_nested Logical, whether to delete a model containing nested 
+  #' @param delete.nested Logical, whether to delete a model containing nested 
   #' models. Defaults to `FALSE`.
   #' @md
   #' @details Nested models are conditional logit models that include more than 
@@ -16,7 +16,7 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
   #' `expectcatchmodels = list('exp1', 'recent', 'older')`, then `'logit_c_mod1`
   #' will include three separate models, each using a different expected catch 
   #' matrix. To delete all three models, enter `model.names = 'logit_c_mod1'` and
-  #' set `delete_nested = TRUE`. To delete one or more specific nested models, use 
+  #' set `delete.nested = TRUE`. To delete one or more specific nested models, use 
   #' `model.names = 'logit_c_mod1.exp1'`, i.e. the original model name, a period, and 
   #' the name of the expected catch matrix used in the model. 
   #' 
@@ -27,9 +27,9 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
   #' 
   
   # check if user supplied specific nested model name (ex. logit_c_mod1.exp1) 
-  # or general model name (logit_c_mod1). If general, check if delete_nested = TRUE.
+  # or general model name (logit_c_mod1). If general, check if delete.nested = TRUE.
   # If TRUE all nested models will be deleted. If specific nested model name provided ignore
-  # delete_nested. 
+  # delete.nested. 
   
   # TODO: Need to check if user is removing all models, then only need to use table_remove()
   # TODO: include modelFit table
@@ -100,14 +100,14 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
           # check if nested models were run
           if (all(mdf_nn[[i]] %in% mot_n)) {
             
-            if (delete_nested) {
+            if (delete.nested) {
               
               # index of models to remove
               mot_ind <- c(mot_ind, which(mot_n %in% mdf_nn[[i]]))
               
             } else {
               
-              stop(i, ' contains nested models. Set delete_nested = TRUE to delete.',
+              stop(i, ' contains nested models. Set delete.nested = TRUE to delete.',
                    call. = FALSE)
             }
           } # do nothing, model not run yet
@@ -132,16 +132,16 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
   # possible scenarios:
   # 1) delete unnested model
   # 2) delete specific nested model
-  # 3) delete model and all its nested models (check delete_nested = TRUE)
+  # 3) delete model and all its nested models (check delete.nested = TRUE)
   # 4) typo/non-existing model entered
 
   # check for nested models
   nest_n <- names(is_nested)[is_nested]
   
   # throw error if delete_nest = FALSE
-  if (any(model.names %in% nest_n) & !delete_nested) {
+  if (any(model.names %in% nest_n) & !delete.nested) {
     
-    stop('Nested models detected. To delete set delete_nested = TRUE.', call. = FALSE)
+    stop('Nested models detected. To delete set delete.nested = TRUE.', call. = FALSE)
   }
   
   # delete specific nested models
@@ -223,7 +223,7 @@ delete_models <- function(project, model.names, delete_nested = FALSE) {
 
   delete_models_function <- list()
   delete_models_function$functionID <- "delete_models"
-  delete_models_function$args <- list(project, model.names, delete_nested)
+  delete_models_function$args <- list(project, model.names, delete.nested)
 
   log_call(project, delete_models_function)
   
