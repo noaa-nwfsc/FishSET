@@ -5966,7 +5966,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           str_rpl <- function(string) if (is_value_empty(string)) NULL else string
           
           q_test(project = rv$data$project[i], catchID = rv$data$catch[i], 
-                 replace = FALSE, likelihood = rv$data$likelihood[i], 
+                 likelihood = rv$data$likelihood[i], 
                  initparams = rv$data$inits[i], optimOpt = rv$data$optimOpt[i],
                  methodname = rv$data$methodname[i], mod.name = rv$data$mod_name[i],
                  vars1 = str_rpl(vars1), vars2 = str_rpl(rv$data$vars2[i]), 
@@ -5984,10 +5984,13 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
   
         # Run model(s)
         # TODO: make these args available in the app (try modal pop-up)
+        # add run arg
         
-        discretefish_subroutine(project = rv$data$project[1], select.model = FALSE,
-                                explorestarts = FALSE, breakearly = TRUE, space = NULL, 
-                                dev = NULL, use.scalers = FALSE, scaler.func = NULL)
+        q_test <- quietly_test(discretefish_subroutine, show_msg = TRUE)
+        
+        q_test(project = rv$data$project[1], select.model = FALSE, 
+               explorestarts = FALSE, breakearly = TRUE, space = NULL, 
+               dev = NULL, use.scalers = FALSE, scaler.func = NULL)
         
         showNotification('Model run is complete. Check the `Compare Models` subtab to view output', 
                          type='message', duration=30)
@@ -6040,7 +6043,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         req(project$name)
         req(mod_rv$mod_design)
         
-        input$mod_list_reload
+        input$mod_reload
         
         mdl <- model_design_list(project$name)
         names(mdl) <- model_names(project$name)
@@ -6056,7 +6059,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # TODO: better method/msg for missing convergence msg
       mod_conv <- function(x) if (is_value_empty(x)) '' else x
       
-      # TODO: update to work w/ zonal logit and non-zonal logit output
       output$mod_model_tab <- DT::renderDT({
         
         if (!is_value_empty(mod_sum_out())) mod_params_out()
@@ -6089,8 +6091,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         } else mod_n
       })
       
-      
-      
       output$mod_man_ui <- renderUI({
         
         tagList(
@@ -6105,10 +6105,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         q_test <- quietly_test(delete_models, show_msg = TRUE) 
         
         q_test(project = project$name, model.names = input$mod_man_select, 
-               delete_nested = TRUE)
+               delete.nested = TRUE)
         
         # refresh model list/output
-        input$mod_list_reload
         input$mod_reload
         
       }, ignoreNULL = TRUE, ignoreInit = TRUE)
@@ -6155,7 +6154,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         }
         
       }, ignoreNULL = TRUE, ignoreInit = TRUE)
-      
       
       observeEvent(input$mod_delete, {
         

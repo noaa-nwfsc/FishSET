@@ -1396,7 +1396,8 @@ source("map_viewer_app.R", local = TRUE)
                                     sidebarLayout(
                                       sidebarPanel(
                                         tags$br(),tags$br(),
-                                        actionButton("mod_compare_reload", "Reload model output"),
+                                        actionButton("mod_reload", "Reload model output", 
+                                                     style = 'background-color: blue; color: white;'),
                                         actionButton("mod_compare_delete", "Delete row"),
                                         h3(''),
                                         actionButton("mod_save_table", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;"),
@@ -1431,9 +1432,6 @@ source("map_viewer_app.R", local = TRUE)
                                     sidebarLayout(
                                       
                                       sidebarPanel(
-                                        
-                                        actionButton('mod_list_reload', 'Reload model list',
-                                                     style = 'background-color: blue; color: white;'),
                                         
                                         actionButton("mod_reload", "Reload model output",
                                                      style = 'background-color: blue; color: white;'),
