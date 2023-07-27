@@ -166,7 +166,7 @@ discretefish_subroutine <-
   
   mot_exists <- table_exists(paste0(project, 'ModelOut'), project)
   
-  if (run == 'new') { # run new models
+  if ('new' %in% run) { # run new models
     
     if (mot_exists) {
       
@@ -188,7 +188,7 @@ discretefish_subroutine <-
       }
     } # else run all models 
     
-  } else if (run != 'all') { # run select models
+  } else if (!'all' %in% run) { # run select models
     
     if (all(!run %in% mdf_n)) {
       
@@ -457,7 +457,7 @@ discretefish_subroutine <-
         
         mft <- model_fit(project)
         
-        if (!run %in% 'new') { # selected models
+        if (!'new' %in% run) { # selected models
           # TODO: using name method below for all cases may be simpler
           mft[[modOutName]] <- mod.out[[modOutName]]
           DBI::dbWriteTable(fishset_db, mft_tab_nm, mft, overwrite = TRUE)
@@ -579,7 +579,7 @@ discretefish_subroutine <-
         # save to output folder
         save_table(OutLogit, project = project, mdf[[i]]$mod.name)
         
-        if (run == 'all') {
+        if ('all' %in% run) {
 
           ModelOut[[length(ModelOut) + 1]] <- list(
             name = modOutName, errorExplain = errorExplain,
@@ -611,7 +611,7 @@ discretefish_subroutine <-
         mot_tab_nm <- paste0(project, "ModelOut")
         mot_exists <- table_exists(mot_tab_nm, project)
         
-        if (run == 'new') {
+        if ('new' %in% run) {
           
           if (mot_exists) {
             
@@ -628,7 +628,7 @@ discretefish_subroutine <-
             mot_to_save <- list(ModelOut)
           }
           
-        } else if (run == 'all') {
+        } else if ('all' %in% run) {
           
           table_remove(mot_tab_nm, project)
           
