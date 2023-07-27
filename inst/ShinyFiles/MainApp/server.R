@@ -5286,7 +5286,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       mod_rv <- reactiveValues(final = FALSE, exp = NULL, exp_select = NULL,
                                alt_made = FALSE, alt_num = NULL, alt_choice = NULL,
-                               mod_design = FALSE)
+                               mod_design = FALSE, mod_names = NULL)
       
       # enable run model (modal) button if final table exists
       observeEvent(input$tabs == 'models', {
@@ -5386,10 +5386,27 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         output$mod_run_bttn <- renderUI({
           
-          if (nrow(rv$data) > 0) {
+          if (length(mod_rv$mod_names) > 0) {
             
-            actionButton("mod_submit", "Run model(s)",
-                         style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+            tagList(
+              
+              selectInput('mod_run_select', 'Model Run Options', 
+                          choices = c('new', 'all', 'select')),
+              
+              uiOutput('mod_run_custom_ui'),
+              
+              actionButton("mod_submit", "Run model(s)",
+                           style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+            )
+          }
+        })
+        
+        output$mod_run_custom_ui <- renderUI({
+          
+          if (input$mod_run_select == 'select') {
+            
+            selectizeInput('mod_run_custom', 'Select models to run',
+                           choices = mod_rv$mod_names, multiple = TRUE)
           }
         })
         
@@ -5791,14 +5808,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
        
 
         if (input$model=='logit_correction' & input$startlocdefined =='create') {
-          # TODO: replace with previous_loc() 
+          # TODO: replace with previous_loc()
           # Also, consider moving to data creation tab
-          values$dataset$startingloc <- 
+          values$dataset$startingloc <-
             create_startingloc(dat=values$dataset, spat=spatdat$dataset, port=input$mod_port_SL,
-                               trip_id=input$mod_trip_id_SL, haul_order=input$mod_haul_order_SL, 
-                               starting_port=input$mod_starting_port_SL, 
+                               trip_id=input$mod_trip_id_SL, haul_order=input$mod_haul_order_SL,
+                               starting_port=input$mod_starting_port_SL,
                                zoneID=input$mod_zoneID_SL, spatID = input$mod_spatID_SL)
-        } 
+        }
         
         counter$countervalue <- counter$countervalue + 1
         
@@ -5818,7 +5835,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                              function(x) paste(x, collapse = ', '), 
                              character(1))
           
-          exp_list <- paste(exp_list, collapse = ' * ')
+          exp_list <- paste(exp_list, collapse = ' + ')
           
         } else exp_list <- NULL
         
@@ -5826,18 +5843,18 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         mod_crs <- input$mod_spat_crs
         if (mod_crs == 'NA') mod_crs <- NA
         
-        rv$data = 
+        rv$data =
           rbind(
-            data.frame('mod_name' = input$mod_name, 
-                       'likelihood' = input$model, 
-                       'optimOpt' = paste(input$mod_iter, input$mod_relTolX, 
+            data.frame('mod_name' = input$mod_name,
+                       'likelihood' = input$model,
+                       'optimOpt' = paste(input$mod_iter, input$mod_relTolX,
                                           input$mod_report_freq, input$mod_detail_report),
                        'inits' = paste(int_name(), collapse=','),
-                       'methodname' = input$mod_optmeth, 
+                       'methodname' = input$mod_optmeth,
                        'vars1'= str_rpl(paste(input$mod_ind_vars, collapse=',')),
-                       'vars2'= str_rpl(input$mod_grid_vars), 
+                       'vars2'= str_rpl(input$mod_grid_vars),
                        'catch'= input$mod_catch,
-                       'project'= project$name, 
+                       'project'= project$name,
                        'price'= str_rpl(input$mod_price),
                        'startloc'= str_rpl(input$mod_startloc),# 'startingloc',
                        'polyn'= input$mod_polyn,
@@ -5846,24 +5863,26 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                        'spatID' = str_rpl(input$mod_spatID),
                        'crs' = str_rpl(mod_crs)),
             rv$data)
+
+        rv$data <- subset(rv$data, mod_name!='')
         
         # TODO: include an option to load a previously saved model design table
         
         # Save table to sql database. Will overwrite each time we add a model
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))
-        
+
         modDT <- paste0(project$name, 'ModelDesignTable', format(Sys.Date(), format="%Y%m%d"))
-        
+
         # TODO: reevaluate this approach
         # First, remove any old instances of the table
         if (table_exists(modDT, project$name)) table_remove(modDT, project$name)
-        
+
         if (!table_exists(modDT, project$name)) {
-          
+
           DBI::dbExecute(fishset_db, paste0('CREATE TABLE ', modDT,
                                             '(mod_name TEXT, likelihood TEXT, optimOpt TEXT, inits TEXT,
                                             methodname TEXT, vars1 TEXT, vars2 TEXT, catch TEXT,
-                                            lon TEXT, lat TEXT, project TEXT, price TEXT, startloc 
+                                            lon TEXT, lat TEXT, project TEXT, price TEXT, startloc
                                             TEXT, polyn TEXT, exp TEXT, spat TEXT, spatID TEXT,
                                             crs TEXT)'))
         }
@@ -5881,9 +5900,23 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         DBI::dbExecute(fishset_db, query)
         DBI::dbDisconnect(fishset_db)
         
+        # save to MDF
+        q_test <- quietly_test(make_model_design, show_msg = TRUE)
+        
+        q_test(project = project$name, catchID = input$mod_catch, 
+               likelihood = input$model, initparams = int_name(), 
+               optimOpt = c(input$mod_iter, input$mod_relTolX, 
+                            input$mod_report_freq, input$mod_detail_report),
+               methodname = input$mod_optmeth, mod.name = input$mod_name,
+               vars1 = input$mod_ind_vars, vars2 = input$mod_grid_vars,
+               priceCol = input$mod_price, expectcatchmodels = mod_rv$exp_list,
+               startloc = input$mod_startloc, polyn = input$mod_polyn,
+               spat = input$mod_spat, spatID = input$mod_spatID, crs = mod_crs)
+        
         # reset exp select
         mod_rv$exp_list <- NULL
-      })
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
       
 #      observeEvent(input$resetModel, {
 #        shinyjs::reset("form")
@@ -5937,58 +5970,44 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         # Add the delete button column
        deleteButtonColumn(as.data.frame(rv$data[-9]), 'delete_button')
       )
+      
+      
+      
+      # update model names list
+      
+      observeEvent(c(input$mod_reload, input$mod_add, input$mod_delete, 
+                     input$tabs == 'models'), {
+        
+        req(project$name)
+        
+        mod_rv$mod_names <- model_names(project$name)
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE, priority = -1) # run after other events
+      
   
       ## Save/run models ----
       observeEvent(input$mod_submit, {
         
         removeModal()
+        
         input_list <- reactiveValuesToList(input)
+        
         toggle_inputs(input_list, FALSE)
-        rv$data <- subset(rv$data, mod_name!='')
         
-        q_test <- quietly_test(make_model_design, show_msg = TRUE)
-        
-        times <- nrow(rv$data)
-        # Note: need to handle previous model files: delete or include?
-        
-        for (i in seq_len(times)) {
-          # re-format exp matrix list
-          if (!is.null(rv$data$exp[i])) {
-            
-            exp_split <- unlist(strsplit(rv$data$exp[i], ' \\* '))
-            exp_list <- lapply(exp_split, function(x) unlist(strsplit(x, ', ')))
-            
-          } else exp_list <- NULL
-          
-          if (!is_value_empty(rv$data$vars1[i])) vars1 <- unlist(strsplit(rv$data$vars1[i], ','))
-          else vars1 <- rv$data$vars1[i]
-          
-          str_rpl <- function(string) if (is_value_empty(string)) NULL else string
-          
-          q_test(project = rv$data$project[i], catchID = rv$data$catch[i], 
-                 likelihood = rv$data$likelihood[i], 
-                 initparams = rv$data$inits[i], optimOpt = rv$data$optimOpt[i],
-                 methodname = rv$data$methodname[i], mod.name = rv$data$mod_name[i],
-                 vars1 = str_rpl(vars1), vars2 = str_rpl(rv$data$vars2[i]), 
-                 priceCol = str_rpl(rv$data$price[i]), expectcatchmodels = exp_list,
-                 startloc = str_rpl(rv$data$startloc[i]), polyn = rv$data$polyn[i],
-                 spat = str_rpl(rv$data$spat[i]), spatID = str_rpl(rv$data$spatID[i]),
-                 crs = rv$data$crs[i])
-          
-          showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
-        }
-
         showNotification('Model is running. Models can take 30 minutes.
                           All buttons are inactive while model function is running.
                           Check R console for progress.', type='message', duration=30)
   
         # Run model(s)
-        # TODO: make these args available in the app (try modal pop-up)
+        # TODO: make these args available in the app (pop-up?)
         # add run arg
+        
+        if (input$mod_run_select == 'select') mod_run <- input$mod_run_custom
+        else mod_run <- input$mod_run_select
         
         q_test <- quietly_test(discretefish_subroutine, show_msg = TRUE)
         
-        q_test(project = rv$data$project[1], select.model = FALSE, 
+        discretefish_subroutine(project = project$name, run = mod_run, select.model = FALSE, 
                explorestarts = FALSE, breakearly = TRUE, space = NULL, 
                dev = NULL, use.scalers = FALSE, scaler.func = NULL)
         
