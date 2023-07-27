@@ -170,7 +170,7 @@ discretefish_subroutine <-
     
     if (mot_exists) {
       
-      mot <- model_out_view(paste0(project, 'ModelOut'), project)
+      mot <- model_out_view(project)
       mot_n <- vapply(mot, function(x) x$name, character(1))
       
       is_new_mod <- vapply(mdf_n, function(x) {
@@ -615,7 +615,7 @@ discretefish_subroutine <-
           
           if (mot_exists) {
             
-            mot <- model_out_view(mot_tab_nm, project)
+            mot <- model_out_view(project)
             
             table_remove(mot_tab_nm, project)
             # add new model
@@ -638,7 +638,7 @@ discretefish_subroutine <-
           
           if (mot_exists) {
             
-            mot <- model_out_view(mot_tab_nm, project)
+            mot <- model_out_view(project)
             table_remove(mot_tab_nm, project)
             
             mot_n <- vapply(mot, function(x) x$name, character(1)) 
