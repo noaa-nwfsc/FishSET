@@ -4,7 +4,7 @@
 \alias{delete_models}
 \title{Delete models from FishSET Database}
 \usage{
-delete_models(project, model.names, delete_nested = FALSE)
+delete_models(project, model.names, delete.nested = FALSE)
 }
 \arguments{
 \item{project}{String, name of project.}
@@ -12,7 +12,7 @@ delete_models(project, model.names, delete_nested = FALSE)
 \item{model.names}{String, name of models to delete. Use \code{\link[=model_names]{model_names()}} to
 see model names from the model design file.}
 
-\item{delete_nested}{Logical, whether to delete a model containing nested
+\item{delete.nested}{Logical, whether to delete a model containing nested
 models. Defaults to \code{FALSE}.}
 }
 \description{
@@ -26,7 +26,7 @@ named \code{'logit_c_mod1'} was saved to the MDF with the argument
 \code{expectcatchmodels = list('exp1', 'recent', 'older')}, then \verb{'logit_c_mod1}
 will include three separate models, each using a different expected catch
 matrix. To delete all three models, enter \code{model.names = 'logit_c_mod1'} and
-set \code{delete_nested = TRUE}. To delete one or more specific nested models, use
+set \code{delete.nested = TRUE}. To delete one or more specific nested models, use
 \code{model.names = 'logit_c_mod1.exp1'}, i.e. the original model name, a period, and
 the name of the expected catch matrix used in the model.
 }

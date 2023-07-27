@@ -6025,7 +6025,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         if (table_exists(tab, project$name)) {
           
-          model_out_view(tab, project$name)
+          model_out_view(project$name)
         }
       })
       

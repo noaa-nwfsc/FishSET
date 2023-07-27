@@ -70,7 +70,7 @@ delete_models <- function(project, model.names, delete.nested = FALSE) {
   if (mot_exists) {
     
     # TODO: have model output funcs take single arg (project)
-    mot <- model_out_view(paste0(project, 'ModelOut'), project)
+    mot <- model_out_view(project)
     mot_n <- vapply(mot, function(x) x$name, character(1))
     
     # get model fit table (MFT)
