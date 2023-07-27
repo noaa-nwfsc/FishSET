@@ -5,12 +5,9 @@
 \title{Load model parameter estimates, standard errors, and t-statistic to console 
 for the defined project}
 \usage{
-model_params(table, project, output = "list")
+model_params(project, output = "list")
 }
 \arguments{
-\item{table}{Table name in FishSET database. Should contain the phrase 
-'ModelOut'. Table name must be in quotes.}
-
 \item{project}{Name of project}
 
 \item{output}{Options include list, table, or print.}
@@ -27,7 +24,7 @@ database.
 }
 \examples{
 \dontrun{
-model_params('pcodModelOut20190604', 'pcod')
+model_params('pcod')
 }
 
 }

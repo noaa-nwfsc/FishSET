@@ -135,7 +135,7 @@ Basic functions:
  Model output files can be viewed in the FishSET database using:
      
      globalcheck_view(table, project)  View error output discrete choice models for the project
-     model_out_view(table, project)    Load discrete choice model output for the project
+     model_out_view(project)    Load discrete choice model output for the project
  
 ## Metadata 
 >"This needs to be detailed"
