@@ -2641,7 +2641,6 @@ date_cols <- function(dat, out = "names", type = 'date') {
   names(date_lgl) <- names(dat)
   
   # lubridate functions to test for
-  # TODO: create arg that tests for date, date-time, or time columns
   date_funs <- switch(type, 
                       date = list(lubridate::mdy, lubridate::dmy, lubridate::ymd, 
                                   lubridate::ydm, lubridate::dym),
