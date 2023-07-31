@@ -784,20 +784,20 @@ date_parser <- function(dates, args=NULL) {
 
   dates <- trimws(dates)
   dates <- sub(" .*", "\\1", dates)
-  if (!all(is.na(suppressWarnings(lubridate::mdy(dates))) == T)) {
+  if (!all(is.na(suppressWarnings(lubridate::mdy(dates))))) {
     lubridate::mdy(dates, args)
-  } else if (!all(is.na(suppressWarnings(lubridate::dmy(dates))) == T)) {
+  } else if (!all(is.na(suppressWarnings(lubridate::dmy(dates))))) {
     lubridate::dmy(dates, args)
-  } else if (!all(is.na(suppressWarnings(lubridate::ymd(dates))) == T)) {
+  } else if (!all(is.na(suppressWarnings(lubridate::ymd(dates))))) {
     lubridate::ymd(dates, args)
-  } else if (!all(is.na(suppressWarnings(lubridate::ydm(dates))) == T)) {
+  } else if (!all(is.na(suppressWarnings(lubridate::ydm(dates))))) {
     lubridate::ydm(dates, args)
-  } else if (!all(is.na(suppressWarnings(lubridate::myd(dates))) == T)) {
+  } else if (!all(is.na(suppressWarnings(lubridate::myd(dates))))) {
     lubridate::myd(dates, args)
-  } else if (!all(is.na(suppressWarnings(lubridate::dym(dates))) == T)) {
+  } else if (!all(is.na(suppressWarnings(lubridate::dym(dates))))) {
     lubridate::dym(dates, args)
   } else {
-    stop("Date format not recognized. Format date before proceeding")
+    stop("Date format not recognized. Format date before proceeding.", call. = FALSE)
   }
 }
 
@@ -859,7 +859,7 @@ date_check <- function(dat, date) {
   } else if (all(grepl("^\\d{4}-\\d{2}-\\d{2}$", dat[[date]]))) {
     dat[[date]] <- date_parser(dat[[date]])
   } else {
-    warning("Date format not recognized.")
+    stop("Date format not recognized.", call. = FALSE)
     end <- TRUE
   }
 
@@ -2639,15 +2639,22 @@ date_cols <- function(dat, out = "names") {
   
   date_helper <- function(dates, fun) {
     
+    if (all(is.na(dates))) return(FALSE)
+    # track NAs before converting
+    na_ind <-is.na(dates)
     dates <- trimws(dates)
-    
     # remove time info
     dates <- gsub("\\s\\d{2}:\\d{2}:\\d{2}$", "", dates)
-    
+    # attempt covert column to date
     out <- suppressWarnings(fun(dates))
-    out <- !all(is.na(out))
-    
-    out
+    # the # of NAs from non-NA values
+    na_sum <- sum(is.na(out[!na_ind]))
+    # If no NAs after conversion, return TRUE
+    if (na_sum == 0) return(TRUE)
+    # prop of NAs after conversion (over originally non-NA values)
+    na_prop <- na_sum/length(out[!na_ind])
+    # Return TRUE if NA prop is at or below .5
+    na_prop <= .5
   }
   
   # apply each function to date vector
