@@ -2622,7 +2622,6 @@ date_cols <- function(dat, out = "names") {
   #' @export
   #' @keywords internal
   #' @importFrom purrr map_lgl
-  #' @importFrom rlang expr
   #' @importFrom lubridate mdy dmy ymd ydm dym
   #' @examples 
   #' \dontrun{
@@ -2645,22 +2644,25 @@ date_cols <- function(dat, out = "names") {
     # remove time info
     dates <- gsub("\\s\\d{2}:\\d{2}:\\d{2}$", "", dates)
     
-    out <- rlang::expr(!all(is.na(suppressWarnings((!!fun)(!!dates)))))
+    out <- suppressWarnings(fun(dates))
+    out <- !all(is.na(out))
     
-    eval(out)
+    out
   }
   
   # apply each function to date vector
   date_apply <- function(dates) {
     
-    any(purrr::map_lgl(date_funs, function(fun) date_helper(dates, fun)))
+    out <- purrr::map_lgl(date_funs, function(fun) date_helper(dates, fun))
+    
+    any(out)
   }
   
   # number of rows to check 
   nr <- nrow(dat)
   
   if (nr > 1000) dat_slice <- 1000
-  else dat_slice <- round(nr * .5)
+  else dat_slice <- nr
   
   # find cols that can be successfully converted to date
   # numeric cols excluded for efficiency and to prevent false positives  
