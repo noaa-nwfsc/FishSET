@@ -959,7 +959,7 @@ model_out_summary <- function(project, output = "print") {
     
     p_mod <- pull_out$table
     
-    results <- model_out_view(p_mod, project)
+    results <- model_out_view(project)
     
     modeltab <- data.frame(
       Model_name = rep(NA, length(results)),
@@ -1016,7 +1016,7 @@ model_error_summary <- function(project, output = "print") {
   } else {
     
     p_mod <- pull_out$table 
-    results <- model_out_view(p_mod, project)
+    results <- model_out_view(project)
   
     error_out <- data.frame(
       Model_name = rep(NA, length(results)),
@@ -1070,7 +1070,7 @@ model_fit_summary <- function(project, output = "print") {
   } else {
     
     p_mod <- pull_out$table 
-    results <- model_out_view(p_mod, project)
+    results <- model_out_view(project)
   
     fit_tab <- data.frame(
       Model_name = rep(NA, length(results)),

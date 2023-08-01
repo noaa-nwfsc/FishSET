@@ -34,7 +34,7 @@ order as \code{exp.name}.}
 \item{ec.table}{Optional, the name of a specific expected catch table to use.
 Defaults to \code{projectnameExpectedCatch}.}
 
-\item{log_fun}{For interal use. Whether to log the function call.}
+\item{log_fun}{For internal use. Whether to log the function call.}
 }
 \value{
 Merges an expected catch matrix created using \code{\link[=create_expectations]{create_expectations()}}

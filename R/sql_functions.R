@@ -230,7 +230,7 @@ unserialize_table <- function(table, project) {
   tab_type <- table_type(table)
   
   serial_tabs <- c("alt choice matrix", "expected catch matrix", "model data", 
-                   "predict output", "global check")
+                   "predict output", "global check", "model output")
   
   if (!tab_type %in% serial_tabs) {
     
@@ -241,6 +241,7 @@ unserialize_table <- function(table, project) {
                     "alt choice matrix" = "AlternativeMatrix", 
                     "expected catch matrix" = "data",
                     "global check" = "data",
+                    "model output" = "data",
                     "model data" = "ModelInputData", # Note: check for consistency, seen lowercase version 
                                                      # (depends on whether created in app or console)
                     "predict output" = "PredictOutput") # Note: Hasn't been added to table_type
@@ -323,41 +324,38 @@ table_exists <- function(table, project) {
   }
 }
 
-model_out_view <- function(table, project) {
+model_out_view <- function(project) {
   #' Load discrete choice model output to console for the defined project
   #'
   #' Returns output from running \code{\link{discretefish_subroutine}}. The table 
   #' argument must be the full name of the table name in the FishSET database. 
   #' Output includes information on model convergence, standard errors, t-stats, etc.
-  #' @param table  Table name in FishSET database. Should contain the phrase 
-  #'   'ModelOut'. Table name must be in quotes.
   #' @param project Name of project
   #' @export
   #' @description Returns output from running the discretefish_subroutine function.
   #'   The table parameter must be the full name of the table name in the FishSET database.
   #' @examples
   #' \dontrun{
-  #' model_out_view('pcodModelOut20190604', 'pcod')
+  #' model_out_view('pcod')
   #' }
   #
-  if (table_exists(table, project) == FALSE) {
+  
+  mod_tab <- paste0(project, 'ModelOut')
+  
+  if (table_exists(mod_tab, project) == FALSE) {
     
     # TODO: Change to stop()?
-    stop("Table not found. Check spelling or tables in database using 'tables_database()'.",
+    stop("Model output table not found for project ", project,
          call. = FALSE)
     
   } else {
     
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
-    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-    
-    x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
-    return(x)
+    unserialize_table(mod_tab, project)
   }
 }
 
 
-model_params <- function(table, project, output = 'list') {
+model_params <- function(project, output = 'list') {
   #' Load model parameter estimates, standard errors, and t-statistic to console 
   #' for the defined project
   #'
@@ -365,8 +363,6 @@ model_params <- function(table, project, output = 'list') {
   #' The table argument must be the full name of the table name in the FishSET 
   #' database. 
   #' 
-  #' @param table Table name in FishSET database. Should contain the phrase 
-  #'   'ModelOut'. Table name must be in quotes.
   #' @param project Name of project
   #' @param output Options include list, table, or print. 
   #' @export
@@ -377,11 +373,12 @@ model_params <- function(table, project, output = 'list') {
   #'  be the full name of the table name in the FishSET database.
   #' @examples
   #' \dontrun{
-  #' model_params('pcodModelOut20190604', 'pcod')
+  #' model_params('pcod')
   #' }
   #'
 
-  mod_out <- model_out_view(table, project)
+  
+  mod_out <- model_out_view(project)
   
   mod_list <- lapply(mod_out, function(x) x$OutLogit)
   mod_names <- vapply(mod_out, function(x) x$name, character(1))

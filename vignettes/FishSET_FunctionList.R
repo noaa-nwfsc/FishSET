@@ -159,7 +159,7 @@
 #  #Display errorExplain output
 #  globalcheck_view('pcodldglobalcheck20190604')
 #  #Display all other model output.
-#  model_out_view('pcodmodelout20190604')
+#  model_out_view('pcod')
 #  
 
 ## ----eval=FALSE---------------------------------------------------------------
