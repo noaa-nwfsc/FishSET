@@ -270,7 +270,6 @@ specified by using `'individual'` in the `expectcatchmodels` argument).
 ```{r}
 make_model_design(project = "scallopMod",
                   catchID = "LANDED_thousands",
-                  replace = TRUE,
                   likelihood = "logit_c",
                   initparams = c(0, 0),
                   vars1 = NULL,
@@ -301,7 +300,7 @@ specified model should find positive coefficients for `user1` and `user2` and
 negative coefficiencts for `V1`.
 
 ```{r}
-model_params("scallopModModelOut", "scallopMod", output = 'print')
+model_params("scallopMod", output = 'print')
 ```
 
 <br>
