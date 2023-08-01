@@ -4,12 +4,9 @@
 \alias{model_out_view}
 \title{Load discrete choice model output to console for the defined project}
 \usage{
-model_out_view(table, project)
+model_out_view(project)
 }
 \arguments{
-\item{table}{Table name in FishSET database. Should contain the phrase 
-'ModelOut'. Table name must be in quotes.}
-
 \item{project}{Name of project}
 }
 \description{
@@ -23,6 +20,6 @@ Output includes information on model convergence, standard errors, t-stats, etc.
 }
 \examples{
 \dontrun{
-model_out_view('pcodModelOut20190604', 'pcod')
+model_out_view('pcod')
 }
 }

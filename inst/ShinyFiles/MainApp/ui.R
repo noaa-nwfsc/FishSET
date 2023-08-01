@@ -1392,31 +1392,13 @@ source("map_viewer_app.R", local = TRUE)
                                )
                              ))),
                            
-                           tabPanel('View model list', value = 'model_list',
-                              
-                              sidebarLayout(
-                                  
-                                  sidebarPanel(
-                                    
-                                    actionButton('mod_list_reload', 'Reload model list',
-                                                 style = 'background-color: blue; color: white;'),
-                                    
-                                    
-                                  ),
-                                  
-                                  mainPanel(
-                                    
-                                    verbatimTextOutput('mod_list_ui')
-                                  )
-                                )
-                              ),
-                           
                            tabPanel("Compare models", value = 'model_compare',
                                     sidebarLayout(
                                       sidebarPanel(
                                         tags$br(),tags$br(),
-                                        actionButton("mod_reload", "Reload model output"),
-                                        actionButton("mod_delete", "Delete row"),
+                                        actionButton("mod_reload", "Reload model output", 
+                                                     style = 'background-color: blue; color: white;'),
+                                        actionButton("mod_compare_delete", "Delete row"),
                                         h3(''),
                                         actionButton("mod_save_table", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;"),
                                         tags$br(),tags$br(),
@@ -1443,7 +1425,58 @@ source("map_viewer_app.R", local = TRUE)
                                         DT::DTOutput('mod_error_msg'),
                                         width=10
                                         )
-                                      )  )
+                                      )  ),
+                           
+                           tabPanel('Manage models', value = 'model_man',
+                                    
+                                    sidebarLayout(
+                                      
+                                      sidebarPanel(
+                                        
+                                        actionButton("mod_reload", "Reload model output",
+                                                     style = 'background-color: blue; color: white;'),
+                                        
+                                        actionButton('mod_delete', 'Delete model(s)',
+                                                     style = 'background-color: red; color: white;')
+                                        
+                                      ),
+                                      
+                                      mainPanel(
+                                        
+                                        fluidRow(
+                                          column(6, 
+                                                 div('Note: deleting a parent model will delete its nested models
+                                            and output', style = 'background-color: yellow;
+                                            border-style: solid; border-color: black; border-width: thin;')
+                                                 )
+                                        ),
+                                        
+                                        selectInput('mod_man_mod_type', 'Select model type', 
+                                                    choices = c('parent model', 'nested model')),
+                                        
+                                        uiOutput('mod_man_ui')
+                                       
+                                      )
+                                    )
+                           ),
+                           
+                           tabPanel('View model list', value = 'model_list',
+                                    
+                                    sidebarLayout(
+                                      
+                                      sidebarPanel(
+                                        
+                                        actionButton('mod_list_reload', 'Reload model list',
+                                                     style = 'background-color: blue; color: white;'),
+                                        
+                                      ),
+                                      
+                                      mainPanel(
+                                        
+                                        verbatimTextOutput('mod_list_ui')
+                                      )
+                                    )
+                           )
                             )),
                   #--- 
       # Bookmark tabset panel ----

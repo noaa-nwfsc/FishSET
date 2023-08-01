@@ -43,7 +43,7 @@ welfare_predict <- function(project, mod.name, expected.catch, enteredPrice){
   for(i in 1:tlength) {
     
     tempname <- tables_database(project=project)[grep('ModelOut', tables_database(project=project))][tlength]
-    out <- model_out_view(table = tempname, project=project)
+    out <- model_out_view(project)
     
     if(any(lapply( out , "[[" , "name" ) == mod.name)==TRUE) {
       break   #model.H1{mChoice} #Note added inv hessian
