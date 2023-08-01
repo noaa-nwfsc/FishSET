@@ -784,20 +784,20 @@ date_parser <- function(dates, args=NULL) {
 
   dates <- trimws(dates)
   dates <- sub(" .*", "\\1", dates)
-  if (!all(is.na(suppressWarnings(lubridate::mdy(dates))) == T)) {
+  if (!all(is.na(suppressWarnings(lubridate::mdy(dates))))) {
     lubridate::mdy(dates, args)
-  } else if (!all(is.na(suppressWarnings(lubridate::dmy(dates))) == T)) {
+  } else if (!all(is.na(suppressWarnings(lubridate::dmy(dates))))) {
     lubridate::dmy(dates, args)
-  } else if (!all(is.na(suppressWarnings(lubridate::ymd(dates))) == T)) {
+  } else if (!all(is.na(suppressWarnings(lubridate::ymd(dates))))) {
     lubridate::ymd(dates, args)
-  } else if (!all(is.na(suppressWarnings(lubridate::ydm(dates))) == T)) {
+  } else if (!all(is.na(suppressWarnings(lubridate::ydm(dates))))) {
     lubridate::ydm(dates, args)
-  } else if (!all(is.na(suppressWarnings(lubridate::myd(dates))) == T)) {
+  } else if (!all(is.na(suppressWarnings(lubridate::myd(dates))))) {
     lubridate::myd(dates, args)
-  } else if (!all(is.na(suppressWarnings(lubridate::dym(dates))) == T)) {
+  } else if (!all(is.na(suppressWarnings(lubridate::dym(dates))))) {
     lubridate::dym(dates, args)
   } else {
-    stop("Date format not recognized. Format date before proceeding")
+    stop("Date format not recognized. Format date before proceeding.", call. = FALSE)
   }
 }
 
@@ -859,7 +859,7 @@ date_check <- function(dat, date) {
   } else if (all(grepl("^\\d{4}-\\d{2}-\\d{2}$", dat[[date]]))) {
     dat[[date]] <- date_parser(dat[[date]])
   } else {
-    warning("Date format not recognized.")
+    stop("Date format not recognized.", call. = FALSE)
     end <- TRUE
   }
 
@@ -2613,54 +2613,73 @@ category_cols <- function(dat, out = "names") {
   else if (out == "logical") cat_cols
 }
 
-date_cols <- function(dat, out = "names") {
-  #' Find columns that can be converted to Date class
+date_cols <- function(dat, out = "names", type = 'date') {
+  #' Find columns that can be converted to Date or Date-time class
   #' 
   #' @param dat MainDataTable or dataframe to check.
   #' @param out Whether to return the column \code{"names"} (the default) or a logical vector 
   #'   (\code{"logical"}).
+  #' @param type String, the type of date column to test for. Options are 
+  #' \code{"date"} and \code{"date_time"}. 
   #' @export
   #' @keywords internal
   #' @importFrom purrr map_lgl
-  #' @importFrom rlang expr
-  #' @importFrom lubridate mdy dmy ymd ydm dym
+  #' @importFrom lubridate mdy dmy ymd ydm dym ymd_hms dmy_hms mdy_hms ydm_hms
   #' @examples 
   #' \dontrun{
   #' date_cols(pollockMainDataTable) # returns column names
   #' date_cols(pollockMainDataTable, "logical")
   #' }
   
+  if (!type %in% c('date', 'date_time')) {
+    
+    stop('Invaild date type. Options are "date" and "date_time".', call. = FALSE)
+  }
+  
   # named logical vector to preserve col order
   date_lgl <- logical(ncol(dat))
   names(date_lgl) <- names(dat)
   
   # lubridate functions to test for
-  date_funs <- list(lubridate::mdy, lubridate::dmy, lubridate::ymd, 
-                    lubridate::ydm, lubridate::dym)
+  date_funs <- switch(type, 
+                      date = list(lubridate::mdy, lubridate::dmy, lubridate::ymd, 
+                                  lubridate::ydm, lubridate::dym),
+                      date_time = list(lubridate::ymd_hms, lubridate::dmy_hms,
+                                       lubridate::mdy_hms, ydm_hms))
   
   date_helper <- function(dates, fun) {
     
+    if (all(is.na(dates))) return(FALSE)
+    # track NAs before converting
+    na_ind <-is.na(dates)
     dates <- trimws(dates)
-    
     # remove time info
-    dates <- gsub("\\s\\d{2}:\\d{2}:\\d{2}$", "", dates)
-    
-    out <- rlang::expr(!all(is.na(suppressWarnings((!!fun)(!!dates)))))
-    
-    eval(out)
+    # dates <- gsub("\\s\\d{2}:\\d{2}:\\d{2}$", "", dates)
+    # attempt covert column to date
+    out <- suppressWarnings(fun(dates))
+    # the # of NAs from non-NA values
+    na_sum <- sum(is.na(out[!na_ind]))
+    # If no NAs after conversion, return TRUE
+    if (na_sum == 0) return(TRUE)
+    # prop of NAs after conversion (over originally non-NA values)
+    na_prop <- na_sum/length(out[!na_ind])
+    # Return TRUE if NA prop is at or below .5
+    na_prop <= .5
   }
   
   # apply each function to date vector
   date_apply <- function(dates) {
     
-    any(purrr::map_lgl(date_funs, function(fun) date_helper(dates, fun)))
+    out <- purrr::map_lgl(date_funs, function(fun) date_helper(dates, fun))
+    
+    any(out)
   }
   
   # number of rows to check 
   nr <- nrow(dat)
   
   if (nr > 1000) dat_slice <- 1000
-  else dat_slice <- round(nr * .5)
+  else dat_slice <- nr
   
   # find cols that can be successfully converted to date
   # numeric cols excluded for efficiency and to prevent false positives  

@@ -2,18 +2,21 @@
 % Please edit documentation in R/utils.R
 \name{date_cols}
 \alias{date_cols}
-\title{Find columns that can be converted to Date class}
+\title{Find columns that can be converted to Date or Date-time class}
 \usage{
-date_cols(dat, out = "names")
+date_cols(dat, out = "names", type = "date")
 }
 \arguments{
 \item{dat}{MainDataTable or dataframe to check.}
 
 \item{out}{Whether to return the column \code{"names"} (the default) or a logical vector 
 (\code{"logical"}).}
+
+\item{type}{String, the type of date column to test for. Options are 
+\code{"date"} and \code{"date_time"}.}
 }
 \description{
-Find columns that can be converted to Date class
+Find columns that can be converted to Date or Date-time class
 }
 \examples{
 \dontrun{
