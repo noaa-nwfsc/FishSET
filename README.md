@@ -45,9 +45,22 @@ For example, loc <- getwd().
     2.  Click the “access tokens” on the left hand side. 
     3.  Fill in a token name, give it all the scopes and click “create personal access token.”  It’s good to have an expiration date.  But a bit of a pain.
     4.  Copy and paste that token into notepad. It should start with the letters “glpat”.
-3.  Now, you need to save the Personal Access Token as the Environment Variable “GITLAB_PAT”. One way to do this is to ask you IT person to do this for you. Another way to do it is to have R do it for you every time it starts. I prefer to do this in the .Rprofile file.
+3.  Now, you need to save the Personal Access Token as the Environment Variable “GITLAB_PAT”. One way to do this is to ask you IT person to do this for you. Another way to do it is to have R do it for you.
 
-4.  If you’re on Windows, open Rstudio and do this:
+
+
+### Tokens, Method 1. 
+Run this code in R
+```
+Sys.setenv(GITLAB_PAT="glpat-the rest of your pat here")
+```
+Tokens are mysterious creatures. Your token may not persist the next time you use R.
+
+### Tokens, Method 2. 
+
+You can set your token in your .Rprofile. 
+
+1.  If you’re on Windows, open Rstudio and do this:
 
 ```
 Sys.getenv("R_USER")
@@ -57,7 +70,7 @@ If you’re on *nix, do this:
 Sys.getenv("HOME")
 ```
 
-5.  Store the GITLAB_PAT. 
+2. Store the GITLAB_PAT. 
 
 If there is an ‘.Renviron’ in that folder, add this line:
 ```
@@ -65,21 +78,18 @@ GITLAB_PAT="glpat-the rest of your pat here"
 ```
 Don’t forget to save the file. If there isn’t an ‘.Renviron’ in that folder, create one using a text editor and add that line. 
 
-Alternatively, instead of creating an ‘.Renviron’ file, you may run the following command to add the token to your environmental variables:
-```
-Sys.setenv(GITLAB_PAT="glpat-the rest of your pat here")
-```
-in which case, step 6 may be skipped as the R session does not need to be restarted.
+3. Restart R (Session→ Restart R should do the trick).
 
-6. Restart R (Session→ Restart R should do the trick).
-
-7. Test by typing this into R
+4. Test by typing this into R
 
 ```
 Sys.getenv("GITLAB_PAT")
 ```
 
-8. To finally install FishSET, you will need to do this in the R console:
+
+###  Install!
+
+Now that your GILAB token is stored, you can install FishSET, you will need to do this in the R console:
 
 ```
 remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage@master", host="gitlab-afsc.fisheries.noaa.gov", build_vignettes=TRUE)
