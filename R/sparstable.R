@@ -12,16 +12,16 @@ sparsetable <- function(dat, project, timevar, zonevar, var) {
   #' @export
   #'
   
-  spars <- function(x, dname) {
+  spars <- function(x, dates, dname) {
     if (dname == "1 weeks") {
-      y <- lubridate::round_date(as.Date(rownames(x)), "1 weeks")
+      y <- lubridate::round_date(as.Date(dates), "1 weeks")
     } else if (dname == "2 weeks") {
-      y <- lubridate::floor_date(as.Date(rownames(x)), 'year') + 
-        14 * (lubridate::week(as.Date(rownames(x))) %/% 2)
+      y <- lubridate::floor_date(as.Date(dates), 'year') + 
+        14 * (lubridate::week(as.Date(dates)) %/% 2)
     } else if (dname == "3 months") {
-      y <- lubridate::round_date(as.Date(rownames(x)), "3 months")
+      y <- lubridate::round_date(as.Date(dates), "3 months")
     } else {
-      y <- format(as.Date(rownames(x)), dname)
+      y <- format(as.Date(dates), dname)
     }
     x <- suppressWarnings(aggregate(x, by = list(y), FUN = sum)[, -1])
     x <- ifelse(x > 0, 1, 0)
@@ -36,22 +36,25 @@ sparsetable <- function(dat, project, timevar, zonevar, var) {
 
   #tmp <- reshape2::acast(dataset[, c(zonevar, var, timevar)], dataset[[timevar]] ~ dataset[[zonevar]], value.var = var)
   tmp <-  as.data.frame(tidyr::pivot_wider(dataset[, c(zonevar, var, timevar)], names_from = all_of(zonevar), values_from = var, values_fn=length, values_fill=0))
-  rownames(tmp) <- tmp[,1]
-  tmp <- tmp[,-1]
+  # rownames(tmp) <- tmp[1]
+  
+  dates <- tmp[[timevar]]
+  tmp <- tmp[-1]
+  # tmp <- cbind(tmp, All_zones = rowSums(tmp))
   tmp <- cbind(tmp, All_zones = rowSums(tmp))
 
-  sparstable <- matrix(nrow = 6, ncol = length(colnames(tmp)))
+  spars_tab <- matrix(nrow = 6, ncol = length(colnames(tmp)))
 
-  sparstable[1, ] <- spars(tmp, "%y%m%d")
-  sparstable[2, ] <- spars(tmp, "1 weeks")
-  sparstable[3, ] <- suppressWarnings(spars(tmp, "2 weeks"))
-  sparstable[4, ] <- spars(tmp, "%y%m")
-  sparstable[5, ] <- spars(tmp, "3 months")
-  sparstable[6, ] <- spars(tmp, "%y")
+  spars_tab[1, ] <- spars(tmp, dates, "%y%m%d")
+  spars_tab[2, ] <- spars(tmp, dates, "1 weeks")
+  spars_tab[3, ] <- suppressWarnings(spars(tmp, dates, "2 weeks"))
+  spars_tab[4, ] <- spars(tmp, dates, "%y%m")
+  spars_tab[5, ] <- spars(tmp, dates, "3 months")
+  spars_tab[6, ] <- spars(tmp, dates, "%y")
 
-  colnames(sparstable) <- names(spars(tmp, "%y"))
-  rownames(sparstable) <- c("daily", "weekly", "biweekly", "monthly", "quarterly", "yearly")
-  sparstable <- round(sparstable, 2)
+  colnames(spars_tab) <- names(spars(tmp, dates, "%y"))
+  rownames(spars_tab) <- c("daily", "weekly", "biweekly", "monthly", "quarterly", "yearly")
+  spars_tab <- round(spars_tab, 2)
 
 
   # Log the function
@@ -62,8 +65,8 @@ sparsetable <- function(dat, project, timevar, zonevar, var) {
   log_call(project, sparsetable_function)
 
 
-  save_table(sparstable, project, "sparstable")
-  return(sparstable)
+  save_table(spars_tab, project, "sparstable")
+  return(spars_tab)
 }
 
 
