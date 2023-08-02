@@ -1409,6 +1409,7 @@ expand_data <- function(dataset, project, date = NULL, value, sub_date = NULL,
     else if ('year_month' %in% per_cols) add_per <- 'month'
     else if ('month_year' %in% per_cols) add_per <- 'month'
     else if ("year" %in% per_cols) add_per <- "year"
+    else if (is.null(period)) add_per <- NULL
     else stop('invalid period used.')
     
     if (!is.null(add_per)) {
@@ -2613,14 +2614,14 @@ category_cols <- function(dat, out = "names") {
   else if (out == "logical") cat_cols
 }
 
-date_cols <- function(dat, out = "names", type = 'date') {
+date_cols <- function(dat, out = "names", type = 'both') {
   #' Find columns that can be converted to Date or Date-time class
   #' 
   #' @param dat MainDataTable or dataframe to check.
   #' @param out Whether to return the column \code{"names"} (the default) or a logical vector 
   #'   (\code{"logical"}).
   #' @param type String, the type of date column to test for. Options are 
-  #' \code{"date"} and \code{"date_time"}. 
+  #' \code{"date"}, \code{"date_time"}, or \code{"both"}. 
   #' @export
   #' @keywords internal
   #' @importFrom purrr map_lgl
@@ -2631,7 +2632,7 @@ date_cols <- function(dat, out = "names", type = 'date') {
   #' date_cols(pollockMainDataTable, "logical")
   #' }
   
-  if (!type %in% c('date', 'date_time')) {
+  if (!type %in% c('date', 'date_time', 'both')) {
     
     stop('Invaild date type. Options are "date" and "date_time".', call. = FALSE)
   }
@@ -2640,12 +2641,17 @@ date_cols <- function(dat, out = "names", type = 'date') {
   date_lgl <- logical(ncol(dat))
   names(date_lgl) <- names(dat)
   
+  date_f <- list(lubridate::mdy, lubridate::dmy, lubridate::ymd, lubridate::ydm, 
+                 lubridate::dym)
+  
+  date_time_f <- list(lubridate::ymd_hms, lubridate::dmy_hms, lubridate::mdy_hms, 
+                      lubridate::ydm_hms)
+  
   # lubridate functions to test for
   date_funs <- switch(type, 
-                      date = list(lubridate::mdy, lubridate::dmy, lubridate::ymd, 
-                                  lubridate::ydm, lubridate::dym),
-                      date_time = list(lubridate::ymd_hms, lubridate::dmy_hms,
-                                       lubridate::mdy_hms, ydm_hms))
+                      date = date_f, 
+                      date_time = date_time_f, 
+                      both = c(date_f, date_time_f))
   
   date_helper <- function(dates, fun) {
     
