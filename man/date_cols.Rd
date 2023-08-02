@@ -4,7 +4,7 @@
 \alias{date_cols}
 \title{Find columns that can be converted to Date or Date-time class}
 \usage{
-date_cols(dat, out = "names", type = "date")
+date_cols(dat, out = "names", type = "both")
 }
 \arguments{
 \item{dat}{MainDataTable or dataframe to check.}
@@ -13,7 +13,7 @@ date_cols(dat, out = "names", type = "date")
 (\code{"logical"}).}
 
 \item{type}{String, the type of date column to test for. Options are 
-\code{"date"} and \code{"date_time"}.}
+\code{"date"}, \code{"date_time"}, or \code{"both"}.}
 }
 \description{
 Find columns that can be converted to Date or Date-time class
