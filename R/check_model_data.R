@@ -77,6 +77,7 @@ check_model_data <- function(dat, project, uniqueID, save.file = TRUE) {
   }
   
   # lat/lon degree format
+  # TODO: omit variables with NAs otherwise this will break 
   lat_lon <- grep("lat|lon", names(dataset), ignore.case = TRUE)
   num_ll <- qaqc_helper(dataset[lat_lon], function(x) !is.numeric(x))
   deg_ll <- qaqc_helper(dataset[lat_lon], function(x) any(nchar(trunc(abs(x))) > 3)) 
