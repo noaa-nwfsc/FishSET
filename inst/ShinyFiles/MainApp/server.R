@@ -1069,10 +1069,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           showNotification('No projects selected')
           
         } else {
-          # TODO: figure out why this won't delete projects
-          # could be that a seperate action is keeping the file in use
+          
           q_test <- quietly_test(erase_project, show_msg = TRUE)
-          lapply(input$load_project_cb, q_test)
+          lapply(input$load_proj_cb, q_test)
           proj_r$projects <- projects()
           removeModal()
         }
@@ -5372,7 +5371,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         # find expected catch matrices (if logit_c used)
         
         output$mod_add_run_bttn <- renderUI({
-          
+          # TODO: mod_run_bttn won't show if checklist doesn't pass first time
           if (cList$pass) {
             tagList(
               # TODO: disable add model until model checks have been passed
@@ -5980,7 +5979,10 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         req(project$name)
         
-        mod_rv$mod_names <- model_names(project$name)
+        if (mod_rv$mod_design) {
+          
+          mod_rv$mod_names <- model_names(project$name)
+        }
         
       }, ignoreNULL = TRUE, ignoreInit = TRUE, priority = -1) # run after other events
       
