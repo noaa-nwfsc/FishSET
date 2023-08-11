@@ -401,6 +401,7 @@ save_dat <- function(dat, project) {
   #' save_dat(pollockMainDataTable, 'pollock')
   #' }
 
+  # TODO: add date conversion for main tables
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
