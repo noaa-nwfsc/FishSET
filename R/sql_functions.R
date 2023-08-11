@@ -43,7 +43,7 @@ table_save <- function(table, project, type, name = NULL) {
  #' @export
  #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
  #' @importFrom RSQLite SQLite
-  
+  # TODO: add date conversion for main tables
   if (type %in% c("grid", "aux", "spat") & is_value_empty(name)) {
     
     stop("Name must be provided or grid, auxilary, or spatial tables.")
