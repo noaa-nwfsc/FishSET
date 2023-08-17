@@ -401,9 +401,12 @@ save_dat <- function(dat, project) {
   #' save_dat(pollockMainDataTable, 'pollock')
   #' }
 
-  # TODO: add date conversion for main tables
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
+  # convert date columns to character (sqlite coerces to numeric)
+  d_cols <- date_cols(dat)
+  dat[d_cols] <- lapply(d_cols, function(d) as.character(dat[[d]]))
   
   # TODO: Not sure why we overwrite the working table and create a _mod table. Revisit this.
   DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable"), dat, overwrite = TRUE)
