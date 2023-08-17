@@ -109,6 +109,10 @@ table_save <- function(table, project, type, name = NULL) {
     stop("Table type not recognized. Table not saved.")
   }
 
+  # convert date columns to character (sqlite coerces to numeric)
+  d_cols <- date_cols(table)
+  table[d_cols] <- lapply(d_cols, function(d) as.character(table[[d]]))
+  
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
