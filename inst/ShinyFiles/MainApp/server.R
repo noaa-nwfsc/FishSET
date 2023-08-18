@@ -2838,7 +2838,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           temp$val <- 1:nrow(temp)
           col_check <- rlang::sym(input$column_check)
           q_test <- quietly_test(outlier_plot_int)
-          dat_sub <- q_test(dat=temp, input$column_check, dat_remove=input$dat.remove,
+          dat_sub <- q_test(dat=temp, x=input$column_check, dat_remove=input$dat.remove,
                             x_dist = input$x_dist, sd_val = input$datremovenum, plot_type = 1)
           
           qaqc_out_proj$out_plot <- project$name
@@ -2846,13 +2846,13 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
             ggplot2::ggplot() +
               ggplot2::geom_point(data=dat_sub, ggplot2::aes(x=val, y=!!col_check, color = Points),
                                                              na.rm=TRUE) +
-          ggplot2::scale_color_manual(breaks=c('Kept','Removed'),
-                                      values=c('blue','red')) +
-          ggplot2::coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE) +
-          ggplot2::labs(x='Data row') +
-          fishset_theme() +
-          ggplot2::theme(axis.text=ggplot2::element_text(size=12),
-                         axis.title=ggplot2::element_text(size=12))
+              ggplot2::scale_color_manual(breaks=c('Kept','Removed'),
+                                          values=c('blue','red')) +
+              ggplot2::coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE) +
+              ggplot2::labs(x='Data row') +
+              fishset_theme() +
+              ggplot2::theme(axis.text=ggplot2::element_text(size=12),
+                             axis.title=ggplot2::element_text(size=12))
           )
           }
       })
