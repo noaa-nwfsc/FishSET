@@ -406,9 +406,14 @@ source("map_viewer_app.R", local = TRUE)
                                        tags$br(),tags$br(),
                                        conditionalPanel("input.checks=='Outliers' && input.column_check == ''",
                                                         plotOutput('outlierbox')),  
+                                       
                                        conditionalPanel("input.checks=='Outliers'",
-                                                    
+
                                        shinycssloaders::withSpinner(DT::DTOutput("output_table_outlier")),
+                                       
+                                       tags$br(),
+                                       textOutput("outlier_fig_title"),
+                                       
                                        splitLayout(cellWidths = c('33%','33%','33%'),
                                                    shinycssloaders::withSpinner(plotOutput('plot1',
                                                               hover = hoverOpts("plot1_hover", delay = 100, delayType = "debounce"),
@@ -423,6 +428,7 @@ source("map_viewer_app.R", local = TRUE)
                                                               brush = brushOpts(id = "plot3_brush",resetOnNew = TRUE)
                                                    )))
                                        ),
+                                       
                                        conditionalPanel("input.checks=='NAs'",
                                                         DT::DTOutput('missingtable')),
                                        DT::DTOutput('output_table_latlon'),

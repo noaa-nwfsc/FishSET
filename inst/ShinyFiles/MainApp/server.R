@@ -2786,7 +2786,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       output$outlierbox <- renderPlot(outlierBoxplot())
       
-      
       tableInputOutlier <- reactive({
         
         req(input$column_check %in% names(values$dataset))
@@ -2804,6 +2803,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           
           out
         }
+        
       })
       
       
@@ -2818,7 +2818,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         options = list(autoWidth=FALSE, scrollX=TRUE, responsive=FALSE, pageLength = 25)
       )
       
-     
       output$output_table_outlier <- DT::renderDT(
         
         tableInputOutlier()[[1]], server = TRUE, selection='single', rownames=TRUE,
@@ -2828,7 +2827,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       ranges1 <- reactiveValues(x = NULL, y = NULL)   
       ranges2 <- reactiveValues(x = NULL, y = NULL)   
       ranges3 <- reactiveValues(x = NULL, y = NULL)
-      
       
       outlierPlot1 <- reactive({
         
@@ -2840,21 +2838,22 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           temp$val <- 1:nrow(temp)
           col_check <- rlang::sym(input$column_check)
           q_test <- quietly_test(outlier_plot_int)
-          dat_sub <- q_test(dat=temp, x=input$column_check, dat_remove=input$dat.remove, 
+          dat_sub <- q_test(dat=temp, input$column_check, dat_remove=input$dat.remove,
                             x_dist = input$x_dist, sd_val = input$datremovenum, plot_type = 1)
+          
           qaqc_out_proj$out_plot <- project$name
           suppressWarnings(
             ggplot2::ggplot() +
-              ggplot2::geom_point(data=dat_sub, ggplot2::aes(x=val, y=!!col_check, 
-                                                             color = Points, na.rm=TRUE)) +
-              ggplot2::scale_color_manual(breaks=c('Kept','Removed'),
-                                          values=c('blue','red')) +
-              ggplot2::coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE) +
-              ggplot2::labs(x='Data row') + 
-              fishset_theme() +
-              ggplot2::theme(axis.text=ggplot2::element_text(size=12),
-                             axis.title=ggplot2::element_text(size=12))
-            )
+              ggplot2::geom_point(data=dat_sub, ggplot2::aes(x=val, y=!!col_check, color = Points),
+                                                             na.rm=TRUE) +
+          ggplot2::scale_color_manual(breaks=c('Kept','Removed'),
+                                      values=c('blue','red')) +
+          ggplot2::coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE) +
+          ggplot2::labs(x='Data row') +
+          fishset_theme() +
+          ggplot2::theme(axis.text=ggplot2::element_text(size=12),
+                         axis.title=ggplot2::element_text(size=12))
+          )
           }
       })
       
@@ -2867,14 +2866,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           temp <- values$dataset
           temp$val <- 1:nrow(temp)
           col_check <- rlang::sym(input$column_check)
-          dat_sub <- outlier_plot_int(temp, x=input$column_check, dat_remove=input$dat.remove, 
+          dat_sub <- outlier_plot_int(temp, x=input$column_check, dat_remove=input$dat.remove,
                                       x_dist=input$x_dist, sd_val = input$datremovenum, plot_type=1)
-          arg.return <- outlier_plot_int(temp, x=input$column_check, dat_remove=input$dat.remove, 
+          arg.return <- outlier_plot_int(temp, x=input$column_check, dat_remove=input$dat.remove,
                                          x_dist=input$x_dist, sd_val = input$datremovenum, plot_type=2)
-          
-          ggplot2::ggplot(dat_sub[dat_sub$Points=='Kept',], ggplot2::aes(!!col_check)) + 
-            ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)), 
-                                    na.rm=TRUE, bins = 30, fill = "gray", color = "black") + 
+
+          ggplot2::ggplot(dat_sub[dat_sub$Points=='Kept',], ggplot2::aes(!!col_check)) +
+            ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)),
+                                    na.rm=TRUE, bins = 30, fill = "gray", color = "black") +
             arg.return +
             ggplot2::coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE) +
             fishset_theme() +
@@ -2891,12 +2890,12 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           
           temp <- values$dataset
           temp$val <- 1:nrow(temp)
-          temp <- outlier_plot_int(temp, x=input$column_check, dat_remove=input$dat.remove, 
+          temp <- outlier_plot_int(temp, x=input$column_check, dat_remove=input$dat.remove,
                                    x_dist=input$x_dist, sd_val = input$datremovenum, plot_type = 3)
-          
+
           ggplot2::ggplot(temp, ggplot2::aes(x=fit_quants, y=data_quants)) +
             ggplot2::geom_point(shape=1) + ggplot2::geom_abline() +
-            ggplot2::labs(x='Theoretical Quantiles', y='Sample Quantiles', 
+            ggplot2::labs(x='Theoretical Quantiles', y='Sample Quantiles',
                           title=paste('Q-Q plot of', input$x_dist, 'fit against data')) +
             ggplot2::coord_cartesian(xlim = ranges3$x, ylim = ranges3$y, expand = FALSE) +
             fishset_theme() +
@@ -2905,24 +2904,32 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         }
       })
       
-      # combine outlier plots into one
-      outlierPlotAll <- reactive({  
-        
-        # fig <- suppressWarnings(
-        #   ggpubr::ggarrange(outlierPlot1(), outlierPlot2(), outlierPlot3(),
-        #                     ncol = 2, nrow = 2))
-        # TODO: convert to gridExtra::grid.arrange()
-        # fig <- gridExtra::grid.arrange(outlierPlot1(), outlierPlot2(), outlierPlot3(),
-        #                                ncol = 2, nrow = 2)
-        fig
-      }) 
+      outlier_fig_title <- reactive({
       
+        req(input$column_check %in% names(values$dataset))
+        
+        paste0("Plots for ", input$column_check, " with ", input$x_dist,
+               " distribution and data removed based on '", input$dat.remove,
+               "'. \nBlue: included points   Red: removed points")
+      })
+      
+      # combine outlier plots into one
+      # outlierPlotAll <- reactive({  
+      #   
+      #   # TODO: convert to gridExtra::grid.arrange()
+      #   fig <- gridExtra::grid.arrange(outlierPlot1(), outlierPlot2(), outlierPlot3(),
+      #                                  ncol = 2, nrow = 2)
+      #   fig
+      # }) 
+    
       # Outlier plot output
       output$plot1 <- renderPlot(outlierPlot1())
-      
+
       output$plot2 <- renderPlot(outlierPlot2())
-      
+
       output$plot3 <- renderPlot(outlierPlot3())
+      
+      output$outlier_fig_title <- renderText(outlier_fig_title())
       
       #Hover info       
       output$hover_info1 <- renderUI({
