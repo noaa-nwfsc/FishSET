@@ -108,13 +108,13 @@ Add in issue tab on github site
 Issues? [https://github.com/FishSET/issues]() 
        <!--  FishSET@noaa.gov -->
 
-## <a name="cite"> Citation </a
+## <a name="cite"> Citation </a>
 
 If you use FishSET results in publications, please cite the the package:
 
 Alan Haynie, Melanie Harsch, Bryce McManus, and Allen Chen (2021). FishSET: Spatial Economics Toolbox for Fisheries. R package version 1.0.1.
 
-## <a name="license"> NOAA Disclaimer </a
+## <a name="license"> NOAA Disclaimer </a>
 
 This repository is a scientific product and is not official communication of the National Oceanic and
 Atmospheric Administration, or the United States Department of Commerce. All NOAA Gitlabs project code is
