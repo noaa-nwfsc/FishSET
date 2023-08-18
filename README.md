@@ -5,6 +5,7 @@ FishSET
 If you run into problems you can contact [FishSET@noaa.gov](mailto:FishSET@noaa.gov)
 
 <ul class="nav">
+  [Local Install](#LocalInstall)
   <li><a href="#LocalInstall">Install</a></li>
   <li><a href="#GitlabsInstall">Gitlabs Install</a></li>
   <li><a href="#documentation">Documentation</a></li>
@@ -16,7 +17,7 @@ If you run into problems you can contact [FishSET@noaa.gov](mailto:FishSET@noaa.
 The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools for organizing data; developing, improving and disseminating modeling best practices.
 
 
-### [LOCAL INSTALL] (#LocalInstall)
+### <a name="LocalInstall"> Local Install </a>
 ---
 Please note that devtools is required for a local installation. 
 
