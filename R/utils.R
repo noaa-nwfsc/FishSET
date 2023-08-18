@@ -2217,27 +2217,27 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal",
       dataset$Points <- "Kept"
     } else {
       if(is.numeric(dat_remove)){
-        dataset$Points <- ifelse(dataset[, x] < (mean(dataset[, x], na.rm = T) + dat_remove * stats::sd(dataset[, x], na.rm = T)) &
-                                   dataset[, x] > (mean(dataset[, x], na.rm = T) - dat_remove * stats::sd(dataset[, x], na.rm = T)), "Kept", "Removed")
+        dataset$Points <- ifelse(dataset[[x]] < (mean(dataset[[x]], na.rm = T) + dat_remove * stats::sd(dataset[[x]], na.rm = T)) &
+                                   dataset[[x]] > (mean(dataset[[x]], na.rm = T) - dat_remove * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
       } else if (dat_remove == "5_95_quant") {
-        dataset$Points <- ifelse(dataset[, x] < stats::quantile(dataset[, x], 0.95, na.rm = TRUE) &
-          dataset[, x] > stats::quantile(dataset[, x], 0.05, na.rm = TRUE), "Kept", "Removed")
+        dataset$Points <- ifelse(dataset[[x]] < stats::quantile(dataset[[x]], 0.95, na.rm = TRUE) &
+          dataset[[x]] > stats::quantile(dataset[[x]], 0.05, na.rm = TRUE), "Kept", "Removed")
       } else if (dat_remove == "25_75_quant") {
-        dataset$Points <- ifelse(dataset[, x] < stats::quantile(dataset[, x], 0.75, na.rm = TRUE) &
-          dataset[, x] > stats::quantile(dataset[, x], 0.25, na.rm = TRUE), "Kept", "Removed")
+        dataset$Points <- ifelse(dataset[[x]] < stats::quantile(dataset[[x]], 0.75, na.rm = TRUE) &
+          dataset[[x]] > stats::quantile(dataset[[x]], 0.25, na.rm = TRUE), "Kept", "Removed")
       } else if (dat_remove == "mean_2SD") {
-        dataset$Points <- ifelse(dataset[, x] < (mean(dataset[, x], na.rm = T) + 2 *
-          stats::sd(dataset[, x], na.rm = T)) &
-          dataset[, x] > (mean(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), "Kept", "Removed")
+        dataset$Points <- ifelse(dataset[[x]] < (mean(dataset[[x]], na.rm = T) + 2 *
+          stats::sd(dataset[[x]], na.rm = T)) &
+          dataset[[x]] > (mean(dataset[[x]], na.rm = T) - 2 * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
       } else if (dat_remove == "median_2SD") {
-        dataset$Points <- ifelse(dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) &
-          dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), "Kept", "Removed")
+        dataset$Points <- ifelse(dataset[[x]] < (stats::median(dataset[[x]], na.rm = T) + 2 * stats::sd(dataset[[x]], na.rm = T)) &
+          dataset[[x]] > (stats::median(dataset[[x]], na.rm = T) - 2 * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
       } else if (dat_remove == "mean_3SD") {
-        dataset$Points <- ifelse(dataset[, x] < (mean(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) &
-          dataset[, x] > (mean(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), "Kept", "Removed")
+        dataset$Points <- ifelse(dataset[[x]] < (mean(dataset[[x]], na.rm = T) + 3 * stats::sd(dataset[[x]], na.rm = T)) &
+          dataset[[x]] > (mean(dataset[[x]], na.rm = T) - 3 * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
       } else if (dat_remove == "median_3SD") {
-        dataset$Points <- ifelse(dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) &
-          dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), "Kept", "Removed")
+        dataset$Points <- ifelse(dataset[[x]] < (stats::median(dataset[[x]], na.rm = T) + 3 * stats::sd(dataset[[x]], na.rm = T)) &
+          dataset[[x]] > (stats::median(dataset[[x]], na.rm = T) - 3 * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
       }
     } # End Outlier mod
 
@@ -2248,79 +2248,80 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal",
     )
  
     # Hist
-    ## Plot 2!
+    # Plot 2!
     if (x_dist == "normal") {
       arg.return <- stat_function(
         fun = dnorm, colour = "blue",
-        args = list(mean = mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE), sd = sd(dataset[dataset$Points == "Kept", x], na.rm = TRUE))
+        args = list(mean = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE), sd = sd(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE))
       )
-    } else if (x_dist == "lognormal") {
+    } 
+    else if (x_dist == "lognormal") {
       # lognormal
       arg.return <- stat_function(
         fun = dlnorm, colour = "blue",
-        args = list(mean = mean(log(dataset[dataset$Points == "Kept", x]), na.rm = TRUE), sd = sd(log(dataset[dataset$Points == "Kept", x]), na.rm = TRUE))
+        args = list(mean = mean(log(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), na.rm = TRUE), sd = sd(log(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), na.rm = TRUE))
       )
     } else if (x_dist == "exponential") {
       # Exponential
       arg.return <- stat_function(
         fun = dexp, colour = "blue",
-        args = list(rate = 1 / mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE))
+        args = list(rate = 1 / mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE))
       )
     } else if (x_dist == "weibull") {
       # Weibull
       arg.return <- stat_function(
         fun = dweibull, colour = "blue",
         args = list(
-          shape = 1.2 / sqrt(var(log(dataset[dataset$Points == "Kept", x]), na.rm = TRUE)),
-          scale = mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE) + 0.572 / (1.2 / sqrt(var(log(dataset[dataset$Points == "Kept", x]), na.rm = TRUE)))
+          shape = 1.2 / sqrt(var(log(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), na.rm = TRUE)),
+          scale = mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE) + 0.572 / (1.2 / sqrt(var(log(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), na.rm = TRUE)))
         )
       )
     } else if (x_dist == "poisson") {
       # Poisson
       arg.return <- stat_function(
         fun = dpois, colour = "blue",
-        args = list(lambda = mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE))
+        args = list(lambda = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE))
       )
     } else if (x_dist == "negative binomial") {
       # Negative Binomial
       arg.return <- stat_function(
         fun = dnbinom, colour = "blue",
-        args = list(mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE)^2 / (var(dataset[dataset$Points == "Kept", x], na.rm = TRUE) - mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE)),
-          mu = mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE)
+        args = list(mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE)^2 / (var(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE) - mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE)),
+          mu = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE)
         )
       )
     }
 
     # Plot3
     # Probability plot
-    quants <- seq(0, 1, length = length(dataset[dataset$Points == "Kept", x]) + 2)[2:(length(dataset[dataset$Points == "Kept", x]) + 1)]
+    quants <- seq(0, 1, length = length(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)) + 2)[2:(length(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)) + 1)]
     # normal
     if (x_dist == "normal") {
-      fit_quants <- stats::qnorm(quants, mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE), sd(dataset[dataset$Points == "Kept", x], na.rm = TRUE))
+      fit_quants <- stats::qnorm(quants, mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE), sd(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE))
     } else if (x_dist == "lognormal") {
       # lognormal
-      fit_quants <- stats::qlnorm(quants, mean = mean(log(dataset[dataset$Points == "Kept", x]), na.rm = TRUE), sd = sd(log(dataset[dataset$Points == "Kept", x]), na.rm = TRUE))
+      fit_quants <- stats::qlnorm(quants, mean = mean(log(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), na.rm = TRUE), sd = sd(log(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), na.rm = TRUE))
     } else if (x_dist == "exponential") {
       # Exponential
-      fit_quants <- stats::qexp(quants, rate = 1 / mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE))
+      fit_quants <- stats::qexp(quants, rate = 1 / mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE))
     } else if (x_dist == "weibull") {
       # Weibull
       fit_quants <- stats::qweibull(quants,
-        shape = 1.2 / sqrt(var(log(dataset[dataset$Points == "Kept", x]), na.rm = TRUE)),
-        scale = mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE) + 0.572 / (1.2 / sqrt(var(log(dataset[dataset$Points == "Kept", x]), na.rm = TRUE)))
+        shape = 1.2 / sqrt(var(log(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), na.rm = TRUE)),
+        scale = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE) + 0.572 / (1.2 / sqrt(var(log(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), na.rm = TRUE)))
       )
     } else if (x_dist == "poisson") {
       # Poisson
-      fit_quants <- stats::qpois(quants, lambda = mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE))
+      fit_quants <- stats::qpois(quants, lambda = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE))
     } else if (x_dist == "negative binomial") {
       # Negative Binomial
       fit_quants <- stats::qnbinom(quants,
-        size = mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE)^2 / (var(dataset[dataset$Points == "Kept", x], na.rm = TRUE) - mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE)),
-        mu = mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE)
+        size = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE)^2 / (var(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE) - mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE)),
+        mu = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE)
       )
     }
 
-    data_quants <- stats::quantile(as.numeric(dataset[dataset$Points == "Kept", x]), quants, na.rm = TRUE)
+    data_quants <- stats::quantile(as.numeric(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), quants, na.rm = TRUE)
     # create Q-Q plot
     temp <- data.frame(fit_quants, data_quants)
     p3 <- ggplot(temp, aes(x = fit_quants, y = data_quants)) +
@@ -2332,20 +2333,20 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal",
     if (plot_type == "1") {
       return(dataset)
     } else if (plot_type == "2") {
-      suppressWarnings(arg.return)
+      suppressWarnings(return(arg.return))
     } else if (plot_type == "3") {
       suppressWarnings(return(temp))
     }
     # Put it all together
     
-    p_title <- paste0("Plots for ", x, " with ", x_dist,
-                     " distribution and data removed based on '", dat_remove,
-                     "'. \nBlue: included points   Red: removed points")
+    # p_title <- paste0("Plots for ", x, " with ", x_dist,
+    #                  " distribution and data removed based on '", dat_remove,
+    #                  "'. \nBlue: included points   Red: removed points")
     # TODO: p1 and p2 out of scope
-    fig <- gridExtra::grid.arrange(p1, p2, p3, ncol = 2, nrow = 2, 
-                                   top = grid::textGrob(p_title, gp = grid::gpar(fontsize = 10)))
-    
-    fig
+    # fig <- gridExtra::grid.arrange(p1, p2, p3, ncol = 2, nrow = 2,
+    #                                top = grid::textGrob(p_title, gp = grid::gpar(fontsize = 10)))
+    # 
+    # fig
     
     # fig <- suppressWarnings(ggpubr::ggarrange(p1, p2, p3 , ncol = 2, nrow = 2))
     # labels = c("A", "B", "C"),
