@@ -105,7 +105,7 @@ use the ``build_vignettes=FALSE`` option to turn off vignettes, which takes a li
 
 Add in issue tab on github site
 
-Issues? [https://github.com/FishSET/issues]() 
+Issues? [https://github.com/FishSET/issues](https://github.com/FishSET/issues) 
        <!--  FishSET@noaa.gov -->
 
 ## <a name="cite"> Citation </a>
