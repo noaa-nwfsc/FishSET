@@ -2,7 +2,7 @@ FishSET
 =========
 ---
 
-If you run into problems you can contact <!--- FishSET@noaa.gov --->
+If you run into problems you can contact [FishSET@noaa.gov](mailto:FishSET@noaa.gov)
 
 <ul class="nav">
   <li><a href="#LocalInstall">Install</a></li>
