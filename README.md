@@ -2,21 +2,21 @@ FishSET
 =========
 ---
 
-If you run into problems you can contact <!--- FishSET@noaa.gov --->
+If you run into problems you can contact [FishSET@noaa.gov](mailto:FishSET@noaa.gov)
 
 <ul class="nav">
-  <li><a href="#LocalInstall">Install</a></li>
-  <li><a href="#GitlabsInstall">Gitlabs Install</a></li>
-  <li><a href="#documentation">Documentation</a></li>
-  <li><a href="#bugs">Issues</a></li>
-  <li><a href="#cite">Citation</a></li>
-  <li><a href="#license">License</a></li>
+  <li>[Local Install](#LocalInstall)
+  <li>[Gitlab Install](#GitlabInstall)
+  <li>[Documentation](#Documentation)
+  <li>[Issues](#bugs)
+  <li>[Citation](#cite)
+  <li>[License](#license)
 </ul>
 
 The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools for organizing data; developing, improving and disseminating modeling best practices.
 
 
-### LOCAL INSTALL {#LocalInstall}
+## <a name="LocalInstall"> Local Install </a>
 ---
 Please note that devtools is required for a local installation. 
 
@@ -37,7 +37,7 @@ Use loc to specify directory location of the database and loc2 to specify locati
 For example, loc <- getwd().
 
 
-### GITLAB INSTALL {#GitlabInstall}
+## <a name="GitlabInstall"> Gitlab Install </a>
 
 1.  You will need a Gitlab account and you'll need an access token.
 2.  To get an access token:
@@ -98,22 +98,23 @@ use the ``build_vignettes=FALSE`` option to turn off vignettes, which takes a li
 
 
 
-### DOCUMENTATION and TUTORIALS  {#documentation}
+## <a name="Documentation"> Documentation and Tutorials </a>
 
-### ISSUES and BUG REPORTS {#bugs}
+
+## <a name="bugs"> Issues and Bug Reports </a>
 
 Add in issue tab on github site
 
-Issues? [https://github.com/FishSET/issues]() 
+Issues? [https://github.com/FishSET/issues](https://gitlab-afsc.fisheries.noaa.gov/bryce.mcmanus/FishSET_RPackage/-/issues) 
        <!--  FishSET@noaa.gov -->
 
-### CITATION  {#cite}
+## <a name="cite"> Citation </a>
 
 If you use FishSET results in publications, please cite the the package:
 
 Alan Haynie, Melanie Harsch, Bryce McManus, and Allen Chen (2021). FishSET: Spatial Economics Toolbox for Fisheries. R package version 1.0.1.
 
-### NOAA Disclaimer
+## <a name="license"> NOAA Disclaimer </a>
 
 This repository is a scientific product and is not official communication of the National Oceanic and
 Atmospheric Administration, or the United States Department of Commerce. All NOAA Gitlabs project code is
