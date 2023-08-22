@@ -5,7 +5,7 @@ FishSET
 If you run into problems you can contact [FishSET@noaa.gov](mailto:FishSET@noaa.gov)
 
 <ul class="nav">
-  <li>[FishSET Overview](#Overview)
+  <li>[Overview](#Overview)
   <li>[Local Install](#LocalInstall)
   <li>[Gitlab Install](#GitlabInstall)
   <li>[Documentation](#Documentation)
