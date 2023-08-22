@@ -5,6 +5,7 @@ FishSET
 If you run into problems you can contact [FishSET@noaa.gov](mailto:FishSET@noaa.gov)
 
 <ul class="nav">
+  <li>[FishSET Overview](#Overview)
   <li>[Local Install](#LocalInstall)
   <li>[Gitlab Install](#GitlabInstall)
   <li>[Documentation](#Documentation)
@@ -13,7 +14,8 @@ If you run into problems you can contact [FishSET@noaa.gov](mailto:FishSET@noaa.
   <li>[License](#license)
 </ul>
 
-The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools for organizing data; developing, improving and disseminating modeling best practices.
+## <a name="Overview"> Overview 
+The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools for organizing and visualizing data; developing, improving and disseminating modeling best practices.
 
 
 ## <a name="LocalInstall"> Local Install </a>
@@ -100,6 +102,7 @@ use the ``build_vignettes=FALSE`` option to turn off vignettes, which takes a li
 
 ## <a name="Documentation"> Documentation and Tutorials </a>
 
+Refer to the [FishSET R Package User Manual](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit) for more package information, quickstart guides, and troubleshooting tips.
 
 ## <a name="bugs"> Issues and Bug Reports </a>
 
