@@ -64,6 +64,19 @@ onto the map. At this time, the map can only be saved by taking a screen shot.
 }
 \examples{
 \dontrun{
+# Plot trip path
+map_viewer(scallopMainDataTable, 'scallop', "scallopTMSSpatTable", 
+           avd = 'ZoneID', avm = 'TEN_ID', num_vars = 'LANDED_thousands', 
+           temp_vars = 'DATE_TRIP', lon_start = 'previous_port_lon', 
+           lat_start = 'previous_port_lat', lon_end = 'DDLON', 
+           lat_end = 'DDLAT', id_vars = 'previous_namelsad')
+   
+# Plot observed fishing locations        
+map_viewer(scallopMainDataTable, 'scallop', "scallopTMSSpatTable", 
+           avd = 'ZoneID', avm = 'TEN_ID', num_vars = 'LANDED_thousands', 
+           temp_vars = 'DATE_TRIP', lon_start = 'DDLON', lat_start = 'DDLAT', 
+           id_vars = 'previous_namelsad')
+
 #Plot haul path
 map_viewer(pollockMainDataTable, 'pollock', spat=spatdat, avd='NMFS_AREA',
 avm='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'),

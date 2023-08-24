@@ -73,5 +73,5 @@ BuildVignettes: yes
 ByteCompile: TRUE
 devtools: :use_data(MainDataTable)
 Encoding: UTF-8
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 LazyData: true
