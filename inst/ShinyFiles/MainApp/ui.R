@@ -490,14 +490,18 @@ source("map_viewer_app.R", local = TRUE)
                                           
                                           conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots'",
                                             selectInput('plot_type', 'Select Plot Type', 
-                                                        choices=c('Temporal','Spatial','x-y plot'))
+                                                        choices=c('Temporal','Spatial-autocorrelation', 'Spatial-zone summary','x-y plot'))
                                           ),
                                           
-                                          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
+                                          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial-autocorrelation'",
                                                            uiOutput("mtgt_output"),
                                                            uiOutput('mtgt_output_secondary'),
                                                            uiOutput('mtgt_out2'),
                                                            uiOutput("location_info_spatial")),
+                                          
+                                          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial-zone summary'",
+                                                           uiOutput("zone_summary_out1"),
+                                          ),
                                           
                                           conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Table'",
                                             verbatimTextOutput('editText')
@@ -540,7 +544,7 @@ source("map_viewer_app.R", local = TRUE)
                                        ),
                                        
                                        conditionalPanel(
-                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
+                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial-autocorrelation'",
                                          
                                          column(shinycssloaders::withSpinner(plotOutput('plot_spatial',
                                                            click = "plot_spatial_click",
@@ -549,6 +553,13 @@ source("map_viewer_app.R", local = TRUE)
                                          column(shinycssloaders::withSpinner(plotOutput('map_kernel')), width=7),
                                          column(shinycssloaders::withSpinner(DT::DTOutput('output_table_gt_mt')), width=6)
                                          
+                                       ),
+                                       
+                                       conditionalPanel(
+                                          "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial-zone summary'",
+                                          fluidRow(
+                                             column(shinycssloaders::withSpinner(plotOutput('plot_zone_summary')), width=10)
+                                          )
                                        ),
                                        
                                        conditionalPanel(
