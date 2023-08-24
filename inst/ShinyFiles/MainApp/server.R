@@ -3761,11 +3761,11 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
          if(!is.null(input$zone_summ_value) && input$zone_summ_value != ""){
            # Check if value should be wrapped in quotes
            if(any(class(zone_summ_df[[input$zone_summ_var]]) %in% c("character", "factor", "Date", "POSIXct", "POSIXt"))){
-             zone_summ_expr <- paste0(input$zone_summ_var,input$zone_summ_operator, '"', input$zone_summ_value, '"') 
+             zone_summ_expr <- paste0(input$zone_summ_var, input$zone_summ_operator, '"', input$zone_summ_value, '"') 
            } else {
              zone_summ_expr <- paste0(input$zone_summ_var, input$zone_summ_operator, input$zone_summ_value)  
            }
-           zone_summ_df <- eval(parse(text = paste0("values$dataset %>% dplyr::filter(", zone_summ_expr,")")))
+           zone_summ_df <- eval(parse(text = paste0("subset(values$dataset, ", zone_summ_expr, ")")))
          } 
          
          if(input$zone_summ_varPlot == 'observations'){
