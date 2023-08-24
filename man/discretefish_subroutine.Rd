@@ -124,15 +124,16 @@ Likelihood-specific initial parameter estimates: \cr
    Model output are saved to the FishSET database and can be loaded to the console with:
    \tabular{rlll}{
    \code{\link{model_out_view}}: \tab model output including optimization information, standard errors, coefficients, and t- statistics. \cr
+   \code{\link{model_params}}: model estimates and standard error \cr
    \code{\link{model_fit}}: \tab model comparison metrics \cr
    \code{\link{globalcheck_view}}: \tab  model error message \cr
      }
    For obtaining catch, choice, distance, and otherdat data generated from \code{make_model_design} function.
-   Working ModelInputData table (table without date) will be pulled from FishSET database.
+   \code{ModelInputData} table will be pulled from FishSET database.
 }
 \examples{
 \dontrun{
-results <- discretefish_subroutine("pcod", select.model = TRUE)
+results <- discretefish_subroutine("pcod", run = 'all', select.model = TRUE)
 }
 
 }
