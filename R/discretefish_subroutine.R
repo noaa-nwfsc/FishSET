@@ -115,7 +115,9 @@
 #'
 discretefish_subroutine <-
   
-  function(project,
+ 
+
+ function(project,
            run = 'new',
            select.model = FALSE,
            explorestarts = TRUE,
@@ -310,7 +312,6 @@ discretefish_subroutine <-
 
       # Explore starting parameters ----
       if (explorestarts) {
-        
         sp <- if (is_empty(space[i])) 10 else space[i]
         devr <- if (is_empty(dev[i])) 5 else dev[i] 
         
@@ -669,7 +670,17 @@ discretefish_subroutine <-
         DBI::dbExecute(fishset_db, raw_sql, 
                        params = list(data = list(serialize(mot_to_save, NULL))))
       } 
+
+      if(isRunning()){
+        incProgress(amount = 1/ ((length.exp.names + length(mdf)) * 1.5))
+      }
+      
     } # End looping through expected catch cases
+    
+    if(isRunning()){
+      incProgress(amount = 1/ ((length.exp.names + length(mdf)) * 1.5))
+    }
+    
   } # end looping through model choices
     
   # select model app ----
@@ -792,4 +803,3 @@ discretefish_subroutine <-
                         paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
   }
 }
-
