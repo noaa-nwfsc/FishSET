@@ -5529,6 +5529,41 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
               
               selectInput('mod_run_select', 'Model Run Options', 
                           choices = c('new', 'all', 'select')),
+
+              add_prompter(tags$div(style = "margin-left:60px;", 
+                                    selectInput('mod_explore_starts', 
+                                                label = list('Explore starting parameters', icon('info-circle', verify_fa = FALSE)),
+                                                choices = c(TRUE,FALSE), selected = FALSE)),
+                           position = 'top', type = 'info', size = 'medium',
+                           message = 'Default = FALSE. Set to TRUE if unsure of the number of starting parameter values
+                                      to include or unsure of reasonable starting values.'
+               ),
+                            
+              conditionalPanel("input.mod_explore_starts=='TRUE'",
+                               add_prompter(tags$div(style = "margin-left:60px;", 
+                                                     selectizeInput('mod_break_early', label = list('Return first valid parameters', icon('info-circle', verify_fa = FALSE)),
+                                                                    choices = c(TRUE, FALSE), selected = TRUE)),
+                                            position = 'top', type = 'info', size = 'medium',
+                                            message = "Set to TRUE to return the first set of starting parameter values that returns a valid loglikelihood value;
+                                                       set to FALSE to consider the entire parameter space."
+                               ),
+                               add_prompter(tags$div(style = "margin-left:60px;", 
+                                                     textInput('space_vec', label = list('Enter number(s) of starting value permutations', icon('info-circle', verify_fa = FALSE)),
+                                                               value = "", placeholder = "e.g. 10 or 10,15,... for multiple models")),
+                                            position = 'top', type = 'info', size = 'medium',
+                                            message = "Enter a vector of the same length as the number of models to run. space is the number(s)
+                                                       of starting value permutations to test. The greater the dev value, the larger the space value should be.
+                                                       Default value = 10"
+                               ),
+                               add_prompter(tags$div(style = "margin-left:60px;", 
+                                                     textInput('dev_vec', label = list('Enter number(s) for how far to deviate from the mean parameter values', icon('info-circle', verify_fa = FALSE)),
+                                                               value = "", placeholder = "e.g. 5 or 3,5,... for multiple models")),
+                                            position = 'top', type = 'info', size = 'medium',
+                                            message = "Enter a vector of the same length as the number of models to run. dev refers to how far to deviate from the average parameter
+                                                       values when exploring the parameter space. The less certain the average parameters are, the greater the dev value(S) should be.
+                                                       Default value = 5"
+                               )
+              ),
               
               uiOutput('mod_run_custom_ui'),
               
@@ -6128,16 +6163,33 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       ## Save/run models ----
       observeEvent(input$mod_submit, {
         
+        # Prepare model args from user input
+        if(!is_empty(input$space_vec)){
+          space_val <- unlist(strsplit(gsub(" ", "", input$space_vec), ",")) # remove white space, separate commas
+          tryCatch(
+            space_val <- as.numeric(space_val),
+            warning = function(w){
+              showNotification("One or more 'space' values invalid and coerced to NULL - model is running with default space = 10", type = "warning", duration = 45)
+            }
+          )
+        }
+        if(!is_empty(input$dev_vec)){
+          dev_val <- unlist(strsplit(gsub(" ", "", input$dev_vec), ",")) # remove white space, separate commas
+          tryCatch(
+            dev_val <- as.numeric(dev_val),
+            warning = function(w){
+              showNotification("One or more 'dev' values invalid and coerced to NULL - model is running with default dev = 5", type = "warning", duration = 45)
+            }
+          )
+        }
+        
+        
         removeModal()
         
         input_list <- reactiveValuesToList(input)
         
         toggle_inputs(input_list, FALSE)
         
-        showNotification('Model is running. Models can take 30 minutes.
-                          All buttons are inactive while model function is running.
-                          Check R console for progress.', type='message', duration=30)
-  
         # Run model(s)
         # TODO: make these args available in the app (pop-up?)
         # add run arg
@@ -6147,12 +6199,18 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         q_test <- quietly_test(discretefish_subroutine, show_msg = TRUE)
         
-        discretefish_subroutine(project = project$name, run = mod_run, select.model = FALSE, 
-               explorestarts = FALSE, breakearly = TRUE, space = NULL, 
-               dev = NULL, use.scalers = FALSE, scaler.func = NULL)
+        withProgress(
+          discretefish_subroutine(project = project$name, run = mod_run, select.model = FALSE, 
+                                  explorestarts = input$mod_explore_starts, breakearly = input$mod_break_early, space = space_val, 
+                                  dev = dev_val, use.scalers = FALSE, scaler.func = NULL),
+          message = "Running model(s): ",
+          detail = 'Models can take up to a few minutes to run. All buttons are inactive while models are running.
+                    Check R console for progress.'
+        )
         
         showNotification('Model run is complete. Check the `Compare Models` subtab to view output', 
                          type='message', duration=30)
+        
         toggle_inputs(input_list, TRUE)
       })
       
