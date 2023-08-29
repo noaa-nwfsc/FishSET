@@ -5788,7 +5788,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       
       gridlab <- reactive({
         
-        if (input$model %in% c('logit_c', 'logit_avgcat')) { 
+        if (input$model %in% c('logit_c', 'logit_zonal')) { 
           
           'alternative-specific variables'
         
@@ -5824,7 +5824,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           
           gridNum+intNum
           
-        } else if (input$model == 'logit_avgcat') {
+        } else if (input$model == 'logit_zonal') {
           
           gridNum*(mod_rv$alt_num-1)+intNum
           

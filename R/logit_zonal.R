@@ -1,25 +1,25 @@
-logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
-  #' Average catch multinomial logit procedure
+logit_zonal <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
+  #' Zonal logit with area-specific constants procedure
   #'
-  #' Average catch multinomial logit procedure
+  #' Zonal logit with area-specific constants procedure
   #'
   #' @param starts3 Starting values as a vector (num). For this likelihood,
-  #'     the order takes: c([average-catch parameters], [travel-distance
+  #'     the order takes: c([area-specific constants], [travel-distance
   #'     parameters]). \cr \cr
-  #'     The average-catch and travel-distance parameters are of length (# of
-  #'     average-catch variables)*(k-1) and (# of travel-distance variables
+  #'     The area-specific constants and travel-distance parameters are of length (# of
+  #'     area-specific constants)*(k-1) and (# of travel-distance variables
   #'     respectively, where (k) equals the number of alternatives.
   #' @param dat Data matrix, see output from shift_sort_x, alternatives with
   #'     distance.
   #' @param otherdat Other data used in model (as a list containing objects
   #'     `intdat` and `griddat`). \cr \cr
   #'     For this likelihood, `intdat` are 'travel-distance variables', which
-  #'     are alternative-invariant variables that are interacted with travel
+  #'     are alternative-invariant values that are interacted with travel
   #'     distance to form the cost portion of the likelihood. Each variable
   #'     name therefore corresponds to data with dimensions (number of
   #'     observations) by (unity), and returns a single parameter. \cr \cr
-  #'     In `griddat` are 'average-catch variables' that do not vary across
-  #'     alternatives, e.g. vessel gross tonnage. Each variable name therefore
+  #'     In `griddat` are 'area-specific constants' that do not vary across
+  #'     alternatives, e.g. vessel gross tonnage. Each constant name therefore
   #'     corresponds to data with dimensions (number of observations) by
   #'     (unity), and returns (k-1) parameters where (k) equals the number of
   #'     alternatives, as a normalization of parameters is needed as the
@@ -27,11 +27,11 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
   #'     first alternative. \cr \cr
   #'     For both objects any number of variables are allowed, as a list of
   #'     matrices. Note the variables (each as a matrix) within `griddat` and
-  #'     `intdat` have no naming restrictions. 'Average-catch variables'
+  #'     `intdat` have no naming restrictions. 'Area-specific constants'
   #'     may correspond to variables that impact average catches by location,
   #'     or 'travel-distance variables' may be vessel characteristics that
   #'     affect how much disutility is suffered by traveling a greater
-  #'     distance. Note in this likelihood the 'average-catch variables' vary
+  #'     distance. Note in this likelihood the 'area-specific constants' vary
   #'     across observations but not for each location: they are allowed to
   #'     affect alternatives differently due to the location-specific
   #'     coefficients. \cr \cr
@@ -65,18 +65,18 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
   #'
   #' initparams <- c(1.5, 1.25, 1.0, 0.9, 0.8, 0.75, -1, -0.5)
   #'
-  #' func <- logit_avgcat
+  #' func <- logit_zonal
   #'
   #' results <- discretefish_subroutine(catch,choice,distance,otherdat,
   #'     initparams,optimOpt,func,methodname)
   #' }
   #' @section Graphical examples:
   #' \if{html}{
-  #' \figure{logit_avgcat_grid.png}{options: width='40\%'
-  #' alt='Figure: logit_avgcat_grid.png'}
+  #' \figure{logit_zonal_grid.png}{options: width='40\%'
+  #' alt='Figure: logit_zonal_grid.png'}
   #' \cr
-  #' \figure{logit_avgcat_travel.png}{options: width='40\%'
-  #' alt='Figure: logit_avgcat_travel.png'}
+  #' \figure{logit_zonal_travel.png}{options: width='40\%'
+  #' alt='Figure: logit_zonal_travel.png'}
   #' }
   #'
 
