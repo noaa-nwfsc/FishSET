@@ -10,7 +10,7 @@
 #'   [discretefish_subroutine()] documentation.
 #' \tabular{rlll}{
 #'  logit_c: \tab  Conditional logit likelihood \cr
-#'  logit_avgcat: \tab Average catch multinomial logit procedure \cr
+#'  logit_zonal: \tab Zonal logit with area-specific constants procedure \cr
 #'  logit_correction: \tab Full information model with Dahl's correction function \cr
 #'  epm_normal: \tab  Expected profit model with normal catch function \cr
 #'  epm_weibull: \tab Expected profit model with Weibull catch function \cr
@@ -97,7 +97,7 @@
 #'     (number of alternatives), and returns a single
 #'     parameter for each variable (e.g. the marginal
 #'     utility from catch).} \cr \cr
-#' \strong{logit_avgcat:} \tab 
+#' \strong{logit_zonal:} \tab 
 #'     \preformatted{"travel-distance variables" are
 #'     alternative-invariant variables that are
 #'     interacted with travel distance to form the cost
@@ -221,7 +221,7 @@
 #' @examples
 #' \dontrun{
 #' make_model_design("pollock", catchID= "OFFICIAL_TOTAL_CATCH",  
-#'   likelihood='logit_avgcat', 
+#'   likelihood='logit_zonal', 
 #'   vars1=NULL, vars2=NULL, initparams=c(-0.5,0.5),
 #'   optimOpt=c(100000, 1.0e-08, 1, 1), methodname = "BFGS", mod.name = "logit4"
 #' )
@@ -288,7 +288,7 @@ make_model_design <-
   }
   
   
-  ll_funs <- c("logit_c", "logit_avgcat", "logit_correction", "epm_normal", 
+  ll_funs <- c("logit_c", "logit_zonal", "logit_correction", "epm_normal", 
                "epm_lognormal", "epm_weibull")
   
   if (!likelihood %in% ll_funs) {
@@ -419,7 +419,7 @@ make_model_design <-
   ExpectedCatch <- NULL
   exp_select <- NULL
   # TODO: Check whether ec matrices need to be rerun (necessary if primary data was filtered after ec were created)
-  # use for logit_avgcat, others?   
+  # use for logit_zonal, others?   
   # if (table_exists(paste0(project, "ExpectedCatch"), project) & likelihood == "logit_c") {
   if (!is_value_empty(expectcatchmodels)) {
     

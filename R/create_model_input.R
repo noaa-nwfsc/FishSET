@@ -196,7 +196,7 @@ create_model_input <-
       distance = list(distance)
     )
     
-  } else if (fr == "logit_avgcat") {
+  } else if (fr == "logit_zonal") {
     
     otherdat <- list(
       griddat = griddat,
