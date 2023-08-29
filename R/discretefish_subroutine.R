@@ -116,8 +116,7 @@
 discretefish_subroutine <-
   
  
-
- function(project,
+  function(project,
            run = 'new',
            select.model = FALSE,
            explorestarts = TRUE,
@@ -126,7 +125,7 @@ discretefish_subroutine <-
            dev = NULL,
            use.scalers = FALSE,
            scaler.func = NULL) {
-  
+    
   if (!isRunning()) { # if run in console
     # 
     check <- checklist(project)
@@ -145,11 +144,7 @@ discretefish_subroutine <-
     stop('Model input table does not exist.', call. = FALSE)
   }
 
-  # TODO: create new arg "run" with three options:
-  # run = 'new': only run models in MDF that haven't been run yet
-  # run = 'all': run all models in MDF
-  # run = names of models to run: a character vector of model names to run
-  
+
   # model names from MDF
   mdf_n <- model_names(project)
   # full names (as they would be in MOT)
