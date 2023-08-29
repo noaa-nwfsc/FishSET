@@ -56,7 +56,7 @@
 #'    The alternative-specific parameters and travel-distance parameters are of length (# of alternative-specific variables) and (# of
 #'     travel-distance variables) respectively.
 #'
-#'  logit_avgcat:\verb{  } Average catch multinomial logit procedure \cr
+#'  logit_zonal:\verb{  } Zonal logit with area specific constants procedure \cr
 #'    \verb{    } Starting parameters takes the order of: c([average-catch parameters], [travel-distance parameters]). \cr \cr
 #'    The average-catch and travel-distance parameters are of length (# of average-catch variables)*(k-1) and (# of travel-distance variables)
 #'    respectively, where (k) equals the number of alternative fishing choices.
@@ -273,7 +273,7 @@ discretefish_subroutine <-
         
         numInits <- gridNum + intNum
         
-      } else if (fr == 'logit_avgcat') {
+      } else if (fr == 'logit_zonal') {
         
         numInits <- gridNum * (max(datamatrix$choice) - 1) + intNum
         
@@ -563,7 +563,7 @@ discretefish_subroutine <-
         ind_vars <- names(mdf[[i]]$bCHeader$indeVarsForModel)
         ec_names <- x$expectcatchmodels[[j]]
         
-        if (fr == "logit_avgcat") {
+        if (fr == "logit_zonal") {
           
           z_names <- sort(unique(mdf[[i]]$choice$choice))[-1]
           n1 <- unlist(lapply(grid_vars, function(x) as.character(interaction(x, z_names)))) 

@@ -86,7 +86,7 @@ Likelihood-specific initial parameter estimates: \cr
    The alternative-specific parameters and travel-distance parameters are of length (# of alternative-specific variables) and (# of
     travel-distance variables) respectively.
 
- logit_avgcat:\verb{  } Average catch multinomial logit procedure \cr
+ logit_zonal:\verb{  } Zonal logit with area specific constants procedure \cr
    \verb{    } Starting parameters takes the order of: c([average-catch parameters], [travel-distance parameters]). \cr \cr
    The average-catch and travel-distance parameters are of length (# of average-catch variables)*(k-1) and (# of travel-distance variables)
    respectively, where (k) equals the number of alternative fishing choices.
