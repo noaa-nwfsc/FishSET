@@ -6148,10 +6148,15 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # update model names list
       
       observeEvent(c(input$mod_reload, input$mod_add, input$mod_delete, 
-                     input$tabs == 'models'), {
+                     input$tabs == 'models', cList$pass == TRUE, input$mod_check), {
         
         req(project$name)
         
+        if (!mod_rv$mod_design){
+          # check for existing model design files/tables
+          mod_rv$mod_design <- table_exists(paste0(project$name, "ModelInputData"), project$name)
+        }
+                       
         if (mod_rv$mod_design) {
           
           mod_rv$mod_names <- model_names(project$name)
