@@ -53,6 +53,7 @@ check_model_data <- function(dat, project, uniqueID, save.file = TRUE) {
     cat(na_msg, file = tmp, append = TRUE)
     warning(na_msg)
     end <- TRUE
+    
   }
 
   # is.inf
@@ -79,13 +80,18 @@ check_model_data <- function(dat, project, uniqueID, save.file = TRUE) {
   # lat/lon degree format
   # TODO: omit variables with NAs otherwise this will break 
   lat_lon <- grep("lat|lon", names(dataset), ignore.case = TRUE)
-  num_ll <- qaqc_helper(dataset[lat_lon], function(x) !is.numeric(x))
-  deg_ll <- qaqc_helper(dataset[lat_lon], function(x) any(nchar(trunc(abs(x))) > 3)) 
+  
+  tmp_latlon_df <- dataset[lat_lon] # create a temporary dataframe and replace na and nan values with numeric 0. 
+  tmp_latlon_df[is.na(tmp_latlon_df)] <- 0 # setting nas to 0 allows test to run on non-na and non-nan values.
+  tmp_latlon_df[apply(tmp_latlon_df,2,is.nan)] <- 0
+  
+  num_ll <- qaqc_helper(tmp_latlon_df, function(x) !is.numeric(x))
+  deg_ll <- qaqc_helper(tmp_latlon_df, function(x) any(nchar(trunc(abs(x))) > 3)) 
   
   if (any(c(deg_ll, num_ll))) {
     
     deg_ind <- which(deg_ll)
-    num_ind <- which(deg_ll)
+    num_ind <- which(num_ll)
     degree_msg <- 
       paste("The following latitude/longitude variables are not in decimal degrees:", 
             paste(names(dat)[unique(c(num_ind, deg_ind))], collapse = ","))
