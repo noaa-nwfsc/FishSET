@@ -5339,7 +5339,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                empty.catch = empty_catch,  empty.expectation = empty_exp, 
                temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
                year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
-               default.exp = defaults, replace.output = input$exp_replace_output)
+               default.exp = defaults, replace.output = input$exp_replace_output, weight_avg = input$weight_avg)
       }) 
       
      

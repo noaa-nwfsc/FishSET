@@ -121,7 +121,8 @@ create_expectations <-
            year.lag = 0,
            dummy.exp = FALSE,
            default.exp = FALSE,
-           replace.output = TRUE) {
+           replace.output = TRUE,
+           weight_avg = FALSE) {
   
   # TODO: custom names, need exp.name arg
 
@@ -254,7 +255,7 @@ create_expectations <-
                        year.lag = year.lag, temporal = temporal, 
                        calc.method = calc.method, lag.method = lag.method, 
                        empty.catch = empty.catch, empty.expectation = empty.expectation,
-                       dummy.exp = dummy.exp, Alt = Alt)
+                       dummy.exp = dummy.exp, weight_avg = weight_avg, Alt = Alt)
   
   
   r <- nchar(sub("\\.[0-9]+", "", mean(as.matrix(user_exp$exp), na.rm = TRUE))) 
