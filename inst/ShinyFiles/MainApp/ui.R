@@ -1156,7 +1156,14 @@ source("map_viewer_app.R", local = TRUE)
                                                        selectInput('exp_empty_catch', 'Replace empty catch with:', 
                                                                    choices = c("NA: NA's removed when averaging"='NA', '0', 
                                                                                'Mean of all catch' ="allCatch", 
-                                                                               'Mean of grouped catch' = "groupedCatch"))) 
+                                                                               'Mean of grouped catch' = "groupedCatch"))),
+                                                   add_prompter(div(
+                                                     div(style = "display:inline-block; width: 145px; margin-left:19px",
+                                                         checkboxInput('weight_avg', 'Weighted average', value = FALSE)),
+                                                     div(style="display:inline-block; margin-left:-10px", icon('info-circle', verify_fa = FALSE))),
+                                                     position = "right", type='info', size='large', 
+                                                     message = 'Select to give more weight to days with multiple observations for a given zone. 
+                                                     See user manual for more detail.'),
                                   ),
                                   
                                   h4('Expected Catch/Dummy options'), 

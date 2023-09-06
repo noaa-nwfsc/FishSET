@@ -36,6 +36,7 @@ calc_exp <- function(dataset,
                      temp.lag = 0,
                      year.lag = 0,
                      dummy.exp = FALSE,
+                     weight_avg = FALSE,
                      Alt) {
   # TODO: Finish documenting function
   
@@ -229,7 +230,7 @@ calc_exp <- function(dataset,
     
     # Moving window ----
     
-    window_ave <- function(x) {
+    window_ave <- function(x, weight_avg) {
       
       ind <-
         df$dateFloor >= x %m-% lubridate::years(year.lag) - temp.lag - temp.window + 1 &
@@ -244,8 +245,18 @@ calc_exp <- function(dataset,
         }
         
         # Note: could remove fleet
-        aggregate(catch ~ areas + fleet, data = df[ind, ], 
-                  FUN = mean, na.action = stats::na.pass, na.rm = TRUE)
+        if(weight_avg == FALSE){
+          # Get the average for each date-area combination prior to calculating the window average
+          tmp_df <- aggregate(catch ~ areas + fleet + dateFloor, data = df[ind, ], 
+                              FUN = mean, na.action = stats::na.pass, na.rm = TRUE)
+          
+          aggregate(catch ~ areas + fleet, data = tmp_df, 
+                    FUN = mean, na.action = stats::na.pass, na.rm = TRUE)  
+        } else {
+          
+          aggregate(catch ~ areas + fleet, data = df[ind, ], 
+                    FUN = mean, na.action = stats::na.pass, na.rm = TRUE)  
+        }
         
       } else {
         
@@ -254,12 +265,21 @@ calc_exp <- function(dataset,
           return(data.frame(ID = altc_names, catch = NA))
         }
         
-        aggregate(catch ~ ID, data = df[ind, ], 
-                  FUN = mean, na.action = na.pass, na.rm = TRUE)
+        if(weight_avg == FALSE){
+          tmp_df <- aggregate(catch ~ ID, dateFloor, data = df[ind, ], 
+                              FUN = mean, na.action = na.pass, na.rm = TRUE)  
+          
+          aggregate(catch ~ ID, data = tmp_df, 
+                    FUN = mean, na.action = na.pass, na.rm = TRUE)
+        } else {
+          aggregate(catch ~ ID, data = df[ind, ], 
+                    FUN = mean, na.action = na.pass, na.rm = TRUE)  
+        }
       }
     }
+    
     # list entries contain the window avg for each day
-    ave_list <- lapply(unique(df$dateFloor), window_ave)
+    ave_list <- lapply(unique(df$dateFloor), window_ave, weight_avg = weight_avg)
     
     # add loop to extract values 
     
