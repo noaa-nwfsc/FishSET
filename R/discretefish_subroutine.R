@@ -214,7 +214,7 @@ discretefish_subroutine <-
     
     for (j in seq_len(length.exp.names)) {
       
-      if (is_value_empty(x$expectcatchmodels)) {
+      if (is_value_empty(unlist(x$expectcatchmodels))) {
         
         exp.names <- NULL
         
@@ -359,6 +359,10 @@ discretefish_subroutine <-
           return("Optimization error, check 'LDGlobalCheck'")
         })
       })[["elapsed"]]
+      
+      if(isRunning()){
+        incProgress(amount = 1/ ((length.exp.names + length(mdf)) * 2))
+      }
       
       # save ld global check ----
       fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
@@ -561,8 +565,15 @@ discretefish_subroutine <-
         p_names <- unlist(lapply(mdf[[i]]$bCHeader[-1], names))
         grid_vars <- names(mdf[[i]]$bCHeader$gridVariablesInclude)
         ind_vars <- names(mdf[[i]]$bCHeader$indeVarsForModel)
-        ec_names <- x$expectcatchmodels[[j]]
         
+        if(is_value_empty(x$expectcatchmodels)){
+          ec_names <- NULL  
+        } else if (is_value_empty(x$expectcatchmodels[[j]])) {
+          ec_names <- NULL
+        } else {
+          ec_names <- x$expectcatchmodels[[j]]
+        }
+
         if (fr == "logit_zonal") {
           
           z_names <- sort(unique(mdf[[i]]$choice$choice))[-1]
