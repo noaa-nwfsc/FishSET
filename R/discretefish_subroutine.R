@@ -568,8 +568,6 @@ discretefish_subroutine <-
         
         if(is_value_empty(x$expectcatchmodels)){
           ec_names <- NULL  
-        } else if (is_value_empty(x$expectcatchmodels[[j]])) {
-          ec_names <- NULL
         } else {
           ec_names <- x$expectcatchmodels[[j]]
         }
