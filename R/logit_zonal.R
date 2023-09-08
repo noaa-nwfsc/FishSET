@@ -4,10 +4,10 @@ logit_zonal <- function(starts3, dat, otherdat, alts, project, expname, mod.name
   #' Zonal logit with area-specific constants procedure
   #'
   #' @param starts3 Starting values as a vector (num). For this likelihood,
-  #'     the order takes: c([area-specific constants], [travel-distance
+  #'     the order takes: c([area-specific parameters], [travel-distance
   #'     parameters]). \cr \cr
-  #'     The area-specific constants and travel-distance parameters are of length (# of
-  #'     area-specific constants)*(k-1) and (# of travel-distance variables
+  #'     The area-specific parameters and travel-distance parameters are of length (# of
+  #'     area-specific parameters)*(k-1) and (# of travel-distance variables
   #'     respectively, where (k) equals the number of alternatives.
   #' @param dat Data matrix, see output from shift_sort_x, alternatives with
   #'     distance.
@@ -18,7 +18,7 @@ logit_zonal <- function(starts3, dat, otherdat, alts, project, expname, mod.name
   #'     distance to form the cost portion of the likelihood. Each variable
   #'     name therefore corresponds to data with dimensions (number of
   #'     observations) by (unity), and returns a single parameter. \cr \cr
-  #'     In `griddat` are 'area-specific constants' that do not vary across
+  #'     In `griddat` are 'area-specific parameters' that do not vary across
   #'     alternatives, e.g. vessel gross tonnage. Each constant name therefore
   #'     corresponds to data with dimensions (number of observations) by
   #'     (unity), and returns (k-1) parameters where (k) equals the number of
@@ -27,11 +27,11 @@ logit_zonal <- function(starts3, dat, otherdat, alts, project, expname, mod.name
   #'     first alternative. \cr \cr
   #'     For both objects any number of variables are allowed, as a list of
   #'     matrices. Note the variables (each as a matrix) within `griddat` and
-  #'     `intdat` have no naming restrictions. 'Area-specific constants'
+  #'     `intdat` have no naming restrictions. 'Area-specific parametes '
   #'     may correspond to variables that impact average catches by location,
   #'     or 'travel-distance variables' may be vessel characteristics that
   #'     affect how much disutility is suffered by traveling a greater
-  #'     distance. Note in this likelihood the 'area-specific constants' vary
+  #'     distance. Note in this likelihood the 'area-specific parameters' vary
   #'     across observations but not for each location: they are allowed to
   #'     affect alternatives differently due to the location-specific
   #'     coefficients. \cr \cr
@@ -107,7 +107,7 @@ logit_zonal <- function(starts3, dat, otherdat, alts, project, expname, mod.name
   betas <- matrix(c(gridbetas, intbetas), obsnum, (alts - 1 + 1))
 
   djztemp <- betas[1:obsnum, rep(1:ncol(betas), each = (alts))] * dat[, (alts + 3):(dim(dat)[2])]
-  dim(djztemp) <- c(nrow(djztemp), ncol(djztemp) / ((alts - 1) + 1), (alts - 1) + 1)
+  dim(djztemp) <- c(nrow(djztemp), ncol(djztemp) / ((alts - 1) + 1), (alts - 1) + 1) # Why -1 then +1? Could just set it to alts?
 
   prof <- rowSums(djztemp, dims = 2)
   profx <- prof - prof[, 1]

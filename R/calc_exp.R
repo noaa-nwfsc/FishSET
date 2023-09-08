@@ -14,6 +14,7 @@
 #' @param temp.lag temporal lag
 #' @param year.lag year lag
 #' @param dummy.exp dummy matrix
+#' @param weight_avg weighted average
 #' @param Alt Alternative choice list
 #' @keywords internal
 #' @importFrom lubridate floor_date year years %m-%

@@ -512,11 +512,13 @@ make_model_design <-
 
   if (is_value_empty(gridVars)) {
     
-    if (is_value_empty(expectcatchmodels)) {
-      
+    if (is_value_empty(unlist(expectcatchmodels))) {
       gridVariablesInclude <- as.data.frame(matrix(1, nrow = length(choice), ncol = 1))
+
+    } else {
+      gridVariablesInclude <- NULL
       
-    } else gridVariablesInclude <- NULL
+    }
     
   } else {
     
@@ -685,8 +687,7 @@ make_model_design <-
   
     DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
     DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"),
-                   params = list(ModelInputData = list(serialize(ModelInputData, NULL)))
-    )
+                   params = list(ModelInputData = list(serialize(ModelInputData, NULL))))
     
     # DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(ModelInputData MODELINPUTDATA)"))
     # DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:ModelInputData)"),

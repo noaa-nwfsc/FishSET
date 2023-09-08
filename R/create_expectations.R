@@ -53,6 +53,11 @@
 #'   with new expected catch data frame? If \code{FALSE}, new expected catch data 
 #'   frames appended to previously saved expected catch data frames. Default is 
 #'   \code{TRUE}. If \code{TRUE}
+#' @param weight_avg Logical, if \code{TRUE} then all observations for a given zone on a 
+#'   given date will be included when calculating the mean, thus giving more 
+#'   weight to days with more observations in a given zone. If \code{FALSE}, then the 
+#'   daily mean for a zone will be calculated prior to calculating the mean across the
+#'   time window.
 #' @export create_expectations
 #' @return Function saves a list of expected catch matrices to the FishSET database
 #'   as \code{projectExpectedCatch}. The list includes 
