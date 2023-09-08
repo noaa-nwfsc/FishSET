@@ -5817,8 +5817,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         gridNum <- length(input$mod_grid_vars)
         intNum <- length(input$mod_ind_vars)
         
-        if (gridNum == 0) gridNum <- 1
-        if (intNum == 0) intNum <- 1
+        if (gridNum == 0 || is.null(gridNum)) gridNum <- 1
+        if (intNum == 0 || is.null(intNum)) intNum <- 1
         
         if (input$model == 'logit_c') {
           
@@ -5929,6 +5929,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           inputName <- paste("int", i, sep = "")
           input[[inputName]]
         }))
+        
+        
       })
       
       spatID_choices <- reactive({

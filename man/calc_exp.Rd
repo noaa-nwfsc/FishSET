@@ -19,6 +19,7 @@ calc_exp(
   temp.lag = 0,
   year.lag = 0,
   dummy.exp = FALSE,
+  weight_avg = FALSE,
   Alt
 )
 }
@@ -50,6 +51,8 @@ calc_exp(
 \item{year.lag}{year lag}
 
 \item{dummy.exp}{dummy matrix}
+
+\item{weight_avg}{weighted average}
 
 \item{Alt}{Alternative choice list}
 }
