@@ -6077,6 +6077,11 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         # save to MDF
         q_test <- quietly_test(make_model_design, show_msg = TRUE)
         
+        # force exp list to NULL for zonal logit because this will automatically fill with previous model designs
+        if(input$model == "logit_zonal"){
+          mod_rv$exp_list <- NULL
+        }
+        
         q_test(project = project$name, catchID = input$mod_catch, 
                likelihood = input$model, initparams = int_name(), 
                optimOpt = c(input$mod_iter, input$mod_relTolX, 

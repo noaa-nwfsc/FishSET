@@ -421,10 +421,6 @@ make_model_design <-
   # TODO: Check whether ec matrices need to be rerun (necessary if primary data was filtered after ec were created)
   # use for logit_zonal, others?   
   # if (table_exists(paste0(project, "ExpectedCatch"), project) & likelihood == "logit_c") {
-  if(likelihood == "logit_zonal"){
-    expectcatchmodels <- NULL
-  }
-  
   if (!is_value_empty(expectcatchmodels)) {
     
     if (!table_exists(paste0(project, "ExpectedCatch"), project)) {
