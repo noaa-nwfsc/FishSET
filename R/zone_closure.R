@@ -40,12 +40,15 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
                          epsg = NULL) {
  
   pass <- TRUE
+  
+
   x <- 0
   secondLocationID <- NULL
 
   grid_nm <- deparse(substitute(spat)) # won't work in main app
   close_nm <- deparse(substitute(secondspat))
 
+  
   # leaflet requires WGS84
   spat <- sf::st_transform(spat, "+proj=longlat +datum=WGS84")
 
@@ -152,16 +155,11 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
           column(2,  uiOutput("GridSelect"))
         ),
         
-        selectizeInput(inputId = 'spat_var', 
-                       label = 'Select area or zone ID variable',
-                       choices = colnames(spat)),
-        
         selectizeInput(inputId = "clicked_locations",
                        label = "Clicked",
                        choices = NULL,
                        selected = NULL,
                        multiple = TRUE),
-        
         textInput('scenarioname', 'Scenario Name', value=''),
         uiOutput("tac"),
         
@@ -315,9 +313,6 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
           clicked_ids$ids <- NULL
         })
         
-        observeEvent(input$spat_var, {
-          cat <- input$spat_var
-        })
         
         output$GridSelect <- renderUI({
           
