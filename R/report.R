@@ -1319,7 +1319,7 @@ table_type <- function(tab) {
     db_type <- c("MainDataTableInfo", "MainDataTable_raw", "MainDataTable_final", 
                  "MainDataTable", "ExpectedCatch", "AltMatrix", "PortTable", "port", 
                  "LDGlobalCheck", "FleetTable", "ModelOut", "ModelFit", "ModelInputData", 
-                 "modelDesignTable", "FilterTable", "GridTable", "AuxTable", "SpatTable")
+                 "modelDesignTable", "FilterTable", "GridTable", "AuxTable", "SpatTable", "spat")
     
     t_regex <- paste0(db_type, collapse = "|")
     t_str <- stringi::stri_extract_first_regex(tab, t_regex)
@@ -1334,7 +1334,7 @@ table_type <- function(tab) {
                   "FleetTable" = "fleet table", "ModelOut" = "model output", 
                   "ModelFit" = "model fit", "ModelInputData" = "model data", 
                   "modelDesignTable" = "model design", "other" = "other",
-                  "GridTable" = "grid", "AuxTable" = "aux", "SpatTable" = "spatial")
+                  "GridTable" = "grid", "AuxTable" = "aux", "SpatTable" = "spatial", "spat" = "spatial")
     
     out
   }

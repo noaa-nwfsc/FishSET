@@ -1,4 +1,4 @@
-recast_multipoly <- function(grid, closure, combined, id) {
+recast_multipoly <- function(grid, closure, combined, id, inter) {
   #' Recast multi-polygons
   #' 
   #' Re-cast intersecting multi-polygons to polygons. Used when combining 
@@ -22,13 +22,13 @@ recast_multipoly <- function(grid, closure, combined, id) {
   grid <- check_spatdat(grid)
   closure <- check_spatdat(closure)
   
-  grid_inter <- sf::st_intersects(grid, closure)
+  # Already called st_intersection in combine zone function below
+  grid_inter <- inter
   
-  ind <- lengths(grid_inter) > 0
   # zones that intersect closures
-  inter_nm <- grid[ind, ][[id]]
+  inter_nm <- unique(grid_inter$TEN_ID)
   
-  if (is_invalid_spat(combined)) combined <- clean_spat(combined)
+  # if (is_invalid_spat(combined)) combined <- clean_spat(combined)
   # check if was originally MP? 
   is_multi <- sf::st_is(combined, type = "MULTIPOLYGON")
   is_inter <- combined[[id]] %in% inter_nm
@@ -46,7 +46,7 @@ recast_multipoly <- function(grid, closure, combined, id) {
 }
 
 
-new_zone_id <- function(combined, id, grid = NULL, closure = NULL, 
+new_zone_id <- function(combined, id, grid = NULL, closure = NULL, inter = NULL,
                         recast = TRUE) {
   #' Create new zone IDs
   #' 
@@ -76,7 +76,7 @@ new_zone_id <- function(combined, id, grid = NULL, closure = NULL,
   if (recast) {
     
     combined <- recast_multipoly(grid = grid, closure = closure, 
-                                 combined = combined, id = id)
+                                 combined = combined, id = id, inter = inter)
   }
   
   id_count <- 
@@ -173,26 +173,40 @@ combine_zone <- function(spat, closure, grid.nm, closure.nm, recast = TRUE) {
     sf::st_make_valid()
   sf::st_crs(closure) <- close_crs
 
-  if (is_invalid_spat(closure)) closure <- clean_spat(closure)
+  # if (is_invalid_spat(closure)) closure <- clean_spat(closure)
 
   # closure union
   c_un <- 
     sf::st_union(closure) %>% 
     sf::st_make_valid()
   
-  if (is_invalid_spat(c_un)) c_un <- clean_spat(c_un)
+  # if (is_invalid_spat(c_un)) c_un <- clean_spat(c_un)
   
-  diff <- sf::st_difference(grid, c_un) %>% clean_spat()
+  # Transform c_un so that crs aligns with that of grid
+  grid_crs <- st_crs(grid)
+  c_un <- sf::st_transform(c_un, crs = grid_crs)
   
-  inter <- sf::st_intersection(grid, c_un) %>% clean_spat()
+  # Overlapping areas are erased from geometries in grid
+  suppressWarnings({
+    diff <- sf::st_difference(grid, c_un) # %>% clean_spat()  
+  })
+
+  # Overlay grid onto c_un polygons
+  suppressWarnings({
+    inter <- sf::st_intersection(grid, c_un) # %>% clean_spat()
+  })
+  
   out <- dplyr::bind_rows(diff, inter)
   
-  if (is_invalid_spat(out)) out <- clean_spat(out)
+  # TODO - clean_spat() not working, worth checking if this is necessary?
+  # if (is_invalid_spat(out)) out <- clean_spat(out)
   
-  out <- new_zone_id(combined = out, id = grid.nm, grid, closure, 
-                     recast = recast)
-    
-  if (is_invalid_spat(out)) out <- clean_spat(out)
+  suppressWarnings({
+    out <- new_zone_id(combined = out, id = grid.nm, grid, closure, inter = inter,
+                       recast = recast)
+  })
+
+  # if (is_invalid_spat(out)) out <- clean_spat(out)
   
   out
 }
