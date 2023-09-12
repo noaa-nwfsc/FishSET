@@ -27,6 +27,7 @@
 #' @import leaflet
 #' @import shiny
 #' @import dplyr
+#' @import DT
 #' @details Define zone closure scenarios. Function opens an interactive map. 
 #'   Define zone closures by clicking on one or more zones and clicking the 
 #'   'Close zones' button. To define another closure scenario, unclick zones and 
@@ -38,26 +39,25 @@
 zone_closure <- function(project, spat, cat, secondspat = NULL, 
                          secondcat = NULL, lon.spat = NULL, lat.spat = NULL,
                          epsg = NULL) {
- 
+  
   pass <- TRUE
   
 
   x <- 0
   secondLocationID <- NULL
-
+  
   grid_nm <- deparse(substitute(spat)) # won't work in main app
   close_nm <- deparse(substitute(secondspat))
 
-  
   # leaflet requires WGS84
   spat <- sf::st_transform(spat, "+proj=longlat +datum=WGS84")
-
+  
   if (!is.null(secondspat)) {
-
+    
     secondspat <- sf::st_transform(secondspat, 
-                                       "+proj=longlat +datum=WGS84")
+                                   "+proj=longlat +datum=WGS84")
   }
- 
+  
   spat <- check_spatdat(spat, id = cat, lon = lon.spat, lat = lat.spat)
   
   if(!is.null(secondspat)){
@@ -93,7 +93,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
         
         spat <- sf::st_transform(spat, "+proj=longlat +datum=WGS84")
         secondspat <- sf::st_transform(secondspat, 
-                                           "+proj=longlat +datum=WGS84")
+                                       "+proj=longlat +datum=WGS84")
         
       } else if (is.na(crs1) & !is.na(crs2)) {
         
@@ -109,11 +109,11 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
           
           spat <- sf::st_transform(spat, "+proj=longlat +datum=WGS84")
           secondspat <- sf::st_transform(secondspat, 
-                                             "+proj=longlat +datum=WGS84")
+                                         "+proj=longlat +datum=WGS84")
         }
       }
     }
-
+    
   }
   
   
@@ -134,7 +134,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
     pass <- FALSE
   }
   
-
+  
   if (pass) {
     # UI ----
     shinyApp(
@@ -155,18 +155,14 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
           column(2,  uiOutput("GridSelect"))
         ),
         
-        selectizeInput(inputId = "clicked_locations",
-                       label = "Clicked",
-                       choices = NULL,
-                       selected = NULL,
-                       multiple = TRUE),
         textInput('scenarioname', 'Scenario Name', value=''),
-        uiOutput("tac"),
+        
+        DT::dataTableOutput("mod_table", width = "50%"),
         
         fluidRow(
           column(width = 2,
-                   actionButton('addClose', 'Add closure',
-                                style = "color: white; background-color: blue;")),
+                 actionButton('addClose', 'Add closure',
+                              style = "color: white; background-color: blue;")),
           column(width = 4,        
                  uiOutput("combineUI")),
           column(width = 2,
@@ -184,12 +180,12 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
           column(width = 5, offset = 1,
                  h4(strong("Saved Closure Scenarios")), 
                  verbatimTextOutput("closureVTO2")
-                 )
-          ),
+          )
+        ),
         
         tags$head(tags$style("#closureVTO1{max-height: 400px; overflow-y: scroll;}")),
         tags$head(tags$style("#closureVTO2{max-height: 400px; overflow-y: scroll;}")),
-          
+        
         actionButton('saveClose', 'Save Closure',
                      style = "color: white; background-color: blue;"),
         
@@ -214,6 +210,8 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
         dat <- reactiveValues(spat = spat,
                               secondspat = secondspat,
                               combined = NULL)
+        
+        V <- reactiveValues(data = NULL)
         
         grid_cache <- reactiveValues(grid_1 = NULL)
         grid_info <- reactiveValues(grid_1 = NULL)
@@ -273,27 +271,28 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
           }
         })
         
+        # Can probably delete this
         observeEvent(input$mode,  {
           
           if (input$mode == "combine") {
             
             if (rv$combined) {
               
-              updateSelectizeInput(session,
-                                   inputId = "clicked_locations",
-                                   label = "",
-                                   choices = dat$combined$secondLocationID,
-                                   selected = NULL,
-                                   server = TRUE)
+              # updateSelectizeInput(session,
+              #                      inputId = "clicked_locations",
+              #                      label = "",
+              #                      choices = dat$combined$secondLocationID,
+              #                      selected = NULL,
+              #                      server = TRUE)
               
             } else {
               
-              updateSelectizeInput(session,
-                                   inputId = "clicked_locations",
-                                   label = "",
-                                   choices = dat$secondspat$secondLocationID,
-                                   selected = NULL,
-                                   server = TRUE)
+              # updateSelectizeInput(session,
+              #                      inputId = "clicked_locations",
+              #                      label = "",
+              #                      choices = dat$secondspat$secondLocationID,
+              #                      selected = NULL,
+              #                      server = TRUE)
             }
             
           } else {
@@ -302,12 +301,12 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
             rv$combined <- FALSE
             rv$combined_areas <- NULL
             
-            updateSelectizeInput(session,
-                                 inputId = "clicked_locations",
-                                 label = "",
-                                 choices = dat$spat$secondLocationID,
-                                 selected = NULL,
-                                 server = TRUE)
+            # updateSelectizeInput(session,
+            #                      inputId = "clicked_locations",
+            #                      label = "",
+            #                      choices = dat$spat$secondLocationID,
+            #                      selected = NULL,
+            #                      server = TRUE)
           }
           
           clicked_ids$ids <- NULL
@@ -317,7 +316,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
         output$GridSelect <- renderUI({
           
           if (!is.null(secondspat) & input$mode == "combine") {
-              
+            
             selectInput("select_grid", "Select grid", 
                         choices = names(grid_cache))
           }
@@ -328,13 +327,6 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
         observeEvent(input$select_grid, {
           
           dat$combined <- grid_cache[[input$select_grid]]
-          
-          updateSelectizeInput(session,
-                               inputId = "clicked_locations",
-                               label = "",
-                               choices = dat$combined$secondLocationID,
-                               selected = NULL,
-                               server = TRUE)
           
           rv$combined_areas <- grid_info[[input$select_grid]]$combined_areas
           
@@ -349,11 +341,11 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
           
           showModal(
             modalDialog(title = "Edit or delete closure scenario",
-                    
-                     uiOutput("editCloseUI"),
-                     actionButton("editCloseDelete", "Delete"),
-                    footer = tagList(modalButton("Close")),
-                    easyClose = FALSE, size = "m"))
+                        
+                        uiOutput("editCloseUI"),
+                        actionButton("editCloseDelete", "Delete"),
+                        footer = tagList(modalButton("Close")),
+                        easyClose = FALSE, size = "m"))
           
         })
         
@@ -404,43 +396,36 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
         
         observeEvent(input$combine_grids, {
           
-          if (!isTruthy(input$clicked_locations)) {
+          if (!isTruthy(clicked_ids$ids)) {
             
             showNotification("Select one or more areas to combine", type = "message")
           }
           
-          req(input$clicked_locations)
+          req(clicked_ids$ids)
           
           closure <- secondspat %>% 
             dplyr::filter(.data[[secondcat]] %in% clicked_ids$ids)
           
           q_test <- quietly_test(combine_zone)
-          dat$combined <- q_test(grid = dat$spat, 
+          dat$combined <- q_test(spat = dat$spat, 
                                  closure = closure, 
                                  grid.nm = "secondLocationID", 
                                  closure.nm = secondcat)
           
           dat$combined$zone <- gsub("Zone_", "", dat$combined$secondLocationID)
           rv$combined <- TRUE
-          rv$combined_areas <- input$clicked_locations
+          rv$combined_areas <- clicked_ids$ids
           
           cache_unique_grid(dat$combined, 
                             grid.nm = grid_nm,
                             closure.nm = close_nm, 
-                            combined = input$clicked_locations)
-          
-          updateSelectizeInput(session,
-                               inputId = "clicked_locations",
-                               label = "",
-                               choices = dat$combined$secondLocationID,
-                               selected = NULL,
-                               server = TRUE)
+                            combined = clicked_ids$ids)
           
           updateSelectInput(session,
                             inputId = "select_grid",
                             choices = names(grid_cache),
                             selected = dplyr::last(names(grid_cache)))
-  
+          
         })
         
         # enable/disable addClose ----
@@ -461,121 +446,119 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
           }
         })
         
-       observeEvent(input$restore, {
-         
-         dat$combined <- NULL
-         rv$combined <- FALSE
-         rv$combined_areas <- NULL
-         clicked_ids$ids <- NULL
-         
-         updateSelectizeInput(session,
-                              inputId = "clicked_locations",
-                              label = "",
-                              choices = dat$spat$secondLocationID,
-                              selected = NULL,
-                              server = TRUE)
-       })
-        
-       
-        # splitLayout helper function
-        split_ui_helper <- function(ui, width) {
+        observeEvent(input$restore, {
           
-          split_ui <- lapply(seq_along(ui), function(x) {
+          dat$combined <- NULL
+          rv$combined <- FALSE
+          rv$combined_areas <- NULL
+          clicked_ids$ids <- NULL
+          
+        })
+        
+        
+        # editable table ----
+        observeEvent(clicked_ids$ids, {
+          V$data = data.frame(Zones = clicked_ids$ids, 
+                              `% allowable TAC` = rep(0, length(clicked_ids$ids)),
+                              check.names = FALSE)
+          
+          proxy = dataTableProxy("mod_table")
+          
+          observeEvent(input$mod_table_cell_edit, {
+            info <- input$mod_table_cell_edit
+            tab_i = info$row
+            tab_j = info$col
+            tab_k = info$value
             
-            tags$div(style = paste("width:", width), ui[[x]])
+            isolate(
+              if(tab_j %in% match("% allowable TAC", names(V$data))) {
+                V$data[tab_i, tab_j] <<- DT::coerceValue(tab_k, V$data[tab_i, tab_j])
+                
+                if(sum(V$data[,tab_j], na.rm = TRUE) > 100 || sum(V$data[,tab_j], na.rm = TRUE) < 0){
+                  showNotification("% allowable catch is out of bounds. Sum of values must be between 0 and 100.", type = "error", duration = 6)
+                  V$data[tab_i, tab_j] <- 0
+                } 
+                
+                if(any(V$data[, tab_j] < 0, na.rm = TRUE)){
+                  showNotification("% allowable catch cannot be negative", type = "error", duration = 6)
+                  V$data[tab_i, tab_j] <- 0
+                }  
+                
+                
+              } else {
+                stop("Change zone ID using the map.")
+              }
+            )
+            
+            replaceData(proxy, V$data, resetPaging = FALSE)
           })
           
-          tags$div(class = "shiny-split-layout", split_ui)
-        }
-        
-        
-        output$tac <- renderUI({
-
-          req(input$clicked_locations)
-
-          if (!is.null(secondspat) & input$mode == "combine" & !rv$combined) {
-
-            return(NULL)
-            
-          } else {
-            
-            numInits <- length(input$clicked_locations)
-            i = 1:numInits
-            numwidth <- (1/numInits*100)
-            numwidth <- paste0(as.character(numwidth), "%")
-            
-            UI <- lapply(i, function(x) {
-              
-              numericInput(paste0("int", x),
-                           paste("% TAC allowed", input$clicked_locations[x]),
-                           value = 0, min = 0, max = 100)
-            })
-            
-            split_ui_helper(UI, numwidth)
-          }
+          output$mod_table <- DT::renderDataTable({
+            DT::datatable(V$data, editable = TRUE)})
+          
         })
         
         # render map ----
         output$map <- renderLeaflet({
           
-        if (!is.null(secondspat)) {
-          
-          if (input$mode == "combine") {
+          if (!is.null(secondspat)) {
             
-            if (rv$combined) {
+            if (input$mode == "combine") {
+              
+              if (rv$combined) {
+                
+                leaflet() %>%
+                  addTiles() %>%
+                  addPolygons(data = dat$combined,
+                              fillColor = "white",
+                              fillOpacity = 0.5,
+                              color = "black",
+                              stroke = TRUE,
+                              weight = 1,
+                              layerId = ~secondLocationID,
+                              group = "regions",
+                              label = ~secondLocationID)
+                
+              } else {
+                
+                leaflet() %>%
+                  addTiles() %>%
+                  addPolygons(data = dat$spat,
+                              fill = FALSE,
+                              weight = 1,
+                              color = "black") %>% 
+                  addPolygons(data = secondspat,
+                              weight = 2,
+                              fillColor = "white",
+                              fillOpacity = 0.5,
+                              color = "black",
+                              stroke = TRUE,
+                              layerId = secondspat[[secondcat]],
+                              group = "regions",
+                              label = secondspat[[secondcat]])
+              }
+              
+            } else { # normal mode
               
               leaflet() %>%
                 addTiles() %>%
-                addPolygons(data = dat$combined,
+                addPolygons(data = secondspat,
+                            fill = FALSE,
+                            weight = 2,
+                            color = "blue") %>% 
+                # color = ~qpal(secondspat[[secondcat]])) %>% 
+                addPolygons(data = dat$spat,
                             fillColor = "white",
-                            fillOpacity = 0.5,
+                            fillOpacity = 0.2,
                             color = "black",
                             stroke = TRUE,
                             weight = 1,
                             layerId = ~secondLocationID,
                             group = "regions",
-                            label = ~secondLocationID)
-              
-            } else {
-              
-              leaflet() %>%
-                addTiles() %>%
-                addPolygons(data = dat$spat,
-                            fill = FALSE,
-                            weight = 1,
-                            color = "black") %>% 
-                addPolygons(data = secondspat,
-                            weight = 2,
-                            fillColor = "white",
-                            fillOpacity = 0.5,
-                            color = "black",
-                            stroke = TRUE,
-                            layerId = secondspat[[secondcat]],
-                            group = "regions",
-                            label = secondspat[[secondcat]])
+                            label = ~secondLocationID) 
             }
             
-          } else { # normal mode
-            
-            leaflet() %>%
-              addTiles() %>%
-              addPolygons(data = secondspat,
-                          fill = FALSE,
-                          weight = 2,
-                          color = "blue") %>% 
-                          # color = ~qpal(secondspat[[secondcat]])) %>% 
-              addPolygons(data = dat$spat,
-                          fillColor = "white",
-                          fillOpacity = 0.2,
-                          color = "black",
-                          stroke = TRUE,
-                          weight = 1,
-                          layerId = ~secondLocationID,
-                          group = "regions",
-                          label = ~secondLocationID) 
-          }
-            
-        } else {
+          } else {
             
             leaflet() %>%
               addTiles() %>%
@@ -622,7 +605,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
               z_id <- "zone"
               sec_id <- "secondLocationID"
             }
-        
+            
           } else {
             
             temp_dat <- dat$spat
@@ -649,14 +632,6 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
             clicked_ids$ids <- clicked_ids$ids[!clicked_ids$ids %in% click$id]
             clicked_ids$ids <- clicked_ids$ids[!clicked_ids$ids %in% name_match]
             
-            # update
-            updateSelectizeInput(session,
-                                 inputId = "clicked_locations",
-                                 label = "",
-                                 choices = temp_dat[[sec_id]],
-                                 selected = clicked_ids$ids,
-                                 server=TRUE)
-            
             #remove that highlighted polygon from the map
             proxy %>% removeShape(layerId = click$id)
             
@@ -671,21 +646,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
                                   stroke = TRUE,
                                   layerId = clicked_polys[[z_id]])
             
-            updateSelectizeInput(session,
-                                 inputId = "clicked_locations",
-                                 label = "",
-                                 choices = temp_dat[[sec_id]],
-                                 selected = clicked_ids$ids,
-                                 server = TRUE)
           }
-        })
-        
-        #access variable int outside of observer
-        tac_name <- reactive({
-          paste(lapply(1:length(input$clicked_locations), function(i) {
-            inputName <- paste("int", i, sep = "")
-            input[[inputName]]
-          }))
         })
         
         # add closure ----
@@ -718,8 +679,8 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
           closures$dList <- c(closures$dList, 
                               list(c(list(scenario = input$scenarioname), 
                                      list(date = as.character(Sys.Date())), 
-                                     list(zone = input$clicked_locations), 
-                                     list(tac = tac_name()),
+                                     list(zone = clicked_ids$ids), 
+                                     list(tac = V$data$`% allowable TAC`),
                                      list(grid_name = grid_nm),
                                      list(closure_name = add_close(close_nm, input$mode)),
                                      list(combined_areas = rv$combined_areas))))
@@ -764,7 +725,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
           
           new_grid_nms <- 
             vapply(closures$dList, function(cl) {
-            
+              
               if (!is.null(cl$combined_areas)) {
                 
                 cols <- c("grid_name", "closure_name", "combined_areas")
@@ -775,15 +736,15 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
                 names(g_info)[ind] # if no match?
                 
               } else cl$grid_name
-            
-          }, character(1))
+              
+            }, character(1))
           
           close_list <- 
             purrr::map2(closures$dList, new_grid_nms, function(x, y) {
-            
-            if (x$grid_name != y) x$grid_name <- y
-            x
-          })
+              
+              if (x$grid_name != y) x$grid_name <- y
+              x
+            })
           
           # save closure scenarios to project output folder
           save_closure_scenario(project, close_list)
