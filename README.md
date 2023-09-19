@@ -94,9 +94,9 @@ Sys.getenv("GITLAB_PAT")
 Now that your GILAB token is stored, you can install FishSET, you will need to do this in the R console:
 
 ```
-remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage@master", host="gitlab-afsc.fisheries.noaa.gov", build_vignettes=TRUE)
+remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage@master", host="gitlab-afsc.fisheries.noaa.gov", build_vignettes=FALSE)
 ```
-use the ``build_vignettes=FALSE`` option to turn off vignettes, which takes a little less time.
+use the ``build_vignettes=TRUE`` option to build vignettes, which takes a little more time.
 
 
 
