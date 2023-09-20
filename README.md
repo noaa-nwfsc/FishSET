@@ -18,26 +18,6 @@ If you run into problems you can contact [FishSET@noaa.gov](mailto:FishSET@noaa.
 The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools for organizing and visualizing data; developing, improving and disseminating modeling best practices.
 
 
-## <a name="LocalInstall"> Local Install </a>
----
-Please note that devtools is required for a local installation. 
-
-To install:
-
-```
-   install.packages("devtools")
-	 library(devtools)
-	 devtools::install_local("PATH/TO/Directory/Containing/FishSET")
-```
-
-Directories:
-FishSET functions call data files from the SQLite FishSET database and save output (log of function calls, plot output, table output, notes, function messages) to a "Logs" folder and an "output" folder.
-
-The FishSET database and output folders are assumed to be in the FishSET package directory. If they are not, 
-then the location needs to be specified.
-Use loc to specify directory location of the database and loc2 to specify location of Log file.
-For example, loc <- getwd().
-
 
 ## <a name="GitlabInstall"> Gitlab Install </a>
 
@@ -98,6 +78,28 @@ remotes::install_gitlab("bryce.mcmanus/FishSET_RPackage@master", host="gitlab-af
 ```
 use the ``build_vignettes=TRUE`` option to build vignettes, which takes a little more time.
 
+
+
+
+## <a name="LocalInstall"> Local Install </a>
+---
+The team is phasing out local installs, but the team will provide for a local install if a user cannot get Gitlabs access.  Please note that devtools is required for a local installation. 
+
+To install:
+
+```
+   install.packages("devtools")
+	 library(devtools)
+	 devtools::install_local("PATH/TO/Directory/Containing/FishSET")
+```
+
+Directories:
+FishSET functions call data files from the SQLite FishSET database and save output (log of function calls, plot output, table output, notes, function messages) to a "Logs" folder and an "output" folder.
+
+The FishSET database and output folders are assumed to be in the FishSET package directory. If they are not, 
+then the location needs to be specified.
+Use loc to specify directory location of the database and loc2 to specify location of Log file.
+For example, loc <- getwd().
 
 
 ## <a name="Documentation"> Documentation and Tutorials </a>
