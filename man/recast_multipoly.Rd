@@ -4,7 +4,7 @@
 \alias{recast_multipoly}
 \title{Recast multi-polygons}
 \usage{
-recast_multipoly(grid, closure, combined, id)
+recast_multipoly(grid, closure, combined, id, inter)
 }
 \arguments{
 \item{grid}{Grid file containing regulatory zones.}

@@ -4,7 +4,7 @@
 \alias{logit_predict}
 \title{Logit predict}
 \usage{
-logit_predict(project, mod.name, expected.catch = NULL)
+logit_predict(project, mod.name, use.scalers = FALSE, scaler.func = NULL)
 }
 \arguments{
 \item{project}{Name of project}
@@ -14,10 +14,10 @@ of the saved "best" model. Leave \code{mod.name} empty to use the saved "best" m
 one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
 Use \code{table_view("modelChosen", project)} to view a table of saved models.}
 
-\item{expected.catch}{Required for conditonal logit (\code{logit_c}) model. 
-Name of expected catch table to use. 
- Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 
- long-term scenario (\code{long}), or the user-defined temporal parameters (\code{user}).}
+\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
+numeric vector unless specified with \code{scaler.func}.}
+
+\item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
 }
 \value{
 Returns probability of logit model by choice

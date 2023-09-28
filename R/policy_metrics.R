@@ -72,7 +72,7 @@ policy_metrics <- function(dat, project, tripID='row', vesselID, catchID, dateva
   }
   
 ###  Metric functions
-  ##Function- change in value
+  ##Function - change in value
     valchange <- function(temp){
       x <- aggregate(temp$price, list(temp$year, temp$closed), function(x)round((sum(x)/sum(temp$price))*100,2))
       x1 <- aggregate(temp$price, list(temp$year, temp$all_closed), function(x)round((sum(x)/sum(temp$price))*100,2))

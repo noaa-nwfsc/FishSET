@@ -210,7 +210,13 @@ pull_output <- function(project, fun = NULL, date = NULL, type = "plot", conf = 
     
     if (!is.null(fun)) {
       
-      out <- grep(paste0("_", fun, "_"), out, value = TRUE)
+      if (fun == 'closures'){
+        out <- grep(paste0("_", fun), out, value = TRUE)  
+        
+      } else {
+        out <- grep(paste0("_", fun, "_"), out, value = TRUE)
+        
+      }
       
       if (length(out) == 0) {
         
@@ -225,9 +231,11 @@ pull_output <- function(project, fun = NULL, date = NULL, type = "plot", conf = 
       
       if (is.null(date)) {
         
-        dates <- stringi::stri_extract_first_regex(out, "\\d{4}-\\d{2}-\\d{2}")
-        dates <- gsub("[^0-9]", "", dates)
-        out <- out[which(dates == max(dates, na.rm = TRUE))]
+        if (fun != 'closures'){
+          dates <- stringi::stri_extract_first_regex(out, "\\d{4}-\\d{2}-\\d{2}")
+          dates <- gsub("[^0-9]", "", dates)
+          out <- out[which(dates == max(dates, na.rm = TRUE))]  
+        }
        
       } else {
         
@@ -1319,7 +1327,8 @@ table_type <- function(tab) {
     db_type <- c("MainDataTableInfo", "MainDataTable_raw", "MainDataTable_final", 
                  "MainDataTable", "ExpectedCatch", "AltMatrix", "PortTable", "port", 
                  "LDGlobalCheck", "FleetTable", "ModelOut", "ModelFit", "ModelInputData", 
-                 "modelDesignTable", "FilterTable", "GridTable", "AuxTable", "SpatTable", "spat")
+                 "modelDesignTable", "FilterTable", "GridTable", "AuxTable", "SpatTable", 
+                 "spat", "predictOutput")
     
     t_regex <- paste0(db_type, collapse = "|")
     t_str <- stringi::stri_extract_first_regex(tab, t_regex)
@@ -1334,7 +1343,8 @@ table_type <- function(tab) {
                   "FleetTable" = "fleet table", "ModelOut" = "model output", 
                   "ModelFit" = "model fit", "ModelInputData" = "model data", 
                   "modelDesignTable" = "model design", "other" = "other",
-                  "GridTable" = "grid", "AuxTable" = "aux", "SpatTable" = "spatial", "spat" = "spatial")
+                  "GridTable" = "grid", "AuxTable" = "aux", "SpatTable" = "spatial", 
+                  "spat" = "spatial", "predictOutput" = "predict output")
     
     out
   }
