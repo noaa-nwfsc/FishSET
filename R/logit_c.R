@@ -93,7 +93,7 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
 
   starts3 <- as.matrix(starts3)
   gridcoef <- as.matrix(starts3[1:gridnum, ])
-  intcoef <- as.matrix(starts3[((gridnum + intnum) - intnum + 1):(gridnum + intnum), ])
+  intcoef <- as.matrix(starts3[(gridnum + 1):(gridnum + intnum), ])
   # split parameters for grid and interactions
 
   gridbetas <- (matrix(rep(gridcoef, each = alts), obsnum, alts * gridnum, byrow = TRUE) * griddat)
