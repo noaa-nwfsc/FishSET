@@ -134,7 +134,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
     pass <- FALSE
   }
   
-  
+
   if (pass) {
     # UI ----
     shinyApp(
@@ -151,6 +151,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
         fluidRow(
           column(2, selectInput("mode", "Select mode", 
                                 choices = c("normal", "combine"))),
+          column(4, checkboxInput("model_zones", "Display zones included in models", value = TRUE)),
           column(4,  uiOutput("modeMsg")),
           column(2,  uiOutput("GridSelect"))
         ),
@@ -212,6 +213,8 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
                               combined = NULL)
         
         V <- reactiveValues(data = NULL)
+        
+        mod_zones <- reactiveValues(data = NULL)
         
         grid_cache <- reactiveValues(grid_1 = NULL)
         grid_info <- reactiveValues(grid_1 = NULL)
@@ -331,7 +334,6 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
           rv$combined_areas <- grid_info[[input$select_grid]]$combined_areas
           
         }, ignoreNULL = TRUE)
-        
         
         # edit closure ----
         
@@ -498,6 +500,37 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
           
         })
         
+        
+        # Display zones from model output ----
+        observeEvent(input$model_zones,{
+          if(input$model_zones){
+            # Get zone information
+            # Call in datasets
+            fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+            on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+            
+            if(!is.null(unserialize_table(paste0(project,"ModelOut"), project))){
+              mod_output <- unserialize_table(paste0(project,"ModelOut"), project)
+              mod_zones$data <- list()
+              mod_zones$data <- lapply(1:length(mod_output), function(x){rbind(mod_zones$data,unique(mod_output[[x]]$choice.table$choice))})
+              mod_zones$data <- unique(unlist(mod_zones$data))
+              
+              if(length(mod_zones$data) == 0){
+                showNotification("WARNING: no zones found in model output", type = "warning")
+                mod_zones$data <- NULL
+              } 
+              
+            } else {
+              showNotification("Model output(s) not found for this project. Run models before running policy scenarios.", type = "error")
+              mod_zones$data <- NULL
+            }
+            
+          } else {
+            # do nothing
+            mod_zones$data <- NULL
+          }
+        })
+        
         # render map ----
         output$map <- renderLeaflet({
           
@@ -507,73 +540,199 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
               
               if (rv$combined) {
                 
+                # plot with model zones
+                if(any(!is_empty(mod_zones$data))) {
+                  tmp_spat <- dat$spat %>%
+                    mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
+                  
+                  leaflet() %>%
+                    addTiles() %>%
+                    addPolygons(data = dat$combined,
+                                fillColor = "white",
+                                fillOpacity = 0.5,
+                                color = "black",
+                                stroke = TRUE,
+                                weight = 1,
+                                layerId = ~secondLocationID,
+                                group = "regions",
+                                label = ~secondLocationID) %>%
+                    addPolygons(data = tmp_spat %>% filter(display == 1),
+                                fillColor = "#FFC107",
+                                fillOpacity = 0.5,
+                                color = "#FFC107",
+                                stroke = TRUE,
+                                weight = 1,
+                                layerId = ~secondLocationID,
+                                group = "regions",
+                                label = ~secondLocationID)
+                  
+                } else {
+                  leaflet() %>%
+                    addTiles() %>%
+                    addPolygons(data = dat$combined,
+                                fillColor = "white",
+                                fillOpacity = 0.5,
+                                color = "black",
+                                stroke = TRUE,
+                                weight = 1,
+                                layerId = ~secondLocationID,
+                                group = "regions",
+                                label = ~secondLocationID)  
+                }
+                
+                
+              } else {
+                
+                # plot with model zones
+                if(any(!is_empty(mod_zones$data))) {
+                  tmp_spat <- dat$spat %>%
+                    mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
+                  
+                  leaflet() %>%
+                    addTiles() %>%
+                    addPolygons(data = dat$spat,
+                                fill = FALSE,
+                                weight = 1,
+                                color = "black") %>% 
+                    addPolygons(data = secondspat,
+                                weight = 2,
+                                fillColor = "white",
+                                fillOpacity = 0.5,
+                                color = "black",
+                                stroke = TRUE,
+                                layerId = secondspat[[secondcat]],
+                                group = "regions",
+                                label = secondspat[[secondcat]]) %>%
+                    addPolygons(data = tmp_spat %>% filter(display == 1),
+                                fillColor = "#FFC107",
+                                fillOpacity = 0.5,
+                                color = "#FFC107",
+                                stroke = TRUE,
+                                weight = 1,
+                                layerId = ~secondLocationID,
+                                group = "regions",
+                                label = ~secondLocationID)
+                    
+                    
+                } else {
+                  leaflet() %>%
+                    addTiles() %>%
+                    addPolygons(data = dat$spat,
+                                fill = FALSE,
+                                weight = 1,
+                                color = "black") %>% 
+                    addPolygons(data = secondspat,
+                                weight = 2,
+                                fillColor = "white",
+                                fillOpacity = 0.5,
+                                color = "black",
+                                stroke = TRUE,
+                                layerId = secondspat[[secondcat]],
+                                group = "regions",
+                                label = secondspat[[secondcat]])  
+                }
+                
+              }
+              
+            } else { # normal mode
+              
+              # plot with model zones
+              if(any(!is_empty(mod_zones$data))) {
+                tmp_spat <- dat$spat %>%
+                  mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
+                
                 leaflet() %>%
                   addTiles() %>%
-                  addPolygons(data = dat$combined,
+                  addPolygons(data = secondspat,
+                              fill = FALSE,
+                              weight = 2,
+                              color = "blue") %>% 
+                  # color = ~qpal(secondspat[[secondcat]])) %>% 
+                  addPolygons(data = dat$spat,
                               fillColor = "white",
-                              fillOpacity = 0.5,
+                              fillOpacity = 0.2,
                               color = "black",
                               stroke = TRUE,
                               weight = 1,
                               layerId = ~secondLocationID,
                               group = "regions",
+                              label = ~secondLocationID) %>%
+                  addPolygons(data = tmp_spat %>% filter(display == 1),
+                              fillColor = "#FFC107",
+                              fillOpacity = 0.5,
+                              color = "#FFC107",
+                              stroke = TRUE,
+                              weight = 1,
+                              layerId = ~secondLocationID,
+                              group = "regions",
                               label = ~secondLocationID)
-                
+                  
               } else {
-                
                 leaflet() %>%
                   addTiles() %>%
-                  addPolygons(data = dat$spat,
-                              fill = FALSE,
-                              weight = 1,
-                              color = "black") %>% 
                   addPolygons(data = secondspat,
+                              fill = FALSE,
                               weight = 2,
+                              color = "blue") %>% 
+                  # color = ~qpal(secondspat[[secondcat]])) %>% 
+                  addPolygons(data = dat$spat,
                               fillColor = "white",
-                              fillOpacity = 0.5,
+                              fillOpacity = 0.2,
                               color = "black",
                               stroke = TRUE,
-                              layerId = secondspat[[secondcat]],
+                              weight = 1,
+                              layerId = ~secondLocationID,
                               group = "regions",
-                              label = secondspat[[secondcat]])
+                              label = ~secondLocationID)   
               }
               
-            } else { # normal mode
+            }
+            
+          } else {
+
+            # plot with model zones
+            if(any(!is_empty(mod_zones$data))) {
+              tmp_spat <- dat$spat %>%
+                mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
               
               leaflet() %>%
                 addTiles() %>%
-                addPolygons(data = secondspat,
-                            fill = FALSE,
-                            weight = 2,
-                            color = "blue") %>% 
-                # color = ~qpal(secondspat[[secondcat]])) %>% 
                 addPolygons(data = dat$spat,
                             fillColor = "white",
-                            fillOpacity = 0.2,
+                            fillOpacity = 0.5,
                             color = "black",
                             stroke = TRUE,
                             weight = 1,
                             layerId = ~secondLocationID,
                             group = "regions",
-                            label = ~secondLocationID) 
+                            label = ~secondLocationID) %>%
+                addPolygons(data = tmp_spat %>% filter(display == 1),
+                            fillColor = "#FFC107",
+                            fillOpacity = 0.5,
+                            color = "#FFC107",
+                            stroke = TRUE,
+                            weight = 1,
+                            layerId = ~secondLocationID,
+                            group = "regions",
+                            label = ~secondLocationID)  
+              
+            # else plot without model zones
+            } else {
+              leaflet() %>%
+                addTiles() %>%
+                addPolygons(data = dat$spat,
+                            fillColor = "white",
+                            fillOpacity = 0.5,
+                            color = "black",
+                            stroke = TRUE,
+                            weight = 1,
+                            layerId = ~secondLocationID,
+                            group = "regions",
+                            label = ~secondLocationID)
             }
-            
-          } else {
-            
-            leaflet() %>%
-              addTiles() %>%
-              addPolygons(data = dat$spat,
-                          fillColor = "white",
-                          fillOpacity = 0.5,
-                          color = "black",
-                          stroke = TRUE,
-                          weight = 1,
-                          layerId = ~secondLocationID,
-                          group = "regions",
-                          label = ~secondLocationID)
           }
         })
-        
+
         
         observeEvent(input$map_shape_click, {
           

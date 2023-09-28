@@ -19,34 +19,38 @@ predict_probability <- function(probLogit, probDataModelIn, probDataModelOut, zo
   if(sum(tacAllowed)==0){
     tryCatch(
       expr = { 
-        probPredictIn <- cbind(probDataModelIn[,1], (probDataModelIn[,2]*tacAllowed)) # [probDataModelIn (probDataModelIn*tacAllowed)] 
+        probPredictIn <- data.frame(zoneID = probDataModelIn[,1], prob = (probDataModelIn[,2]*tacAllowed)) # [probDataModelIn (probDataModelIn*tacAllowed)] 
       },
       error = function(e){
         probPredictIn=c()
       }
     )
-  #try
-  #probPredictIn=[probDataModelIn[,1] (probDataModelIn[,2] .*tacAllowed)] #if all 0 then make =0 so that we arent dividing by 0
-  #catch
-  #probPredictIn=[];
-  #end
-    probPredictOut <- cbind(probDataModelOut[,1], probDataModelOut[,2]/sum(probDataModelOut[,2]))
+    #try
+    #probPredictIn=[probDataModelIn[,1] (probDataModelIn[,2] .*tacAllowed)] #if all 0 then make =0 so that we arent dividing by 0
+    #catch
+    #probPredictIn=[];
+    #end
+    probPredictOut <- data.frame(zoneID = probDataModelOut[,1], prob = probDataModelOut[,2]/sum(probDataModelOut[,2]))
+    
   } else {
     probPredictIn <- cbind(probDataModelIn[,1], (probDataModelIn[,2]*tacAllowed)/(sum(probDataModelIn[,2])-zoneClose))
     probPredictOut <- cbind(probDataModelOut[,1], probDataModelOut[,2]/sum(probDataModelOut[,2])*(1-mean(tacAllowed[tacAllowed>0]))) # FIXME: added mean for now but currently this wouldnt work for individual TAC'sassumes that left over TAC is redistributed% problem with indivdual TAC per zone
   
  }
-  # 
+  
   #probPredictIn((probPredictIn(:,1)==zoneClosedFish),2)=0; % zeros zone
-    #for other closures but assumes that its is in the IN component.. this will need to be changed/Not necessary any more
-    probPredict <- rbind(probPredictIn, probPredictOut)
-    probPredict <- probPredict[match(probPredict[,1], probLogit[,1]),]
-    #if isempty(probPredictIn)
-    #    sumPredictIn=nan;# may change in future currently passed but not used later
-    #else
-    sumPredictIn=sum(probPredictIn[,2], na.rm=TRUE)
-    sumPredictOut=sum(probPredictOut[,2], na.rm=TRUE)
-    out <- list(sumPredictIn=sumPredictIn, sumPredictOut=sumPredictOut, probPredict=probPredict)
-    return(out)
-    
+  #for other closures but assumes that its is in the IN component.. this will need to be changed/Not necessary any more
+  
+  probPredict <- rbind(probPredictIn, probPredictOut)
+  probPredict <- probPredict[order(probPredict$zoneID),]
+  
+  #if isempty(probPredictIn)
+  #    sumPredictIn=nan;# may change in future currently passed but not used later
+  #else
+  
+  sumPredictIn=sum(probPredictIn[,2], na.rm=TRUE)
+  sumPredictOut=sum(probPredictOut[,2], na.rm=TRUE)
+  out <- list(sumPredictIn=sumPredictIn, sumPredictOut=sumPredictOut, probPredict=probPredict)
+  return(out)
+  
 }
