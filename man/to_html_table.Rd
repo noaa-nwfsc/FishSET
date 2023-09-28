@@ -11,7 +11,7 @@ to_html_table(x, rownames = FALSE, ...)
 
 \item{rownames}{Logical, whether to show rownames.}
 
-\item{...}{Arguments to pass to \code{\link{shiny::renderTable}}}
+\item{...}{Arguments to pass to \code{shiny::renderTable}}
 }
 \value{
 Returns an HTML table or (if the object is not a matrix or dataframe)
