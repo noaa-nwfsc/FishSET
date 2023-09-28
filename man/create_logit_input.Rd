@@ -7,10 +7,11 @@
 create_logit_input(choice)
 }
 \arguments{
-\item{choice}{A (number of observations) x 1 vector of chosen locations}
+\item{choice}{A dataframe with a single vector of chosen locations with length = number of observations}
 }
 \value{
-dataCompile - a data matrix
+\code{dataCompile}: A large data matrix.Number of rows = the number of observations, number of cols = square of number of alternatives. 
+   Each row contains a flattened identity matrix of size = number of alternatives x number of alternatives.
 }
 \description{
 Creates a data matrix consistent with built-in model forms

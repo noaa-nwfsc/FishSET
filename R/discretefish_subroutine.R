@@ -9,7 +9,7 @@
 #'   that exist in the model design file but not in the model output table. \code{'all'}
 #'   will run all models in the model design file, replacing existing model output. 
 #'   The third option is to enter a vector of model names to run (use 
-#'   \code{\link{model_names()}} to see current model names). 
+#'   \code{model_names()} to see current model names). 
 #'   If the specified model already has output it will be replaced.  
 #' @param select.model Return an interactive data table that allows users to 
 #'   select and save table of best models based on measures of fit.

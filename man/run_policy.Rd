@@ -8,7 +8,9 @@ run_policy(
   project,
   mod.name = NULL,
   enteredPrice = NULL,
-  expected.catch = NULL
+  expected.catch = NULL,
+  use.scalers = FALSE,
+  scaler.func = NULL
 )
 }
 \arguments{
@@ -28,6 +30,11 @@ Name of expected catch table to use. Can be the expected catch from the
 short-term scenario (\code{short}), the medium-term scenario (\code{med}), 
 the long-term scenario (\code{long}), or the user-defined temporal parameters 
 (\code{user}).}
+
+\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
+numeric vector unless specified with \code{scaler.func}.}
+
+\item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
 }
 \description{
 Checks policy scenario exists. Runs predict_probability function. Runs 

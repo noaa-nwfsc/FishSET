@@ -5979,8 +5979,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         #   
         #   showNotification("Selected model parameters saved.", type='message', duration=10)
         # }
-       
-
+        
         if (input$model=='logit_correction' & input$startlocdefined =='create') {
           # TODO: replace with previous_loc()
           # Also, consider moving to data creation tab
@@ -6060,7 +6059,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                                             TEXT, polyn TEXT, exp TEXT, spat TEXT, spatID TEXT,
                                             crs TEXT)'))
         }
-
+        
         # Construct the update query by looping over the data fields
         query <- sprintf(
           "INSERT INTO %s (%s) VALUES %s",
@@ -6082,11 +6081,14 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           mod_rv$exp_list <- NULL
         }
         
-        q_test(project = project$name, catchID = input$mod_catch, 
-               likelihood = input$model, initparams = int_name(), 
-               optimOpt = c(input$mod_iter, input$mod_relTolX, 
+        q_test(project = project$name, 
+               catchID = input$mod_catch,
+               likelihood = input$model, 
+               initparams = paste(int_name(), collapse = ","),
+               optimOpt = c(input$mod_iter, input$mod_relTolX,
                             input$mod_report_freq, input$mod_detail_report),
-               methodname = input$mod_optmeth, mod.name = input$mod_name,
+               methodname = input$mod_optmeth, 
+               mod.name = input$mod_name,
                vars1 = input$mod_ind_vars, vars2 = input$mod_grid_vars,
                priceCol = input$mod_price, expectcatchmodels = mod_rv$exp_list,
                startloc = input$mod_startloc, polyn = input$mod_polyn,
@@ -6096,6 +6098,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         mod_rv$exp_list <- NULL
         
       }, ignoreNULL = TRUE, ignoreInit = TRUE)
+      
+      
+      
       
 #      observeEvent(input$resetModel, {
 #        shinyjs::reset("form")

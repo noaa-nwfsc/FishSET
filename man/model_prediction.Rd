@@ -4,7 +4,14 @@
 \alias{model_prediction}
 \title{Model prediction function}
 \usage{
-model_prediction(project, mod.name, expected.catch = NULL, enteredPrice = NULL)
+model_prediction(
+  project,
+  mod.name,
+  closures,
+  enteredPrice = NULL,
+  use.scalers = FALSE,
+  scaler.func = NULL
+)
 }
 \arguments{
 \item{project}{Name of project}
@@ -14,12 +21,12 @@ model_prediction(project, mod.name, expected.catch = NULL, enteredPrice = NULL)
 one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
 Use \code{table_view("modelChosen", project)} to view a table of saved models.}
 
-\item{expected.catch}{Required for conditional logit (\code{logit_c}) model. 
-Name of expected catch table to use. 
- Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 
- long-term scenario (\code{long}), or the user-defined temporal parameters (\code{user}).}
-
 \item{enteredPrice}{NEED TO FIGURE OUT WHAT EXACTLY THIS IS}
+
+\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
+numeric vector unless specified with \code{scaler.func}.}
+
+\item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
 }
 \description{
 Model prediction function
@@ -28,7 +35,4 @@ Model prediction function
 Calls \code{\link{logit_predict}}, \code{\link{epm_predict}}, and \code{\link{predict_probability}}.
    Closure scenarios and TAC must be define using \code{\link{zone_closure}} function before function can be run.
 }
-\keyword{(ASC)}
-\keyword{Logit'}
-\keyword{Zonal}
 \keyword{internal}
