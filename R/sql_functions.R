@@ -247,7 +247,7 @@ unserialize_table <- function(table, project) {
                     "model output" = "data",
                     "model data" = "ModelInputData", # Note: check for consistency, seen lowercase version 
                                                      # (depends on whether created in app or console)
-                    "predict output" = "PredictOutput") # Note: Hasn't been added to table_type
+                    "predict output" = "PredictOutput")
   
   sql_qry <- paste0("SELECT ", tab_qry, " FROM ", table, " LIMIT 1")
   

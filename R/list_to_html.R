@@ -3,7 +3,7 @@ to_html_table <- function(x, rownames = FALSE, ...) {
   #' 
   #' @param x A vector or list object.
   #' @param rownames Logical, whether to show rownames. 
-  #' @param ... Arguments to pass to \code{\link{shiny::renderTable}}
+  #' @param ... Arguments to pass to \code{shiny::renderTable}
   #' @export
   #' @importFrom htmltools HTML
   #' @importFrom shiny renderTable

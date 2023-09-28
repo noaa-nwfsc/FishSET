@@ -4,7 +4,14 @@
 \alias{new_zone_id}
 \title{Create new zone IDs}
 \usage{
-new_zone_id(combined, id, grid = NULL, closure = NULL, recast = TRUE)
+new_zone_id(
+  combined,
+  id,
+  grid = NULL,
+  closure = NULL,
+  inter = NULL,
+  recast = TRUE
+)
 }
 \arguments{
 \item{combined}{Combined version of grid and closure file.}
