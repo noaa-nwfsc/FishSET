@@ -647,7 +647,9 @@ load_outsample <- function(dat, project, over_write = FALSE, compare = FALSE, y 
   #' 
   #' \code{load_outsample()} saves out-of-sample dataset to the FishSET Database (located
   #' in the FishSETFolder) and the structure must match the main dataset. A project must exist before 
-  #' running \code{load_outsample()}. See \code{\link{load_maindata}} to create a new project. 
+  #' running \code{load_outsample()}. See \code{\link{load_maindata}} to create a new project. Note: if the 
+  #' data are out-of-sample temporally then upload a new datafile, if the data are only out-of-sample spatially
+  #' then upload the main data file in this function.
   #'
   #' @param dat Out-of-sample data containing information on hauls or trips with same structure as the main data table. 
   #'   This can be the full path to the file, the name of a out-of-sample table in the FishSET database,
