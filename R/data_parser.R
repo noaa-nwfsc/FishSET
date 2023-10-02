@@ -92,11 +92,11 @@ read_dat <- function(x,
     
     if (grepl('=', sub('.*\\.', '', x)) == FALSE) {
       
-        data.type <- sub('.*\\.', '', x)
-        
+      data.type <- sub('.*\\.', '', x)
+      
     } else {
       
-       data.type <- sub('.*\\=', '', x)
+      data.type <- sub('.*\\=', '', x)
     }
   }
   
@@ -274,7 +274,7 @@ write_dat <- function (dat, project, path=NULL, file_type = "csv",  ...) {
     jsonlite::write_json(dataset, path = path, ...)
     
   } else if (file_type == 'geojson') {
-   
+    
     sf::st_write(dataset, dsn = paste0(path, dat, ".geojson"))
     
   } else if (file_type == 'shape') {
@@ -341,15 +341,15 @@ load_data <- function(project, name = NULL) {
   #' load_data('pollock', 'pollockMainDataTable20190101')
   #' }
   #' 
-
-  # check_proj(project)
-
- hack <- function(key, val, pos){
-      assign(key, val, envir=as.environment(pos)
-      )} 
   
- dat <- NULL
- 
+  # check_proj(project)
+  
+  hack <- function(key, val, pos){
+    assign(key, val, envir=as.environment(pos)
+    )} 
+  
+  dat <- NULL
+  
   if (is.null(name)) {
     if (table_exists(paste0(project, "MainDataTable"), project) == FALSE) {
       warning("Table not found")
@@ -364,20 +364,20 @@ load_data <- function(project, name = NULL) {
     } else {
       dat <- table_view(name, project)
     }
-   
-   #
-   # assign(paste0(project, "MainDataTable"), dat, envir = .GlobalEnv)
+    
+    #
+    # assign(paste0(project, "MainDataTable"), dat, envir = .GlobalEnv)
   }
- if(!is.null(dat)) hack(paste0(project, "MainDataTable"), dat, 1L)
- 
+  if(!is.null(dat)) hack(paste0(project, "MainDataTable"), dat, 1L)
+  
   # Log the function
   load_data_function <- list()
   load_data_function$functionID <- "load_data"
   load_data_function$args <- list(project, name)
-
+  
   log_call(project, load_data_function)
-
- # return(dat)
+  
+  # return(dat)
 }
 
 # Save modified data to FishSET database
@@ -400,7 +400,7 @@ save_dat <- function(dat, project) {
   #' \dontrun{
   #' save_dat(pollockMainDataTable, 'pollock')
   #' }
-
+  
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
@@ -437,8 +437,8 @@ fishset_compare <- function(x, y, compare = c(TRUE, FALSE), project) {
   #' Set the \code{compare} argument to FALSE if no previous versions of the data table exist in the FishSET database.
   #' No comparison will be made and the new file will be saved to the database.
   #' 
- 
-
+  
+  
   fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
@@ -520,7 +520,7 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
   #' looad_maindata(dat = "pollockMainDataTable", project = "pollock2020")
   #' }
   #' 
-
+  
   # project name check
   stopifnot("Project name cannot contain spaces." = !grepl("\\s", project),
             "Project name cannot be empty." = !is_value_empty(project))
@@ -531,7 +531,7 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
   # coerce to tibble
   # TODO: customize column name check (case-insensitive)
   dataset <- tibble::as_tibble(dataset)
-
+  
   if (compare == TRUE) {
     
     fishset_compare(dataset, y, compare, project = project)
@@ -544,7 +544,7 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
   x <- colnames(dataset)
   
   if (length(x) == length(unique(x)) & length(toupper(x)) != length(unique(toupper(x)))) {
-      
+    
     warning("\nData set will not be saved to database. 
         Duplicate case-insensitive column names. Sqlite column names are case insensitive.")
     pass <- FALSE
@@ -572,7 +572,7 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
     invisible(FALSE)
     
   } else { # Checks passed
-      
+    
     # TODO: check that project name is unique? Overwrite project arg? 
     # check if project folder exists
     check_proj(project)
@@ -587,8 +587,8 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
     
     raw_tab_name <- paste0(project, "MainDataTable", 
-                       format(Sys.Date(), format = "%Y%m%d"))
-  
+                           format(Sys.Date(), format = "%Y%m%d"))
+    
     raw_tab_exists <- table_exists(raw_tab_name, project = project)
     
     if (raw_tab_exists == FALSE | over_write == TRUE) {
@@ -600,7 +600,7 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
       
       warning(paste(raw_tab_name, "was not saved. Table exists in database. Set over_write to TRUE."))
     }
-
+    
     work_tab_name <- paste0(project, "MainDataTable")
     
     work_tab_exists <- table_exists(work_tab_name, project = project)
@@ -611,13 +611,13 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
       
       # convert date variables back to date
       dataset[d_cols] <- lapply(dataset[d_cols], date_parser)
-
+      
       # log function
       load_maindata_function <- list()
       load_maindata_function$functionID <- "load_maindata"
       load_maindata_function$args <- list(deparse(substitute(dat)), over_write, 
                                           project, compare, y)
-    
+      
       log_call(project, load_maindata_function)
       
       #Make data available
@@ -627,11 +627,11 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
       } 
       
       makeavail(work_tab_name, dataset, 1L)
-    
+      
       message("\n! Data saved to database as ", raw_tab_name, " (raw) and ", 
               work_tab_name, " (working). \nTable is also in the working environment. !")
       invisible(TRUE)
-    
+      
     } else {
       
       warning(paste0(project, "MainDataTable was not saved. Table already exists",
@@ -640,6 +640,173 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
     }
   }
 }
+
+
+load_outsample <- function(dat, project, over_write = FALSE, compare = FALSE, y = NULL) {
+  #' Import, parse, and save out-of-sample data to the FishSET Database
+  #' 
+  #' \code{load_outsample()} saves out-of-sample dataset to the FishSET Database (located
+  #' in the FishSETFolder) and the structure must match the main dataset. A project must exist before 
+  #' running \code{load_outsample()}. See \code{\link{load_maindata}} to create a new project. 
+  #'
+  #' @param dat Out-of-sample data containing information on hauls or trips with same structure as the main data table. 
+  #'   This can be the full path to the file, the name of a out-of-sample table in the FishSET database,
+  #'   or a dataframe object in the working environment. Out-of-sample tables in the FishSET 
+  #'   database contain the string 'OutSampleDataTable'. A complete list of FishSET
+  #'   tables can be display by running \code{fishset_tables()}. 
+  #' @param over_write Logical, If \code{TRUE}, saves data over previously saved data 
+  #'   table in the FishSET database. Defaults to \code{FALSE}.
+  #' @param project String, name of project.
+  #' @param compare Logical, whether to compare new dataframe to previously saved 
+  #'   dataframe \code{y}. See \code{\link{fishset_compare}}.
+  #' @param y Name of previously saved table in FishSET Database. \code{y} must 
+  #'   be defined if \code{compare = TRUE}.
+  #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
+  #' @importFrom RSQLite SQLite
+  #' @importFrom tibble as_tibble
+  #' @export
+  #' @details The out-of-sample dataset is saved in the FishSET database as raw and working tables. 
+  #'   The table name is the \code{project} and the table type, 'OutSampleDataTable'. 
+  #'   The raw table is the original, unedited table. The working table contains 
+  #'   any changes made to the table after uploading. An eight digit date string 
+  #'   is included in the name of the raw table (e.g. "pollockMainDataTable20220210"). 
+  #'   The out-of-sample data is loaded into the working environment as ‘projectOutSampleDataTable’.
+  #'   The \code{fishset_compare} argument compares \code{dat} to an existing FishSET 
+  #'   table in \code{y} and returns a message noting basic differences between the two.
+  #'   The column names are checked for case-insensitivity and uniqueness.  
+  #' @seealso \code{\link{save_dat}}, \code{\link{write_dat}}, \code{\link{load_data}},
+  #'   \code{\link{fishset_tables}}
+  #' @examples
+  #' \dontrun{
+  #' # upload data from filepath
+  #' load_outsample(dat = "PATH/TO/DATA", project = "pollock")
+  #' 
+  #' # upload from dataframe in working environment
+  #' load_outsample(dat = Mydata, project = 'pollock', over_write = TRUE, 
+  #'               compare = TRUE, y = 'OutSampleDataTable01012011')
+  #'               
+  #' # upload from an exisitng FishSET out-of-sample data table
+  #' load_outsample(dat = "pollockOutSampleDataTable", project = "pollock2020")
+  #' }
+  #' 
+  
+  # Check if the project exists
+  if (project_exists(project) == FALSE) {
+    
+    stop("Project '", project, "' does not exist. Check spelling or create a",
+         " new project with load_maindata().", call. = TRUE)
+  }
+  
+  check <- TRUE
+  
+  outsample <- data_upload_helper(dat, "outsample")
+  
+  # coerce to tibble
+  # TODO: customize column name check (case-insensitive)
+  outsample <- tibble::as_tibble(outsample)
+  
+  if (compare == TRUE) {
+    fishset_compare(outsample, y, compare, project = project)
+  }
+  
+  # Quality Checks
+  pass <- TRUE
+  
+  # check that names are unique in dataset
+  x <- colnames(outsample)
+  
+  if (length(x) == length(unique(x)) & length(toupper(x)) != length(unique(toupper(x)))) {
+    
+    warning("\nData set will not be saved to database. 
+        Duplicate case-insensitive column names. Sqlite column names are case insensitive.")
+    pass <- FALSE
+    
+  } else if (length(x) != length(unique(x))) {
+    
+    warning("\nVariable names are not unique.\n")
+    pass <- FALSE
+  }
+  
+  # TODO: remove or change these checks, not comprehensive
+  # if (any(grepl("area|zone", names(dataset), ignore.case = TRUE)) == FALSE & 
+  #     (any(grepl("lat", names(dataset), ignore.case = TRUE)) == FALSE |
+  #      any(grepl("lon", names(dataset), ignore.case = TRUE)) ==  FALSE)) {
+  #   
+  #   warning("Neither Latitude/Longitude or Area/Zone variables are included. Data will not be saved.")
+  #   pass <- FALSE
+  # }
+  
+  if (pass == FALSE) { 
+    
+    warning('Dataset not saved. Check that column names are case-insensitive ',
+            'unique and that latitude/longitude or area/zone are included.')
+    
+    invisible(FALSE)
+    
+  } else { # Checks passed
+    
+    # convert date columns to character (sqlite coerces to numeric)
+    d_cols <- date_cols(outsample)
+    outsample[d_cols] <- lapply(d_cols, function(d) as.character(outsample[[d]]))
+    
+    # Save table to FishSET DB
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    
+    raw_tab_name <- paste0(project, "OutSampleDataTable", format(Sys.Date(), format = "%Y%m%d"))
+    
+    raw_tab_exists <- table_exists(raw_tab_name, project = project)
+    
+    if (raw_tab_exists == FALSE | over_write == TRUE) {
+      
+      DBI::dbWriteTable(fishset_db, raw_tab_name, outsample, overwrite = over_write)
+      message("Table saved to database")
+      
+    } else { 
+      
+      warning(paste(raw_tab_name, "was not saved. Table exists in database. Set over_write to TRUE."))
+    }
+    
+    work_tab_name <- paste0(project, "OutSampleDataTable")
+    
+    work_tab_exists <- table_exists(work_tab_name, project = project)
+    
+    if (work_tab_exists == FALSE | over_write == TRUE) {
+      
+      DBI::dbWriteTable(fishset_db, work_tab_name, outsample, overwrite = over_write)
+      
+      # convert date variables back to date
+      outsample[d_cols] <- lapply(outsample[d_cols], date_parser)
+      
+      # log function
+      load_outsample_function <- list()
+      load_outsample_function$functionID <- "load_outsample"
+      load_outsample_function$args <- list(deparse(substitute(dat)), over_write, 
+                                           project, compare, y)
+      
+      log_call(project, load_outsample_function)
+      
+      #Make data available
+      makeavail <- function(key, val, pos) {
+        
+        assign(key, val, envir = as.environment(pos))
+      } 
+      
+      makeavail(work_tab_name, outsample, 1L)
+      
+      message("\n! Data saved to database as ", raw_tab_name, " (raw) and ", 
+              work_tab_name, " (working). \nTable is also in the working environment. !")
+      invisible(TRUE)
+      
+    } else {
+      
+      warning(paste0(project, "OutSampleDataTable was not saved. Table already exists",
+                     " in database. Set over_write to TRUE."))
+      invisible(FALSE)
+    }
+  }
+}
+
 
 
 load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALSE, y = NULL) {
@@ -679,7 +846,7 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
   #' load_port(PortTable, over_write = TRUE, project  ='pollock',
   #'           compare = TRUE, y = 'pollockPortTable01012011')
   #' }
-
+  
   # TODO: have port_lon and lat args to make sure they are correctly identified
   if (project_exists(project) == FALSE) {
     
@@ -687,37 +854,37 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
          " new project with load_maindata().", call. = TRUE)
   }
   
-   check <- TRUE
-   
-   # TODO: change "x" to "port"
-
-   x <- data_upload_helper(dat, type = "port")
-   
-   # TODO: update these lonlat name checks -- make them easier to understand
+  check <- TRUE
+  
+  # TODO: change "x" to "port"
+  
+  x <- data_upload_helper(dat, type = "port")
+  
+  # TODO: update these lonlat name checks -- make them easier to understand
   if (all(grepl("Lon", names(x), ignore.case = TRUE) == FALSE) == TRUE) {
     warning("Latitude and Longitude must be specified")
     check <- FALSE
   }
-   
+  
   if (is.na(table(grepl("Lon", names(x), ignore.case = TRUE))[2]) == FALSE & table(grepl("Lon", names(x), ignore.case = TRUE))[2] > 1) {
     warning("Multiple latitude or longitude columns. Only one allowed.")
     check <- FALSE
   }
-   
+  
   if (all(grepl("name|id|code|PORT", names(x), ignore.case = TRUE) == FALSE) == TRUE) {
     warning("Port identification not found. Check that unique port ID (name, id, code) is included.")
     check <- FALSE
   }
-
+  
   if (!is.numeric(port_name)) {
     colnames(x)[grep(port_name, colnames(x))] <- "Port_Name"
   } else {
     colnames(x)[port_name] <- "Port_Name"
   }
-
+  
   colnames(x)[grep("LON", colnames(x), ignore.case = TRUE)] <- "Port_Long"
   colnames(x)[grep("LAT", colnames(x), ignore.case = TRUE)] <- "Port_Lat"
-
+  
   #unique rows
   x <- unique_rows(x)
   
@@ -729,11 +896,11 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
   }
   #empty variables
   x <- empty_vars(x, remove = TRUE)
-
+  
   if (compare == TRUE) {
     fishset_compare(x, y, compare, project = project)
   }
-
+  
   if (check == FALSE) {
     
     warning("Port table not saved.")
@@ -805,7 +972,7 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
   #' load_aux(pcodMainDataTable, name = 'FisherySeason', over_write = TRUE, 
   #'          project = 'pcod')
   #' }
-
+  
   if (project_exists(project) == FALSE) {
     
     stop("Project '", project, "' does not exist. Check spelling or create a",
@@ -824,7 +991,7 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
   dat <- parse_data_name(dat, "main", project)
   
   aux <- data_upload_helper(aux, "aux")
-
+  
   if (any(colnames(aux) %in% colnames(dataset)) == FALSE) {
     
     warning("No shared columns. Column names do not match between two data sets.")
@@ -837,7 +1004,7 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
     invisible(FALSE)
     
   } else {
-   
+    
     #unique rows
     aux <- unique_rows(aux)
     
@@ -849,8 +1016,8 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
     }
     
     #empty variables
-   aux <- empty_vars(aux, remove = TRUE)
-
+    aux <- empty_vars(aux, remove = TRUE)
+    
     if (table_exists(paste0(project, name), project) == FALSE | over_write == TRUE) {
       
       suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
@@ -923,7 +1090,7 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
   #'           over_write = TRUE, project = 'pcod')
   #' }
   #' 
-
+  
   
   if (project_exists(project) == FALSE) {
     
@@ -943,7 +1110,7 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
   dat <- parse_data_name(dat, "main", project)
   
   grid <- data_upload_helper(grid, "grid")
-    
+  
   if (check == FALSE) { 
     
     warning("Grid table not saved.")
@@ -1018,7 +1185,7 @@ load_spatial <- function(spat, name = NULL, over_write = TRUE, project,
   #' @param id Polygon ID column. Required for csv files. Leave as \code{NULL} if 
   #'   \code{spat} is a shape or json file.
   #' @param ... Additional argument passed to \code{\link{read_dat}}. 
-
+  
   #' @details Function to import, parse, and saved project folder in `FishSETFolder` 
   #'  directory. To export as  shape file, use \code{\link{write_dat}} specifying 
   #'  `type='shp'`. \code{load_spatial()} performs basic quality check before saving 
@@ -1028,7 +1195,7 @@ load_spatial <- function(spat, name = NULL, over_write = TRUE, project,
   #'  empty columns. The naming convention for spatial tables is "projectNameSpatTable". 
   #'  See \code{\link{table_view}} to view/load spatial tables into the working 
   #'  environment.
-
+  
   #' @export
   #' @importFrom sf st_write
   #' @seealso \code{\link{table_view}}, \code{\link{load_maindata}}, 
@@ -1082,8 +1249,8 @@ load_spatial <- function(spat, name = NULL, over_write = TRUE, project,
     
     if (over_write) {
       
-     file.remove(file_names[spat_exists])
-    
+      file.remove(file_names[spat_exists])
+      
     } else {
       
       stop("Dataset already exists. Set over_write = TRUE to replace.")
@@ -1103,8 +1270,8 @@ load_spatial <- function(spat, name = NULL, over_write = TRUE, project,
   message("Spatial table saved to project folder as ", tab_name)
   invisible(TRUE)
 }
-  
-  
-  
-  
+
+
+
+
 
