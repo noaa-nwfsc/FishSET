@@ -22,6 +22,7 @@
 #'   welfare subfunctions. Policy closure scenarios must be defined using the 
 #'   \code{\link[FishSET]{zone_closure}} function. The function also requires parameter
 #'   estimates and model data from one model.
+#' @export
 
 
 ### NOTES: Need to make sure closure areas and fishery zones match
