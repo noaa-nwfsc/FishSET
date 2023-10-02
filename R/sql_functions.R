@@ -704,10 +704,11 @@ fishset_tables <- function(project = NULL) {
                  "MainDataTable", "ExpectedCatch", "AltMatrix", "PortTable\\d{8}",
                  "PortTable", "ldglobalcheck", "FleetTable", "ModelOut", "ModelFit",
                  "ModelInputData", "modelDesignTable", "FilterTable", "GridTable\\d{8}",  
-                 "GridTable", "AuxTable\\d{8}", "AuxTable", "SpatTable\\d{8}", "SpatTable")
+                 "GridTable", "AuxTable\\d{8}", "AuxTable", "SpatTable\\d{8}", "SpatTable",
+                 "OutSampleDataTable\\d{8}", "OutSampleDataTable")
     
     raw <- c("MainDataTable\\d{8}", "PortTable\\d{8}", "GridTable\\d{8}", 
-             "AuxTable\\d{8}", "SpatTable\\d{8}")
+             "AuxTable\\d{8}", "SpatTable\\d{8}", "OutSampleDataTable\\d{8}")
     
     t_regex <- paste0(db_type, collapse = "|")
     t_str <- stringi::stri_extract_first_regex(db_tabs$table, t_regex)
@@ -735,7 +736,8 @@ fishset_tables <- function(project = NULL) {
                "modelDesignTable" = "model design", "other" = "other",
                "GridTable_raw" = "raw grid table",  "GridTable" = "grid table",
                "AuxTable_raw" = "raw aux table", "AuxTable" = "aux table", 
-               "SpatTable_raw" = "raw spat table",  "SpatTable" = "spat table")
+               "SpatTable_raw" = "raw spat table",  "SpatTable" = "spat table",
+               "OutSampleDataTable_raw" = "raw out of sample table", "OutSampleDataTable" = "out of sample table")
       }, character(1))
     
     db_tabs$type <- t_str
@@ -745,7 +747,6 @@ fishset_tables <- function(project = NULL) {
     db_tabs
   }
 }
-
 
 
 expected_catch_list <- function(project, name = NULL) {
