@@ -1004,7 +1004,8 @@ data_upload_helper <- function(dat, type, ...) {
                "port" = c("port table", "raw port table"), 
                "grid" = c("grid table", "raw grid table"),
                "aux" = c("aux table", "raw aux table"),
-               "spat" = c("spat table", "raw spat table"))
+               "spat" = c("spat table", "raw spat table"),
+               "outsample" = c("outsample table", "raw outsample table"))
       
       # check if table exists in FishSET DB
       f_tabs <- fishset_tables() # contains table, project, and type
