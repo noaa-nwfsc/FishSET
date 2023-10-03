@@ -267,21 +267,25 @@ create_expectations <-
   sscale <- 10^(r - 1)
 
   # exp catch list ----
-# TODO: Save key args to list (window, lag/year lag, temporal, etc.)
   ExpectedCatch <- list(
     scale = sscale,
     # TODO: Use alternative approach for determining units
     units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS"), # units of catch data
     recent = recent_exp$exp,
     recent_dummy = recent_exp$dummy,
+    recent_settings = recent_exp$settings,
     older = older_exp$exp,
     older_dummy = older_exp$dummy,
+    older_settings = older_exp$settings,
     oldest = oldest_exp$exp,
     oldest_dummy = oldest_exp$dummy,
+    oldest_settings = oldest_exp$settings,
     logbook = logbook_exp$exp,
     logbook_dummy = logbook_exp$dummy,
+    logbook_settings = logbook_exp$settings,
     exp1 = user_exp$exp,
-    exp1_dummy = user_exp$dummy
+    exp1_dummy = user_exp$dummy,
+    exp1_settings = user_exp$settings
   )
   
   single_sql <- paste0(project, "ExpectedCatch")
@@ -314,13 +318,13 @@ create_expectations <-
       ExpectedCatchOld <- unserialize_table(single_sql, project)
       # names of all matrices
       exp_names <- names(ExpectedCatchOld)[!names(ExpectedCatchOld) %in% c('scale', 'units')]
-      exp_new_names <- c('exp1', 'exp1_dummy')
+      exp_new_names <- c('exp1', 'exp1_dummy', 'exp1_settings')
       # generate new names
       exp_new_names <- vapply(exp_new_names, 
                               function(x) exp_nm_r(x, exp_names, 1), 
                               character(1))
       # get default exp names
-      exp_names2 <- names(ExpectedCatch)[!names(ExpectedCatch) %in% c('scale', 'units', 'exp1', 'exp1_dummy')]
+      exp_names2 <- names(ExpectedCatch)[!names(ExpectedCatch) %in% c('scale', 'units', 'exp1', 'exp1_dummy', 'exp1_settings')]
       # see if default was run
       non_empty_exp <- vapply(exp_names2, function(x) !is.null(ExpectedCatch[[x]]), logical(1))
       
@@ -334,7 +338,7 @@ create_expectations <-
       }
       # merge previous list into newest list
       ExpectedCatch <- c(ExpectedCatchOld,
-                         setNames(list(ExpectedCatch$exp1, ExpectedCatch$exp1_dummy),
+                         setNames(list(ExpectedCatch$exp1, ExpectedCatch$exp1_dummy, ExpectedCatch$exp1_settings),
                                   exp_new_names))
     }
   }
