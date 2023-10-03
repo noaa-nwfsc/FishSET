@@ -19,8 +19,8 @@
 #' @keywords internal
 #' @importFrom lubridate floor_date year years %m-%
 #' @importFrom stats aggregate lm coef na.pass
-#' @returns Returns a list containing the expected catch/revenue matrix and 
-#'   dummy matrix (if \code{dummy.exp = TRUE}). 
+#' @returns Returns a list containing the expected catch/revenue matrix, 
+#'   dummy matrix (if \code{dummy.exp = TRUE}), and list of key input args. 
 #' 
 
 calc_exp <- function(dataset,
@@ -397,5 +397,9 @@ calc_exp <- function(dataset,
   }
   
   
-  list(exp = exp_matrix, dummy = get0("dum_matrix"))
+  return(list(exp = exp_matrix, 
+              dummy = get0("dum_matrix"), 
+              settings = list(catch, price, defineGroup, temp.var, temporal, calc.method, lag.method,
+                              empty.catch, empty.expectation, temp.window, temp.lag, year.lag, weight_avg))
+  )
 }

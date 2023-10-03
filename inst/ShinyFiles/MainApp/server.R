@@ -5321,8 +5321,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
       # Run expected catch
       observeEvent(input$exp_submit, {
         
-        showNotification('Function can take several minutes. A message will appear when done.',
-                         type = 'message', duration = 20)
+        showNotification('The create expectations function can take several minutes. A message will appear when done.',
+                         type = 'message', duration = 40)
         
         q_test <- quietly_test(create_expectations)
         
@@ -5441,7 +5441,8 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           # remove units and scale entry
           e_list <- e_list[!grepl('^scale$|^units$', names(e_list))]
           # save names of matrices that aren't empty
-          mod_rv$exp <- names(e_list[!vapply(e_list, is.null, logical(1))])
+          e_list <- names(e_list[!vapply(e_list, is.null, logical(1))])
+          mod_rv$exp <- e_list[!grepl("_settings", e_list)]
         }
         
         # check for alt choice list (check for dated as well)
@@ -5512,7 +5513,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           # TODO: mod_run_bttn won't show if checklist doesn't pass first time
           if (cList$pass) {
             tagList(
-              # TODO: disable add model until model checks have been passed
               actionButton("mod_add", "Save model and add new model", 
                            style="color: #fff; background-color: #337ab7; border-color: #800000;"),
           
