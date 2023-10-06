@@ -57,8 +57,8 @@ calc_exp(
 \item{Alt}{Alternative choice list}
 }
 \value{
-Returns a list containing the expected catch/revenue matrix and 
-  dummy matrix (if \code{dummy.exp = TRUE}).
+Returns a list containing the expected catch/revenue matrix, 
+  dummy matrix (if \code{dummy.exp = TRUE}), and list of key input args.
 }
 \description{
 Calculate expected catch/revenue

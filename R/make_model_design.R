@@ -444,6 +444,9 @@ make_model_design <-
       ExpectedCatch <- exp_out$exp
       exp_select <- exp_out$exp_select
       
+      # Remove settings from ExpectedCatch
+      ExpectedCatch <- ExpectedCatch[!grepl("_settings", names(ExpectedCatch))]
+      
       nr_ind <- vapply(ExpectedCatch, function(x) {
         
         nrow(x) != length(choice)
