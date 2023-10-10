@@ -5442,7 +5442,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
           e_list <- e_list[!grepl('^scale$|^units$', names(e_list))]
           # save names of matrices that aren't empty
           e_list <- names(e_list[!vapply(e_list, is.null, logical(1))])
-          mod_rv$exp <- e_list[!grepl("_settings", e_list)]
+          mod_rv$exp <- e_list
         }
         
         # check for alt choice list (check for dated as well)
