@@ -397,9 +397,6 @@ calc_exp <- function(dataset,
   }
   
   
-  return(list(exp = exp_matrix, 
-              dummy = get0("dum_matrix"), 
-              settings = list(catch, price, defineGroup, temp.var, temporal, calc.method, lag.method,
-                              empty.catch, empty.expectation, temp.window, temp.lag, year.lag, weight_avg))
+  return(list(exp = exp_matrix, dummy = get0("dum_matrix"))
   )
 }
