@@ -149,7 +149,7 @@ model_prediction <- function(project, mod.name, closures, enteredPrice=NULL, use
       
       
       #prices for EPM forecasting   
-      pscale <- x_new$scales$price
+      # pscale <- x_new$scales$price
       priceData <- x_new$epmDefaultPrice
       
       if(is.na(enteredPrice)){
@@ -174,7 +174,7 @@ model_prediction <- function(project, mod.name, closures, enteredPrice=NULL, use
         # full TAC and no zone closure
         #1 epm normal
         
-        temp <- epm_predict(project=project, modname=modname, alts=alts, mod.type=sub(".*_", "", x_new$likelihood), price=price) #modelOutput{mChoice},alts,x);
+        # temp <- epm_predict(project=project, modname=mod.name, alts=alts, mod.type=sub(".*_", "", x_new$likelihood), price=price) #modelOutput{mChoice},alts,x);
         probEPM <- temp$probEPM
         modelDat <- temp$modelDat
         

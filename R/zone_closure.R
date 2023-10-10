@@ -543,7 +543,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
                 # plot with model zones
                 if(any(!is_empty(mod_zones$data))) {
                   tmp_spat <- dat$spat %>%
-                    mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
+                    mutate(display = ifelse(.$zone %in% mod_zones$data, 1, 0))
                   
                   leaflet() %>%
                     addTiles() %>%
@@ -586,7 +586,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
                 # plot with model zones
                 if(any(!is_empty(mod_zones$data))) {
                   tmp_spat <- dat$spat %>%
-                    mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
+                    mutate(display = ifelse(.$zone %in% mod_zones$data, 1, 0))
                   
                   leaflet() %>%
                     addTiles() %>%
@@ -639,7 +639,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
               # plot with model zones
               if(any(!is_empty(mod_zones$data))) {
                 tmp_spat <- dat$spat %>%
-                  mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
+                  mutate(display = ifelse(.$zone %in% mod_zones$data, 1, 0))
                 
                 leaflet() %>%
                   addTiles() %>%
@@ -693,7 +693,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
             # plot with model zones
             if(any(!is_empty(mod_zones$data))) {
               tmp_spat <- dat$spat %>%
-                mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
+                mutate(display = ifelse(.$zone %in% mod_zones$data, 1, 0))
               
               leaflet() %>%
                 addTiles() %>%
