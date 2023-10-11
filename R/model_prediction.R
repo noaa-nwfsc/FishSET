@@ -147,9 +147,11 @@ model_prediction <- function(project, mod.name, closures, enteredPrice=NULL, use
       
     } else if (grepl('epm', x_new$likelihood)){
       
+      # TODO: remove the following line when epm models are functioning
+      x_new$scales$price <- NULL
       
-      #prices for EPM forecasting   
-      # pscale <- x_new$scales$price
+      #prices for EPM forecasting 
+      pscale <- x_new$scales$price
       priceData <- x_new$epmDefaultPrice
       
       if(is.na(enteredPrice)){

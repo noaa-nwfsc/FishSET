@@ -5,11 +5,10 @@
 \alias{PollockData}
 \title{Pollock Data}
 \format{
-`PollockData`
 A dataframe with 36 columns and 839 rows:
 }
 \usage{
-PollockData
+data(PollockData)
 }
 \description{
 Bering Sea pollock data from 2011
