@@ -56,6 +56,23 @@
 "scallop"
 
 
+#' Ports from the NE scallop fishery
+#' 
+#' @description
+#'  A dataset containing the names and lat/lon coordinates of ports used in the US northeast scallop fishery.
+#' 
+#' @usage scallop_ports
+#' 
+#' @format A data frame (tibble) with 40 observations and 3 variables.\cr
+#' \cr
+#' [,1] Port names \cr
+#' [,2] Longitude \cr
+#' [,3] Latitude \cr
+#' 
+#' @source NEED TO ADD SOURCE DESCRIPTION
+"scallop_ports"
+
+
 #' Northeast Ten Minute Squares
 #' 
 #' @format `tenMNSQR`
@@ -114,13 +131,14 @@
 #' 
 "alaskaNMFSAreas"
 
-
 #' Pollock Data
 #' 
+#' @description
 #' Bering Sea pollock data from 2011
 #' 
-#' @format `PollockData`
-#' A dataframe with 36 columns and 839 rows:
+#' @format A dataframe with 36 columns and 839 rows:
 #' 
+#' @usage data(PollockData)
 #' 
 "PollockData"
+

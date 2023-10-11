@@ -46,7 +46,7 @@ edit_map_manual <- function(spat, id, project, coord = NULL) {
   map_list <- data_pull(spat, project)
   map_dat <- map_list$dataset
   
-  map_nm <- parse_data_name(map, "spat", project)
+  map_nm <- parse_data_name(map_dat, "spat", project)
   
   map_dat <- sf::st_transform(map_dat, crs = 4326)
   

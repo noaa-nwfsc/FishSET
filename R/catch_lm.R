@@ -45,7 +45,7 @@
 #' @seealso [merge_expected_catch()]
 #' @md
 #' @export
-#' @importFrom stats lm
+#' @importFrom stats lm predict
 #' @importFrom rlang expr
 #' @importFrom dplyr select all_of 
 #' @importFrom tidyr expand_grid pivot_wider

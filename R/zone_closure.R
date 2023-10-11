@@ -40,9 +40,11 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
                          secondcat = NULL, lon.spat = NULL, lat.spat = NULL,
                          epsg = NULL) {
   
-  pass <- TRUE
+  # Null these variables to appease RMD check
+  zone <- display <- NULL
   
-
+  # Set initial variables
+  pass <- TRUE
   x <- 0
   secondLocationID <- NULL
   
@@ -543,7 +545,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
                 # plot with model zones
                 if(any(!is_empty(mod_zones$data))) {
                   tmp_spat <- dat$spat %>%
-                    mutate(display = ifelse(.$zone %in% mod_zones$data, 1, 0))
+                    mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
                   
                   leaflet() %>%
                     addTiles() %>%
@@ -586,7 +588,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
                 # plot with model zones
                 if(any(!is_empty(mod_zones$data))) {
                   tmp_spat <- dat$spat %>%
-                    mutate(display = ifelse(.$zone %in% mod_zones$data, 1, 0))
+                    mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
                   
                   leaflet() %>%
                     addTiles() %>%
@@ -639,7 +641,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
               # plot with model zones
               if(any(!is_empty(mod_zones$data))) {
                 tmp_spat <- dat$spat %>%
-                  mutate(display = ifelse(.$zone %in% mod_zones$data, 1, 0))
+                  mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
                 
                 leaflet() %>%
                   addTiles() %>%
@@ -693,7 +695,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
             # plot with model zones
             if(any(!is_empty(mod_zones$data))) {
               tmp_spat <- dat$spat %>%
-                mutate(display = ifelse(.$zone %in% mod_zones$data, 1, 0))
+                mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
               
               leaflet() %>%
                 addTiles() %>%
