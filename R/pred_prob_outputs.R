@@ -27,6 +27,9 @@ pred_prob_outputs <- function(project, output_option = "table"){
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
+  # NULL the ZoneID variable to appease RMD check
+  ZoneID <- NULL
+  
   # Load model and prediction outputs --------------------------------------------------------------------------------------- 
   # make model and prediction tables exist in the database
   # TODO: If this is running in the Shiny and one or more of the tables above do not exist then show error message and stop running function here
