@@ -92,6 +92,7 @@ pred_prob_outputs <- function(project, output_option = "table"){
       
       out_fig <- ggplot() +
         geom_col(aes(x = fig_df$ZoneID, y = fig_df$Probability, fill = fig_df$Model), width = 0.6, position = position_dodge(0.6)) +
+        labs(x = "Zone ID", y = "Probability", fill = "Model") +
         scale_y_continuous(expand = c(0,0), limits = c(0, max(fig_df$Probability) + 0.05)) +
         scale_fill_viridis_d() +
         theme_classic() +
@@ -114,6 +115,7 @@ pred_prob_outputs <- function(project, output_option = "table"){
     
       out_fig <- ggplot() +
         geom_col(aes(x = fig_df$Model, y = fig_df$Probability, fill = fig_df$ZoneID), width = 0.6, position = position_dodge(0.6)) +
+        labs(x = "Policy Scenario", y = "Probability", fill = "Zone ID") +
         scale_y_continuous(expand = c(0,0), limits = c(0, max(fig_df$Probability) + 0.05)) +
         scale_fill_viridis_d() +
         theme_classic() +
