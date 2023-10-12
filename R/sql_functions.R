@@ -589,7 +589,8 @@ list_tables <- function(project, type = "main") {
   #'   (GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (AltMatrix), 
   #'   "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
   #'   "filter" (FilterTable), "centroid" (Centroid or FishCentroid),  "model" 
-  #'   (ModelOut), "model data" or "model design" (ModelInputData).
+  #'   (ModelOut), "model data" or "model design" (ModelInputData), 
+  #'   "outsample" (OutSampleDataTable).
   #' @export
   #' @examples 
   #' \dontrun{
@@ -600,7 +601,7 @@ list_tables <- function(project, type = "main") {
 
   tab_types <- c("info", "main", "ec", "altc", "port", "gc", "fleet", "model", 
                  "model data", "model design", "grid", "aux", "spat", "filter",
-                 "centroid")
+                 "centroid", "outsample")
   
   if (!type %in% tab_types) {
     
@@ -614,7 +615,8 @@ list_tables <- function(project, type = "main") {
            "altc" = "AltMatrix", "port" = "PortTable", "gc" = "ldglobalcheck", 
            "fleet" = "FleetTable", "model" = "ModelOut", "model data" = "ModelInputData", 
            "model design" = "ModelInputData", "grid" = "GridTable", "aux" = "AuxTable",
-           "spat" = "SpatTable", "filter" = "FilterTable", "centroid" = "Centroid")
+           "spat" = "SpatTable", "filter" = "FilterTable", "centroid" = "Centroid",
+           "outsample" = "OutSampleDataTable")
   
   if (is_value_empty(project)) {
     
