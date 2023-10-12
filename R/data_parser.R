@@ -642,6 +642,174 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
 }
 
 
+load_outsample <- function(dat, project, over_write = FALSE, compare = FALSE, y = NULL){
+  #' Import, parse, and save out-of-sample data to FishSET database
+  #' 
+  #' \code{load_outsample()} saves out-of-sample dataset to the FishSET Database (located
+  #' in the FishSETFolder) and the structure must match the main dataset. A project must exist before 
+  #' running \code{load_outsample()}. See \code{\link{load_maindata}} to create a new project. Note: if the 
+  #' data are out-of-sample temporally then upload a new datafile, if the data are only out-of-sample spatially
+  #' then upload the main data file in this function.
+  #'
+  #' @param dat Out-of-sample data containing information on hauls or trips with same structure as the main data table. 
+  #'   This can be the full path to the file, the name of a out-of-sample table in the FishSET database,
+  #'   or a dataframe object in the working environment. Out-of-sample tables in the FishSET 
+  #'   database contain the string 'OutSampleDataTable'. A complete list of FishSET
+  #'   tables can be viewed by running \code{fishset_tables()}. 
+  #' @param over_write Logical, If \code{TRUE}, saves data over previously saved data 
+  #'   table in the FishSET database. Defaults to \code{FALSE}.
+  #' @param project String, name of project.
+  #' @param compare Logical, whether to compare new dataframe to previously saved 
+  #'   dataframe \code{y}. See \code{\link{fishset_compare}}.
+  #' @param y Name of previously saved table in FishSET Database. \code{y} must 
+  #'   be defined if \code{compare = TRUE}.
+  #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
+  #' @importFrom RSQLite SQLite
+  #' @importFrom tibble as_tibble
+  #' @export
+  #' @details The out-of-sample dataset is saved in the FishSET database as raw and working tables. 
+  #'   The table name is the \code{project} and the table type, 'OutSampleDataTable'. 
+  #'   The raw table is the original, unedited table. The working table contains 
+  #'   any changes made to the table after uploading. An eight digit date string 
+  #'   is included in the name of the raw table (e.g. "pollockOutSampleDataTable20220210"). 
+  #'   The out-of-sample data is loaded into the working environment as ‘projectOutSampleDataTable’.
+  #'   The \code{fishset_compare} argument compares \code{dat} to an existing FishSET 
+  #'   table in \code{y} and returns a message noting basic differences between the two.
+  #'   The column names are checked for case-insensitivity and uniqueness.  
+  #' @seealso \code{\link{load_maindata}}, \code{\link{save_dat}}, \code{\link{write_dat}}, \code{\link{load_data}},
+  #'   \code{\link{fishset_tables}}
+  #' @examples
+  #' \dontrun{
+  #' # upload data from filepath
+  #' load_outsample(dat = "PATH/TO/DATA", project = "pollock")
+  #' 
+  #' # upload from dataframe in working environment
+  #' load_outsample(dat = Mydata, project = 'pollock', over_write = TRUE, 
+  #'               compare = TRUE, y = 'OutSampleDataTable01012011')
+  #'               
+  #' # upload from an exisitng FishSET out-of-sample data table
+  #' load_outsample(dat = "pollockOutSampleDataTable", project = "pollock")
+  #' }
+  #' 
+  
+  # Check if the project exists
+  if (project_exists(project) == FALSE) {
+    
+    stop("Project '", project, "' does not exist. Check spelling or create a",
+         " new project with load_maindata().", call. = TRUE)
+  }
+  
+  check <- TRUE
+  
+  outsample <- data_upload_helper(dat, "outsample")
+  
+  # coerce to tibble
+  # TODO: customize column name check (case-insensitive)
+  outsample <- tibble::as_tibble(outsample)
+  
+  if (compare == TRUE) {
+    fishset_compare(outsample, y, compare, project = project)
+  }
+  
+  # Quality Checks
+  pass <- TRUE
+  
+  # check that names are unique in dataset
+  x <- colnames(outsample)
+  
+  if (length(x) == length(unique(x)) & length(toupper(x)) != length(unique(toupper(x)))) {
+    
+    warning("\nData set will not be saved to database. 
+        Duplicate case-insensitive column names. Sqlite column names are case insensitive.")
+    pass <- FALSE
+    
+  } else if (length(x) != length(unique(x))) {
+    
+    warning("\nVariable names are not unique.\n")
+    pass <- FALSE
+  }
+  
+  # TODO: remove or change these checks, not comprehensive
+  # if (any(grepl("area|zone", names(dataset), ignore.case = TRUE)) == FALSE & 
+  #     (any(grepl("lat", names(dataset), ignore.case = TRUE)) == FALSE |
+  #      any(grepl("lon", names(dataset), ignore.case = TRUE)) ==  FALSE)) {
+  #   
+  #   warning("Neither Latitude/Longitude or Area/Zone variables are included. Data will not be saved.")
+  #   pass <- FALSE
+  # }
+  
+  if (pass == FALSE) { 
+    
+    warning('Dataset not saved. Check that column names are case-insensitive ',
+            'unique and that latitude/longitude or area/zone are included.')
+    
+    invisible(FALSE)
+    
+  } else { # Checks passed
+    
+    # convert date columns to character (sqlite coerces to numeric)
+    d_cols <- date_cols(outsample)
+    outsample[d_cols] <- lapply(d_cols, function(d) as.character(outsample[[d]]))
+    
+    # Save table to FishSET DB
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    
+    raw_tab_name <- paste0(project, "OutSampleDataTable", format(Sys.Date(), format = "%Y%m%d"))
+    
+    raw_tab_exists <- table_exists(raw_tab_name, project = project)
+    
+    if (raw_tab_exists == FALSE | over_write == TRUE) {
+      
+      DBI::dbWriteTable(fishset_db, raw_tab_name, outsample, overwrite = over_write)
+      message("Table saved to database")
+      
+    } else { 
+      
+      warning(paste(raw_tab_name, "was not saved. Table exists in database. Set over_write to TRUE."))
+    }
+    
+    work_tab_name <- paste0(project, "OutSampleDataTable")
+    
+    work_tab_exists <- table_exists(work_tab_name, project = project)
+    
+    if (work_tab_exists == FALSE | over_write == TRUE) {
+      
+      DBI::dbWriteTable(fishset_db, work_tab_name, outsample, overwrite = over_write)
+      
+      # convert date variables back to date
+      outsample[d_cols] <- lapply(outsample[d_cols], date_parser)
+      
+      # log function
+      load_outsample_function <- list()
+      load_outsample_function$functionID <- "load_outsample"
+      load_outsample_function$args <- list(deparse(substitute(dat)), over_write, 
+                                           project, compare, y)
+      
+      log_call(project, load_outsample_function)
+      
+      #Make data available
+      makeavail <- function(key, val, pos) {
+        
+        assign(key, val, envir = as.environment(pos))
+      }
+      
+      makeavail(work_tab_name, outsample, 1L)
+      
+      message("\n! Data saved to database as ", raw_tab_name, " (raw) and ", 
+              work_tab_name, " (working). \nTable is also in the working environment. !")
+      invisible(TRUE)
+      
+    } else {
+      
+      warning(paste0(project, "OutSampleDataTable was not saved. Table already exists",
+                     " in database. Set over_write to TRUE."))
+      invisible(FALSE)
+    }
+  }
+}
+
+
 load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALSE, y = NULL) {
   #' Import, parse, and save port data to FishSET database
   #'
