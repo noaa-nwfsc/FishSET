@@ -131,14 +131,15 @@
 #' 
 "alaskaNMFSAreas"
 
-#' Pollock Data
-#' 
-#' @description
-#' Bering Sea pollock data from 2011
-#' 
-#' @format A dataframe with 36 columns and 839 rows:
-#' 
-#' @usage data(PollockData)
-#' 
-"PollockData"
+# TODO: Figure out why PollockData here is generating a warning that the variable has usage in documentation but not in code
+#Pollock Data
+# 
+#@description
+#Bering Sea pollock data from 2011
+#
+#@format A dataframe with 36 columns and 839 rows:
+#
+#@usage PollockData
+#
+#"PollockData"
 
