@@ -684,7 +684,7 @@ load_outsample <- function(dat, project, over_write = FALSE, compare = FALSE, y 
   #' load_outsample(dat = "PATH/TO/DATA", project = "pollock")
   #' 
   #' # upload from dataframe in working environment
-  #' load_outsample(dat = Mydata, project = 'pollock', over_write = TRUE, 
+  #' load_outsample(dat = MyData, project = 'pollock', over_write = TRUE, 
   #'               compare = TRUE, y = 'OutSampleDataTable01012011')
   #'               
   #' # upload from an exisitng FishSET out-of-sample data table
