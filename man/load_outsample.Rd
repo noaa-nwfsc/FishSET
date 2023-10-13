@@ -48,7 +48,7 @@ The out-of-sample dataset is saved in the FishSET database as raw and working ta
 load_outsample(dat = "PATH/TO/DATA", project = "pollock")
 
 # upload from dataframe in working environment
-load_outsample(dat = Mydata, project = 'pollock', over_write = TRUE, 
+load_outsample(dat = MyData, project = 'pollock', over_write = TRUE, 
               compare = TRUE, y = 'OutSampleDataTable01012011')
               
 # upload from an exisitng FishSET out-of-sample data table
