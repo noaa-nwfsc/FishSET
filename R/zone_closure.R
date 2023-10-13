@@ -24,10 +24,10 @@
 #' @importFrom sf st_crs st_transform
 #' @importFrom yaml write_yaml
 #' @importFrom grDevices topo.colors
+#' @importFrom shiny dataTableOutput renderDataTable
 #' @import leaflet
-#' @import shiny
 #' @import dplyr
-#' @import DT
+
 #' @details Define zone closure scenarios. Function opens an interactive map. 
 #'   Define zone closures by clicking on one or more zones and clicking the 
 #'   'Close zones' button. To define another closure scenario, unclick zones and 
@@ -160,7 +160,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
         
         textInput('scenarioname', 'Scenario Name', value=''),
         
-        DT::dataTableOutput("mod_table", width = "50%"),
+        shiny::dataTableOutput("mod_table", width = "50%"),
         
         fluidRow(
           column(width = 2,
@@ -497,7 +497,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
             replaceData(proxy, V$data, resetPaging = FALSE)
           })
           
-          output$mod_table <- DT::renderDataTable({
+          output$mod_table <- shiny::renderDataTable({
             DT::datatable(V$data, editable = TRUE)})
           
         })
