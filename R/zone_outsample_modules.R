@@ -88,7 +88,7 @@ zone_outsample_mapServer <- function(id, clicked_ids){
 zone_outsample_tableUI <- function(id){
   ns <- NS(id)
   
-  dataTableOutput(ns("table"))
+  shiny::dataTableOutput(ns("table"))
 }
 
 zone_outsample_tableServer <- function(id, clicked_ids, outsample_table){
@@ -98,7 +98,7 @@ zone_outsample_tableServer <- function(id, clicked_ids, outsample_table){
       observeEvent(clicked_ids$ids, {
         outsample_table$data <- data.frame(Zones = as.numeric(clicked_ids$ids))
         
-        output$table <- renderDataTable(outsample_table$data, options = list(pageLength = 10))
+        output$table <- shiny::renderDataTable(outsample_table$data, options = list(pageLength = 10))
       })
     }
   )
