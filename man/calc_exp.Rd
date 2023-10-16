@@ -58,7 +58,7 @@ calc_exp(
 }
 \value{
 Returns a list containing the expected catch/revenue matrix, 
-  dummy matrix (if \code{dummy.exp = TRUE}), and list of key input args.
+  dummy matrix (if \code{dummy.exp = TRUE}), and list of input args.
 }
 \description{
 Calculate expected catch/revenue

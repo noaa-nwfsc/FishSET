@@ -20,7 +20,7 @@
 #' @importFrom lubridate floor_date year years %m-%
 #' @importFrom stats aggregate lm coef na.pass
 #' @returns Returns a list containing the expected catch/revenue matrix, 
-#'   dummy matrix (if \code{dummy.exp = TRUE}), and list of key input args. 
+#'   dummy matrix (if \code{dummy.exp = TRUE}), and list of input args. 
 #' 
 
 calc_exp <- function(dataset,
@@ -43,8 +43,10 @@ calc_exp <- function(dataset,
   
   # TODO: when revenue col exists, either automatically create col of ones (currently user must do this) 
   # or allow catch arg to also be revenue. Use generic name (e.g. value) 
-
+  
   # TODO: Add warning if the number of alternatives is high (or/also include in create_alternative_choice())
+  
+  catch_name <- catch # save variable name for settings
   
   dataZoneTrue <- Alt[["dataZoneTrue"]] # used for catch and other variables
   choice <- Alt[["choice"]] # used for catch and other variables
@@ -163,7 +165,7 @@ calc_exp <- function(dataset,
         sum(duplicated(df$ID) == FALSE) / length(df$ID) * 100,
         "% of observations with only single observations. Cannot use lag time for ",
         "choosen group and choice data. Setting lag time to 0."),
-      call. = FALSE)
+        call. = FALSE)
     }
     
     # empty catch ----
@@ -396,7 +398,10 @@ calc_exp <- function(dataset,
     exp_matrix <- exp_matrix[, order(colnames(exp_matrix))]
   }
   
-  
-  return(list(exp = exp_matrix, dummy = get0("dum_matrix"))
+  return(list(exp = exp_matrix, dummy = get0("dum_matrix"),
+              settings = list("catch" = catch_name, "price" = price, "defineGroup" = defineGroup, "temp.var" = temp.var, "temporal" = temporal, 
+                              "calc.method" = calc.method, "lag.method" = lag.method, "empty.catch" = empty.catch, 
+                              "empty.expectation" = empty.expectation, "temp.window" = temp.window, "temp.lag" = temp.lag, 
+                              "year.lag" = year.lag, "weight_avg" = weight_avg))
   )
 }
