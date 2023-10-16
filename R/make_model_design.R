@@ -441,8 +441,8 @@ make_model_design <-
       # prepare the ec list and expectcatchmodels for model
       exp_out <- check_exp(ec = ExpectedCatch, ec_names = expectcatchmodels)
       
-      ExpectedCatch <- exp_out$exp
-      exp_select <- exp_out$exp_select
+      ExpectedCatch <- exp_out$exp[!grepl("_settings", names(exp_out$exp))] # omit the settings output
+      exp_select <- exp_out$exp_select[!grepl("_settings", unlist(exp_out$exp_select))] # omit the settings output
       
       # Remove settings from ExpectedCatch
       nr_ind <- vapply(ExpectedCatch, function(x) {
