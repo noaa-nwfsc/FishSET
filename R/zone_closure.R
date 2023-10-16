@@ -160,7 +160,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
         
         textInput('scenarioname', 'Scenario Name', value=''),
         
-        shiny::dataTableOutput("mod_table", width = "50%"),
+        DT::dataTableOutput("mod_table"),
         
         fluidRow(
           column(width = 2,
@@ -497,7 +497,7 @@ zone_closure <- function(project, spat, cat, secondspat = NULL,
             replaceData(proxy, V$data, resetPaging = FALSE)
           })
           
-          output$mod_table <- shiny::renderDataTable({
+          output$mod_table <- DT::renderDataTable({
             DT::datatable(V$data, editable = TRUE)})
           
         })
