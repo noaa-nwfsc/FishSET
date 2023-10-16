@@ -83,6 +83,8 @@
 #'   in the FishSET database.
 #' @param spatID Required when `alt_var = 'nearest point'`. Variable in `spat` 
 #'   that identifies the individual zones or areas. 
+#' @param outsample Logical, indicating whether this is for main data or out-of
+#'   sample data.
 #' @importFrom DBI dbExecute
 #' @export create_alternative_choice
 #' @md
@@ -115,7 +117,11 @@
 #'         alt_var: \tab Identifies how to find latitude and longitude for alternative choice \cr
 #'         zoneRow: \tab Zones and choices array\cr
 #'         zone_cent: \tab Geographic centroid for each zone. Generated from [find_centroid()]\cr
-#'         fish_cent: \tab Fishing centroid for each zone. Generated from [find_fishing_centroid()]
+#'         fish_cent: \tab Fishing centroid for each zone. Generated from [find_fishing_centroid()]\cr
+#'         zone_cent_name: \tab Name of the zonal centroid table\cr
+#'         fish_cent_name: \tab Name of the fishing centroid table\cr
+#'         spat: \tab Spatial data file\cr
+#'         spatID: \tab Variable in spat that identifies individuals zones
 #'         }
 
 create_alternative_choice <- 
@@ -130,7 +136,8 @@ create_alternative_choice <-
            zone.cent.name = NULL,
            fish.cent.name = NULL,
            spat = NULL,
-           spatID = NULL) {
+           spatID = NULL,
+           outsample = FALSE) {
   
   # Call in datasets
   out <- data_pull(dat, project)
@@ -368,6 +375,13 @@ create_alternative_choice <-
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
 
+  # Check if spat and spatID are NULL
+  if(spat == "NULL"){
+    spat_out <- NULL
+  } else {
+    spat_out <- spat
+  }
+  
   # alt choice list ----
   Alt <- list(
     dataZoneTrue = dataZoneTrue, # index to identify which obs to use in model
@@ -383,7 +397,11 @@ create_alternative_choice <-
     zoneRow = zoneCount[, zoneID], # zones and choices array
     zoneID = zoneID,
     zone_cent = zone_cent,
-    fish_cent = fish_cent
+    fish_cent = fish_cent,
+    zone_cent_name = zone.cent.name,
+    fish_cent_name = fish.cent.name,
+    spat = spat_out,
+    spatID = spatID
     )
   
   # write Alt to datafile
