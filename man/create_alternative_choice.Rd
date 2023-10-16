@@ -16,7 +16,8 @@ create_alternative_choice(
   zone.cent.name = NULL,
   fish.cent.name = NULL,
   spat = NULL,
-  spatID = NULL
+  spatID = NULL,
+  outsample = FALSE
 )
 }
 \arguments{
@@ -108,6 +109,9 @@ in the FishSET database.}
 
 \item{spatID}{Required when \code{alt_var = 'nearest point'}. Variable in \code{spat}
 that identifies the individual zones or areas.}
+
+\item{outsample}{Logical, indicating whether this is for main data or out-of
+sample data.}
 }
 \value{
 Saves the alternative choice list to the FishSET database as a list.
@@ -124,7 +128,11 @@ occasion_var: \tab Identifies how to find latitude and longitude for starting po
 alt_var: \tab Identifies how to find latitude and longitude for alternative choice \cr
 zoneRow: \tab Zones and choices array\cr
 zone_cent: \tab Geographic centroid for each zone. Generated from \code{\link[=find_centroid]{find_centroid()}}\cr
-fish_cent: \tab Fishing centroid for each zone. Generated from \code{\link[=find_fishing_centroid]{find_fishing_centroid()}}
+fish_cent: \tab Fishing centroid for each zone. Generated from \code{\link[=find_fishing_centroid]{find_fishing_centroid()}}\cr
+zone_cent_name: \tab Name of the zonal centroid table\cr
+fish_cent_name: \tab Name of the fishing centroid table\cr
+spat: \tab Spatial data file\cr
+spatID: \tab Variable in spat that identifies individuals zones
 }
 }
 \description{
