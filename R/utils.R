@@ -962,6 +962,10 @@ parse_data_name <- function(dat, type, project) {
       } else if (type == "spat") {
         
         dat <- deparse(substitute(spat, rlang::caller_env())) 
+        
+      } else if (type == "outsample") {
+        
+        dat <- deparse(substitute(outsample, rlang::caller_env())) 
       }
     }
   }

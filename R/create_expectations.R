@@ -58,6 +58,9 @@
 #'   weight to days with more observations in a given zone. If \code{FALSE}, then the 
 #'   daily mean for a zone will be calculated prior to calculating the mean across the
 #'   time window.
+#' @param outsample Logical, if \code{TRUE} then generate expected catch matrix for 
+#'   out-of-sample data. If \code{FALSE} generate for main data table. Defaults to
+#'   \code{outsample = FALSE}
 #' @export create_expectations
 #' @return Function saves a list of expected catch matrices to the FishSET database
 #'   as \code{projectExpectedCatch}. The list includes 
@@ -104,7 +107,8 @@
 #'   price = NULL, defineGroup = "fleet", temp.var = "DATE_FISHING_BEGAN",
 #'   temporal = "daily", calc.method = "standardAverage", lag.method = "simple",
 #'   empty.catch = "allCatch", empty.expectation = 0.0001, temp.window = 4,
-#'   temp.lag = 2, year.lag = 0, dummy.exp = FALSE, replace.output = FALSE
+#'   temp.lag = 2, year.lag = 0, dummy.exp = FALSE, replace.output = FALSE,
+#'   weight_avg = FALSE, outsample = FALSE
 #' )
 #' }
 #'
@@ -127,7 +131,8 @@ create_expectations <-
            dummy.exp = FALSE,
            default.exp = FALSE,
            replace.output = TRUE,
-           weight_avg = FALSE) {
+           weight_avg = FALSE,
+           outsample = FALSE) {
   
   # TODO: custom names, need exp.name arg
 
@@ -142,10 +147,18 @@ create_expectations <-
   # Call in data sets
   out <- data_pull(dat, project = project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main", project)
   
-  Alt <- unserialize_table(paste0(project, "AltMatrix"), project)
-
+  if(!outsample){ # in-sample
+    dat <- parse_data_name(dat, "main", project)  
+    Alt <- unserialize_table(paste0(project, "AltMatrix"), project)
+      
+  } else { # out-of-sample
+    dat <- parse_data_name(dat, "outsample", project)  
+    Alt <- unserialize_table(paste0(project, "AltMatrixOutSample"), project)
+    
+  }
+  
+  
   # checks ----
   
   column_check(dataset, c(catch, price, temp.var, defineGroup))
@@ -288,8 +301,15 @@ create_expectations <-
     exp1_settings = user_exp$settings
   )
   
-  single_sql <- paste0(project, "ExpectedCatch")
-
+  if(!outsample){
+    single_sql <- paste0(project, "ExpectedCatch")
+    
+  } else {
+    single_sql <- paste0(project, "ExpectedCatchOutSample")
+    
+  }
+  
+  
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
@@ -353,14 +373,18 @@ create_expectations <-
     params = list(data = list(serialize(ExpectedCatch, NULL)))
   )
   
-  message('Expected catch/revenue matrix saved to FishSET database')
-
+  if(!outsample){
+    message('Expected catch/revenue matrix saved to FishSET database')  
+  } else {
+    message('Out-of-sample expected catch/revenue matrix saved to FishSET database')  
+  }
+  
   create_expectations_function <- list()
   create_expectations_function$functionID <- "create_expectations"
   create_expectations_function$args <- list(
     dat, project, catch, price, defineGroup, temp.var, temporal, calc.method, 
     lag.method, empty.catch, empty.expectation, temp.window, temp.lag, year.lag, 
-    dummy.exp, default.exp, replace.output
+    dummy.exp, default.exp, replace.output, weight_avg, outsample
   )
   create_expectations_function$kwargs <- list()
 
