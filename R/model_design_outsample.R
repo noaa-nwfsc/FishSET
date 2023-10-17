@@ -26,7 +26,7 @@ model_design_outsample <- function(project, mod.name, use.scalers = FALSE, scale
     stop('A filtered out-of-sample dataset is required for model design. First run filter_outsample().')
   }
   
-
+  
   # Get metadata for selected model -----------------------------------------------------------------------------------------------------------------
   # Pull model design for all saved models
   if (table_exists(paste0(project, "ModelInputData"), project)) {
@@ -43,7 +43,7 @@ model_design_outsample <- function(project, mod.name, use.scalers = FALSE, scale
     {mdf <- mdf[[which(mdf_n == mod.name)]]},
     error = function(e) {flag <<- 1}
   )
-
+  
   if(flag == 1){
     stop('Model not found.')
   }
@@ -63,14 +63,71 @@ model_design_outsample <- function(project, mod.name, use.scalers = FALSE, scale
   # Create alternative choice for out-of-sample data ------------------------------------------------------------------------------------------------
   # Note that this assumes the spatial data file contains all zones (in-sample and out-of-sample)
   # Read main alt choice matrix and extract settings
-  tmpAlt <- unserialize_table(paste0(project,"AltMatrix"), project)
+  alt_insample <- unserialize_table(paste0(project,"AltMatrix"), project)
   
-  # # Create out-of-sample alternative choice matrix
-  # create_alternative_choice(dat, project, occasion = tmpAlt$occasion, occasion_var = tmpAlt$occasion_var,
-  #                           alt_var = tmpAlt$alt_var, dist.unit = tmpAlt$altChoiceUnits, min.haul = 120, zoneID = tmpAlt$zoneID,
-  #                           zone.cent.name = tmpAlt$zone_cent_name, fish.cent.name = tmpAlt$fish_cent_name,
-  #                           spat = tmpAlt$spat, spatID = tmpAlt$spatID)
-
+  # Create out-of-sample alternative choice matrix
+  create_alternative_choice(outsample_dat, project, occasion = alt_insample$occasion, occasion_var = alt_insample$occasion_var,
+                            alt_var = alt_insample$alt_var, dist.unit = alt_insample$altChoiceUnits, min.haul = 0, zoneID = alt_insample$zoneID,
+                            zone.cent.name = alt_insample$zone_cent_name, fish.cent.name = alt_insample$fish_cent_name,
+                            spat = alt_insample$spat, spatID = alt_insample$spatID, outsample = TRUE)
+  
+  
+  # Create expected catch matrix for out-of-sample data ---------------------------------------------------------------------------------------------
+  # only generate the necessary catch matrices
+  if(!is.null(e_settings)){
+    
+    ## check for default matrices ----
+    defaults_opts <- c("recent","older","oldest","logbook")
+    defaults <- e_list[which(e_list %in% defaults_opts)]
+    
+    # remove defaults from e_list
+    e_list <- e_list[which(!(e_list %in% defaults))]
+    
+    if(is_empty(defaults)){ # no defaults
+      default.exp <- FALSE
+      
+    } else { # get the defaults
+      if(length(defaults) == 4){ # all default options
+        default.exp <- TRUE
+        
+      } else { # default options
+        default.exp <- defaults
+        
+      }
+    }
+    
+    
+    # iterate through list and create expected catch matrices ----
+    for(i in 1:length(e_list)){
+      
+      # Get settings
+      tmp_settings <- e_settings[paste0(e_list[i], "_settings")][[1]]
+      
+      if(is.null(tmp_settings$empty.catch)){ # set to NA if NULL, calc_exp() should do this, but just to be sure do it here.
+        tmp_settings$empty.catch <- NA
+      }
+      
+      if(i > 1){ # only create defaults for the first exp matrix
+        default.exp <- FALSE
+      }
+      
+      create_expectations(dat = outsample_dat, project = project, catch = tmp_settings$catch, price = tmp_settings$price,
+                          defineGroup = tmp_settings$defineGroup, temp.var = tmp_settings$temp.var, temporal = tmp_settings$temporal,
+                          calc.method = tmp_settings$calc.method, lag.method = tmp_settings$lag.method, empty.catch = tmp_settings$empty.catch,
+                          empty.expectation = tmp_settings$empty.expectation, temp.window = tmp_settings$temp.window,
+                          temp.lag = tmp_settings$temp.lag, year.lag = tmp_settings$year.lag, dummy.exp = tmp_settings$dummy.exp,
+                          default.exp = default.exp, replace.output = TRUE, weight_avg = tmp_settings$weight_avg, outsample = TRUE)
+    }
+  }
+  
+  
+  # Make model design -------------------------------------------------------------------------------------------------------------------------------
+  outsample_modname <- paste0(mod.name,"_outsample")
+  
+  make_model_design(project = project, catchID = mdf$catchID, likelihood = mdf$likelihood, initparams = mdf$initparams,
+                    optimOpt = mdf$optimOpt, methodname = mdf$methodname, mod.name = outsample_modname,
+                    vars1 = mdf$vars1, vars2 = mdf$vars2, priceCol = mdf$priceCol, expectcatchmodels = mdf$expectcatchmodels,
+                    startloc = mdf$startloc, polyn = mdf$polyn, spat = mdf$spat, spatID = mdf$spatID, crs = mdf$crs, outsample = TRUE)
   
   
 }
