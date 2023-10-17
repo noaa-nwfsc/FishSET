@@ -69,6 +69,8 @@
 #'   choice matrix (see [create_alternative_choice()]). Defaults to `NULL`.
 #' @param crs coordinate reference system to be assigned when creating the 
 #'   distance matrix. Passed on to [create_dist_matrix()].
+#' @param outsample Logical, indicates whether the model design is for main data (\code{FALSE})
+#'   or out-of-sample data (\code{TRUE}). The default is \code{outsample = FALSE}.
 #' @importFrom DBI dbGetQuery dbExecute dbListTables
 #' @export make_model_design
 #' @md
@@ -190,34 +192,45 @@
 #'   Model design list: \cr
 #'   \tabular{rlll}{
 #'     likelihood: \tab Name of likelihood function\cr
-#'     choice: \tab Data corresponding to actual zonal choice\cr
 #'     catch: \tab Data corresponding to actual zonal catch\cr
-#'     scales: \tab Scale vectors to put catch data, zonal data, and other data 
-#'     on same scale\cr
+#'     catchID: \tab Character for the name of the variable with catch data\cr
+#'     choice: \tab Data corresponding to actual zonal choice\cr
 #'     initparms: \tab Initial parameter values\cr
 #'     optimOpt: \tab Optimization options\cr
 #'     methodname: \tab Optimization method\cr
 #'     mod.name: \tab Model name for referencing\cr
+#'     vars1: \tab Character vector for variables with 'travel-distance' variables \cr
+#'     vars2: \tab Character vector for additional variables \cr
+#'     priceCol: \tab Variable in dat with price information \cr
+#'     mod.date:\tab Date the model was designed \cr
+#'     startingloc:\tab starting locations \cr
+#'     scales: \tab Scale vectors to put catch data, zonal data, and other data on same scale\cr
 #'     distance: \tab Data corresponding to distance\cr
 #'     instances: \tab Number of observations\cr
-#'     alt: \tab Number of alternative zones\cr
+#'     alts: \tab Number of alternative zones\cr
 #'     epmDefaultPrice: \tab Price data\cr
 #'     dataZoneTrue: \tab Vector of 0/1 indicating whether the data from that 
 #'     zone is to be included based on the minimum number of hauls.\cr
-#'     numOfNecessary: \tab Minimum number of hauls/trips per zone for data from 
-#'     that zone to be included\cr
 #'     typeOfNecessary: \tab Whether data is at haul or trip level\cr
 #'     altChoiceType: \tab Function choice. Set to distance\cr
 #'     altChoiceUnits: \tab Units of distance\cr
-#'     altToLocal: \tab Identifies how to find lat/lon for starting point. Can 
-#'     be zonal centroid, port, etc\cr
-#'     altToLocal2: \tab Identifies how to find lat/lon for alternative choices 
-#'     such as 'Centroid of Zonal Assignment'\cr
+#'     occasion: \tab The choice occasion\cr     
+#'     occasion_var: \tab Character for variable with choice occasion\cr     
+#'     alt_choice: \tab Alternative choice matrix\cr
 #'     bCHeader: \tab Variables to include in the model that do not vary by zone. 
 #'     Includes independent variables and interactions\cr
 #'     gridVaryingVariables: \tab Variables to include in the model that do vary 
-#'     by zone such as expected catch (from [create_expectations()] function)
+#'     by zone such as expected catch (from [create_expectations()] function)\cr
+#'     startloc: \tab Variable in dat identifying location when choice of where to fish next was made\cr
+#'     polyn: \tab Numeric, correction polynomial degree\cr
+#'     spat: \tab A spatial data file\cr
+#'     spatID: \tab Variable in spat that identifies areas or zones \cr
+#'     crs: \tab coordinate reference system\cr
+#'     gridVaryingVariables: \tab Area-specific variables\cr
+#'     expectcatchmodels: \tab List of expected catch matrices\cr
 #'   }
+#'   
+#'   
 #' @examples
 #' \dontrun{
 #' make_model_design("pollock", catchID= "OFFICIAL_TOTAL_CATCH",  
@@ -244,7 +257,8 @@ make_model_design <-
            polyn = NULL,
            spat = NULL,
            spatID = NULL,
-           crs = NULL) {
+           crs = NULL,
+           outsample = FALSE) {
     
   # TODO: use formula method for specifying model
   # TODO: standardize arg names: use camel-case or period-case etc.
@@ -257,8 +271,12 @@ make_model_design <-
     stop("Final dataset does not exist. Run check_model_data() to save the final",
          " dataset to the FishSET Database before modeling.")
   } 
-    
-  dataset <- table_view(paste0(project, "MainDataTable_final"), project)
+
+  if(!outsample){
+    dataset <- table_view(paste0(project, "MainDataTable_final"), project)  
+  } else {
+    suppressWarnings(dataset <- readRDS(paste0(locoutput(project), project, "filtered_outsample.rds")))
+  }
   
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
@@ -378,16 +396,30 @@ make_model_design <-
  
   # Alt choice ----
   # get alt choice list
-  if (table_exists(paste0(project, "AltMatrix"), project)) {
+  if(!outsample){ # in-sample
+    if (table_exists(paste0(project, "AltMatrix"), project)) {
+      
+      Alt <- unserialize_table(paste0(project, "AltMatrix"), project)
+      
+    } else {
+      
+      stop("Alternative Choice Matrix does not exist. Please run the ", 
+           "create_alternative_choice() function.", call. = FALSE)
+    }  
     
-    Alt <- unserialize_table(paste0(project, "AltMatrix"), project)
-    
-  } else {
-    
-    stop("Alternative Choice Matrix does not exist. Please run the ", 
-         "create_alternative_choice() function.", call. = FALSE)
+  } else { # out-of-sample
+    if (table_exists(paste0(project, "AltMatrixOutSample"), project)) {
+      
+      Alt <- unserialize_table(paste0(project, "AltMatrixOutSample"), project)
+      
+    } else {
+      
+      stop("Out-of-sample Alternative Choice Matrix does not exist. Please run the ", 
+           "create_alternative_choice() function.", call. = FALSE)
+    }
   }
-    
+  
+
   alt_var <- Alt$alt_var
   occasion <- Alt$occasion
   occasion_var <- Alt$occasion_var
@@ -423,13 +455,25 @@ make_model_design <-
   # if (table_exists(paste0(project, "ExpectedCatch"), project) & likelihood == "logit_c") {
   if (!is_value_empty(expectcatchmodels)) {
     
-    if (!table_exists(paste0(project, "ExpectedCatch"), project)) {
+    if(!outsample){ # IN-SAMPLE 
+      if (!table_exists(paste0(project, "ExpectedCatch"), project)) {
+        
+        stop("Expected catch/revenue does not exist. Run create_expectations() ",
+             "or set 'expectcatchmodels = NULL'.", call. = FALSE)
+      }
       
-      stop("Expected catch/revenue does not exist. Run create_expectations() ",
-           "or set 'expectcatchmodels = NULL'.", call. = FALSE)
+      ExpectedCatch <- unserialize_table(paste0(project, "ExpectedCatch"), project)
+      
+    } else { # OUT-OF-SAMPLE 
+      if (!table_exists(paste0(project, "ExpectedCatchOutSample"), project)) {
+        
+        stop("Out-of-sample expected catch/revenue does not exist. Run create_expectations() ",
+             "or set 'expectcatchmodels = NULL'.", call. = FALSE)
+      }
+      
+      ExpectedCatch <- unserialize_table(paste0(project, "ExpectedCatchOutSample"), project)
     }
     
-    ExpectedCatch <- unserialize_table(paste0(project, "ExpectedCatch"), project)
       
     if (is_value_empty(expectcatchmodels)) {
       
@@ -441,8 +485,19 @@ make_model_design <-
       # prepare the ec list and expectcatchmodels for model
       exp_out <- check_exp(ec = ExpectedCatch, ec_names = expectcatchmodels)
       
-      ExpectedCatch <- exp_out$exp[!grepl("_settings", names(exp_out$exp))] # omit the settings output
-      exp_select <- exp_out$exp_select[!grepl("_settings", unlist(exp_out$exp_select))] # omit the settings output
+      if(any(grepl("_settings", names(exp_out$exp)))){ # Check if the settings are returned in exp_out
+        ExpectedCatch <- exp_out$exp[!grepl("_settings", names(exp_out$exp))] # omit the settings output
+      } else {
+        ExpectedCatch <- exp_out$exp  
+      }
+       
+      if(any(grepl("_settings", unlist(exp_out$exp_select)))){ # Check if the settings are returned in exp_out
+        exp_select <- exp_out$exp_select[!grepl("_settings", unlist(exp_out$exp_select))] # omit the settings output
+        exp_select <- list(unlist(exp_select)) # unlist and relist to make a list with a single item
+      } else {
+        exp_select <- exp_out$exp_select  
+      }
+       
       
       # Remove settings from ExpectedCatch
       nr_ind <- vapply(ExpectedCatch, function(x) {
@@ -639,11 +694,15 @@ make_model_design <-
     modelInputData_tosave <- list(
       likelihood = likelihood,
       catch = catch,
+      catchID = catchID,
       choice = as.data.frame(choice), # consider leaving as vector
       initparams = init_params, 
       optimOpt = optimOpt, 
       methodname = methodname, 
       mod.name  = mod.name,
+      vars1 = vars1,
+      vars2 = vars2,
+      priceCol = priceCol,
       mod.date = Sys.time(),
       startingloc = start_loc[zone_ind],
       scales = c(catch = yscale, zonal = mscale, griddata = r, 
@@ -662,6 +721,9 @@ make_model_design <-
       bCHeader = bCHeader,
       startloc = startloc,
       polyn = polyn,
+      spat = spatdat,
+      spatID = spatID,
+      crs = crs,
       gridVaryingVariables = ExpectedCatch,
       expectcatchmodels = exp_select
     )
