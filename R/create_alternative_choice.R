@@ -142,7 +142,13 @@ create_alternative_choice <-
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main", project)
+  
+  if(outsample){ # save dat as out-of-sample dataset
+    outsample_dat <- dat
+    dat <- parse_data_name(outsample_dat, "outsample", project)
+  } else {
+    dat <- parse_data_name(dat, "main", project)  
+  }
   
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
@@ -355,6 +361,7 @@ create_alternative_choice <-
   
   # count zones
   zoneCount <- agg_helper(dataset, value = zoneID, count = TRUE, fun = NULL)
+  
   # remove zones that don't have enough hauls and unassigned zones
   zoneCount[zoneCount$n < min.haul, zoneID] <- NA
 
@@ -372,6 +379,7 @@ create_alternative_choice <-
   # index of obs to include based on min.haul
   dataZoneTrue <- as.numeric(dataset[[zoneID]] %in% greaterNZ)
 
+  # create connection to database
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
 
@@ -404,11 +412,19 @@ create_alternative_choice <-
     spatID = spatID
     )
   
-  # write Alt to datafile
+  # write Alt to datafile ----
+  # Save table names
+  if(!outsample){
+    single_sql <- paste0(project, "AltMatrix")
+    date_sql <- paste0(project, "AltMatrix", format(Sys.Date(), format = "%Y%m%d"))  
     
-  single_sql <- paste0(project, "AltMatrix")
-  date_sql <- paste0(project, "AltMatrix", format(Sys.Date(), format = "%Y%m%d"))
+  } else {
+    single_sql <- paste0(project, "AltMatrixOutSample")
+    date_sql <- paste0(project, "AltMatrixOutSample", format(Sys.Date(), format = "%Y%m%d"))  
+    
+  }
   
+  # Remove existing tables
   if (table_exists(single_sql, project)) {
     
     table_remove(single_sql, project)
@@ -418,17 +434,22 @@ create_alternative_choice <-
     
     table_remove(date_sql, project)
   }
+  
   # Creates an undated alt matrix table (why?)
   DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(AlternativeMatrix ALT)"))
   DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:AlternativeMatrix)"),
-    params = list(AlternativeMatrix = list(serialize(Alt, NULL)))
-  )
+                 params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
   # Creates a dated alt matrix table
   DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(AlternativeMatrix ALT)"))
   DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:AlternativeMatrix)"),
-    params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
+                 params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
   
-  message('Alternative choice list saved to FishSET database')
+  if(!outsample){
+    message('Alternative choice list saved to FishSET database')  
+  } else {
+    message('Out-of-sample alternative choice list saved to FishSET database')  
+  }
+  
   # TODO: return TRUE invisibly if successful, FALSE if not (for testing and app)
 
   create_alternative_choice_function <- list()
