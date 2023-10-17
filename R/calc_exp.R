@@ -402,6 +402,6 @@ calc_exp <- function(dataset,
               settings = list("catch" = catch_name, "price" = price, "defineGroup" = defineGroup, "temp.var" = temp.var, "temporal" = temporal, 
                               "calc.method" = calc.method, "lag.method" = lag.method, "empty.catch" = empty.catch, 
                               "empty.expectation" = empty.expectation, "temp.window" = temp.window, "temp.lag" = temp.lag, 
-                              "year.lag" = year.lag, "weight_avg" = weight_avg))
+                              "year.lag" = year.lag, "dummy.exp" = dummy.exp, "weight_avg" = weight_avg))
   )
 }

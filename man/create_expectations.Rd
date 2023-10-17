@@ -22,7 +22,8 @@ create_expectations(
   dummy.exp = FALSE,
   default.exp = FALSE,
   replace.output = TRUE,
-  weight_avg = FALSE
+  weight_avg = FALSE,
+  outsample = FALSE
 )
 }
 \arguments{
@@ -97,6 +98,10 @@ given date will be included when calculating the mean, thus giving more
 weight to days with more observations in a given zone. If \code{FALSE}, then the 
 daily mean for a zone will be calculated prior to calculating the mean across the
 time window.}
+
+\item{outsample}{Logical, if \code{TRUE} then generate expected catch matrix for 
+out-of-sample data. If \code{FALSE} generate for main data table. Defaults to
+\code{outsample = FALSE}}
 }
 \value{
 Function saves a list of expected catch matrices to the FishSET database
@@ -153,7 +158,8 @@ create_expectations(pollockMainDataTable, "pollock", "OFFICIAL_TOTAL_CATCH_MT",
   price = NULL, defineGroup = "fleet", temp.var = "DATE_FISHING_BEGAN",
   temporal = "daily", calc.method = "standardAverage", lag.method = "simple",
   empty.catch = "allCatch", empty.expectation = 0.0001, temp.window = 4,
-  temp.lag = 2, year.lag = 0, dummy.exp = FALSE, replace.output = FALSE
+  temp.lag = 2, year.lag = 0, dummy.exp = FALSE, replace.output = FALSE,
+  weight_avg = FALSE, outsample = FALSE
 )
 }
 
