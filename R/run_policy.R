@@ -97,7 +97,7 @@ run_policy <- function(project,
   #2. Force users to look at closure file
   # This is done in the zone closure tab
   
-  #3. Run model_prediction function
+  #3. Run model_prediction function ----
   model_prediction(project = project,
                    mod.name = modname,
                    closures = closures,
