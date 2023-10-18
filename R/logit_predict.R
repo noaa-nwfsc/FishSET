@@ -10,15 +10,25 @@
 #' @param use.scalers Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
 #' numeric vector unless specified with \code{scaler.func}.
 #' @param scaler.func Input for \code{create_model_input()}. Function to calculate rescaling factors.
+#' @param outsample Logical, \code{FALSE} if predicting probabilities for main data, and \code{TRUE} if predicting for out-of-sample data. \code{outsample = FALSE} 
+#'   is the default setting.
 #' @return Returns probability of logit model by choice
 #' @export
 #' @keywords internal
 
 
-logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = NULL){
+logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = NULL, outsample = FALSE){
   
-  # Get parameter estimates
-  logitEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))]), show_col_types = FALSE)
+  # Check if this is for in-sample or out-of-sample data
+  if(!outsample){ # IN-SAMPLE
+    # Get parameter estimates
+    logitEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))]), show_col_types = FALSE)  
+    
+  } else { # OUT-OF-SAMPLE
+    main_mod_name <- gsub("_outsample", "", mod.name)  
+    # Get parameter estimates
+    logitEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(main_mod_name, project_files(project))]), show_col_types = FALSE)  
+  }
   
   # Get model data
   # Including data compile, distance, gridvarying, interaction term
@@ -39,7 +49,7 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
   griddat <- as.matrix(do.call(cbind, mod.dat$otherdat$griddat))
   intdat <- as.matrix(do.call(cbind, mod.dat$otherdat$intdat))
   
-  # zoneID <- logitEq$X # WHAT IS THIS SUPPOSED TO BE???
+  # zoneID <- logitEq$X # WHAT IS THIS SUPPOSED TO BE??? Maybe we can delete?
   zoneID <- sort(unique(mod.dat$choice.table$choice))
   
   # Get the number of variables
@@ -93,7 +103,7 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
   pLogit <- numerLogit/(matrix(1,1,alts) %x% denomLogit)
   probLogit <- colMeans(pLogit)
   probLogit <- data.frame(zoneID = zoneID, prob = probLogit)
-  return(list(probLogit, mod.dat))
+  return(list(probLogit, mod.dat, pLogit))
   
   # p <- length(logitEq)
   # betaLogit <- logitEq[1:alts]
