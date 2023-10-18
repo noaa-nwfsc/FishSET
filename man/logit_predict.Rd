@@ -4,7 +4,13 @@
 \alias{logit_predict}
 \title{Logit predict}
 \usage{
-logit_predict(project, mod.name, use.scalers = FALSE, scaler.func = NULL)
+logit_predict(
+  project,
+  mod.name,
+  use.scalers = FALSE,
+  scaler.func = NULL,
+  outsample = FALSE
+)
 }
 \arguments{
 \item{project}{Name of project}
@@ -18,6 +24,9 @@ Use \code{table_view("modelChosen", project)} to view a table of saved models.}
 numeric vector unless specified with \code{scaler.func}.}
 
 \item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
+
+\item{outsample}{Logical, \code{FALSE} if predicting probabilities for main data, and \code{TRUE} if predicting for out-of-sample data. \code{outsample = FALSE} 
+is the default setting.}
 }
 \value{
 Returns probability of logit model by choice

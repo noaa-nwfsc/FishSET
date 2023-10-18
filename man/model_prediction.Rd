@@ -21,6 +21,8 @@ model_prediction(
 one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
 Use \code{table_view("modelChosen", project)} to view a table of saved models.}
 
+\item{closures}{closure scenarios}
+
 \item{enteredPrice}{NEED TO FIGURE OUT WHAT EXACTLY THIS IS}
 
 \item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 

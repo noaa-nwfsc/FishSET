@@ -6172,7 +6172,7 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                        
         if (mod_rv$mod_design) {
           
-          mod_rv$mod_names <- model_names(project$name)
+          mod_rv$mod_names <- model_names("scallop1")[!grepl("_outsample",model_names("scallop1"))]
         }
         
       }, ignoreNULL = TRUE, ignoreInit = TRUE, priority = -1) # run after other events

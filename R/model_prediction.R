@@ -17,6 +17,7 @@
 #'    Leave \code{mod.name} empty to use the name of the saved "best" model. If more than
 #'   one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
 #'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
+#' @param closures closure scenarios
 #' @param enteredPrice NEED TO FIGURE OUT WHAT EXACTLY THIS IS
 #' @param use.scalers Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
 #' numeric vector unless specified with \code{scaler.func}.
