@@ -128,6 +128,4 @@ model_design_outsample <- function(project, mod.name, use.scalers = FALSE, scale
                     optimOpt = mdf$optimOpt, methodname = mdf$methodname, mod.name = outsample_modname,
                     vars1 = mdf$vars1, vars2 = mdf$vars2, priceCol = mdf$priceCol, expectcatchmodels = mdf$expectcatchmodels,
                     startloc = mdf$startloc, polyn = mdf$polyn, spat = mdf$spat, spatID = mdf$spatID, crs = mdf$crs, outsample = TRUE)
-  
-  
 }
