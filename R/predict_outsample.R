@@ -29,6 +29,10 @@
 predict_outsample <- function(project, mod.name, use.scalers = FALSE, scaler.func = NULL){
 
   # Check that the outsample model design exists ----
+  if(!grepl("_outsample", mod.name)){
+    stop('Selected model is not an out-of-sample data model.')
+  }
+  
   # Pull model design for all saved models
   if (table_exists(paste0(project, "ModelInputData"), project)) {
     mdf <- model_design_list(project)
@@ -53,10 +57,10 @@ predict_outsample <- function(project, mod.name, use.scalers = FALSE, scaler.fun
   # Run logit model ----
   if(grepl('logit', mdf$likelihood)){
     # Run logit model prediction
-    temp <- logit_predict(project = project, mod.name = mod.name, use.scalers = use.scalers, scaler.func = scaler.func, outsample = TRUE)  
-    probLogit <- temp[[1]] # Predicted probabilities of selecting each zone
-    modelDat <- temp[[2]] # Model data
-    probObs <- temp[[3]] # Predicted probabilities for each observation
+    logitOutput <- logit_predict(project = project, mod.name = mod.name, use.scalers = use.scalers, scaler.func = scaler.func, outsample = TRUE)  
+    probLogit <- logitOutput[[1]] # Predicted probabilities of selecting each zone
+    modelDat <- logitOutput[[2]] # Model data
+    probObs <- logitOutput[[3]] # Predicted probabilities for each observation
     
   }
   
@@ -64,7 +68,60 @@ predict_outsample <- function(project, mod.name, use.scalers = FALSE, scaler.fun
 
   
   # Calculate performance metrics ----
+  # Find the zone with maximum fishing probability for each observation
+  colnames(probObs) <- probLogit$zoneID
+  tmpProbs <- cbind(probObs, apply(probObs, 1, max))
+  tmpProbs <- tmpProbs[, 1:ncol(tmpProbs)-1] / tmpProbs[, ncol(tmpProbs)]
+  tmpProbs[tmpProbs != 1] <- 0
   
+  # Create a confusion matrix with predicted zones as rows and choice as columns
+  pred.df <- data.frame(pred.zone = apply(tmpProbs, 1, FUN=function(x){colnames(tmpProbs)[x == 1]}),
+                        choice = mdf$choice)
+  levels <- sort(union(pred.df$pred.zone, pred.df$choice)) # need make sure the rows and columns in the table below match
+  conf.matrix <- table(factor(pred.df$pred.zone, levels), factor(pred.df$choice, levels)) # confusion matrix
+
+  # True positives
+  tp <- diag(pred.table)
+  # False positives
+  fp <- rowSums(pred.table) - tp
+  # False negatives
+  fn <- colSums(pred.table) - tp
+  # True negatives
+  tn <- sum(pred.table) - tp - fp - fn
   
+  # accuracy
+  acc <- (tp + tn) / (tp + fp + tn + fn)
   
+  # balanced accuracy (accounts for positive and negative outcomes)
+  bacc <- (tpr + tnr) / 2
+  
+  # error rate (complement of accuracy)
+  err <- (fp + fn) / (tp + fp + tn + fn)
+  
+  # false positive rate, fallout
+  fpr <- fp / (fp + tn)
+  
+  # true positive rate, recall, sensitivity
+  tpr <- tp / (tp + fn)
+  
+  # false negative rate, miss
+  fnr <- fn / (tp + fn)
+  
+  # true negative rate, specificity
+  tnr <- tn / (fp + tn)
+  
+  # positive predictive value (precision)
+  ppv <- tp / (tp + fp)
+  
+  # phi correlation coefficient (1 indicates perfect prediction, 0 indicates random prediction, < 0 indicates worse than random prediction)
+  phi <- ((tp * tn) - (fp * fn)) / sqrt((tp + fn) * (tn + fp) * (tp + fp) * (tn + fn))
+  
+  # F1 score ('mean' of precision and recall)
+  f1 <- 2 * (ppv * tpr) / (ppv + tpr)
+  
+  outsample.df <- data.frame(zone = levels, prob = probLogit$prob, accuracy = acc, balanced.accuracy = bacc, precision = ppv, recall = tpr,
+                             specificity = tnr, error.rate = err, false.pos.rate  = fpr, false.neg.rate = fnr, 
+                             phi.corr = phi, f1.score = f1, row.names = NULL)
+  
+  return(outsample.df)
 }
