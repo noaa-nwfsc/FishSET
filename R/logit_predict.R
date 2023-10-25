@@ -12,12 +12,14 @@
 #' @param scaler.func Input for \code{create_model_input()}. Function to calculate rescaling factors.
 #' @param outsample Logical, \code{FALSE} if predicting probabilities for main data, and \code{TRUE} if predicting for out-of-sample data. \code{outsample = FALSE} 
 #'   is the default setting.
+#' @param outsample.mod.name If predicting out-of-sample data, provide the out-of-sample model design name. \code{outsample.mod.name = NULL}
+#'   by default.
 #' @return Returns probability of logit model by choice
 #' @export
 #' @keywords internal
 
 
-logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = NULL, outsample = FALSE){
+logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = NULL, outsample = FALSE, outsample.mod.name = NULL){
   
   # Check if this is for in-sample or out-of-sample data
   if(!outsample){ # IN-SAMPLE
@@ -25,9 +27,10 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
     logitEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))]), show_col_types = FALSE)  
     
   } else { # OUT-OF-SAMPLE
-    main_mod_name <- gsub("_outsample", "", mod.name)  
     # Get parameter estimates
-    logitEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(main_mod_name, project_files(project))]), show_col_types = FALSE)  
+    logitEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))]), show_col_types = FALSE)  
+    # Overwrite mod.name as the out-of-sample model design name
+    mod.name <- outsample.mod.name
   }
   
   # Get model data
