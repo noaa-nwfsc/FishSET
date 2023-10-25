@@ -7,6 +7,8 @@
 #'   of the saved "best" model. Leave \code{mod.name} empty to use the saved "best" model. If more than
 #'   one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
 #'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
+#' @param outsample.mod.name Name assigned to out-of-sample model design. Must be unique and not already exist in model design list.
+#'   If \code{outsample.mod.name = NULL} then a default name will be chosen based on mod.name, which is the default value. 
 #' @param use.scalers Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
 #' numeric vector unless specified with \code{scaler.func}.
 #' @param scaler.func Input for \code{create_model_input()}. Function to calculate rescaling factors.
@@ -26,7 +28,7 @@
 #' }
  
 
-model_design_outsample <- function(project, mod.name, use.scalers = FALSE, scaler.func = NULL){
+model_design_outsample <- function(project, mod.name, outsample.mod.name = NULL, use.scalers = FALSE, scaler.func = NULL){
   
   # Load outsample data -----------------------------------------------------------------------------------------------------------------------------
   flag <- 0
@@ -135,10 +137,12 @@ model_design_outsample <- function(project, mod.name, use.scalers = FALSE, scale
   
   
   # Make model design -------------------------------------------------------------------------------------------------------------------------------
-  outsample_modname <- paste0(mod.name,"_outsample")
+  if(is.null(outsample.mod.name)){
+    outsample.mod.name <- paste0(mod.name,"_outsample")  
+  } # else do nothing and use the provided name
   
   make_model_design(project = project, catchID = mdf$catchID, likelihood = mdf$likelihood, initparams = mdf$initparams,
-                    optimOpt = mdf$optimOpt, methodname = mdf$methodname, mod.name = outsample_modname,
+                    optimOpt = mdf$optimOpt, methodname = mdf$methodname, mod.name = outsample.mod.name,
                     vars1 = mdf$vars1, vars2 = mdf$vars2, priceCol = mdf$priceCol, expectcatchmodels = mdf$expectcatchmodels,
                     startloc = mdf$startloc, polyn = mdf$polyn, spat = mdf$spat, spatID = mdf$spatID, crs = mdf$crs, outsample = TRUE)
 }

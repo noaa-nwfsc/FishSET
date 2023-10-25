@@ -7,6 +7,7 @@
 model_design_outsample(
   project,
   mod.name,
+  outsample.mod.name = NULL,
   use.scalers = FALSE,
   scaler.func = NULL
 )
@@ -18,6 +19,9 @@ model_design_outsample(
 of the saved "best" model. Leave \code{mod.name} empty to use the saved "best" model. If more than
 one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
 Use \code{table_view("modelChosen", project)} to view a table of saved models.}
+
+\item{outsample.mod.name}{Name assigned to out-of-sample model design. Must be unique and not already exist in model design list.
+If \code{outsample.mod.name = NULL} then a default name will be chosen based on mod.name, which is the default value.}
 
 \item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
 numeric vector unless specified with \code{scaler.func}.}

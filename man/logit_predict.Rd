@@ -9,7 +9,8 @@ logit_predict(
   mod.name,
   use.scalers = FALSE,
   scaler.func = NULL,
-  outsample = FALSE
+  outsample = FALSE,
+  outsample.mod.name = NULL
 )
 }
 \arguments{
@@ -27,6 +28,9 @@ numeric vector unless specified with \code{scaler.func}.}
 
 \item{outsample}{Logical, \code{FALSE} if predicting probabilities for main data, and \code{TRUE} if predicting for out-of-sample data. \code{outsample = FALSE} 
 is the default setting.}
+
+\item{outsample.mod.name}{If predicting out-of-sample data, provide the out-of-sample model design name. \code{outsample.mod.name = NULL}
+by default.}
 }
 \value{
 Returns probability of logit model by choice
