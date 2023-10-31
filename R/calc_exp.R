@@ -56,9 +56,9 @@ calc_exp <- function(dataset,
   if (is_value_empty(defineGroup)) {
     # just use an id=ones to get all info as one group
     fleet <- rep(1, nrow(dataset))
+    
     # Define by group case
   } else {
-    
     fleet <- as.integer(as.factor(dataset[[defineGroup]]))
   }
   
@@ -232,57 +232,62 @@ calc_exp <- function(dataset,
     }
     
     # Moving window ----
-    
+
     window_ave <- function(x, weight_avg) {
       
       ind <-
-        df$dateFloor >= x %m-% lubridate::years(year.lag) - temp.lag - temp.window + 1 &
-        df$dateFloor <= x %m-% lubridate::years(year.lag) - temp.lag
+        df$dateFloor >= ((x - lubridate::years(year.lag)) - temp.lag - temp.window + 1) &
+        df$dateFloor <= ((x - lubridate::years(year.lag)) - temp.lag)
+      
+      new_df <- df[ind, ]
+      new_df$dateFloor = as.character(new_df$dateFloor)
       
       # TODO: simplify
       if (is_value_empty(defineGroup)) {
-        
+
         if (sum(ind) == 0) { # empty dataframe
-          
+
           return(data.frame(areas = altc_names, catch = NA))
         }
-        
+
         # Note: could remove fleet
         if(weight_avg == FALSE){
           # Get the average for each date-area combination prior to calculating the window average
-          tmp_df <- aggregate(catch ~ areas + fleet + dateFloor, data = df[ind, ], 
+          tmp_df <- aggregate(catch ~ areas + fleet + dateFloor, data = new_df,
                               FUN = mean, na.action = stats::na.pass, na.rm = TRUE)
-          
-          aggregate(catch ~ areas + fleet, data = tmp_df, 
-                    FUN = mean, na.action = stats::na.pass, na.rm = TRUE)  
+
+          aggregate(catch ~ areas + fleet, data = tmp_df,
+                    FUN = mean, na.action = stats::na.pass, na.rm = TRUE)
         } else {
-          
-          aggregate(catch ~ areas + fleet, data = df[ind, ], 
-                    FUN = mean, na.action = stats::na.pass, na.rm = TRUE)  
+
+          aggregate(catch ~ areas + fleet, data = new_df,
+                    FUN = mean, na.action = stats::na.pass, na.rm = TRUE)
         }
-        
+
       } else {
-        
+
         if (sum(ind) == 0) { # empty dataframe
           # TODO: update for fleet
           return(data.frame(ID = altc_names, catch = NA))
         }
-        
+
         if(weight_avg == FALSE){
-          tmp_df <- aggregate(catch ~ ID, dateFloor, data = df[ind, ], 
-                              FUN = mean, na.action = na.pass, na.rm = TRUE)  
-          
-          aggregate(catch ~ ID, data = tmp_df, 
+          tmp_df <- aggregate(catch ~ ID, dateFloor, data = new_df,
+                              FUN = mean, na.action = na.pass, na.rm = TRUE)
+
+          aggregate(catch ~ ID, data = tmp_df,
                     FUN = mean, na.action = na.pass, na.rm = TRUE)
         } else {
-          aggregate(catch ~ ID, data = df[ind, ], 
-                    FUN = mean, na.action = na.pass, na.rm = TRUE)  
+          aggregate(catch ~ ID, data = new_df,
+                    FUN = mean, na.action = na.pass, na.rm = TRUE)
         }
       }
     }
     
     # list entries contain the window avg for each day
+    # tic()
     ave_list <- lapply(unique(df$dateFloor), window_ave, weight_avg = weight_avg)
+    # toc()
     
     # add loop to extract values 
     
@@ -385,10 +390,7 @@ calc_exp <- function(dataset,
     }
     
     # convert to occasion (n obs by altc) ----
-    # TODO: find faster method for this
-    
-    exp_matrix <- lapply(date, function(x) {
-      
+    exp_matrix <- lapply(as.character(date), function(x) {
       ind <- which(exp_dates == x)
       ec_small[ind, , drop = FALSE]
     })
