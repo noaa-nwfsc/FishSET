@@ -275,7 +275,6 @@ create_expectations <-
                        empty.catch = empty.catch, empty.expectation = empty.expectation,
                        dummy.exp = dummy.exp, weight_avg = weight_avg, Alt = Alt)
   
-  
   r <- nchar(sub("\\.[0-9]+", "", mean(as.matrix(user_exp$exp), na.rm = TRUE))) 
   sscale <- 10^(r - 1)
 
