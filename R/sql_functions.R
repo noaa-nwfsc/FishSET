@@ -818,3 +818,50 @@ model_design_list <- function(project, name = NULL) {
     unserialize_table(paste0(project, 'ModelInputData'), project)
   }
 }
+
+
+remove_model_design <- function(project, names) {
+  #' Remove a model design from list in ModelInputData table
+  #' 
+  #' @param project Name of project.
+  #' @param names Names of model designs to be deleted from the table
+  #' @export
+  #'   
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
+  single_sql <- paste0(project, "ModelInputData")
+  
+  if(!table_exists(single_sql, project)){
+    if(isRunning()){
+      showNotification(paste0(single_sql, " does not exist in database."), type = "error")
+    } else {
+      stop(paste0(single_sql, " does not exist in database."))
+    }
+    
+  } else {
+    # Load data and find models to delete
+    ModelInputData <- model_design_list(project)
+    mod_names <- model_names(project)
+    del_mods <- which(mod_names %in% names)
+    
+    if(is_empty(del_mods)){
+      if(isRunning()){
+        showNotification("Model(s) do not exist in ModelInputData table.", type = "warning")
+      } else {
+        stop("Model(s) do not exist in ModelInputData table.")
+      }
+    }
+    
+    # Remove models from input data list
+    ModelInputData[del_mods] <- NULL
+    
+    # Now remove old table from sql database
+    table_remove(single_sql, project)
+    
+    # Add table with updated input data
+    DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
+    DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"),
+                   params = list(ModelInputData = list(serialize(ModelInputData, NULL))))
+  }
+}
