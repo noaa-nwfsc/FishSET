@@ -71,6 +71,8 @@
 #'   distance matrix. Passed on to [create_dist_matrix()].
 #' @param outsample Logical, indicates whether the model design is for main data (\code{FALSE})
 #'   or out-of-sample data (\code{TRUE}). The default is \code{outsample = FALSE}.
+#' @param CV_dat Dataframe that contains training or testing data for k-fold cross validation. Defaults to
+#'   \code{CV_dat = NULL}.
 #' @importFrom DBI dbGetQuery dbExecute dbListTables
 #' @export make_model_design
 #' @md
@@ -258,7 +260,8 @@ make_model_design <-
            spat = NULL,
            spatID = NULL,
            crs = NULL,
-           outsample = FALSE) {
+           outsample = FALSE,
+           CV_dat = NULL) {
     
   # TODO: use formula method for specifying model
   # TODO: standardize arg names: use camel-case or period-case etc.
@@ -274,8 +277,10 @@ make_model_design <-
 
   if(!outsample){
     dataset <- table_view(paste0(project, "MainDataTable_final"), project)  
-  } else {
+  } else if (outsample & is.null(CV_dat)) {
     suppressWarnings(dataset <- readRDS(paste0(locoutput(project), project, "filtered_outsample.rds")))
+  } else if (outsample & !is.null(CV_dat)) {
+    dataset <- CV_dat # assign cross validation dataset
   }
   
   spat_out <- data_pull(spat, project)
