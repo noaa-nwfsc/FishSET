@@ -21,7 +21,8 @@ make_model_design(
   spat = NULL,
   spatID = NULL,
   crs = NULL,
-  outsample = FALSE
+  outsample = FALSE,
+  CV_dat = NULL
 )
 }
 \arguments{
@@ -109,6 +110,9 @@ distance matrix. Passed on to \code{\link[=create_dist_matrix]{create_dist_matri
 
 \item{outsample}{Logical, indicates whether the model design is for main data (\code{FALSE})
 or out-of-sample data (\code{TRUE}). The default is \code{outsample = FALSE}.}
+
+\item{CV_dat}{Dataframe that contains training or testing data for k-fold cross validation. Defaults to
+\code{CV_dat = NULL}.}
 }
 \value{
 Function creates the model matrix list that contains the data and
