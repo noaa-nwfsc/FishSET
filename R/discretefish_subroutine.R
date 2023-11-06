@@ -38,6 +38,8 @@
 #'   function, such as mean, or a user-defined function. User-defined functions 
 #'   must be specified as \code{scaler.fun = function(x, FUN = sd) 2*FUN(x)}. 
 #'   This example returns two times the standard deviation of \code{x}.
+#' @param CV Logical, \code{CV = TRUE} when running \code{discretefish_subroutine()} for k-fold cross validation,
+#' and the default value is \code{CV = FALSE}.
 
 #' @export discretefish_subroutine
 #' @importFrom DBI dbExecute dbWriteTable dbExistsTable dbReadTable dbGetQuery dbDisconnect
@@ -113,21 +115,18 @@
 #' results <- discretefish_subroutine("pcod", run = 'all', select.model = TRUE)
 #' }
 #'
-discretefish_subroutine <-
-  
- 
-  function(project,
-           run = 'new',
-           select.model = FALSE,
-           explorestarts = TRUE,
-           breakearly = TRUE,
-           space = NULL,
-           dev = NULL,
-           use.scalers = FALSE,
-           scaler.func = NULL) {
+discretefish_subroutine <- function(project,
+                                    run = 'new',
+                                    select.model = FALSE,
+                                    explorestarts = TRUE,
+                                    breakearly = TRUE,
+                                    space = NULL,
+                                    dev = NULL,
+                                    use.scalers = FALSE,
+                                    scaler.func = NULL,
+                                    CV = FALSE) {
     
   if (!isRunning()) { # if run in console
-    # 
     check <- checklist(project)
     end <- any(vapply(check, function(x) x$pass == FALSE, logical(1)))
     
@@ -452,11 +451,15 @@ discretefish_subroutine <-
       rownames(mod.out) <- c("AIC", "AICc", "BIC", "PseudoR2")
       colnames(mod.out) <- modOutName
 
-      mft_tab_nm <- paste0(project, "ModelFit")
+      if(!CV){
+        mft_tab_nm <- paste0(project, "ModelFit")  
+      } else {
+        mft_tab_nm <- paste0(project, "ModelFitCV")  
+      }
       
       if (table_exists(mft_tab_nm, project)) {
         
-        mft <- model_fit(project)
+        mft <- model_fit(project, CV)
         
         if (!'new' %in% run) { # selected models
           # TODO: using name method below for all cases may be simpler
@@ -471,7 +474,7 @@ discretefish_subroutine <-
       } else {
         
         DBI::dbWriteTable(fishset_db, mft_tab_nm, mod.out)
-        mft <- model_fit(project) # for use in model select app
+        mft <- model_fit(project, CV) # for use in model select app
       }
       
       ## Full model output ----
@@ -582,6 +585,7 @@ discretefish_subroutine <-
           # Q: will this always be the correct order?
           rownames(OutLogit) <- c(ec_names, p_names)
         }
+        
         # save to output folder
         save_table(OutLogit, project = project, mdf[[i]]$mod.name)
         
@@ -613,8 +617,13 @@ discretefish_subroutine <-
         
         # Note: would be more efficient to save everything after all models have
         # been run, but if function breaks all output is lost. Worth tradeoff?
-         
-        mot_tab_nm <- paste0(project, "ModelOut")
+        
+        if(!CV){
+          mot_tab_nm <- paste0(project, "ModelOut")  
+        } else {
+          mot_tab_nm <- paste0(project, "ModelOutCV")  
+        }
+        
         mot_exists <- table_exists(mot_tab_nm, project)
         
         if ('new' %in% run) {
@@ -644,7 +653,7 @@ discretefish_subroutine <-
           
           if (mot_exists) {
             
-            mot <- model_out_view(project)
+            mot <- model_out_view(project, CV)
             table_remove(mot_tab_nm, project)
             
             mot_n <- vapply(mot, function(x) x$name, character(1)) 

@@ -111,10 +111,27 @@ cross_validation <- function(project, mod.name, zone.dat, groups, k = NULL, time
                              scaler.func = scaler.func)
     })
   })
-
- 
   
-  ################
+  
+  # Estimate parameters for all training datasets ---------------------------------------------------------------------------
+  train_mods <- model_names(project)[grep("train", model_names(project))]
+  
+  # Clear existing cross validation tables from the sql database
+  tables_to_rm <- list_tables(project, "cross valid")
+  lapply(tables_to_rm, table_remove, project = project)
+  
+  # Run estimation model
+  discretefish_subroutine(project, run = train_mods, CV = TRUE)
+  
+  # Get parameter estimates ------------------------------------------------------------------------------------------------
+  filenames <- paste0(locoutput(project), project, "_", train_mods, "_", format(Sys.Date(), format = "%Y-%m-%d"), ".csv")
+  
+  logitEq <- lapply(filenames, function(x){
+    read_dat(x, show_col_types = FALSE)
+  })
+  
+  names(logitEq) <- train_mods
+  
   
   
 }

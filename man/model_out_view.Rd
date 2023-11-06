@@ -4,10 +4,12 @@
 \alias{model_out_view}
 \title{Load discrete choice model output to console for the defined project}
 \usage{
-model_out_view(project)
+model_out_view(project, CV = FALSE)
 }
 \arguments{
 \item{project}{Name of project}
+
+\item{CV}{Logical, \code{CV = TRUE} when viewing model output from training data in k-fold cross validation}
 }
 \description{
 Returns output from running the discretefish_subroutine function.
