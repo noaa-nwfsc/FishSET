@@ -9,10 +9,12 @@
 #'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
 #' @param zone.dat Variable in main data table that identifies the individual zones or areas.
 #' @param groups Determine how to subset dataset into groups for training and testing
-#' @param k Integer, value required if \code{groups = 'Observations'} to determine the number of groups for splitting data into training and testing datasets
+#' @param k Integer, value required if \code{groups = 'Observations'} to determine the number of groups for splitting data 
+#' into training and testing datasets. The value of \code{k} should be chosen to balance bias and variance and values between
+#' \code{k = 5 to 10} have been found to be sufficient.
 #' @param time_var Name of column for time variable. Required if \code{groups = 'Years'}.
-#' @param use.scalers Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
-#' numeric vector unless specified with \code{scaler.func}.
+#' @param use.scalers Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. 
+#' Rescaling factors are the mean of the numeric vector unless specified with \code{scaler.func}.
 #' @param scaler.func Input for \code{create_model_input()}. Function to calculate rescaling factors.
 #' 
 #' @details
@@ -31,7 +33,6 @@
 #' 
 #' }
 #' 
-
 
 cross_validation <- function(project, mod.name, zone.dat, groups, k = NULL, time_var = NULL, use.scalers = FALSE, scaler.func = NULL){
   
@@ -123,16 +124,27 @@ cross_validation <- function(project, mod.name, zone.dat, groups, k = NULL, time
   # Run estimation model
   discretefish_subroutine(project, run = train_mods, CV = TRUE)
   
-  # Get parameter estimates ------------------------------------------------------------------------------------------------
-  filenames <- paste0(locoutput(project), project, "_", train_mods, "_", format(Sys.Date(), format = "%Y-%m-%d"), ".csv")
+  # # Get parameter estimates -------------------------------------------------------------------------------------------------
+  # filenames <- paste0(locoutput(project), project, "_", train_mods, "_", format(Sys.Date(), format = "%Y-%m-%d"), ".csv")
+  # 
+  # logitEq <- lapply(filenames, function(x){
+  #   read_dat(x, show_col_types = FALSE)
+  # })
+  # 
+  # names(logitEq) <- train_mods
   
-  logitEq <- lapply(filenames, function(x){
-    read_dat(x, show_col_types = FALSE)
+  # Predict probabilities for test datasets ---------------------------------------------------------------------------------
+  test_mods <- model_names(project)[grep("test", model_names(project))]
+  
+  # create list with each element containing the training and testing names
+  cv_pred <- lapply(split(cbind(train_mods,test_mods), seq(length(train_mods))), function(x){
+    predict_outsample(project, mod.name = x[[1]], outsample.mod.name = x[[2]])
   })
   
-  names(logitEq) <- train_mods
+  # get the percent absolute prediction error for each group
+  cv_performance <- lapply(cv_pred, function(x) return(x[[2]]))
+  cv_performance <- data.frame(k_group = names(unlist(cv_performance)), per_abs_pred_err = unlist(cv_performance, use.names = FALSE)) 
   
-  
-  
+  return(cv_performance)
 }
 
