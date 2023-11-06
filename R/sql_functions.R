@@ -327,13 +327,14 @@ table_exists <- function(table, project) {
   }
 }
 
-model_out_view <- function(project) {
+model_out_view <- function(project, CV = FALSE) {
   #' Load discrete choice model output to console for the defined project
   #'
   #' Returns output from running \code{\link{discretefish_subroutine}}. The table 
   #' argument must be the full name of the table name in the FishSET database. 
   #' Output includes information on model convergence, standard errors, t-stats, etc.
   #' @param project Name of project
+  #' @param CV Logical, \code{CV = TRUE} when viewing model output from training data in k-fold cross validation
   #' @export
   #' @description Returns output from running the discretefish_subroutine function.
   #'   The table parameter must be the full name of the table name in the FishSET database.
@@ -343,7 +344,12 @@ model_out_view <- function(project) {
   #' }
   #
   
-  mod_tab <- paste0(project, 'ModelOut')
+  if(!CV){
+    mod_tab <- paste0(project, 'ModelOut')  
+  } else {
+    mod_tab <- paste0(project, 'ModelOutCV')  
+  }
+  
   
   if (table_exists(mod_tab, project) == FALSE) {
     
@@ -436,12 +442,13 @@ globalcheck_view <- function(table, project) {
   }
 }
 
-model_fit <- function(project) {
+model_fit <- function(project, CV = FALSE) {
   #' Load model comparison metrics to console for the defined project
   #'
   #' Load model comparison metrics to console. Metrics are displayed for each 
   #' model that was fun. Metrics produced by \code{\link{discretefish_subroutine}}.
   #' @param project String, name of project.
+  #' @param CV Logical, \code{CV = TRUE} to get model fit for training data in k-fold cross validation routine.
   #' @export
   #' @examples
   #' \dontrun{
@@ -450,7 +457,12 @@ model_fit <- function(project) {
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM ", paste0(project, "ModelFit"))))
+  if(!CV){
+    return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM ", paste0(project, "ModelFit"))))  
+  } else {
+    return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM ", paste0(project, "ModelFitCV"))))
+  }
+  
 }
 
 model_names <- function(project) {
@@ -601,7 +613,7 @@ list_tables <- function(project, type = "main") {
 
   tab_types <- c("info", "main", "ec", "altc", "port", "gc", "fleet", "model", 
                  "model data", "model design", "grid", "aux", "spat", "filter",
-                 "centroid", "outsample")
+                 "centroid", "outsample", "cross valid")
   
   if (!type %in% tab_types) {
     
@@ -616,7 +628,7 @@ list_tables <- function(project, type = "main") {
            "fleet" = "FleetTable", "model" = "ModelOut", "model data" = "ModelInputData", 
            "model design" = "ModelInputData", "grid" = "GridTable", "aux" = "AuxTable",
            "spat" = "SpatTable", "filter" = "FilterTable", "centroid" = "Centroid",
-           "outsample" = "OutSampleDataTable")
+           "outsample" = "OutSampleDataTable", "cross valid" = "CV")
   
   if (is_value_empty(project)) {
     

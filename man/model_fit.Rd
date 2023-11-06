@@ -4,10 +4,12 @@
 \alias{model_fit}
 \title{Load model comparison metrics to console for the defined project}
 \usage{
-model_fit(project)
+model_fit(project, CV = FALSE)
 }
 \arguments{
 \item{project}{String, name of project.}
+
+\item{CV}{Logical, \code{CV = TRUE} to get model fit for training data in k-fold cross validation routine.}
 }
 \description{
 Load model comparison metrics to console. Metrics are displayed for each 
