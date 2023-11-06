@@ -363,59 +363,61 @@ discretefish_subroutine <- function(project,
         incProgress(amount = 1/ ((length.exp.names + length(mdf)) * 2))
       }
       
-      # save ld global check ----
-      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-      on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-      
-      single_sql <- paste0(project, "LDGlobalCheck", format(Sys.Date(), format = "%Y%m%d"))
-      second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
-      
-      
-      if (table_exists(single_sql, project)) {
+      if(!CV){
+        # save ld global check ----
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+        on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
         
-        empty_dat <- 
-          is_empty(
-            unlist(
-              DBI::dbGetQuery(fishset_db, 
-                              paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data
+        single_sql <- paste0(project, "LDGlobalCheck", format(Sys.Date(), format = "%Y%m%d"))
+        second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
+        
+        
+        if (table_exists(single_sql, project)) {
+          
+          empty_dat <- 
+            is_empty(
+              unlist(
+                DBI::dbGetQuery(fishset_db, 
+                                paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data
               )
             )
-         
-        if (any(empty_dat)) {
           
-          table_remove(single_sql, project)
-          LDGlobalCheck <- LDGlobalCheck
-          
-        } else {
-          # TODO: overwrites model data if more than one expected catch matrix is used
-          x_ldgcheck <- unserialize(DBI::dbGetQuery(fishset_db, 
-                                                    paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
-          table_remove(single_sql, project = project)
-          LDGlobalCheck <- c(x_ldgcheck, LDGlobalCheck)
+          if (any(empty_dat)) {
+            
+            table_remove(single_sql, project)
+            LDGlobalCheck <- LDGlobalCheck
+            
+          } else {
+            # TODO: overwrites model data if more than one expected catch matrix is used
+            x_ldgcheck <- unserialize(DBI::dbGetQuery(fishset_db, 
+                                                      paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+            table_remove(single_sql, project = project)
+            LDGlobalCheck <- c(x_ldgcheck, LDGlobalCheck)
+          }
         }
-      }
-      
-      ld_sql <- paste0("CREATE TABLE IF NOT EXISTS ", project, "LDGlobalCheck", 
-                       format(Sys.Date(), format = "%Y%m%d"), "(data LDGlobalCheck)")
-      
-      DBI::dbExecute(fishset_db, ld_sql)
-      DBI::dbExecute(fishset_db, second_sql, 
-                     params = list(data = list(serialize(LDGlobalCheck, NULL))))
-      
-      
-      if (res[[1]][1] == "Optimization error, check 'LDGlobalCheck'") {
         
-        print(
-          list(
-          error = paste('optimization error for', mdf[[i]]$mod.name,
-                        ', check LDGlobalCheck'),
-          name = names(mdf[[i]][["gridVaryingVariables"]])[i], 
-          errorExplain = res, OutLogit = OutLogit, optoutput = optoutput,
-          seoutmat2 = seoutmat2, MCM = MCM, H1 = H1
+        ld_sql <- paste0("CREATE TABLE IF NOT EXISTS ", project, "LDGlobalCheck", 
+                         format(Sys.Date(), format = "%Y%m%d"), "(data LDGlobalCheck)")
+        
+        DBI::dbExecute(fishset_db, ld_sql)
+        DBI::dbExecute(fishset_db, second_sql, 
+                       params = list(data = list(serialize(LDGlobalCheck, NULL))))
+        
+        
+        if (res[[1]][1] == "Optimization error, check 'LDGlobalCheck'") {
+          
+          print(
+            list(
+              error = paste('optimization error for', mdf[[i]]$mod.name,
+                            ', check LDGlobalCheck'),
+              name = names(mdf[[i]][["gridVaryingVariables"]])[i], 
+              errorExplain = res, OutLogit = OutLogit, optoutput = optoutput,
+              seoutmat2 = seoutmat2, MCM = MCM, H1 = H1
+            )
           )
-        )
-        
-        next
+          
+          next
+        }
       }
       
       q2 <- res[["par"]]
