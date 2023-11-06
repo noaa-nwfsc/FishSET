@@ -13,7 +13,8 @@ discretefish_subroutine(
   space = NULL,
   dev = NULL,
   use.scalers = FALSE,
-  scaler.func = NULL
+  scaler.func = NULL,
+  CV = FALSE
 )
 }
 \arguments{
@@ -59,6 +60,9 @@ Rescaling factors are the mean of the numeric vector unless specified with
 function, such as mean, or a user-defined function. User-defined functions 
 must be specified as \code{scaler.fun = function(x, FUN = sd) 2*FUN(x)}. 
 This example returns two times the standard deviation of \code{x}.}
+
+\item{CV}{Logical, \code{CV = TRUE} when running \code{discretefish_subroutine()} for k-fold cross validation,
+and the default value is \code{CV = FALSE}.}
 }
 \value{
 \tabular{rlll}{
