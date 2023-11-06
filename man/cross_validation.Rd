@@ -27,12 +27,14 @@ Use \code{table_view("modelChosen", project)} to view a table of saved models.}
 
 \item{groups}{Determine how to subset dataset into groups for training and testing}
 
-\item{k}{Integer, value required if \code{groups = 'Observations'} to determine the number of groups for splitting data into training and testing datasets}
+\item{k}{Integer, value required if \code{groups = 'Observations'} to determine the number of groups for splitting data 
+into training and testing datasets. The value of \code{k} should be chosen to balance bias and variance and values between
+\code{k = 5 to 10} have been found to be sufficient.}
 
 \item{time_var}{Name of column for time variable. Required if \code{groups = 'Years'}.}
 
-\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
-numeric vector unless specified with \code{scaler.func}.}
+\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. 
+Rescaling factors are the mean of the numeric vector unless specified with \code{scaler.func}.}
 
 \item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
 }
