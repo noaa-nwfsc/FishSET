@@ -857,7 +857,7 @@ remove_model_design <- function(project, names) {
     mod_names <- model_names(project)
     del_mods <- which(mod_names %in% names)
     
-    if(is_empty(del_mods)){
+    if(length(del_mods) == 0){
       if(isRunning()){
         showNotification("Model(s) do not exist in ModelInputData table.", type = "warning")
       } else {
