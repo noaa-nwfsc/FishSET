@@ -126,7 +126,7 @@ cross_validation <- function(project, mod.name, zone.dat, groups, k = NULL, time
   # Run estimation model
   discretefish_subroutine(project, run = train_mods, CV = TRUE)
   
-  # # Get parameter estimates -------------------------------------------------------------------------------------------------
+  # # Get parameter estimates -----------------------------------------------------------------------------------------------
   # filenames <- paste0(locoutput(project), project, "_", train_mods, "_", format(Sys.Date(), format = "%Y-%m-%d"), ".csv")
   # 
   # logitEq <- lapply(filenames, function(x){
@@ -147,6 +147,42 @@ cross_validation <- function(project, mod.name, zone.dat, groups, k = NULL, time
   cv_performance <- lapply(cv_pred, function(x) return(x[[2]]))
   cv_performance <- data.frame(k_group = names(unlist(cv_performance)), per_abs_pred_err = unlist(cv_performance, use.names = FALSE)) 
   
+  # Merge model output csv files --------------------------------------------------------------------------------------------
+  cv_files <- list.files(locoutput(project))[grep(paste(train_mods, collapse = "|"), list.files(locoutput(project)))]
+  cv_files <- paste0(locoutput(project),cv_files)
+  
+  cv_mod_output <- lapply(cv_files, function(x){
+    out <- read.csv(x)
+    file.remove(x)
+    return(out)
+  })
+  
+  # Combine lists
+  cv_mod_output <- mapply(list, as.list(names(cv_data)), cv_mod_output, SIMPLIFY = FALSE)
+  
+  # Get model fit stats
+  cv_mod_fit <- as.data.frame(table_view(paste0(project, "ModelFitCV"), project))
+  cv_mod_fit$stat <- c("AIC", "AICc", "BIC", "PseudoR2")
+  cv_mod_fit <- cv_mod_fit[,c(length(cv_mod_fit),1:length(cv_mod_fit)-1)]
+  
+  # Write output to a single csv file
+  suppressWarnings(lapply(cv_mod_output, function(x) {
+    write.table(paste0(as.character(x[[1]]), " as test group"), 
+                paste0(locoutput(project), project, "_CrossValidation_", format(Sys.Date(), "%Y%m%d"), ".csv"), 
+                append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE)
+    write.table(x[[2]], 
+                paste0(locoutput(project), project, "_CrossValidation_", format(Sys.Date(), "%Y%m%d"), ".csv"),
+                append = TRUE, sep = ",", row.names = FALSE)
+    write.table(' ', 
+                paste0(locoutput(project), project, "_CrossValidation_", format(Sys.Date(), "%Y%m%d"), ".csv"),
+                append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE)
+  }))
+  
+  suppressWarnings(write.table(cv_mod_fit, 
+              paste0(locoutput(project), project, "_CrossValidation_", format(Sys.Date(), "%Y%m%d"), ".csv"), 
+              append = TRUE, sep = ",", row.names = FALSE))
+  
+  # Return percent absolute prediction error --------------------------------------------------------------------------------
   return(cv_performance)
 }
 
