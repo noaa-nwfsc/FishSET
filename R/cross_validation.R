@@ -11,7 +11,9 @@
 #' @param groups Determine how to subset dataset into groups for training and testing
 #' @param k Integer, value required if \code{groups = 'Observations'} to determine the number of groups for splitting data 
 #' into training and testing datasets. The value of \code{k} should be chosen to balance bias and variance and values between
-#' \code{k = 5 to 10} have been found to be sufficient.
+#' \code{k = 5 to 10} have been found to be sufficient. Note that higher k values will increase runtime and the computational
+#' cost of \code{cross_validation}. Leave-on-out cross validation is a type of k-fold cross validation in which \code{k = n} 
+#' number of observations, which can be useful for small datasets.
 #' @param time_var Name of column for time variable. Required if \code{groups = 'Years'}.
 #' @param use.scalers Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. 
 #' Rescaling factors are the mean of the numeric vector unless specified with \code{scaler.func}.
