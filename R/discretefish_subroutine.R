@@ -363,11 +363,11 @@ discretefish_subroutine <- function(project,
         incProgress(amount = 1/ ((length.exp.names + length(mdf)) * 2))
       }
       
+      # save ld global check ----
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+      on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+      
       if(!CV){
-        # save ld global check ----
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-        on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-        
         single_sql <- paste0(project, "LDGlobalCheck", format(Sys.Date(), format = "%Y%m%d"))
         second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
         
