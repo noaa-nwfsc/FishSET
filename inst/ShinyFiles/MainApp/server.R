@@ -6172,7 +6172,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
                        
         if (mod_rv$mod_design) {
           
-          mod_rv$mod_names <- model_names("scallop1")[!grepl("_outsample",model_names("scallop1"))]
+          mod_rv$mod_names <- model_names(project$name)[!grepl("_outsample",model_names(project$name)) &
+                                                        !grepl("train",model_names(project$name)) &
+                                                        !grepl("test",model_names(project$name))]
         }
         
       }, ignoreNULL = TRUE, ignoreInit = TRUE, priority = -1) # run after other events
@@ -6492,6 +6494,138 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         
         updateCheckboxInput(session, 'Outlier_Filter', value=FALSE)
       })         
+      
+      
+      ## Model performance and prediction ----
+      output$cv_ui <- renderUI({
+        tagList(
+          selectInput('cv_model','Select model for cross-validation:',
+                      choices = mod_rv$mod_names),
+          
+          selectizeInput('cv_zoneID', 'Column containing zone identifier:', choices = colnames(values$dataset),
+                         options = list(maxItems = 1)),
+          
+          add_prompter(
+            selectizeInput('cv_group', label = list('Group data into folds by:', icon('info-circle', verify_fa = FALSE)), 
+                           choices = c('Observations', 'Years', colnames(values$dataset)), selected = 'Observations',
+                           options = list(maxItems = 1), width = "100%"),
+            message = 'Determine how data will be subsetted into groups. "Observations" will randomly split the data into
+                       k number of groups. "Years" will split data annually. Other categorical variable will split data by categories.
+                       the number of groups should be limited to 10 total regardless of method for subsetting data.',
+            position = "top", type='info', size='medium', 
+          ),
+          
+          conditionalPanel(condition = "input.cv_group == 'Observations'",
+                           numericInput('cv_k', 'Select k number of folds (groups)', value = NULL, min=1)                 
+          ),
+          
+          conditionalPanel(condition = "input.cv_group == 'Years'",
+                           selectizeInput('cv_time_var', 'Select column containing dates:', 
+                                          choices = colnames(values$dataset), selected = NULL,
+                                          options = list(maxItems = 1, placeholder = 'Select option below',
+                                                         onInitialize = I('function() {this.setValue("");}'))),
+          )
+        )
+      })
+      
+      observeEvent(input$cv_k, {
+        if(!is.na(input$cv_k)){
+          if(input$cv_k > 10) showNotification("Values of k > 10 can results in long runtimes", type = 'warning', duration = 15)
+        }
+      })
+      
+      observeEvent(input$run_cv, {
+        
+        crossVal_k <- if(input$cv_group != "Observations") NULL else input$cv_k
+        crossVal_timeVar <- if(input$cv_group != "Years") NULL else input$cv_time_var
+        
+        if((is.na(crossVal_k) || is.null(crossVal_k)) && input$cv_group == "Observations"){
+          showNotification("k is required if grouping by observations", type = 'error', duration = 5)
+          
+        } else if (is_empty(crossVal_timeVar) && input$cv_group == "Years") {
+          showNotification("A date variable is required if grouping data annually", type = 'error', duration = 5)
+          
+        } else {
+          if(!is.na(crossVal_k) && !is.null(crossVal_k) && crossVal_k > 10) showNotification("Values of k > 10 can results in long runtimes", type = 'warning', duration = 15)
+          
+          showNotification('The cross validation function can take several minutes (up to 15 minutes for 10 groups) to run. A 
+                         message will appear when complete. View progress in the R console window.',
+                         type = 'message', duration = 30)
+          
+          cross_validation(project$name, input$cv_model, input$cv_zoneID, input$cv_group, crossVal_k,
+                                                    crossVal_timeVar, use.scalers = FALSE, scaler.func = NULL)
+          
+          showNotification('Cross validation complete', type = 'message', duration = 30)
+        }
+      })
+      
+      cv_out <- reactive({
+        
+        input$reload_cv
+        
+        cv_out <- readRDS(paste0(locoutput(project$name), project$name, "CrossValidationOutput.rds"))
+        
+        cv_out[[3]] <- lapply(seq_along(cv_out[[3]]), function(x, n, i){ 
+          x[[i]]$iteration <- n[[i]]
+          return(x[[i]])
+        }, x = cv_out[[3]], n = names(cv_out[[3]]))
+        
+        cv_out[[3]] <- dplyr::bind_rows(cv_out[[3]])
+        
+        return(cv_out)
+        # mod_tab <- data.frame(Model_name=rep(NA, length(mod_sum_out())),
+        #                       Covergence=rep(NA, length(mod_sum_out())),
+        #                       # Stand_Errors=rep(NA, length(mod_sum_out())),
+        #                       Estimates=rep(NA, length(mod_sum_out())),
+        #                       Hessian=rep(NA, length(mod_sum_out())))
+        # 
+        # for (i in seq_along(mod_sum_out())) {
+        #   
+        #   mod_tab[i,1] <- mod_sum_out()[[i]]$name
+        #   mod_tab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
+        #   model_out <- mod_sum_out()[[i]]$OutLogit
+        #   mod_tab[i,3] <- to_html_table(model_out, rownames = TRUE, digits = 3)
+        #   
+        #   hess <- round(mod_sum_out()[[i]]$H1, 5)
+        #   colnames(hess) <- row.names(model_out)
+        #   mod_tab[i,4] <- to_html_table(hess, digits = 5)
+        # }
+        # 
+        # return(mod_tab)
+        
+        return(out)
+      })      
+      
+      output$cv_perf_tab <- DT::renderDT({
+        
+        if(!is_value_empty(cv_out()[[1]])){
+          tmp_tab <- cv_out()[[1]]
+          names(tmp_tab) <- c("Test Group", "Percent Absolute Prediction Error")
+        }
+        
+        return(tmp_tab)
+        
+      }, escape = FALSE)
+      
+      output$cv_modfit_tab <- DT::renderDT({
+        
+        if(!is_value_empty(cv_out()[[2]])){
+          tmp_tab <- cv_out()[[2]]
+        }
+        
+        return(tmp_tab)
+        
+      }, escape = FALSE)
+      
+      output$cv_modout_tab <- DT::renderDT({
+        
+        if(!is_value_empty(cv_out()[[3]])){
+          tmp_tab <- cv_out()[[3]]
+        }
+        
+        return(tmp_tab)
+        
+      }, escape = FALSE)
       
       ### ---  
       # Save output ----   
