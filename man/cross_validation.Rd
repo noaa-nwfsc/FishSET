@@ -28,10 +28,10 @@ Use \code{table_view("modelChosen", project)} to view a table of saved models.}
 \item{groups}{Determine how to subset dataset into groups for training and testing}
 
 \item{k}{Integer, value required if \code{groups = 'Observations'} to determine the number of groups for splitting data 
-into training and testing datasets. The value of \code{k} should be chosen to balance bias and variance and values between
-\code{k = 5 to 10} have been found to be sufficient. Note that higher k values will increase runtime and the computational
-cost of \code{cross_validation}. Leave-on-out cross validation is a type of k-fold cross validation in which \code{k = n} 
-number of observations, which can be useful for small datasets.}
+into training and testing datasets. The value of \code{k} should be chosen to balance bias and variance and values of
+\code{k = 5 or 10} have been found to be efficient standard values in the literature. Note that higher k values will 
+increase runtime and the computational cost of \code{cross_validation}. Leave-on-out cross validation is a type of 
+k-fold cross validation in which \code{k = n} number of observations, which can be useful for small datasets.}
 
 \item{time_var}{Name of column for time variable. Required if \code{groups = 'Years'}.}
 

@@ -1500,6 +1500,47 @@ source("map_viewer_app.R", local = TRUE)
                                         verbatimTextOutput('mod_list_ui')
                                       )
                                     )
+                           ),
+                           
+                           tabPanel('Cross-validation', value = 'cross_validation',
+                                    sidebarLayout(
+                                      
+                                      sidebarPanel(
+                                        
+                                        actionButton('run_cv', "Run cross-validation",
+                                                     style = "color: #fff; background-color: #6da363; border-color: #800000;"),
+                                        
+                                        tags$br(),
+                                        tags$br(),
+                                        
+                                        actionButton('reload_cv', "Reload output",
+                                                     style = "background-color: blue; color: white;"),
+                                        
+                                        tags$br(),
+                                        tags$br(),
+                                        
+                                        uiOutput('cv_ui'),
+                                        
+                                        width = 3,
+                                      ),
+                                      
+                                      mainPanel(
+                                        h4('K-fold Cross Validation Prediction Performance'),
+                                        DT::DTOutput('cv_perf_tab', width = "75%"),
+                                        
+                                        tags$br(),
+                                        
+                                        h4('Model fits for each iteration'),
+                                        DT::DTOutput('cv_modfit_tab', width = "100%"),
+                                        
+                                        tags$br(),
+                                        
+                                        h4('Model estimates for each iteration'),
+                                        DT::DTOutput('cv_modout_tab', width = "75%")
+                                      )
+                                    ),
+                                    
+                                    
                            )
                             )),
                   #--- 

@@ -10,10 +10,10 @@
 #' @param zone.dat Variable in main data table that identifies the individual zones or areas.
 #' @param groups Determine how to subset dataset into groups for training and testing
 #' @param k Integer, value required if \code{groups = 'Observations'} to determine the number of groups for splitting data 
-#' into training and testing datasets. The value of \code{k} should be chosen to balance bias and variance and values between
-#' \code{k = 5 to 10} have been found to be sufficient. Note that higher k values will increase runtime and the computational
-#' cost of \code{cross_validation}. Leave-on-out cross validation is a type of k-fold cross validation in which \code{k = n} 
-#' number of observations, which can be useful for small datasets.
+#' into training and testing datasets. The value of \code{k} should be chosen to balance bias and variance and values of
+#' \code{k = 5 or 10} have been found to be efficient standard values in the literature. Note that higher k values will 
+#' increase runtime and the computational cost of \code{cross_validation}. Leave-on-out cross validation is a type of 
+#' k-fold cross validation in which \code{k = n} number of observations, which can be useful for small datasets.
 #' @param time_var Name of column for time variable. Required if \code{groups = 'Years'}.
 #' @param use.scalers Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. 
 #' Rescaling factors are the mean of the numeric vector unless specified with \code{scaler.func}.
@@ -95,7 +95,7 @@ cross_validation <- function(project, mod.name, zone.dat, groups, k = NULL, time
   # Save training and test data as a .rds file
   saveRDS(cv_data, file = paste0(locoutput(project), project, "cv_data.rds")) 
   
-
+  
   # Remove cross validation model designs if they exist ---------------------------------------------------------------------
   # First remove any existing cross validation model designs
   del_mods <- model_names(project)[grep("group", model_names(project))]
@@ -145,7 +145,7 @@ cross_validation <- function(project, mod.name, zone.dat, groups, k = NULL, time
   
   # get the percent absolute prediction error for each group
   cv_performance <- lapply(cv_pred, function(x) return(x[[2]]))
-  cv_performance <- data.frame(k_group = names(unlist(cv_performance)), per_abs_pred_err = unlist(cv_performance, use.names = FALSE)) 
+  cv_performance <- data.frame(test_group = names(unlist(cv_performance)), per_abs_pred_err = unlist(cv_performance, use.names = FALSE)) 
   
   # Merge model output csv files --------------------------------------------------------------------------------------------
   cv_files <- list.files(locoutput(project))[grep(paste(train_mods, collapse = "|"), list.files(locoutput(project)))]
@@ -157,30 +157,44 @@ cross_validation <- function(project, mod.name, zone.dat, groups, k = NULL, time
     return(out)
   })
   
-  # Combine lists
-  cv_mod_output <- mapply(list, as.list(names(cv_data)), cv_mod_output, SIMPLIFY = FALSE)
-  
+  # add names
+  names(cv_mod_output) <- paste0(names(cv_data),"_out")
+
   # Get model fit stats
   cv_mod_fit <- as.data.frame(table_view(paste0(project, "ModelFitCV"), project))
+  names(cv_mod_fit) <- paste0(names(cv_data),"_out")
   cv_mod_fit$stat <- c("AIC", "AICc", "BIC", "PseudoR2")
   cv_mod_fit <- cv_mod_fit[,c(length(cv_mod_fit),1:length(cv_mod_fit)-1)]
   
+  # Save all outputs in a csv file ------------------------------------------------------------------------------------------
+  # Remove existing csv file for cross validation
+  rm_files <- list.files(locoutput(project))[grep("CrossValidation", list.files(locoutput(project)))]
+  rm_files <- paste0(locoutput(project), rm_files)
+  file.remove(rm_files)
+  
+  cv_out_list <- list(cv_performance, cv_mod_fit)
+  
   # Write output to a single csv file
-  suppressWarnings(lapply(cv_mod_output, function(x) {
-    write.table(paste0(as.character(x[[1]]), " as test group"), 
-                paste0(locoutput(project), project, "_CrossValidation_", format(Sys.Date(), "%Y%m%d"), ".csv"), 
-                append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE)
-    write.table(x[[2]], 
-                paste0(locoutput(project), project, "_CrossValidation_", format(Sys.Date(), "%Y%m%d"), ".csv"),
+  suppressWarnings(lapply(cv_out_list, function(x) {
+    write.table(x, paste0(locoutput(project), project, "_CrossValidation", ".csv"), 
                 append = TRUE, sep = ",", row.names = FALSE)
-    write.table(' ', 
-                paste0(locoutput(project), project, "_CrossValidation_", format(Sys.Date(), "%Y%m%d"), ".csv"),
+    write.table(" ", paste0(locoutput(project), project, "_CrossValidation", ".csv"), 
                 append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE)
   }))
   
-  suppressWarnings(write.table(cv_mod_fit, 
-              paste0(locoutput(project), project, "_CrossValidation_", format(Sys.Date(), "%Y%m%d"), ".csv"), 
-              append = TRUE, sep = ",", row.names = FALSE))
+  suppressWarnings(lapply(seq_along(cv_mod_output), 
+                          function(x, n, i) {
+                            names(x[[i]])[1] <- n[[i]]
+                            write.table(x[[i]], paste0(locoutput(project), project, "_CrossValidation", ".csv"), 
+                                        append = TRUE, sep = ",", row.names = FALSE)
+                            write.table(" ", paste0(locoutput(project), project, "_CrossValidation", ".csv"), 
+                                        append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE)
+                          }, 
+                          x = cv_mod_output, n = names(cv_mod_output))
+  )
+  
+  # Save outputs as an rds file ---------------------------------------------------------------------------------------------
+  saveRDS(list(cv_performance, cv_mod_fit, cv_mod_output), paste0(locoutput(project), project, "CrossValidationOutput.rds"))
   
   # Return percent absolute prediction error --------------------------------------------------------------------------------
   return(cv_performance)
