@@ -6573,27 +6573,6 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         cv_out[[3]] <- dplyr::bind_rows(cv_out[[3]])
         
         return(cv_out)
-        # mod_tab <- data.frame(Model_name=rep(NA, length(mod_sum_out())),
-        #                       Covergence=rep(NA, length(mod_sum_out())),
-        #                       # Stand_Errors=rep(NA, length(mod_sum_out())),
-        #                       Estimates=rep(NA, length(mod_sum_out())),
-        #                       Hessian=rep(NA, length(mod_sum_out())))
-        # 
-        # for (i in seq_along(mod_sum_out())) {
-        #   
-        #   mod_tab[i,1] <- mod_sum_out()[[i]]$name
-        #   mod_tab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
-        #   model_out <- mod_sum_out()[[i]]$OutLogit
-        #   mod_tab[i,3] <- to_html_table(model_out, rownames = TRUE, digits = 3)
-        #   
-        #   hess <- round(mod_sum_out()[[i]]$H1, 5)
-        #   colnames(hess) <- row.names(model_out)
-        #   mod_tab[i,4] <- to_html_table(hess, digits = 5)
-        # }
-        # 
-        # return(mod_tab)
-        
-        return(out)
       })      
       
       output$cv_perf_tab <- DT::renderDT({
@@ -6626,6 +6605,50 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
         return(tmp_tab)
         
       }, escape = FALSE)
+      
+      
+      output$load_outsample <- renderUI({    
+
+        fileInput("outsample_dat", "Choose out-of-sample data file",
+                                multiple = FALSE, placeholder = 'Required data')
+      })
+      
+      observeEvent(input$outsample_dat, {
+        
+        load_err <- FALSE
+        tmp_outsample <- NULL
+        
+        tryCatch(
+          tmp_outsample <- readRDS(input$outsample_dat$datapath),
+          error = function(e) {load_err <<- TRUE} 
+        )
+        
+        if(!load_err & !is_value_empty(tmp_outsample)){
+
+          q_test <- quietly_test(load_outsample)
+          
+          qc_pass <- q_test(tmp_outsample, project = project$name, over_write = TRUE,
+                            compare = FALSE, y = NULL)
+          
+          if (qc_pass) {
+            
+            showNotification("Out-of-sample data saved to database.", type = "message", 
+                             duration = 10)
+            
+          } else {
+            
+            showNotification('Selected file not loaded. Check file type and load_outsample()
+                           documentation.', type = 'error')
+            
+          }
+
+        } else {
+
+          showNotification('Selected file not loaded. Check file type and load_outsample()
+                           documentation.', type = 'error')
+
+        }
+      })
       
       ### ---  
       # Save output ----   
