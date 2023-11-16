@@ -31,10 +31,7 @@ numeric vector unless specified with \code{scaler.func}.}
 Calculate predicted probabilities for out-of-sample dataset
 }
 \details{
-This function automatically pulls model settings from the selected model and creates an alternative choice matrix, expected catch/revenue matrices, 
-and model design for an out-of-sample dataset. This function requires that a filtered out-of-sample data file (.rds file) exists in the output folder.
-Note: is that the out-of-sample functions only work with a single selected model at a time. To run out-of-sample functions on a new
-out-of-sample dataset, start with load_outsample() if an entirely new dataset or filter_outsample().
+This function predicts out-of-sample fishing probabilities and calculates model prediction performance (percent absolute prediction error).
 }
 \examples{
 \dontrun{
