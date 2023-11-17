@@ -1,7 +1,8 @@
 source("fleetUI.R", local = TRUE)
 source("fleet_helpers.R", local = TRUE)
 source("map_viewer_app.R", local = TRUE)
-source("../../../R/zone_outsample_modules.R", local = TRUE) # Had to put this script in the R folder to eliminate a 'note' from RCMD check about undefined global functions
+source("zone_outsample_UI.R", local = TRUE)
+source("zone_outsample_server.R", local = TRUE)
 
 ## USER INTERFACE    
 ui = function(request){
