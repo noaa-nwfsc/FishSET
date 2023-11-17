@@ -182,6 +182,11 @@ filter_outsample <- function(dat, project, mod.name, spatial_outsample = FALSE, 
       
     ## Running in console ----
     } else {
+      
+      # Need to initialize functions as null here to eliminate note in RCMD check about no global function definition
+      zone_outsample_mapUI <- zone_outsample_tableUI <- zone_outsample_saveUI <- zone_outsample_closeUI <- 
+      zone_outsample_mapServer <- zone_outsample_tableServer <- zone_outsample_saveServer <- zone_outsample_closeServer <- NULL
+      
       # Load shiny modules to run on the console version
       source("inst/ShinyFiles/MainApp/zone_outsample_UI.R", local = TRUE)
       source("inst/ShinyFiles/MainApp/zone_outsample_server.R", local = TRUE)
