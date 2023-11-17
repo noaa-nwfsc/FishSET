@@ -2,6 +2,7 @@ source("fleetServ.R", local = TRUE)
 source("fleetUI.R", local = TRUE)
 source("fleet_helpers.R", local = TRUE)
 source("map_viewer_app.R", local = TRUE)
+source("../../../R/zone_outsample_modules.R", local = TRUE) # Had to put this script in the R folder to eliminate a 'note' from RCMD check about undefined global functions
 
 # default global search value
 if(!exists("default_search")) {default_search <- ""}
@@ -6649,6 +6650,92 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
 
         }
       })
+      
+      output$filter_outsample <- renderUI({    
+        tagList(
+          selectizeInput('mod_name_outsample', 'Select main model name',
+                         choices = mod_rv$mod_names, multiple = FALSE),
+          
+          selectizeInput('filter_outsample_datzone', 'Select primary data column containing zone identifier:', 
+                         choices = colnames(values$dataset), options = list(maxItems = 1)),
+          
+          selectizeInput('filter_outsample_spatzone', 'Select spatial data column containing zone identifier:', 
+                         choices = colnames(spatdat$dataset), options = list(maxItems = 1)),
+          
+          checkboxInput("spat_outsample", "Are data out-of-sample spatially?"),
+          
+          actionButton('run_outsample_filter', "Filter out-of-sample data",
+                       style = "background-color: blue; color: white;"),
+        )
+      })
+      
+      # Reactive values for selecting out-of-sample zones
+      outsample_clicked_ids <- reactiveValues(ids = vector())
+      outsample_table <- reactiveValues(data = NULL)
+      filename <- reactiveValues(name = NULL)
+      
+      observeEvent(input$run_outsample_filter, {
+        
+        load_err <- FALSE
+        dat <- NULL
+        spat <- spatdat$dataset
+        
+        tryCatch(
+          dat <- table_view(paste0(project$name, "OutSampleDataTable"), project$name),
+          error = function(e) {load_err <<- TRUE} 
+        )
+        
+        if(!load_err & !is_value_empty(dat)){
+          
+          if(input$spat_outsample) showNotification("Loading map for selecting out-of-sample locations.", type = "message", duration = 20)    
+          
+          filter_out <- filter_outsample(dat = dat, project = project$name, mod.name = input$mod_name_outsample,
+                                         spatial_outsample = input$spat_outsample, zone.dat = input$filter_outsample_datzone,
+                                         spat = spat, zone.spat = input$filter_outsample_spatzone)
+          
+          # Not out-of-sample spatially
+          if(length(filter_out) == 1){
+            showNotification("Out-of-sample data filtering complete", type = "message")  
+            
+          # Out-of-sample spatially
+          } else {
+            spat <- filter_out[[1]]
+            mod.spat <- filter_out[[2]]
+            zone.dat <- input$filter_outsample_datzone
+            
+            showModal(
+              modalDialog(title = "Select out-of-sample zones",
+
+                          zone_outsample_mapUI("map1"),
+                          "Click on one or more polygons to select zones for out-of-sample predictions.",
+                          "\n Click the 'Save out-of-sample zones' button to save choices.",
+                          
+                          fluidRow(
+                            column(6, zone_outsample_tableUI("table1")),
+                            column(4, zone_outsample_saveUI("save"), offset = 1),
+                          ),
+                          size = "l",
+                          footer = modalButton("Close window")
+              )
+            )
+            
+            zone_outsample_mapServer("map1", outsample_clicked_ids, spat, mod.spat, zone.dat)
+            zone_outsample_tableServer("table1", outsample_clicked_ids, outsample_table)
+            zone_outsample_saveServer("save", outsample_table, filename, zone.dat, project$name, dat)
+          }
+          
+          
+        } else {
+          
+          showNotification("Out-of-sample table not found in data base.", type = "error")
+          
+        }
+        # fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
+        
+      })
+      
+      
+      
       
       ### ---  
       # Save output ----   
