@@ -1,6 +1,7 @@
 source("fleetUI.R", local = TRUE)
 source("fleet_helpers.R", local = TRUE)
 source("map_viewer_app.R", local = TRUE)
+source("../../../R/zone_outsample_modules.R", local = TRUE) # Had to put this script in the R folder to eliminate a 'note' from RCMD check about undefined global functions
 
 ## USER INTERFACE    
 ui = function(request){
@@ -1552,17 +1553,13 @@ ui = function(request){
                                                   tags$br(),
                                                   tags$br(),
                                                   
-                                                  uiOutput("load_outsample")
+                                                  h5('Step 1: Upload out-of-sample data'),
+                                                  uiOutput("load_outsample"),
 
-                                                  # actionButton('load_outsample', "Load out-of-sample data",
-                                                  #              style = "background-color: blue; color: white;"),
-
-                                                  # tags$br(),
-                                                  # tags$br(),
-                                                  # 
-                                                  # uiOutput('cv_ui'),
-                                                  # 
-                                                  # width = 3,
+                                                  h5('Step 2: Filter out-of-sample data'),
+                                                  uiOutput("filter_outsample"),
+                                                  
+                                                  width = 3
                                                 ),
                                                 
                                                 mainPanel(

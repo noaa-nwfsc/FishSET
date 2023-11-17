@@ -4,24 +4,23 @@
 zone_outsample_mapUI <- function(id){
   ns <- NS(id)
   
-  leafletOutput(ns("map"))
+  leaflet::leafletOutput(ns("map"))
 }
 
-zone_outsample_mapServer <- function(id, clicked_ids){
+zone_outsample_mapServer <- function(id, clicked_ids, spat, mod.spat, zone.dat){
   moduleServer(
     id,
     function(input, output, session){
       # Create reactive values to appease RMD check - seems clunky but this prevents an evergrowing list of notes in RMD check
-      spat <- reactiveValues(data = spat)
-      mod.spat <- reactiveValues(data = mod.spat)
-      zone.dat <- reactiveValues(data = zone.dat)
+      # spat <- reactiveValues(data = spat)
+      # mod.spat <- reactiveValues(data = mod.spat)
+      # zone.dat <- reactiveValues(data = zone.dat)
       
       # Generate map
       output$map <- renderLeaflet({
-            
         leaflet() %>%
           addTiles() %>%
-          addPolygons(data = spat$data,
+          addPolygons(data = spat,
                       fillColor = "white",
                       fillOpacity = 0.5,
                       color = "black",
@@ -30,7 +29,7 @@ zone_outsample_mapServer <- function(id, clicked_ids){
                       layerId = ~secondLocationID,
                       group = "regions",
                       label = ~secondLocationID) %>%
-          addPolygons(data = mod.spat$data,
+          addPolygons(data = mod.spat,
                       fillColor = "#FFC107",
                       fillOpacity = 0.5,
                       color = "#FFC107",
@@ -49,8 +48,8 @@ zone_outsample_mapServer <- function(id, clicked_ids){
         
         req(click$id)
         
-        temp_dat <- spat$data
-        z_id <- zone.dat$data
+        temp_dat <- spat#spat$data
+        z_id <- zone.dat#zone.dat$data
         sec_id <- "secondLocationID"
         
         # define leaflet proxy for second regional level map
@@ -111,7 +110,7 @@ zone_outsample_saveUI <- function(id){
                style = "color: white; background-color: blue;")
 }
 
-zone_outsample_saveServer <- function(id, outsample_table, filename){
+zone_outsample_saveServer <- function(id, outsample_table, filename, zone.dat, project, dat){
   moduleServer(
     id,
     function(input, output, session){
@@ -131,7 +130,7 @@ zone_outsample_saveServer <- function(id, outsample_table, filename){
         
         saveRDS(dat, filename$name)
         
-        message("Filtered out-of-sample data saved.")
+        showNotification("Filtered out-of-sample data saved. Zone selection window can be closed now.", type = "message", duration = 20)
       })
     }
   )
@@ -140,7 +139,7 @@ zone_outsample_saveServer <- function(id, outsample_table, filename){
 zone_outsample_closeUI <- function(id){
   ns <- NS(id)
   
-  actionButton(ns('close'), 'Close app',
+  actionButton(ns('close'), 'Close zone selection window',
                style="color: #fff; background-color: #FF6347; border-color: #800000;")
 }
 

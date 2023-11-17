@@ -125,61 +125,66 @@ filter_outsample <- function(dat, project, mod.name, spatial_outsample = FALSE, 
                                                outsample_zones, lon.spat, lat.spat, use.scalers, scaler.func)
     log_call(project, save_filteroutsample_function)
     
+    return(1)
+    
     # Out-of-sample spatially--------------------------------------------------------------------------------------------------
     # If spatially out-of-sample, then have the user select zones for the spatial out-of-sample predictions
     # Note: if running through the console version, a shiny app will open, if running in the main app the out-of-sample
     #       zones will be provided as input
   } else {
     
+    # leaflet requires WGS84
+    spat <- sf::st_transform(spat, "+proj=longlat +datum=WGS84")
+    spat <- check_spatdat(spat, id = cat, lon = lon.spat, lat = lat.spat)
+    
+    # Save a second location ID to create multiple spatial layers for the interactive map. This allows us to create polygons
+    # when a user clicks and remove the polygon when it is clicked again while keeping the base layer grid.
+    if(zone.spat %in% names(spat)){
+      spat$secondLocationID <- paste("Zone_", as.character(spat[[zone.spat]]), sep="")
+      names(spat)[which(names(spat) == zone.spat)] <- zone.dat
+      spat[[zone.dat]] <- as.character(spat[[zone.dat]])
+      
+    } else if (zone.dat %in% names(spat)) {
+      spat$secondLocationID <- paste("Zone_", as.character(spat[[zone.spat]]), sep="")
+      spat[[zone.dat]] <- as.character(spat[[zone.dat]])
+      
+    } else {
+      stop(paste0("Zone identifier(s) not found in spatial or data table"))
+    }
+    
+    # Get unique zones across model design and out-of-sample data
+    zones <- unique(c(mdf$choice$choice, get(dat_in)[[zone.dat]]))
+    
+    # Filter spat based on zones
+    spat <- spat[which(get(spat_in)[[zone.dat]] %in% zones),]
+    mod.spat <- spat[which(get(spat_in)[[zone.dat]] %in% unique(mdf$choice$choice)),]
+    
+    # Change coordinate reference system if not WGS84
+    if(sf::st_crs(spat)[[1]] != "WGS84"){
+      spat <- sf::st_transform(spat, crs = "WGS84")
+    }
+    
+    if(sf::st_crs(mod.spat)[[1]] != "WGS84"){
+      mod.spat <- sf::st_transform(mod.spat, crs = "WGS84")
+    }
+    
+    # Need to log before running shiny
+    save_filteroutsample_function <- list()
+    save_filteroutsample_function$functionID <- "filter_outsample"
+    save_filteroutsample_function$args <- list(dat_in, project, mod.name, spatial_outsample, zone.dat, spat_in, zone.spat,
+                                               outsample_zones, lon.spat, lat.spat, use.scalers, scaler.func)
+    log_call(project, save_filteroutsample_function)
+    
+    ## Running in shiny ----
     if(isRunning()){
       
+      return(list(spat, mod.spat))
       
+    ## Running in console ----
     } else {
       # Load shiny modules to run on the console version
       source("R/zone_outsample_modules.R", local = TRUE)
       
-      # leaflet requires WGS84
-      spat <- sf::st_transform(spat, "+proj=longlat +datum=WGS84")
-      spat <- check_spatdat(spat, id = cat, lon = lon.spat, lat = lat.spat)
-      
-      # Save a second location ID to create multiple spatial layers for the interactive map. This allows us to create polygons
-      # when a user clicks and remove the polygon when it is clicked again while keeping the base layer grid.
-      if(zone.spat %in% names(spat)){
-        spat$secondLocationID <- paste("Zone_", as.character(spat[[zone.spat]]), sep="")
-        names(spat)[which(names(spat) == zone.spat)] <- zone.dat
-        spat[[zone.dat]] <- as.character(spat[[zone.dat]])
-        
-      } else if (zone.dat %in% names(spat)) {
-        spat$secondLocationID <- paste("Zone_", as.character(spat[[zone.spat]]), sep="")
-        spat[[zone.dat]] <- as.character(spat[[zone.dat]])
-        
-      } else {
-        stop(paste0("Zone identifier(s) not found in spatial or data table"))
-      }
-      
-      # Get unique zones across model design and out-of-sample data
-      zones <- unique(c(mdf$choice$choice, get(dat_in)[[zone.dat]]))
-      
-      # Filter spat based on zones
-      spat <- spat[which(get(spat_in)[[zone.dat]] %in% zones),]
-      mod.spat <- spat[which(get(spat_in)[[zone.dat]] %in% unique(mdf$choice$choice)),]
-      
-      # Change coordinate reference system if not WGS84
-      if(sf::st_crs(spat)[[1]] != "WGS84"){
-        spat <- sf::st_transform(spat, crs = "WGS84")
-      }
-      
-      if(sf::st_crs(mod.spat)[[1]] != "WGS84"){
-        mod.spat <- sf::st_transform(mod.spat, crs = "WGS84")
-      }
-      
-      # Need to log before running shiny
-      save_filteroutsample_function <- list()
-      save_filteroutsample_function$functionID <- "filter_outsample"
-      save_filteroutsample_function$args <- list(dat_in, project, mod.name, spatial_outsample, zone.dat, spat_in, zone.spat,
-                                                 outsample_zones, lon.spat, lat.spat, use.scalers, scaler.func)
-      log_call(project, save_filteroutsample_function)
-
       # Run a shiny app if using the console version of FishSET
       ui <- fluidPage(
         shinyjs::useShinyjs(),
@@ -201,9 +206,9 @@ filter_outsample <- function(dat, project, mod.name, spatial_outsample = FALSE, 
         outsample_table <- reactiveValues(data = NULL)
         filename <- reactiveValues(name = NULL)
         
-        zone_outsample_mapServer("map1", clicked_ids)
+        zone_outsample_mapServer("map1", clicked_ids, spat, mod.spat, zone.dat)
         zone_outsample_tableServer("table1", clicked_ids, outsample_table)
-        zone_outsample_saveServer("save", outsample_table, filename)
+        zone_outsample_saveServer("save", outsample_table, filename, zone.dat, project, dat)
         zone_outsample_closeServer("close1", outsample_table, filename)
         
       }
