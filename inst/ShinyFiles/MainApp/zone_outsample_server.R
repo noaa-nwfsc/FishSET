@@ -71,7 +71,8 @@ zone_outsample_mapServer <- function(id, clicked_ids, spat, mod.spat, zone.dat){
           # If the id was already clicked, then remove from the list and remove the red polygon
           clicked_ids$ids <- clicked_ids$ids[which(!(clicked_ids$ids %in% click$id))]
           
-          proxy %>% removeShape(layerId = as.numeric(click$id))
+          proxy %>% 
+            leaflet::removeShape(layerId = as.numeric(click$id))
         }
       })
     }
