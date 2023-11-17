@@ -1,11 +1,4 @@
-# Shiny app modules that display an interactive map for the user to select out-of-sample zones for predicting 
-# probabilities of fishing
-
-zone_outsample_mapUI <- function(id){
-  ns <- NS(id)
-  
-  leaflet::leafletOutput(ns("map"))
-}
+source("zone_outsample_UI.R", local = TRUE)
 
 zone_outsample_mapServer <- function(id, clicked_ids, spat, mod.spat, zone.dat){
   moduleServer(
@@ -17,10 +10,10 @@ zone_outsample_mapServer <- function(id, clicked_ids, spat, mod.spat, zone.dat){
       # zone.dat <- reactiveValues(data = zone.dat)
       
       # Generate map
-      output$map <- renderLeaflet({
-        leaflet() %>%
-          addTiles() %>%
-          addPolygons(data = spat,
+      output$map <- leaflet::renderLeaflet({
+        leaflet::leaflet() %>%
+          leaflet::addTiles() %>%
+          leaflet::addPolygons(data = spat,
                       fillColor = "white",
                       fillOpacity = 0.5,
                       color = "black",
@@ -29,7 +22,7 @@ zone_outsample_mapServer <- function(id, clicked_ids, spat, mod.spat, zone.dat){
                       layerId = ~secondLocationID,
                       group = "regions",
                       label = ~secondLocationID) %>%
-          addPolygons(data = mod.spat,
+          leaflet::addPolygons(data = mod.spat,
                       fillColor = "#FFC107",
                       fillOpacity = 0.5,
                       color = "#FFC107",
@@ -53,7 +46,7 @@ zone_outsample_mapServer <- function(id, clicked_ids, spat, mod.spat, zone.dat){
         sec_id <- "secondLocationID"
         
         # define leaflet proxy for second regional level map
-        proxy <- leafletProxy("map")
+        proxy <- leaflet::leafletProxy("map")
         
         # Check if the zone was already clicked. If not, then add polygon, otherwise remove polygon (ie zone clicked twice)
         if(!(gsub("Zone_", "", click$id) %in% clicked_ids$ids)){
@@ -64,14 +57,15 @@ zone_outsample_mapServer <- function(id, clicked_ids, spat, mod.spat, zone.dat){
           clicked_polys <- temp_dat %>% filter(.data[[z_id]] %in% clicked_ids$ids)
           
           # map highlighted polygons
-          proxy %>% addPolygons(data = clicked_polys,
-                                fillColor = "red",
-                                fillOpacity = 0.5,
-                                weight = 1,
-                                color = "black",
-                                stroke = TRUE,
-                                layerId = clicked_polys[[z_id]],
-                                label = ~secondLocationID)
+          proxy %>% 
+            leaflet::addPolygons(data = clicked_polys,
+                                 fillColor = "red",
+                                 fillOpacity = 0.5,
+                                 weight = 1,
+                                 color = "black",
+                                 stroke = TRUE,
+                                 layerId = clicked_polys[[z_id]],
+                                 label = ~secondLocationID)
           
         } else {
           # If the id was already clicked, then remove from the list and remove the red polygon
@@ -82,12 +76,6 @@ zone_outsample_mapServer <- function(id, clicked_ids, spat, mod.spat, zone.dat){
       })
     }
   )
-}
-
-zone_outsample_tableUI <- function(id){
-  ns <- NS(id)
-  
-  shiny::dataTableOutput(ns("table"))
 }
 
 zone_outsample_tableServer <- function(id, clicked_ids, outsample_table){
@@ -101,13 +89,6 @@ zone_outsample_tableServer <- function(id, clicked_ids, outsample_table){
       })
     }
   )
-}
-
-zone_outsample_saveUI <- function(id){
-  ns <- NS(id)
-  
-  actionButton(ns('saveZones'), 'Save out-of-sample zones',
-               style = "color: white; background-color: blue;")
 }
 
 zone_outsample_saveServer <- function(id, outsample_table, filename, zone.dat, project, dat){
@@ -134,13 +115,6 @@ zone_outsample_saveServer <- function(id, outsample_table, filename, zone.dat, p
       })
     }
   )
-}
-
-zone_outsample_closeUI <- function(id){
-  ns <- NS(id)
-  
-  actionButton(ns('close'), 'Close zone selection window',
-               style="color: #fff; background-color: #FF6347; border-color: #800000;")
 }
 
 zone_outsample_closeServer <- function(id, outsample_table, filename){

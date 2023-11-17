@@ -183,7 +183,8 @@ filter_outsample <- function(dat, project, mod.name, spatial_outsample = FALSE, 
     ## Running in console ----
     } else {
       # Load shiny modules to run on the console version
-      source("R/zone_outsample_modules.R", local = TRUE)
+      source("inst/ShinyFiles/MainApp/zone_outsample_UI.R", local = TRUE)
+      source("inst/ShinyFiles/MainApp/zone_outsample_server.R", local = TRUE)
       
       # Run a shiny app if using the console version of FishSET
       ui <- fluidPage(
