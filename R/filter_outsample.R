@@ -90,7 +90,7 @@ filter_outsample <- function(dat, project, mod.name, spatial_outsample = FALSE, 
     
     if(!is_empty(nonoverlap_zones)){
       if(isRunning()){
-        showNotification(paste0(length(nonoverlap_zones), " zone(s) from model not present in out-of-sample data."), type = "message")
+        showNotification(paste0(length(nonoverlap_zones), " zone(s) from model not present in out-of-sample data."), type = "warning", duration = 10)
       } else {
         message(paste0(length(nonoverlap_zones), " zone(s) from model not present in out-of-sample data."))
       }  
@@ -106,13 +106,13 @@ filter_outsample <- function(dat, project, mod.name, spatial_outsample = FALSE, 
     # Output message on saved status
     if(flag == 0){
       if(isRunning()){
-        showNotification("Filtered out-of-sample data saved.", type = "message")
+        showNotification("Filtered out-of-sample data saved.", type = "message", duration = 10)
       } else {
         message("Filtered out-of-sample data saved.")
       }  
     } else if (flag == 1){
       if(isRunning()){
-        showNotification("Save was unsuccessful. Check filter settings.", type = "error")
+        showNotification("Save was unsuccessful. Check filter settings.", type = "error", duration = 10)
       } else {
         message("Error: Save was unsuccessful. Check function inputs.")
       }

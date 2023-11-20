@@ -35,7 +35,6 @@
 #' 
 #' }
  
-
 model_design_outsample <- function(project, mod.name, outsample.mod.name = NULL, CV = FALSE, CV_dat = NULL, use.scalers = FALSE, scaler.func = NULL){
   
   # Load outsample data -----------------------------------------------------------------------------------------------------------------------------
@@ -151,7 +150,7 @@ model_design_outsample <- function(project, mod.name, outsample.mod.name = NULL,
   
   
   # Make model design -------------------------------------------------------------------------------------------------------------------------------
-  if(is.null(outsample.mod.name)){
+  if(is.null(outsample.mod.name) | is_empty(outsample.mod.name)){
     outsample.mod.name <- paste0(mod.name,"_outsample")  
   } # else do nothing and use the provided name
   
