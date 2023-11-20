@@ -1554,11 +1554,17 @@ ui = function(request){
                                                   tags$br(),
                                                   tags$br(),
                                                   
-                                                  h5('Step 1: Upload out-of-sample data'),
+                                                  h5(strong('Step 1: Upload out-of-sample data')),
                                                   uiOutput("load_outsample"),
-
-                                                  h5('Step 2: Filter out-of-sample data'),
+                                                  
+                                                  tags$div(style = "margin-top: -30px;",
+                                                           h5(strong('Step 2: Filter out-of-sample data'))),
                                                   uiOutput("filter_outsample"),
+                                                  
+                                                  tags$br(),
+                                                  
+                                                  h5(strong('Step 3: Make model design')),
+                                                  uiOutput("mod_design_outsample"),
                                                   
                                                   width = 3
                                                 ),
