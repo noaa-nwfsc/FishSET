@@ -46,7 +46,7 @@ predict_map <- function(project, policy.name = NULL, spat, zone.spat, outsample 
       error = function(err){message(paste0("Model output table not found in ", project))}
     )
     tryCatch({
-      pred_output <- unserialize_table(paste0(project, "PredictOutput"), project)},
+      pred_output <- unserialize_table(paste0(project, "predictOutput"), project)},
       
       error = function(err){message(paste0("Prediction output table not found in ", project))}  
     )
