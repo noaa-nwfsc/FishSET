@@ -1548,12 +1548,6 @@ ui = function(request){
                                                 
                                                 sidebarPanel(
                                                   
-                                                  actionButton('run_outsample', "Run prediction",
-                                                               style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-
-                                                  tags$br(),
-                                                  tags$br(),
-                                                  
                                                   h5(strong('Step 1: Upload out-of-sample data')),
                                                   uiOutput("load_outsample"),
                                                   
@@ -1566,22 +1560,27 @@ ui = function(request){
                                                   h5(strong('Step 3: Make model design')),
                                                   uiOutput("mod_design_outsample"),
                                                   
+                                                  tags$br(),
+                                                  
+                                                  h5(strong('Step 4: Out-of-sample prediction')),
+                                                  p("Important: check settings in previous steps before running prediction."),
+                                                  uiOutput("run_outsample_prediction"),
+                                                  
                                                   width = 3
                                                 ),
                                                 
                                                 mainPanel(
-                                                  # h4('K-fold Cross Validation Prediction Performance'),
-                                                  # DT::DTOutput('cv_perf_tab', width = "75%"),
-                                                  # 
-                                                  # tags$br(),
-                                                  # 
-                                                  # h4('Model fits for each iteration'),
-                                                  # DT::DTOutput('cv_modfit_tab', width = "100%"),
-                                                  # 
-                                                  # tags$br(),
-                                                  # 
-                                                  # h4('Model estimates for each iteration'),
-                                                  # DT::DTOutput('cv_modout_tab', width = "75%")
+                                                  uiOutput("outsample_pred_err"),
+                                                  
+                                                  tags$br(),
+
+                                                  h4('Predicted out-of-sample fishing probabilities'),
+                                                  DT::DTOutput('outsample_preds', width = "75%"),
+                                                  
+                                                  tags$br(),
+                                                  
+                                                  h4("Map of predicted out-of-sample fishing probabilities"),
+                                                  plotOutput("map_outsample")
                                                 )
                                               ),
                                      )
