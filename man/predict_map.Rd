@@ -4,7 +4,14 @@
 \alias{predict_map}
 \title{Map of predicted probabilities}
 \usage{
-predict_map(project, policy.name, spat, zone.spat)
+predict_map(
+  project,
+  policy.name = NULL,
+  spat,
+  zone.spat,
+  outsample = FALSE,
+  outsample_pred = NULL
+)
 }
 \arguments{
 \item{project}{Name of project}
@@ -18,6 +25,12 @@ a csv file to an `sf` object. To upload your spatial data to the FishSETFolder
 see [load_spatial()].}
 
 \item{zone.spat}{Name of zone ID column in `spat`.}
+
+\item{outsample}{Logical, indicating if \code{predict_map()} is being used for creating map of out-of-sample
+predicted fishing probabilities \code{outsample = TRUE} or policy scenario \code{outsample = FALSE}.}
+
+\item{outsample_pred}{A dataframe with fishing location and predicted probabilities for out-of-sample data.
+\code{outsample_pred = NULL} by default and when plotting policy scenarios.}
 }
 \value{
 A map showing predicted probabilities
