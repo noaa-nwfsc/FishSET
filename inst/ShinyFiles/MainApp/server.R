@@ -6667,8 +6667,8 @@ server = function(input, output, session) {
         selectizeInput('mod_name_outsample', 
                        label = list('Select main model name', icon('info-circle', verify_fa = FALSE)), 
                        choices = mod_rv$mod_names, multiple = FALSE),
-        message = 'The model name is required for filtering out of sample data (step 2) and creating the out-
-        of-sample model design (step 3).',
+        message = 'The main model name is required for filtering out of sample data (step 2), creating the out-
+        of-sample model designs (step 3), and running predictions (step 4).',
         position = "top", type='info', size='medium', 
       ),
       
@@ -6701,6 +6701,8 @@ server = function(input, output, session) {
   filename <- reactiveValues(name = NULL)
   
   observeEvent(input$run_outsample_filter, {
+    
+    showNotification("Starting filtering process.", type = "message")
     
     load_err <- FALSE
     dat <- NULL
@@ -6779,11 +6781,14 @@ server = function(input, output, session) {
         actionButton('make_outsample_design', "Create out-of-sample model design",
                      style = "background-color: blue; color: white;"),
         message = 'Select main model name in Step 2 above if not done already',
-        position = "top", type='info', size='medium', 
+        position = "top", type='info', size='medium' 
       )
       
     )
   })
+  
+  # Reactive value for out-of-sample model names
+  outsample_names <- reactiveValues(names = NULL)
   
   observeEvent(input$make_outsample_design, {
     
@@ -6798,17 +6803,102 @@ server = function(input, output, session) {
     
     if(tmp_name %in% mod_names){
       showNotification(paste0("'", tmp_name, "'", " already exists. Enter a new model name followed by '_outsample'."), type = "error", duration = 10)  
+      
+    } else if(!grepl("_outsample", tmp_name)) {
+      showNotification("Error: must include '_outsample' at the end of the model name.", type = "error", duration = 10)  
+      
     } else {
-      showNotification("Creating out-of-sample model design. See R console for progress.", type = "message", duration = 10)
+      showNotification("Generating out-of-sample model design. See R console for progress.", type = "message", duration = 10)
       
       model_design_outsample(project = project$name, mod.name = input$mod_name_outsample, 
                              outsample.mod.name = input$outsample_mod_name, CV = FALSE, CV_dat = NULL, 
                              use.scalers = FALSE, scaler.func = NULL)
       
-      showNotification("Out-of-sample model design added to FishSET database.", type = "message")  
+      outsample_names$names <- model_names(project$name)[grep("_outsample", model_names(project$name))]
+      
+      showNotification("Out-of-sample model design added to FishSET database.", type = "message")
+      
     }
-    
   })
+  
+  observeEvent(input$mod_sub, {
+    if(input$mod_sub == "outsample_predict"){
+      outsample_names$names <- model_names(project$name)[grep("_outsample", model_names(project$name))]
+    }
+  })
+  
+  # Run out-of-sample prediction
+  output$run_outsample_prediction <- renderUI({
+    tagList(
+      add_prompter(
+        selectizeInput('outsample_predict_name', 
+                       label = list('Select out-of-sample model design', icon('info-circle', verify_fa = FALSE)), 
+                       choices = outsample_names$names, multiple = FALSE),
+        message = "Select out-of-sample model design for running prediction. Only model designs with '_outsample' in their
+        names will be available for running out-of-sample predictions.",
+        position = "top", type='info', size='medium'
+      ),
+      
+      tags$br(),
+      
+      actionButton('run_outsample', "Run prediction",
+                   style = "color: #fff; background-color: #6da363; border-color: #800000;")
+    )
+  })
+  
+  # Reactive value for out-of-sample prediction results
+  outsample_predouts <- reactiveValues(pred_probs = NULL,
+                                       perc_abs_pred_error = NULL)
+  
+  observeEvent(input$run_outsample, {
+    
+    tmp_out <- predict_outsample(project = project$name, mod.name = input$mod_name_outsample,
+                                 outsample.mod.name = input$outsample_predict_name,
+                                 use.scalers = FALSE, scaler.func = NULL)
+    
+    outsample_predouts$pred_probs <- tmp_out[[1]]
+    outsample_predouts$perc_abs_pred_error <- tmp_out[[2]]
+    
+    output$outsample_preds <- DT::renderDT({
+      
+      if(!is_value_empty(outsample_predouts$pred_probs)){
+        tmp_tab <- outsample_predouts$pred_probs
+        names(tmp_tab) <- c("Zone", "Probability")
+      }
+      
+      return(tmp_tab)
+      
+    }, escape = FALSE)
+    
+    outsample_plot <- predict_map(project = project$name, spat = spatdat$dataset, zone.spat = input$filter_outsample_spatzone,
+                                  outsample = TRUE, outsample_pred = outsample_predouts$pred_probs)
+    
+    if(length(outsample_plot) == 1){
+      showNotification("Unable to create map of predicted fishing probabilities. Check settings in all steps and rerun prediction.",
+                       type = "error", duration = 10)
+      output$map_outsample <- renderPlot({
+        plot.new()
+        text(.3, 1, labels = "Error: unable to generate map - check settings in left side panel", col = 'red', cex = 1.5)
+      })  
+    } else {
+      output$map_outsample <- renderPlot({
+        plot(outsample_plot)
+      })  
+    }
+  })
+  
+  output$outsample_pred_err <- renderUI({
+    tagList(
+      tags$div(style = "font-size: 18px; margin-top:15px;",
+               "Percent absolute prediction error = ",  
+               if(!is.null(outsample_predouts$perc_abs_pred_error)){
+                 strong(round(outsample_predouts$perc_abs_pred_error, digits = 3))    
+               }
+      )
+    )
+  })
+  
+  
   
   ### ---  
   # Save output ----   
