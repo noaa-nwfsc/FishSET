@@ -221,6 +221,7 @@ unserialize_table <- function(table, project) {
   #'   include alternative choice matrix output, expected catch matrix output,
   #'   the model data list, and the prediction output. 
   #' @param project Name of project.
+  #' @export unserialize_table
   #' @keywords internal
   #' @importFrom DBI dbConnect dbDisconnect dbGetQuery
   #' @importFrom RSQLite SQLite
