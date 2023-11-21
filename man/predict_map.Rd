@@ -36,10 +36,11 @@ predicted fishing probabilities \code{outsample = TRUE} or policy scenario \code
 A map showing predicted probabilities
 }
 \description{
-Create a map showing predicted probabilities by zone for a chosen policy scenario
+Create a map showing predicted probabilities by zone
 }
 \details{
-This function requires that model and prediction output tables exist in the FishSET database.
+This function requires that model and prediction output tables exist in the FishSET database when 
+plotting policy scenario maps.
 }
 \examples{
 \dontrun{
