@@ -199,16 +199,17 @@ ui = function(request){
                 tabPanel("Upload Data", value = "upload",
                          tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
                          
-                         mainPanel(
-                           #div(style="display:inline-block;vertical-align:bottom;",
-                           tags$button(
-                             id = 'closeDat',
-                             type = "button",
-                             style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                             class = "btn action-button",
-                             onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                             "Close app"
-                           ),
+                         sidebarPanel(
+                           h5(strong("Steps for uploading data:")),
+                           p("1. Select folder that contains 'FishSETFolder'."),
+                           p("2. Enter name of project. If uploading from FishSET database, projects will appear after 'FishSET database' is selected."),
+                           p("3. Select files to upload."),
+                           p("4. Click on 'Load data' above to upload files into the FishSET database."),
+                           
+                           tags$br(),
+                           
+                           actionButton('change_fs_folder', 'Change FishSET Folder',
+                                        style = "color: white; background-color: blue;"), 
                            
                            tags$button(
                              id = 'loadDat',
@@ -217,13 +218,17 @@ ui = function(request){
                              class = "btn action-button",
                              "Load data"),
                            
-                           actionButton("delete_tabs_bttn", "Manage Tables",
-                                        style = "color: white; background-color: blue;"),
-                           
-                           uiOutput('load_manage_proj_ui'), 
+                           tags$br(), tags$br(),
                            
                            actionButton("meta_modal", "Metadata",
                                         style = "color: white; background-color: blue;"),
+                                                
+                           actionButton("delete_tabs_bttn", "Manage Tables",
+                                        style = "color: white; background-color: blue;"),
+                           
+                           tags$div(style = "display: inline-block;", uiOutput('load_manage_proj_ui')), 
+                           
+                           tags$br(), tags$br(),
                            
                            conditionalPanel("input.loadDat > 0", # TODO: update to a more reliable method
                                             actionButton("confid_modal", "Confidentiality",
@@ -233,11 +238,42 @@ ui = function(request){
                                             actionButton("plot_set", "Plot settings", 
                                                          style = "color: white; background-color: blue;")),
                            
+                           
+                           tags$br(),
+                           
+                           textInput('notesUp', "Notes", value=NULL, 
+                                     placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                           
+                           actionButton('callTextDownloadUp','Save notes'),
+                           
                            tags$br(), tags$br(),
+                           
+                           textInput("exprUp", label = "Enter an R expression",
+                                     value = "values$dataset"),
+                           actionButton("runUp", "Run", class = "btn-success"),
+                           div(style = "margin-top: 2em;",
+                               uiOutput('resultUp')
+                           ),
+                           
+                           tags$button(
+                             id = 'closeDat',
+                             type = "button",
+                             style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                             class = "btn action-button",
+                             onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                             "Close app"
+                           ),
+                           
+                           
+                           width = 3
+                         ),
+                         
+                         mainPanel(
+                           #div(style="display:inline-block;vertical-align:bottom;",
+                           
+                           tags$br(),
                            fluidRow(
                              
-                             actionButton('change_fs_folder', 'Change FishSET Folder',
-                                          style = "color: white; background-color: blue;"), 
                              uiOutput('fish_folder_path'), 
                              
                              uiOutput("projects"), # define project name
@@ -295,18 +331,7 @@ ui = function(request){
                              uiOutput('aux_upload')
                            ), 
                            
-                           mergeUI("aux", dat_type = "aux"),
-                           
-                           actionButton('callTextDownloadUp','Save notes'),
-                           textInput('notesUp', "Notes", value=NULL, 
-                                     placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                           
-                           textInput("exprUp", label = "Enter an R expression",
-                                     value = "values$dataset"),
-                           actionButton("runUp", "Run", class = "btn-success"),
-                           div(style = "margin-top: 2em;",
-                               uiOutput('resultUp')
-                           ) 
+                           mergeUI("aux", dat_type = "aux")
                          )),
                 #---
                 # Data quality evaluation tabset panel ----
@@ -1573,7 +1598,7 @@ ui = function(request){
                                                   uiOutput("outsample_pred_err"),
                                                   
                                                   tags$br(),
-
+                                                  
                                                   h4('Predicted out-of-sample fishing probabilities'),
                                                   DT::DTOutput('outsample_preds', width = "75%"),
                                                   
