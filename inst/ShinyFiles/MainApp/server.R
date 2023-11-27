@@ -984,7 +984,7 @@ server = function(input, output, session) {
     
     if (!is_value_empty(folderpath())) {
       
-      p(tags$strong('Currently set to ', folderpath()))
+      p(tags$strong('Directory is currently set to ', folderpath()), style = "font-size: 18px;")
       
     } else {
       
