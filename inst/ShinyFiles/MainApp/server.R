@@ -242,15 +242,26 @@ server = function(input, output, session) {
   project <- reactiveValues()
   
   # refresh data   
-  observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
+  observeEvent(c(input$refresh, input$refresh1, input$refresh2, input$refreshNew), {
     if(!is.null(project$name)){
-      temp <- tables_database(project$name)[grep(paste0(project$name, 'MainDataTable\\d+'), tables_database(project$name))][which(
-        unlist(stringi::stri_extract_all_regex(tables_database(project$name)[grep(paste0(project$name, 'MainDataTable\\d+'), 
-                                                                                  tables_database(project$name))], "\\d+"))==max((unlist(stringi::stri_extract_all_regex(tables_database(project$name)[grep(paste0(project$name, 
-                                                                                                                                                                                                                   'MainDataTable\\d+'), tables_database(project$name))], "\\d+")))))]
-      values$dataset <- table_view(temp, project$name)
-      showNotification("Data refreshed", type='message', duration=10)
+      tmp_tabs <- tables_database(project$name)[grep(paste0(project$name, 'MainDataTable\\d+'), tables_database(project$name))]
+      tab_dates1 <- unlist(stringi::stri_extract_all_regex(tmp_tabs, "\\d{6,}")) # all dates following MainDataTable
+      tab_dates2 <- max(tab_dates1) # max date
+      tmp_tabs <- tmp_tabs[which(tab_dates1 == tab_dates2)] # get the latest table
+
+      ref_err <- FALSE
+      tryCatch(
+        values$dataset <- table_view(tmp_tabs, project$name),
+        error = function(e) {ref_err <<- TRUE}
+      )
+      
+      if(ref_err){
+        showNotification("Error refreshing data", type='error', duration=10)
+      } else {
+        showNotification("Data refreshed", type='message', duration=10)  
+      }
     }
+    
   }, ignoreInit = TRUE, ignoreNULL=TRUE) 
   
   #Track Times tab selected
@@ -2469,37 +2480,33 @@ server = function(input, output, session) {
     
     if(input$checks == 'Variable class'){
       
-      "Check and change variable data classes."
+      h4("Check and change variable data classes")
       
     }else if(input$checks=='Summary table') {
       
-      "Summary table of NUMERIC variables in data table."
+      h4("Summary table of NUMERIC variables in data table.")
       
     } else if (input$checks=='Outliers'){
       
       if (input$dat.remove=='none'){
         
-        HTML('Table to assess outliers.', input$column_check, "shown. <br>Zoom in on plot by highlighting desired area and double clicking. <br>Double click again to reset plot. <br>")
+        h4("Table to assess outliers.", strong(input$column_check), " shown.")
         
       } else {
         
-        rm_txt <- switch(input$dat.remove, '5_95_quant' = '5th and 95th quantiles',  '2575_quant' = '25th and 75th quantiles', 
+        rm_txt <- switch(input$dat.remove, '5_95_quant' = '5th and 95th quantiles',  '25_75_quant' = '25th and 75th quantiles', 
                          'mean_2SD' = 'mean +/- 2SD', 'mean_3SD' = 'mean +/- 3SD', 
                          'median_2SD' = 'median +/- 2SD', 'median_3SD' = 'median +/- 3SD')
         out_tab <- tableInputOutlier()[[1]]
         rm_num <- nrow(values$dataset) - out_tab[rownames(out_tab) == input$dat.remove, 1]
         
-        case_txt <- paste('Table to assess outliers.', input$column_check, 'shown.', 
-                          '<br>Zoom in on plot by highlighting desired area and double clicking.', 
-                          '<br>Double click again to reset plot. <br>Excluding points that fall outside the', 
-                          rm_txt, "results in removing", rm_num, "points from the data table.")
-        
-        HTML(case_txt)
+        h4("Table to assess outliers.", strong(input$column_check), " shown.", 
+           h4("Excluding points that fall outside the", strong(rm_txt), "results in removing", strong(rm_num), "points from the data table."))
       }
     } else if(input$checks=='NAs'){
       #na(values$dataset)
       na_filter(values$dataset, project = project$name, x=qaqc_helper(values$dataset, "NA", "names"), 
-                replace = FALSE, remove = FALSE, rep.value=NA, over_write=FALSE)
+                       replace = FALSE, remove = FALSE, rep.value=NA, over_write=FALSE)
     } else if(input$checks=='NaNs'){
       nan_filter(values$dataset, project = project$name, x=qaqc_helper(values$dataset, "NaN", "names"), 
                  replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
@@ -2910,9 +2917,10 @@ server = function(input, output, session) {
     
     req(input$column_check %in% names(values$dataset))
     
-    paste0("Plots for ", input$column_check, " with ", input$x_dist,
-           " distribution and data removed based on '", input$dat.remove,
-           "'. \nBlue: included points   Red: removed points")
+    h4("Plots for ", strong(input$column_check), " with ", strong(input$x_dist),
+           " distribution and data removed based on '", strong(input$dat.remove),
+           "'. \nBlue: included points   Red: removed points",
+       h5("Zoom in on plot by highlighting desired area and double clicking. Double click again to reset the plot."))
   })
   
   # combine outlier plots into one
@@ -2931,7 +2939,9 @@ server = function(input, output, session) {
   
   output$plot3 <- renderPlot(outlierPlot3())
   
-  output$outlier_fig_title <- renderText(outlier_fig_title())
+  output$outlier_fig_title <- renderPrint(
+    outlier_fig_title()
+  )
   
   #Hover info       
   output$hover_info1 <- renderUI({
@@ -6495,6 +6505,7 @@ server = function(input, output, session) {
   observeEvent(input$refresh1,{
     
     updateCheckboxInput(session, 'Outlier_Filter', value=FALSE)
+    
   })         
   
   
