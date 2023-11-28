@@ -339,29 +339,21 @@ ui = function(request){
                 tabPanel("Data Quality Evaluation", value = "qaqc",
                          sidebarLayout(
                            sidebarPanel(width=3,
-                                        tags$br(),tags$br(),
+                                        actionButton('saveData','Save data to FishSET database'),
+                                        
+                                        tags$br(), tags$br(),
                                         
                                         tabPlotUI("qaqc", type = "tab_plot"),
-                                        actionButton('saveData','Save data to FishSET database'),
-                                        tags$br(),
-                                        tags$button(
-                                          id = 'closeQAQC',
-                                          type = "button",
-                                          style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                          class = "btn action-button",
-                                          onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                          "Close app"
-                                        ),
+                                        
+                                        tags$br(), tags$br(),
                                         
                                         actionButton("refresh1", "Refresh data", 
                                                      style = "color: white; background-color: blue;" 
                                         ),
-                                        actionButton('callTextDownloadQAQC','Save notes'),
-                                        tags$br(), tags$br(),
-                                        textInput('notesQAQC', "Notes", value=NULL,
-                                                  placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                         
-                                        radioButtons("checks", "Select data quality check function to run", 
+                                        tags$br(), tags$br(),
+                                        
+                                        radioButtons("checks", "Select data quality check function to run:", 
                                                      choices = c('Variable class', 'Summary table', 'Outliers', 
                                                                  'NAs', 'NaNs', 'Unique observations', 'Empty variables', 
                                                                  'Latitude and Longitude'='Lat_Lon units', 'Spatial data')),
@@ -415,22 +407,37 @@ ui = function(request){
                                         ),
                                         
                                         tags$br(),
+                                        
+                                        textInput('notesQAQC', "Notes", value=NULL,
+                                                  placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                        actionButton('callTextDownloadQAQC','Save notes'),
+                                        
+                                        tags$br(), tags$br(),
+                                        
                                         ##Inline scripting 
                                         textInput("exprQA", label = "Enter an R expression",
                                                   value = "values$dataset"),
                                         actionButton("runQA", "Run", class = "btn-success"),
                                         div(style = "margin-top: 2em;",
                                             uiOutput('resultQA')
+                                        ),
+                                        
+                                        tags$button(
+                                          id = 'closeQAQC',
+                                          type = "button",
+                                          style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                          class = "btn action-button",
+                                          onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                          "Close app"
                                         )
                            ),#END SIDEBAR LAYOUT             
                            mainPanel(width=9,
-                                     tags$br(), tags$br(),
+                                     tags$br(),
                                      htmlOutput("Case"),
                                      conditionalPanel("input.checks == 'Variable class'",
                                                       DT::dataTableOutput('changetable') ),
                                      conditionalPanel("input.checks=='Summary table'",
                                                       DT::DTOutput("output_table_summary")),
-                                     tags$br(),tags$br(),
                                      conditionalPanel("input.checks=='Outliers' && input.column_check == ''",
                                                       plotOutput('outlierbox')),  
                                      
@@ -439,7 +446,7 @@ ui = function(request){
                                                       shinycssloaders::withSpinner(DT::DTOutput("output_table_outlier")),
                                                       
                                                       tags$br(),
-                                                      textOutput("outlier_fig_title"),
+                                                      htmlOutput("outlier_fig_title"),
                                                       
                                                       splitLayout(cellWidths = c('33%','33%','33%'),
                                                                   shinycssloaders::withSpinner(plotOutput('plot1',
