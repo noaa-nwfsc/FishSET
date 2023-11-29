@@ -222,7 +222,7 @@ ui = function(request){
                            
                            actionButton("meta_modal", "Metadata",
                                         style = "color: white; background-color: blue;"),
-                                                
+                           
                            actionButton("delete_tabs_bttn", "Manage Tables",
                                         style = "color: white; background-color: blue;"),
                            
@@ -488,39 +488,34 @@ ui = function(request){
                 #---
                 tabPanel("Data Exploration", value = "explore",
                          sidebarLayout(
-                           sidebarPanel(width=2,
-                                        tags$br(),tags$br(),
+                           sidebarPanel(width=3,
+                                        tags$br(),
+                                        
+                                        actionButton('saveDataExplore','Save data to FishSET database'),
+                                        
+                                        tags$br(), tags$br(),
+                                        
                                         conditionalPanel("input.plot_table=='Plots'",
                                                          tabPlotUI("explore")
                                         ),
-                                        
                                         conditionalPanel("input.plot_table=='Table'",
                                                          actionButton('subsetData', 'Remove variable from dataset')
                                         ),
-                                        actionButton('callTextDownloadExplore','Save notes'),
-                                        actionButton('saveDataExplore','Save data to FishSET database'),
-                                        tags$button(
-                                          id = 'closeExplore',
-                                          type = "button",
-                                          style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                          class = "btn action-button",
-                                          onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                          "Close app"
-                                        ),
+                                        
+                                        tags$br(), 
+                                        
                                         actionButton("refresh", "Refresh data", 
                                                      style = "color: white; background-color: blue;" 
                                         ),
-                                        tags$br(), tags$br(),
-                                        textInput('notesExplore', "Notes", value=NULL, 
-                                                  placeholder = 'Write notes to store in text output file. 
-                                                    Text can be inserted into report later.'),
                                         
-                                        uiOutput("SelectDatasetExploreUI"), 
+                                        tags$br(), tags$br(),
                                         
                                         conditionalPanel("input.SelectDatasetExplore=='main' || input.SelectDatasetExplore=='grid'",
                                                          selectInput('plot_table', 'View data table or plots', 
                                                                      choices=c('Table','Plots'), selected='Table')
                                         ),
+                                        
+                                        uiOutput("SelectDatasetExploreUI"), 
                                         
                                         conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots'",
                                                          selectInput('plot_type', 'Select Plot Type', 
@@ -542,8 +537,15 @@ ui = function(request){
                                         ),
                                         
                                         conditionalPanel("input.SelectDatasetExplore == 'grid' && input.plot_table == 'Plots'",
-                                                         uiOutput("plot_grid_args")
+                                                         uiOutput("plot_grid_args"),
                                         ),
+                                        
+                                        textInput('notesExplore', "Notes", value=NULL, 
+                                                  placeholder = 'Write notes to store in text output file. 
+                                                    Text can be inserted into report later.'),
+                                        actionButton('callTextDownloadExplore','Save notes'),
+                                        
+                                        tags$br(), tags$br(),
                                         
                                         ##Inline scripting 
                                         textInput("expr", label = "Enter an R expression",
@@ -551,9 +553,19 @@ ui = function(request){
                                         actionButton("runI", "Run", class = "btn-success"),
                                         div( style = "margin-top: 2em;",
                                              uiOutput('resultI')
+                                        ),
+                                        
+                                        tags$button(
+                                          id = 'closeExplore',
+                                          type = "button",
+                                          style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                          class = "btn action-button",
+                                          onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                          "Close app"
                                         )
                            ),
-                           mainPanel(width=10,
+                           mainPanel(width=9,
+                                     tags$br(),
                                      tags$div(shinycssloaders::withSpinner(DT::DTOutput("output_table_exploration")), 
                                               style = "font-size: 75%; width: 100%"),
                                      
