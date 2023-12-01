@@ -241,6 +241,8 @@ ui = function(request){
                            
                            tags$br(),
                            
+                           tags$hr(style = "border-top: 3px solid #bbb;"),
+                           
                            textInput('notesUp', "Notes", value=NULL, 
                                      placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                            
@@ -408,6 +410,8 @@ ui = function(request){
                                         
                                         tags$br(),
                                         
+                                        tags$hr(style = "border-top: 3px solid #bbb;"),
+                                        
                                         textInput('notesQAQC', "Notes", value=NULL,
                                                   placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                         actionButton('callTextDownloadQAQC','Save notes'),
@@ -537,6 +541,8 @@ ui = function(request){
                                         conditionalPanel("input.SelectDatasetExplore == 'grid' && input.plot_table == 'Plots'",
                                                          uiOutput("plot_grid_args"),
                                         ),
+                                        
+                                        tags$hr(style = "border-top: 3px solid #bbb;"),
                                         
                                         textInput('notesExplore', "Notes", value=NULL, 
                                                   placeholder = 'Write notes to store in text output file. 
@@ -703,6 +709,8 @@ ui = function(request){
                                               
                              ),
                              
+                             tags$hr(style = "border-top: 3px solid #bbb;"),
+                             
                              noteUI("fleet"),
                              
                              tags$br(), tags$br(),
@@ -782,8 +790,53 @@ ui = function(request){
                          sidebarLayout(
                            sidebarPanel(
                              tabPlotUI("anal"),
+                             
+                             tags$br(), tags$br(),
+                             
                              modSaveUI("anal"),
+                             
+                             tags$br(),tags$br(),
+                             
+                             actionButton("refresh2", "Refresh data", 
+                                          style = "color: white; background-color: blue;" 
+                             ),
+                             
+                             tags$br(),tags$br(),
+                             
+                             conditionalPanel("input.corr_reg == 'Correlation'", 
+                                              
+                                              actionButton("run_corr", "Run function", 
+                                                           style = "color: #fff; background-color: #6da363; border-color: #800000;")
+                             ),
+                             
+                             conditionalPanel("input.corr_reg == 'Regression'", 
+                                              
+                                              actionButton("run_reg", "Run function", 
+                                                           style = "color: #fff; background-color: #6da363; border-color: #800000;")
+                             ),
+                             
+                             tags$br(),
+                             
+                             selectInput('corr_reg','Show correlations or simple linear regression', 
+                                         choices=c('Correlation','Regression'), selected='Correlation'),
+                             
+                             tags$hr(style = "border-top: 3px solid #bbb;"),
+                             
+                             textInput('notesAnal', "Notes", value=NULL, 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                             
                              actionButton('callTextDownloadAnal','Save notes'),
+                             
+                             tags$br(), tags$br(),
+                             
+                             ##Inline scripting 
+                             textInput("exprA", label = "Enter an R expression",
+                                       value = "values$dataset"),
+                             actionButton("runA", "Run", class = "btn-success"),
+                             div(style = "margin-top: 2em;",
+                                 uiOutput('resultA')
+                             ),
+                             
                              tags$button(
                                id = 'closeAnalysis',
                                type = "button",
@@ -791,35 +844,6 @@ ui = function(request){
                                class = "btn action-button",
                                onclick = "setTimeout(function(){window.close();},500);",  # close browser
                                "Close app"
-                             ),
-                             actionButton("refresh2", "Refresh data", 
-                                          style = "color: white; background-color: blue;" 
-                             ),
-                             tags$br(),tags$br(),
-                             textInput('notesAnal', "Notes", value=NULL, 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                             tags$br(),tags$br(),
-                             
-                             conditionalPanel("input.corr_reg == 'Correlation'", 
-                                              
-                                              actionButton("run_corr", "Run function", 
-                                                           style = "color: white; background-color: blue;")
-                             ),
-                             
-                             conditionalPanel("input.corr_reg == 'Regression'", 
-                                              
-                                              actionButton("run_reg", "Run function", 
-                                                           style = "color: white; background-color: blue;")
-                             ),
-                             
-                             selectInput('corr_reg','Show correlations or simple linear regression', 
-                                         choices=c('Correlation','Regression'), selected='Correlation'),
-                             ##Inline scripting 
-                             textInput("exprA", label = "Enter an R expression",
-                                       value = "values$dataset"),
-                             actionButton("runA", "Run", class = "btn-success"),
-                             div(style = "margin-top: 2em;",
-                                 uiOutput('resultA')
                              )
                            ),
                            mainPanel(
@@ -845,37 +869,25 @@ ui = function(request){
                 tabPanel('Compute New Variables', value='new',
                          sidebarLayout(
                            sidebarPanel(
-                             downloadButton("exportData", "Download data"),
                              
-                             selectInput("export_type", "Export data as:",
-                                         choices = c("csv", "txt", "rdata", "xlsx", 
-                                                     "json", "stata", "sas", "spss", "matlab")),
+                             actionButton('saveData','Save data to FishSET database'),
                              
                              actionButton("save_final_modal", "Save final table to FishSET database",
                                           style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
                              
-                             tags$hr(style = "border-top: 3px solid #bbb;"),
-                             
                              # downloadLink('downloadplotNew', label=''),
                              # actionButton('downloadplotNew', label='Save plot to folder'),
-                             actionButton('callTextDownloadNew','Save notes'),
-                             actionButton('saveData','Save data to FishSET database'),
-                             tags$br(),
-                             tags$button(
-                               id = 'closeNew',
-                               type = "button",
-                               style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                               class = "btn action-button",
-                               onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                               "Close app"
-                             ),
+                             
+                             tags$br(), tags$br(),
+                             
                              actionButton("refreshNew", "Refresh data", 
                                           style = "color: white; background-color: blue;"),
+                             
+                             tags$br(), tags$br(),
+                             
                              actionButton('runNew',"Run function",
                                           style="color: #fff; background-color: #6da363; border-color: #800000;"),
                              tags$br(), tags$br(),                              
-                             textInput('notesNew', "Notes", value=NULL, 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                              
                              selectInput('VarCreateTop', "Create variables based on", multiple=FALSE,  
                                          choices=c('Nominal ID', 'Arithmetic functions', 
@@ -1070,16 +1082,41 @@ ui = function(request){
                                               style = "margin-left:19px;",
                                               uiOutput('input_tri_cent')),
                              
+                             tags$hr(style = "border-top: 3px solid #bbb;"),
+                             
+                             textInput('notesNew', "Notes", value=NULL, 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                             actionButton('callTextDownloadNew','Save notes'),
+                             
+                             tags$br(), tags$br(),
+                             
                              ##Inline scripting 
                              textInput("exprN", label = "Enter an R expression",
                                        value = "values$dataset"),
                              actionButton("runN", "Run", class = "btn-success"),
                              div(style = "margin-top: 2em;",
                                  uiOutput('resultN')
+                             ),
+                             
+                             tags$button(
+                               id = 'closeNew',
+                               type = "button",
+                               style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                               class = "btn action-button",
+                               onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                               "Close app"
                              )
                            ),
                            mainPanel(
-                             DT::DTOutput("output_table_create")
+                             tags$br(),
+                             
+                             DT::DTOutput("output_table_create"),
+                             downloadButton("exportData", "Download data")
+                             
+                             # TODO: Get the download button working                             
+                             # selectInput("export_type", "Export data as:",
+                             #             choices = c("csv", "txt", "rdata", "xlsx", 
+                             #                         "json", "stata", "sas", "spss", "matlab")),
                            )
                          )),
                 
@@ -1098,6 +1135,33 @@ ui = function(request){
                 tabPanel('Define Alternative Fishing Choices', value = "altc",
                          sidebarLayout(
                            sidebarPanel(
+                             actionButton('altc_save','Save choices', style = "color: white; background-color: green;"), 
+                             
+                             tags$br(), tags$br(),
+                             
+                             actionButton("refreshZ", "Refresh data", 
+                                          style = "color: white; background-color: blue;" 
+                             ),
+                             
+                             tags$br(), tags$br(),
+                             
+                             tags$hr(style = "border-top: 3px solid #bbb;"),
+                             
+                             textInput('notesAltc', "Notes", value = NULL, 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                             
+                             actionButton('callTextDownloadAlt','Save notes'),
+                             
+                             tags$br(), tags$br(),
+                             
+                             # Inline scripting 
+                             textInput("exprZ", label = "Enter an R expression",
+                                       value = "values$dataset"),
+                             actionButton("runZ", "Run", class = "btn-success"),
+                             div(style = "margin-top: 2em;",
+                                 uiOutput('resultZ')
+                             ),
+                             
                              tags$button(
                                id = 'altc_close',
                                type = "button",
@@ -1105,23 +1169,6 @@ ui = function(request){
                                class = "btn action-button",
                                onclick = "setTimeout(function(){window.close();},500);",  # close browser
                                "Close app"
-                             ),
-                             
-                             actionButton("refreshZ", "Refresh data", 
-                                          style = "color: white; background-color: blue;" 
-                             ),
-                             
-                             actionButton('altc_save','Save choices', style = "color: white; background-color: green;"), 
-                             
-                             actionButton('callTextDownloadAlt','Save notes'),
-                             textInput('notesAltc', "Notes", value = NULL, 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                             # Inline scripting 
-                             textInput("exprZ", label = "Enter an R expression",
-                                       value = "values$dataset"),
-                             actionButton("runZ", "Run", class = "btn-success"),
-                             div(style = "margin-top: 2em;",
-                                 uiOutput('resultZ')
                              )
                            ),
                            
@@ -1147,28 +1194,20 @@ ui = function(request){
                          
                          tabsetPanel(id = 'exp_tab', 
                                      
-                                     tabPanel(title = 'create expected catch', value = 'exp_create', 
+                                     tabPanel(title = 'Create expected catch', value = 'exp_create', 
                                               sidebarLayout(
                                                 sidebarPanel(
-                                                  tags$button(
-                                                    id = 'closeEC',
-                                                    type = "button",
-                                                    style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                                    class = "btn action-button",
-                                                    onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                                    "Close app"
-                                                  ),
+                                                  actionButton("exp_submit", "Run expected catch/revenue function", 
+                                                               style="color: #fff; background-color: #6da363; border-color: #800000;"), 
+                                                  
+                                                  tags$br(), tags$br(),
+                                                  
                                                   actionButton("refreshEC", "Refresh data", 
                                                                style = "color: white; background-color: blue;" 
                                                   ),
-                                                  tags$br(),
-                                                  actionButton("exp_submit", "Run expected catch/revenue function", 
-                                                               style="color: #fff; background-color: #6da363; border-color: #800000;"), 
-                                                  tags$br(),tags$br(), 
-                                                  actionButton('callTextDownloadEC','Save notes'),
-                                                  textInput('notesEC', "Notes", value=NULL, 
-                                                            placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                                   
+                                                  tags$br(),tags$br(),
+                                                
                                                   uiOutput('exp_ui'),
                                                   
                                                   add_prompter(div(
@@ -1237,12 +1276,30 @@ ui = function(request){
                                   
                                   checkboxInput('exp_replace_output', 'Replace previously saved expected catch output with new output', 
                                                 value = FALSE),
+                                  
+                                  tags$hr(style = "border-top: 3px solid #bbb;"),
+                                  
+                                  textInput('notesEC', "Notes", value=NULL, 
+                                            placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                  
+                                  actionButton('callTextDownloadEC','Save notes'),
+                                  
+                                  tags$br(), tags$br(),
+                                  
                                   ##Inline scripting 
                                   textInput("exprEC", label = "Enter an R expression",
                                             value = "values$dataset"),
                                   actionButton("runEC", "Run", class = "btn-success"),
                                   div(style = "margin-top: 2em;",
-                                      uiOutput('resultEC'))
+                                      uiOutput('resultEC')),
+                                  
+                                  tags$button(
+                                    id = 'closeEC',
+                                    type = "button",
+                                    style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                    class = "btn action-button",
+                                    onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                    "Close app")
                                                 ),
                                   
                                   mainPanel(
@@ -1293,7 +1350,7 @@ ui = function(request){
                                   
                                      ),
                                   
-                                  tabPanel(title ='merge expected catch', value = 'exp_merge',
+                                  tabPanel(title ='Merge expected catch', value = 'exp_merge',
                                            
                                            sidebarLayout(
                                              
@@ -1324,26 +1381,12 @@ ui = function(request){
                                      tabPanel("Run model(s)", value = 'model_run',
                                               sidebarLayout(
                                                 sidebarPanel(
-                                                  tags$button(
-                                                    id = 'closeModel',
-                                                    type = "button",
-                                                    style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                                    class = "btn action-button",
-                                                    onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                                    "Close app"
-                                                  ),
-                                                  tags$br(),
-                                                  
                                                   # Models can't be run if final dataset not detected
                                                   uiOutput("disableMsg"),
                                                   
                                                   # TODO: consider adding final data save bttn to models tab
                                                   # actionButton("save_final_modal", "Save final table to FishSET database",
                                                   #              style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
-                                                  
-                                                  
-                                                  
-                                                  tags$br(),
                                                   
                                                   # conditionalPanel("input.mod_add!='0'",
                                                   #                  
@@ -1355,20 +1398,37 @@ ui = function(request){
                                                   
                                                   actionButton("mod_check", "Run model checks",
                                                                style="color: #fff; background-color: #6da363; border-color: #800000;"), 
+                                                  
                                                   uiOutput('mod_add_run_bttn'),
                                                   
                                                   tags$br(),tags$br(),
+                                                  
                                                   tags$p(tags$strong("More information"), tags$br(),
                                                          "Model parameter table is editable. Double click a cell to edit."),
                                                   
-                                                  actionButton('callTextDownloadModels','Save notes'),
+                                                  tags$hr(style = "border-top: 3px solid #bbb;"),
+                                                  
                                                   textInput('notesModel', "Notes", value=NULL, 
                                                             placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                                  
+                                                  actionButton('callTextDownloadModels','Save notes'),
+                                                  
+                                                  tags$br(), tags$br(),
+                                                  
                                                   ##Inline scripting 
                                                   textInput("exprM", label = "Enter an R expression",
                                                             value = "values$dataset"),
                                                   actionButton("runM", "Run", class = "btn-success"),
-                                                  div(style = "margin-top: 2em;", uiOutput('resultM'))
+                                                  div(style = "margin-top: 2em;", uiOutput('resultM')),
+                                                  
+                                                  tags$button(
+                                                    id = 'closeModel',
+                                                    type = "button",
+                                                    style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                                    class = "btn action-button",
+                                                    onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                                    "Close app"
+                                                  )
                                                 ),
                                                 
                                                 mainPanel(
@@ -1644,6 +1704,17 @@ ui = function(request){
                                      
                                      
                          )),
+                #---
+                # Policy tab
+                #---
+                tabPanel('Policy', value = "policy",
+                         tabsetPanel(id = "policy_tab",
+                                     
+                                     h1("Coming soon...")
+                                     
+                                     )
+                ),
+                
                 #--- 
                 # Bookmark tabset panel ----
                 #---
