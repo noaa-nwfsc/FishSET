@@ -5052,7 +5052,7 @@ server = function(input, output, session) {
   output$altc_ui <- renderUI({
     tagList(
       
-      h5(tags$b('Define how alternative fishing choices are calculated between occurance and alternative location')),
+      h4(tags$b('Define how alternative fishing choices are calculated between occurance and alternative location')),
       
       fluidRow(
         column(5,
@@ -5064,7 +5064,14 @@ server = function(input, output, session) {
                                           'Lon-Lat Coordinates' = 'lon-lat')),
                  
                  message = 'A centroid table must be saved to the FishSET database to be used as trip/haul occurances',
-                 type = 'info', size = 'medium', position = 'top')
+                 type = 'info', size = 'medium', position = 'top'),
+               
+               conditionalPanel("input.altc_occasion=='zone'||input.altc_alt_var=='zone'",
+                                uiOutput('altc_zone_cent_ui')),
+               
+               selectizeInput('altc_zoneID', 'Column containing zone identifier', 
+                              choices = colnames(values$dataset), options = list(maxItems = 1), 
+                              multiple = TRUE)
         ),
         
         column(5, 
@@ -5077,15 +5084,15 @@ server = function(input, output, session) {
                                           'Nearest Point' = 'near')),
                  
                  message = 'A centroid table must be saved to the FishSET database to be used as trip/haul occurances',
-                 type = 'info', size = 'medium', position = 'top')
+                 type = 'info', size = 'medium', position = 'top'),
+               
+               selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
+                              selected = 'miles'),
+               
+               numericInput('altc_min_haul', 'Include zones with more hauls than', 
+                            min = 1, max = 1000, value = 1)
         )
       ),     
-      
-      uiOutput('altc_occ_var_ui'),
-      
-      conditionalPanel("input.altc_occasion=='zone'||input.altc_alt_var=='zone'",
-                       
-                       uiOutput('altc_zone_cent_ui')),
       
       conditionalPanel("input.altc_occasion=='fish'||input.altc_alt_var=='fish'",
                        
@@ -5095,15 +5102,7 @@ server = function(input, output, session) {
                        
                        uiOutput('altc_spat_ui')),
       
-      selectizeInput('altc_zoneID', 'Column containing zone identifier', 
-                     choices = colnames(values$dataset), options = list(maxItems = 1), 
-                     multiple = TRUE),
-      
-      selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
-                     selected = 'miles'),
-      
-      numericInput('altc_min_haul', 'Include zones with more hauls than', 
-                   min = 1, max = 1000, value = 1)
+      uiOutput('altc_occ_var_ui')
     )
   })
   
@@ -5526,8 +5525,12 @@ server = function(input, output, session) {
       # TODO: mod_run_bttn won't show if checklist doesn't pass first time
       if (cList$pass) {
         tagList(
+          tags$br(),
+          
           actionButton("mod_add", "Save model and add new model", 
                        style="color: #fff; background-color: #337ab7; border-color: #800000;"),
+          
+          tags$br(), tags$br(),
           
           uiOutput('mod_run_bttn')
         )
