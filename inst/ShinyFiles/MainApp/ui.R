@@ -489,8 +489,6 @@ ui = function(request){
                 tabPanel("Data Exploration", value = "explore",
                          sidebarLayout(
                            sidebarPanel(width=3,
-                                        tags$br(),
-                                        
                                         actionButton('saveDataExplore','Save data to FishSET database'),
                                         
                                         tags$br(), tags$br(),
@@ -629,11 +627,18 @@ ui = function(request){
                            
                            sidebarPanel(
                              
-                             uiOutput("fleetSaveOutputUI"),
                              saveDataTableUI("fleet"),
+                             
+                             tags$br(), tags$br(),
+                             
+                             uiOutput("fleetSaveOutputUI"),
+                             
+                             tags$br(),
+                             
                              refreshUI("fleet"),
-                             closeAppUI("fleet"),
-                             noteUI("fleet"),
+                             
+                             tags$br(), tags$br(),
+                             
                              conditionalPanel("input.fleet_tab == 'fleet_summary'",
                                               uiOutput("run_fleet_fun")),
                              
@@ -653,6 +658,8 @@ ui = function(request){
                              ),
                              
                              conditionalPanel("input.fleet_tab == 'fleet_summary'",
+                                              tags$br(),
+                                              
                                               selectInput("fleet_fun", "Select function",
                                                           choices = c("vessel count" = "vessel_count", "species catch" = "species_catch",
                                                                       "rolling catch" = "roll_catch", "weekly catch" = "weekly_catch",
@@ -696,13 +703,19 @@ ui = function(request){
                                               
                              ),
                              
+                             noteUI("fleet"),
+                             
+                             tags$br(), tags$br(),
+                             
                              # RexpressionUI("fleet")
                              textInput("exprFleet", label = "Enter an R expression",
                                        value = "values$dataset"),
                              actionButton("runFleet", "Run", class = "btn-success"),
                              div(style = "margin-top: 2em;",
                                  uiOutput('resultFleet')
-                             )
+                             ),
+                             
+                             closeAppUI("fleet")
                            ), # sidebarPanel
                            
                            mainPanel(

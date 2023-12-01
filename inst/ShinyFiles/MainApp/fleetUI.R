@@ -69,10 +69,11 @@ noteUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    actionButton(ns('callTextDownload'),'Save notes',
-                 style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
     textInput(ns('notes'), "Notes", value = NULL, 
-              placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+              placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+    
+    actionButton(ns('callTextDownload'),'Save notes')
+                 # style = "color: #fff; background-color: #6EC479; border-color:#000000;")
   )
 }
 
@@ -92,8 +93,7 @@ RexpressionUI <- function(id) {
 
 saveDataTableUI <- function(id) {
   ns <- NS(id)
-  actionButton(ns('saveData'),'Save data to FishSET database',
-               style = "color: white; background-color: blue;")
+  actionButton(ns('saveData'),'Save data to FishSET database')
 }
 
 refreshUI <- function(id) {
@@ -1096,6 +1096,7 @@ fleet_tableUI <- function(id) {
     
     actionButton(ns("save"), "Save table to FishSET database",
                  style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+    
     tags$br(), tags$br(),
     
     fileInput(ns("file"), "Import table from local file"),
@@ -1111,8 +1112,6 @@ fleet_tableUI <- function(id) {
       actionButton(ns("colname_btn"), "Change column name",
                    style = "color: white; background-color: blue;")
     ),
-    
-    tags$br(), tags$br()
   )
 }
 
