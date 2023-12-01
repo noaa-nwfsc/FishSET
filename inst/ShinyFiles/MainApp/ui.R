@@ -447,7 +447,7 @@ ui = function(request){
                                      
                                      conditionalPanel("input.checks=='Outliers'",
                                                       
-                                                      shinycssloaders::withSpinner(DT::DTOutput("output_table_outlier")),
+                                                      shinycssloaders::withSpinner(DT::DTOutput("output_table_outlier"), type = 6),
                                                       
                                                       tags$br(),
                                                       htmlOutput("outlier_fig_title"),
@@ -456,15 +456,15 @@ ui = function(request){
                                                                   shinycssloaders::withSpinner(plotOutput('plot1',
                                                                                                           hover = hoverOpts("plot1_hover", delay = 100, delayType = "debounce"),
                                                                                                           dblclick = "plot1_dblclick", 
-                                                                                                          brush = brushOpts(id = "plot1_brush",resetOnNew = TRUE )
-                                                                  )),
+                                                                                                          brush = brushOpts(id = "plot1_brush",resetOnNew = TRUE)
+                                                                  ), type = 6),
                                                                   shinycssloaders::withSpinner(plotOutput('plot2', dblclick = "plot2_dblclick", 
-                                                                                                          brush = brushOpts(id = "plot2_brush",resetOnNew = TRUE))),
+                                                                                                          brush = brushOpts(id = "plot2_brush",resetOnNew = TRUE)), type = 6),
                                                                   shinycssloaders::withSpinner(plotOutput('plot3',
                                                                                                           hover = hoverOpts("plot3_hover", delay = 100, delayType = "debounce"),
                                                                                                           dblclick = "plot3_dblclick", 
                                                                                                           brush = brushOpts(id = "plot3_brush",resetOnNew = TRUE)
-                                                                  )))
+                                                                  ), type = 6))
                                      ),
                                      
                                      conditionalPanel("input.checks=='NAs'",
@@ -476,14 +476,14 @@ ui = function(request){
                                                       tabsetPanel(id = "spat_qaqc_tab", selected = "checks",
                                                                   
                                                                   tabPanel(title = "Spatial Checks", value = "checks",
-                                                                           shinycssloaders::withSpinner(uiOutput("spatQAQC_checkOut"))      
+                                                                           shinycssloaders::withSpinner(uiOutput("spatQAQC_checkOut"), type = 6)      
                                                                   ),
                                                                   
                                                                   tabPanel(title = "Spatial Corrections", value = "corrections",
                                                                            uiOutput("spat_correct_msg"),
                                                                            radioButtons("select_spat_tab", "Show:",
                                                                                         choices = c("all", "points outside zone" = "out_zone")),
-                                                                           tags$div(shinycssloaders::withSpinner(DT::DTOutput("spat_correct_tab")), 
+                                                                           tags$div(shinycssloaders::withSpinner(DT::DTOutput("spat_correct_tab"), type = 6), 
                                                                                     style = "font-size: 75%; width: 100%")
                                                                   )))
                            ))),
@@ -570,7 +570,7 @@ ui = function(request){
                            ),
                            mainPanel(width=9,
                                      tags$br(),
-                                     tags$div(shinycssloaders::withSpinner(DT::DTOutput("output_table_exploration")), 
+                                     tags$div(shinycssloaders::withSpinner(DT::DTOutput("output_table_exploration"), type = 6), 
                                               style = "font-size: 75%; width: 100%"),
                                      
                                      conditionalPanel(
@@ -590,7 +590,7 @@ ui = function(request){
                                                                          c('mean','median','min','max','sum'), 
                                                                          selected = 'mean'))))
                                        ),
-                                       shinycssloaders::withSpinner(plotOutput('plot_time')),
+                                       shinycssloaders::withSpinner(plotOutput('plot_time'), type = 6),
                                      ),
                                      
                                      conditionalPanel(
@@ -599,29 +599,29 @@ ui = function(request){
                                        column(shinycssloaders::withSpinner(plotOutput('plot_spatial',
                                                                                       click = "plot_spatial_click",
                                                                                       dblclick = "plot_spatial_dblclick",
-                                                                                      brush = brushOpts(id = "plot_spatial_brush", resetOnNew = FALSE))), width=7),
-                                       column(shinycssloaders::withSpinner(plotOutput('map_kernel')), width=7),
-                                       column(shinycssloaders::withSpinner(DT::DTOutput('output_table_gt_mt')), width=6)
+                                                                                      brush = brushOpts(id = "plot_spatial_brush", resetOnNew = FALSE)), type = 6), width=7),
+                                       column(shinycssloaders::withSpinner(plotOutput('map_kernel'), type = 6), width=7),
+                                       column(shinycssloaders::withSpinner(DT::DTOutput('output_table_gt_mt'), type = 6), width=6)
                                        
                                      ),
                                      
                                      conditionalPanel(
                                        "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial-zone summary'",
                                        fluidRow(
-                                         column(shinycssloaders::withSpinner(plotOutput('plot_zone_summary')), width=10)
+                                         column(shinycssloaders::withSpinner(plotOutput('plot_zone_summary'), type = 6), width=10)
                                        )
                                      ),
                                      
                                      conditionalPanel(
                                        "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='x-y plot'",
                                        uiOutput('xy_selectUI'),
-                                       shinycssloaders::withSpinner(plotOutput('plot_xy'))
+                                       shinycssloaders::withSpinner(plotOutput('plot_xy'), type = 6)
                                      ),
                                      
                                      # gridded data plot 
                                      conditionalPanel(
                                        "input.SelectDatasetExplore == 'grid' && input.plot_table == 'Plots'",
-                                       shinycssloaders::withSpinner(plotOutput("grid_plot"))
+                                       shinycssloaders::withSpinner(plotOutput("grid_plot"), type = 6)
                                      )
                            ))),
                 
@@ -853,13 +853,13 @@ ui = function(request){
                                               verbatimTextOutput('output_text_corr'),
                                               div(DT::DTOutput('output_table_corr'), style = "font-size: 75%; width: 100%"),
                                               tags$br(), tags$br(),
-                                              shinycssloaders::withSpinner(plotOutput('output_plot_corr', width='100%', height = "600px"))
+                                              shinycssloaders::withSpinner(plotOutput('output_plot_corr', width='100%', height = "600px"), type = 6)
                              ),
                              conditionalPanel("input.corr_reg=='Regression'",
                                               uiOutput('reg_resp_out'),
                                               uiOutput('reg_exp_out'),
                                               verbatimTextOutput('output_text_reg'),
-                                              shinycssloaders::withSpinner(plotOutput('output_plot_reg'))
+                                              shinycssloaders::withSpinner(plotOutput('output_plot_reg'), type = 6)
                              ))
                          )),
                 
@@ -1343,7 +1343,7 @@ ui = function(request){
                                                        h4(tags$b('Sparsity of observations by time period and zone')),
                                                        h5('Higher values indicate greater sparsity.'),
                                                        DT::DTOutput('spars_table'),
-                                                       shinycssloaders::withSpinner(plotOutput('spars_plot'))
+                                                       shinycssloaders::withSpinner(plotOutput('spars_plot'), type = 6)
                                                      ))
                                   )
                                               )
@@ -1788,7 +1788,7 @@ ui = function(request){
                                                 
                                                 mainPanel(
                                                   
-                                                  shinycssloaders::withSpinner(DT::DTOutput("log_table")),
+                                                  shinycssloaders::withSpinner(DT::DTOutput("log_table"), type = 6),
                                                 )
                                               )
                                      )

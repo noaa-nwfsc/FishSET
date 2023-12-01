@@ -1972,7 +1972,10 @@ server = function(input, output, session) {
                   tagList(
                     uiOutput("delete_warn_msg"),
                     
-                    shinycssloaders::withSpinner(DT::DTOutput("dbTables_confirm"))),
+                    shinycssloaders::withSpinner(
+                      DT::DTOutput("dbTables_confirm"),
+                      type = 6
+                    )),
                   
                   footer = tagList(
                     actionButton("cancel_delete_tab", "Cancel"),
@@ -6996,7 +6999,10 @@ server = function(input, output, session) {
                 selectInput("final_uniqueID", "Select column containing unique occurrence identifier",
                             choices = names(values$dataset)),
                 
-                shinycssloaders::withSpinner(uiOutput("checkMsg")),
+                shinycssloaders::withSpinner(
+                  uiOutput("checkMsg"),
+                  type = 6
+                ),
                 
                 footer = tagList(
                   modalButton("Close"),
