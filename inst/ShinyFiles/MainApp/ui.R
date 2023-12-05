@@ -1705,7 +1705,7 @@ ui = function(request){
                                      
                          )),
                 #---
-                # Policy tab
+                # Policy tab ----
                 #---
                 tabPanel('Policy', value = "policy",
                          tabsetPanel(id = "policy_tab",
