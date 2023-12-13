@@ -12,7 +12,7 @@ FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{String, name of project.}
 
-\item{var1}{First variable in \code{dat}.}
+\item{var1}{First variable in \code{dat}.a}
 
 \item{var2}{Second variable in \code{dat}.}
 
