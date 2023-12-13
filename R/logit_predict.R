@@ -27,8 +27,18 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
     logitEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))]), show_col_types = FALSE)  
     
   } else { # OUT-OF-SAMPLE
+    # Get the latest model output file
+    tmp_files1 <- project_files(project)[grep(mod.name, project_files(project))] # get all output files
+    tmp_files2 <- unlist(stringi::stri_extract_all_regex(tmp_files1, "\\d+-\\d+-\\d+")) # get dates of output files
+    file_i <- which(tmp_files2 == max(tmp_files2)) # get the index of the latest output file
     # Get parameter estimates
-    logitEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))]), show_col_types = FALSE)  
+    logitEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))])[file_i], show_col_types = FALSE)  
+    
+    # Display file used in the gui
+    if(isRunning()){
+      showNotification(paste0("Pulling from model output file '", paste0(project_files(project)[grep(mod.name, project_files(project))])[file_i]), "'", type = 'message', duration = 10)
+    }
+    
     # Overwrite mod.name as the out-of-sample model design name
     mod.name <- outsample.mod.name
   }
