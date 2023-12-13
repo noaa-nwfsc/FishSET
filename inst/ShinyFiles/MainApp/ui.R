@@ -850,7 +850,7 @@ ui = function(request){
                              tags$br(),
                              conditionalPanel("input.corr_reg=='Correlation'",
                                               uiOutput('corr_out'),
-                                              verbatimTextOutput('output_text_corr'),
+                                              # verbatimTextOutput('output_text_corr'), # This part doesn't show in the Shiny
                                               div(DT::DTOutput('output_table_corr'), style = "font-size: 75%; width: 100%"),
                                               tags$br(), tags$br(),
                                               shinycssloaders::withSpinner(plotOutput('output_plot_corr', width='100%', height = "600px"), type = 6)
@@ -858,8 +858,9 @@ ui = function(request){
                              conditionalPanel("input.corr_reg=='Regression'",
                                               uiOutput('reg_resp_out'),
                                               uiOutput('reg_exp_out'),
-                                              verbatimTextOutput('output_text_reg'),
-                                              shinycssloaders::withSpinner(plotOutput('output_plot_reg'), type = 6)
+                                              shinycssloaders::withSpinner(verbatimTextOutput("output_text_reg"), type= 6),
+                                              tags$br(),
+                                              shinycssloaders::withSpinner(plotOutput("output_plot_reg", width='100%', height = "600px"), type = 6)
                              ))
                          )),
                 

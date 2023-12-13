@@ -27,7 +27,6 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE, alpha = .5) {
   #'         var2 = 'HAUL', regress = TRUE)
   #' }
 
-
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
@@ -48,8 +47,6 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE, alpha = .5) {
       fishset_theme()
     
   } else {
-    
-    
     p1 <- 
       ggplot2::ggplot(dataset, ggplot2::aes(x = !!x_sym, y = !!y_sym)) +
       ggplot2::geom_point(alpha = alpha) +
@@ -67,11 +64,12 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE, alpha = .5) {
     x_plot <- gridExtra::grid.arrange(p1, p2, ncol = 2, nrow = 1, 
                                       top = grid::textGrob("Simple linear regression plots", 
                                                            gp = grid::gpar(fontsize = 14)))
-
+    
     fm <- stats::reformulate(var1, var2)
     formula <- rlang::enexpr(fm)
     data <- rlang::parse_expr(dat)
-    lm_call <- rlang::expr(summary(lm(!!formula, data = !!data)))
+    lm_call <- rlang::expr((summary(lm(!!formula, data = dataset))))
+    refout <- eval(lm_call)
   }
 
   # Log the function
@@ -84,8 +82,9 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE, alpha = .5) {
   save_plot(project, "xy_plot")
 
   if (regress == TRUE) {
+
+    list(plot = x_plot,
+         refout = refout)
     
-    list(plot = x_plot, 
-         refout = eval(lm_call, envir = rlang::current_env()))
   } else x_plot
 }
