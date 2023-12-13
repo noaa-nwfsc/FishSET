@@ -20,7 +20,7 @@
 #' @examples
 #' \dontrun{
 #' 
-#' model_design_outsample("scallop", "scallopModName")
+#' predict_outsample("scallop1", "logit_c_mod1", "logit_c_mod1_outsample")
 #' 
 #' }
 
