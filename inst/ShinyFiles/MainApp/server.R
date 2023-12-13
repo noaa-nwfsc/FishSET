@@ -4245,22 +4245,28 @@ server = function(input, output, session) {
                 choices = names(values$dataset), multiple = FALSE, selectize = TRUE)
   })
   
-  
-  inputReg <- eventReactive(input$run_reg, {
-    
+  lm_out1 <- eventReactive(input$run_reg, {
     if (colnames(values$dataset)[1] != 'var1') {
-      
       anal_out_proj$reg <- project$name
       q_test <- quietly_test(xy_plot)
-      q_test(values$dataset, project$name, input$reg_exp_select, 
+      q_test(values$dataset, project$name, input$reg_exp_select,
+                        input$reg_resp_select, regress = TRUE)
+    }
+  }, ignoreInit = TRUE)
+
+  # TODO: Had to repeat the same eventReactive expression to display both the lm print and plot outputs, but there must be a way without repeating this expression
+  lm_out2 <- eventReactive(input$run_reg, {
+    if (colnames(values$dataset)[1] != 'var1') {
+      anal_out_proj$reg <- project$name
+      q_test <- quietly_test(xy_plot)
+      q_test(values$dataset, project$name, input$reg_exp_select,
              input$reg_resp_select, regress = TRUE)
     }
   }, ignoreInit = TRUE)
   
+  output$output_plot_reg <- renderPlot(lm_out1()$plot)
   
-  output$output_text_reg <- renderPrint(inputReg()$refout)
-  
-  output$output_plot_reg <- renderPlot(inputReg()$plot)
+  output$output_text_reg <- renderPrint(lm_out2()$refout)
   
   ###---
   
@@ -6733,9 +6739,9 @@ server = function(input, output, session) {
     if(!load_err & !is_value_empty(dat)){
       
       # QAQC on out-of-sample data
-      dat <- na_filter(dat, project = "scallop1", x=qaqc_helper(dat, "NA", "names"),
+      dat <- na_filter(dat, project = project$name, x=qaqc_helper(dat, "NA", "names"),
                        replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)
-      dat <- nan_filter(dat, project = "scallop1", x=qaqc_helper(dat, "NA", "names"),
+      dat <- nan_filter(dat, project = project$name, x=qaqc_helper(dat, "NA", "names"),
                         replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)
       
       if(input$spat_outsample) showNotification("Loading map for selecting out-of-sample locations.", type = "message", duration = 20)    
