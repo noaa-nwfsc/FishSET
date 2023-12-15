@@ -2921,13 +2921,12 @@ server = function(input, output, session) {
   })
   
   # combine outlier plots into one
-  # outlierPlotAll <- reactive({  
-  #   
-  #   # TODO: convert to gridExtra::grid.arrange()
-  #   fig <- gridExtra::grid.arrange(outlierPlot1(), outlierPlot2(), outlierPlot3(),
-  #                                  ncol = 2, nrow = 2)
-  #   fig
-  # }) 
+  outlierPlotAll <- reactive({
+    # TODO: convert to gridExtra::grid.arrange()
+    fig <- gridExtra::grid.arrange(outlierPlot1(), outlierPlot2(), outlierPlot3(),
+                                   ncol = 2, nrow = 2)
+    fig
+  })
   
   # Outlier plot output
   output$plot1 <- renderPlot(outlierPlot1())
