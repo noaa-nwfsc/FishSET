@@ -986,60 +986,54 @@ server = function(input, output, session) {
   
   # Allow users to change FishSET folders easily.
   folderpath <- reactiveVal({
-    
     if (fs_exist) get("folderpath", envir = as.environment(1L))
+
   })
-  
+
   # Show path of current FS folder
   output$fish_folder_path <- renderUI({
-    
     if (!is_value_empty(folderpath())) {
-      
       p(tags$strong('Directory is currently set to ', folderpath()), style = "font-size: 18px;")
-      
+
     } else {
-      
       p('No FishSET Folder found. Please select "Update FishSET Folder".')
+
     }
   })
-  
+
   # update FS folder path
   observeEvent(input$change_fs_folder, {
-    
+
     fs_path <- update_folderpath()
     folderpath(fs_path)
   })
-  
+
   output$projects <- renderUI({
-    
+
     req(input$load_main_src)
-    
+
     if (input$load_main_src == 'Upload new file') {
-      
+
       textInput('projectname', 'Name of project', placeholder = 'Required to load data')
-      
+
     } else if (input$load_main_src == 'FishSET database') {
-      
-      
+
+
       if(length(suppressWarnings(projects())) > 0) {
-        
+
         selectInput("project_select", "Select project", choices = projects())
-        
+
       } else {
-        
+
         p("No projects found in FishSET Database. Create a project by uploading a new file")
       }
     }
   })
-  
+
   
   output$load_manage_proj_ui <- renderUI({
-    
-    if (!is_value_empty(projects())) {
-      
-      actionButton('load_manage_proj', 'Manage Projects', 
+      actionButton('load_manage_proj', 'Manage Projects',
                    style = "color: white; background-color: blue;")
-    }
   })
   
   # Manage Projects
