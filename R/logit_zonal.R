@@ -80,44 +80,49 @@ logit_zonal <- function(starts3, dat, otherdat, alts, project, expname, mod.name
   #' }
   #'
 
-  
+  # Format data
   griddat <- as.matrix(do.call(cbind, otherdat$griddat))
   intdat <- as.matrix(do.call(cbind, otherdat$intdat))
   
+  # Get number of variables
   gridnum <- dim(griddat)[2]
   intnum <- dim(intdat)[2]
-  # get number of variables
-
+  
+  # Number of observations
   obsnum <- dim(griddat)[1]
 
-
+  # Format coefficients
   starts3 <- as.matrix(starts3)
-  
   gridcoef <- as.matrix(starts3[1:(gridnum * (alts - 1)), ])
-  intcoef <- as.matrix(starts3[((gridnum * (alts - 1)) + 1):(((gridnum * (alts - 1))) + intnum), ])
+  intcoef <- as.matrix(starts3[(gridnum * alts):((gridnum * (alts - 1)) + intnum), ])
 
+  # sum(Beta_jm * G_im)
   gridbetas <- (matrix(gridcoef, obsnum, (alts - 1) * gridnum, byrow = TRUE) * griddat[, rep(1:gridnum, each = (alts - 1))])
   dim(gridbetas) <- c(nrow(gridbetas), (alts - 1), gridnum)
   gridbetas <- rowSums(gridbetas, dims = 2)
 
-
-  
+  # sum(gamma_n * T_in)
   intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
 
-  betas <- matrix(c(gridbetas, intbetas), obsnum, (alts - 1 + 1))
+  # [sum(Beta_jm * G_im) sum(gamma_n * T_in)]
+  betas <- matrix(c(gridbetas, intbetas), obsnum, alts)
 
+  # [sum(Beta_jm*G_im*Dummy variable) sum(gamma_n * T_in * Distance)]
   djztemp <- betas[1:obsnum, rep(1:ncol(betas), each = (alts))] * dat[, (alts + 3):(dim(dat)[2])]
-  dim(djztemp) <- c(nrow(djztemp), ncol(djztemp) / ((alts - 1) + 1), (alts - 1) + 1) # Why -1 then +1? Could just set it to alts?
+  dim(djztemp) <- c(nrow(djztemp), ncol(djztemp) / alts, alts) 
 
+  # Sum beta and gamma components of the model for each observation
   prof <- rowSums(djztemp, dims = 2)
-  profx <- prof - prof[, 1]
-
+  profx <- prof - prof[, 1] # Set values relative to the first column
+  
   exb <- exp(profx)
 
-  ldchoice <- (-log(rowSums(exb)))
+  # log-likelihood for each observation
+  ldchoice <- -log(rowSums(exb))
 
+  # negative log-likelihood
   ld <- -sum(ldchoice)
-
+  
   if (is.nan(ld) == TRUE) {
     ld <- .Machine$double.xmax
   }
