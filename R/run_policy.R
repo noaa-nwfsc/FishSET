@@ -2,6 +2,7 @@
 #'
 #' Checks policy scenario exists. Runs predict_probability function. Runs 
 #' \code{\link{welfare_predict}} function
+#' 
 #' @param project Name of project
 #' @param mod.name  Model name. Argument can be the name of the model or the name 
 #'   can be pulled the `modelChosen` table. Leave \code{mod.name} empty to use 
@@ -34,7 +35,7 @@
 #  -epm_predict
 #  -mixed_logit_predict
 #  -predict_probability
-#welfare_predict
+#  welfare_predict
 #  sim_welfare
 
 run_policy <- function(project,

@@ -222,6 +222,7 @@ discretefish_subroutine <- function(project,
         exp.names <- x$expectcatchmodels[[j]]
       }
       
+      # IMPORTANT NOTE: datamatrix$d is shifted and sorted for choice possibilities AND distances even though column names for distances are not sorted.
       datamatrix <- create_model_input(project = project, x = x, 
                                        mod.name = x$mod.name, 
                                        use.scalers = use.scalers, 
@@ -283,7 +284,7 @@ discretefish_subroutine <- function(project,
         
       } else {
         
-        numInits <- gridNum*max(datamatrix$choice)+intNum+1+1
+        numInits <- gridNum * max(datamatrix$choice) + intNum + 2
       }
       
       if (numInits != length(starts2)) {
@@ -370,7 +371,6 @@ discretefish_subroutine <- function(project,
       if(!CV){
         single_sql <- paste0(project, "LDGlobalCheck", format(Sys.Date(), format = "%Y%m%d"))
         second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
-        
         
         if (table_exists(single_sql, project)) {
           
@@ -583,7 +583,18 @@ discretefish_subroutine <- function(project,
           n1 <- unlist(lapply(grid_vars, function(x) as.character(interaction(x, z_names)))) 
           rownames(OutLogit) <- c(n1, ind_vars) 
           
-        } else {
+        } else if (grepl("epm", fr)) {
+
+          z_names <- sort(unique(mdf[[i]]$choice$choice))
+          n1 <- unlist(lapply(grid_vars, function(x) as.character(interaction(x, z_names))))
+          if((nrow(OutLogit) - length(n1) - length(ind_vars) - 1) == length(z_names)){
+            n2 <- paste0("k.", seq(1,length(z_names)))
+          } else { n2 = "k"}
+          n3 <- "sigma"
+          
+          rownames(OutLogit) <- c(n1, ind_vars, n2, n3)
+          
+        }else {
           # Q: will this always be the correct order?
           rownames(OutLogit) <- c(ec_names, p_names)
         }
