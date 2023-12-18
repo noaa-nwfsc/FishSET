@@ -2,7 +2,7 @@ shift_sort_x <- function(x, ch, y, distance, alts, ab) {
   #' shift_sort_x
   #'
   #' Shifts choices so that the chosen zone will be automatically the first
-  #'     one
+  #'     one for choice possibilities and distances.
   #'
   #' @param x Matrix of choice possibilities from \code{\link{create_logit_input}}.
   #' @param ch Data corresponding to actual zonal choice.
@@ -10,7 +10,8 @@ shift_sort_x <- function(x, ch, y, distance, alts, ab) {
   #' @param distance Data corresponding to distance.
   #' @param alts Number of alternative choices in model.
   #' @param ab Number of cost parameters + number of alts.
-  #' @return d: matrix of choice possibilities and distance.
+  #' @return d: matrix of choice possibilities and distance. IMPORTANT NOTE: both choice probabilities AND distances are sorted even though the 
+  #'  column names for distances remain unchanged.
   #' @export
   #' @keywords internal
   #'

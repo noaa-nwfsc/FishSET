@@ -458,7 +458,7 @@ make_model_design <-
   # TODO: Check whether ec matrices need to be rerun (necessary if primary data was filtered after ec were created)
   # use for logit_zonal, others?   
   # if (table_exists(paste0(project, "ExpectedCatch"), project) & likelihood == "logit_c") {
-  if (!is_value_empty(expectcatchmodels)) {
+  if (!is_value_empty(expectcatchmodels) & likelihood == "logit_c") {
     
     if(!outsample){ # IN-SAMPLE 
       if (!table_exists(paste0(project, "ExpectedCatch"), project)) {
@@ -481,7 +481,6 @@ make_model_design <-
     
       
     if (is_value_empty(expectcatchmodels)) {
-      
       stop('Expected catch matrix not defined. Model design file cannot be created.',
            call. = FALSE)
       

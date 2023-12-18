@@ -176,6 +176,7 @@ create_model_input <-
     
     dataCompile <- create_logit_input(choice)
     
+    # IMPORTANT NOTE: Both choice possibilities AND distances are sorted/shifted even though the column names for distances are not shifted.
     d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
     
     # Data needs will vary by the likelihood function
