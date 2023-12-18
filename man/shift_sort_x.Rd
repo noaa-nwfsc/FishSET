@@ -20,10 +20,11 @@ shift_sort_x(x, ch, y, distance, alts, ab)
 \item{ab}{Number of cost parameters + number of alts.}
 }
 \value{
-d: matrix of choice possibilities and distance.
+d: matrix of choice possibilities and distance. IMPORTANT NOTE: both choice probabilities AND distances are sorted even though the 
+ column names for distances remain unchanged.
 }
 \description{
 Shifts choices so that the chosen zone will be automatically the first
-    one
+    one for choice possibilities and distances.
 }
 \keyword{internal}
