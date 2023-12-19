@@ -46,7 +46,7 @@ create_dist_matrix <-
   zone_ind <- which(dataZoneTrue == 1)
   o_var <- NULL
   
-  if (is.null(crs)) {
+  if (is.null(crs) | is_empty(crs)) {
     
     crs <- 4326
     warning("CRS is not specfied, distance matrix will be created using WGS 84 (4326).",
