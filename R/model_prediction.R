@@ -79,7 +79,7 @@ model_prediction <- function(project, mod.name, closures, enteredPrice=NULL, use
       warning('Selected closed zone was not found in the model')
     }
     
-    stopifnot(z!=0)
+    stopifnot(z != 0)
     
     # ID for closed zones
     zoneClosedFish <- c(0,z) # id for zones closed to fishing in given time
@@ -100,7 +100,7 @@ model_prediction <- function(project, mod.name, closures, enteredPrice=NULL, use
     
     ## Logit models ----
     if (grepl('logit', x_new$likelihood)) {  
-      ## Conditional and zonal logit
+      ## Set up conditional and zonal logit
       ProbL <-  matrix(1, alts, length(tacAllowedAllTime)) # predicted probabilities of selecting zones for each TAC
       InOutLogit <- matrix(0,length(tacAllowedAllTime), 2) # sum of probabilities in and out of closures
       
@@ -111,14 +111,12 @@ model_prediction <- function(project, mod.name, closures, enteredPrice=NULL, use
       
       # Predictions for zones in closures
       probDataModelIn <- as.data.frame(probLogit[match(zoneIdIn,probLogit[,1]),])
-      
       if(dim(probDataModelIn)[1] == 1){
         probDataModelIn <- t(probDataModelIn)
       }
       
       # Predictions for zones not in closures
       probDataModelOut <- as.data.frame(probLogit[match(zoneIdOut,probLogit[,1]),])
-      
       if(dim(probDataModelOut)[1] == 1){
         probDataModelOut <- t(probDataModelOut)
       }
@@ -146,76 +144,113 @@ model_prediction <- function(project, mod.name, closures, enteredPrice=NULL, use
                                            zoneID=zoneID, zoneIdIn=zoneIdIn, zoneIdOut=zoneIdOut,
                                            modelDat=modelDat)
       
+      ## EPM models ----  
     } else if (grepl('epm', x_new$likelihood)){
       
       # TODO: remove the following line when epm models are functioning
-      x_new$scales$price <- NULL
+      # x_new$scales$price <- NULL
       
       #prices for EPM forecasting 
-      pscale <- x_new$scales$price
-      priceData <- x_new$epmDefaultPrice
+      # pscale <- x_new$scales$price
+      # priceData <- x_new$epmDefaultPrice
+      # 
+      # if(is.na(enteredPrice)){
+      #   p= priceData/pscale
+      #   allPrice= c(p, p) #{p,p}  #use internal price 
+      # } else {
+      #   newPrice = enteredPrice/pscale
+      #   p = priceData/pscale
+      #   allPrice <- c(p,newPrice)  # size = size(nameAllTime); first cell has base in it
+      # }
       
-      if(is.na(enteredPrice)){
-        p= priceData/pscale
-        allPrice= c(p, p) #{p,p}  #use internal price 
-      } else {
-        newPrice = enteredPrice/pscale
-        p = priceData/pscale
-        allPrice <- c(p,newPrice)  # size = size(nameAllTime); first cell has base in it
+      ## Set up EPM probability matrices
+      ProbE <- matrix(1, alts, length(tacAllowedAllTime)) # predicted probabilities of selecting zones for each TAC
+      InOutepm <- matrix(0,length(tacAllowedAllTime), 2) # sum of probabilities in and out of closures
+      InOutepm_base <- matrix(0,length(tacAllowedAllTime), 2) # sum of probabilities in and out of closures
+      
+      # Run logit model prediction
+      temp <- epm_predict(project = project, mod.name = mod.name, mod.type = x_new$likelihood, use.scalers = use.scalers, scaler.func = scaler.func) 
+      probepm <- temp[[1]] # Predicted probabilities of selecting each zone
+      modelDat <- temp[[2]] # Model data
+      
+      # Predictions for zones in closures
+      probDataModelIn <- as.data.frame(probepm[match(zoneIdIn, probepm[,1]),])
+      if(dim(probDataModelIn)[1] == 1){
+        probDataModelIn <- t(probDataModelIn)
       }
       
-      # EPM % Now the same process for the EPM
-      InOutEPM = matrix(0,length(tacAllowedAllTime), 2)#zeros(length(tacAllowedAllTime),2);
-      InOutEPMbase= matrix(0,length(tacAllowedAllTime), 2)# zeros(length(tacAllowedAllTime),2);
-      ProbE = matrix(1, alts, length(tacAllowedAllTime)) #zeros(alts,length(tacAllowedAllTime));
+      # Predictions for zones not in closures
+      probDataModelOut <- as.data.frame(probepm[match(zoneIdOut, probepm[,1]),])
+      if(dim(probDataModelOut)[1] == 1){
+        probDataModelOut <- t(probDataModelOut)
+      }
       
-      for (t in 1:length(allPrice)) {
-        #switch t
-        #case 1 % full TAC and no zone closure
-        # this code is different then logit according to original code,
-        # predictions are based on given  year, not on base year
-        # full TAC and no zone closure
-        #1 epm normal
-        
-        # temp <- epm_predict(project=project, modname=mod.name, alts=alts, mod.type=sub(".*_", "", x_new$likelihood), price=price) #modelOutput{mChoice},alts,x);
-        probEPM <- temp$probEPM
-        modelDat <- temp$modelDat
-        
-        
-        ProbE[,t] <- t(probEPM)*100 #probEPM'*100;
-        InOutEPM[t,1] = sum(probEPM[zoneIdIn])
-        InOutEPM[t,2] = sum(probEPM[zoneIdOut])
-        
-        if (zoneClosedFish[t]==0) {
-          zoneClose=0
+      # Calculate redistributed predicted probabilities
+      for(t in 1:length(tacAllowedAllTime)){           
+        if(tacAllowedAllTime[t]==1 &&  zoneClosedFish[t] == 0){  # full TAC and no zone closure (baseline)
+          sumProbDataModelIn <- sum(probDataModelIn[,2])
+          sumProbDataModelOut <- sum(probDataModelOut[,2])
+          InOutepm[t,1] <- sumProbDataModelIn
+          InOutepm[t,2] <- sumProbDataModelOut
+          ProbE[,t] <- probepm[,2]*100
+          
         } else {
-          zoneClose = sum(probEPM(zoneClosedFish[t])) # add up prob for all closed zones
+          zoneClose <- sum(probepm[match(zoneClosedFish, probepm[,1]),2], na.rm=TRUE) # add up prob for all closed zones
+          predout <- predict_probability(probepm, probDataModelIn, probDataModelOut, zoneClose, tacAllowedAllTime[t], zoneClosedFish)
+          InOutepm[t,1] <- predout$sumPredictIn
+          InOutepm[t,2] <- predout$sumPredictOut
+          ProbE[,t] <- predout$probPredict[,2]*100
         }
-        
-        #?probEPM=[zoneidNUM t(probEPM)] #[zoneidNUM probEPM']
-        probDataModelIn=  as.data.frame(probEPM[match(zoneIdIn,probEPM[,1]),]) #probEPM[zoneIdIn,]
-        probDataModelOut=  as.data.frame(probEPM[match(zoneIdOut,probEPM[,1]),])# probEPM[zoneIdOut,]
-        
-        sumProbDataModelIn=sum(probDataModelIn[,2])
-        sumProbDataModelOut=sum(probDataModelOut[,2])
-        InOutEPMbase[t,1]=sumProbDataModelIn
-        InOutEPMbase[t,2]=sumProbDataModelOut
-        
-        # Predictions for EPM
-        
-        predout <- predict_probability(probEPM, probDataModelIn, probDataModelOut, zoneClose, tacAllowedAllTime[t],zoneClosedFish)
-        #[probPredict, sumPredictIn,sumPredictOut]=predict_probaibility(probDataModelIn, probDataModelOut, zoneClose, tacAllowedAllTime(t),zoneClosedFish{t})
-        
-        ProbE[,t] = predout$probPredict[,2]*100
-        InOutEPM[t,1] = predout$sumPredictIn
-        InOutEPM[t,2] = predout$sumPredictOut
-        
-      } #end t loop
+      }
       
-      predict[[length(predict)+1]] <- list(scenario.name=paste(mod.name, scenarioname), InOut=InOutLogit, prob=ProbL, 
+      
+      # for (t in 1:length(allPrice)) {
+      #   #switch t
+      #   #case 1 % full TAC and no zone closure
+      #   # this code is different then logit according to original code,
+      #   # predictions are based on given year, not on base year
+      #   # full TAC and no zone closure
+      #   #1 epm normal
+      #   
+      #   # temp <- epm_predict(project=project, modname=mod.name, alts=alts, mod.type=sub(".*_", "", x_new$likelihood), price=price) #modelOutput{mChoice},alts,x);
+      #   probEPM <- temp$probEPM
+      #   modelDat <- temp$modelDat
+      #   
+      #   
+      #   ProbE[,t] <- t(probEPM)*100 #probEPM'*100;
+      #   InOutEPM[t,1] = sum(probEPM[zoneIdIn])
+      #   InOutEPM[t,2] = sum(probEPM[zoneIdOut])
+      #   
+      #   if (zoneClosedFish[t]==0) {
+      #     zoneClose=0
+      #   } else {
+      #     zoneClose = sum(probEPM(zoneClosedFish[t])) # add up prob for all closed zones
+      #   }
+      #   
+      #   #?probEPM=[zoneidNUM t(probEPM)] #[zoneidNUM probEPM']
+      #   probDataModelIn=  as.data.frame(probEPM[match(zoneIdIn,probEPM[,1]),]) #probEPM[zoneIdIn,]
+      #   probDataModelOut=  as.data.frame(probEPM[match(zoneIdOut,probEPM[,1]),])# probEPM[zoneIdOut,]
+      #   
+      #   sumProbDataModelIn=sum(probDataModelIn[,2])
+      #   sumProbDataModelOut=sum(probDataModelOut[,2])
+      #   InOutEPMbase[t,1]=sumProbDataModelIn
+      #   InOutEPMbase[t,2]=sumProbDataModelOut
+      #   
+      #   # Predictions for EPM
+      #   
+      #   predout <- predict_probability(probEPM, probDataModelIn, probDataModelOut, zoneClose, tacAllowedAllTime[t],zoneClosedFish)
+      #   #[probPredict, sumPredictIn,sumPredictOut]=predict_probaibility(probDataModelIn, probDataModelOut, zoneClose, tacAllowedAllTime(t),zoneClosedFish{t})
+      #   
+      #   ProbE[,t] = predout$probPredict[,2]*100
+      #   InOutEPM[t,1] = predout$sumPredictIn
+      #   InOutEPM[t,2] = predout$sumPredictOut
+      #   
+      # } #end t loop
+      
+      predict[[length(predict)+1]] <- list(scenario.name = paste(mod.name, scenarioname), InOut=InOutepm, prob=ProbE, 
                                            time='nameAllTime', type=x_new$likelihood, tac=tac, 
                                            zoneID=zoneID, zoneIdIn=zoneIdIn, zoneIdOut=zoneIdOut,
-                                           modelDat=modelDat, priceData = priceData)
+                                           modelDat=modelDat)
       
     } #end epm loop
   } #end closure loop
