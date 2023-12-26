@@ -4,18 +4,29 @@
 \alias{epm_predict}
 \title{EPM predict}
 \usage{
-epm_predict(project, alts, modname, mod.type, price)
+epm_predict(
+  project,
+  mod.name,
+  mod.type,
+  use.scalers = FALSE,
+  scaler.func = NULL,
+  outsample = FALSE
+)
 }
 \arguments{
 \item{project}{Name of project}
 
-\item{alts}{Number of alternatives choices in model}
-
-\item{modname}{Name of saved model to use}
+\item{mod.name}{Name of saved model to use}
 
 \item{mod.type}{String. Options are weibull, lognormal, normal}
 
-\item{price}{Numeric. Price.}
+\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
+numeric vector unless specified with \code{scaler.func}.}
+
+\item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
+
+\item{outsample}{Logical, \code{FALSE} if predicting probabilities for main data, and \code{TRUE} if predicting for out-of-sample data. \code{outsample = FALSE} 
+is the default setting.}
 }
 \value{
 Returns probability of epm model by choice
