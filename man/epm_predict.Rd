@@ -10,7 +10,8 @@ epm_predict(
   mod.type,
   use.scalers = FALSE,
   scaler.func = NULL,
-  outsample = FALSE
+  outsample = FALSE,
+  outsample.mod.name = NULL
 )
 }
 \arguments{

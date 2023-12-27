@@ -50,28 +50,36 @@ predict_outsample <- function(project, mod.name, outsample.mod.name, use.scalers
   # Run logit model ----
   if(grepl('logit', mdf$likelihood)){
     # Run logit model prediction
-    logitOutput <- logit_predict(project = project, mod.name = mod.name, use.scalers = use.scalers, scaler.func = scaler.func, 
+    logitOutput <- logit_predict(project = project, mod.name = mod.name, 
+                                 use.scalers = use.scalers, scaler.func = scaler.func, 
                                  outsample = TRUE, outsample.mod.name = outsample.mod.name)  
-    probLogit <- logitOutput[[1]] # Predicted probabilities of selecting each zone
+    probOutput <- logitOutput[[1]] # Predicted probabilities of selecting each zone
     modelDat <- logitOutput[[2]] # Model data
     probObs <- logitOutput[[3]] # Predicted probabilities for each observation
     
+  } else if(grepl('epm', mdf$likelihood)){
+    # Run epm model prediction
+    epmOutput <- epm_predict(project = project, mod.name = mod.name, mod.type = mdf$likelihood,
+                             use.scalers = use.scalers, scaler.func = scaler.func, 
+                             outsample = TRUE, outsample.mod.name = outsample.mod.name)  
+    probOutput <- epmOutput[[1]] # Predicted probabilities of selecting each zone
+    modelDat <- epmOutput[[2]] # Model data
+    probObs <- epmOutput[[3]] # Predicted probabilities for each observation
   }
   
-  # TODO: add more model options
-
+  
   # Performance metrics ----
   ## percent absolute prediction error ----
-  zones <- probLogit$zoneID
+  zones <- probOutput$zoneID
   choice <- mdf$choice$choice
   choice.tab <- table(choice)
   insample_share <- choice.tab/sum(choice.tab)
   
-  colnames(probObs) <- probLogit$zoneID
+  colnames(probObs) <- probOutput$zoneID
   predicted.tab <- colSums(probObs) # estimated number of trips represented by the sum of preditcted probabilities by zone
   outsample_share <- predicted.tab/sum(predicted.tab)
   
   perc.abs.pred.err <- sum(abs(insample_share - outsample_share)) * 100
   
-  return(list(probLogit, perc.abs.pred.err, probObs))
+  return(list(probOutput, perc.abs.pred.err, probObs))
 }
