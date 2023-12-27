@@ -1374,6 +1374,7 @@ ui = function(request){
                                   )
                          )
                 ),
+                
                 #---
                 # Model design and Run tabset panel ----
                 #---

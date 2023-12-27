@@ -16,12 +16,34 @@
 #' @keywords internal
 
 
-epm_predict <- function(project, mod.name, mod.type, use.scalers = FALSE, scaler.func = NULL, outsample = FALSE){
+epm_predict <- function(project, mod.name, mod.type, use.scalers = FALSE, scaler.func = NULL, outsample = FALSE, outsample.mod.name = NULL){
   
   # Obtain parameter estimates ----
-  if(!outsample){
+  if(!outsample){ # IN-SAMPLE
     epmEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))]), show_col_types = FALSE)    
-  }
+  
+  } else { # OUT-OF-SAMPLE
+    # Get the latest model output file
+    tmp_files1 <- project_files(project)[grep(mod.name, project_files(project))] # get all output files
+    tmp_files2 <- unlist(stringi::stri_extract_all_regex(tmp_files1, "\\d+-\\d+-\\d+")) # get dates of output files
+    file_i <- which(tmp_files2 == max(tmp_files2)) # get the index of the latest output file
+    # Get parameter estimates
+    epmEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))])[file_i], show_col_types = FALSE)  
+    
+    # Display file used in the gui
+    if(isRunning()){
+      showNotification(paste0("Pulling from model output file '", paste0(project_files(project)[grep(mod.name, project_files(project))])[file_i]), "'", type = 'message', duration = 10)
+    }
+    
+    # Need to save original model in case the number of alternatives are different
+    mdf <- model_design_list(project)
+    mdf_n <- model_names(project)
+    mdf_om <- mdf[[which(mdf_n == mod.name)]]  # save original model
+    in_zones <- sort(unique(mdf_om$choice$choice)) # get zones in the original
+    
+    # Overwrite mod.name as the out-of-sample model design name
+    mod.name <- outsample.mod.name
+  } 
   
 
   # Get model data ----
@@ -31,40 +53,49 @@ epm_predict <- function(project, mod.name, mod.type, use.scalers = FALSE, scaler
   mdf_new <- mdf[[which(mdf_n == mod.name)]]
   exp.names <- unlist(mdf_new$expectcatchmodels)
   
-  mod.dat <- create_model_input(project, x = mdf_new, 
-                                mod.name = mdf_new$mod.name, 
-                                use.scalers = use.scalers, 
-                                scaler.func = scaler.func, 
-                                expected.catch = exp.names)
+  mod.dat <- create_model_input(project, x = mdf_new, mod.name = mdf_new$mod.name, 
+                                use.scalers = use.scalers, scaler.func = scaler.func, expected.catch = exp.names)
   
   distance <- mdf_new$distance
   griddat <- as.matrix(do.call(cbind, mod.dat$otherdat$griddat))
   intdat <- as.matrix(do.call(cbind, mod.dat$otherdat$intdat))
   price <- matrix(mod.dat$otherdat$pricedat)
-  
-  # Get zone IDs ----
   zoneID <- sort(unique(mod.dat$choice.table$choice))
   
-  # Get the number of variables ----
-  alts <- dim(unique(mod.dat$choice))[1]
+  # Get the number of variables
+  alts <- dim(unique(mod.dat$choice))[1] # alternatives
   obsnum <- dim(griddat)[1] # number of observations
   
   gridnum <- dim(griddat)[2] # number of gridvarying variables  
   intnum <- dim(intdat)[2] # number of gridvarying variables  
   
-  # Get coefficients ----
-  epmEq <- epmEq[,2]
-  gridcoef <- epmEq$estimate[1:(alts * gridnum)] 
-  intcoef <- epmEq$estimate[((alts * gridnum) + 1):((alts * gridnum) + intnum)]
+  # Get coefficients 
+  if(!outsample){
+    epmEq <- epmEq$estimate
+  } else if(outsample){
+    # Format out-of-sample coefficients if alts not equal to in-sample alts  
+    if(mdf_om$alts != mdf_new$alts){
+      tmp <- format_outsample_coefs(in_zones = in_zones, out_zones = zoneID, Eq = epmEq, likelihood = mdf_new$likelihood)
+      epmEq <- tmp[[1]]
+      z_flag <- tmp[[2]]
+      if(z_flag == 1) gridnum <- gridnum + 1 # need to add one because the first alt was remove from gridbum above
+    } else {
+      # Else when alts are equal just get the original coefficients
+      epmEq <- epmEq$estimate
+    }
+  }
   
-  if ((length(epmEq$estimate) - ((gridnum * alts) + intnum + 1)) == alts) {
-    k <- as.matrix(epmEq$estimate[((gridnum * alts) + intnum + 1):((gridnum * alts) + intnum + alts)])
+  gridcoef <- epmEq[1:(alts * gridnum)] # get grid coefficients    
+  intcoef <- epmEq[((alts * gridnum) + 1):((alts * gridnum) + intnum)]
+  
+  if ((length(epmEq) - ((gridnum * alts) + intnum + 1)) == alts) {
+    k <- as.matrix(epmEq[((gridnum * alts) + intnum + 1):((gridnum * alts) + intnum + alts)])
     knum <- alts
-    sig <- as.matrix(epmEq$estimate[((gridnum * alts) + intnum + alts + 1):length(epmEq$estimate)])
+    sig <- as.matrix(epmEq[((gridnum * alts) + intnum + alts + 1):length(epmEq)])
   } else {
-    k <- as.matrix(epmEq$estimate[((gridnum * alts) + intnum + 1)])
+    k <- as.matrix(epmEq[((gridnum * alts) + intnum + 1)])
     knum <- 1
-    sig <- as.matrix(epmEq$estimate[((gridnum * alts) + intnum + 2):length(epmEq$estimate)])
+    sig <- as.matrix(epmEq[((gridnum * alts) + intnum + 2):length(epmEq)])
   }
   
   # Predict fishing probabilities ----
