@@ -39,6 +39,12 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
       showNotification(paste0("Pulling from model output file '", paste0(project_files(project)[grep(mod.name, project_files(project))])[file_i]), "'", type = 'message', duration = 10)
     }
     
+    # Need to save original model in case the number of alternatives are different
+    mdf <- model_design_list(project)
+    mdf_n <- model_names(project)
+    mdf_om <- mdf[[which(mdf_n == mod.name)]] # save original model
+    in_zones <- sort(unique(mdf_om$choice$choice)) # get zones in the original
+    
     # Overwrite mod.name as the out-of-sample model design name
     mod.name <- outsample.mod.name
   }
@@ -50,19 +56,14 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
   mdf_new <- mdf[[which(mdf_n == mod.name)]]
   exp.names <- unlist(mdf_new$expectcatchmodels)
   
-  mod.dat <- create_model_input(project = project, x = mdf_new,
-                                mod.name = mdf_new$mod.name,
-                                use.scalers = use.scalers,
-                                scaler.func = scaler.func,
-                                expected.catch = mdf_new$gridVaryingVariables,
-                                exp.names = exp.names)
+  mod.dat <- create_model_input(project = project, x = mdf_new, mod.name = mdf_new$mod.name,
+                                use.scalers = use.scalers, scaler.func = scaler.func,
+                                expected.catch = mdf_new$gridVaryingVariables, exp.names = exp.names)
   
   dataCompile <- as.matrix(mod.dat$dataCompile, nrow = dim(mod.dat$dataCompile)[1], ncol = dim(dim(mod.dat$dataCompile)[1]))
   distance <- as.matrix(mod.dat$distance, nrow = dim(mod.dat$distance)[1], ncol = dim(mod.dat$distance)[2])
   griddat <- as.matrix(do.call(cbind, mod.dat$otherdat$griddat))
   intdat <- as.matrix(do.call(cbind, mod.dat$otherdat$intdat))
-  
-  # zoneID <- logitEq$X # WHAT IS THIS SUPPOSED TO BE??? Maybe we can delete?
   zoneID <- sort(unique(mod.dat$choice.table$choice))
   
   # Get the number of variables
@@ -77,14 +78,33 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
   
   intnum <- dim(intdat)[2] # number of alternative-invariant variables
   
-  # Get coefficients
-  logitEq <- logitEq$estimate
-  gridcoef <- logitEq[1:gridnum] # get grid coefficients
+  # Get coefficients 
+  z_flag <- 0 # flag, set = 1 if logit_zonal and first alt (in-sample dataset) not in out-of-sample dataset
+  if(!outsample | (mdf_new$likelihood == "logit_c")){
+    logitEq <- logitEq$estimate
+  } else if(outsample & (mdf_new$likelihood == "logit_zonal")){
+    # Format out-of-sample coefficients if alts not equal to in-sample alts  
+    if(mdf_om$alts != mdf_new$alts){
+      tmp <- format_outsample_coefs(in_zones = in_zones, out_zones = zoneID, Eq = logitEq, likelihood = mdf_new$likelihood)
+      logitEq <- tmp[[1]]
+      z_flag <- tmp[[2]]
+      if(z_flag == 1) gridnum <- gridnum + 1 # need to add one because the first alt was remove from gridbum above
+    } else {
+      # Else when alts are equal just get the original coefficients
+      logitEq <- logitEq$estimate
+    }
+  }
+  gridcoef <- logitEq[1:gridnum] # get grid coefficients    
+
   
   # If running zonal logit, insert 0 for the first alternative (interpretation is relative to the first alternative and this beta_1 = 0)
   if(mdf_new$likelihood == "logit_zonal"){
-    gridcoef <- matrix(gridcoef, ncol = (alts - 1), byrow = TRUE) # get grid coefficients for each alternative
-    gridcoef <- cbind(matrix(0, nrow = dim(griddat)[2], ncol = 1), gridcoef) # insert 0 for the first alternative (other coefs are relative to the first alt)
+    if(z_flag == 0){
+      gridcoef <- matrix(gridcoef, ncol = (alts - 1), byrow = TRUE) # get grid coefficients for each alternative
+      gridcoef <- cbind(matrix(0, nrow = dim(griddat)[2], ncol = 1), gridcoef) # insert 0 for the first alternative (other coefs are relative to the first alt)      
+    } else {
+      gridcoef <- matrix(gridcoef, ncol = (alts), byrow = TRUE) # get grid coefficients for each alternative
+    }
     gridcoef <- as.vector(t(gridcoef)) # save as a single vector 
   }
   

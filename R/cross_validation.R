@@ -99,7 +99,10 @@ cross_validation <- function(project, mod.name, zone.dat, groups, k = NULL, time
   # Remove cross validation model designs if they exist ---------------------------------------------------------------------
   # First remove any existing cross validation model designs
   del_mods <- model_names(project)[grep("group", model_names(project))]
-  remove_model_design(project, del_mods)
+  if(length(del_mods) > 0){
+    remove_model_design(project, del_mods)  
+  }
+  
   
   # Create model design for each iteration ----------------------------------------------------------------------------------
   # Nested apply to create model designs for training and testing dataset for each group
