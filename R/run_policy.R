@@ -38,12 +38,7 @@
 #  welfare_predict
 #  sim_welfare
 
-run_policy <- function(project,
-                       mod.name = NULL,
-                       enteredPrice = NULL,
-                       expected.catch = NULL,
-                       use.scalers = FALSE,
-                       scaler.func = NULL) {
+run_policy <- function(project, mod.name = NULL, enteredPrice = NULL, expected.catch = NULL, use.scalers = FALSE, scaler.func = NULL) {
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
@@ -57,7 +52,6 @@ run_policy <- function(project,
     stop('No policy scenario tables found. Run the zone_closure function.')
     
   }
-  
   
   #2. Check that the model can be found ----
   # Get model name
@@ -82,12 +76,8 @@ run_policy <- function(project,
   } else {
     exists <- grep(mod.name, project_files(project))
     
-    if (length(exists) == 1){
+    if (length(exists) > 0){
       modname <- mod.name  
-      
-    } else if (length(exists) > 1) {
-      stop('More than one model exists in the modelChosen table. See table_view("modelChosen", project) and rerun function with either the model name or the numeric indicator of the model.'
-      )   
       
     } else {
       stop('modelChosen table does not exist. Specify model name or select the model using select_model(project).')
@@ -95,28 +85,20 @@ run_policy <- function(project,
   }
   
   
-  #2. Force users to look at closure file
-  # This is done in the zone closure tab
+  #2. Run model_prediction function ----
+  model_prediction(project = project, mod.name = modname,
+                   closures = closures, enteredPrice = enteredPrice,
+                   use.scalers = use.scalers, scaler.func = scaler.func)
   
-  #3. Run model_prediction function ----
-  model_prediction(project = project,
-                   mod.name = modname,
-                   closures = closures,
-                   enteredPrice = enteredPrice,
-                   use.scalers = use.scalers,
-                   scaler.func = scaler.func)
-  
-  #4. Output should be temporarily saved to pass to the next function
+  #3. Output should be temporarily saved to pass to the next function
   pOutput <- unserialize_table(paste0(project,"predictOutput"), project)
     
   #5. Run welfare predict
-  # welfareout <-
-  #   welfare_predict(
-  #     project = project,
-  #     mod.name = modname,
-  #     expected.catch = expected.catch, 
-  #     enteredPrice = enteredPrice
-  #   )
+  # TODO: change this later when welfare predict is working for logit models
+  if(grepl('epm', mod.name)){
+    welfareout <- welfare_predict(project = project, mod.name = modname, closures = closures,
+                                  expected.catch = expected.catch, enteredPrice = enteredPrice)  
+  }
   
   #6. Save output and return tables and plots
 
