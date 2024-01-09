@@ -4,12 +4,20 @@
 \alias{welfare_predict}
 \title{Welfare analysis code}
 \usage{
-welfare_predict(project, mod.name, expected.catch, enteredPrice)
+welfare_predict(
+  project,
+  mod.name,
+  closures,
+  expected.catch = NULL,
+  enteredPrice = NULL
+)
 }
 \arguments{
 \item{project}{Name of project}
 
 \item{mod.name}{Name of selected model (mchoice)}
+
+\item{closures}{Closure scenarios}
 
 \item{expected.catch}{Name of expectedchatch table to use}
 
@@ -21,5 +29,4 @@ Welfare analysis code
 \details{
 Called by \code{\link{run_policy}} function. The 
   \code{\link{model_prediction}} function should be run before this function.
-EPM weibull'
 }

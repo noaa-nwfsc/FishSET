@@ -172,6 +172,24 @@ project_files <- function(project) {
   } else proj
 }
 
+get_latest_projectfile <- function(project, mod.name){
+  #' Pull data from latest project file
+  #' 
+  #' @param project Project name
+  #' @param mod.name Model name
+  #' @export
+  #' @examples 
+  #' \dontrun{
+  #' get_latest_projectfile("pollock", "logit_mod1")
+  #' }
+  
+  # Get the latest model output file
+  tmp_files1 <- project_files(project)[grep(mod.name, project_files(project))] # get all output files
+  tmp_files2 <- unlist(stringi::stri_extract_all_regex(tmp_files1, "\\d+-\\d+-\\d+")) # get dates of output files
+  file_i <- which(tmp_files2 == max(tmp_files2)) # get the index of the latest output file
+  outEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))])[file_i], show_col_types = FALSE)  
+  return(list(outEq, paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))])[file_i]))
+}
 
 pull_output <- function(project, fun = NULL, date = NULL, type = "plot", conf = TRUE) {
   #'
