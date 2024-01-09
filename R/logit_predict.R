@@ -24,19 +24,22 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
   # Check if this is for in-sample or out-of-sample data
   if(!outsample){ # IN-SAMPLE
     # Get parameter estimates
-    logitEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))]), show_col_types = FALSE)  
-    
-  } else { # OUT-OF-SAMPLE
-    # Get the latest model output file
-    tmp_files1 <- project_files(project)[grep(mod.name, project_files(project))] # get all output files
-    tmp_files2 <- unlist(stringi::stri_extract_all_regex(tmp_files1, "\\d+-\\d+-\\d+")) # get dates of output files
-    file_i <- which(tmp_files2 == max(tmp_files2)) # get the index of the latest output file
-    # Get parameter estimates
-    logitEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))])[file_i], show_col_types = FALSE)  
+    tmpEq <- get_latest_projectfile(project, mod.name)
+    logitEq <- tmpEq[[1]]
     
     # Display file used in the gui
     if(isRunning()){
-      showNotification(paste0("Pulling from model output file '", paste0(project_files(project)[grep(mod.name, project_files(project))])[file_i]), "'", type = 'message', duration = 10)
+      showNotification(paste0("Pulling from model output file '", tmpEq[[2]]), "'", type = 'message', duration = 10)
+    }
+    
+  } else { # OUT-OF-SAMPLE
+    # Get parameter estimates
+    tmpEq <- get_latest_projectfile(project, mod.name)
+    logitEq <- tmpEq[[1]]
+    
+    # Display file used in the gui
+    if(isRunning()){
+      showNotification(paste0("Pulling from model output file '", tmpEq[[2]]), "'", type = 'message', duration = 10)
     }
     
     # Need to save original model in case the number of alternatives are different

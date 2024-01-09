@@ -31,7 +31,7 @@
 #' @keywords internal 
 #' 
 
-model_prediction <- function(project, mod.name, closures, enteredPrice=NULL, use.scalers = FALSE, scaler.func = NULL){
+model_prediction <- function(project, mod.name, closures, enteredPrice = NULL, use.scalers = FALSE, scaler.func = NULL){
   
   # 1. Retrieve the model data ----
   # Call in datasets
@@ -111,15 +111,15 @@ model_prediction <- function(project, mod.name, closures, enteredPrice=NULL, use
       
       # Predictions for zones in closures
       probDataModelIn <- as.data.frame(probLogit[match(zoneIdIn,probLogit[,1]),])
-      if(dim(probDataModelIn)[1] == 1){
-        probDataModelIn <- t(probDataModelIn)
-      }
+      # if(dim(probDataModelIn)[1] == 1){
+      #   probDataModelIn <- t(probDataModelIn)
+      # }
       
       # Predictions for zones not in closures
       probDataModelOut <- as.data.frame(probLogit[match(zoneIdOut,probLogit[,1]),])
-      if(dim(probDataModelOut)[1] == 1){
-        probDataModelOut <- t(probDataModelOut)
-      }
+      # if(dim(probDataModelOut)[1] == 1){
+      #   probDataModelOut <- t(probDataModelOut)
+      # }
       
       # Calculate redistributed predicted probabilities
       for(t in 1:length(tacAllowedAllTime)){           
@@ -175,15 +175,9 @@ model_prediction <- function(project, mod.name, closures, enteredPrice=NULL, use
       
       # Predictions for zones in closures
       probDataModelIn <- as.data.frame(probepm[match(zoneIdIn, probepm[,1]),])
-      if(dim(probDataModelIn)[1] == 1){
-        probDataModelIn <- t(probDataModelIn)
-      }
       
       # Predictions for zones not in closures
       probDataModelOut <- as.data.frame(probepm[match(zoneIdOut, probepm[,1]),])
-      if(dim(probDataModelOut)[1] == 1){
-        probDataModelOut <- t(probDataModelOut)
-      }
       
       # Calculate redistributed predicted probabilities
       for(t in 1:length(tacAllowedAllTime)){           
