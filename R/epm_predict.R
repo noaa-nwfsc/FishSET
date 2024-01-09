@@ -20,19 +20,23 @@ epm_predict <- function(project, mod.name, mod.type, use.scalers = FALSE, scaler
   
   # Obtain parameter estimates ----
   if(!outsample){ # IN-SAMPLE
-    epmEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))]), show_col_types = FALSE)    
-  
-  } else { # OUT-OF-SAMPLE
-    # Get the latest model output file
-    tmp_files1 <- project_files(project)[grep(mod.name, project_files(project))] # get all output files
-    tmp_files2 <- unlist(stringi::stri_extract_all_regex(tmp_files1, "\\d+-\\d+-\\d+")) # get dates of output files
-    file_i <- which(tmp_files2 == max(tmp_files2)) # get the index of the latest output file
     # Get parameter estimates
-    epmEq <- read_dat(paste0(locoutput(project), project_files(project)[grep(mod.name, project_files(project))])[file_i], show_col_types = FALSE)  
+    tmpEq <- get_latest_projectfile(project, mod.name)
+    epmEq <- tmpEq[[1]]
     
     # Display file used in the gui
     if(isRunning()){
-      showNotification(paste0("Pulling from model output file '", paste0(project_files(project)[grep(mod.name, project_files(project))])[file_i]), "'", type = 'message', duration = 10)
+      showNotification(paste0("Pulling from model output file '", tmpEq[[2]]), "'", type = 'message', duration = 10)
+    }
+  
+  } else { # OUT-OF-SAMPLE
+    # Get parameter estimates
+    tmpEq <- get_latest_projectfile(project, mod.name)
+    epmEq <- tmpEq[[1]]
+    
+    # Display file used in the gui
+    if(isRunning()){
+      showNotification(paste0("Pulling from model output file '", tmpEq[[2]]), "'", type = 'message', duration = 10)
     }
     
     # Need to save original model in case the number of alternatives are different
@@ -45,7 +49,7 @@ epm_predict <- function(project, mod.name, mod.type, use.scalers = FALSE, scaler
     mod.name <- outsample.mod.name
   } 
   
-
+  
   # Get model data ----
   # Need data compile, distance, gridvarying, interaction terms
   mdf <- model_design_list(project)
@@ -154,37 +158,37 @@ epm_predict <- function(project, mod.name, mod.type, use.scalers = FALSE, scaler
   # bTerms <-  mod.dat[,-c(1:A-1)] #choice matrix
   # numerEPM <- matrix(NA, nrow(mod.dat), alts) #array(NA, c(nrow(mod.dat), nrow(mod.dat), alts)) # nan(nrow(x), alts)
   
-
+  
   ###check this - sigmachoice should be sigma parameter estimate
   # sigmachoice <- epmEq[(alts+bchar+2)]
   
-#   #Calculate these parameters for weibull
-#   if(grepl('weibull', mod.type, ignore.case=TRUE)){
-#     k <- epmEq[-c(1:(length(epmEq)-(alts-1)-1))]
-#     k_exp <- exp(k)
-#     exp_alphaEPM <- exp(alphaEPM)
-#   
-#     gammakexp <- gamma((k_exp+1)/k_exp)
-#   }
-#   
-# if (grepl('weibull', mod.type, ignore.case=TRUE)){
-#   
-#   if(length(p)==1){
-#     for (i in 1:nrow(mod.dat)){
-#       bTermsMatrix <- array(bTerms[i,],c(alts, bchar+1))
-#       numerEPM[i,] = t(exp((p*exp_alphaEPM*gammakexp + bTermsMatrix*Beta)/sigmachoice))
-#     }
-#   } else{
-#     
-#     for (i in 1:nrow(mod.dat)){
-#       bTermsMatrix=array(bTerms[i,],c(alts, bchar+1))
-#       numerEPM[i,] <- t(exp((p(i)*exp_alphaEPM*gammakexp + bTermsMatrix*Beta)/sigmachoice))
-#     }
-#   }
-# } else {
-#   if(length(p)==1){
-# 
-#     for (i in 1:nrow(mod.dat)){ # for each individual
+  #   #Calculate these parameters for weibull
+  #   if(grepl('weibull', mod.type, ignore.case=TRUE)){
+  #     k <- epmEq[-c(1:(length(epmEq)-(alts-1)-1))]
+  #     k_exp <- exp(k)
+  #     exp_alphaEPM <- exp(alphaEPM)
+  #   
+  #     gammakexp <- gamma((k_exp+1)/k_exp)
+  #   }
+  #   
+  # if (grepl('weibull', mod.type, ignore.case=TRUE)){
+  #   
+  #   if(length(p)==1){
+  #     for (i in 1:nrow(mod.dat)){
+  #       bTermsMatrix <- array(bTerms[i,],c(alts, bchar+1))
+  #       numerEPM[i,] = t(exp((p*exp_alphaEPM*gammakexp + bTermsMatrix*Beta)/sigmachoice))
+  #     }
+  #   } else{
+  #     
+  #     for (i in 1:nrow(mod.dat)){
+  #       bTermsMatrix=array(bTerms[i,],c(alts, bchar+1))
+  #       numerEPM[i,] <- t(exp((p(i)*exp_alphaEPM*gammakexp + bTermsMatrix*Beta)/sigmachoice))
+  #     }
+  #   }
+  # } else {
+  #   if(length(p)==1){
+  # 
+  #     for (i in 1:nrow(mod.dat)){ # for each individual
 #       bTermsMatrix <- array(bTerms[i,],c(alts, bchar+1)) #reshape(bTerms(i,:),alts,bchar+1);
 #       numerEPM[i,] = t(exp((alphaEPM*p + bTermsMatrix*Beta)/sigmachoice))  #exp(betaLogit+miles*BmilesLogit+ milesSQ*bmilesSQ+Betaf*bf+....ect....
 #     
