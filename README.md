@@ -11,6 +11,7 @@ If you run into problems you can contact [FishSET@noaa.gov](mailto:FishSET@noaa.
   <li>[Documentation](#Documentation)
   <li>[Issues](#bugs)
   <li>[Citation](#cite)
+  <li>[Troubleshooting](#Troubleshoot)
   <li>[License](#license)
 </ul>
 
@@ -118,6 +119,11 @@ Issues? [https://github.com/FishSET/issues](https://gitlab-afsc.fisheries.noaa.g
 If you use FishSET results in publications, please cite the the package:
 
 Alan Haynie, Melanie Harsch, Bryce McManus, and Allen Chen (2021). FishSET: Spatial Economics Toolbox for Fisheries. R package version 1.0.1.
+
+## <a name="Troubleshoot"> Troubleshooting </a>
+<details><summary>Error in dyn.load(file, DLLpath = DLLpath, ...): unable to load shared object ... </summary>
+This error message indicates that the filepath to a necessary package is 'corrupted' and cannot load properly. To fix this issue, reinstall the package indicated in the error message using `install.packages([Name of package])` and restart the R session. If the issue persists, try uninstalling and reinstalling R/RStudio. If both options fail, report the[issue](https://gitlab-afsc.fisheries.noaa.gov/bryce.mcmanus/FishSET_RPackage/-/issues).
+</details> 
 
 ## <a name="license"> NOAA Disclaimer </a>
 
