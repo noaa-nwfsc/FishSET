@@ -6094,7 +6094,7 @@ server = function(input, output, session) {
     q_test <- quietly_test(make_model_design, show_msg = TRUE)
     
     # force exp list to NULL for zonal logit because this will automatically fill with previous model designs
-    if(input$model == "logit_zonal"){
+    if(input$model == "logit_zonal" || grepl("epm", input$model)){
       mod_rv$exp_list <- NULL
     }
     
