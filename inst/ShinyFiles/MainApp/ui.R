@@ -204,7 +204,7 @@ ui = function(request){
                            p("1. Select folder that contains 'FishSETFolder'."),
                            p("2. Enter name of project. If uploading from FishSET database, projects will appear after 'FishSET database' is selected."),
                            p("3. Select files to upload."),
-                           p("4. Click on 'Load data' above to upload files into the FishSET database."),
+                           p("4. Click on 'Load data' to create FishSET database and upload files into tables."),
                            
                            tags$br(),
                            
@@ -939,8 +939,8 @@ ui = function(request){
                                                           choices = c('Collapse haul to trip'='haul_to_trip','Calculate trip distance'='trip_distance',
                                                                       'Calculate trip centroid'='trip_centroid'),
                                                           selected='haul_to_trip', multiple = FALSE)),
-                             conditionalPanel("input.trip!='haul_to_trip'||input.trip!='trip_centroid'", 
-                                              
+                             conditionalPanel("!((input.VarCreateTop=='Spatial functions' && input.dist=='zone_cent')||
+                                               (input.VarCreateTop=='Trip-level functions' && (input.trip=='haul_to_trip'||input.trip=='trip_centroid')))", 
                                               add_prompter(
                                                 textInput('varname', list('Name of new variable', icon('info-circle', verify_fa = FALSE)), 
                                                           value = '', placeholder = ''),
