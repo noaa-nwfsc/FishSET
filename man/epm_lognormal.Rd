@@ -2,60 +2,39 @@
 % Please edit documentation in R/epm_lognormal.R
 \name{epm_lognormal}
 \alias{epm_lognormal}
-\title{Expected profit model lognormal catch function}
+\title{Expected profit model with log-normal catch function}
 \usage{
 epm_lognormal(starts3, dat, otherdat, alts, project, expname, mod.name)
 }
 \arguments{
-\item{starts3}{Starting values as a vector (num). For this likelihood,
-the order takes: c([catch-function parameters], [travel-distance
-parameters], [catch sigma(s)], [scale parameter]). \cr \cr
-The catch-function and travel-distance parameters are of length (# of
-catch-function variables)*(k) and (# of travel-distance variables)
-respectively, where (k) equals the number of alternatives. The catch
-sigma(s) are either of length equal to unity or length (k) if the
-analyst is estimating location-specific catch sigma parameters. The
-scale parameter is of length equal to unity.}
+\item{starts3}{Starting parameter values as a numeric vector. The order of parameters in the 
+vector is: \cr 
+c([\emph{catch-function params}], [\emph{travel-dist params}], 
+[\emph{stdev}], [\emph{common scale param}]), \cr
+where the length of catch-function parameters is the # of alternatives * # of 
+catch-function variables, length of travel-distance parameters is the # of 
+travel-distance variables, length of standard deviation defaults to 1 but alternative-
+specific standard deviation values can be specified (length = # of alternatives), and the
+common scale parameter is a single value.}
 
-\item{dat}{Data matrix, see output from shift_sort_x, alternatives with
+\item{dat}{Data matrix, see output from \code{\link{shift_sort_x}}, alternatives with
 distance.}
 
-\item{otherdat}{Other data used in model (as a list containing objects
-`intdat`, `griddat`, and `prices`). \cr \cr
-For this likelihood, `intdat` are 'travel-distance variables', which
-are alternative-invariant variables that are interacted with travel
-distance to form the cost portion of the likelihood. Each variable
-name therefore corresponds to data with dimensions (number of
-observations) by (unity), and returns a single parameter. \cr \cr
-In `griddat` are 'catch-function variables' that are
-alternative-invariant variables that are interacted with zonal
-constants to form the catch portion of the likelihood. Each variable
-name therefore corresponds to data with dimensions (number of
-observations) by (unity), and returns (k) parameters where (k) equals
-the number of alternatives. \cr \cr
-For 'catch-function variables' `griddat` and 'travel-distance
-variables' `intdat`, any number of variables are allowed, as a list
-of matrices. Note the variables (each as a matrix) within `griddat`
-`intdat` have no naming restrictions. 'Catch-function variables' may
-correspond to variables that impact catches by location, or
-interaction variables may be vessel characteristics that affect how
-much disutility is suffered by traveling a greater distance. Note in
-this likelihood the 'catch-function variables' vary across
-observations but not for each location: they are allowed to impact
-catches differently across alternatives due to the location-specific
-coefficients. If there are no other data, the user can set `griddat`
-as ones with dimension (number of observations) x (number of
-alternatives) and `intdat` variables as ones with dimension (number
-of observations) by (unity). \cr \cr
-The variable `prices` is a matrix of dimension (number of
-observations) by (unity), corresponding to prices.}
+\item{otherdat}{List that contains other data used in the model, see section 8.4.5 in the 
+FishSET user manual for more details (link in the description above):
+(1) \strong{'griddat'}: catch-function variables that interact with alternative-specific
+catch-function parameters and do not vary across alternatives (e.g., vessel gross 
+tonnage). (2) \strong{'intdat'}: travel-distance variables that interact with 
+travel-distance parameters and the distance matrix and do not vary across alternatives.
+(3) \strong{'prices'}: price in terms of $/landings units. This is typically a vector with
+prices for each observation, but can be a single value representing price for the
+entire dataset.}
 
-\item{alts}{Number of alternative choices in model as length equal to
-unity (as a numeric vector).}
+\item{alts}{Number of alternative choices in model}
 
 \item{project}{Name of project}
 
-\item{expname}{Expected catch table}
+\item{expname}{Expected catch table (optional)}
 
 \item{mod.name}{Name of model run for model result output table}
 }
@@ -63,51 +42,12 @@ unity (as a numeric vector).}
 ld: negative log likelihood
 }
 \description{
-Expected profit model lognormal catch function
+Calculate the negative log-likelihood of the expected profit model (EPM) with log-normal catch 
+function. For more information on the EPM lognormal model see section 8.4.5 in the FishSET 
+user manual.
+\url{https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.ps7td88zo4ge}
 }
-\section{Graphical examples}{
-
-\if{html}{
-\figure{epm_lognormal_grid.png}{options: width='40\%'
-alt='Figure: epm_lognormal_grid.png'}
-\cr
-\figure{epm_lognormal_travel.png}{options: width='40\%'
-alt='Figure: epm_lognormal_travel.png'}
-\cr
-\figure{epm_lognormal_sigma.png}{options: width='40\%'
-alt='Figure: epm_lognormal_sigma.png'}
-}
-}
-
-\examples{
-\dontrun{
-data(zi)
-data(catch)
-data(choice)
-data(distance)
-data(si)
-data(prices)
-
-catch[catch<0] <- 0.00001
-#Note lognormal catch distribution.
-
-optimOpt <- c(1000,1.00000000000000e-08,1,0)
-
-methodname <- 'BFGS'
-
-si2 <- sample(1:5,dim(si)[1],replace=TRUE)
-zi2 <- sample(1:10,dim(zi)[1],replace=TRUE)
-
-otherdat <- list(griddat=list(si=as.matrix(si),si2=as.matrix(si2)),
-    intdat=list(zi=as.matrix(zi),zi2=as.matrix(zi2)),
-    pricedat=list(prices=as.matrix(prices)))
-
-initparams <- c(0.25, 0.0, -0.15, -0.25, 0.35, 0.1, -0.25, -0.35, -0.8,
-    -0.4, .3, .2, .35, .25, 1)
-
-func <- epm_lognormal
-
-results <- discretefish_subroutine(catch,choice,distance,otherdat,
-    initparams,optimOpt,func,methodname)
-}
+\details{
+This function is called in \code{\link{discretefish_subroutine}} when running an EPM model with
+    a log-normal catch function.
 }
