@@ -21,10 +21,10 @@ epm_predict(
 
 \item{mod.type}{String. Options are weibull, lognormal, normal}
 
-\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
+\item{use.scalers}{Input for \code{\link{create_model_input}}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
 numeric vector unless specified with \code{scaler.func}.}
 
-\item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
+\item{scaler.func}{Input for \code{\link{create_model_input}}. Function to calculate rescaling factors.}
 
 \item{outsample}{Logical, \code{FALSE} if predicting probabilities for main data, and \code{TRUE} if predicting for out-of-sample data. \code{outsample = FALSE} 
 is the default setting.}
@@ -33,6 +33,7 @@ is the default setting.}
 Returns probability of epm model by choice
 }
 \description{
-Prediction component from epm models called in Policy3, under predict_model_tempNew.m
+Prediction component for expected profit models (EPMs). This function is called in 
+\code{\link{model_prediction}}, which is called within \code{\link{run_policy}}.
 }
 \keyword{internal}
