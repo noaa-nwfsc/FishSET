@@ -1,14 +1,14 @@
-
 #' EPM predict
 #' 
-#' Prediction component from epm models called in Policy3, under predict_model_tempNew.m
+#' Prediction component for expected profit models (EPMs). This function is called in 
+#' \code{\link{model_prediction}}, which is called within \code{\link{run_policy}}.
 #'
 #' @param project Name of project
 #' @param mod.name Name of saved model to use
 #' @param mod.type String. Options are weibull, lognormal, normal
-#' @param use.scalers Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
+#' @param use.scalers Input for \code{\link{create_model_input}}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
 #' numeric vector unless specified with \code{scaler.func}.
-#' @param scaler.func Input for \code{create_model_input()}. Function to calculate rescaling factors.
+#' @param scaler.func Input for \code{\link{create_model_input}}. Function to calculate rescaling factors.
 #' @param outsample Logical, \code{FALSE} if predicting probabilities for main data, and \code{TRUE} if predicting for out-of-sample data. \code{outsample = FALSE} 
 #'   is the default setting.
 #' @return Returns probability of epm model by choice
@@ -76,6 +76,7 @@ epm_predict <- function(project, mod.name, mod.type, use.scalers = FALSE, scaler
   # Get coefficients 
   if(!outsample){
     epmEq <- epmEq$estimate
+    
   } else if(outsample){
     # Format out-of-sample coefficients if alts not equal to in-sample alts  
     if(mdf_om$alts != mdf_new$alts){
@@ -89,21 +90,25 @@ epm_predict <- function(project, mod.name, mod.type, use.scalers = FALSE, scaler
     }
   }
   
-  gridcoef <- epmEq[1:(alts * gridnum)] # get grid coefficients    
-  intcoef <- epmEq[((alts * gridnum) + 1):((alts * gridnum) + intnum)]
+  gridcoef <- epmEq[1:(alts * gridnum)] # catch-function coefficients
+  intcoef <- epmEq[((alts * gridnum) + 1):((alts * gridnum) + intnum)] #travel-distance coefficients
   
-  if ((length(epmEq) - ((gridnum * alts) + intnum + 1)) == alts) {
-    k <- as.matrix(epmEq[((gridnum * alts) + intnum + 1):((gridnum * alts) + intnum + alts)])
-    knum <- alts
-    sig <- as.matrix(epmEq[((gridnum * alts) + intnum + alts + 1):length(epmEq)])
-  } else {
-    k <- as.matrix(epmEq[((gridnum * alts) + intnum + 1)])
-    knum <- 1
-    sig <- as.matrix(epmEq[((gridnum * alts) + intnum + 2):length(epmEq)])
-  }
-  
+  ##
   # Predict fishing probabilities ----
+  ##
+  
+  ## EPM Weibull ----
   if(mod.type == "epm_weibull"){
+    # get remaining epm weibull specific parameters
+    if ((length(epmEq) - ((gridnum * alts) + intnum + 1)) == alts) {
+      k <- as.matrix(epmEq[((gridnum * alts) + intnum + 1):((gridnum * alts) + intnum + alts)])
+      knum <- alts
+      sig <- as.matrix(epmEq[((gridnum * alts) + intnum + alts + 1):length(epmEq)])
+    } else {
+      k <- as.matrix(epmEq[((gridnum * alts) + intnum + 1)])
+      knum <- 1
+      sig <- as.matrix(epmEq[((gridnum * alts) + intnum + 2):length(epmEq)])
+    }
     
     # k is constrained to positive values using exponential function in epm_weibull.R
     k_exp <- exp(k)
@@ -142,6 +147,53 @@ epm_predict <- function(project, mod.name, mod.type, use.scalers = FALSE, scaler
     
     return(list(probLogit, mod.dat, pLogit))
     
+  
+  ## EPM log-normal ----
+  } else if (mod.type == "epm_lognormal"){
+    # get remaining epm lognormal specific parameters
+    if ((length(epmEq) - ((gridnum * alts) + intnum + 1)) == alts) {
+      stdev <- as.matrix(epmEq[((gridnum * alts) + intnum + 1):((gridnum * alts) + intnum + alts)])
+      stdevnum <- alts
+      sig <- as.matrix(epmEq[((gridnum * alts) + intnum + alts + 1):length(epmEq)])
+    } else {
+      stdev <- as.matrix(epmEq[((gridnum * alts) + intnum + 1)])
+      stdevnum <- 1
+      sig <- as.matrix(epmEq[((gridnum * alts) + intnum + 2):length(epmEq)])
+    }
+    
+    # Force stdev to be a positive value
+    stdev_exp <- exp(stdev)
+    
+    # Choice component of epm lognormal
+    # beta_jm * G_im
+    gridbetas <- (matrix(gridcoef, obsnum, alts * gridnum, byrow = TRUE) * matrix(griddat, obsnum, alts * gridnum, byrow = TRUE))
+    dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
+    
+    # SUM(beta_jm * G_im), which represents the mu in the lognormal function
+    gridbetas <- rowSums(gridbetas, dims = 2)
+    
+    # Expected mean catch function (mean of lognormal distribution)
+    gridmu <- exp(gridbetas + (0.5 * (matrix(stdev_exp, obsnum, alts, byrow = TRUE)^2)))
+    
+    # Revenue
+    revbetas <- gridmu * matrix(price, obsnum, alts)
+    
+    # Cost portion of the likelihood
+    intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
+    costbetas <- matrix(matrix(intbetas, obsnum, alts) * distance, obsnum, alts)
+    
+    # Numer of choice component
+    numer <- exp((revbetas + costbetas) / matrix(sig, obsnum, alts))
+    
+    # Denom
+    denom <- matrix(rep(as.matrix(rowSums(numer)), alts), obsnum, alts)
+    
+    # Fishing probabilities 
+    pLogit <- numer/denom # probs for each zone, for each observation
+    probLogit <- colMeans(pLogit) # mean probs for each zone
+    probLogit <- data.frame(zoneID = zoneID, prob = probLogit)
+    
+    return(list(probLogit, mod.dat, pLogit))
   }
   
   # bchar <- length(mod.dat$otherdat) - 1 #size(modelInputData.bCHeader,2)-1; bchar is the number of gridvarying variables and interaction terms
