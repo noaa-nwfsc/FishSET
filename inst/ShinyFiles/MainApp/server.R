@@ -334,7 +334,7 @@ server = function(input, output, session) {
         tags$br(), tags$br(),
         tags$p(tags$strong("Data:"),
                tags$ul('primary (required)'), 
-               tags$ul('port (required)'),
+               tags$ul('port (optional)'),
                tags$ul('spatial (required)'), 
                tags$ul('auxiliary (optional)'), 
                tags$ul('gridded (optional)'), 
@@ -5090,7 +5090,7 @@ server = function(input, output, session) {
                selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
                               selected = 'miles'),
                
-               numericInput('altc_min_haul', 'Include zones with more hauls than', 
+               numericInput('altc_min_haul', 'Include zones with more observations than', 
                             min = 1, max = 1000, value = 1)
         )
       ),     
