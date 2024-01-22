@@ -5053,7 +5053,7 @@ server = function(input, output, session) {
   output$altc_ui <- renderUI({
     tagList(
       
-      h4(tags$b('Define how alternative fishing choices are calculated between occurance and alternative location')),
+      h4(tags$b('Define how alternative fishing choices are calculated between occurrence and alternative location')),
       
       fluidRow(
         column(5,
