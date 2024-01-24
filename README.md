@@ -11,8 +11,8 @@ If you run into problems you can contact [FishSET@noaa.gov](mailto:FishSET@noaa.
   <li>[Documentation](#Documentation)
   <li>[Issues](#bugs)
   <li>[Citation](#cite)
-  <li>[Troubleshooting](#Troubleshoot)
   <li>[License](#license)
+  <li>[Troubleshooting](#Troubleshoot)
 </ul>
 
 ## <a name="Overview"> Overview 
@@ -120,11 +120,6 @@ If you use FishSET results in publications, please cite the the package:
 
 Alan Haynie, Melanie Harsch, Bryce McManus, and Allen Chen (2021). FishSET: Spatial Economics Toolbox for Fisheries. R package version 1.0.1.
 
-## <a name="Troubleshoot"> Troubleshooting </a>
-<details><summary>Error in dyn.load(file, DLLpath = DLLpath, ...): unable to load shared object ... </summary>
-This error message indicates that the filepath to a necessary package is 'corrupted' and cannot load properly. To fix this issue, reinstall the package indicated in the error message using `install.packages([Name of package])` and restart the R session. If the issue persists, try uninstalling and reinstalling R/RStudio. If both options fail, report the[issue](https://gitlab-afsc.fisheries.noaa.gov/bryce.mcmanus/FishSET_RPackage/-/issues).
-</details> 
-
 ## <a name="license"> NOAA Disclaimer </a>
 
 This repository is a scientific product and is not official communication of the National Oceanic and
@@ -136,3 +131,16 @@ mark, trademark, manufacturer, or otherwise, does not constitute or imply their 
 favoring by the Department of Commerce. The Department of Commerce seal and logo, or the seal and logo of a
 DOC bureau, shall not be used in any manner to imply endorsement of any commercial product or activity by
 DOC or the United States Government.
+
+## <a name="Troubleshoot"> Troubleshooting </a>
+<details><summary>Error in dyn.load(file, DLLpath = DLLpath, ...): unable to load shared object ... </summary>
+This error message indicates that the filepath to a necessary package is 'corrupted' and cannot load properly. To fix this issue, reinstall the package indicated in the error message using `install.packages([Name of package])` and restart the R session. If the issue persists, try uninstalling and reinstalling R/RStudio. If both options fail, report the[issue](https://gitlab-afsc.fisheries.noaa.gov/bryce.mcmanus/FishSET_RPackage/-/issues).
+</details> 
+
+<details><summary>Error: failed to lock directory...</summary>
+This error could appear when your last package installation was interrupted, when updated you version of R, and probably other situations that we are not aware of.  
+
+1. Try adding "--no-lock" to your install options: "install.packages(INSTALL_opts = '--no-lock')" 
+
+2. Try locating and deleting the file ".../00LOCK-[packagename]" (this can also be done using the unlink() function in R), then attempt to reinstall the problem package using install.packages().
+</details> 
