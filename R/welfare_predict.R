@@ -241,6 +241,14 @@ welfare_predict <- function(project, mod.name, closures, expected.catch = NULL, 
     } # close n_scenario
   } # close price loop
   
+  
+  # log welfare_predict function call ----
+  # Note that this is not logged when called within the run_policy() function
+  welfare_predict_function <- list()
+  welfare_predict_function$functionID <- "welfare_predict"
+  welfare_predict_function$args <- list(project, mod.name, closures, expected.catch, enteredPrice)
+  log_call(project, welfare_predict_function)
+  
   return(list(welfare, prc_welfare))
 }
   

@@ -103,6 +103,10 @@ run_policy <- function(project, mod.name = NULL, enteredPrice = NULL, expected.c
   #6. Save output and return tables and plots
 
   
-  
-  
+  # log run_policy function call ----
+  run_policy_function <- list()
+  run_policy_function$functionID <- "run_policy"
+  run_policy_function$args <- list(project, mod.name, enteredPrice, expected.catch, use.scalers, scaler.func)
+  run_policy_function$kwargs <- list()
+  log_call(project, run_policy_function)
 }
