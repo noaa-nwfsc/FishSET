@@ -69,7 +69,7 @@ epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.na
   #   the number of alts, use first param for standard deviation
   if ((dim(starts3)[1] - ((gridnum * alts) + intnum + 1)) == alts) {
     stdev <- as.matrix(starts3[((gridnum * alts) + intnum + 1):((gridnum * alts) + intnum + alts), ])
-    stdevnum <- alts # different standard deviation for each alternative
+    stdevnum <- alts # alternative-specific standard deviation
     sig <- as.matrix(starts3[((gridnum * alts) + intnum + alts + 1):length(starts3), ])
   } else {
     stdev <- as.matrix(starts3[((gridnum * alts) + intnum + 1), ])
@@ -77,7 +77,7 @@ epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.na
     sig <- as.matrix(starts3[((gridnum * alts) + intnum + 2):length(starts3), ])
   }
 
-  # Force stdev to be a positive value
+  # Force standard deviation to be a positive value
   stdev_exp <- exp(stdev)
   
   
@@ -97,7 +97,8 @@ epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.na
   # cost portion of the likelihood
   intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
 
-  # revenue portion of the likelihood (i.e., price * expected mean catch) followed by cost portion, saved in the same matrix
+  # revenue portion of the likelihood (i.e., price * expected mean catch) followed by cost portion, 
+  #   saved in the same matrix
   rev_cost_betas <- matrix(c((gridmu * matrix(pricedat, obsnum, alts)), intbetas), obsnum, (alts + 1))
   
   # (Revenue * dummy variable indicating zones fished) and (cost * distance) in a single, large matrix
@@ -107,10 +108,10 @@ epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.na
   # reformat matrix [d1 = num of obs, d2 = num of alts, d3 = num of alts + 1 (zonal coefs in revenue and cost)]
   dim(djztemp) <- c(nrow(djztemp), ncol(djztemp) / (alts + 1), alts + 1)
   
-  # revenue + cost for each zone
+  # profit for each zone
   prof <- rowSums(djztemp, dims = 2)
   
-  # relative to the first column so set = 0 
+  # relative profit to the first column so set = 0 
   profx <- prof - prof[, 1]
   
   # exp(beta*G + gamma*T*D) for each zone
@@ -148,12 +149,14 @@ epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.na
   ldcatch <- (matrix((-(log(yj))), obsnum)) + (matrix((-(log(empstdev))), obsnum)) + (matrix((-(0.5) * log(2 * pi)), obsnum)) +
     (-(((matrix(log(yj), obsnum) - empgridmu)^2) / (2 * (matrix(empstdev, obsnum)^2))))
     
-  # sum log-likelihood (for each observation) for catch and choice components of the EPM model
-  ld1 <- ldcatch + ldchoice
-  
   
   ##
   ## Negative log-likelihood ----
+  ##
+  # sum log-likelihood (for each observation) for catch and choice components of the EPM model
+  ld1 <- ldcatch + ldchoice
+  
+  # NLL
   ld <- -sum(ld1)
 
   if (is.nan(ld) == TRUE) {
