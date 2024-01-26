@@ -147,7 +147,9 @@ welfare_predict <- function(project, mod.name, closures, expected.catch = NULL, 
           # Get coefficients
           gridcoef <- mu_rand_new[1:(alts * gridnum)]
           intcoef <- mu_rand_new[((alts * gridnum) + 1):((alts * gridnum) + intnum)]
-          if(grepl('weibull', predict_temp[[1]]$type, ignore.case=TRUE)){
+          
+          ### Weibull ----
+          if(predict_temp[[1]]$type == "epm_weibull"){
             if ((z - ((gridnum * alts) + intnum + 1)) == alts) {
               k <- mu_rand_new[((gridnum * alts) + intnum + 1):((gridnum * alts) + intnum + alts)]
               knum <- alts
@@ -184,8 +186,9 @@ welfare_predict <- function(project, mod.name, closures, expected.catch = NULL, 
             # Welfare loss/gain
             tmp_welfare <- sig * (Wa - Wb)
             tmp_prc_welfare <- ((sig*Wa) - (sig*Wb))/((sig*Wb) + (0.57721*sig))
-            
-          } else if(grepl('lognormal', predict_temp[[1]]$type, ignore.case=TRUE)){
+          
+          ## lognormal ----
+          } else if(predict_temp[[1]]$type == "epm_lognormal"){
             # Get coefficients
             if ((z - ((gridnum * alts) + intnum + 1)) == alts) {
               stdev <- mu_rand_new[((gridnum * alts) + intnum + 1):((gridnum * alts) + intnum + alts)]
@@ -202,10 +205,46 @@ welfare_predict <- function(project, mod.name, closures, expected.catch = NULL, 
             # (beta_jm * G_im)
             gridbetas <- (matrix(gridcoef, obsnum, alts * gridnum, byrow = TRUE) * matrix(griddat, obsnum, alts * gridnum, byrow = TRUE))
             dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
-            # SUM(beta_jm * G_im), which is the scale portion of the Weibull function
+            # SUM(beta_jm * G_im), which is mu in the lognormal function
             gridbetas <- rowSums(gridbetas, dims = 2)
             # Expected mean catch function (mean of lognormal distribution)
             gridmu <- exp(gridbetas + (0.5 * (matrix(stdev_exp, obsnum, alts, byrow = TRUE)^2)))
+            # Revenue
+            revbetas <- gridmu * matrix(pricedat, obsnum, alts)
+            # Cost portion of the likelihood
+            intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
+            costbetas <- as.matrix(matrix(intbetas, obsnum, alts) * distance)
+            # numerator from logit component of epm model
+            numer <- exp((revbetas + costbetas) / matrix(sig, obsnum, alts))
+            # Welfare before closure
+            Wb <- log(rowSums(numer))
+            # Calculate welfare after closure
+            Wa <- log(rowSums(numer[,-(closeID)]))
+            # Welfare loss/gain
+            tmp_welfare <- sig * (Wa - Wb)
+            tmp_prc_welfare <- ((sig*Wa) - (sig*Wb))/((sig*Wb) + (0.57721*sig))
+          
+          ## normal ----
+          } else if(predict_temp[[1]]$type == "epm_normal"){
+            # Get coefficients
+            if ((z - ((gridnum * alts) + intnum + 1)) == alts) {
+              stdev <- mu_rand_new[((gridnum * alts) + intnum + 1):((gridnum * alts) + intnum + alts)]
+              stdevnum <- alts
+              sig <- mu_rand_new[((gridnum * alts) + intnum + alts + 1):z]
+            } else {
+              stdev <- mu_rand_new[((gridnum * alts) + intnum + 1)]
+              stdevnum <- 1
+              sig <- mu_rand_new[((gridnum * alts) + intnum + 2):z]
+            }
+            stdev_exp <- exp(stdev)
+            
+            ## Calculate welfare
+            # (beta_jm * G_im)
+            gridbetas <- (matrix(gridcoef, obsnum, alts * gridnum, byrow = TRUE) * matrix(griddat, obsnum, alts * gridnum, byrow = TRUE))
+            dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
+            # SUM(beta_jm * G_im), which is mu and expected catch for normal function
+            gridbetas <- rowSums(gridbetas, dims = 2)
+            gridmu <- gridbetas
             # Revenue
             revbetas <- gridmu * matrix(pricedat, obsnum, alts)
             # Cost portion of the likelihood
