@@ -194,7 +194,54 @@ epm_predict <- function(project, mod.name, mod.type, use.scalers = FALSE, scaler
     probLogit <- data.frame(zoneID = zoneID, prob = probLogit)
     
     return(list(probLogit, mod.dat, pLogit))
+  
+  ## EPM normal ----
+  } else if (mod.type == "epm_normal"){
+    # get remaining epm normal specific parameters
+    if ((length(epmEq) - ((gridnum * alts) + intnum + 1)) == alts) {
+      stdev <- as.matrix(epmEq[((gridnum * alts) + intnum + 1):((gridnum * alts) + intnum + alts)])
+      stdevnum <- alts
+      sig <- as.matrix(epmEq[((gridnum * alts) + intnum + alts + 1):length(epmEq)])
+    } else {
+      stdev <- as.matrix(epmEq[((gridnum * alts) + intnum + 1)])
+      stdevnum <- 1
+      sig <- as.matrix(epmEq[((gridnum * alts) + intnum + 2):length(epmEq)])
+    }
+    
+    # Force stdev to be a positive value
+    stdev_exp <- exp(stdev)
+    
+    # Choice component of epm normal
+    # beta_jm * G_im
+    gridbetas <- (matrix(gridcoef, obsnum, alts * gridnum, byrow = TRUE) * matrix(griddat, obsnum, alts * gridnum, byrow = TRUE))
+    dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
+    
+    # SUM(beta_jm * G_im), which represents mu in the normal function, and expected mean catch
+    gridbetas <- rowSums(gridbetas, dims = 2)
+    gridmu <- gridbetas 
+    
+    # Revenue
+    revbetas <- gridmu * matrix(price, obsnum, alts)
+    
+    # Cost portion of the likelihood
+    intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
+    costbetas <- matrix(matrix(intbetas, obsnum, alts) * distance, obsnum, alts)
+    
+    # Numer of choice component
+    numer <- exp((revbetas + costbetas) / matrix(sig, obsnum, alts))
+    
+    # Denom
+    denom <- matrix(rep(as.matrix(rowSums(numer)), alts), obsnum, alts)
+    
+    # Fishing probabilities 
+    pLogit <- numer/denom # probs for each zone, for each observation
+    probLogit <- colMeans(pLogit) # mean probs for each zone
+    probLogit <- data.frame(zoneID = zoneID, prob = probLogit)
+    
+    return(list(probLogit, mod.dat, pLogit)) 
   }
+  
+  
   
   # bchar <- length(mod.dat$otherdat) - 1 #size(modelInputData.bCHeader,2)-1; bchar is the number of gridvarying variables and interaction terms
   # Beta <- epmEq[(alts+1):(alts+1+bchar)] 
