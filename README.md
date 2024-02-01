@@ -105,7 +105,7 @@ For example, loc <- getwd().
 
 ## <a name="Documentation"> Documentation and Tutorials </a>
 
-Refer to the [FishSET R Package User Manual](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit) for more package information, quickstart guides, and troubleshooting tips.
+Refer to the [FishSET R Package User Manual](https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit) for more package information, quickstart guides, and troubleshooting tips.
 
 ## <a name="bugs"> Issues and Bug Reports </a>
 
