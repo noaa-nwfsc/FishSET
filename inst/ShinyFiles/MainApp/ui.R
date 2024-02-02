@@ -1527,15 +1527,22 @@ ui = function(request){
                                        
                                        uiOutput('mod_param_choose'),
                                        
-                                       conditionalPanel(condition="input.initchoice=='prev'",
+                                       conditionalPanel(condition = "input.initchoice=='prev'",
                                                         uiOutput("mod_param_table_ui")),
                                        
-                                       uiOutput("mod_inits_ui")
+                                       conditionalPanel(condition = "input.model == 'epm_weibull'",
+                                                        checkboxInput("alt_spec_epm1", label = "Set alternative-specific shape parameters")),
+                                       
+                                       conditionalPanel(condition = "input.model == 'epm_lognormal' || input.model == 'epm_normal'",
+                                                        checkboxInput("alt_spec_epm2", label = "Set alternative-specific standard deviation")),
+                                       
+                                       fluidRow(
+                                         column(6, DT::dataTableOutput("param_tab"))
+                                       )
                                      ),
                                      
                                      DT::DTOutput('mod_param_table')
-                                                  )
-                                                ))),
+                                                  )))),
                                      
                                      tabPanel("Compare models", value = 'model_compare',
                                               sidebarLayout(
