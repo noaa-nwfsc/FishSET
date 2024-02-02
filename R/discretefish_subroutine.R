@@ -297,8 +297,13 @@ discretefish_subroutine <- function(project,
           
         } else if (numInits < length(starts2)) { # TODO: check if this is okay
           
-          starts2 <- starts2[1:numInits]
-          message(numInits, ' initial parameter values should be specified')
+          if(length(starts2) == (numInits + x$alts - 1)) {
+            # do nothing and keep starts
+            
+          } else {
+            starts2 <- starts2[1:numInits]
+            message(numInits, ' (or ', numInits + x$alts - 1, ' for some EPMs) initial parameter values should be specified')  
+          }
         } 
       }
 
