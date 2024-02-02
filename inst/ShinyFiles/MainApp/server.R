@@ -5851,9 +5851,14 @@ server = function(input, output, session) {
       
     } else {
       
-      if (input$mod_lockk) {
+      if((input$alt_spec_epm1 && input$model == 'epm_weibull') ||
+         (input$alt_spec_epm2 && (input$model == 'epm_lognormal' || input$model == 'epm_normal'))){
         
-        gridNum*mod_rv$alt_num+intNum+alt+1
+        gridNum*mod_rv$alt_num+intNum+mod_rv$alt_num+1
+      
+      # } else if (input$mod_lockk) {
+      #   
+      #   gridNum*mod_rv$alt_num+intNum+alt+1
         
       } else {
         
@@ -5861,54 +5866,100 @@ server = function(input, output, session) {
       }
     }
   })
+
   
-  # inital parameter output
-  output$mod_inits_ui <- renderUI({
+  ## Parameter table ----
+  # Reactive value to hold initial parameter values and display in a editable table
+  iparams <- reactiveValues(data = NULL)
+  
+  # Generate parameter names for each likelihood
+  observeEvent(c(input$model, input$alt_spec_epm1, input$alt_spec_epm2, project$name), {
+    # # Extra code just in case numInits() == 0 in the future
+    # # Below code will pull output to autofill table if numInits() == 0, but I don't think this will ever be zero given numInits code above
+    # x_temp <- read_dat(paste0(locoutput(project$name),
+    #                           pull_shiny_output(project$name, type='table',
+    #                                             fun=paste0("params_", input$modname))))
     
-    req(input$mod_init_choice)
-    
-    if (numInits() > 0) {
-      
-      if (input$mod_init_choice == 'new') {
-        
-        i = seq_len(numInits())
-        numwidth <- rep((1/numInits())*100, numInits())
-        numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
-        UI <- paste0("splitLayout(",
-                     "cellWidths = c(",numwidth,")",",",
-                     paste0("textInput(",
-                            "'int", i, "', ",
-                            paste0("''"), ",",
-                            value=1,
-                            ")",
-                            collapse = ", "),
-                     ")")
-        
+    if(!(is_empty(project$name))){
+      # Get the number of beta and gamma variables to name and initialize parameter values
+      gridNum <- length(input$mod_grid_vars)
+      intNum <- length(input$mod_ind_vars)
+      if (gridNum == 0 || is.null(gridNum)) gridNum <- 1
+      if (intNum == 0 || is.null(intNum)) intNum <- 1
+
+      # Generate parameter names based on likelihood function
+      if(input$model == "logit_c"){
+        par.names <- c(unlist(lapply(1:gridNum, function(x) {paste0('beta.',x)})),
+                       unlist(lapply(1:intNum, function(x) {paste0('gamma.',x)})))
+
       } else {
+        # Get zones included in the model to include in param names
+        tmpaltc <- unserialize_table(paste0(project$name,"AltMatrix"), project$name)
+        tmpzone <- sort(tmpaltc$zoneRow$ZoneID)
         
-        x_temp <- read_dat(paste0(locoutput(project$name), 
-                                  pull_shiny_output(project$name, type='table', 
-                                                    fun=paste0("params_", input$modname))))
-        param_temp <- x_temp$estimate
-        i = 1:length(param_temp)
-        numwidth <- rep((1/numInits())*100, numInits())
-        numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
-        
-        UI <- paste0("splitLayout(",
-                     "cellWidths = c(",numwidth,")",",",
-                     paste0("textInput(",
-                            "'int", i, "', ",
-                            paste0("''"), ",",
-                            value=param_temp[i],
-                            #"width='",1/numInits*100,"%'",#50px'",
-                            ")",
-                            collapse = ", "),
-                     ")")
+        if(input$model == "logit_zonal"){
+          # beta for the first zone is normalized to zero in the zonal logit
+          par.names <- c(unlist(lapply(1:gridNum, function(x) {paste0('beta', x, '.', tmpzone[-1])})),
+                         unlist(lapply(1:intNum, function(x) {paste0('gamma', x)})))  
+          
+        } else if (input$model == "logit_correction") {
+          #TODO: once logit_correction is updated add code for param names
+          par.names <- seq(1:numInits())    
+          
+        } else {
+          # EPMs
+          par.names <- c(unlist(lapply(1:gridNum, function(x) {paste0('beta', x, '.', tmpzone)})),
+                         unlist(lapply(1:intNum, function(x) {paste0('gamma', x)})))
+          
+          if(input$model == "epm_weibull"){
+            if(!input$alt_spec_epm1){ # single shape parameter
+              par.names <- c(par.names, "k", "sigma")
+            } else { # alternative-specific shape parameters
+              par.names <- c(par.names, unlist(lapply("k", function(x) {paste0(x, ".", tmpzone)})), "sigma")
+            }
+            
+          } else if (input$model == "epm_lognormal" || input$model == "epm_normal"){
+            if(!input$alt_spec_epm2){ # single standard deviation parameter
+              par.names <- c(par.names, "stdev", "sigma")
+            } else { # alternative-specific standard deviation parameters
+              par.names <- c(par.names, unlist(lapply("stdev", function(x) {paste0(x, ".", tmpzone)})), "sigma")
+            }
+            
+          } else {
+            par.names <- seq(1:numInits())    
+          }
+        }
       }
-      
-      eval(parse(text = UI))
+
+      # Save to reactive value dataframe and output in editable table
+      iparams$data <- data.frame(Parameter = par.names,
+                                 Initial_value = rep(1, numInits()))
     }
   })
+  
+  # create a proxy object to allow editing to existing datatable
+  proxy <- DT::dataTableProxy("param_tab")
+  
+  # observe edits to initial param table
+  observeEvent(input$param_tab_cell_edit, {
+    info <- input$param_tab_cell_edit
+    tab_i = info$row
+    tab_j = info$col
+    tab_k = info$value
+
+    isolate(
+      if(tab_j %in% match("Initial_value", names(iparams$data))) {
+        iparams$data[tab_i, tab_j] <<- DT::coerceValue(tab_k, iparams$data[tab_i, tab_j])
+      }
+    )
+
+    DT::replaceData(proxy, iparams$data, resetPaging = FALSE)
+  })
+  
+  # Generate editable table for initial parameter values
+  output$param_tab <- DT::renderDataTable({
+    DT::datatable(iparams$data, editable = TRUE)})
+  
   # TODO: update/tidy
   output$mod_param_choose <- renderUI(
     radioButtons('mod_init_choice', "",
@@ -5916,6 +5967,7 @@ server = function(input, output, session) {
                    choices=c('Use output of previous model as parameter set' = 'prev','Choose parameter set' ='new')
                  } else { choices=c('Choose parameter set' ='new')}, selected='new')
   )
+  
   # TODO: update/tidy
   output$mod_param_tab_ui <- renderUI({
     if(length(grep(paste0("_", 'params', "_"), grep(".*\\.csv$", project_files(project$name)), value = TRUE))!=0){
@@ -5946,12 +5998,9 @@ server = function(input, output, session) {
       inputName <- paste("int", i, sep = "")
       input[[inputName]]
     }))
-    
-    
   })
   
   spatID_choices <- reactive({
-    
     if (!is_value_empty(input$mod_spat)) {
       
       spat <- table_view(input$mod_spat, project$name)
@@ -6039,7 +6088,8 @@ server = function(input, output, session) {
                    'likelihood' = input$model,
                    'optimOpt' = paste(input$mod_iter, input$mod_relTolX,
                                       input$mod_report_freq, input$mod_detail_report),
-                   'inits' = paste(int_name(), collapse=','),
+                   # 'inits' = paste(int_name(), collapse=','),
+                   'inits' = paste(iparams$data$Initial_value, collapse = ','),
                    'methodname' = input$mod_optmeth,
                    'vars1'= str_rpl(paste(input$mod_ind_vars, collapse=',')),
                    'vars2'= str_rpl(input$mod_grid_vars),
@@ -6097,11 +6147,12 @@ server = function(input, output, session) {
     if(input$model == "logit_zonal" || grepl("epm", input$model)){
       mod_rv$exp_list <- NULL
     }
-    
+
     q_test(project = project$name, 
            catchID = input$mod_catch,
            likelihood = input$model, 
-           initparams = paste(int_name(), collapse = ","),
+           # initparams = paste(int_name(), collapse = ","),
+           initparams = iparams$data$Initial_value,
            optimOpt = c(input$mod_iter, input$mod_relTolX,
                         input$mod_report_freq, input$mod_detail_report),
            methodname = input$mod_optmeth, 
