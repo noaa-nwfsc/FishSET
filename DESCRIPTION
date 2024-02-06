@@ -53,7 +53,8 @@ Imports:
     vctrs,
     xml2,
     yaml,
-    zoo
+    zoo, 
+    bslib
 Suggests: 
     foreign,
     googlesheets4,
