@@ -209,7 +209,7 @@ ui = function(request){
                        # tabPanel("Upload Data", value = "upload",
                        #tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
                        
-                       bslib::sidebar = sidebar( width = 550,
+                      sidebar = sidebar( width = 550,
                                           # sidebarPanel(
                                           h5(strong("Steps for uploading data:")),
                                           
@@ -357,7 +357,7 @@ ui = function(request){
                        
                       # tabPanel("Data Quality Evaluation", value = "qaqc",
                       #   sidebarLayout(
-                       bslib::sidebar = sidebar( width = 550,
+                       sidebar = sidebar( width = 550,
                                           
                                           # sidebarPanel(width=3,
                                           actionButton('saveData','Save data to FishSET database'),
@@ -514,7 +514,7 @@ ui = function(request){
                     bslib::nav_panel(title = "Data Exploration", id = "explore", #value
                                      #tabPanel("Data Exploration", value = "explore",
                                      bslib::page_sidebar(
-                                       bslib::sidebar = sidebar( width = 550,
+                                       sidebar = sidebar( width = 550,
                                                           #sidebarLayout(
                                                           # sidebarPanel(width=3,
                                                           actionButton('saveDataExplore','Save data to FishSET database'),
@@ -655,7 +655,7 @@ ui = function(request){
                     bslib::nav_panel(title = "Simple Analyses", id = "analysis",#value
                                      #tabPanel("Simple Analyses", value = "analysis",
                                      bslib::page_sidebar(
-                                       bslib::sidebar = sidebar( width = 550,
+                                       sidebar = sidebar( width = 550,
                                                           #sidebarLayout(
                                                           # sidebarPanel(
                                                           tabPlotUI("anal"),
@@ -751,7 +751,7 @@ ui = function(request){
     bslib::nav_panel(title = 'Compute New Variables', id='new',#value
                      #tabPanel('Compute New Variables', value='new',
                      bslib::page_sidebar(
-                       bslib::sidebar = sidebar( width = 550,
+                       sidebar = sidebar( width = 550,
                                           # sidebarLayout(
                                           #   sidebarPanel(
                                           #     
@@ -1015,7 +1015,7 @@ ui = function(request){
                      #   
                      #   sidebarPanel(
                      bslib::page_sidebar(
-                       bslib::sidebar = sidebar( width = 550,
+                       sidebar = sidebar( width = 550,
                                           saveDataTableUI("fleet"),
                                           
                                           #   tags$br(), tags$br(),
@@ -1173,7 +1173,7 @@ ui = function(request){
     bslib::nav_panel(title = 'Define Alternative Fishing Choices', id = "altc",
                      # tabPanel('Define Alternative Fishing Choices', value = "altc",
                      bslib::page_sidebar(
-                       bslib::sidebar = sidebar( width = 550,
+                       sidebar = sidebar( width = 550,
                                           # sidebarLayout(
                                           #   sidebarPanel(
                                           actionButton('altc_save','Save choices', style = "color: white; background-color: green;"), 
@@ -1396,7 +1396,7 @@ ui = function(request){
                                   bslib::nav_panel(title ='Merge expected catch', id = 'exp_merge',
                                                    #tabPanel(title ='Merge expected catch', value = 'exp_merge',
                                                    bslib::page_sidebar(
-                                                     bslib::sidebar = sidebar( width = 550,
+                                                     sidebar = sidebar( width = 550,
                                                                         # sidebarLayout(
                                                                         #   
                                                                         #   sidebarPanel(
@@ -1429,7 +1429,7 @@ ui = function(request){
                                        bslib::nav_panel(title="Run model(s)", id = 'model_run',
                                                         # tabPanel("Run model(s)", value = 'model_run',
                                                         bslib::page_sidebar(
-                                                          bslib::sidebar = sidebar( width = 550,
+                                                          sidebar = sidebar(width = 550,
                                                                              # sidebarLayout(
                                                                              #   sidebarPanel(
                                                                              # Models can't be run if final dataset not detected
@@ -1603,7 +1603,7 @@ ui = function(request){
                                                       # sidebarLayout(
                                                       #   sidebarPanel(
                                                       bslib::page_sidebar(
-                                                        bslib::sidebar = sidebar( width = 550,
+                                                        sidebar = sidebar( width = 550,
                                                                            tags$br(),tags$br(),
                                                                            actionButton("mod_reload", "Reload model output", 
                                                                                         style = 'background-color: blue; color: white;'),
@@ -1643,7 +1643,7 @@ ui = function(request){
                                                       #   
                                                       #   sidebarPanel(
                                                       bslib::page_sidebar(
-                                                        bslib::sidebar = sidebar( width = 550,
+                                                        sidebar = sidebar( width = 550,
                                                                            actionButton("mod_reload", "Reload model output",
                                                                                         style = 'background-color: blue; color: white;'),
                                                                            
@@ -1677,7 +1677,7 @@ ui = function(request){
                                                       #   
                                                       #   sidebarPanel(
                                                       bslib::page_sidebar(
-                                                        bslib::sidebar = sidebar( width = 550,
+                                                        sidebar = sidebar( width = 550,
                                                                            actionButton('mod_list_reload', 'Reload model list',
                                                                                         style = 'background-color: blue; color: white;'),
                                                                            
@@ -1695,7 +1695,7 @@ ui = function(request){
                                                       #   
                                                       #   sidebarPanel(
                                                       bslib::page_sidebar(
-                                                        bslib::sidebar = sidebar( width = 550,
+                                                        sidebar = sidebar( width = 550,
                                                                            actionButton('run_cv', "Run cross-validation",
                                                                                         style = "color: #fff; background-color: #6da363; border-color: #800000;"),
                                                                            
@@ -1735,7 +1735,7 @@ ui = function(request){
                                                       #   
                                                       #   sidebarPanel(
                                                       bslib::page_sidebar(
-                                                        bslib::sidebar = sidebar( width = 550,
+                                                        sidebar = sidebar( width = 550,
                                                                            h5(strong('Step 1: Upload out-of-sample data')),
                                                                            uiOutput("load_outsample"),
                                                                            
@@ -1842,7 +1842,7 @@ ui = function(request){
                                                         #   
                                                         #   sidebarPanel(
                                                         bslib::page_sidebar(
-                                                          bslib::sidebar = sidebar( width = 550,
+                                                          sidebar = sidebar( width = 550,
                                                                              tags$button(
                                                                                id = "closeRerun",
                                                                                type = "button",
