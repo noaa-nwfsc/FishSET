@@ -6331,7 +6331,6 @@ server = function(input, output, session) {
       mod_tab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
       model_out <- mod_sum_out()[[i]]$OutLogit
       mod_tab[i,3] <- to_html_table(model_out, rownames = TRUE, digits = 3)
-      
       hess <- round(mod_sum_out()[[i]]$H1, 5)
       colnames(hess) <- row.names(model_out)
       mod_tab[i,4] <- to_html_table(hess, digits = 5)
@@ -6363,10 +6362,9 @@ server = function(input, output, session) {
   # TODO: better method/msg for missing convergence msg
   mod_conv <- function(x) if (is_value_empty(x)) '' else x
   
-  output$mod_model_tab <- DT::renderDT({
-    
-    if (!is_value_empty(mod_sum_out())) mod_params_out()
-  }, escape = FALSE)
+  output$mod_model_tab <- DT::renderDataTable({
+    if (!is_value_empty(mod_sum_out())) DT::datatable(mod_params_out(), escape = FALSE)
+  })
   
   ## model manage ----
   
@@ -6439,7 +6437,6 @@ server = function(input, output, session) {
   })
   
   output$mod_error_msg <- DT::renderDT({
-    
     if (!is_value_empty(mod_sum_out())) mod_err_out()
   })
   
@@ -6488,10 +6485,11 @@ server = function(input, output, session) {
                                  "cbox_"))
   }, 
   colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  
-  filter='top', server = TRUE, escape = FALSE, 
+  filter='top', server = TRUE, escape = FALSE,
   options = list(dom = 't', paging=FALSE,
                  preDrawCallback = DT::JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
-                 drawCallback = DT::JS('function() { Shiny.bindAll(this.api().table().node()); } ')
+                 drawCallback = DT::JS('function() { Shiny.bindAll(this.api().table().node()); } '),
+                 scrollX = TRUE
   ) 
   )
   
