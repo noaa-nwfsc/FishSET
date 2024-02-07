@@ -53,8 +53,7 @@ Imports:
     vctrs,
     xml2,
     yaml,
-    zoo, 
-    bslib
+    zoo
 Suggests: 
     foreign,
     googlesheets4,
@@ -66,7 +65,8 @@ Suggests:
     readODS,
     rmarkdown,
     rstudioapi (>= 1.1.287),
-    testthat
+    testthat,
+    bslib
 VignetteBuilder: 
     knitr
 BuildVignettes: yes
