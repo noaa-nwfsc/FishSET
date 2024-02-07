@@ -1623,21 +1623,23 @@ ui = function(request){
                                                                            ) #width=2
                                                         ),
                                                         # mainPanel(
-                                                        h4('Model Output'),
-                                                        DT::DTOutput('mod_model_tab'),
-                                                        # uiOutput('mod_param_out'), 
-                                                        
-                                                        h4("Measures of fit"),
-                                                        DT::DTOutput("mod_fit_out"),
-                                                        tags$script(HTML("Shiny.addCustomMessageHandler('unbind-DT', function(id) {
-                                                         Shiny.unbindAll($('#'+id).find('table').DataTable().table().node());})")),
-                                                        
-                                                        tags$br(),
-                                                        h4('Error messages'),
-                                                        DT::DTOutput('mod_error_msg'),
-                                                        # width=10
-                                                        # )
-                                                      )  ),
+                                                        fluidRow(
+                                                          column(12,
+                                                                 h4('Model Output'),
+                                                                 DT::dataTableOutput('mod_model_tab'),
+                                                                 
+                                                                 tags$br(),
+                                                                 h4("Measures of fit"),
+                                                                 DT::DTOutput("mod_fit_out"),
+                                                                 tags$script(HTML("Shiny.addCustomMessageHandler('unbind-DT', function(id) {
+                                                                  Shiny.unbindAll($('#'+id).find('table').DataTable().table().node());})")),
+                                                                 
+                                                                 tags$br(),
+                                                                 h4('Error messages'),
+                                                                 DT::DTOutput('mod_error_msg')
+                                                          )
+                                                        )
+                                                      )),
                                      
                                      bslib::nav_panel(title = 'Manage models', id = 'model_man',
                                                       #tabPanel('Manage models', value = 'model_man',
