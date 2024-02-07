@@ -326,7 +326,9 @@ ui = function(request){
                                                 selected='Upload new file', inline=TRUE)),
                          radioButtons('filefolder', "", choices=c("Upload single file", "Upload shape files"), 
                                       selected="Upload single file", inline = TRUE),
-                         uiOutput('spatial_upload')
+                         uiOutput('spatial_upload'),
+                         uiOutput('spatial_upload2')
+                         
                        ),
                        
                        fluidRow(

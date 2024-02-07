@@ -1506,33 +1506,22 @@ server = function(input, output, session) {
     
     if (input$load_spat_src == 'Upload new file') {
       
-      tagList(
+      if (input$filefolder == 'Upload single file') {
+        fluidRow(
+          column(5, fileInput("spatialdat", "Choose spatial data file",
+                              multiple = FALSE, placeholder = 'Suggested data')),
+          column(7, offset=4, textInput('spatadd', div(style = "font-size:14px;  font-weight: 400;",
+                                                       'Additional arguments for reading in data'),
+                                        placeholder="header=T, sep=',', skip=2"))
+        )
         
-        if (input$filefolder == 'Upload single file') {
-          tagList(
-            fluidRow(
-              column(5, fileInput("spatialdat", "Choose spatial data file",
-                                  multiple = FALSE, placeholder = 'Suggested data')),
-              column(7, offset=4, textInput('spatadd', div(style = "font-size:14px;  font-weight: 400;", 
-                                                           'Additional arguments for reading in data'), 
-                                            placeholder="header=T, sep=',', skip=2"))
-            ))
-          
-        } else if (input$filefolder == 'Upload shape files') {
-          
-          tagList(
-            fluidRow(
-              column(5, fileInput("spatialdatshape", "Choose spatial data file",
-                                  accept=c('.shp','.dbf','.sbn','.sbx','.shx',".prj", ".cpg"),
-                                  multiple = TRUE, placeholder = 'Suggested data'))
-            ))
-        },
-        
-        if (!is.null(input$spatialdat) | !is.null(input$spatialdatshape)) {
-          
-          textInput("spatName", "Spatial table name")
-        } 
-      )    
+      } else if (input$filefolder == 'Upload shape files') {
+        fluidRow(
+          column(5, fileInput("spatialdatshape", "Choose spatial data file",
+                              accept=c('.shp','.dbf','.sbn','.sbx','.shx',".prj", ".cpg"),
+                              multiple = TRUE, placeholder = 'Suggested data'))
+        )
+      }
       
     } else if (input$load_spat_src == 'FishSET database') {
       
@@ -1544,6 +1533,17 @@ server = function(input, output, session) {
                                   choices = list_tables(project$name, "spat")))
           ))   
       }
+    }
+    
+  })
+  
+  output$spatial_upload2 <- renderUI({
+    if (!is.null(input$spatialdat) | !is.null(input$spatialdatshape)) {
+        tagList(
+          fluidRow(
+            column(5, textInput("spatName", "Spatial table name")  )
+          )
+        )
     }
   })
   
