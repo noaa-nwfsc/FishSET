@@ -65,8 +65,7 @@ Suggests:
     readODS,
     rmarkdown,
     rstudioapi (>= 1.1.287),
-    testthat,
-    bslib
+    testthat
 VignetteBuilder: 
     knitr
 BuildVignettes: yes
