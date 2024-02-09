@@ -17,9 +17,8 @@ map_viewer_serv <- function(id, dat, spatdat, project) {
     ns <- session$ns
   
     output$var_select <- renderUI({
-      
-      sidebarLayout(
-        sidebarPanel(
+      bslib::page_sidebar(
+        sidebar = bslib::sidebar( width = 550,
           
           actionButton(ns("run"), "Run", style = "color: #fff; background-color: #6da363; border-color: #800000;"),
           
@@ -76,12 +75,10 @@ map_viewer_serv <- function(id, dat, spatdat, project) {
           )
         ),
         
-        mainPanel(
           shinycssloaders::withSpinner(
             htmlOutput(ns("iframe")),
             type = 6
           )
-        )
       )
       
       
