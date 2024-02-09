@@ -2168,17 +2168,15 @@ server = function(input, output, session) {
     showModal(
       modalDialog(title = "Create and Edit Metadata",
                   
-                  fluidPage(
+                  bslib::page_fluid(
                     
                     actionButton("meta_close", "Close",
                                  style = "color: #fff; background-color: #FF6347; border-color: #800000;"),
-                    tags$br(), tags$br(),
-                    tabsetPanel(id = "tab",    
-                                tabPanel("Create", value = "create_tab",
-                                         
-                                         sidebarLayout(
-                                           sidebarPanel(width = 3,
-                                                        
+                   # tags$br(), tags$br(),
+                    bslib::navset_tab(id = "tab", 
+                                bslib::nav_panel(  "Create", value = "create_tab", 
+                                         bslib::page_sidebar(
+                                           sidebar = bslib::sidebar( width = 550,
                                                         h4(strong("Create metadata")),
                                                         
                                                         p("Metadata can be created by loading a data table and",
@@ -2196,15 +2194,13 @@ server = function(input, output, session) {
                                                         
                                                         FishSET:::metaRawUI("meta_create")
                                            ),
-                                           mainPanel(width = 9,
                                                      FishSET:::metaOut("meta_create"),
                                                      FishSET:::metaRawOut("meta_create"))
-                                         )),
+                                ),
                                 
-                                tabPanel("Edit", value = "edit_tab",
-                                         
-                                         sidebarLayout(
-                                           sidebarPanel(width = 3,
+                               bslib::nav_panel(  "Edit", value = "edit_tab",      
+                                         bslib::page_sidebar(
+                                           sidebar = bslib::sidebar( width = 550,
                                                         h4(strong("View, edit, and delete metadata")),
                                                         
                                                         p("To edit existing metadata, select a project and table", 
@@ -2217,10 +2213,8 @@ server = function(input, output, session) {
                                                         FishSET:::metaEditSaveUI("meta_edit"),
                                                         FishSET:::metaDeleteUI("meta_edit")
                                            ),
-                                           mainPanel(width = 9,
                                                      FishSET:::metaOut("meta_edit"),
                                                      FishSET:::metaRawOut("meta_edit"))
-                                         )
                                 ) 
                     ) 
                   ), 
