@@ -729,23 +729,20 @@ ui = function(request){
     bslib::nav_panel(title = 'Compute New Variables', id='new',#value
                      bslib::page_sidebar(
                        sidebar = bslib::sidebar( width = 550,
-                                                 actionButton('saveData','Save data to FishSET database'),
+                                                 actionButton('saveDataNewVars','Save data to FishSET database'),
+                                                 tags$br(),
                                                  
                                                  actionButton("save_final_modal", "Save final table to FishSET database",
                                                               style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+                                                 tags$br(),
                                                  
                                                  # downloadLink('downloadplotNew', label=''),
                                                  # actionButton('downloadplotNew', label='Save plot to folder'),
                                                  
-                                                 #  tags$br(), tags$br(),
                                                  
                                                  actionButton("refreshNew", "Refresh data", 
                                                               style = "color: white; background-color: blue;"),
-                                                 
-                                                 # tags$br(), tags$br(),
-                                                 
-                                                 
-                                                 # tags$br(), tags$br(),                              
+                                                 tags$br(),
                                                  
                                                  selectInput('VarCreateTop', "Create variables based on", multiple=FALSE,  
                                                              choices=c('Nominal ID', 'Arithmetic functions', 

@@ -4255,9 +4255,7 @@ server = function(input, output, session) {
   output$output_text_reg <- renderPrint(lm_out2()$refout)
   
   ###---
-  
   # DATA CREATION/MODIFICATION ----
-  
   ###---
   # Nominal functions
   
@@ -6997,6 +6995,23 @@ server = function(input, output, session) {
   })
   
   observeEvent(input$saveData, {
+    
+    req(project$name)
+    
+    q_test <- quietly_test(table_save)
+    saved <- q_test(values$dataset, project = project$name, type = "main")
+    
+    if (is.logical(saved) && saved) {
+      
+      showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+      
+    } else {
+      
+      showNotification("Table was not saved.", type = "warning", duration = 10)
+    }
+  })
+  
+  observeEvent(input$saveDataNewVars, {
     
     req(project$name)
     
