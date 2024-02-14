@@ -47,7 +47,8 @@ RexpressionServ <- function(id, values) {
 
 # Save buttons ====
 sort_save_outputs <- function(x = NULL) {
-# used in tabPlotServ()
+  
+  # used in tabPlotServ()
   if (!is.null(x)) {
     
     # detect single plot/table v. list of plots/tables, 
@@ -132,7 +133,7 @@ plotSaveServ <- function(id, proj, plots = NULL) {
                          radioButtons(ns("select_plot"), "Plots", 
                                       choices = plot_r$names),
                          shinycssloaders::withSpinner(
-                           plotOutput(ns("display_plot"), width = "auto", height = "auto"))
+                           plotOutput(ns("display_plot"), width = "auto", height = "auto"), type = 6)
                          ),
                 tabPanel("Plot Size",
                          sliderInput(ns("plot_size_w"), "Width (in)", min = 1, max = 20, 
@@ -172,7 +173,13 @@ plotSaveServ <- function(id, proj, plots = NULL) {
     # detect plots ----
     observeEvent(input$save_plot, {
       
-      plots_r <- plots_r()
+      # Need to check whether plots_r() exists and let code execution continue if it doesn't exist
+      tryCatch({
+        plots_r <- plots_r()
+      },
+      shiny.silent.error = function(e){
+      })
+      
       plot_ind <- vapply(plots_r, is_plot, logical(1))
       
       if (sum(plot_ind) > 0) {
@@ -236,7 +243,7 @@ tableSaveServ <- function(id, proj, tabs = NULL) {
                     
                     tags$div(
                       shinycssloaders::withSpinner(
-                        DT::DTOutput(ns("display_table"))),
+                        DT::DTOutput(ns("display_table")), type = 6),
                       style = "font-size: 75%; width: 100%"),
                     
                     footer = tagList(
@@ -248,7 +255,6 @@ tableSaveServ <- function(id, proj, tabs = NULL) {
                     easyClose = FALSE, size = "l"))
     }
     
-    
     output$display_table <- DT::renderDT(tabs_r()[[input$select_tab]])
     
     is_tab <- function(x) is.data.frame(x) || is.matrix(x) || is.table(x)
@@ -256,17 +262,22 @@ tableSaveServ <- function(id, proj, tabs = NULL) {
     # detect savable tables ----
     observeEvent(input$save_table, {
       
-      tabs_r <- tabs_r()
+      # Need to check whether tabs_r() exists and let code execution continue if it doesn't exist
+      tryCatch({
+        tabs_r <- tabs_r()
+      },
+      shiny.silent.error = function(e){
+      })
+      
       tab_ind <- vapply(tabs_r, is_tab, logical(1))
       
-      if (sum(tab_ind) > 0) {
-        
+      if(sum(tab_ind) > 0) {
         tab_r$names <- add_names(tabs_r[tab_ind], "names", "tab") # for selecting plots
         show_save_modal()
         
       } else {
-        
         showNotification("No tables found.", type = "message")
+
       }
     })
     
@@ -300,7 +311,7 @@ tableSaveServ <- function(id, proj, tabs = NULL) {
 
 # direct output to tab/plot modules 
 tabPlotServ <- function(id, proj, out = NULL, type = "tab_plot") { 
-  
+    
   tab_id <- paste0(id, "_tab")
   plot_id <- paste0(id, "_plot")
   
@@ -339,7 +350,7 @@ modSaveServ <- function(id, proj, outs = NULL) {
                     
                     tags$div(
                       shinycssloaders::withSpinner(
-                        verbatimTextOutput(ns("display_mod"))),
+                        verbatimTextOutput(ns("display_mod")), type = 6),
                       style = "font-size: 75%; width: 100%"),
                     
                     footer = tagList(
@@ -405,7 +416,7 @@ saveDataTableServ <- function(id, values, project) {
   moduleServer(id, function(input, output, session) {
     
     observeEvent(input$saveData, {
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project())))
       DBI::dbWriteTable(fishset_db, paste0(project(), 'MainDataTable'), values$dataset, overwrite = TRUE)
       DBI::dbDisconnect(fishset_db)
       showNotification('Data saved to FishSET database', type = 'message', duration = 10)
@@ -532,6 +543,9 @@ density_serv <- function(id, values, project) {
     ns <- session$ns
     
     tabPlotServ("save", proj = project,
+                out = reactive(list(density_plot = den_out())), type = "tab_plot")
+    
+    tabPlotServ("save-summary", proj = project,
                 out = reactive(list(density_plot = den_out())), type = "tab_plot")
     
     output$var_select <- renderUI({
@@ -755,7 +769,10 @@ vessel_serv <- function(id, values, project) {
     ns <- session$ns
     
     tabPlotServ("save", proj = project,
-                out = reactive(list(vessel_count = v_out())), type = "tab_plot")
+                out = reactive(list(vessel_count = v_out(), test=NULL)), type = "tab_plot")
+    
+    tabPlotServ("save-summary", proj = project,
+                out = reactive(list(vessel_count = v_out(), test=NULL)), type = "tab_plot")
     
     
     output$var_select <- renderUI({
@@ -991,6 +1008,9 @@ species_serv <- function(id, values, project) {
     ns <- session$ns
     
     tabPlotServ("save", proj = project,
+                out = reactive(list(species_catch = spec_out())), type = "tab_plot")
+    
+    tabPlotServ("save-summary", proj = project,
                 out = reactive(list(species_catch = spec_out())), type = "tab_plot")
     
     output$var_select <- renderUI({
@@ -1235,6 +1255,9 @@ roll_serv <- function(id, values, project) {
     tabPlotServ("save", proj = project,
                 out = reactive(list(roll_catch = roll_out())), type = "tab_plot")
     
+    tabPlotServ("save-summary", proj = project,
+                out = reactive(list(roll_catch = roll_out())), type = "tab_plot")
+    
     output$var_select <- renderUI({
       
       selectizeInput(ns("var"), "Select catch variable",
@@ -1475,6 +1498,9 @@ weekly_catch_serv <- function(id, values, project) {
     tabPlotServ("save", proj = project,
                 out = reactive(list(weekly_catch = wc_out())), type = "tab_plot")
     
+    tabPlotServ("save-summary", proj = project,
+                out = reactive(list(weekly_catch = wc_out())), type = "tab_plot")
+    
     output$var_select <- renderUI({
       
       selectizeInput(ns("var"), "Select catch variable",
@@ -1708,6 +1734,9 @@ weekly_effort_serv <- function(id, values, project) {
     tabPlotServ("save", proj = project,
                 out = reactive(list(weekly_effort = we_out())), type = "tab_plot")
     
+    tabPlotServ("save-summary", proj = project,
+                out = reactive(list(weekly_effort = we_out())), type = "tab_plot")
+    
     output$var_select <- renderUI({
       
       selectizeInput(ns("var"), "Select CPUE variable",
@@ -1939,6 +1968,9 @@ bycatch_serv <- function(id, values, project) {
     ns <- session$ns
     
     tabPlotServ("save", proj = project,
+                out = reactive(list(bycatch = by_out())), type = "tab_plot")
+    
+    tabPlotServ("save-summary", proj = project,
                 out = reactive(list(bycatch = by_out())), type = "tab_plot")
     
     output$cpue_select <- renderUI({
@@ -2188,6 +2220,9 @@ trip_serv <- function(id, values, project) {
     ns <- session$ns
     
     tabPlotServ("save", proj = project,
+                out = reactive(list(trid_dur_out = trip_out())), type = "tab_plot")
+    
+    tabPlotServ("save-summary", proj = project,
                 out = reactive(list(trid_dur_out = trip_out())), type = "tab_plot")
     
     output$start_select <- renderUI({
