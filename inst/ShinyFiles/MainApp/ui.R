@@ -194,7 +194,7 @@ ui = function(request){
                                      )
                     ) 
     ),
-
+    
     
     #---
     # Upload data tabset panel ---- 
@@ -344,12 +344,10 @@ ui = function(request){
     #---
     # Data quality evaluation tabset panel ----
     #---
-    bslib::nav_panel("Data Quality Evaluation", value = "qaqc", #value
+    bslib::nav_panel("Data Quality Evaluation", value = "qaqc",
                      bslib::page_sidebar(
                        sidebar = bslib::sidebar( width = 550,
                                                  actionButton('saveData','Save data to FishSET database'),
-                                                 
-                                                 tags$br(), tags$br(),
                                                  
                                                  tabPlotUI("qaqc", type = "tab_plot"),
                                                  
@@ -975,156 +973,152 @@ ui = function(request){
                        #             choices = c("csv", "txt", "rdata", "xlsx", 
                        #                         "json", "stata", "sas", "spss", "matlab")),
                        #)
-                     )),
+                     )
+    ),
     
     
     #---
     # Fleet functions ----
     #---
-    bslib::nav_panel(title = "Fleet Assignment and Summary", value = "fleet",#value
-                     bslib::page_sidebar(
-                       sidebar = bslib::sidebar( width = 550,
-                                                 saveDataTableUI("fleet"),
-                                                 
-                                                 #   tags$br(), tags$br(),
-                                                 
-                                                 uiOutput("fleetSaveOutputUI"),
-                                                 
-                                                 # tags$br(),
-                                                 
-                                                 refreshUI("fleet"),
-                                                 
-                                                 # tags$br(), tags$br(),
-                                                 
-                                                 conditionalPanel("input.fleet_tab == 'fleet_summary'",
-                                                                  uiOutput("run_fleet_fun")),
-                                                 
-                                                 conditionalPanel("input.fleet_tab == 'fleet_assign'",
-                                                                  
-                                                                  selectInput("assign_fun", label = "Select task",
-                                                                              choices = c("Define fleets", "Fleet assignment"),
-                                                                              selected = "Define fleets"),
-                                                                  
-                                                                  conditionalPanel("input.assign_fun == 'Define fleets'",
+    bslib::nav_panel(title = "Fleet Assignment and Summary", value = "fleet",
+                     bslib::navset_tab(id = 'select_fleet',
+                                       bslib::nav_panel(title = "Fleet Assignment", value = "fleet_assignment",
+                                                        bslib::page_sidebar(
+                                                          sidebar = bslib::sidebar(width = 550,
+                                                                                   saveDataTableUI("fleet"), # "Save data to FishSET database"
+                                                                                   tags$br(),
                                                                                    
-                                                                                   fleet_tableUI("f_table")),
-                                                                  
-                                                                  conditionalPanel("input.assign_fun == 'Fleet assignment'",
+                                                                                   uiOutput("fleetSaveOutput1"), # "Save table..." and "Save plot..."
+                                                                                   tags$br(),
                                                                                    
-                                                                                   fleet_assignUI("f_assign"))
-                                                 ),
-                                                 
-                                                 conditionalPanel("input.fleet_tab == 'fleet_summary'",
-                                                                  tags$br(),
-                                                                  
-                                                                  selectInput("fleet_fun", "Select function",
-                                                                              choices = c("vessel count" = "vessel_count", "species catch" = "species_catch",
-                                                                                          "rolling catch" = "roll_catch", "weekly catch" = "weekly_catch",
-                                                                                          "weekly effort" = "weekly_effort", "bycatch", "trip duration" = "trip_dur_out",
-                                                                                          "density plot" = "density_plot"), 
-                                                                              multiple = FALSE,
-                                                                              selected = "vessel_count"),
-                                                                  
-                                                                  
-                                                                  conditionalPanel("input.fleet_fun == 'vessel_count'",
+                                                                                   refreshUI("fleet"), # "Refresh data"
+                                                                                   tags$br(),
                                                                                    
-                                                                                   vessel_countUI("ves")),
-                                                                  
-                                                                  conditionalPanel("input.fleet_fun == 'species_catch'",
+                                                                                   selectInput("assign_fun", label = "Select task",
+                                                                                               choices = c("Define fleets", "Fleet assignment"),
+                                                                                               selected = "Define fleets"),
                                                                                    
-                                                                                   species_catchUI("spec")),
-                                                                  
-                                                                  conditionalPanel("input.fleet_fun == 'roll_catch'",
+                                                                                   conditionalPanel("input.assign_fun == 'Define fleets'",
+                                                                                                    fleet_tableUI("f_table")),
                                                                                    
-                                                                                   roll_catchUI("roll")),
-                                                                  
-                                                                  conditionalPanel("input.fleet_fun == 'weekly_catch'",
+                                                                                   conditionalPanel("input.assign_fun == 'Fleet assignment'",
+                                                                                                    fleet_assignUI("f_assign")),
                                                                                    
-                                                                                   weekly_catchUI("wc")),
-                                                                  
-                                                                  conditionalPanel("input.fleet_fun == 'weekly_effort'",
-                                                                                   
-                                                                                   weekly_effortUI("we")),
-                                                                  
-                                                                  conditionalPanel("input.fleet_fun == 'bycatch'",
-                                                                                   
-                                                                                   bycatchUI("by")),
-                                                                  
-                                                                  conditionalPanel("input.fleet_fun == 'trip_dur_out'",
-                                                                                   
-                                                                                   trip_durUI("trip")),
-                                                                  
-                                                                  conditionalPanel("input.fleet_fun == 'density_plot'",
-                                                                                   
-                                                                                   density_plotUI("den"))
-                                                                  
-                                                 ),
-                                                 
-                                                 tags$hr(style = "border-top: 3px solid #bbb;"),
-                                                 
-                                                 noteUI("fleet"),
-                                                 
-                                                 tags$br(), tags$br(),
-                                                 
-                                                 # RexpressionUI("fleet")
-                                                 textInput("exprFleet", label = "Enter an R expression",
-                                                           value = "values$dataset"),
-                                                 actionButton("runFleet", "Run", class = "btn-success"),
-                                                 div(style = "margin-top: 2em;",
-                                                     uiOutput('resultFleet')
-                                                 ),
-                                                 
-                                                 closeAppUI("fleet")
-                       ), 
-                       bslib::navset_tab(id = "fleet_tab", selected = "fleet_assign",
-                                         bslib::nav_panel(title = "Fleet Assignment", id = "fleet_assign",#value
+                                                                                   tags$hr(style = "border-top: 3px solid #bbb;"),
 
+                                                                                   noteUI("fleet"),
+
+                                                                                   # RexpressionUI("fleet")
+                                                                                   textInput("exprFleet", label = "Enter an R expression",
+                                                                                             value = "values$dataset"),
+                                                                                   actionButton("runFleet", "Run", class = "btn-success"),
+                                                                                   div(style = "margin-top: 2em;",
+                                                                                       uiOutput('resultFleet')
+                                                                                   ),
+
+                                                                                   closeAppUI("fleet")
+                                                          ),
+                                                          
                                                           conditionalPanel("input.assign_fun == 'Define fleets'",
-                                                                           
                                                                            fleet_exprUI("f_table"),
-                                                                           
                                                                            fleet_tableOut("f_table")),
                                                           
                                                           conditionalPanel("input.assign_fun == 'Fleet assignment'",
-                                                                           
                                                                            fleet_assignOut("f_assign"))
-                                         ),
-                                         bslib::nav_panel(title = "Fleet Summary", id = "fleet_summary",#value
-
+                                                        )
+                                       ),
+                                       
+                                       bslib::nav_panel(title = "Fleet Summary", id = "fleet_summary",
+                                                        bslib::page_sidebar(
+                                                          sidebar = bslib::sidebar(width = 550,
+                                                                                   saveDataTableUI("fleet_summary"), # "Save data to FishSET database"
+                                                                                   tags$br(),
+                                                                                   
+                                                                                   uiOutput("fleetSaveOutput2"), # "Save table..." and "Save plot..."
+                                                                                   tags$br(),
+                                                                                   
+                                                                                   refreshUI("fleet_summary"), # "Refresh data"
+                                                                                   tags$br(),
+                                                                                   
+                                                                                   selectInput("fleet_fun", "Select function",
+                                                                                               choices = c("vessel count" = "vessel_count", "species catch" = "species_catch",
+                                                                                                           "rolling catch" = "roll_catch", "weekly catch" = "weekly_catch",
+                                                                                                           "weekly effort" = "weekly_effort", "bycatch", "trip duration" = "trip_dur_out",
+                                                                                                           "density plot" = "density_plot"), 
+                                                                                               multiple = FALSE,
+                                                                                               selected = "vessel_count"),
+                                                                                   tags$br(),
+                                                                                   
+                                                                                   conditionalPanel("input.fleet_fun == 'vessel_count'",
+                                                                                                    vessel_countUI("ves")),
+                                                                                   
+                                                                                   conditionalPanel("input.fleet_fun == 'species_catch'",
+                                                                                                    species_catchUI("spec")),
+                                                                                   
+                                                                                   conditionalPanel("input.fleet_fun == 'roll_catch'",
+                                                                                                    roll_catchUI("roll")),
+                                                                                   
+                                                                                   conditionalPanel("input.fleet_fun == 'weekly_catch'",
+                                                                                                    weekly_catchUI("wc")),
+                                                                                   
+                                                                                   conditionalPanel("input.fleet_fun == 'weekly_effort'",
+                                                                                                    weekly_effortUI("we")),
+                                                                                   
+                                                                                   conditionalPanel("input.fleet_fun == 'bycatch'",
+                                                                                                    bycatchUI("by")),
+                                                                                   
+                                                                                   conditionalPanel("input.fleet_fun == 'trip_dur_out'",
+                                                                                                    trip_durUI("trip")),
+                                                                                   
+                                                                                   conditionalPanel("input.fleet_fun == 'density_plot'",
+                                                                                                    density_plotUI("den")),
+                                                                                   
+                                                                                   uiOutput("run_fleet_fun"), # run function
+                                                                                   
+                                                                                   tags$br(),
+                                                                                   
+                                                                                   tags$hr(style = "border-top: 3px solid #bbb;"),
+                                                                                   
+                                                                                   noteUI("fleet_summary"),
+                                                                                   
+                                                                                   # RexpressionUI("fleet")
+                                                                                   textInput("exprFleetSummary", label = "Enter an R expression",
+                                                                                             value = "values$dataset"),
+                                                                                   actionButton("runFleetSummary", "Run", class = "btn-success"),
+                                                                                   div(style = "margin-top: 2em;",
+                                                                                       uiOutput('resultFleetSummary')
+                                                                                   ),
+                                                                                   
+                                                                                   closeAppUI("fleet_summary")
+                                                          ),
+                                                          
                                                           conditionalPanel("input.fleet_fun == 'vessel_count'",
-                                                                           
+                                                                           h2("Vessel count"),
                                                                            fleetOut("ves")),
                                                           
                                                           conditionalPanel("input.fleet_fun == 'species_catch'",
-                                                                           
                                                                            fleetOut("spec")),
                                                           
                                                           conditionalPanel("input.fleet_fun == 'roll_catch'",
-                                                                           
                                                                            fleetOut("roll")),
                                                           
                                                           conditionalPanel("input.fleet_fun == 'weekly_catch'",
-                                                                           
                                                                            fleetOut("wc")),
                                                           
                                                           conditionalPanel("input.fleet_fun == 'weekly_effort'",
-                                                                           
                                                                            fleetOut("we")),
                                                           
                                                           conditionalPanel("input.fleet_fun == 'bycatch'",
-                                                                           
                                                                            fleetOut("by")),
                                                           
                                                           conditionalPanel("input.fleet_fun == 'trip_dur_out'",
-                                                                           
                                                                            fleetOut("trip")),
                                                           
                                                           conditionalPanel("input.fleet_fun == 'density_plot'",
-                                                                           
                                                                            fleetOut("den"))
-                                         )
-                                         #   )
-                       )
+                                                          
+                                                        )
+                                       )
                      )
     ),
     
@@ -1183,7 +1177,8 @@ ui = function(request){
                            textOutput('zoneIDText')),
                        
                        plotOutput('zone_include_plot')
-                     )),
+                     )
+    ),
     
     
     #---
@@ -1193,25 +1188,25 @@ ui = function(request){
                      bslib::navset_tab(id = 'exp_tab', 
                                        bslib::nav_panel(title = 'Create expected catch', id = 'exp_create', 
                                                         bslib::page_sidebar(
-                                                          sidebar = bslib::sidebar( width = 550,
-                                                                                    actionButton("exp_submit", "Run expected catch/revenue function", 
-                                                                                                 style="color: #fff; background-color: #6da363; border-color: #800000;"), 
-                                                                                    
-                                                                                    # tags$br(), tags$br(),
-                                                                                    
-                                                                                    actionButton("refreshEC", "Refresh data", 
-                                                                                                 style = "color: white; background-color: blue;" 
-                                                                                    ),
-                                                                                    
-                                                                                    tags$br(),tags$br(),
-                                                                                    
-                                                                                    uiOutput('exp_ui'),
-                                                                                    
-                                                                                    add_prompter(div(
-                                                                                      div(style="display:inline-block; width: 145px;", h4('Temporal options')), 
-                                                                                      div(style="display:inline-block; width: 10px;", icon('info-circle', verify_fa = FALSE))),
-                                                                                      position = "right", type='info', size='large', 
-                                                                                      message = 'Use the entire temporal record of catch or take the timeline of catch into account. 
+                                                          sidebar = bslib::sidebar(width = 550,
+                                                                                   actionButton("exp_submit", "Run expected catch/revenue function", 
+                                                                                                style="color: #fff; background-color: #6da363; border-color: #800000;"), 
+                                                                                   
+                                                                                   # tags$br(), tags$br(),
+                                                                                   
+                                                                                   actionButton("refreshEC", "Refresh data", 
+                                                                                                style = "color: white; background-color: blue;" 
+                                                                                   ),
+                                                                                   
+                                                                                   tags$br(),tags$br(),
+                                                                                   
+                                                                                   uiOutput('exp_ui'),
+                                                                                   
+                                                                                   add_prompter(div(
+                                                                                     div(style="display:inline-block; width: 145px;", h4('Temporal options')), 
+                                                                                     div(style="display:inline-block; width: 10px;", icon('info-circle', verify_fa = FALSE))),
+                                                                                     position = "right", type='info', size='large', 
+                                                                                     message = 'Use the entire temporal record of catch or take the timeline of catch into account. 
                                   When timeline is considered, catch for a given day is the average for the defined number of days (window), 
                                   shifted to the past by the defined number of days (lag). For example, a window of 3 days and lag of 1 day means we take the 
                                   average catch over three days starting one day prior to the given date.'),
@@ -1342,7 +1337,7 @@ ui = function(request){
                                                      shinycssloaders::withSpinner(plotOutput('spars_plot'), type = 6)
                                                    ))
                                                         )
-
+                                  
                                        ),
                                   bslib::nav_panel(title ='Merge expected catch', id = 'exp_merge',
                                                    bslib::page_sidebar(
@@ -1583,7 +1578,7 @@ ui = function(request){
                                                                                   
                                                         ),
                                                         
-
+                                                        
                                                         fluidRow(
                                                           column(6, 
                                                                  div('Note: deleting a parent model will delete its nested models
@@ -1608,7 +1603,7 @@ ui = function(request){
                                                                                   
                                                         ),
                                                         
-
+                                                        
                                                         verbatimTextOutput('mod_list_ui')
                                                       )
                                      ),
@@ -1643,7 +1638,7 @@ ui = function(request){
                                                         
                                                         h4('Model estimates for each iteration'),
                                                         DT::DTOutput('cv_modout_tab', width = "75%")
-
+                                                        
                                                       ),
                                      ),
                                      bslib::nav_panel(title = 'Out-of-sample prediction', id = 'outsample_predict',
@@ -1700,7 +1695,7 @@ ui = function(request){
     bslib::nav_panel(title ='Bookmark Choices', id = "book",
                      bslib::navset_tab(id = "boomark_tab", 
                                        bslib::nav_panel(title ="Bookmark", id = "bookmark_page",
-
+                                                        
                                                         tags$br(),
                                                         tags$button(
                                                           id = 'closeB',
@@ -1759,7 +1754,7 @@ ui = function(request){
                                                                                     p("Click on the table rows to run specific function calls.")
                                                           ),
                                                           
-
+                                                          
                                                           shinycssloaders::withSpinner(DT::DTOutput("log_table"), type = 6),
                                                         )
                                        )
