@@ -27,7 +27,9 @@ server = function(input, output, session) {
           shinyjs::disable(x) }
   }
   
-  #inline scripting ----
+  
+  #---
+  #Inline scripting ----
   #---
   r <- reactiveValues(done = 0, ok = TRUE, output = "")
   
@@ -276,8 +278,10 @@ server = function(input, output, session) {
   #   }
   # })
   
-  #Landing Page ----
-  ###---
+  
+  # ---
+  # INFORMATION ----
+  # ---
   output$AcrossTabsText <- renderUI({
     if(input$QuickStartChoices=='AcrossTabs'){
       tags$div(
@@ -978,12 +982,10 @@ server = function(input, output, session) {
     }
   })
   
-  ###---
   
+  # ---
   # DATA UPLOAD ----
-  
-  ###---
-  
+  # ---
   # Allow users to change FishSET folders easily.
   folderpath <- reactiveVal({
     if (fs_exist) get("folderpath", envir = as.environment(1L))
@@ -2285,12 +2287,10 @@ server = function(input, output, session) {
     }
   })
   
-  ###---
   
+  # ---
   # DATA QUALITY ----
-  
-  ###---  
-  
+  # ---  
   #change variable class ----
   # TODO feature doesn't work after first use
   change_class_tab <- reactive({
@@ -3494,11 +3494,10 @@ server = function(input, output, session) {
     }
   })
   
-  ##---        
   
+  # ---        
   # DATA EXPLORATION ----
-  
-  ##---
+  # ---
   #1. TABLE
   # TODO add spatial data
   output$SelectDatasetExploreUI <- renderUI({
@@ -4094,26 +4093,41 @@ server = function(input, output, session) {
   output$grid_plot <- renderPlot(grid_values$plot)
   
   
-  # Fleet Functions ========
-  
+  # ---
+  # FLEET FUNCTIONS ----
+  # ---
   fleet_id <- reactive({
     switch(input$fleet_fun, "vessel_count" = "ves", "species_catch" = "spec",
            "roll_catch" = "roll", "weekly_catch" = "wc", "weekly_effort" = "we",
            "bycatch" = "by", "trip_dur_out" = "trip", "density_plot" = "den")
   })
+  
   # Save buttons
-  output$fleetSaveOutputUI <- renderUI({
+  output$fleetSaveOutput1 <- renderUI({
     
-    tabPlotUI(paste0(fleet_id(), "-save"))
+    tabPlotUI(paste0(fleet_id(), "-save"), type = "tab_plot")
+  })
+  
+  output$fleetSaveOutput2 <- renderUI({
+    
+    tabPlotUI(paste0(fleet_id(), "-save-summary"), type = "tab_plot")
   })
   
   saveDataTableServ("fleet", values, reactive(project$name))
   
+  saveDataTableServ("fleet_summary", values, reactive(project$name))
+  
   closeAppServ("fleet")
+  
+  closeAppServ("fleet_summary")
   
   refreshServ("fleet", values, reactive(project$name))
   
-  output$run_fleet_fun <- renderUI(runFunUI(fleet_id()))
+  refreshServ("fleet_summary", values, reactive(project$name))
+  
+  output$run_fleet_fun <- renderUI({
+    runFunUI(fleet_id())
+  })
   
   # Fleet modules
   density_serv("den", values, reactive(project$name))
@@ -4137,15 +4151,30 @@ server = function(input, output, session) {
   fleet_assign_serv("f_assign", values, reactive(project$name))
   
   # R expr output
-  #RexpressionServ("fleet", values)
+  # RexpressionServ("fleet", values)
+  prevRunFleet <- reactiveValues(fleet = 0,
+                                 fleet_summary = 0,
+                                 fleetExprText = "values$dataset")
   
-  observeEvent(input$runFleet, {
+  observeEvent(c(input$runFleet, input$runFleetSummary), {
     shinyjs::hide("error")
     r$ok <- FALSE
+    
+    # Check which tab triggered the observeEvent
+    if(prevRunFleet$fleet != input$runFleet){ # Fleet assignment tab triggered
+      prevRunFleet$fleetExprText <- input$exprFleet
+    } else { # Fleet summary tab triggered
+      prevRunFleet$fleetExprText <- input$exprFleetSummary
+    }
+    
+    # Update status of even triggers
+    prevRunFleet$fleet <- input$runFleet
+    prevRunFleet$fleetSummary <- input$runFleetSummary
+    
     tryCatch(
       {
         r$output <- isolate(
-          paste(utils::capture.output(eval(parse(text = input$exprFleet))), collapse = '\n')
+          paste(utils::capture.output(eval(parse(text = prevRunFleet$fleetExprText))), collapse = '\n')
         )
         r$ok <- TRUE
       },
@@ -4153,23 +4182,33 @@ server = function(input, output, session) {
     )
     r$done <- r$done + 1
   })
+  
   output$resultFleet <- renderUI({
     if(r$done > 0 ) { 
-      content <- paste(paste(">", isolate(input$exprFleet)), r$output, sep = '\n')
+      content <- paste(paste(">", isolate(prevRunFleet$fleetExprText)), r$output, sep = '\n')
       if(r$ok) {
         pre(content)
       } else {
-        pre( style = "color: red; font-weight: bold;", content)
+        pre(style = "color: red; font-weight: bold;", content)
       }
     }
   })
   
-  ###---    
+  output$resultFleetSummary <- renderUI({
+    if(r$done > 0 ) { 
+      content <- paste(paste(">", isolate(prevRunFleet$fleetExprText)), r$output, sep = '\n')
+      if(r$ok) {
+        pre(content)
+      } else {
+        pre(style = "color: red; font-weight: bold;", content)
+      }
+    }
+  })
   
+  
+  # ---    
   # DATA ANALYSIS ----
-  
-  ###---
-  
+  # ---
   # output project tracker
   anal_out_proj <- reactiveValues(corr = NULL, reg = NULL, corr_out = NULL, 
                                   reg_out = NULL)
@@ -4253,6 +4292,7 @@ server = function(input, output, session) {
   output$output_plot_reg <- renderPlot(lm_out1()$plot)
   
   output$output_text_reg <- renderPrint(lm_out2()$refout)
+  
   
   ###---
   # DATA CREATION/MODIFICATION ----
@@ -5027,20 +5067,15 @@ server = function(input, output, session) {
   )
   
   
-  # ---
-  
+  # --- 
   # MAP VIEWER ----
-  
-  # ---
-  
+  # --- 
   map_viewer_serv("map", values, spatdat, reactive(project$name))
   
   
-  #---
-  
-  # ZONAL DEFINITION ----
-  
-  #---
+  # ---
+  # ALTERNATIVE CHOICE ----
+  # ---
   
   output$altc_ui <- renderUI({
     tagList(
@@ -5242,11 +5277,10 @@ server = function(input, output, session) {
     
   }, ignoreInit = FALSE) 
   
-  #---
   
+  # ---
   # EXPECTED CATCH ----     
-  
-  #---
+  # ---
   exp_react <- reactiveValues(altc_exists = FALSE)
   
   # check if alt choice list exists when exp catch tab is selected
@@ -5413,11 +5447,10 @@ server = function(input, output, session) {
     
   }, ignoreNULL = TRUE, ignoreInit = TRUE)
   
-  #---
   
+  # ---
   # MODEL PARAMETERS ----
-  
-  #---
+  # ---
   
   # helper function for making checkbox
   #names <- c('one','two', 'three')
