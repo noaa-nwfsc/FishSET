@@ -119,6 +119,7 @@ closeAppUI <- function(id) {
 }
 
 runFunUI <- function(id) {
+  
   ns <- NS(id)
   actionButton(ns("fun_run"), "Run function",
                style = "color: #fff; background-color: #6da363; border-color: #800000;")
@@ -335,12 +336,12 @@ vessel_countUI <- function(id) {
   ns <- NS(id)
   
   tagList(
-     selectInput(ns("out"), "View table and/or plot",
+    selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table"),
                 selected = "tab_plot"),
-     
+    
     uiOutput(ns("var_select")),
-              
+    
     selectInput(ns("period"), "Show counts by (optional)",
                 choices = c("do not count by period" = "no_period", "year-month" = "year_month", "month-year" = "month_year",
                             "year", "month", "week", "day of the month" = "day_of_month",
@@ -350,8 +351,8 @@ vessel_countUI <- function(id) {
     
     # conditionalPanel("input.period !== 'no_period'", 
     #                  ns = ns, style = "margin-left:19px;",
-      
-      uiOutput(ns("date_select")),#),
+    
+    uiOutput(ns("date_select")),#),
     
     checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     
@@ -1221,14 +1222,14 @@ fleet_assignUI <- function(id) {
 density_plotOut <- function(id) {
   
   ns <- NS(id)
-  shinycssloaders::withSpinner(plotOutput(ns("plot")))
+  shinycssloaders::withSpinner(plotOutput(ns("plot")), type = 6)
 }
 
 fleetOut <- function(id) { 
   ns <- NS(id)
   
   tagList(
-    shinycssloaders::withSpinner(uiOutput(ns("output"))) 
+    shinycssloaders::withSpinner(uiOutput(ns("output")), type = 6) 
   )
 }
 
@@ -1310,15 +1311,15 @@ fleet_assignOut <- function(id) {
           p("Assign specific definitions by clicking on the table row.
             The entire table will be used if no rows are selected.")))
       ),
-    shinycssloaders::withSpinner(DT::DTOutput(ns("tab_preview"))),
+    shinycssloaders::withSpinner(DT::DTOutput(ns("tab_preview")), type = 6),
     h4(strong("Dataset")),
-    shinycssloaders::withSpinner(DT::DTOutput(ns("final_tab"))),
+    shinycssloaders::withSpinner(DT::DTOutput(ns("final_tab")), type = 6),
     h4(strong("Fleet Frequency")),
     fluidRow(
     column(8,
-           shinycssloaders::withSpinner(plotOutput(ns("plot_count")))),
+           shinycssloaders::withSpinner(plotOutput(ns("plot_count"))), type = 6),
     column(4,
-           shinycssloaders::withSpinner(DT::DTOutput(ns("tab_count"))))
+           shinycssloaders::withSpinner(DT::DTOutput(ns("tab_count")), type = 6))
     )
   )
 }
