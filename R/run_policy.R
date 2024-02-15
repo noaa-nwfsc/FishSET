@@ -1,7 +1,7 @@
-#' Runs policy scenario functions
+#' Runs policy scenarios
 #'
-#' Checks policy scenario exists. Runs predict_probability function. Runs 
-#' \code{\link{welfare_predict}} function
+#' Estimate redistributed fishing effort and welfare loss/gain from changes in policy or change in other factors that
+#' influence fisher location choice.
 #' 
 #' @param project Name of project
 #' @param mod.name  Model name. Argument can be the name of the model or the name 
@@ -9,6 +9,9 @@
 #'   the name of the saved `best` model. If more than one model is saved, 
 #'   \code{mod.name} should be the numeric indicator of which model to use.
 #'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
+#' @param marg_util_income Name of the coefficient to use as marginal utility of income
+#' @param income_cost Logical indicating whether the coefficient for the marginal utility of income relates to cost
+#'    (\code{TRUE}) or revenue (\code{FALSE})
 #' @param enteredPrice Price data. Leave as NULL if using price data from primary 
 #'   dataset.
 #' @param expected.catch Required for conditional logit (\code{logit_c}) model.
@@ -19,12 +22,10 @@
 #' @param use.scalers Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
 #' numeric vector unless specified with \code{scaler.func}.
 #' @param scaler.func Input for \code{create_model_input()}. Function to calculate rescaling factors.
-#' @details \code{run_policy} is a wrapper function that calls the policy and 
-#'   welfare subfunctions. Policy closure scenarios must be defined using the 
-#'   \code{\link[FishSET]{zone_closure}} function. The function also requires parameter
-#'   estimates and model data from one model.
+#' @details \code{run_policy} is a wrapper function for \code{\link{model_prediction}} and \code{\link{welfare_predict}}.
+#'    \code{model_prediction} estimates redistributed fishing effort after policy changes, and \code{welfare_predict}
+#'    simulates welfare loss/gain.
 #' @export
-
 
 ### NOTES: Need to make sure closure areas and fishery zones match
 ### Have users rerun assignment column function and model.
@@ -38,7 +39,7 @@
 #  welfare_predict
 #  sim_welfare
 
-run_policy <- function(project, mod.name = NULL, enteredPrice = NULL, expected.catch = NULL, use.scalers = FALSE, scaler.func = NULL) {
+run_policy <- function(project, mod.name = NULL, marg_util_income = NULL, income_cost = NULL, enteredPrice = NULL, expected.catch = NULL, use.scalers = FALSE, scaler.func = NULL) {
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
@@ -94,11 +95,9 @@ run_policy <- function(project, mod.name = NULL, enteredPrice = NULL, expected.c
   pOutput <- unserialize_table(paste0(project,"predictOutput"), project)
     
   #5. Run welfare predict
-  # TODO: change this later when welfare predict is working for logit models
-  if(grepl('epm', mod.name)){
-    welfareout <- welfare_predict(project = project, mod.name = modname, closures = closures,
-                                  expected.catch = expected.catch, enteredPrice = enteredPrice)  
-  }
+  welfareout <- welfare_predict(project = project, mod.name = modname, closures = closures,
+                                marg_util_income = marg_util_income, income_cost = income_cost,
+                                expected.catch = expected.catch, enteredPrice = enteredPrice) 
   
   #6. Save output and return tables and plots
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/model_prediction.R
 \name{model_prediction}
 \alias{model_prediction}
-\title{Model prediction function}
+\title{Model prediction}
 \usage{
 model_prediction(
   project,
@@ -31,7 +31,8 @@ numeric vector unless specified with \code{scaler.func}.}
 \item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
 }
 \description{
-Model prediction function
+Estimate redistributed fishing effort following policy change or change in other factors that influence fisher
+location choice.
 }
 \details{
 Calls \code{\link{logit_predict}}, \code{\link{epm_predict}}, and \code{\link{predict_probability}}.

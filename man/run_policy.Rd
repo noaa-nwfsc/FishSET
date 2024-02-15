@@ -2,11 +2,13 @@
 % Please edit documentation in R/run_policy.R
 \name{run_policy}
 \alias{run_policy}
-\title{Runs policy scenario functions}
+\title{Runs policy scenarios}
 \usage{
 run_policy(
   project,
   mod.name = NULL,
+  marg_util_income = NULL,
+  income_cost = NULL,
   enteredPrice = NULL,
   expected.catch = NULL,
   use.scalers = FALSE,
@@ -21,6 +23,11 @@ can be pulled the `modelChosen` table. Leave \code{mod.name} empty to use
 the name of the saved `best` model. If more than one model is saved, 
 \code{mod.name} should be the numeric indicator of which model to use.
 Use \code{table_view("modelChosen", project)} to view a table of saved models.}
+
+\item{marg_util_income}{Name of the coefficient to use as marginal utility of income}
+
+\item{income_cost}{Logical indicating whether the coefficient for the marginal utility of income relates to cost
+(\code{TRUE}) or revenue (\code{FALSE})}
 
 \item{enteredPrice}{Price data. Leave as NULL if using price data from primary 
 dataset.}
@@ -37,12 +44,11 @@ numeric vector unless specified with \code{scaler.func}.}
 \item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
 }
 \description{
-Checks policy scenario exists. Runs predict_probability function. Runs 
-\code{\link{welfare_predict}} function
+Estimate redistributed fishing effort and welfare loss/gain from changes in policy or change in other factors that
+influence fisher location choice.
 }
 \details{
-\code{run_policy} is a wrapper function that calls the policy and 
-  welfare subfunctions. Policy closure scenarios must be defined using the 
-  \code{\link[FishSET]{zone_closure}} function. The function also requires parameter
-  estimates and model data from one model.
+\code{run_policy} is a wrapper function for \code{\link{model_prediction}} and \code{\link{welfare_predict}}.
+   \code{model_prediction} estimates redistributed fishing effort after policy changes, and \code{welfare_predict}
+   simulates welfare loss/gain.
 }
