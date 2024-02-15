@@ -1,17 +1,8 @@
-#Policy projections
-
-# Need to call saved data table
-#1. Save favorite model by model name in separate file
-#2. Pull that data, not the generic data
-
-##Needs
-#data matrix
-#Zone closure
-#Tac
-#Price
-#Prediction probability 
-
-#' Model prediction function
+#' Model prediction
+#' 
+#' Estimate redistributed fishing effort following policy change or change in other factors that influence fisher
+#' location choice.
+#' 
 #' @param project Name of project
 #' @param mod.name Model name. Argument can be the name of the model or the name can be pulled the modelChosen table.
 #'    Leave \code{mod.name} empty to use the name of the saved "best" model. If more than

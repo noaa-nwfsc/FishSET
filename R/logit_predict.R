@@ -76,7 +76,7 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
   if(mdf_new$likelihood == "logit_c"){
     gridnum <- dim(griddat)[2] / alts # number of gridvarying variables  
   } else if (mdf_new$likelihood == "logit_zonal") {
-    gridnum <- dim(griddat)[2] * (alts - 1)
+    gridnum <- dim(griddat)[2] * (alts - 1) # (grid variables * num of coefficients) calculation here makes following code cleaner
   }
   
   intnum <- dim(intdat)[2] # number of alternative-invariant variables
@@ -91,7 +91,7 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
       tmp <- format_outsample_coefs(in_zones = in_zones, out_zones = zoneID, Eq = logitEq, likelihood = mdf_new$likelihood)
       logitEq <- tmp[[1]]
       z_flag <- tmp[[2]]
-      if(z_flag == 1) gridnum <- gridnum + 1 # need to add one because the first alt was remove from gridbum above
+      if(z_flag == 1) gridnum <- gridnum + 1 # need to add one because the first alt was removed from gridnum above
     } else {
       # Else when alts are equal just get the original coefficients
       logitEq <- logitEq$estimate
@@ -141,32 +141,4 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
   probLogit <- data.frame(zoneID = zoneID, prob = probLogit)
   return(list(probLogit, mod.dat, pLogit))
   
-  # p <- length(logitEq)
-  # betaLogit <- logitEq[1:alts]
-  # ##What do we do if we do not have interaction terms?
-  # Beta <- logitEq[-c(1:alts)] 
-  # if(is_empty(Beta)){
-  #   Beta <- 1
-  # }
-  # A <- alts*alts+1
-  # bTerms <-  tmp.dat[,-c(1:A-1)] #choice matrix
-  # numerLogit <- matrix(NA, nrow(tmp.dat), alts) #array(NA, c(nrow(mod.dat), nrow(mod.dat), alts)) # nan(nrow(x), alts)
-  # 
-  # for(i in 1:nrow(bTerms)){ # for each individual
-  #   if(p-alts == 0){
-  #     bTermsMatrix <- 0
-  #   } else {
-  #     bTermsMatrix <- array(bTerms[i,],c(alts, p-alts)) #reshape(bTerms[i,],alts,p-alts)
-  #   }
-  #   numerLogit[i,] = t(exp(betaLogit + bTermsMatrix*Beta))  #exp(betaLogit+miles*BmilesLogit+ milesSQ*bmilesSQ+Betaf*bf+....ect....
-  # }
-  # 
-  # denomLogit <- rowSums(numerLogit) # sum(numerLogit,2)  # sum by row
-  # probLogitzone <-  numerLogit/(matrix(1,1,alts) %x% denomLogit)  #numerLogit./repmat(denomLogit,1,alts)
-  # #BML(count,model)=BmilesLogit
-  # probLogit <- colMeans(probLogitzone)
-  # probLogit <- cbind(zoneID, probLogit)
-  # 
-  # out <- list(probLogit=probLogit, modelDat=mod.dat)
-  # return(out)                                                           
 }
