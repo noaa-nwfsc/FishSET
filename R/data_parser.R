@@ -241,7 +241,7 @@ write_dat <- function (dat, project, path=NULL, file_type = "csv",  ...) {
   #'           type = "csv", "pollock")
   #'           
   #' # Save shape file
-  #' write_date(ST6, path = "C://data//ST6.shp", type = "shp", project = 'Pollock')
+  #' write_dat(ST6, path = "C://data//ST6.shp", type = "shp", project = 'Pollock')
   #' }
   
   out <- data_pull(dat, project)
