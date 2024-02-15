@@ -96,18 +96,22 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
   intcoef <- as.matrix(starts3[(gridnum + 1):(gridnum + intnum), ])
   # split parameters for grid and interactions
 
+  # sum(Beta * G)
   gridbetas <- (matrix(rep(gridcoef, each = alts), obsnum, alts * gridnum, byrow = TRUE) * griddat)
   dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
   gridbetas <- rowSums(gridbetas, dims = 2)
   
+  # sum(Gamma * T)
   intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
 
+  # [sum(Beta_jm * G_im) sum(gamma_n * T_in)]
   betas <- matrix(c(gridbetas, intbetas), obsnum, (alts + 1))
 
+  # [sum(Beta * G * dummy_var) sum(gamma_n * T * Distance)]
   djztemp <- betas[, rep(1:ncol(betas), each = alts)] * dat[, 3:ncol(dat)]
-  
   dim(djztemp) <- c(nrow(djztemp), ncol(djztemp) / (alts + 1), alts + 1)
 
+  # Sum beta and gamma components of the model for each observation
   prof <- rowSums(djztemp, dims = 2)
   profx <- prof - prof[, 1]
 
