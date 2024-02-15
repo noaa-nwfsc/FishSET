@@ -2,12 +2,14 @@
 % Please edit documentation in R/welfare_predict.R
 \name{welfare_predict}
 \alias{welfare_predict}
-\title{Welfare analysis code}
+\title{Welfare analysis}
 \usage{
 welfare_predict(
   project,
   mod.name,
   closures,
+  marg_util_income = NULL,
+  income_cost = NULL,
   expected.catch = NULL,
   enteredPrice = NULL
 )
@@ -19,14 +21,22 @@ welfare_predict(
 
 \item{closures}{Closure scenarios}
 
+\item{marg_util_income}{Name of the coefficient to use as marginal utility of income}
+
+\item{income_cost}{Logical indicating whether the coefficient for the marginal utility of income relates to cost
+(\code{TRUE}) or revenue (\code{FALSE})}
+
 \item{expected.catch}{Name of expectedchatch table to use}
 
 \item{enteredPrice}{Price for welfare}
 }
 \description{
-Welfare analysis code
+Simulate the welfare loss/gain from changes in policy or changes in other factors that influence fisher location choice.
 }
 \details{
-Called by \code{\link{run_policy}} function. The 
-  \code{\link{model_prediction}} function should be run before this function.
+To simulate welfare loss/gain, the model coefficients are sampled 1000 times using a multivariate random
+   number generator (\code{\link{mvgrnd}}) and the welfare loss/gain for each observation is calculated (see section 9.3 
+   in the user manual) for each of the sampled coefficients, and all of the estimated welfare values are saved to a file
+   in the project outputs folder. \cr\cr
+   Note that this function is called by \code{\link{run_policy}}.
 }
