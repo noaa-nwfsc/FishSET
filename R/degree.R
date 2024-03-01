@@ -58,11 +58,17 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE,
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)
   
-  if (is.null(lat))  lat_cols <- find_lat(dataset)
-  else lat_cols <- lat
+  if (is.null(lat)) {
+    lat_cols <- find_lat(dataset)
+  } else {
+    lat_cols <- lat
+  }
   
-  if (is.null(lon))  lon_cols <- find_lat(dataset)
-  else lon_cols <- lon
+  if (is.null(lon)) {
+    lon_cols <- find_lat(dataset)
+  } else {
+    lon_cols <- lon
+  }
   
   num_ll <- !qaqc_helper(dataset[c(lon_cols, lat_cols)], is.numeric)
   
@@ -103,7 +109,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE,
   if (replace == TRUE) {
     if (!is.null(lat)) {
       # check length of lat
-      if(length(lat)>1){
+      if(length(lat) > 1){
         latcomb <- paste0(dataset[[lat[1]]],dataset[[lat[2]]],dataset[[lat[3]]],dataset[[lat[4]]])
         latdir <- gsub("[^A-Z]", "", latcomb)
         latdir <- which(latdir=='N')
