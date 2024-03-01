@@ -2467,7 +2467,7 @@ server = function(input, output, session) {
   ##Check UI
   
   ##Output to main panel
-  output$Case<-renderPrint({
+  output$Case <- renderPrint({
     
     if(input$checks == 'Variable class'){
       
@@ -2509,7 +2509,9 @@ server = function(input, output, session) {
     } else if(input$checks=='Lat_Lon units'){
       degree(values$dataset, project = project$name, lat=NULL, lon=NULL, latsign=NULL, lonsign=NULL, replace=FALSE)
     } else {
-      'Make a selection in the left hand column'
+      
+      h4("Spatial data checks and corrections")
+
     } 
   })
   
@@ -3159,7 +3161,7 @@ server = function(input, output, session) {
     
     spat_ui$lon_cols <- find_lon(values$dataset)
     spat_ui$lat_cols <- find_lat(values$dataset)
-    spat_ui$date_cols <- date_cols(values$dataset)
+    spat_ui$date_cols <- colnames(values$dataset)
     spat_ui$grp_cols <- category_cols(values$dataset)
   })
   
@@ -3168,8 +3170,6 @@ server = function(input, output, session) {
     if (names(spatdat$dataset)[1] != "var1") {
       
       tagList(
-        actionButton("runSpatQAQC", "Run spatial check",
-                     style = "color: white; background-color: #0073e6;"), 
         selectizeInput("spat_qaqc_lon", "Select Longitude from main data",
                        choices = spat_ui$lon_cols, multiple = FALSE, 
                        options = list(create = TRUE)),
@@ -3179,12 +3179,18 @@ server = function(input, output, session) {
         selectizeInput("spat_qaqc_date", "Select date variable", 
                        choices = spat_ui$date_cols, multiple = FALSE, 
                        options = list(create = TRUE)),
-        textInput("spat_qaqc_epsg", "(Optional) enter EPSG code",
-                  value = NULL),
-        
+        add_prompter(textInput("spat_qaqc_epsg", "(Optional) enter spatial reference EPSG code",
+                               value = NULL),
+                     message = "Option to manually set the spatial reference EPSG code for
+                                spatial and primary datasets. If EPSG is specified in the spatial data and 
+                                this box is left empty, then the EPSG of the spatial data will be 
+                                automatically applied to primary data.",
+                     type = "info", size = "medium", position = "top"),
         selectizeInput("spat_qaqc_grp", "(Optional) select grouping variable",
                        choices = spat_ui$grp_cols,
-                       multiple = TRUE, options = list(maxItems = 1, create = TRUE))
+                       multiple = TRUE, options = list(maxItems = 1, create = TRUE)),
+        actionButton("runSpatQAQC", "Run spatial check",
+                     style = "color: white; background-color: #0073e6;")
       )
     }
   })
@@ -3194,13 +3200,11 @@ server = function(input, output, session) {
   # run spatial checks 
   spat_qaqc <- eventReactive(input$runSpatQAQC, {
     
-    
     q_test <- quietly_test(spatial_qaqc)
     
-    out <- 
-      q_test(values$dataset, project$name, spatdat$dataset, 
-             lon.dat = input$spat_qaqc_lon, lat.dat = input$spat_qaqc_lat,
-             date = input$spat_qaqc_date, group = input$spat_qaqc_grp)
+    out <- q_test(dat = values$dataset, project = project$name, spat = spatdat$dataset, 
+                  lon.dat = input$spat_qaqc_lon, lat.dat = input$spat_qaqc_lat,
+                  date = input$spat_qaqc_date, group = input$spat_qaqc_grp, epsg = input$spat_qaqc_epsg)
     
     if (!is_value_empty(out)) {
       
