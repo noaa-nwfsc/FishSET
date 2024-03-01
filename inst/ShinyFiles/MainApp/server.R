@@ -3154,7 +3154,8 @@ server = function(input, output, session) {
   ## Spatial QAQC ----
   
   spat_ui <- reactiveValues(lon_cols = NULL, lat_cols = NULL,
-                            date_cols = NULL, grp_cols = NULL)
+                            date_cols = NULL, grp_cols = NULL,
+                            ID = NULL)
   
   # TODO: update so that these are done in selectizeInput, add placeholder
   observeEvent(load_r$main, {
@@ -3163,6 +3164,7 @@ server = function(input, output, session) {
     spat_ui$lat_cols <- find_lat(values$dataset)
     spat_ui$date_cols <- colnames(values$dataset)
     spat_ui$grp_cols <- category_cols(values$dataset)
+    spat_ui$ID <- colnames(values$dataset)
   })
   
   output$spatQAQC_checkUI <- renderUI({
@@ -3170,6 +3172,8 @@ server = function(input, output, session) {
     if (names(spatdat$dataset)[1] != "var1") {
       
       tagList(
+        selectInput("spat_qaqc_ID", "Select ID from main data",
+                    choices = spat_ui$ID, multiple = FALSE),
         selectizeInput("spat_qaqc_lon", "Select Longitude from main data",
                        choices = spat_ui$lon_cols, multiple = FALSE, 
                        options = list(create = TRUE)),
@@ -3272,8 +3276,9 @@ server = function(input, output, session) {
     if (any(spat_qaqc_r$flag)) {
       
       tagList(
-        actionButton("spat_filter_bttn", "Apply Lat/Lon sign changes",
-                     style = "color: white; background-color: #0073e6;"),
+        h6("Spatial correction options:"),
+        p("1. The table to the right can be used to edit spatial columns as needed. Note that the table can be filtered (e.g., show only rows where ON_LAND = true)."),
+        p("2. Use the inputs below to change signs of latitude or longitude. Running spatial corrections will also convert lat, lon coordinates to decimal degrees."),
         
         selectInput('spat_filter_lat', 'Change sign for latitude direction', 
                     choices=c('None', 'All values'='all', 'Positve to negative'='neg', 
@@ -3282,6 +3287,13 @@ server = function(input, output, session) {
         selectInput('spat_filter_lon', 'Change sign for longitude direction', 
                     choices=c('None', 'All values'='all', 'Positve to negative'='neg', 
                               'Negative to positive'='pos'), selected='None'),
+        
+        add_prompter(
+          actionButton("spat_filter_bttn", "Run spatial corrections",
+                       style = "color: white; background-color: #0073e6;"),
+          message = "Running spatial corrections will execute any sign changes specified and will 
+                     convert lat and lon coordinates to decimal degress if not already in this format",
+          type = "info", size = "medium", position = "top"),
         
         if ("NEAREST_ZONE_DIST_M" %in% names(values$dataset)) {
           
@@ -3360,11 +3372,13 @@ server = function(input, output, session) {
       
       if (input$select_spat_tab == "out_zone") {
         
-        if (sum(dist_filter()) > 0) values$dataset[dist_filter(), ]
+        if (sum(dist_filter()) > 0) values$dataset[dist_filter(), c(input$spat_qaqc_ID, input$spat_qaqc_date, input$spat_qaqc_lat,
+                                                                    input$spat_qaqc_lon, "ON_LAND", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")]
         
       } else { # "all"
         
-        values$dataset
+        values$dataset[,c(input$spat_qaqc_ID, input$spat_qaqc_date, input$spat_qaqc_lat,
+                          input$spat_qaqc_lon, "ON_LAND", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")]
       }
     }
   })
@@ -3381,7 +3395,7 @@ server = function(input, output, session) {
   },
   
   server = TRUE, 
-  editable = list(target ='cell', disable = list(columns = spat_qaqc_r$disable)), 
+  editable = list(target ='cell', disable = list(columns = c(1:2,5:7))), 
   filter = 'top', extensions = c("Buttons"),
   options = list(autoWidth = TRUE, scrolly = TRUE, responsive = TRUE, pageLength = 15,
                  searchCols = default_search_columns, buttons = c('csv'))
@@ -3490,7 +3504,7 @@ server = function(input, output, session) {
                lon = input$spat_qaqc_lon, latsign = input$spat_filter_lat,
                lonsign = input$spat_filter_lon, replace = TRUE)
     } else {
-      
+    
       values$dataset <-
         q_test(c_tab(), project = project$name, lat = input$spat_qaqc_lat, 
                lon = input$spat_qaqc_lon, latsign = input$spat_filter_lat,
