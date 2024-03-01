@@ -47,9 +47,11 @@ Required for spatial tables read from csv files. Leave as \code{NULL} if
 \item{id.spat}{Polygon ID column. Required for spatial tables read from csv 
 files. Leave as \code{NULL} if \code{spat} is an \code{sf} or \code{sp} object.}
 
-\item{epsg}{EPSG number. Set the epsg to ensure that \code{spat} and \code{dat} 
-have the same projections. If epsg is not specified but is defined for 
-\code{spat}, then the \code{spat} epsg will be applied to \code{dat}. 
+\item{epsg}{EPSG number. Manually set the epsg code, which will be applied to 
+\code{spat} and \code{dat}. If epsg is not specified but is defined for 
+\code{spat}, then the \code{spat} epsg will be applied to \code{dat}. In addition,
+if epsg is not specified and epsg is not defined for \code{spat}, then a default
+epsg value will be applied to \code{spat} and \code{dat} (\code{epsg = 4326}).
 See \url{http://spatialreference.org/} to help identify optimal epsg number.}
 
 \item{date}{String, name of date variable. Used to summarize over year. If

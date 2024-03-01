@@ -67,11 +67,12 @@ Required for spatial tables read from csv files. Leave as \code{NULL} if
 \item{hull.polygon}{Logical, if \code{TRUE}, creates convex hull polygon. Use 
 if spatial data creating polygon are sparse or irregular.}
 
-\item{epsg}{EPSG code. Set the epsg code to ensure that \code{spat} and 
-\code{dat} have the same projections. If epsg is not specified but is 
-defined for \code{spat}, then the \code{spat} coordinate reference system 
-will be applied to \code{dat}. See \url{http://spatialreference.org/} to 
-help identify optimal epsg number.}
+\item{epsg}{EPSG code. Manually set the epsg code, which will be applied to 
+\code{spat} and \code{dat}. If epsg is not specified but is defined for 
+\code{spat}, then the \code{spat} epsg will be applied to \code{dat}. In addition,
+if epsg is not specified and epsg is not defined for \code{spat}, then a default
+epsg value will be applied to \code{spat} and \code{dat} (\code{epsg = 4326}).
+See \url{http://spatialreference.org/} to help identify optimal epsg number.}
 
 \item{log.fun}{Logical, whether to log function call (for internal use).}
 }
