@@ -29,9 +29,11 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   #'   \code{spat} is an \code{sf} or \code{sp} object.
   #' @param id.spat Polygon ID column. Required for spatial tables read from csv 
   #'   files. Leave as \code{NULL} if \code{spat} is an \code{sf} or \code{sp} object.
-  #' @param epsg EPSG number. Set the epsg to ensure that \code{spat} and \code{dat} 
-  #'   have the same projections. If epsg is not specified but is defined for 
-  #'   \code{spat}, then the \code{spat} epsg will be applied to \code{dat}. 
+  #' @param epsg EPSG number. Manually set the epsg code, which will be applied to 
+  #'   \code{spat} and \code{dat}. If epsg is not specified but is defined for 
+  #'   \code{spat}, then the \code{spat} epsg will be applied to \code{dat}. In addition,
+  #'   if epsg is not specified and epsg is not defined for \code{spat}, then a default
+  #'   epsg value will be applied to \code{spat} and \code{dat} (\code{epsg = 4326}).
   #'   See \url{http://spatialreference.org/} to help identify optimal epsg number.
   #' @param date String, name of date variable. Used to summarize over year. If
   #'   \code{NULL} the first date column will be used. Returns an error if no date
@@ -174,7 +176,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
       stop("filter_dist must be positive", call. = FALSE)
     }
   }
-   
+  
   # convert dat to sf object
   dat_sf <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), 
                          crs = 4326)
@@ -183,24 +185,25 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   
   if (sf::st_crs(spatdat) != sf::st_crs(dat_sf)) {
     
-    warning("Projection does not match. The detected projection in the",
-            " spatial file will be used unless epsg is specified.", call. = FALSE)
+    warning("Spatial reference EPSG codes for the spatial and primary datasets do not match. The detected projection in the", 
+            " spatial file will be used unless epsg is specified.", 
+            call. = FALSE)
   }
   
-  if (!is.null(epsg)) {
-    
+  if(is_empty(epsg)) epsg <- NULL # set epsg to null if empty value passed via shiny
+  
+  if (!is.null(epsg)) { # user-defined epsg
     dat_sf <- sf::st_transform(dat_sf, crs = epsg)
     spatdat <- sf::st_transform(spatdat, crs = epsg)
     
-  } else if (!is.na(sf::st_crs(spatdat))) {
-    
+  } else if (!is.na(sf::st_crs(spatdat))) { # use epsg from spatial data
     dat_sf <- sf::st_transform(dat_sf, sf::st_crs(spatdat))
     
-  } else {
-    
+  } else { # set default epsg code
     spatdat <- sf::st_transform(spatdat, crs = 4326)
   }
   
+
   # base map ---- 
   
   bbox <- sf::st_bbox(dat_sf)
