@@ -27,11 +27,12 @@
 #'   or zones. If \code{spat} is class \code{sf}, \code{cat} should be name of list 
 #'   containing information on zones.
 #' @param name The name of the new assignment column. Defaults to \code{"ZoneID"}. 
-#' @param epsg EPSG code. Set the epsg code to ensure that \code{spat} and 
-#'   \code{dat} have the same projections. If epsg is not specified but is 
-#'   defined for \code{spat}, then the \code{spat} coordinate reference system 
-#'   will be applied to \code{dat}. See \url{http://spatialreference.org/} to 
-#'   help identify optimal epsg number.
+#' @param epsg EPSG code. Manually set the epsg code, which will be applied to 
+#'   \code{spat} and \code{dat}. If epsg is not specified but is defined for 
+#'   \code{spat}, then the \code{spat} epsg will be applied to \code{dat}. In addition,
+#'   if epsg is not specified and epsg is not defined for \code{spat}, then a default
+#'   epsg value will be applied to \code{spat} and \code{dat} (\code{epsg = 4326}).
+#'   See \url{http://spatialreference.org/} to help identify optimal epsg number.
 #' @param closest.pt  Logical, if \code{TRUE}, observations that fall outside 
 #'   zones are classed as the closest zone polygon to the point.
 #' @param bufferval Maximum buffer distance, in meters, for assigning observations 
