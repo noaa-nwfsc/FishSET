@@ -24,10 +24,11 @@ the name of the saved `best` model. If more than one model is saved,
 \code{mod.name} should be the numeric indicator of which model to use.
 Use \code{table_view("modelChosen", project)} to view a table of saved models.}
 
-\item{marg_util_income}{Name of the coefficient to use as marginal utility of income}
+\item{marg_util_income}{For conditional and zonal logit models. Name of the coefficient to use as 
+marginal utility of income.}
 
-\item{income_cost}{Logical indicating whether the coefficient for the marginal utility of income relates to cost
-(\code{TRUE}) or revenue (\code{FALSE})}
+\item{income_cost}{For conditional and zonal logit models. Logical indicating whether the coefficient
+for the marginal utility of income relates to cost (\code{TRUE}) or revenue (\code{FALSE}).}
 
 \item{enteredPrice}{Price data. Leave as NULL if using price data from primary 
 dataset.}
