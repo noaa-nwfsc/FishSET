@@ -21,17 +21,19 @@ welfare_predict(
 
 \item{closures}{Closure scenarios}
 
-\item{marg_util_income}{Name of the coefficient to use as marginal utility of income}
+\item{marg_util_income}{For conditional and zonal logit models. Name of the coefficient to use as 
+marginal utility of income}
 
-\item{income_cost}{Logical indicating whether the coefficient for the marginal utility of income relates to cost
-(\code{TRUE}) or revenue (\code{FALSE})}
+\item{income_cost}{For conditional and zonal logit models. Logical indicating whether the coefficient 
+for the marginal utility of income relates to cost (\code{TRUE}) or revenue (\code{FALSE})}
 
 \item{expected.catch}{Name of expectedchatch table to use}
 
 \item{enteredPrice}{Price for welfare}
 }
 \description{
-Simulate the welfare loss/gain from changes in policy or changes in other factors that influence fisher location choice.
+Simulate the welfare loss/gain from changes in policy or changes in other factors that influence fisher 
+location choice.
 }
 \details{
 To simulate welfare loss/gain, the model coefficients are sampled 1000 times using a multivariate random

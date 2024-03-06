@@ -1,17 +1,20 @@
 #' Welfare analysis
 #' 
-#' Simulate the welfare loss/gain from changes in policy or changes in other factors that influence fisher location choice.
+#' Simulate the welfare loss/gain from changes in policy or changes in other factors that influence fisher 
+#' location choice.
 #' 
 #' @param project Name of project
 #' @param mod.name Name of selected model (mchoice)
 #' @param closures Closure scenarios
-#' @param marg_util_income Name of the coefficient to use as marginal utility of income
-#' @param income_cost Logical indicating whether the coefficient for the marginal utility of income relates to cost
-#'    (\code{TRUE}) or revenue (\code{FALSE})
+#' @param marg_util_income For conditional and zonal logit models. Name of the coefficient to use as 
+#'    marginal utility of income
+#' @param income_cost For conditional and zonal logit models. Logical indicating whether the coefficient 
+#'    for the marginal utility of income relates to cost (\code{TRUE}) or revenue (\code{FALSE})
 #' @param expected.catch Name of expectedchatch table to use
 #' @param enteredPrice Price for welfare
 #' @importFrom DBI dbConnect dbDisconnect dbGetQuery
 #' @importFrom RSQLite SQLite
+#' @importFrom data.table fwrite
 #' @export
 #' @details To simulate welfare loss/gain, the model coefficients are sampled 1000 times using a multivariate random
 #'    number generator (\code{\link{mvgrnd}}) and the welfare loss/gain for each observation is calculated (see section 9.3 
@@ -33,7 +36,6 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
   # prW
   # welfare
   # numTrips
-  
   
   #---
   # Create connection to fishset database ----
@@ -123,7 +125,7 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
     if(is.null(enteredPrice)){
       pricedat <- matrix(x$otherdat$pricedat)
       
-    # Else if entered price is the length of obsnum, or just a single value, then set to pricedat
+      # Else if entered price is the length of obsnum, or just a single value, then set to pricedat
     } else {
       pricedat <- matrix(enteredPrice, nrow = obsnum)
     } 
@@ -131,7 +133,7 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
   
   
   #---
-  ## Save coefficients ----
+  # Save coefficients ----
   #---
   # Get number of variables
   if(grepl("epm", mod.ll)){
@@ -139,36 +141,39 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
     
   } else if(mod.ll == "logit_c"){
     gridnum <- dim(griddat)[2] / alts
-      
+    
   } else if(mod.ll == "logit_zonal"){
     gridnum <- dim(griddat)[2] * (alts - 1) # (grid variables * num of coefficients) calculation here makes following code cleaner
   }
   intnum <- dim(intdat)[2]
   z <- length(Eq) # number of parameters
   
+  
+  #---
   # Loop through welfare scenarios ----
+  #---
   # Create empty matrices
-  welfare <- matrix(rep(NA, 5*n_scenarios)) # 5 represents quantiles
-  prc_welfare <- matrix(rep(NA, n_scenarios), n_scenarios)
+  welfare_output <- prcwelfare_output <- list()
   
   # Loop through closure scenarios
   for(j in 1:n_scenarios){
     tmp_close <- predict_temp[[j]]$zoneIdIn
     closeID <- which(zoneIDs %in% tmp_close)
+    zones <- which(!(zoneIDs %in% tmp_close))
     
     # Create empty betadraw matrices
-    welfare_betadraws <- prc_welfare_betadraws <- NULL
+    welfare_betadraws <- prc_welfare_betadraws <- matrix(data = NA, nrow = obsnum, ncol = betadraws)
     
     # Loop through betadraws
     for(l in 1:betadraws){
       mu_rand_new <- mu_rand[,l]
-      
+
       ## EPM WELFARE ----
       if(grepl('epm', predict_temp[[1]]$type, ignore.case=TRUE)){
         # Get coefficients
         gridcoef <- mu_rand_new[1:(alts * gridnum)]
         intcoef <- mu_rand_new[((alts * gridnum) + 1):((alts * gridnum) + intnum)]
-        
+
         ### Weibull ----
         if(predict_temp[[1]]$type == "epm_weibull"){
           if ((z - ((gridnum * alts) + intnum + 1)) == alts) {
@@ -182,8 +187,8 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
           }
           k_exp <- exp(k)
           gamma_kexp <- gamma((k_exp + 1)/k_exp)
-          
-          ## Calculate welfare 
+
+          ## Calculate welfare
           # (beta_jm * G_im)
           gridbetas <- (matrix(gridcoef, obsnum, alts * gridnum, byrow = TRUE) * matrix(griddat, obsnum, alts * gridnum, byrow = TRUE))
           dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
@@ -197,7 +202,7 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
           revbetas <- gridmu * matrix(pricedat, obsnum, alts)
           # Cost portion of the likelihood
           intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
-          costbetas <- as.matrix(matrix(intbetas, obsnum, alts) * distance)
+          costbetas <- matrix(intbetas, obsnum, alts) * as.matrix(distance)
           # numerator from logit component of epm model
           numer <- exp((revbetas + costbetas) / matrix(sig, obsnum, alts))
           # Welfare before closure
@@ -207,7 +212,7 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
           # Welfare loss/gain
           tmp_welfare <- sig * (Wa - Wb)
           tmp_prc_welfare <- ((sig*Wa) - (sig*Wb))/((sig*Wb) + (0.57721*sig))
-          
+
           ## lognormal ----
         } else if(predict_temp[[1]]$type == "epm_lognormal"){
           # Get coefficients
@@ -221,7 +226,7 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
             sig <- mu_rand_new[((gridnum * alts) + intnum + 2):z]
           }
           stdev_exp <- exp(stdev)
-          
+
           ## Calculate welfare
           # (beta_jm * G_im)
           gridbetas <- (matrix(gridcoef, obsnum, alts * gridnum, byrow = TRUE) * matrix(griddat, obsnum, alts * gridnum, byrow = TRUE))
@@ -234,7 +239,7 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
           revbetas <- gridmu * matrix(pricedat, obsnum, alts)
           # Cost portion of the likelihood
           intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
-          costbetas <- as.matrix(matrix(intbetas, obsnum, alts) * distance)
+          costbetas <- matrix(intbetas, obsnum, alts) * as.matrix(distance)
           # numerator from logit component of epm model
           numer <- exp((revbetas + costbetas) / matrix(sig, obsnum, alts))
           # Welfare before closure
@@ -244,7 +249,7 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
           # Welfare loss/gain
           tmp_welfare <- sig * (Wa - Wb)
           tmp_prc_welfare <- ((sig*Wa) - (sig*Wb))/((sig*Wb) + (0.57721*sig))
-          
+
           ## normal ----
         } else if(predict_temp[[1]]$type == "epm_normal"){
           # Get coefficients
@@ -258,7 +263,7 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
             sig <- mu_rand_new[((gridnum * alts) + intnum + 2):z]
           }
           stdev_exp <- exp(stdev)
-          
+
           ## Calculate welfare
           # (beta_jm * G_im)
           gridbetas <- (matrix(gridcoef, obsnum, alts * gridnum, byrow = TRUE) * matrix(griddat, obsnum, alts * gridnum, byrow = TRUE))
@@ -270,7 +275,7 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
           revbetas <- gridmu * matrix(pricedat, obsnum, alts)
           # Cost portion of the likelihood
           intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
-          costbetas <- as.matrix(matrix(intbetas, obsnum, alts) * distance)
+          costbetas <- matrix(intbetas, obsnum, alts) * as.matrix(distance)
           # numerator from logit component of epm model
           numer <- exp((revbetas + costbetas) / matrix(sig, obsnum, alts))
           # Welfare before closure
@@ -280,9 +285,9 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
           # Welfare loss/gain
           tmp_welfare <- sig * (Wa - Wb)
           tmp_prc_welfare <- ((sig*Wa) - (sig*Wb))/((sig*Wb) + (0.57721*sig))
-        }  
-        
-        
+        }
+
+
       } else if (grepl('logit', predict_temp[[1]]$type, ignore.case=TRUE)) {
         ## LOGIT WELFARE ----
         # Get marginal utility of income
@@ -290,71 +295,70 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
         if(income_cost) theta <- -theta # take negative value if theta estimated using cost variable
         # Check if theta is negative value
         if(theta < 0) stop("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income.")
-        
+
         # set up distance matrix
         distance <- as.matrix(distance, nrow = dim(distance)[1], ncol = dim(distance)[2])
-        
+
         # Get coefficients
         gridcoef <- mu_rand_new[1:gridnum]
-        intcoef <- mu_rand_new[(gridnum + 1):(gridnum + intnum)]  
-        
+        intcoef <- mu_rand_new[(gridnum + 1):(gridnum + intnum)]
+
         ## logit_c ----
         if(mod.ll == "logit_c"){
           # calculate the sum of the products of the grid coefficients and the gridvarying variables
-          gridbetas <- matrix(rep(gridcoef, each = alts), nrow = obsnum, ncol = alts*gridnum, byrow = TRUE) * griddat 
+          gridbetas <- matrix(rep(gridcoef, each = alts), nrow = obsnum, ncol = alts*gridnum, byrow = TRUE) * griddat
           dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
           gridbetas <- rowSums(gridbetas, dims = 2)
-          
-        ## logit_zonal ----  
+
+          as.vector(matrix(rep(gridcoef, each = alts), nrow = obsnum, ncol = alts*2, byrow = TRUE))
+
+          ## logit_zonal ----
         } else if(mod.ll == "logit_zonal"){
           # insert 0 for the first alternative (interpretation is relative to the first alt and this beta_1 = 0)
           gridcoef <- matrix(gridcoef, ncol = (alts - 1), byrow = TRUE) # get grid coefficients for each alternative
-          gridcoef <- cbind(matrix(0, nrow = dim(griddat)[2], ncol = 1), gridcoef) # insert 0 for the first alternative (other coefs are relative to the first alt) 
+          gridcoef <- cbind(matrix(0, nrow = dim(griddat)[2], ncol = 1), gridcoef) # insert 0 for the first alternative (other coefs are relative to the first alt)
           gridcoef <- as.vector(t(gridcoef))
-          
+
           # calculate the sum of the products of the alternative-specific coefficients and the alternative-invariant variables
-          gridbetas <- matrix(rep(gridcoef), nrow = obsnum, ncol = alts * dim(griddat)[2], byrow = TRUE) 
-          gridbetas <- gridbetas * t(apply(griddat, 1, function(x) rep(x, each = alts)))
+          gridbetas <- matrix(rep(gridcoef), nrow = obsnum, ncol = alts * dim(griddat)[2], byrow = TRUE)
+          gridbetas <- gridbetas * matrix(rep(t(griddat), each = alts), nrow = obsnum, byrow = TRUE)
           dim(gridbetas) <- c(nrow(gridbetas), alts, dim(griddat)[2])
           gridbetas <- rowSums(gridbetas, dims = 2)
         }
-        
+
         # calculate the sum of the products of the distance coefficient, alternative invariant variables that interacts with distance, and the distance between locations
         intbetas <- matrix(intcoef, nrow = obsnum, ncol = intnum, byrow = TRUE) * intdat
         intbetas <- matrix(apply(intbetas, 2, function(x) rep(x, alts)), ncol = intnum * alts) * matrix(rep(distance, intnum), nrow = obsnum, ncol = alts * intnum)
         dim(intbetas) <- c(nrow(intbetas), alts, intnum)
         intbetas <- rowSums(intbetas, dims = 2)
-        
+
         # Welfare before closure
         Wb <- log(as.matrix(rowSums(exp(gridbetas + intbetas))))
-        
         # Welfare after closure
         Wa <- log(as.matrix(rowSums(exp(gridbetas[,-(closeID)] + intbetas[,-(closeID)]))))
-        
+
+
         # Welfare loss/gain
         tmp_welfare <- (1/theta) * (Wa - Wb)
         tmp_prc_welfare <- ((1/theta) * (Wa - Wb)) / ((1/theta) * Wb)
       }
-      
+
       # Save output for each betadraw of parameters
-      welfare_betadraws <- c(welfare_betadraws, tmp_welfare)
-      prc_welfare_betadraws <- c(prc_welfare_betadraws, mean(tmp_prc_welfare))
-      
+      welfare_betadraws[,l] <- tmp_welfare
+      prc_welfare_betadraws[,l] <- tmp_prc_welfare
+
     } # close betadraws
-    
-    # Summarize data ----
-    welfare[, j] <- quantile(welfare_betadraws, probs = c(0.025, 0.05, 0.5, 0.95, 0.975), na.rm = TRUE)
-    prc_welfare[j] <- mean(prc_welfare_betadraws, na.rm = TRUE)
+
+    # Save all data from each simulation and each closure scenario
+    welfare_output[[j]] <- welfare_betadraws
+    prcwelfare_output[[j]] <- prc_welfare_betadraws
     
   } # close n_scenario
   
-  
-  # log welfare_predict function call ----
-  # Note that this is not logged when called within the run_policy() function
-  welfare_predict_function <- list()
-  welfare_predict_function$functionID <- "welfare_predict"
-  welfare_predict_function$args <- list(project, mod.name, closures, expected.catch, enteredPrice)
-  log_call(project, welfare_predict_function)
-  
-  return(list(welfare, prc_welfare))
+  # Write data to csv files - files are overwritten each time welfare_predict() is called
+  fwrite(welfare_output, file = paste0(locoutput(project), "welfare_output.csv"), col.names = FALSE, row.names = FALSE)
+  fwrite(prcwelfare_output, file = paste0(locoutput(project), "prcwelfare_output.csv"), col.names = FALSE, row.names = FALSE)
 }
+
+
+
