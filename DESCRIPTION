@@ -14,6 +14,7 @@ BugReports: https://pkgname.bugtracker.url
 Depends: 
     R (>= 3.5.0)
 Imports: 
+    data.table,
     DBI,
     dplyr,
     DT,
