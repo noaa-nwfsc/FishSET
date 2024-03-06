@@ -113,8 +113,8 @@ run_policy <- function(project, mod.name = NULL, marg_util_income = NULL, income
   ##
   # 6. Generate tables and plots
   ## 
-  welfare <- fread(paste0(locoutput(project), "welfare_output.csv"))
-  prc_welfare <- fread(paste0(locoutput(project), "prcwelfare_output.csv"))
+  welfare <- data.table::fread(paste0(locoutput(project), "welfare_output.csv"))
+  prc_welfare <- data.table::fread(paste0(locoutput(project), "prcwelfare_output.csv"))
   
   
   ##
