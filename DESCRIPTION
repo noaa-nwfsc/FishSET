@@ -33,6 +33,7 @@ Imports:
     methods,
     openxlsx,
     pander,
+    plotly,
     prompter,
     purrr,
     RCurl,

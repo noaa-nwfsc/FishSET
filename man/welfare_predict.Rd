@@ -8,6 +8,7 @@ welfare_predict(
   project,
   mod.name,
   closures,
+  betadraws = 1000,
   marg_util_income = NULL,
   income_cost = NULL,
   expected.catch = NULL,
@@ -20,6 +21,9 @@ welfare_predict(
 \item{mod.name}{Name of selected model (mchoice)}
 
 \item{closures}{Closure scenarios}
+
+\item{betadraws}{Integer indicating the numer of times to run the welfare simulation. Default value is
+\code{betadraws = 1000}}
 
 \item{marg_util_income}{For conditional and zonal logit models. Name of the coefficient to use as 
 marginal utility of income}
