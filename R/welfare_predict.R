@@ -6,6 +6,8 @@
 #' @param project Name of project
 #' @param mod.name Name of selected model (mchoice)
 #' @param closures Closure scenarios
+#' @param betadraws Integer indicating the numer of times to run the welfare simulation. Default value is
+#'   \code{betadraws = 1000}
 #' @param marg_util_income For conditional and zonal logit models. Name of the coefficient to use as 
 #'    marginal utility of income
 #' @param income_cost For conditional and zonal logit models. Logical indicating whether the coefficient 
@@ -22,7 +24,7 @@
 #'    in the project outputs folder. \cr\cr
 #'    Note that this function is called by \code{\link{run_policy}}.
 
-welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL, income_cost = NULL, expected.catch = NULL, enteredPrice = NULL){
+welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_util_income = NULL, income_cost = NULL, expected.catch = NULL, enteredPrice = NULL){
   
   #TODO make stdard version, only works for zone that all 100% closed and
   #compares closure at entered price versus non closure at that price (not a comparison to other years
@@ -98,9 +100,6 @@ welfare_predict <- function(project, mod.name, closures, marg_util_income = NULL
   #---
   # Number of closure scenarios
   n_scenarios <- length(closures)
-  
-  # Set the number of draws from the multivariate normal random number generator (mvgrnd)
-  betadraws <- 1000
   
   # Draw simulation parameter values from multivariate random number generator
   mu_rand <- t(mvgrnd(Eq, invHess, betadraws))  # flipped so that rows are output and columns are draws

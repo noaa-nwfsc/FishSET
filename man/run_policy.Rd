@@ -7,6 +7,7 @@
 run_policy(
   project,
   mod.name = NULL,
+  betadraws = 1000,
   marg_util_income = NULL,
   income_cost = NULL,
   enteredPrice = NULL,
@@ -23,6 +24,9 @@ can be pulled the `modelChosen` table. Leave \code{mod.name} empty to use
 the name of the saved `best` model. If more than one model is saved, 
 \code{mod.name} should be the numeric indicator of which model to use.
 Use \code{table_view("modelChosen", project)} to view a table of saved models.}
+
+\item{betadraws}{Integer indicating the numer of times to run the welfare simulation. Default value is
+\code{betadraws = 1000}}
 
 \item{marg_util_income}{For conditional and zonal logit models. Name of the coefficient to use as 
 marginal utility of income.}

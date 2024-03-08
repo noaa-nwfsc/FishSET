@@ -9,6 +9,8 @@
 #'   the name of the saved `best` model. If more than one model is saved, 
 #'   \code{mod.name} should be the numeric indicator of which model to use.
 #'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
+#' @param betadraws Integer indicating the numer of times to run the welfare simulation. Default value is
+#'   \code{betadraws = 1000}
 #' @param marg_util_income For conditional and zonal logit models. Name of the coefficient to use as 
 #'   marginal utility of income.
 #' @param income_cost For conditional and zonal logit models. Logical indicating whether the coefficient
@@ -41,7 +43,8 @@
 #  welfare_predict
 #  sim_welfare
 
-run_policy <- function(project, mod.name = NULL, marg_util_income = NULL, income_cost = NULL, enteredPrice = NULL, expected.catch = NULL, use.scalers = FALSE, scaler.func = NULL) {
+run_policy <- function(project, mod.name = NULL, betadraws = 1000, marg_util_income = NULL, income_cost = NULL, 
+                       enteredPrice = NULL, expected.catch = NULL, use.scalers = FALSE, scaler.func = NULL) {
   
   # Connect to SQL database
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
@@ -105,7 +108,7 @@ run_policy <- function(project, mod.name = NULL, marg_util_income = NULL, income
   ##
   # 4. Run welfare predict ----
   ##
-  welfare_predict(project = project, mod.name = modname, closures = closures,
+  welfare_predict(project = project, mod.name = modname, closures = closures, betadraws = betadraws,
                   marg_util_income = marg_util_income, income_cost = income_cost,
                   expected.catch = expected.catch, enteredPrice = enteredPrice)
   
@@ -113,10 +116,9 @@ run_policy <- function(project, mod.name = NULL, marg_util_income = NULL, income
   ##
   # 6. Generate tables and plots
   ## 
-  welfare <- data.table::fread(paste0(locoutput(project), "welfare_output.csv"))
-  prc_welfare <- data.table::fread(paste0(locoutput(project), "prcwelfare_output.csv"))
+  outputs <- welfare_outputs(project, closures, betadraws = betadraws)
   
-  
+
   ##
   # 7. log run_policy function call ----
   ##
