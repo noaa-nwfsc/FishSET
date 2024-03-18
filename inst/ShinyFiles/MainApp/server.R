@@ -3683,7 +3683,7 @@ server = function(input, output, session) {
   explore_out_proj <- reactiveValues(temp = NULL, map = NULL, kernel = NULL, 
                                      xy = NULL, grid = NULL, gtmt = NULL)
   
-  plotInputTemporal <-  reactive({
+  plotInputTemporal <-  eventReactive(input$run_temporal_plot, {
     
     req(input$col_select, input$p2fun, input$p3fun, input$date_select)
     
@@ -3702,7 +3702,7 @@ server = function(input, output, session) {
       
       out 
     }
-  })
+  }, ignoreInit = TRUE)
   
   
   output$plot_time <- renderPlot(plotInputTemporal())
@@ -3767,25 +3767,25 @@ server = function(input, output, session) {
   
   output$plot_spatial <- renderPlot(plotInputSpatial())
   
-  plotZoneSummary <- reactive({
+  plotZoneSummary <- eventReactive(input$run_zone_summ, {
     # Need to convert date cols to date variables
     d_cols <- date_cols(values$dataset)
     zone_summ_df <- values$dataset
     try(
-      zone_summ_df[d_cols] <- lapply(d_cols, function(d) as.Date(zone_summ_df[[d]]))  
+      zone_summ_df[d_cols] <- lapply(d_cols, function(d) as.Date(zone_summ_df[[d]]))
     )
-    
+
     # If user wants to filter dataset
     if(!is.null(input$zone_summ_value) && input$zone_summ_value != ""){
       # Check if value should be wrapped in quotes
       if(any(class(zone_summ_df[[input$zone_summ_var]]) %in% c("character", "factor", "Date", "POSIXct", "POSIXt"))){
-        zone_summ_expr <- paste0(input$zone_summ_var, input$zone_summ_operator, '"', input$zone_summ_value, '"') 
+        zone_summ_expr <- paste0(input$zone_summ_var, input$zone_summ_operator, '"', input$zone_summ_value, '"')
       } else {
-        zone_summ_expr <- paste0(input$zone_summ_var, input$zone_summ_operator, input$zone_summ_value)  
+        zone_summ_expr <- paste0(input$zone_summ_var, input$zone_summ_operator, input$zone_summ_value)
       }
       zone_summ_df <- eval(parse(text = paste0("subset(values$dataset, ", zone_summ_expr, ")")))
-    } 
-    
+    }
+
     if(input$zone_summ_varPlot == 'observations'){
       zone_summ_count <- TRUE
       zone_summ_varIN <- NULL
@@ -3795,25 +3795,24 @@ server = function(input, output, session) {
       zone_summ_varIN <- input$zone_summ_varPlot
       zone_summ_fun <- input$zone_summ_fun2
     }
-    
+
     if(colnames(values$dataset)[1] != 'var1') {
       if(zone_summ_fun == "number of obs"){
         fun_option <- NULL
       } else {
         fun_option <- zone_summ_fun
       }
-      
+
       q_test <- quietly_test(zone_summary)
       q_test(dat = zone_summ_df, project = project$name, spat = spatdat$dataset,
              zone.dat = input$zone_summ_dat, zone.spat = input$zone_summ_spat,
              output = "plot", count = zone_summ_count, breaks = NULL, n.breaks = 10, na.rm = TRUE,
-             fun = fun_option, var = zone_summ_varIN)  
+             fun = fun_option, var = zone_summ_varIN)
     }
-  })
-  
-  output$plot_zone_summary <- renderPlot(plotZoneSummary(),
-                                         width = 700, height = 700, res = 100)
-  
+  }, ignoreInit = TRUE)
+
+  output$plot_zone_summary <- plotly::renderPlotly(plotZoneSummary())
+    
   plotInputKernel <- reactive({
     
     if(colnames(values$dataset)[1] != 'var1') {
@@ -3932,43 +3931,43 @@ server = function(input, output, session) {
   
   output$zone_summary_out1 <- renderUI({
     tagList(
-      h4('Further options to display observations by zone'),
-      
+      h4('Select variables to display observations by zone'),
+
       if (names(spatdat$dataset)[1]=='var1') {
-        
+
         tags$div(h5('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
       },
-      
+
       tags$div(style = "margin-left:19px;",
                selectInput('zone_summ_dat', 'Select column containing zone ID in main data table',
                            choices = colnames(values$dataset))),
-      
+
       tags$div(style = "margin-left:19px;",
                selectInput('zone_summ_spat', 'Select column containing zone ID in spatial data table',
                            choices = colnames(spatdat$dataset))),
-      
+
       tags$div(style = "margin-left:19px;",
                selectInput('zone_summ_varPlot', 'Select a variable to plot',
                            choices = c("observations", numeric_cols(values$dataset)), selected = "observations")),
-      
+
       conditionalPanel(condition = "input.zone_summ_varPlot=='observations'",
                        tags$div(style = "margin-left:19px;",
                                 selectizeInput('zone_summ_fun1', 'Select a function to summarize observations',
                                                choices = c("number of obs","percent")))),
-      
+
       conditionalPanel(condition = "input.zone_summ_varPlot!='observations'",
                        tags$div(style = "margin-left:19px;",
                                 selectizeInput('zone_summ_fun2', 'Select a function to summarize variable',
                                                choices = c("sum","percent","mean","median","min","max")))),
-      
+
       tags$div(style = "margin-left:19px;",
                selectInput('zone_summ_var', 'Select a variable for filtering the dataset',
                            choices = c('none', colnames(values$dataset)), selected = 'none')),
-      
+
       conditionalPanel("input.zone_summ_var!='none'",
                        tags$div(style = "margin-left:60px;",
                                 selectizeInput('zone_summ_operator', 'Select an operator',
-                                               choices = c("less than" = "<","greater than" = ">", "less than or equal to" = "<=", 
+                                               choices = c("less than" = "<","greater than" = ">", "less than or equal to" = "<=",
                                                            "greater than or equal to" = ">=", "equal to" = "==", "not equal to" = "!="))),
                        uiOutput("zone_summ_valUI")
       )

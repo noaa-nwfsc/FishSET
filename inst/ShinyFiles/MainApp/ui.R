@@ -528,6 +528,11 @@ ui = function(request){
                                                                                               choices=c('Temporal','Spatial-autocorrelation', 'Spatial-zone summary','x-y plot'))
                                                                  ),
                                                                  
+                                                                 conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Temporal'",
+                                                                                  actionButton("run_temporal_plot", "Run temporal plots", width = "100%",
+                                                                                               style = "color: #fff; background-color: #6da363; border-color: #800000;")
+                                                                 ),
+                                                                 
                                                                  conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial-autocorrelation'",
                                                                                   uiOutput("mtgt_output"),
                                                                                   uiOutput('mtgt_output_secondary'),
@@ -536,6 +541,8 @@ ui = function(request){
                                                                  
                                                                  conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial-zone summary'",
                                                                                   uiOutput("zone_summary_out1"),
+                                                                                  actionButton("run_zone_summ", "Run zone summary", width = "100%",
+                                                                                               style = "color: #fff; background-color: #6da363; border-color: #800000;")
                                                                  ),
                                                                  
                                                                  conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Table'",
@@ -611,7 +618,8 @@ ui = function(request){
                                        conditionalPanel(
                                          "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial-zone summary'",
                                          fluidRow(
-                                           column(shinycssloaders::withSpinner(plotOutput('plot_zone_summary'), type = 6), width=10)
+                                           column(shinycssloaders::withSpinner(plotly::plotlyOutput('plot_zone_summary', width = '850px', height = '550px'),
+                                                                               type = 6), width=10)
                                          )
                                        ),
                                        

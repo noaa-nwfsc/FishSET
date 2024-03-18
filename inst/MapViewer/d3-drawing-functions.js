@@ -7,7 +7,6 @@
  *@param {object } data - csv data loaded from the csv file
  */
 function loadConfig(error, config, data){
-
     /** Set up config information
     */
     let choosen_scatter = config['choosen_scatter'];
@@ -29,7 +28,6 @@ function loadConfig(error, config, data){
     let maps_available = multi_grid.map(a=>{return a['mapfile']});
 
     /** Create switch for points and lines to be drawn
-
     */
     let drawLines = false;
     let drawPt = false;
@@ -45,6 +43,7 @@ function loadConfig(error, config, data){
          typeof latitude_pt !== 'undefined'){
      drawPt = true;
      }
+     
     /** Initatite Map simply
     */
     mapboxgl.accessToken = access_token;
@@ -54,7 +53,6 @@ function loadConfig(error, config, data){
         zoom: 2,
         center: [-150.447, 45.753]
     });
-
 
     /** Create droppdown menus for choices
     */
@@ -70,13 +68,10 @@ function loadConfig(error, config, data){
       mapdrop.add(map_option);
     }
 
-
-
     //create dropdowns for all column variables
     let dropdown = document.getElementById('prop');
     dropdown.length = 0;
     dropdown.selectedIndex = 0;
-
 
     let option;
     for (let i = 0; i < layers.length; i++) {
@@ -100,8 +95,6 @@ function loadConfig(error, config, data){
     */
     let svgInfo = initLowerBarChart('#viz');
     let svgInfoScatter = initLowerBarChart('#scatterviz');
-
-
 
     /** convert CSV data to geojson for Scatter Data
     * convert any positive longitudes to negative
@@ -147,7 +140,6 @@ function loadConfig(error, config, data){
                 zoneObjectAll[a]= zoneObjectIndi;
 
     }
-
 
     /* associate the colors for the legend to the scatter data and save values, color and ID's
     */
@@ -234,8 +226,6 @@ function loadConfig(error, config, data){
 
 
 
-
-
 /**
  based onthe choice in the zone dropdwon , calculates the aggregation choosen and associated the color for the zone
 
@@ -307,7 +297,8 @@ function setZoneHist(choosen_scatter, drop_down_hist, area_set, quantileScaleHis
             '#969696',
             '#737373',
             '#525252',
-            '#252525']);
+            '#252525',
+            '#000000']);
 
 
     area_set.forEach(function(d){
@@ -318,6 +309,7 @@ function setZoneHist(choosen_scatter, drop_down_hist, area_set, quantileScaleHis
 
     return zoneHistColor
 }
+
 
 /**
 * @param {object} data - columner data from csv file
@@ -438,7 +430,7 @@ function resetzones(maplayer, choosen_scatter, choosen_grid_hist, area_set, quan
 
         zoneHistColor = setZoneHist(choosen_scatter, choosen_grid_hist,  area_set, quantileScaleHist, zoneLegend);
 
-        createLowerBarChart(quantileScaleHist,svgInfo);
+        //createLowerBarChart(quantileScaleHist,svgInfo);
 
         map.setPaintProperty(maplayer + 'Color',
             "fill-color",//["get",["to-string", ["get", "OBJECTID"]], ["literal", zoneColor]]
@@ -863,7 +855,7 @@ function legendInit(whichLegend){
 function initLowerBarChart(whichViz){
 
     let chartHolder = document.getElementById(whichViz.substring(1));
-    let margin = {top: 10, right: 50, bottom: 30, left: 50},
+    let margin = {top: 10, right: 50, bottom: 50, left: 50},
         width = chartHolder.clientWidth - margin.left - margin.right,
         height = 150 - margin.top - margin.bottom;
 
@@ -911,13 +903,9 @@ function scatterPlot(whichViz, scatterArrayIDs, scatterColor, temporalArray, num
 
     }
 
-
-    var parseTime = d3.timeParse("%Y-%m-%d %H:%M:%S");
-   // var parseTime = d3.timeParse("%y-%b-%d");
+    // Formate time variables
+    var parseTime = d3.timeParse("%Y-%m-%d");
     var format = d3.timeFormat("%Y%m%d");
-
-
-
 
     var x = d3.scaleTime()
       .domain(d3.extent(temporalArray, function(d) { return parseTime(d); }))
@@ -927,11 +915,16 @@ function scatterPlot(whichViz, scatterArrayIDs, scatterColor, temporalArray, num
 
     // Appending X axis and formatting the text
     whichViz.g.append("g")
-    .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(x));
+      .attr('class', 'axisX')
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+      .style("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", ".05em")//".15em")
+      .attr("transform", "rotate(-65)");
 
   // Add Y axis
-
   whichViz.g.append("g")
     .call(d3.axisLeft(y));
 
