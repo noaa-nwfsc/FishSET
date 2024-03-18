@@ -55,6 +55,7 @@
 #'@import ggplot2
 #'@import dplyr
 #'@import sf
+#'@importFrom plotly ggplotly style config plotly_build
 #'@md
 #'@examples 
 #'\dontrun{
@@ -142,8 +143,11 @@ zone_summary <- function(dat,
                          fun = fun, count = count)
   
   # percent flag
-  if (!is.null(fun) && fun == "percent") calc_perc <- TRUE 
-  else calc_perc <- FALSE
+  if (!is.null(fun) && fun == "percent"){
+    calc_perc <- TRUE 
+  } else {
+    calc_perc <- FALSE
+  }
   
   if (count) {
     
@@ -330,11 +334,14 @@ zone_summary <- function(dat,
       
       rescale_val <- function() if (val_rescale) scales::rescale(brks) else NULL
      
+      Zone <- spatdat[[zone.spat]] # Need to assign zone so "Zone" is displayed when hovering in plotly
+      
       out <- 
       ggplot2::ggplot() +  
         ggplot2::geom_sf(data = base_map) +  
         ggplot2::geom_sf(data = spatdat, 
-                         ggplot2::aes(fill = !!var_sym()), color = "black", alpha = .8) +
+                         ggplot2::aes(fill = !!var_sym(), label = Zone), 
+                         color = "black", alpha = .8) +
         ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
                           expand = TRUE) 
       
@@ -375,37 +382,40 @@ zone_summary <- function(dat,
     
     if (multi_plot) {
       
+      # GROUP ZONE FUNCTION
       group_zone <- function(spat_join) {
-        
         p_levels <- unique(spat_join[[group]]) # what if too many levels?
         
-        z_plot <- 
-          lapply(p_levels, function(x) {
+        z_plot <- lapply(p_levels, function(x) {
+          dat <- dplyr::filter(spat_join, .data[[group]] == !!x)
+          
+          if (count) {
+            # update legend to include group name
+            if (calc_perc) legend_name <- paste0("% of total obs: \n ", x)
+            else legend_name <- paste("# of obs: \n ", x)
             
-            dat <- dplyr::filter(spat_join, .data[[group]] == !!x)
+          } else {
             
-            if (count) {
-              # update legend to include group name
-              if (calc_perc) legend_name <- paste0("% of total obs: \n ", x)
-              else legend_name <- paste("# of obs: \n ", x)
-              
-            } else {
-              
-              if (calc_perc) legend_name <- paste0("% of ", var, ": \n", x)
-              else legend_name <- paste0(fun, " ", var, ": \n", x)
-            }
-            
-            break_list <- z_brk_fun(dat, breaks, n.breaks, bin_colors, count = count)
-            
-            z_plot_fun(dat, brks = break_list$brks, 
-                       bin_colors = break_list$colors, 
-                       legend_name = legend_name)
-          })
-        
+            if (calc_perc) legend_name <- paste0("% of ", var, ": \n", x)
+            else legend_name <- paste0(fun, " ", var, ": \n", x)
+          }
+          
+          break_list <- z_brk_fun(dat, breaks, n.breaks, bin_colors, count = count)
+          
+          tmp_z_plot <- suppressWarnings(z_plot_fun(dat, brks = break_list$brks,
+                                                    bin_colors = break_list$colors,
+                                                    legend_name = legend_name))
+          
+          suppressWarnings(plotly::ggplotly(tmp_z_plot) %>% 
+                             plotly::style(line.width = 1) %>%
+                             plotly::config(scrollZoom = TRUE) %>%
+                             plotly::plotly_build())
+        })
         z_plot
-      }
+      } # END GROUP ZONE FUNCTION
       
       z_plot <- group_zone(spat_join)
+      
       # save plot
       save_nplot(project, "zone_summary", z_plot) 
       
@@ -413,11 +423,17 @@ zone_summary <- function(dat,
       
       break_list <- z_brk_fun(spat_join, breaks, n.breaks, bin_colors, count = count)
       
-      z_plot <- z_plot_fun(spat_join, brks = break_list$brks, 
-                           bin_colors = break_list$colors, 
-                           legend_name = legend_name)
+      z_plot <- suppressWarnings(z_plot_fun(spat_join, brks = break_list$brks, 
+                                            bin_colors = break_list$colors, 
+                                            legend_name = legend_name))
+      
+      z_plot <- suppressWarnings(plotly::ggplotly(z_plot) %>%
+                                   plotly::style(line.width = 1) %>%
+                                   plotly::config(scrollZoom = TRUE) %>%
+                                   plotly::plotly_build())
+      
       # save plot
-      save_plot(project, "zone_summary", z_plot) 
+      save_plot(project, "zone_summary", z_plot)
     }
     
     # confid plot ----
@@ -437,9 +453,13 @@ zone_summary <- function(dat,
       
         break_list_c <- z_brk_fun(spat_join_c, breaks, n.breaks, bin_colors, count = count)
         
-        z_plot_c <- z_plot_fun(spat_join_c, brks = break_list_c$brks, 
-                             bin_colors = break_list_c$colors, 
-                             legend_name = legend_name)  
+        z_plot_c <- suppressWarnings(z_plot_fun(spat_join_c, brks = break_list_c$brks, 
+                                                bin_colors = break_list_c$colors, 
+                                                legend_name = legend_name))
+        z_plot_c <- suppressWarnings(plotly::ggplotly(z_plot_c) %>%
+                                     plotly::style(line.width = 1) %>%
+                                     plotly::config(scrollZoom = TRUE) %>%
+                                     plotly::plotly_build())
         # save plot
         save_plot(project, "zone_summary_confid", z_plot_c) 
       }

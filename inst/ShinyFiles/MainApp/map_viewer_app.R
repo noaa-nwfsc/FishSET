@@ -20,27 +20,19 @@ map_viewer_serv <- function(id, dat, spatdat, project) {
       bslib::page_sidebar(
         sidebar = bslib::sidebar( width = 550,
           
-          actionButton(ns("run"), "Run", style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-          
-          tags$br(), tags$br(),
-          
-          actionButton(ns("save"), "Save"),
-          
-          tags$br(), tags$br(),
-          
-          selectInput(ns("avd"), "Area variable (data)",
+          selectInput(ns("avd"), "Area ID variable (primary data)",
                       choices = colnames(dat$dataset), selected = "ZoneID"),
           
-          selectInput(ns("avm"), "Area variable (map)",
+          selectInput(ns("avm"), "Area ID variable (spatial data)",
                       choices = colnames(spatdat$dataset)),
           
-          selectizeInput(ns("num"), "Numeric variables (required)",
+          selectizeInput(ns("num"), "Numeric variables",
                          choices = numeric_cols(dat$dataset), multiple = TRUE),
           
-          selectizeInput(ns("temp"), "Temporal variables",
+          selectizeInput(ns("temp"), "Temporal variable",
                          choices = date_cols(dat$dataset), multiple = TRUE),
           
-          selectizeInput(ns("id_vars"), "ID variables",
+          selectizeInput(ns("id_vars"), "Categorical variables to display for each zone",
                          choices = category_cols(dat$dataset), multiple = TRUE, 
                          options = list(placeholder = "Select or type value name",
                                         create = TRUE)),
@@ -63,7 +55,13 @@ map_viewer_serv <- function(id, dat, spatdat, project) {
                            
           ),
           
-          tags$br(), tags$br(),
+          actionButton(ns("run"), "Run", style = "color: #fff; background-color: #6da363; border-color: #800000;"),
+          
+          tags$br(),
+          
+          # actionButton(ns("save"), "Save"),
+          # 
+          # tags$br(),
           
           tags$button(
             id = ns("map_close"),
@@ -89,6 +87,7 @@ map_viewer_serv <- function(id, dat, spatdat, project) {
     })
     
     url <- eventReactive(input$run, {
+      
       if(input$point_path=="Path"){
         return(map_viewer(dat$dataset, project = project(), spat = spatdat$dataset, 
                           avm = input$avm, avd = input$avd, num_vars = input$num,
@@ -109,7 +108,8 @@ map_viewer_serv <- function(id, dat, spatdat, project) {
       tags$iframe(src = url(),
                   style = "width: 100%; height: 80vh;",
                   frameborder = "0",
-                  id = "map_iframe")
+                  id = "map_iframe",
+                  scrolling="no")
     })
   })
 }
