@@ -28,10 +28,11 @@ FishSET database contains the string 'MainDataTable'.}
 \item{spat}{Spatial data containing information on fishery management or 
 regulatory zones. Shape, json, geojson, and csv formats are supported.}
 
-\item{avd}{Variable name in \code{dat} that gives the unique ID associated to the polygon.}
+\item{avd}{Variable name in the primary data file that gives the unique ID associated to the polygon.}
 
 \item{avm}{The name of the property in the GeoJson file that identifies the 
-polygon to cross reference to \code{dat}. Often a list of zones.}
+polygon to cross reference to \code{dat}. Variable name in the spatial file that represents the
+unique ID.}
 
 \item{num_vars}{List, name of numeric variable(s) in \code{dat} to include for plotting.}
 

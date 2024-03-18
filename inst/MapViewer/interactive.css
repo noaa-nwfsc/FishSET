@@ -9,9 +9,9 @@
     box-sizing: border-box;
     width: 22vw;
     height: 40vh;
-    right: 0;
+    right: 0px;
     position: absolute;
-    overflow-y: scroll;
+    overflow-y: auto;
     border:2px; /* solid black; */
     flex-shrink: 1;
 
@@ -39,11 +39,10 @@
 }
 */
 .map-overlay {
-
   position: absolute;
   width: 300px;
   top: 0;
-  left: 10px;
+  left: 0px;
   margin-left: 2px;
   margin-top: 2px;
   margin-bottom: 0px;
@@ -51,11 +50,10 @@
   z-index: 1;
   font: 15px arial, sans-serif;
    height:120vh;
-
 }
 
 .map-overlay .map-overlay-inner {
-  background: rgba(10, 10, 10, .2);
+  background: rgba(128,128,128,0.8);
   width: 300px;
   height: 120vh;
   color: #fff;
@@ -67,7 +65,7 @@
 }
 
 .spacing{
-  margin-top:6px;
+  margin-top:1px;
 }
 .spacing2{
   box-sizing: border-box;
@@ -95,20 +93,19 @@
 
 .scatterLegend, .zoneLegend{
 background-color: transparent;
-border-radius: 1px;
-margin: 6px;
+border-radius: 0px;
+margin: 0px; /* 6 */
 box-shadow: 0 1px 2px rgba(0,0,0,0.10);
 font: 13px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
-
 right: 2px;
 z-index: 1;
-height: 140px;
-overflow: auto; /*!important;*/
+height: 150px;
+/*overflow: auto;*/ /*!important;*/
 }
 
 svg {
 font-size: 13px;
-
+height: 140px;
 }
 
 .legendQuant{
@@ -116,9 +113,7 @@ font-size: 13px;
 }
 
 .bar {
-
 border-radius: 4px;
-
 }
 
 
