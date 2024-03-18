@@ -1757,16 +1757,26 @@ save_plot <- function(project, func_name, ...) {
   p_set <- get_proj_settings(project)
   
   filename <- paste0(locoutput(project), project, "_", func_name, "_", Sys.Date())
-  fn_png <- paste0(filename, ".png")
+  
+  if("plotly" %in% class(...)){
+    fname <- paste0(filename, ".rds")  
+  } else {
+    fname <- paste0(filename, ".png")  
+  }
   
   if (!is.null(p_set$save_plot_rds) && p_set$save_plot_rds) {
-    
+
     fn_rds <- paste0(filename, ".RDS")
     saveRDS(object = ggplot2::last_plot(), file = fn_rds)
   }
-  
+
   p_size <- get_proj_settings(project)$plot_size
-  ggplot2::ggsave(file = fn_png, width = p_size[1], height = p_size[2], ...)
+  
+  if("plotly" %in% class(...)){
+    saveRDS(..., fname)
+  } else {
+    ggplot2::ggsave(file = fname, width = p_size[1], height = p_size[2], ...)  
+  }
 }
 
 
@@ -1785,11 +1795,18 @@ save_nplot <- function(project, func_name, plot_list, id = "num", ...) {
   if (id == "num") vec <- seq_along(plot_list)
   else if (id == "name") vec <- names(plot_list)
   
-  lapply(vec, function(x) {
-    
-    fn <- paste0(func_name, "_", x)
-    save_plot(project, func_name = fn, plot = plot_list[[x]], ...)
-  })
+  if("plotly" %in% class(plot_list[[1]])){
+    lapply(vec, function(x) {
+      fn <- paste0(func_name, "_", x)
+      save_plot(project, func_name = fn, plot_list[[x]])
+    })
+  } else {
+    lapply(vec, function(x) {
+
+      fn <- paste0(func_name, "_", x)
+      save_plot(project, func_name = fn, plot_list[[x]], ...)
+    })
+  }
 }
 
 periods_list <- list(

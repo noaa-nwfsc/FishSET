@@ -10,9 +10,10 @@ map_viewer <- function(dat, project, spat, avd, avm, num_vars, temp_vars, id_var
   #' @param project Project name. 
   #' @param spat Spatial data containing information on fishery management or 
   #'   regulatory zones. Shape, json, geojson, and csv formats are supported.
-  #' @param avd Variable name in \code{dat} that gives the unique ID associated to the polygon.
+  #' @param avd Variable name in the primary data file that gives the unique ID associated to the polygon.
   #' @param avm The name of the property in the GeoJson file that identifies the 
-  #'   polygon to cross reference to \code{dat}. Often a list of zones.
+  #'   polygon to cross reference to \code{dat}. Variable name in the spatial file that represents the
+  #'   unique ID.
   #' @param num_vars List, name of numeric variable(s) in \code{dat} to include for plotting.
   #' @param temp_vars List, name of temporal variable(s) in \code{dat} to include for plotting.
   #' @param id_vars List, name of categorical variable(s) in \code{dat} to group by.
@@ -65,22 +66,30 @@ map_viewer <- function(dat, project, spat, avd, avm, num_vars, temp_vars, id_var
   #' }
   
   
+  ##
+  # Load primary and spatial data files ----
+  ##
+  # Primary data
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
-  
+  # Spatial data
   out <- data_pull(spat, project)
   spatname <- parse_data_name(spat, 'spat', project)
   spatdat <- out$dataset
   
   if (!is.null(spatdat)) {
-    
     unlink(paste0(loc_map(project = project), "spatdat.geojson"))
     sf::st_write(spatdat, dsn = paste0(loc_map(project = project), "spatdat.geojson"), 
                  overwrite = TRUE)
   }
   
-  # 2 Create data file
+  # Change date to YYYY-MM-DD format to pass to javascript
+  dataset[[temp_vars]] <- format(dataset[[temp_vars]], "%Y-%m-%d")
+  
+  ##
+  # Create data file ----
+  ##
   #Start with path option
   if(!is.null(lon_end)){  
     # remove NAs from lat and lon
@@ -93,8 +102,9 @@ map_viewer <- function(dat, project, spat, avd, avm, num_vars, temp_vars, id_var
     dataset$uniqueID <- 1:nrow(dataset)
     
     write.csv(dataset, paste0(loc_map(project=project), "datafile.csv"))
-    # 3. Create map config
     
+    
+    # 3. Create map config
     map_config <- list()
     # TODO: need to change this before release
     map_config$mapbox_token <- "pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjbDI2b244ZmkwMHhjM2NvN3poNHZnajdkIn0.2yYSesDRvw4hSN5gQ1Ja-A"
@@ -116,13 +126,17 @@ map_viewer <- function(dat, project, spat, avd, avm, num_vars, temp_vars, id_var
     
   } else {
     
+    # Get rows that do not have NA in lon_start or lat_start
     dataset <- dataset[!is.na(dataset[[lon_start]]) & !is.na(dataset[[lat_start]]), ]
     
+    # Get unique rows
     dataset <- unique(dataset[, c(avd, num_vars, temp_vars, id_vars, lon_start, lat_start)])
-    dataset$uniqueID <- 1:nrow(dataset)
+    dataset$uniqueID <- 1:nrow(dataset) # create a new unique id based on row number
     
+    # Write data file
     write.csv(dataset, paste0(loc_map(project=project), "datafile.csv"))
     
+    # Create map configuration list
     map_config <- list()
     # need to change this before release
     map_config$mapbox_token <- "pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjbDI2b244ZmkwMHhjM2NvN3poNHZnajdkIn0.2yYSesDRvw4hSN5gQ1Ja-A"
@@ -140,10 +154,14 @@ map_viewer <- function(dat, project, spat, avd, avm, num_vars, temp_vars, id_var
     ))
     map_config$multi_grid <- multi_grid
   }
+  
+  
+  ##
+  # Write JSON file and log function call ----
+  ##
+  # Write json file
   write(jsonlite::toJSON(map_config, pretty = TRUE, auto_unbox = TRUE), 
         paste0(loc_map(project=project), "/map_config.json"))
-  
-  
   # log function
   map_viewer_function <- list()
   map_viewer_function$functionID <- "map_viewer"
@@ -152,15 +170,16 @@ map_viewer <- function(dat, project, spat, avd, avm, num_vars, temp_vars, id_var
                                    lon_end, lat_end)
   log_call(project, map_viewer_function)
   
+  
+  ##
+  # Open map viewer ----
+  ##
   # working directory
   if (shiny::isRunning()) {
-    
     map_url <- servr::httd(dir = loc_map(project), browser=FALSE)$url
-  
     return(map_url)
     
   } else {
-    
     utils::browseURL(servr::httd(dir =  loc_map(project), browser = FALSE)$url)
   }
 }
