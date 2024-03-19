@@ -79,7 +79,7 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE, alpha = .5) {
   log_call(project, xy_plot_function)
 
   # Save output
-  save_plot(project, "xy_plot")
+  save_plot(project, "xy_plot", x_plot)
 
   if (regress == TRUE) {
 

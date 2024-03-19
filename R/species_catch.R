@@ -623,7 +623,7 @@ species_catch <- function(dat,
     s_plot <- s_plot  + ggplot2::labs(x = x_lab(), y = y_lab())
     
     # save plots
-    save_plot(project, "species_catch")
+    save_plot(project, "species_catch", s_plot)
     
     if (run_confid_check(project)) {
       
