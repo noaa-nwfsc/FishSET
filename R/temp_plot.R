@@ -130,7 +130,7 @@ temp_plot <- function(dat, project, var.select, len.fun = "length", agg.fun = "m
                                  date.var, agg_per, len.fun, agg.fun, plot_by_yr, 
                                  alpha, pages, text.size)
     
-    if (pages == "single") save_plot(project, "temp_plot_confid", plot = t_plot_c)
+    if (pages == "single") save_plot(project, "temp_plot_confid", t_plot_c)
     else save_nplot(project, "temp_plot_confid", plot_list = t_plot_c, id = "name")
     
   }
@@ -143,7 +143,7 @@ temp_plot <- function(dat, project, var.select, len.fun = "length", agg.fun = "m
   log_call(project, temp_plot_function)
   
   # Save output
-  if (pages == "single") save_plot(project, "temp_plot", plot = t_plot)
+  if (pages == "single") save_plot(project, "temp_plot", t_plot)
   else save_nplot(project, "temp_plot", plot_list = t_plot, id = "name")
   
   t_plot
