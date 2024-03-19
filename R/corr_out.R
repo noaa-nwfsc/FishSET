@@ -108,7 +108,7 @@ corr_out <- function(dat, project, variables = "all", method = "pearson",
   log_call(project, corr_out_function)
 
   # Save output
-  save_plot(project, "corr_out")
+  save_plot(project, "corr_out", c_plot)
   save_table(c_tab, project, "corr_out")
 
   list(plot = c_plot, table = c_tab)

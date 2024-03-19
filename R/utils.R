@@ -1759,11 +1759,11 @@ save_plot <- function(project, func_name, ...) {
   filename <- paste0(locoutput(project), project, "_", func_name, "_", Sys.Date())
   
   if("plotly" %in% class(...)){
-    fname <- paste0(filename, ".rds")  
+    fname <- paste0(filename, ".rds")
   } else {
-    fname <- paste0(filename, ".png")  
+    fname <- paste0(filename, ".png")
   }
-  
+
   if (!is.null(p_set$save_plot_rds) && p_set$save_plot_rds) {
 
     fn_rds <- paste0(filename, ".RDS")
@@ -1771,11 +1771,11 @@ save_plot <- function(project, func_name, ...) {
   }
 
   p_size <- get_proj_settings(project)$plot_size
-  
+
   if("plotly" %in% class(...)){
     saveRDS(..., fname)
   } else {
-    ggplot2::ggsave(file = fname, width = p_size[1], height = p_size[2], ...)  
+    ggplot2::ggsave(file = fname, width = p_size[1], height = p_size[2], ...)
   }
 }
 
