@@ -144,7 +144,7 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
     log_call(project, map_plot_function)
   
     # Save output
-    save_plot(project, "map_plot")
+    save_plot(project, "map_plot", m_plot)
   
     print(m_plot)
   }
