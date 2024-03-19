@@ -204,280 +204,277 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   }
   
 
-  # base map ---- 
-  
+  # base map ----
+
   bbox <- sf::st_bbox(dat_sf)
-  
-  base_map <- ggplot2::map_data("world", 
-                                xlim = c(bbox["xmin"], bbox["xmax"]), 
+
+  base_map <- ggplot2::map_data("world",
+                                xlim = c(bbox["xmin"], bbox["xmax"]),
                                 ylim = c(bbox["ymin"], bbox["ymax"]))
-  
-  
-  base_map <- dat_to_sf(base_map, lon = "long", lat = "lat", id = "group", 
+
+
+  base_map <- dat_to_sf(base_map, lon = "long", lat = "lat", id = "group",
                         cast = "POLYGON", multi = TRUE, crs = sf::st_crs(spatdat))
-  
-  # plot functions 
+
+  # plot functions
   lon_sym <- rlang::sym(lon.dat)
   lat_sym <- rlang::sym(lat.dat)
-  
+
   group_exp <- function() {
-    
+
     if (!is.null(group)) {
-      
+
       g_sym <- rlang::sym(group)
       rlang::expr(as.factor(!!g_sym))
-      
+
     } else NULL
   }
-  
+
   # points on land ----
-  
+
   land_pts <- sf::st_intersects(dat_sf, base_map)
-  
+
   obs_on_land <- lengths(land_pts) > 0
-  
+
   if (sum(obs_on_land) > 0) {
-    
+
     land_ind <- which(obs_on_land)
     n_land <- sum(obs_on_land)
     p_land <- round(n_land/nrow(dataset) * 100, 1)
     land_msg <- paste0(n_land, " observations (", p_land, "%) occur on land.\n")
-    
+
     cat(land_msg, file = tmp)
     warning(land_msg, call. = FALSE)
-    
+
     land_col <- "ON_LAND"
     dataset[[land_col]] <- obs_on_land
-    
-    land_plot <- 
-      ggplot2::ggplot() + 
-      ggplot2::geom_sf(data = base_map) + 
-      ggplot2::geom_point(data = dataset[land_ind, ], 
-                          ggplot2::aes(x = !!lon_sym, y = !!lat_sym), 
-                          size = 1, alpha = .25, color = "red") + 
+
+    land_plot <-
+      ggplot2::ggplot() +
+      ggplot2::geom_sf(data = base_map) +
+      ggplot2::geom_point(data = dataset[land_ind, ],
+                          ggplot2::aes(x = !!lon_sym, y = !!lat_sym),
+                          size = 1, alpha = .25, color = "red") +
       ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
                         expand = TRUE) +
       ggplot2::labs(title = "Obs on land", x = "Longitude", y = "Latitude",
-                    subtitle = paste0("N:", n_land, " (", p_land, "%)")) + 
+                    subtitle = paste0("N:", n_land, " (", p_land, "%)")) +
       fishset_theme()
   }
-  
+
   # points outside zone ----
-  
+
   pts_int <- sf::st_intersects(dat_sf, spatdat)
-  
+
   obs_outside <- lengths(pts_int) == 0
-  
+
   if (sum(obs_outside) > 0) {
-    
+
     obs_out_not_land <- obs_outside != obs_on_land # remove land obs
-    
+
   } else {
-    
+
     obs_out_not_land <- FALSE
   }
-  
-  
+
   if (sum(obs_out_not_land) > 0) {
-    
+
     out_nl_ind <- which(obs_out_not_land)
     n_out <- sum(obs_out_not_land)
     p_out <- round(n_out/nrow(dataset) * 100, 1)
     out_msg <- paste0(n_out, " observations (", p_out, "%) are outside the regulatory zones.\n")
-    
+
     cat(out_msg, file = tmp, append = TRUE)
     warning(out_msg, call. = FALSE)
-    
+
     out_col <- "OUTSIDE_ZONE"
     dataset[[out_col]] <- obs_out_not_land
-    
-    outside_plot <- 
-      ggplot2::ggplot() + 
-      ggplot2::geom_sf(data = base_map) + 
-      ggplot2::geom_point(data = dataset[out_nl_ind, ], 
-                          ggplot2::aes(x = !!lon_sym, y = !!lat_sym), 
-                          size = 1, alpha = .25, color = "red") + 
+
+    outside_plot <-
+      ggplot2::ggplot() +
+      ggplot2::geom_sf(data = base_map) +
+      ggplot2::geom_point(data = dataset[out_nl_ind, ],
+                          ggplot2::aes(x = !!lon_sym, y = !!lat_sym),
+                          size = 1, alpha = .25, color = "red") +
       ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
                         expand = TRUE) +
       ggplot2::labs(title = "Obs outside zone", x = "Longitude", y = "Latitude",
-                    subtitle = paste0("N:", n_out, " (", p_out, "%)")) + 
+                    subtitle = paste0("N:", n_out, " (", p_out, "%)")) +
       fishset_theme()
   }
-  
+
   # obs on zone boundary lines ----
   obs_on_bound <- lengths(pts_int) > 1
-  
+
   if (sum(obs_on_bound) > 0) {
-    
+
     bound_ind <- which(obs_on_bound)
     n_bound <- sum(obs_on_bound)
     p_bound <- round(n_bound/nrow(dataset) * 100, 1)
     bound_msg <- paste0(n_bound, " observations (", p_bound, "%) occur on boundary",
                         " line between regulatory zones.\n")
-    
+
     cat(bound_msg, file = tmp, append = TRUE)
     warning(bound_msg, call. = FALSE)
-    
+
     bound_col <- "ON_ZONE_BOUNDARY"
     dataset[[bound_col]] <- obs_on_bound
-    
-    bound_plot <- 
-      ggplot2::ggplot() + 
-      ggplot2::geom_sf(data = base_map) + 
-      ggplot2::geom_point(data = dataset[bound_ind, ], 
-                          ggplot2::aes(x = !!lon_sym, y = !!lat_sym), 
-                          size = 1, alpha = .25, color = "red") + 
+
+    bound_plot <-
+      ggplot2::ggplot() +
+      ggplot2::geom_sf(data = base_map) +
+      ggplot2::geom_point(data = dataset[bound_ind, ],
+                          ggplot2::aes(x = !!lon_sym, y = !!lat_sym),
+                          size = 1, alpha = .25, color = "red") +
       ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
                         expand = TRUE) +
       ggplot2::labs(title = "Obs on zone boundary", x = "Longitude", y = "Latitude",
-                    subtitle = paste0("N:", n_bound, " (", p_bound, "%)")) + 
+                    subtitle = paste0("N:", n_bound, " (", p_bound, "%)")) +
       fishset_theme()
   }
-  
+
   # expected location ----
   obs_expected_loc <- !obs_on_bound & !obs_on_land & !obs_outside
-  
+
   expected_col <- "EXPECTED_LOC"
   dataset[[expected_col]] <- obs_expected_loc
-  
+
   n_expected <- sum(obs_expected_loc)
   p_expected <- round(n_expected/nrow(dataset) * 100, 1)
-  
-  expected_plot <- 
-    ggplot2::ggplot() + 
-    ggplot2::geom_sf(data = base_map) + 
-    ggplot2::geom_point(data = dataset[obs_expected_loc, ], 
-                        ggplot2::aes(x = !!lon_sym, y = !!lat_sym), 
-                        size = 1, alpha = .15, color = "red") + 
+
+  expected_plot <-
+    ggplot2::ggplot() +
+    ggplot2::geom_sf(data = base_map) +
+    ggplot2::geom_point(data = dataset[obs_expected_loc, ],
+                        ggplot2::aes(x = !!lon_sym, y = !!lat_sym),
+                        size = 1, alpha = .15, color = "red") +
     ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
-                      expand = TRUE) + 
+                      expand = TRUE) +
     ggplot2::labs(title = "Obs in expected location", x = "Longitude", y = "Latitude",
-                  subtitle = paste0("N:", n_expected, " (", p_expected, "%)")) + 
+                  subtitle = paste0("N:", n_expected, " (", p_expected, "%)")) +
     fishset_theme()
-  
+
   # Spatial summary table ----
-  
+
   if (any(!is.null(out_col), !is.null(land_col), !is.null(bound_col))) {
-    
+
     spat_tab <- agg_helper(dataset, value = c(expected_col, out_col, land_col, bound_col),
                            group = c("YEAR", group), fun = sum)
-    
+
     year_tab <- agg_helper(dataset, value = "YEAR", group = group, count = TRUE, fun = "percent")
-    
+
     spat_tab <- dplyr::left_join(spat_tab, year_tab, by = "YEAR")
-    
-    last_cols <- names(spat_tab)[!names(spat_tab) %in% c("YEAR", "n", group)] 
-    
-    spat_tab <- spat_tab[order(spat_tab$YEAR), 
+
+    last_cols <- names(spat_tab)[!names(spat_tab) %in% c("YEAR", "n", group)]
+
+    spat_tab <- spat_tab[order(spat_tab$YEAR),
                          c("YEAR", "n", group, last_cols)]
   }
-  
+
   # distance from nearest zone (meters) ----
-  
   if (sum(obs_outside) > 0) {
-    
-    nearest <- sf::st_nearest_feature(dat_sf[obs_outside, ], spatdat) 
-    dist.rec <- sf::st_distance(dat_sf[obs_outside, ], spatdat[nearest, ], 
+
+    nearest <- sf::st_nearest_feature(dat_sf[obs_outside, ], spatdat)
+    dist.rec <- sf::st_distance(dat_sf[obs_outside, ], spatdat[nearest, ],
                                 by_element = TRUE)
-    
+
     dataset[obs_outside, "dist"] <- as.numeric(dist.rec)
     dataset$dist[is.na(dataset$dist)] <- 0
     dist_vec <- dataset$dist
-    
+
     # dist plot
     dist_df <- dataset[obs_outside, c(lat.dat, lon.dat, "YEAR", group, "dist")]
-    
+
     dist_rng <- range(dist_df$dist, finite = TRUE)
     p_brks <- pretty(dist_rng, n = 15, min.n = 1)
-    
-    dist_plot <- 
-      ggplot2::ggplot(data = dist_df, ggplot2::aes(dist)) + 
-      ggplot2::labs(title = "Distance (m) from nearest zone", 
+
+    dist_plot <-
+      ggplot2::ggplot(data = dist_df, ggplot2::aes(dist)) +
+      ggplot2::labs(title = "Distance (m) from nearest zone",
                     x = "Distance (m)", fill = "Year") +
-      ggplot2::stat_density(ggplot2::aes(fill = factor(YEAR)), position = "stack", 
+      ggplot2::stat_density(ggplot2::aes(fill = factor(YEAR)), position = "stack",
                             adjust = 2, color = "black") +
-      fishset_theme() + 
+      fishset_theme() +
       ggplot2::theme(legend.position = "bottom")
-    
+
     # freq table
-    dist_freq <- freq_table(dist_df, "dist", group = c("YEAR", group), 
+    dist_freq <- freq_table(dist_df, "dist", group = c("YEAR", group),
                             bins = 15, type = "freq", format_lab = "decimal")
-    
+
     # dist summary table
     dist_fm <- stats::reformulate(c("YEAR", group), "dist")
     dist_sum <- stats::aggregate(dist_fm, FUN = summary, data = dataset, digits = 2)
-    
-    # dist_sum <- agg_helper(dist_df, "dist", group = c("YEAR", group), 
+
+    # dist_sum <- agg_helper(dist_df, "dist", group = c("YEAR", group),
     #                        fun = function(x) summary(x, digits = 2))
-    
+
     dsm <- as.data.frame(dist_sum$dist)
     dist_sum$dist <- NULL
     dist_sum <- cbind(dist_sum, dsm)
     dist_sum <- dist_sum[order(dist_sum$YEAR), ]
     row.names(dist_sum) <- 1:nrow(dist_sum)
-    
+
     names(dataset)[names(dataset) == "dist"] <- "NEAREST_ZONE_DIST_M"
-    
+
     if (!is.null(filter_dist)) {
-      
+
       dataset <- dataset[dataset$NEAREST_ZONE_DIST_M < filter_dist, ]
-      
+
       filter_table(dataset, project, x = "NEAREST_ZONE_DIST_M",
                    exp = paste0("NEAREST_ZONE_DIST_M < ", filter_dist))
     }
   }
-  
+
   if (sum(obs_on_bound, obs_outside) == 0) {
-    
-    cat(c("All observations occur on land and within regulatory zones.", 
+
+    cat(c("All observations occur on land and within regulatory zones.",
           "No observations fall on zone boundaries."), file = tmp)
   }
-  
+
   # arrange plots ----
-  # on land/outside zone 
+  # on land/outside zone
   if (sum(obs_on_land) > 0 & sum(obs_out_not_land) > 0) {
-    
-    land_out_plot <- gridExtra::arrangeGrob(grobs = list(land_plot, outside_plot), 
+
+    land_out_plot <- gridExtra::arrangeGrob(grobs = list(land_plot, outside_plot),
                                             nrow = 1, ncol = 2)
   }
-  
+
   msg_print(tmp)
-  
+
   # Log function
   spatial_qaqc_function <- list()
   spatial_qaqc_function$functionID <- "spatial_qaqc"
-  spatial_qaqc_function$args <- list(dat, project, spat, lon.dat, lat.dat, 
+  spatial_qaqc_function$args <- list(dat, project, spat, lon.dat, lat.dat,
                                      lon.spat, lat.spat, id.spat, epsg, date, group,
                                      filter_dist)
   spatial_qaqc_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, spatial_qaqc_function)
-  
+
   f_plot <- function(x) if (!is.null(x)) gridExtra::grid.arrange(x) else NULL
-  
+
   f_land <- function() {
-    
+
     if (sum(obs_on_land) > 0 & sum(obs_out_not_land) == 0) land_plot
     else NULL
   }
-  
+
   f_outside <- function() {
-    
+
     if (sum(obs_out_not_land) > 0 & sum(obs_on_land) == 0) outside_plot
     else NULL
   }
-  
+
   f_land_out <- function() {
-    
     if (sum(obs_out_not_land) > 0 & sum(obs_on_land) > 0) {
       gridExtra::grid.arrange(land_out_plot)
     } else NULL
   }
-  
-  out <- 
+
+  out <-
     list(dataset = dataset,
          spatial_summary = get0("spat_tab"),
-         land_plot = f_land(), 
-         outside_plot =  f_outside(), 
+         land_plot = f_land(),
+         outside_plot =  f_outside(),
          land_outside_plot = f_land_out(),
          boundary_plot = get0("bound_plot"),
          expected_plot = expected_plot,
@@ -489,36 +486,36 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
          bound_ind = get0("bound_ind"),
          dist_vector = get0("dist_vec")
     )
-  
+
   ind <- vapply(out, function(x) !is.null(x), logical(1))
   out_nms <- names(ind[ind][-1])# skip main data
-  
+
   # save output ----
   lapply(out_nms, function(nm) {
     
     if (!is.null(out[[nm]])) {
-      
+
       if (is.data.frame(out[[nm]])) {
-        
+
         save_table(out[[nm]], project, paste0("spatial_qaqc_", nm))
-        
+
       } else if (nm %in% c("land_ind", "outside_ind", "bound_ind", "dist_vector")) {
-        
-        out_ind <- data.frame(out[[nm]]) 
+
+        out_ind <- data.frame(out[[nm]])
         names(out_ind) <- nm
-        
+
         save_table(out_ind, project, paste0("spatial_qaqc_", nm))
-        
+
       } else {
-        
-        save_plot(project, paste0("spatial_qaqc_", nm), plot = out[[nm]])
+
+        save_plot(project, paste0("spatial_qaqc_", nm), out[[nm]])
       }
     }
+    
   })
-  
+
   ind[c("land_ind", "outside_ind", "bound_ind", "dist_vector")] <- FALSE
   out[ind]
-  
 }
 
 
