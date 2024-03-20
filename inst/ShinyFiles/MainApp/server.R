@@ -5376,8 +5376,8 @@ server = function(input, output, session) {
   # Run expected catch
   observeEvent(input$exp_submit, {
     
-    showNotification('The create expectations function can take several minutes. A message will appear when done.',
-                     type = 'message', duration = 40)
+    showNotification('Generating expected catch/revenue matrices can take several minutes. A message will appear when complete.',
+                     type = 'message', duration = 20)
     
     q_test <- quietly_test(create_expectations)
     
@@ -5395,6 +5395,9 @@ server = function(input, output, session) {
            temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
            year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
            default.exp = defaults, replace.output = input$exp_replace_output, weight_avg = input$weight_avg)
+    
+    showNotification('Expected catch/revenue matrix complete',
+                     type = 'message', duration = 10)
   }) 
   
   
@@ -5439,7 +5442,7 @@ server = function(input, output, session) {
     }
   })
   
-  output$exp_merge_tab <- DT::renderDT(head(values$dataset))
+  output$exp_merge_tab <- DT::renderDataTable({DT::datatable(values$dataset)})
   
   observeEvent(input$exp_merge_run, {
     

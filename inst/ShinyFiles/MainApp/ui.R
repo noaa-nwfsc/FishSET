@@ -1197,27 +1197,23 @@ ui = function(request){
                                        bslib::nav_panel(title = 'Create expected catch', id = 'exp_create', 
                                                         bslib::page_sidebar(
                                                           sidebar = bslib::sidebar(width = 550,
-                                                                                   actionButton("exp_submit", "Run expected catch/revenue function", 
-                                                                                                style="color: #fff; background-color: #6da363; border-color: #800000;"), 
-                                                                                   
-                                                                                   # tags$br(), tags$br(),
                                                                                    
                                                                                    actionButton("refreshEC", "Refresh data", 
-                                                                                                style = "color: white; background-color: blue;" 
-                                                                                   ),
+                                                                                                style = "color: white; background-color: blue;"),
                                                                                    
-                                                                                   tags$br(),tags$br(),
+                                                                                   tags$br(),
                                                                                    
                                                                                    uiOutput('exp_ui'),
                                                                                    
                                                                                    add_prompter(div(
-                                                                                     div(style="display:inline-block; width: 145px;", h4('Temporal options')), 
-                                                                                     div(style="display:inline-block; width: 10px;", icon('info-circle', verify_fa = FALSE))),
-                                                                                     position = "right", type='info', size='large', 
+                                                                                     div(style="display:inline-block; width: 200px", 
+                                                                                         h4('Temporal options')), 
+                                                                                     div(style="display:inline-block; margin-left:-10px", icon('info-circle', verify_fa = FALSE))),
+                                                                                     position = "above", type='info', size='large', 
                                                                                      message = 'Use the entire temporal record of catch or take the timeline of catch into account. 
-                                  When timeline is considered, catch for a given day is the average for the defined number of days (window), 
-                                  shifted to the past by the defined number of days (lag). For example, a window of 3 days and lag of 1 day means we take the 
-                                  average catch over three days starting one day prior to the given date.'),
+                                                                                                When timeline is considered, catch for a given day is the average for the defined number of days (window), 
+                                                                                                shifted to the past by the defined number of days (lag). For example, a window of 3 days and lag of 1 day means we take the 
+                                                                                                average catch over three days starting one day prior to the given date.'),
                                   
                                   div(style = "margin-left:19px;font-size: 12px", 
                                       selectInput('exp_temporal', 'Method to sort time:', 
@@ -1256,9 +1252,9 @@ ui = function(request){
                                                                                'Mean of all catch' ="allCatch", 
                                                                                'Mean of grouped catch' = "groupedCatch"))),
                                                    add_prompter(div(
-                                                     div(style = "display:inline-block; width: 145px; margin-left:19px",
+                                                     div(style = "display:inline-block; width: 200px; margin-left:19px",
                                                          checkboxInput('weight_avg', 'Weighted average', value = FALSE)),
-                                                     div(style="display:inline-block; margin-left:-10px", icon('info-circle', verify_fa = FALSE))),
+                                                     div(style="display:inline-block; margin-left:-45px", icon('info-circle', verify_fa = FALSE))),
                                                      position = "right", type='info', size='large', 
                                                      message = 'Select to give more weight to days with multiple observations for a given zone. 
                                                      See user manual for more detail.'),
@@ -1268,7 +1264,7 @@ ui = function(request){
                                   
                                   div(style = "margin-left:19px; font-size: 12px",
                                       selectInput('empty_expectation', 'Replace empty expected catch with:', 
-                                                  choices = c("NA: NA's removed when averaging"='NA', 1e-04, 0))),  
+                                                  choices = c(1e-04, 0))),  
                                   
                                   div(style = "margin-left:19px; font-size: 14px",
                                       checkboxInput('exp_dummy', 'Output dummy variable for originally missing values?', 
@@ -1276,6 +1272,9 @@ ui = function(request){
                                   
                                   checkboxInput('exp_replace_output', 'Replace previously saved expected catch output with new output', 
                                                 value = FALSE),
+                                  
+                                  actionButton("exp_submit", "Run expected catch/revenue function", 
+                                               style="color: #fff; background-color: #6da363; border-color: #800000;"), 
                                   
                                   tags$hr(style = "border-top: 3px solid #bbb;"),
                                   
@@ -1347,19 +1346,27 @@ ui = function(request){
                                                         )
                                   
                                        ),
+                                                                              
                                   bslib::nav_panel(title ='Merge expected catch', id = 'exp_merge',
                                                    bslib::page_sidebar(
-                                                     sidebar = bslib::sidebar( width = 550,
-                                                                               actionButton('exp_merge_run', 'Merge expected catch'),
-                                                                               actionButton('exp_merge_reload', 'Refresh expected catch list'),
+                                                     sidebar = bslib::sidebar(width = 550,
+                                                                               actionButton('exp_merge_reload', 'Refresh expected catch list', 
+                                                                                            style = "color: white; background-color: blue;"),
                                                                                
                                                                                tags$br(),
                                                                                
                                                                                p(strong('Merge an expected catch matrix to the primary data')),
                                                                                
-                                                                               uiOutput('exp_merge_ui')
+                                                                               uiOutput('exp_merge_ui'),
+                                                                               
+                                                                               actionButton('exp_merge_run', 'Merge expected catch', 
+                                                                                            style="color: #fff; background-color: #6da363; border-color: #800000;"),
                                                      ),
-                                                     DT::dataTableOutput('exp_merge_tab')
+                                                     
+                                                     fluidRow(
+                                                       tags$br(),
+                                                       column(12,
+                                                              DT::dataTableOutput('exp_merge_tab')))
                                                    )
                                   )
                      )
