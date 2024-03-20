@@ -27,37 +27,34 @@ merge_expected_catch <- function(dat, project, zoneID, date, exp.name, new.name 
   out <- data_pull(dat, project = project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
+  
   # pull expected catch list
   ecl <- expected_catch_list(project, name = ec.table)
+  
   # vector of expected catch matrix names
   ecn <- exp_catch_names(project)
   
   column_check(dataset, c(zoneID, date))
   
-  # TODO: check that new column names won't conflict w/ existing 
-  
   if (is.null(new.name)) new.name <- exp.name
   
+  # check that new column names won't conflict w/ existing 
   if (any(new.name %in% names(dataset))) {
-    
     non_unique <- new.name[new.name %in% names(dataset)]
     stop(paste(non_unique, collapse = ', '), ' already exists in data.', call. = FALSE)
     # note: allow users to override/rename their exp catch matrices?
   }
+  
   # create new column in dataset from expected catch matrix
-  dataset[new.name] <- 
-    lapply(exp.name, function(x) {
-      
-      if (!x %in% ecn) {
-        
-        stop('exp.name "', x, '" does not exist', call. = FALSE)
-      }
-      
-      ecMat <- ecl[[x]]
-      # use the ec value that matches data's date and zone  
-      ecMat[cbind(match(as.character(dataset[[date]]), row.names(ecMat)),
-                  match(dataset[[zoneID]], colnames(ecMat)))]
-    })
+  dataset[new.name] <- lapply(exp.name, function(x) {
+    if (!x %in% ecn) {
+      stop('exp.name "', x, '" does not exist', call. = FALSE)
+    }
+    ecMat <- ecl[[x]]
+    # use the ec value that matches data's date and zone  
+    ecMat[cbind(match(as.character(dataset[[date]]), row.names(ecMat)),
+                match(dataset[[zoneID]], colnames(ecMat)))]
+  })
   
   if (log_fun) {
     # log function
