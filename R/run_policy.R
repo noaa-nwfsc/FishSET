@@ -15,6 +15,8 @@
 #'   marginal utility of income.
 #' @param income_cost For conditional and zonal logit models. Logical indicating whether the coefficient
 #'    for the marginal utility of income relates to cost (\code{TRUE}) or revenue (\code{FALSE}).
+#' @param zone.dat Variable in primary data table that contains unique zone ID.
+#' @param group_var Categorical variable from primary data table to group welfare outputs.
 #' @param enteredPrice Price data. Leave as NULL if using price data from primary 
 #'   dataset.
 #' @param expected.catch Required for conditional logit (\code{logit_c}) model.
@@ -43,7 +45,8 @@
 #  welfare_predict
 #  sim_welfare
 
-run_policy <- function(project, mod.name = NULL, betadraws = 1000, marg_util_income = NULL, income_cost = NULL, 
+run_policy <- function(project, mod.name = NULL, betadraws = 1000, marg_util_income = NULL, 
+                       income_cost = NULL, zone.dat = NULL, group_var = NULL,
                        enteredPrice = NULL, expected.catch = NULL, use.scalers = FALSE, scaler.func = NULL) {
   
   # Connect to SQL database
@@ -116,7 +119,8 @@ run_policy <- function(project, mod.name = NULL, betadraws = 1000, marg_util_inc
   ##
   # 6. Generate tables and plots
   ## 
-  outputs <- welfare_outputs(project, closures, betadraws = betadraws)
+  outputs <- welfare_outputs(project = project, mod.name = mod.name, closures = closures, 
+                             betadraws = betadraws, zone.dat = zone.dat, group_var = group_var)
   
 
   ##
