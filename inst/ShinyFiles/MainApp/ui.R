@@ -3,6 +3,8 @@ source("fleet_helpers.R", local = TRUE)
 source("map_viewer_app.R", local = TRUE)
 source("zone_outsample_UI.R", local = TRUE)
 source("zone_outsample_server.R", local = TRUE)
+source("zone_closure_UI.R", local = TRUE)
+
 
 ## USER INTERFACE    
 ui = function(request){
@@ -1698,8 +1700,30 @@ ui = function(request){
     #---
     # Policy tab ----
     #---
-    bslib::nav_panel(title ='Policy', id = "policy",
-                     h1("Coming soon...")
+    bslib::nav_menu(title ='Policy', 
+                    bslib::nav_panel(title = "Zone Closure", id = "zone_closures",
+                                     bslib::page_sidebar(
+                                       sidebar = bslib::sidebar( 
+                                         "Click on one or more zones to select closed zones.",
+                                         "\nPress the 'Add closure' button to record choices.",
+                                         "Repeat to add another closure.",
+                                         "When done, press the 'Save closures' button.",
+                                         zone_closure_sidebarUI("policy")),
+                                       bslib::page_fluid(
+                                         zone_closure_mapUI("policy"),
+                                         zone_closure_tableUI("policy")
+                                       )
+                                      )
+                    
+    ),
+    bslib::nav_panel(title = "Run Policy", id = "run_policy",
+                     bslib::page_sidebar(
+                       sidebar = bslib::sidebar( width = 550,
+                                                 p("select zones")
+                                                 
+                       )
+                     )
+    )
                      
     ),
     

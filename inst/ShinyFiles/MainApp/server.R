@@ -4,6 +4,8 @@ source("fleet_helpers.R", local = TRUE)
 source("map_viewer_app.R", local = TRUE)
 source("zone_outsample_UI.R", local = TRUE)
 source("zone_outsample_server.R", local = TRUE)
+source("zone_closure_UI.R", local = TRUE)
+source("zone_closure_Server.R", local = TRUE)
 
 # default global search value
 if(!exists("default_search")) {default_search <- ""}
@@ -7598,5 +7600,22 @@ server = function(input, output, session) {
     servr::daemon_stop()
   }) 
   
+  
+  
+  # policy -----
+  
+  ### create reactive data frame 
+  V <- reactiveValues(data = NULL)
+  clicked_ids <- reactiveValues(ids = vector())
+  closures <- reactiveValues()
+  rv <- reactiveValues(edit = NULL)
+  
+  zone_closure_sideServer("policy", project = project$name, spatdat = spatdat$dataset)
+
+  zone_closure_mapServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V, closures, rv)
+  
+  zone_closure_tblServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V)
+  
+
 }
 
