@@ -10,6 +10,8 @@ run_policy(
   betadraws = 1000,
   marg_util_income = NULL,
   income_cost = NULL,
+  zone.dat = NULL,
+  group_var = NULL,
   enteredPrice = NULL,
   expected.catch = NULL,
   use.scalers = FALSE,
@@ -33,6 +35,10 @@ marginal utility of income.}
 
 \item{income_cost}{For conditional and zonal logit models. Logical indicating whether the coefficient
 for the marginal utility of income relates to cost (\code{TRUE}) or revenue (\code{FALSE}).}
+
+\item{zone.dat}{Variable in primary data table that contains unique zone ID.}
+
+\item{group_var}{Categorical variable from primary data table to group welfare outputs.}
 
 \item{enteredPrice}{Price data. Leave as NULL if using price data from primary 
 dataset.}
