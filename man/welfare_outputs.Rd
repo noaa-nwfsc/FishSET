@@ -4,15 +4,32 @@
 \alias{welfare_outputs}
 \title{Welfare plots and tables}
 \usage{
-welfare_outputs(project, closures, betadraws = 1000)
+welfare_outputs(
+  project,
+  mod.name,
+  closures,
+  betadraws = 1000,
+  zone.dat = NULL,
+  group_var = NULL
+)
 }
 \arguments{
 \item{project}{Name of project}
+
+\item{mod.name}{Model name. Argument can be the name of the model or the name 
+can be pulled the `modelChosen` table. Leave \code{mod.name} empty to use 
+the name of the saved `best` model. If more than one model is saved, 
+\code{mod.name} should be the numeric indicator of which model to use.
+Use \code{table_view("modelChosen", project)} to view a table of saved models.}
 
 \item{closures}{Closure scenarios}
 
 \item{betadraws}{Integer indicating the numer of times to run the welfare simulation. Default value is
 \code{betadraws = 1000}}
+
+\item{zone.dat}{Variable in primary data table that contains unique zone ID.}
+
+\item{group_var}{Categorical variable from primary data table to group welfare outputs.}
 }
 \description{
 Generate plots and tables for welfare simulations
