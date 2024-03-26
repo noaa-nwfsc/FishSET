@@ -61,11 +61,14 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
     # Filter main data table for zones in the model and grouping variables
     dat <- dat %>%
       dplyr::filter((!!rlang::sym(zone.dat)) %in% zones) %>%
-      dplyr::select(c((!!rlang::sym(zone.dat)), (!!sym(group_var))))
+      dplyr::select(c((!!rlang::sym(zone.dat)), (!!sym(group_var)))) %>%
+      dplyr::mutate_at(zone.dat, as.character)
+      
   } else {
     dat <- dat %>%
       dplyr::filter((!!rlang::sym(zone.dat)) %in% zones) %>%
-      dplyr::select((!!rlang::sym(zone.dat)))
+      dplyr::select((!!rlang::sym(zone.dat))) %>%
+      dplyr::mutate_at(zone.dat, as.character)
   }
 
   # Replicate dat by the number of simulations
