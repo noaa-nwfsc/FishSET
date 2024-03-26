@@ -6,10 +6,8 @@
 \usage{
 zone_closure(
   project,
-  spat,
+  spatdat,
   cat,
-  secondspat = NULL,
-  secondcat = NULL,
   lon.spat = NULL,
   lat.spat = NULL,
   epsg = NULL
@@ -18,32 +16,25 @@ zone_closure(
 \arguments{
 \item{project}{Required, name of project.}
 
-\item{spat}{Required, data file or character. 
-\code{spat} is a spatial data file containing information on fishery 
+\item{spatdat}{Required, data file or character. 
+\code{spatdat} is a spatial data file containing information on fishery 
 management or regulatory zones boundaries. Shape, json, geojson, and csv 
 formats are supported. geojson is the preferred format. json files must be 
 converted into geoson. This is done automatically when the file is loaded 
-with \code{\link{read_dat}} with \code{is.map} set to true. \code{spat} 
+with \code{\link{read_dat}} with \code{is.map} set to true. \code{spatdat} 
 cannot, at this time, be loaded from the FishSET database. \cr}
 
-\item{cat}{Variable in \code{spat} that identifies the individual areas or zones.}
+\item{cat}{Variable in \code{spatdat} that identifies the individual areas or zones.}
 
-\item{secondspat}{Optional spatial data file containing information to 
-aid in defining zone closures, such as location of windmills.}
+\item{lon.spat}{Required for csv files. Variable or list from \code{spatdat} 
+containing longitude data. Leave as NULL if \code{spatdat} is a shape or json file.}
 
-\item{secondcat}{Optional, name of variable that identifies individual areas 
-in \code{secondspat}}
+\item{lat.spat}{Required for csv files. Variable or list from \code{spatdat} 
+containing latitude data.  Leave as NULL if \code{spatdat} is a shape or json file.}
 
-\item{lon.spat}{Required for csv files. Variable or list from \code{spat} 
-containing longitude data. Leave as NULL if \code{spat} is a shape or json file.}
-
-\item{lat.spat}{Required for csv files. Variable or list from \code{spat} 
-containing latitude data.  Leave as NULL if \code{spat} is a shape or json file.}
-
-\item{epsg}{EPSG number. Set the epsg to ensure that \code{spat} and 
-\code{secondspat} have the same projections. If epsg is not specified but is defined for 
-\code{spat}, then the \code{secondspat} epsg will be applied to \code{spat}. 
-See \url{http://spatialreference.org/} to help identify optimal epsg number.}
+\item{epsg}{EPSG number. Set the epsg to ensure that \code{spatdat} have the correct projections. 
+If epsg is not specified but is defined for \code{spatdat}. 
+  See \url{http://spatialreference.org/} to help identify optimal epsg number.}
 }
 \value{
 Returns a yaml file to the project output folder.
