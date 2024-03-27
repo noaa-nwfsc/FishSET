@@ -287,9 +287,15 @@ make_model_design <-
   spatdat <- spat_out$dataset
   spat <- parse_data_name(spat, "spat", project)
   
-  pt <- data_pull(paste0(project, 'PortTable'), project)
-  ptname <- pt$dat # Note: ptname not used 
-  port <- pt$dataset # used in create_distance_matrix()
+  port <- NULL #initialize to NULL if no port included
+  tryCatch({
+    pt <- data_pull(paste0(project, 'PortTable'), project)
+    ptname <- pt$dat # Note: ptname not used 
+    port <- pt$dataset # used in create_distance_matrix()
+  }, error = function(cond){
+    message("Port table not used.")
+  }
+  )
   
   # check args ----
   
