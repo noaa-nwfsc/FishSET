@@ -25,6 +25,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE,
   #'   converted to decimal degrees? Defaults to \code{TRUE}. Set to \code{FALSE} 
   #'   if checking for compliance.
   #' @export degree
+  #' @impport shiny
   #' @importFrom stringi stri_pad
   #' @details First checks whether any variables containing 'lat' or 'lon' in their 
   #'   names are numeric. Returns a message on results. To convert a variable to 
@@ -92,7 +93,12 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE,
         file = tmp)
   } else {
     
-    cat("Latitude and longitude variables in decimal degrees. No further action required.", file = tmp)
+    if(isRunning()){
+      showNotification("Latitude and longitude variables in decimal degrees. No further action required.")
+    } else {
+      cat("Latitude and longitude variables in decimal degrees. No further action required.", file = tmp)    
+    }
+    
   }
   
   msg_print(tmp)
