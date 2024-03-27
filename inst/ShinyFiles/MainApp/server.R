@@ -3174,7 +3174,7 @@ server = function(input, output, session) {
     if (names(spatdat$dataset)[1] != "var1") {
       
       tagList(
-        selectInput("spat_qaqc_ID", "Select ID from main data",
+        selectInput("spat_qaqc_ID", "Select zone ID from main data",
                     choices = spat_ui$ID, multiple = FALSE),
         selectizeInput("spat_qaqc_lon", "Select Longitude from main data",
                        choices = spat_ui$lon_cols, multiple = FALSE, 
