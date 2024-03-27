@@ -3137,15 +3137,14 @@ server = function(input, output, session) {
   
   observeEvent(input$LatLon_Filter, {
     
-    q_test <- quietly_test(degree)
-    
     lat <- if (input$LatDirection == 'None') NULL else input$LatDirection
     lon <- if (input$LonDirection == 'None') NULL else input$LonDirection
-    latsign <- if (input$input$LatLon_Filter_Lat=='None') NULL else input$input$LatLon_Filter_Lat
-    lonsign <- if (input$input$LatLon_Filter_Lon=='None') NULL else input$input$LatLon_Filter_Lon
+    latsign <- if (input$LatLon_Filter_Lat=='None') NULL else input$LatLon_Filter_Lat
+    lonsign <- if (input$LatLon_Filter_Lon=='None') NULL else input$LatLon_Filter_Lon
     
-    output <- q_test(values$dataset, lat = lat, lon = lon, latsign = latsign, 
-                     lonsign = lonsign, replace = TRUE) 
+    q_test <- quietly_test(degree)
+    output <- q_test(values$dataset, project$name, lat = lat, lon = lon, latsign = latsign, 
+                     lonsign = lonsign, replace = TRUE)
     
     if (!is_value_empty(output)) {
       
