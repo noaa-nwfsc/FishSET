@@ -120,18 +120,6 @@ If you use FishSET results in publications, please cite the the package:
 
 Alan Haynie, Melanie Harsch, Bryce McManus, and Allen Chen (2021). FishSET: Spatial Economics Toolbox for Fisheries. R package version 1.0.1.
 
-## <a name="license"> NOAA Disclaimer </a>
-
-This repository is a scientific product and is not official communication of the National Oceanic and
-Atmospheric Administration, or the United States Department of Commerce. All NOAA Gitlabs project code is
-provided on an ‘as is’ basis and the user assumes responsibility for its use. Any claims against the Department of
-Commerce or Department of Commerce bureaus stemming from the use of this Gitlab project will be governed
-by all applicable Federal law. Any reference to specific commercial products, processes, or services by service
-mark, trademark, manufacturer, or otherwise, does not constitute or imply their endorsement, recommendation or
-favoring by the Department of Commerce. The Department of Commerce seal and logo, or the seal and logo of a
-DOC bureau, shall not be used in any manner to imply endorsement of any commercial product or activity by
-DOC or the United States Government.
-
 ## <a name="Troubleshoot"> Troubleshooting </a>
 <details><summary>Error in dyn.load(file, DLLpath = DLLpath, ...): unable to load shared object ... </summary>
 This error message indicates that the filepath to a necessary package is 'corrupted' and cannot load properly. To fix this issue, reinstall the package indicated in the error message using `install.packages([Name of package])` and restart the R session. If the issue persists, try uninstalling and reinstalling R/RStudio. If both options fail, report the[issue](https://gitlab-afsc.fisheries.noaa.gov/bryce.mcmanus/FishSET_RPackage/-/issues).
@@ -144,3 +132,7 @@ This error could appear when your last package installation was interrupted, whe
 
 2. If the first options does not work, try adding "--no-lock" to your install options: "install.packages(INSTALL_opts = '--no-lock')" 
 </details> 
+
+## <a name="license"> Disclaimer </a>
+
+This repository is a scientific product and is not official communication of the National Oceanic and Atmospheric Administration, or the United States Department of Commerce. All NOAA GitHub project code is provided on an ‘as is’ basis and the user assumes responsibility for its use. Any claims against the Department of Commerce or Department of Commerce bureaus stemming from the use of this GitHub project will be governed by all applicable Federal law. Any reference to specific commercial products, processes, or services by service mark, trademark, manufacturer, or otherwise, does not constitute or imply their endorsement, recommendation or favoring by the Department of Commerce. The Department of Commerce seal and logo, or the seal and logo of a DOC bureau, shall not be used in any manner to imply endorsement of any commercial product or activity by DOC or the United States Government.
