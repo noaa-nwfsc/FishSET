@@ -6376,12 +6376,23 @@ server = function(input, output, session) {
     for (i in seq_along(mod_sum_out())) {
       
       mod_tab[i,1] <- mod_sum_out()[[i]]$name
-      mod_tab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
+      mod_tab[i,2] <- 1
+      tryCatch({
+        mod_tab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
+      }, error = function(cond){
+        # do nothing
+      })
       model_out <- mod_sum_out()[[i]]$OutLogit
       mod_tab[i,3] <- to_html_table(model_out, rownames = TRUE, digits = 3)
-      hess <- round(mod_sum_out()[[i]]$H1, 5)
-      colnames(hess) <- row.names(model_out)
-      mod_tab[i,4] <- to_html_table(hess, digits = 5)
+      if(length(grep("Error", mod_sum_out()[[i]]$H1)) == 0){
+        hess <- round(mod_sum_out()[[i]]$H1, 5)
+        colnames(hess) <- row.names(model_out)
+        mod_tab[i,4] <- to_html_table(hess, digits = 5)
+      } else {
+        hess <- 1
+        mod_tab[i,4] <- 1
+      }
+
     }
     
     return(mod_tab)
