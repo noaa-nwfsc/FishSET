@@ -81,6 +81,11 @@ check_model_data <- function(dat, project, uniqueID, save.file = TRUE) {
   # TODO: omit variables with NAs otherwise this will break 
   lat_lon <- grep("lat|lon", names(dataset), ignore.case = TRUE)
   
+  ## NEED TO CHANGE
+  tmp1 <- grep("weight", names(dataset), ignore.case = TRUE)
+  lat_lon <- lat_lon[which(!(lat_lon %in% tmp1))]
+  ###
+  
   tmp_latlon_df <- dataset[lat_lon] # create a temporary dataframe and replace na and nan values with numeric 0. 
   tmp_latlon_df[is.na(tmp_latlon_df)] <- 0 # setting nas to 0 allows test to run on non-na and non-nan values.
   tmp_latlon_df[apply(tmp_latlon_df,2,is.nan)] <- 0
