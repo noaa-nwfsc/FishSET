@@ -3217,7 +3217,7 @@ server = function(input, output, session) {
       flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY")
       spat_qaqc_r$flag <- vapply(flag_nms, function(x) x %in% names(out$dataset), logical(1))
       
-      values$dataset <- out$dataset
+      values$dataset <- subset(out$dataset, select=-c(YEAR))
       out$dataset <- NULL
       
       qaqc_out_proj$spat <- project$name
@@ -3373,14 +3373,16 @@ server = function(input, output, session) {
     if (any(spat_qaqc_r$flag)) {
       
       if (input$select_spat_tab == "out_zone") {
-        
+          
         if (sum(dist_filter()) > 0) values$dataset[dist_filter(), c(input$spat_qaqc_ID, input$spat_qaqc_date, input$spat_qaqc_lat,
                                                                     input$spat_qaqc_lon, "ON_LAND", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")]
-        
       } else { # "all"
         
-        values$dataset[,c(input$spat_qaqc_ID, input$spat_qaqc_date, input$spat_qaqc_lat,
-                          input$spat_qaqc_lon, "ON_LAND", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")]
+        new_cols <- c("ON_LAND", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
+        new_cols <- new_cols[which(spat_qaqc_r$flag)]
+        
+        values$dataset[,c(input$spat_qaqc_ID, input$spat_qaqc_lat,
+                          input$spat_qaqc_lon, new_cols)]
       }
     }
   })
