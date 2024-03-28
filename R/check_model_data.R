@@ -4,6 +4,7 @@
 #'   FishSET database contains the string 'MainDataTable'.
 #' @param project Project name. 
 #' @param uniqueID Variable in \code{dat} containing unique occurrence identifier.
+#' @param latlon Vector of names for variables with lat, lon coordinates to be check.
 #' @param save.file Logical, if TRUE and no data issues are identified, the dataset 
 #'   is saved to the FishSET database. Defaults to \code{TRUE}.
 #' @return Returns statements of data quality issues in the data. Saves table to 
@@ -25,7 +26,7 @@
 #' check_model_data(MainDataTable, uniqueID = "uniqueID_Code", save.file = TRUE)
 #' }
 #'
-check_model_data <- function(dat, project, uniqueID, save.file = TRUE) {
+check_model_data <- function(dat, project, uniqueID, latlon, save.file = TRUE) {
   
   end <- FALSE
 
@@ -79,13 +80,8 @@ check_model_data <- function(dat, project, uniqueID, save.file = TRUE) {
   
   # lat/lon degree format
   # TODO: omit variables with NAs otherwise this will break 
-  lat_lon <- grep("lat|lon", names(dataset), ignore.case = TRUE)
-  
-  ## NEED TO CHANGE
-  tmp1 <- grep("weight", names(dataset), ignore.case = TRUE)
-  lat_lon <- lat_lon[which(!(lat_lon %in% tmp1))]
-  ###
-  
+  lat_lon <- which(names(dataset) %in% latlon)
+
   tmp_latlon_df <- dataset[lat_lon] # create a temporary dataframe and replace na and nan values with numeric 0. 
   tmp_latlon_df[is.na(tmp_latlon_df)] <- 0 # setting nas to 0 allows test to run on non-na and non-nan values.
   tmp_latlon_df[apply(tmp_latlon_df,2,is.nan)] <- 0
