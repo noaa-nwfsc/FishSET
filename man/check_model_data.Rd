@@ -4,7 +4,7 @@
 \alias{check_model_data}
 \title{Check for common data quality issues affecting modeling functions}
 \usage{
-check_model_data(dat, project, uniqueID, save.file = TRUE)
+check_model_data(dat, project, uniqueID, latlon, save.file = TRUE)
 }
 \arguments{
 \item{dat}{Primary data containing information on hauls or trips. Table in 
@@ -13,6 +13,8 @@ FishSET database contains the string 'MainDataTable'.}
 \item{project}{Project name.}
 
 \item{uniqueID}{Variable in \code{dat} containing unique occurrence identifier.}
+
+\item{latlon}{Vector of names for variables with lat, lon coordinates to be check.}
 
 \item{save.file}{Logical, if TRUE and no data issues are identified, the dataset 
 is saved to the FishSET database. Defaults to \code{TRUE}.}

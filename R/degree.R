@@ -25,7 +25,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE,
   #'   converted to decimal degrees? Defaults to \code{TRUE}. Set to \code{FALSE} 
   #'   if checking for compliance.
   #' @export degree
-  #' @impport shiny
+  #' @import shiny
   #' @importFrom stringi stri_pad
   #' @details First checks whether any variables containing 'lat' or 'lon' in their 
   #'   names are numeric. Returns a message on results. To convert a variable to 

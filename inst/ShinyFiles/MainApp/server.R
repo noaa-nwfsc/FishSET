@@ -7120,6 +7120,9 @@ server = function(input, output, session) {
                 selectInput("final_uniqueID", "Select column containing unique occurrence identifier",
                             choices = names(values$dataset)),
                 
+                selectInput("final_latlon", "Select lat/lon variables to be used in models",
+                            choices = names(values$dataset), multiple = TRUE),
+                
                 shinycssloaders::withSpinner(
                   uiOutput("checkMsg"),
                   type = 6
@@ -7143,7 +7146,7 @@ server = function(input, output, session) {
     
     q_test <- quietly_test(check_model_data)
     save_final$out <- q_test(dat = values$dataset,  project = project$name,
-                             uniqueID = input$final_uniqueID)
+                             uniqueID = input$final_uniqueID, latlon = input$final_latlon)
   })
   
   output$checkMsg <- renderUI({
