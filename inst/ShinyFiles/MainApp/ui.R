@@ -1544,8 +1544,6 @@ ui = function(request){
                                      
                                                           ))),
                                      
-                                     #  )))),
-                                     
                                      
                                      bslib::nav_panel(title = "Compare models", id = 'model_compare',
                                                       bslib::page_sidebar(
