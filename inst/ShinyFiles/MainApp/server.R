@@ -5571,7 +5571,6 @@ server = function(input, output, session) {
     # find expected catch matrices (if logit_c used)
     
     output$mod_add_run_bttn <- renderUI({
-      # TODO: mod_run_bttn won't show if checklist doesn't pass first time
       if (cList$pass) {
         tagList(
           tags$br(),
@@ -5862,8 +5861,6 @@ server = function(input, output, session) {
   
   output$mod_grid_var_ui <- renderUI({
     
-    # gridvariables <- c('none')
-    
     add_prompter(selectizeInput('mod_grid_vars', 
                                 label = list(gridlab(), icon('info-circle', verify_fa = FALSE)),
                                 multiple=TRUE, choices = colnames(values$dataset)),
@@ -5943,7 +5940,7 @@ server = function(input, output, session) {
       } else {
         # Get zones included in the model to include in param names
         tmpaltc <- unserialize_table(paste0(project$name,"AltMatrix"), project$name)
-        tmpzone <- sort(tmpaltc$zoneRow$ZoneID)
+        tmpzone <- sort(unlist(as.vector(tmpaltc$zoneRow), use.names = FALSE))
         
         if(input$model == "logit_zonal"){
           # beta for the first zone is normalized to zero in the zonal logit
@@ -5978,10 +5975,11 @@ server = function(input, output, session) {
           }
         }
       }
-
+  
       # Save to reactive value dataframe and output in editable table
       iparams$data <- data.frame(Parameter = par.names,
                                  Initial_value = rep(1, numInits()))
+    
     }
   })
   
