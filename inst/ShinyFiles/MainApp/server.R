@@ -4903,11 +4903,17 @@ server = function(input, output, session) {
                        quant.cat = input$quant_cat, name = input$varname)
       notif <- "Quant variable"
       
-    } else if (input$VarCreateTop == 'Nominal ID' & input$ID == 'ID_var') {
+    } else if (input$VarCreateTop == 'Nominal ID' & (input$ID == 'ID_var' | input$ID == 'ID_seq_var')) {
+      
+      if(input$ID == 'ID_var'){
+        vars_in <- input$unique_identifier
+      } else {
+        vars_in <- NULL
+      }
       
       q_test <- quietly_test(ID_var)
       output <- q_test(values$dataset, project = project$name, name = input$varname, 
-                       vars = input$unique_identifier, type = input$ID_type)
+                       vars = vars_in, type = input$ID_type)
       notif <- "Nominal ID"
       
     } else if (input$VarCreateTop == 'Nominal ID' & input$ID == 'binary_seasonID') {      

@@ -36,25 +36,37 @@ ID_var <- function(dat, project, vars, name = NULL, type = "string", drop = FALS
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-
-  if (is_empty(name))  name <- paste0(vars, collapse = sep)
-  else name <- make.names(name)
-  
-  n <- length(vars) - 1
-  
-  plist <- lapply(vars, function(x) trimws(dataset[[x]]))
-  
-  plist[1:n] <- lapply(seq_along(n), function(x) paste0(plist[[x]], sep))
-  
-  dataset[[name]] <- do.call(paste0, plist)
-  
-  if (type == "integer") {
-    
-    dataset[[name]] <- as.integer(as.factor(dataset[[name]]))
+  if (is_empty(name) && !is_empty(vars)){
+    name <- paste0(vars, collapse = sep)
+  }  else if (is_empty(name) && is_empty(vars)) {
+    stop("Add name for new unique ID variable.")
+  } else {
+    name <- make.names(name)
   }
   
-  if (drop == TRUE) dataset[vars] <- NULL
- 
+  if(!any(is_empty(vars))){
+    n <- length(vars) - 1
+    
+    plist <- lapply(vars, function(x) trimws(dataset[[x]]))
+    
+    plist[1:n] <- lapply(seq(1:n), function(x) paste0(plist[[x]], sep))
+    
+    dataset[[name]] <- do.call(paste0, plist)
+    
+    if (type == "integer") {
+      
+      dataset[[name]] <- as.integer(as.factor(dataset[[name]]))
+    }
+    
+    if (drop == TRUE) dataset[vars] <- NULL  
+    
+  } else {
+    dataset[[name]] <- as.character(seq(1:nrow(dataset)))
+    
+    vars <- NULL # set to NULL here for logging purposes below
+  }
+  
+  
   if (log_fun) {
     
     ID_var_function <- list()
