@@ -671,7 +671,7 @@ create_var_num <- function(dat, project, x, y, method, name = "create_var_num") 
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
   #' @param x Variable in \code{dat}. Variable will be the numerator if \code{method} is division.
-  #' @param y Variable  in \code{dat}. Variable will be the denominator if \code{method} is division.
+  #' @param y Variable  in \code{dat} or numeric value. Variable will be the denominator if \code{method} is division.
   #' @param method String, arithmetic expression. Options include: \code{"sum"}, addition (\code{"add"}),
   #' subtraction (\code{"sub"}), multiplication (\code{"mult"}), and division (\code{"div"}).
   #' @param name String, name of created vector. Defaults to name of the function if not defined.
@@ -693,33 +693,38 @@ create_var_num <- function(dat, project, x, y, method, name = "create_var_num") 
   # name <- ifelse(is_empty(name), "create_var_num", name)
   name <- name_check(dataset, name, repair = TRUE)
   
-
-  if (is.numeric(dataset[[x]]) == FALSE | is.numeric(dataset[[y]]) == FALSE) {
-    stop("Variables must be numeric")
-  }
-
-    if (grepl("add|sum", method, ignore.case = TRUE)) {
-      newvar <- dataset[[x]] + dataset[[y]]
-    } else if (grepl("sub", method, ignore.case = TRUE)) {
-      newvar <- dataset[[x]] - dataset[[y]]
-    } else if (grepl("mult", method, ignore.case = TRUE)) {
-      newvar <- dataset[[x]] * dataset[[y]]
-    } else if (grepl("div", method, ignore.case = TRUE)) {
-      newvar <- dataset[[x]] / dataset[[y]]
+  if(is.character(y)){
+    if (is.numeric(dataset[[x]]) == FALSE | is.numeric(dataset[[y]]) == FALSE) {
+      stop("Variables must be numeric")
     }
+    y_new <- dataset[[y]]
     
-    g <- cbind(dataset, newvar)
-    colnames(g)[dim(g)[2]] = name
+  } else if(is.numeric(y)){
+    y_new <- y
     
-    create_var_num_function <- list()
-    create_var_num_function$functionID <- "create_var_num"
-    create_var_num_function$args <- list(dat, project, x, y, method, name)
-    create_var_num_function$kwargs <- list()
-    create_var_num_function$output <- list(dat)
-    log_call(project, create_var_num_function)
-
-    return(g)
+  }
   
+  if (grepl("add|sum", method, ignore.case = TRUE)) {
+    newvar <- dataset[[x]] + y_new
+  } else if (grepl("sub", method, ignore.case = TRUE)) {
+    newvar <- dataset[[x]] - y_new
+  } else if (grepl("mult", method, ignore.case = TRUE)) {
+    newvar <- dataset[[x]] * y_new
+  } else if (grepl("div", method, ignore.case = TRUE)) {
+    newvar <- dataset[[x]] / y_new
+  }
+  
+  g <- cbind(dataset, newvar)
+  colnames(g)[dim(g)[2]] = name
+  
+  create_var_num_function <- list()
+  create_var_num_function$functionID <- "create_var_num"
+  create_var_num_function$args <- list(dat, project, x, y, method, name)
+  create_var_num_function$kwargs <- list()
+  create_var_num_function$output <- list(dat)
+  log_call(project, create_var_num_function)
+  
+  return(g)
 }
 
 ## ---- Spatial  Variables ----##
