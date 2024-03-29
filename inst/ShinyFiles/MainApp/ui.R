@@ -781,7 +781,8 @@ ui = function(request){
                                                  conditionalPanel("input.VarCreateTop=='Arithmetic functions'",
                                                                   selectInput('numfunc','Functions', 
                                                                               choices = c('Numeric functions'='create_var_num',
-                                                                                          'Catch or revenue per unit effort'='cpue'),
+                                                                                          'Catch or revenue per unit effort'='cpue',
+                                                                                          'Scale catch variable'='scale_catch'),
                                                                               selected = 'create_var_num', multiple = FALSE)),
                                                  conditionalPanel("input.VarCreateTop=='Dummy variables'",
                                                                   selectInput('dummyfunc','Functions',
@@ -861,6 +862,11 @@ ui = function(request){
                                                                 uiOutput('var_xy_select'),
                                                                 selectInput('create_method', 'Arithmetic expression', 
                                                                             choices=c('addition', 'subtraction', 'multiplication', 'division'))
+                                               ),
+                                               
+                                               conditionalPanel("input.VarCreateTop=='Arithmetic functions'&&input.numfunc=='scale_catch'",
+                                                                style = "margin-left:19px;",
+                                                                uiOutput('scale_catch_select')
                                                ),
                                                
                                                uiOutput('grp_perc'),

@@ -4358,6 +4358,17 @@ server = function(input, output, session) {
                   choices = numeric_cols(values$dataset), selectize = TRUE))
   })
   
+  #Scale catch variable
+  output$scale_catch_select <- renderUI({
+    
+    tagList(
+      selectInput('scale_var_x', 'Select the catch variable', 
+                  choices = numeric_cols(values$dataset), selectize = TRUE),
+      selectInput('scale_method', 'Arithmetic expression', 
+                  choices=c('addition', 'subtraction', 'multiplication', 'division'), selected='division'),
+      numericInput('scale_val', 'Insert number to scale catch variable by', 10))
+  })
+  
   # CPUE
   output$input_cpue <- renderUI({
     tagList(
@@ -4940,11 +4951,21 @@ server = function(input, output, session) {
                        drop_total_col = input$cumsum_drop)
       notif <- "Grouped cumulative sum"
       
-    } else if (input$VarCreateTop == 'Arithmetic functions' & input$numfunc == 'create_var_num') {
+    } else if (input$VarCreateTop == 'Arithmetic functions' & (input$numfunc == 'create_var_num' | input$numfunc == 'scale_catch')) {
+      
+      if(input$numfunc == 'create_var_num'){
+        x_in <- input$var_x
+        y_in <- input$var_y
+        method_in <- input$create_method
+      } else {
+        x_in <- input$scale_var_x
+        y_in <- input$scale_val
+        method_in <- input$scale_method
+      }
       
       q_test <- quietly_test(create_var_num)
-      output <- q_test(values$dataset, project = project$name, x = input$var_x, 
-                       y = input$var_y, method = input$create_method, name = input$varname)
+      output <- q_test(values$dataset, project = project$name, x = x_in, 
+                       y = y_in, method = method_in, name = input$varname)
       notif <- "Arithemtic variable"
       
     } else if (input$VarCreateTop == 'Arithmetic functions' & input$numfunc == 'cpue') {
