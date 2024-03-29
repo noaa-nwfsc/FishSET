@@ -14,7 +14,7 @@ Table in the FishSET database contains the string 'MainDataTable'.}
 
 \item{x}{Variable in \code{dat}. Variable will be the numerator if \code{method} is division.}
 
-\item{y}{Variable  in \code{dat}. Variable will be the denominator if \code{method} is division.}
+\item{y}{Variable  in \code{dat} or numeric value. Variable will be the denominator if \code{method} is division.}
 
 \item{method}{String, arithmetic expression. Options include: \code{"sum"}, addition (\code{"add"}),
 subtraction (\code{"sub"}), multiplication (\code{"mult"}), and division (\code{"div"}).}
