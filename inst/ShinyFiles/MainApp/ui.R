@@ -740,10 +740,6 @@ ui = function(request){
                                                  actionButton('saveDataNewVars','Save data to FishSET database'),
                                                  tags$br(),
                                                  
-                                                 actionButton("save_final_modal", "Save final table to FishSET database",
-                                                              style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
-                                                 tags$br(),
-                                                 
                                                  # downloadLink('downloadplotNew', label=''),
                                                  # actionButton('downloadplotNew', label='Save plot to folder'),
                                                  
@@ -1392,18 +1388,17 @@ ui = function(request){
                                                           sidebar = bslib::sidebar(width = 550,
                                                                                    # Models can't be run if final dataset not detected
                                                                                    uiOutput("disableMsg"),
-                                                                                   
-                                                                                   # TODO: consider adding final data save bttn to models tab
-                                                                                   # actionButton("save_final_modal", "Save final table to FishSET database",
-                                                                                   #              style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
-                                                                                   
-                                                                                   # conditionalPanel("input.mod_add!='0'",
-                                                                                   #                  
-                                                                                   #    shinyjs::disabled(
+                
+                                                                                   # shinyjs::disabled(
                                                                                    # actionButton("submit_modal", "Run model checks",
                                                                                    #              style="color: #fff; background-color: #6da363; border-color: #800000;"),
                                                                                    #    )
                                                                                    # ),
+                                                                                   
+                                                                                   actionButton("save_final_modal", "Save final table to FishSET database",
+                                                                                                style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+                                                                                   
+                                                                                   # tags$br(),
                                                                                    
                                                                                    actionButton("mod_check", "Run model checks",
                                                                                                 style="color: #fff; background-color: #6da363; border-color: #800000;"), 
