@@ -5689,7 +5689,7 @@ server = function(input, output, session) {
       if (passed(type)) {
         if (type == "expect_catch" & ec_required==FALSE & ec_exists==FALSE) {
           
-          icon("exclamation-triangle")
+          icon("exclamation-triangle", style = "color: #FFC30B")
         } else icon("check")
         
       } else icon("times")
