@@ -5555,13 +5555,11 @@ server = function(input, output, session) {
     
     tagList(
       if (!mod_rv$final) {
-        
         div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
             p("Finalized dataset must be saved before modeling."))
       },
       
       if (!mod_rv$alt_made) {
-        
         div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
             p("Alternative choice list must be saved before modeling."))
       }
@@ -5581,12 +5579,6 @@ server = function(input, output, session) {
                   
                   footer = tagList(
                     modalButton("Close")
-                    # TODO: find out why this approach doesn't work consistently
-                    # shinyjs::disabled( 
-                    #   actionButton("submit", "Run model(s)",
-                    #                style = "color: #fff; background-color: #6EC479; border-color:#000000;")
-                    # )
-                    # uiOutput("CLRun")
                   ),
                   easyClose = FALSE
       )
