@@ -5616,7 +5616,7 @@ server = function(input, output, session) {
           add_prompter(tags$div(style = "margin-left:60px;", 
                                 selectInput('mod_explore_starts', 
                                             label = list('Explore starting parameters', icon('info-circle', verify_fa = FALSE)),
-                                            choices = c(TRUE,FALSE), selected = FALSE)),
+                                            choices = c(TRUE,FALSE), selected = TRUE)),
                        position = 'top', type = 'info', size = 'medium',
                        message = 'Default = FALSE. Set to TRUE if unsure of the number of starting parameter values
                                       to include or unsure of reasonable starting values.'
@@ -5631,7 +5631,7 @@ server = function(input, output, session) {
                                                        set to FALSE to consider the entire parameter space."
                            ),
                            add_prompter(tags$div(style = "margin-left:60px;", 
-                                                 textInput('space_vec', label = list('Enter number(s) of starting value permutations', icon('info-circle', verify_fa = FALSE)),
+                                                 textInput('space_vec', label = list('(Optional) Enter number(s) of starting value permutations', icon('info-circle', verify_fa = FALSE)),
                                                            value = "", placeholder = "e.g. 10 or 10,15,... for multiple models")),
                                         position = 'top', type = 'info', size = 'medium',
                                         message = "Enter a vector of the same length as the number of models to run. space is the number(s)
@@ -5639,7 +5639,7 @@ server = function(input, output, session) {
                                                        Default value = 10"
                            ),
                            add_prompter(tags$div(style = "margin-left:60px;", 
-                                                 textInput('dev_vec', label = list('Enter number(s) for how far to deviate from the mean parameter values', icon('info-circle', verify_fa = FALSE)),
+                                                 textInput('dev_vec', label = list('(Optional) Enter number(s) for how far to deviate from the mean parameter values', icon('info-circle', verify_fa = FALSE)),
                                                            value = "", placeholder = "e.g. 5 or 3,5,... for multiple models")),
                                         position = 'top', type = 'info', size = 'medium',
                                         message = "Enter a vector of the same length as the number of models to run. dev refers to how far to deviate from the average parameter
@@ -6324,7 +6324,10 @@ server = function(input, output, session) {
           showNotification("One or more 'space' values invalid and coerced to NULL - model is running with default space = 10", type = "warning", duration = 45)
         }
       )
+    } else { # if it is empty then set = NULL
+      space_val <- NULL
     }
+    
     if(!is_empty(input$dev_vec)){
       dev_val <- unlist(strsplit(gsub(" ", "", input$dev_vec), ",")) # remove white space, separate commas
       tryCatch(
@@ -6333,6 +6336,8 @@ server = function(input, output, session) {
           showNotification("One or more 'dev' values invalid and coerced to NULL - model is running with default dev = 5", type = "warning", duration = 45)
         }
       )
+    } else { # if it is empty then set = NULL
+      dev_val <- NULL
     }
     
     
