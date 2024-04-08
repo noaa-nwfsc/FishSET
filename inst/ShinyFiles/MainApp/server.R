@@ -5470,7 +5470,7 @@ server = function(input, output, session) {
                            mod_design = FALSE, mod_names = NULL)
   
   # enable run model (modal) button if final table exists
-  observeEvent(input$tabs == 'models', {
+  observeEvent(c(input$tabs == 'models', save_final$out), {
     
     req(isTruthy(project$name))
     
@@ -5508,8 +5508,8 @@ server = function(input, output, session) {
     shinyjs::toggleState("mod_check", condition = mod_rv$final) 
   }, ignoreNULL = TRUE, ignoreInit = TRUE)
   
+  
   output$disableMsg <- renderUI({
-    
     tagList(
       if (!mod_rv$final) {
         div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
