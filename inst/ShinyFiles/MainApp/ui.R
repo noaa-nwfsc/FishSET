@@ -368,6 +368,9 @@ ui = function(request){
                                                  
                                                  conditionalPanel(
                                                    condition = "input.checks == 'Variable class'",
+                                                   
+                                                   uiOutput('change_var_inputs'),
+
                                                    actionButton('rchclass', 'Change variable classes', style = "color: white; background-color: #0073e6;")
                                                  ),
                                                  uiOutput('outlier_column'),
