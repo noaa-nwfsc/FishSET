@@ -3128,36 +3128,19 @@ server = function(input, output, session) {
   })
   
   ## Spatial QAQC ----
-  
-  spat_ui <- reactiveValues(lon_cols = NULL, lat_cols = NULL,
-                            date_cols = NULL, grp_cols = NULL,
-                            ID = NULL)
-  
-  # TODO: update so that these are done in selectizeInput, add placeholder
-  observeEvent(load_r$main, {
-    
-    spat_ui$lon_cols <- find_lon(values$dataset)
-    spat_ui$lat_cols <- find_lat(values$dataset)
-    spat_ui$date_cols <- colnames(values$dataset)
-    spat_ui$grp_cols <- category_cols(values$dataset)
-    spat_ui$ID <- colnames(values$dataset)
-  })
-  
   output$spatQAQC_checkUI <- renderUI({
-    
     if (names(spatdat$dataset)[1] != "var1") {
-      
       tagList(
         selectInput("spat_qaqc_ID", "Select zone ID from main data",
-                    choices = spat_ui$ID, multiple = FALSE),
+                    choices = colnames(values$dataset), multiple = FALSE),
         selectizeInput("spat_qaqc_lon", "Select Longitude from main data",
-                       choices = spat_ui$lon_cols, multiple = FALSE, 
+                       choices = find_lon(values$dataset), multiple = FALSE, 
                        options = list(create = TRUE)),
         selectizeInput("spat_qaqc_lat", "Select Latitude from main data",
-                       choices = spat_ui$lat_cols, multiple = FALSE, 
+                       choices = find_lat(values$dataset), multiple = FALSE, 
                        options = list(create = TRUE)),
         selectizeInput("spat_qaqc_date", "Select date variable", 
-                       choices = spat_ui$date_cols, multiple = FALSE, 
+                       choices = colnames(values$dataset), multiple = FALSE, 
                        options = list(create = TRUE)),
         add_prompter(textInput("spat_qaqc_epsg", "(Optional) enter spatial reference EPSG code",
                                value = NULL),
@@ -3167,7 +3150,7 @@ server = function(input, output, session) {
                                 automatically applied to primary data.",
                      type = "info", size = "medium", position = "top"),
         selectizeInput("spat_qaqc_grp", "(Optional) select grouping variable",
-                       choices = spat_ui$grp_cols,
+                       choices = category_cols(values$dataset),
                        multiple = TRUE, options = list(maxItems = 1, create = TRUE)),
         actionButton("runSpatQAQC", "Run spatial check",
                      style = "color: white; background-color: #0073e6;")
@@ -3176,10 +3159,10 @@ server = function(input, output, session) {
   })
   
   spat_qaqc_r <- reactiveValues(flag = FALSE, c_tab = NULL)
+  spat_qaqc <- reactiveValues(out = NULL)
   
   # run spatial checks 
-  spat_qaqc <- eventReactive(input$runSpatQAQC, {
-    
+  observeEvent(input$runSpatQAQC, {
     q_test <- quietly_test(spatial_qaqc)
     
     out <- q_test(dat = values$dataset, project = project$name, spat = spatdat$dataset, 
@@ -3191,25 +3174,25 @@ server = function(input, output, session) {
       flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY")
       spat_qaqc_r$flag <- vapply(flag_nms, function(x) x %in% names(out$dataset), logical(1))
       
-      values$dataset <- subset(out$dataset, select=-c(YEAR))
+      values$dataset <- subset(out$dataset, select=-c(YEAR)) # remove 'YEAR' from table
       out$dataset <- NULL
       
       qaqc_out_proj$spat <- project$name
       
-      out
+      # out
+      spat_qaqc$out <- out
     }
     
   }, ignoreInit = TRUE, ignoreNULL = TRUE)
   
-  # spatial checks output
+  # Spatial checks output
   output$spatQAQC_checkOut <- renderUI({
-    
     if (names(spatdat$dataset)[1] != "var1") {
       
       render_out <-
-        lapply(names(spat_qaqc()), function(x) {
+        lapply(names(spat_qaqc$out), function(x) {
           
-          if (is.data.frame(spat_qaqc()[[x]])) {
+          if (is.data.frame(spat_qaqc$out[[x]])) {
             
             tab_header <- switch(x, "spatial_summary" = "Spatial summary table",
                                  "distance_freq" = "Distance (m) frequency table",
@@ -3217,7 +3200,7 @@ server = function(input, output, session) {
             
             tagList(
               h4(strong(tab_header)),
-              DT::renderDT(spat_qaqc()[[x]])
+              DT::renderDT(spat_qaqc$out[[x]])
             )
             
           } else {
@@ -3231,7 +3214,7 @@ server = function(input, output, session) {
             
             tagList(
               h4(strong(plot_header)),
-              n_plot_output(spat_qaqc()[[x]])
+              n_plot_output(spat_qaqc$out[[x]])
             )
           }
           
@@ -3246,7 +3229,6 @@ server = function(input, output, session) {
   })
   
   # Spatial Correction
-  
   output$spatQAQC_correctUI <- renderUI({
     
     if (any(spat_qaqc_r$flag)) {
