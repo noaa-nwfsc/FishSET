@@ -2293,8 +2293,14 @@ server = function(input, output, session) {
   # ---
   # DATA QUALITY ----
   # ---  
-  #change variable class ----
-  # TODO feature doesn't work after first use
+  # change variable class ----
+  output$change_var_inputs <- renderUI({
+    tagList(
+      selectInput("change_class_var", "Select variable to change class", choices = names(values$dataset)),
+      selectInput("change_class", "Select new class type",
+                  choices = c('numeric', 'character', 'factor', 'date')))
+  })
+  
   change_class_tab <- reactive({
     
     if(colnames(values$dataset)[1] == 'var1') {
@@ -2307,24 +2313,13 @@ server = function(input, output, session) {
       
       int = t(t(vapply(values$dataset, first_class, character(1))))
       
-      df = matrix(as.character(1:7), nrow = nrow(int), ncol = 7, byrow = TRUE,
-                  dimnames = list(rownames(int), c('class', 'first value', 'no changes', 
-                                                   'numeric', 'character', 'factor', 'date'))
-      )
-      # create radio group widget for each col (id = col name)
-      for(i in seq_len(nrow(df))) {
-        for(j in seq_len(ncol(df))) {
-          
-          df[i, j] = sprintf(
-            '<input type="radio" name="%s" value="%s" %s/>',
-            rownames(int)[i], df[i, j], ifelse(j==3, 'checked="checked"', "")
-          )
-        }
-      }
+      df = matrix(as.character(1:2), nrow = nrow(int), ncol = 2, byrow = TRUE,
+                  dimnames = list(rownames(int), c('class', 'first value')))
       
-      df[,1] = int  
+ 
+      df[,1] = int
       df[,2] = t(values$dataset[1,])
-      
+
       return(df)
     } 
   })
@@ -2338,37 +2333,17 @@ server = function(input, output, session) {
     } else if (input$checks=='Variable class') {
       
       change_class_tab()
-    },
-    escape = FALSE, selection = 'single', server = FALSE,
-    options = list(dom = 't', paging = FALSE, ordering = FALSE),
-    callback = DT::JS("table.rows().every(function(i, tab, row) {
-          var $this = $(this.node());
-          $this.attr('id', this.data()[0]);
-          $this.addClass('shiny-input-radiogroup');
-        });
-        Shiny.unbindAll(table.table().node());
-        Shiny.bindAll(table.table().node());")
+    }
   )
   
   
   observeEvent(input$rchclass, {
     
-    change_code <- c('class', 'first value', 'no changes', 'numeric', 
-                     'character', 'factor', 'date')
-    class_code <- 
-      vapply(names(values$dataset), 
-             function(i) as.numeric(input[[i]]), numeric(1))
-    
-    change_code <- change_code[class_code]
-    
-    int <- which(change_code != "no changes")
-    x <- colnames(values$dataset)[int]
-    new_class <- change_code[int]
-    
     q_test <- quietly_test(change_class, show_msg = TRUE)
-    
+
     values$dataset <- q_test(dat = values$dataset, project = project$name,
-                             x = x, new_class = new_class, save = FALSE)
+                             x = input$change_class_var, new_class = input$change_class, save = FALSE)
+
   })
   
   ##Table output
