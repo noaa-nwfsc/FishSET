@@ -5081,6 +5081,46 @@ server = function(input, output, session) {
   # ALTERNATIVE CHOICE ----
   # ---
   
+  alt_rv <- reactiveValues(final = FALSE, exp = NULL, exp_select = NULL,
+                           mod_design = FALSE, mod_names = NULL)
+
+  # enable save choices button if final table exists
+  observeEvent(c(input$tabs == 'altc', save_final$out), {
+
+    req(isTruthy(project$name))
+
+    # check if final table exists
+    alt_rv$final <- table_exists(paste0(project$name, "MainDataTable_final"), project$name)
+    # check if expected catch table exists
+    exp_exists <- table_exists(paste0(project$name, "ExpectedCatch"), project$name)
+
+    if (exp_exists) {
+      # list the names of existing expected catch matrices
+      e_list <- expected_catch_list(project$name)
+      # remove units and scale entry
+      e_list <- e_list[!grepl('^scale$|^units$', names(e_list))]
+      # save names of matrices that aren't empty
+      e_list <- names(e_list[!vapply(e_list, is.null, logical(1))])
+      e_list <- e_list[!grepl("_settings", e_list)]
+      alt_rv$exp <- e_list
+    }
+
+    # check for existing model design files/tables
+    alt_rv$mod_design <- table_exists(paste0(project$name, "ModelInputData"), project$name)
+
+    shinyjs::toggleState("altc_save", condition = alt_rv$final)
+  }, ignoreNULL = TRUE, ignoreInit = TRUE)
+  
+  
+  output$disableMsg1 <- renderUI({
+    tagList(
+      if (!mod_rv$final) {
+        div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
+            p("Finalized dataset must be saved before saving alternative choices and modeling"))
+      }
+    )
+  })
+  
   output$altc_ui <- renderUI({
     tagList(
       
