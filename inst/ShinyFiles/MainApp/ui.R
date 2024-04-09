@@ -1145,6 +1145,11 @@ ui = function(request){
     bslib::nav_panel(title = 'Define Alternative Fishing Choices', id = "altc",
                      bslib::page_sidebar(
                        sidebar = bslib::sidebar( width = 550,
+                                                 uiOutput("disableMsg1"),
+                                                 
+                                                 actionButton("save_final_modal", "Save final table to FishSET database",
+                                                              style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+                                                 
                                                  actionButton('altc_save','Save choices', style = "color: white; background-color: green;"), 
                                                  
                                                  #  tags$br(), tags$br(),
@@ -1391,9 +1396,6 @@ ui = function(request){
                                                           sidebar = bslib::sidebar(width = 550,
                                                                                    # Models can't be run if final dataset not detected
                                                                                    uiOutput("disableMsg"),
-                                                                                   
-                                                                                   actionButton("save_final_modal", "Save final table to FishSET database",
-                                                                                                style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
                                                                                    
                                                                                    # tags$br(),
                                                                                    
