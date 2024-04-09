@@ -62,6 +62,16 @@ explore_startparams_discrete <- function(space, dev, breakearly=TRUE, startsr=NU
         savestarts[[k]] <- rnorm(length(startsr), startsr, dev)
         saveLLstarts[[k]] <- fr.name(savestarts[[k]], d, otherdat, alts = max(choice), project=project, 
                                      mod.name=NULL, expname=NULL)
+        
+        if(isRunning()){
+          cat(file = stderr(), "\n", "Exploring parameter starting values", 
+                               "\n", "Log-likelihood estimate: ", saveLLstarts[[k]], 
+                               "\n", "iteration: ", k, "\n\n")
+        } else {
+          cat(paste0("\n", "Exploring parameter starting values", 
+                     "\n", "Log-likelihood estimate: ", saveLLstarts[[k]], 
+                     "\n", "iteration: ", k, "\n\n"))
+        }
       }
        
       
