@@ -255,7 +255,8 @@ table is in its "final" state and ready to be used for modeling.
 ```{r}
 check_model_data(scallopModMainDataTable, 
                  project = "scallopMod", 
-                 uniqueID = "TRIPID")
+                 uniqueID = "TRIPID",
+                 latlon = c("DDLON","DDLAT"))
 ```
 
 <br>
