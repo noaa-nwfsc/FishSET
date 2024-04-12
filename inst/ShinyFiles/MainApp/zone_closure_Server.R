@@ -42,21 +42,21 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
           mod_output <- unserialize_table(paste0(project,"ModelOut"), project)
           mod_zones$data <- list()
           mod_zones$data <- lapply(1:length(mod_output), function(x){rbind(mod_zones$data,unique(mod_output[[x]]$choice.table$choice))})
-          mod_zones$data <<- unique(unlist(mod_zones$data))
+          mod_zones$data <- unique(unlist(mod_zones$data))
 
 
         }else if(length(mod_zones$data) == 0){
           showNotification("WARNING: no zones found in model output", type = "warning")
-          mod_zones$data <<- NULL
+          mod_zones$data <- NULL
         } else {
           # do nothing
-          mod_zones$data <<- NULL
+          mod_zones$data <- NULL
         }
         return(mod_zones$data)
 
       })
 
-      zone_df <<- reactive({
+      zone_df <- reactive({
         req(input$select_zone_cat)
         req(input$zoneplot)
         
@@ -83,11 +83,11 @@ output$zmap <- leaflet::renderLeaflet({
         if(any(!is_empty(mod_zones$data))) {
           
           ## set map size
-          coords <<- sf::st_coordinates(zone_df()$geometry)
-          lng <<- mean(coords[,1])
-          lat <<- mean(coords[,2])
+          coords <- sf::st_coordinates(zone_df()$geometry)
+          lng <- mean(coords[,1])
+          lat <- mean(coords[,2])
           
-          tmp_spat_mod <<- zone_df() %>%
+          tmp_spat_mod <- zone_df() %>%
             mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
           
           leaflet::leafletProxy(mapId = "zmap") %>%

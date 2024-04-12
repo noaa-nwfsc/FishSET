@@ -4,11 +4,15 @@ source("map_viewer_app.R", local = TRUE)
 source("zone_outsample_UI.R", local = TRUE)
 source("zone_outsample_server.R", local = TRUE)
 source("zone_closure_UI.R", local = TRUE)
+source("run_policy_UI.R", local = TRUE)
+source("run_policy_server.R", local = TRUE)
 
 
 ## USER INTERFACE    
 ui = function(request){
   bslib::page_navbar(
+    theme = bslib::bs_theme(primary = "#41729F", secondary = "#AACDE5", 
+                            info = "#274472", font_scale = NULL, preset = "cerulean"),
     id = "tabs",
     
     # Pop up information icons
@@ -93,10 +97,10 @@ ui = function(request){
                     
                     bslib::nav_panel( title = "Background",
                                       fluidRow(
-                                        column(width = 10,
-                                               tags$div(tags$p(tags$br(), tags$h2('FishSET - Spatial Economic Toolbox for Fisheries', 
+                                        column(width = 12,
+                                               tags$div(tags$p( tags$h2('FishSET - Spatial Economic Toolbox for Fisheries', 
                                                                                   style="color:darkblue; text-align:center; font-size: 32px;")),
-                                                        tags$div(style="display: inline-block; align:right", img(src="SandPoint_Boats.JPG", height='10%', width='100%', align='center')),
+                                                        tags$div(style="display: inline-block; align:right; border: 3px solid black;", img(src="SandPoint_Boats.JPG", height='10%', width='100%', align='center')),
                                                         tags$br(),tags$br(),
                                                         tags$p('FishSET is a set of statistical programming and data management tools 
                                                               developed to improve fishery modeling. The tools standardize data management and organization,
@@ -120,10 +124,11 @@ ui = function(request){
                                       )
                     ),
                     bslib::nav_panel(title ='Quickstart guide',
-                                     tags$br(),
-                                     tags$p('Select a radio button for a brief guide for each tab.'),
+                                 bslib::page_fluid(
+                                   tags$h2("Quickstart guide", style="color:darkblue; text-align:center;"),
                                      tags$div(
-                                       radioButtons('QuickStartChoices',"", choices = c('Information across all tabs'='AcrossTabs',
+                                       selectizeInput('QuickStartChoices',"Select an option below for a brief guide for each tab.", 
+                                                      choices = c('Information across all tabs'='AcrossTabs',
                                                                                         'Upload Data tab'='UploadTab',
                                                                                         'Data Quality Evaluation tab'='DQTab',
                                                                                         'Data Exploration tab'='ExplorTab',
@@ -135,8 +140,10 @@ ui = function(request){
                                                                                         'Expected Catch/Revenue tab'='ExpectedTab',
                                                                                         'Models tab'='ModelTab',
                                                                                         'Bookmark Choices tab'='BookmarkTab'
-                                       ), selected='AcrossTabs', inline = TRUE), style="font-size:115%; font-weight:bold;"
+                                       ), width = '50%', selected='AcrossTabs'), style="font-size:100%; font-weight:bold;"
+                                     
                                      ),
+                                   hr(),
                                      uiOutput('AcrossTabsText'), 
                                      uiOutput('UploadTabsText'),
                                      uiOutput('ExploreTabsText'),
@@ -149,6 +156,7 @@ ui = function(request){
                                      uiOutput('ExpectedTabsText'),
                                      uiOutput('ModelTabsText'),
                                      uiOutput('BookmarkTabsText')
+                                 )
                     ),
                     bslib::nav_panel(title ="Alaska Details",
                                      fluidRow(
@@ -202,7 +210,7 @@ ui = function(request){
     # Upload data tabset panel ---- 
     #---
     bslib::nav_panel(title = "Upload Data", id = "upload", 
-                     bslib::page_sidebar(
+                     bslib::page_sidebar(fillable = TRUE,
                        #tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
                        
                        sidebar = bslib::sidebar( width = 550,
@@ -211,136 +219,124 @@ ui = function(request){
                                                  p("1. Select folder that contains 'FishSETFolder'."),
                                                  
                                                  actionButton('change_fs_folder', 'Change FishSET Folder',
-                                                              style = "color: white; background-color: blue;"), 
+                                                              class = "btn-primary"), 
                                                  p("2. Enter name of project. If uploading from FishSET database, projects will appear after 'FishSET database' is selected."),
                                                  p("3. Select files to upload."),
                                                  p("4. Click on 'Load data' to create FishSET database and upload files into tables."),
-                                                 
-                                                 tags$button(
-                                                   id = 'loadDat',
-                                                   type = "button",
-                                                   style = "color: white; background-color: blue;",
-                                                   class = "btn action-button",
-                                                   "Load data"),
-                                                 
+                                                 actionButton(inputId = 'loadDat',label ="Load data", class = "btn-primary"),
+
                                                  tags$br(), 
-                                                 
-                                                 actionButton("meta_modal", "Metadata",
-                                                              style = "color: white; background-color: blue;"),
-                                                 
-                                                 actionButton("delete_tabs_bttn", "Manage Tables",
-                                                              style = "color: white; background-color: blue;"),
-                                                 
-                                                 tags$div(style = "display: inline-block;", uiOutput('load_manage_proj_ui')), 
-                                                 
-                                                 tags$br(), tags$br(),
-                                                 
-                                                 conditionalPanel("input.loadDat > 0", # TODO: update to a more reliable method
-                                                                  splitLayout(
-                                                                    actionButton("confid_modal", "Confidentiality",
-                                                                                 style = "color: white; background-color: blue; padding-left: 25px; padding-right: 25px;"),
-                                                                    actionButton("reset_modal", "Reset log",
-                                                                                 style = "color: white; background-color: blue;padding-left: 45px; padding-right: 45px;"),
-                                                                    actionButton("plot_set", "Plot settings", 
-                                                                                 style = "color: white; background-color: blue;padding-left: 35px; padding-right: 35px;"))),
-                                                 
-                                                 
-                                                 # tags$br(),
-                                                 
-                                                 tags$hr(style = "border-top: 3px solid #bbb;"),
-                                                 
-                                                 textInput('notesUp', "Notes", value=NULL, 
-                                                           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                                                 
-                                                 actionButton('callTextDownloadUp','Save notes'),
-                                                 
-                                                 tags$br(), tags$br(),
-                                                 
-                                                 textInput("exprUp", label = "Enter an R expression",
-                                                           value = "values$dataset"),
-                                                 actionButton("runUp", "Run", class = "btn-success"),
-                                                 div(style = "margin-top: 2em;",
-                                                     uiOutput('resultUp')
-                                                     
+                                                
+                                                splitLayout(
+                                                 actionButton(inputId ="meta_modal", label ="Metadata",  class = "btn-secondary", 
+                                                              style = "padding-left: 40px; padding-right: 42px;"),
+                                                 actionButton(inputId ="delete_tabs_bttn", label ="Manage Tables", class = "btn-secondary", 
+                                                              style = "padding-left: 27px; padding-right: 25px;"),
+                                                 uiOutput('load_manage_proj_ui')
                                                  ),
                                                  
-                                                 tags$button(
-                                                   id = 'closeDat',
-                                                   type = "button",
-                                                   style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                                   class = "btn action-button",
-                                                   onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                                   "Close app"
+                                                conditionalPanel("input.loadDat > 0", # TODO: update to a more reliable method
+                                                                 splitLayout(
+                                                                   actionButton("confid_modal", "Confidentiality",
+                                                                                class = "btn-secondary", 
+                                                                                style = "padding-left: 25px; padding-right: 25px;"),
+                                                                   actionButton("reset_modal", "Reset log",
+                                                                                class = "btn-secondary", 
+                                                                                style = "padding-left: 45px; padding-right: 45px;"),
+                                                                   actionButton("plot_set", "Plot settings", 
+                                                                                class = "btn-secondary", 
+                                                                                style = "padding-left: 35px; padding-right: 35px;"))),
+                                                
+                                                
+                                               
+                                                bslib::accordion(open = FALSE,
+                                                  bslib::accordion_panel(
+                                                    "Other actions", icon = bsicons::bs_icon("menu-app"), 
+                                                    textInput('notesUp', "Notes", value=NULL,
+                                                              placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+
+                                                    actionButton('callTextDownloadUp','Save notes', class = "btn-success"),
+
+                                                    tags$br(), tags$br(),
+                                                    textInput("exprUp", label = "Enter an R expression",
+                                                              value = "values$dataset"),
+                                                    actionButton("runUp", "Run", class = "btn-success"),
+                                                    div(style = "margin-top: 2em;",
+                                                        uiOutput('resultUp')                                                  )
                                                  ),
+                                                 tags$br(),
+                                                 actionButton("closeUp", "Close app", icon = icon("circle-xmark"),
+                                                              width = "50%",                                                           
+                                                              class = "btn-danger", 
+                                                              onclick = "setTimeout(function(){window.close();},500);")
+                                                )
+                                                 
                        ),
-                       
-                       #div(style="display:inline-block;vertical-align:bottom;",
                        
                        
                        tags$br(),
-                       fluidRow(
-                         
+                         bslib::card(
+                           height = 200,
                          uiOutput('fish_folder_path'), 
+                      
+                         uiOutput("projects")), # define project name
                          
-                         uiOutput("projects"), # define project name
-                         
-                         column(4, 
-                                radioButtons('load_main_src', "Source primary data from:",
+                       bslib::layout_column_wrap(
+                         width = 1/3,
+                         bslib::card(
+                           height = 400,
+                           radioButtons('load_main_src', tags$strong("Source primary data from:"),
                                              choices=c('Upload new file','FishSET database'), 
-                                             selected='Upload new file', inline=TRUE)
-                                
-                         ),
-                         uiOutput('main_upload')),
-                       
-                       fluidRow( 
-                         column(width = 8, offset = 2,
-                                uiOutput('ui.action2'))),
-                       fluidRow(
-                         column(4, radioButtons('load_port_src', "Source port data from:", 
+                                             selected='Upload new file', inline=TRUE),
+                           uiOutput('main_upload'),
+
+                         uiOutput('ui.action2')),
+
+                     bslib::card(
+                       height = 400,
+                            radioButtons('load_port_src', tags$strong("Source port data from:"), 
                                                 choices=c('Upload new file','FishSET database'), 
-                                                inline=TRUE)),
-                         uiOutput('port_upload')
-                       ),
-                       fluidRow(
-                         column(width=8, offset=2,
-                                uiOutput('ui.actionP2'))
-                       ),
-                       # combining port tables
-                       uiOutput("portAddTable"),
+                                                inline=TRUE),
+
+                         uiOutput('port_upload'),
+                         uiOutput('ui.actionP2'),
+                         uiOutput("portAddTable"),
+                         uiOutput("PortAddtableMerge")),
                        
-                       uiOutput("PortAddtableMerge"),
-                       
-                       fluidRow(
-                         column(4, radioButtons('load_spat_src', "Source spatial data from:", 
+                     bslib::card(
+                       height = 400,
+                                radioButtons('load_spat_src', tags$strong("Source spatial data from:"), 
                                                 choices=c('Upload new file', 'FishSET database'), 
-                                                selected='Upload new file', inline=TRUE)),
+                                                selected='Upload new file', inline=TRUE),
                          radioButtons('filefolder', "", choices=c("Upload single file", "Upload shape files"), 
                                       selected="Upload single file", inline = TRUE),
                          uiOutput('spatial_upload'),
-                         uiOutput('spatial_upload2')
-                         
-                       ),
-                       
-                       fluidRow(
-                         column(4, radioButtons('load_grid_src', "Source gridded data from:", 
+                         uiOutput('spatial_upload2'))
+                     ),
+
+                     bslib::layout_column_wrap(
+                       width = 1/2,
+                     bslib::card(
+                       height = 300,
+                                radioButtons('load_grid_src', tags$strong("Source gridded data from:"), 
                                                 choices=c('Upload new file','FishSET database'), 
-                                                selected='Upload new file', inline=TRUE)),
-                         uiOutput('grid_upload')
-                       ),
-                       
-                       uiOutput('gridded_uploaded'),
-                       
-                       tags$br(),
-                       
-                       fluidRow(
-                         column(4, radioButtons('load_aux_src', "Source auxiliary data from:", 
+                                                selected='Upload new file', inline=TRUE),
+                         uiOutput('grid_upload'),
+                         uiOutput('gridded_uploaded')),
+
+                     bslib::card(
+                       height = 300,
+                                radioButtons('load_aux_src', tags$strong("Source auxiliary data from:"), 
                                                 choices=c('Upload new file','FishSET database'), 
-                                                selected='Upload new file', inline=TRUE)),
-                         uiOutput('aux_upload')
-                       ), 
+                                                selected='Upload new file', inline=TRUE),
+                         uiOutput('aux_upload'),
+
+                         mergeUI("aux", dat_type = "aux"))
                        
-                       mergeUI("aux", dat_type = "aux")
-                     )),
+                     )
+                     )
+                     
+                   ),
     
     
     #---
@@ -349,17 +345,17 @@ ui = function(request){
     bslib::nav_panel("Data Quality Evaluation", value = "qaqc",
                      bslib::page_sidebar(
                        sidebar = bslib::sidebar( width = 550,
-                                                 actionButton('saveData','Save data to FishSET database'),
-                                                 
-                                                 tabPlotUI("qaqc", type = "tab_plot"),
-                                                 
-                                                 tags$br(), tags$br(),
-                                                 
+                                                 splitLayout(
+                                                 actionButton('saveData','Save data to FishSET database',
+                                                              width = "100%",
+                                                              class = "btn-primary"),
                                                  actionButton("refresh1", "Refresh data", 
-                                                              style = "color: white; background-color: blue;" 
+                                                              class = "btn-primary",
+                                                              icon = icon('sync', verify_fa = FALSE),
+                                                              width = "100%")
                                                  ),
-                                                 
-                                                 tags$br(), tags$br(),
+                                                 splitLayout(
+                                                 tabPlotUI("qaqc", type = "tab_plot")),
                                                  
                                                  radioButtons("checks", "Select data quality check function to run:", 
                                                               choices = c('Variable class', 'Summary table', 'Outliers', 
@@ -371,29 +367,29 @@ ui = function(request){
                                                    
                                                    uiOutput('change_var_inputs'),
 
-                                                   actionButton('rchclass', 'Change variable classes', style = "color: white; background-color: #0073e6;")
+                                                   actionButton('rchclass', 'Change variable classes', class = "btn-secondary")
                                                  ),
                                                  uiOutput('outlier_column'),
                                                  uiOutput('outlier_subset_method'),
                                                  uiOutput('outlier_subset'),
                                                  uiOutput('outlier_dist'),
                                                  conditionalPanel("input.checks == 'NAs'",
-                                                                  actionButton('NA_Filter_all', 'Remove all NAs', style = "color: white; background-color: #0073e6;"),
-                                                                  actionButton('NA_Filter_mean', 'Replace NAs with mean value', style = "color: white; background-color: #0073e6;")
+                                                                  actionButton('NA_Filter_all', 'Remove all NAs',class = "btn-secondary"),
+                                                                  actionButton('NA_Filter_mean', 'Replace NAs with mean value', class = "btn-secondary")
                                                  ),
                                                  conditionalPanel("input.checks == 'NaNs'",
-                                                                  actionButton('NAN_Filter_all', 'Remove all NaNs', style = "color: white; background-color: #0073e6;"),
-                                                                  actionButton('NAN_Filter_mean', 'Replace NaNs with mean value', style = "color: white; background-color: #0073e6;")
+                                                                  actionButton('NAN_Filter_all', 'Remove all NaNs', class = "btn-secondary"),
+                                                                  actionButton('NAN_Filter_mean', 'Replace NaNs with mean value', class = "btn-secondary")
                                                  ),
                                                  conditionalPanel("input.checks=='Outliers'",
-                                                                  actionButton('Outlier_Filter', 'Remove outliers', style = "color: white; background-color: #0073e6;"),
+                                                                  actionButton('Outlier_Filter', 'Remove outliers', class = "btn-secondary"),
                                                                   uiOutput("hover_info1")
                                                  ),
                                                  conditionalPanel("input.checks=='Unique observations'",
-                                                                  actionButton('Unique_Filter', 'Remove non-unique rows', style = "color: white; background-color: #0073e6;")
+                                                                  actionButton('Unique_Filter', 'Remove non-unique rows', class = "btn-secondary")
                                                  ),
                                                  conditionalPanel("input.checks=='Empty variables'",
-                                                                  actionButton('Empty_Filter', 'Remove empty variables', style = "color: white; background-color: #0073e6;")
+                                                                  actionButton('Empty_Filter', 'Remove empty variables', class = "btn-secondary")
                                                  ),
                                                  uiOutput('LatLonDir'),
                                                  
@@ -405,7 +401,7 @@ ui = function(request){
                                                                               choices=c('None', 'All values'='all', 'Positve to negative'='neg', 
                                                                                         'Negative to positive'='pos'), selected='None'),
                                                                   actionButton('LatLon_Filter', 'Convert lat/long to decimal degrees', 
-                                                                               value=FALSE, style = "color: white; background-color: #0073e6;")
+                                                                               value=FALSE, class = "btn-secondary")
                                                  ),
                                                  
                                                  conditionalPanel("input.checks=='Spatial data'",
@@ -416,33 +412,33 @@ ui = function(request){
                                                                   conditionalPanel("input.spat_qaqc_tab == 'corrections'",
                                                                                    uiOutput("spatQAQC_correctUI"))
                                                  ),
-                                                 
-                                                 tags$br(),
-                                                 
-                                                 tags$hr(style = "border-top: 3px solid #bbb;"),
-                                                 
-                                                 textInput('notesQAQC', "Notes", value=NULL,
-                                                           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                                                 actionButton('callTextDownloadQAQC','Save notes'),
-                                                 
-                                                 tags$br(), tags$br(),
-                                                 
-                                                 ##Inline scripting 
-                                                 textInput("exprQA", label = "Enter an R expression",
-                                                           value = "values$dataset"),
-                                                 actionButton("runQA", "Run", class = "btn-success"),
-                                                 div(style = "margin-top: 2em;",
-                                                     uiOutput('resultQA')
-                                                 ),
-                                                 
-                                                 tags$button(
-                                                   id = 'closeQAQC',
-                                                   type = "button",
-                                                   style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                                   class = "btn action-button",
-                                                   onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                                   "Close app"
-                                                 )
+                                                 bslib::accordion(open = FALSE,
+                                                   bslib::accordion_panel(
+                                                     "Other actions", icon = bsicons::bs_icon("menu-app"), open = FALSE,
+                                                     
+                                                     textInput('notesQAQC', "Notes", value=NULL,
+                                                               placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                                     actionButton('callTextDownloadQAQC','Save notes', class = "btn-success"),
+                                                     
+                                                     tags$br(), tags$br(),
+                                                     ##Inline scripting 
+                                                     
+
+                                                     textInput("exprQA", label = "Enter an R expression",
+                                                               value = "values$dataset"),
+                                                     actionButton("runQA", "Run", class = "btn-success"),
+                                                     div(style = "margin-top: 2em;",
+                                                         uiOutput('resultQA')
+                                                     ),
+                                                     
+                                                   )  
+                                                     
+                                                ),
+                                                 actionButton("closeQAQC", "Close app", icon = icon("circle-xmark"),
+                                                              width = "50%",
+                                                              class = "btn-danger",
+                                                              onclick = "setTimeout(function(){window.close();},500);")
+                     
                        ),#END SIDEBAR LAYOUT             
                        tags$br(),
                        htmlOutput("Case"),
@@ -482,45 +478,48 @@ ui = function(request){
                        conditionalPanel("input.checks=='Spatial data'",
                                         
                                         bslib::navset_tab(id = "spat_qaqc_tab", selected = "checks",
-                                                          bslib::nav_panel(title = "Spatial Checks", value = "checks", # value
+                                                          bslib::nav_panel(title = "Spatial Checks", value = "checks",
                                                                            shinycssloaders::withSpinner(uiOutput("spatQAQC_checkOut"), type = 6)      
                                                           ),
-                                                          bslib::nav_panel(title = "Spatial Corrections", value = "corrections", #value
+                                                          bslib::nav_panel(title = "Spatial Corrections", value = "corrections", 
                                                                            uiOutput("spat_correct_msg"),
                                                                            radioButtons("select_spat_tab", "Show:",
                                                                                         choices = c("all", "points outside zone" = "out_zone")),
                                                                            tags$div(shinycssloaders::withSpinner(DT::DTOutput("spat_correct_tab"), type = 6), 
                                                                                     style = "font-size: 75%; width: 100%")
                                                           )))
-                     )),
-    
+                     )
+    ),
     
     #---
     # Data exploration tabset panel ----
     #---
     bslib::nav_menu(title = "Explore the Data",header = NULL, footer = NULL,
-                    bslib::nav_panel(title = "Data Exploration", id = "explore", #value
+                    bslib::nav_panel(title = "Data Exploration", id = "explore",
                                      bslib::page_sidebar(
                                        sidebar = bslib::sidebar( width = 550,
-                                                                 actionButton('saveDataExplore','Save data to FishSET database'),
+                                                                 actionButton('saveDataExplore','Save data to FishSET database',
+                                                                              width = "100%",
+                                                                              class = "btn-primary"),
                                                                  
-                                                                 # tags$br(), tags$br(),
-                                                                 
+
                                                                  conditionalPanel("input.plot_table=='Plots'",
                                                                                   tabPlotUI("explore")
+                                                                 
                                                                  ),
                                                                  conditionalPanel("input.plot_table=='Table'",
-                                                                                  actionButton('subsetData', 'Remove variable from dataset')
+                                                                                  actionButton('subsetData', 'Remove variable from dataset',
+                                                                                               width = "100%",
+                                                                                               class = "btn-primary")
                                                                  ),
-                                                                 
-                                                                 tags$br(), 
                                                                  
                                                                  actionButton("refresh", "Refresh data", 
-                                                                              style = "color: white; background-color: blue;" 
+                                                                              width = "100%",
+                                                                              class = "btn-primary"
+                                                                
                                                                  ),
                                                                  
-                                                                 tags$br(), tags$br(),
-                                                                 
+
                                                                  conditionalPanel("input.SelectDatasetExplore=='main' || input.SelectDatasetExplore=='grid'",
                                                                                   selectInput('plot_table', 'View data table or plots', 
                                                                                               choices=c('Table','Plots'), selected='Table')
@@ -535,7 +534,7 @@ ui = function(request){
                                                                  
                                                                  conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Temporal'",
                                                                                   actionButton("run_temporal_plot", "Run temporal plots", width = "100%",
-                                                                                               style = "color: #fff; background-color: #6da363; border-color: #800000;")
+                                                                                               class = "btn-secondary")
                                                                  ),
                                                                  
                                                                  conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial-autocorrelation'",
@@ -547,7 +546,7 @@ ui = function(request){
                                                                  conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial-zone summary'",
                                                                                   uiOutput("zone_summary_out1"),
                                                                                   actionButton("run_zone_summ", "Run zone summary", width = "100%",
-                                                                                               style = "color: #fff; background-color: #6da363; border-color: #800000;")
+                                                                                               class = "btn-secondary")
                                                                  ),
                                                                  
                                                                  conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Table'",
@@ -558,32 +557,33 @@ ui = function(request){
                                                                                   uiOutput("plot_grid_args"),
                                                                  ),
                                                                  
-                                                                 tags$hr(style = "border-top: 3px solid #bbb;"),
+                                                                 bslib::accordion(open = FALSE,
+                                                                                  bslib::accordion_panel(
+                                                                                    "Other actions", icon = bsicons::bs_icon("menu-app"), 
+                                                                                    
+                                                                                    textInput('notesExplore', "Notes", value=NULL, 
+                                                                                              placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                                                                    
+                                                                                    actionButton('callTextDownloadExplore','Save notes', class = "btn-success"),
+                                                                                    
+                                                                                    tags$br(), tags$br(),
+                                                                                    
+                                                                                    textInput("exprExplore", label = "Enter an R expression",
+                                                                                              value = "values$dataset"),
+                                                                                    actionButton("runExplore", "Run", class = "btn-success"),
+                                                                                    div(style = "margin-top: 2em;",
+                                                                                        uiOutput('resultExplore')
+                                                                                        
+                                                                                    )
+                                                                                  )
+                                                                 ),
+                                                                 actionButton("closeExplore", "Close app", icon = icon("circle-xmark"),
+                                                                              width = "50%",                                                           
+                                                                              class = "btn-danger", 
+                                                                              onclick = "setTimeout(function(){window.close();},500);")
                                                                  
-                                                                 textInput('notesExplore', "Notes", value=NULL, 
-                                                                           placeholder = 'Write notes to store in text output file. 
-                                                    Text can be inserted into report later.'),
-                                                    actionButton('callTextDownloadExplore','Save notes'),
-                                                    
-                                                    tags$br(), tags$br(),
-                                                    
-                                                    ##Inline scripting 
-                                                    textInput("expr", label = "Enter an R expression",
-                                                              value = "values$dataset"),
-                                                    actionButton("runI", "Run", class = "btn-success"),
-                                                    div( style = "margin-top: 2em;",
-                                                         uiOutput('resultI')
-                                                    ),
-                                                    
-                                                    tags$button(
-                                                      id = 'closeExplore',
-                                                      type = "button",
-                                                      style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                                      class = "btn action-button",
-                                                      onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                                      "Close app"
-                                                    )
                                        ),
+                                       
                                        tags$br(),
                                        tags$div(shinycssloaders::withSpinner(DT::DTOutput("output_table_exploration"), type = 6), 
                                                 style = "font-size: 75%; width: 100%"),
@@ -648,62 +648,55 @@ ui = function(request){
                     bslib::nav_panel(title = "Simple Analyses", id = "analysis",#value
                                      bslib::page_sidebar(
                                        sidebar = bslib::sidebar( width = 550,
-                                                                 tabPlotUI("anal"),
+                                                                 splitLayout(
+                                                                 tabPlotUI("anal")),
                                                                  
-                                                                 #tags$br(), tags$br(),
+                                                                 splitLayout(modSaveUI("anal"),
                                                                  
-                                                                 modSaveUI("anal"),
-                                                                 
-                                                                 # tags$br(),tags$br(),
                                                                  
                                                                  actionButton("refresh2", "Refresh data", 
-                                                                              style = "color: white; background-color: blue;" 
-                                                                 ),
+                                                                              width = "100%",
+                                                                              icon = icon('sync', verify_fa = FALSE),
+                                                                              class = "btn-primary"
+                                                                 )),
                                                                  
-                                                                 # tags$br(),tags$br(),
-                                                                 
-                                                                 # tags$br(),
                                                                  
                                                                  selectInput('corr_reg','Show correlations or simple linear regression', 
                                                                              choices=c('Correlation','Regression'), selected='Correlation'),
                                                                  
                                                                  conditionalPanel("input.corr_reg == 'Correlation'", 
                                                                                   
-                                                                                  actionButton("run_corr", "Run function", 
-                                                                                               style = "color: #fff; background-color: #6da363; border-color: #800000;")
+                                                                         actionButton("run_corr", "Run function", width = "50%", class = "btn-primary")
                                                                  ),
                                                                  
                                                                  conditionalPanel("input.corr_reg == 'Regression'", 
                                                                                   
-                                                                                  actionButton("run_reg", "Run function", 
-                                                                                               style = "color: #fff; background-color: #6da363; border-color: #800000;")
+                                                                                  actionButton("run_reg", "Run function",  class = "btn-primary")
                                                                  ),
-                                                                 
-                                                                 tags$hr(style = "border-top: 3px solid #bbb;"),
-                                                                 
-                                                                 textInput('notesAnal', "Notes", value=NULL, 
-                                                                           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                                                                 
-                                                                 actionButton('callTextDownloadAnal','Save notes'),
-                                                                 
-                                                                 tags$br(), tags$br(),
-                                                                 
-                                                                 ##Inline scripting 
-                                                                 textInput("exprA", label = "Enter an R expression",
-                                                                           value = "values$dataset"),
-                                                                 actionButton("runA", "Run", class = "btn-success"),
-                                                                 div(style = "margin-top: 2em;",
-                                                                     uiOutput('resultA')
+                                                                 bslib::accordion(open = FALSE,
+                                                                                  bslib::accordion_panel(
+                                                                                    "Other actions", icon = bsicons::bs_icon("menu-app"), 
+                                                                                    
+                                                                                    textInput('notesAnal', "Notes", value=NULL, 
+                                                                                              placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                                                                    
+                                                                                    actionButton('callTextDownloadAnal','Save notes', class = "btn-success"),
+                                                                                    
+                                                                                    tags$br(), tags$br(),
+                                                                                    
+                                                                                    textInput("exprAnal", label = "Enter an R expression",
+                                                                                              value = "values$dataset"),
+                                                                                    actionButton("runAnal", "Run", class = "btn-success"),
+                                                                                    div(style = "margin-top: 2em;",
+                                                                                        uiOutput('resultA')
+                                                                                        
+                                                                                    )
+                                                                                  )
                                                                  ),
-                                                                 
-                                                                 tags$button(
-                                                                   id = 'closeAnalysis',
-                                                                   type = "button",
-                                                                   style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                                                   class = "btn action-button",
-                                                                   onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                                                   "Close app"
-                                                                 )
+                                                                 actionButton("closeAnalysis", "Close app", icon = icon("circle-xmark"),
+                                                                              width = "50%",                                                           
+                                                                              class = "btn-danger", 
+                                                                              onclick = "setTimeout(function(){window.close();},500);")
                                        ),
                                        tags$br(),
                                        conditionalPanel("input.corr_reg=='Correlation'",
@@ -740,16 +733,16 @@ ui = function(request){
     bslib::nav_panel(title = 'Compute New Variables', id='new',#value
                      bslib::page_sidebar(
                        sidebar = bslib::sidebar( width = 550,
-                                                 actionButton('saveDataNewVars','Save data to FishSET database'),
-                                                 tags$br(),
-                                                 
+                                                 splitLayout(
+                                                   actionButton('saveDataNewVars','Save data to FishSET database',
+                                                                width = "100%",
+                                                                class = "btn-primary"),
+
                                                  # downloadLink('downloadplotNew', label=''),
                                                  # actionButton('downloadplotNew', label='Save plot to folder'),
-                                                 
-                                                 
-                                                 actionButton("refreshNew", "Refresh data", 
-                                                              style = "color: white; background-color: blue;"),
-                                                 tags$br(),
+                                                 actionButton("refreshNew", "Refresh data",
+                                                              width = "100%",class = "btn-primary")),
+                                                 #tags$br(),
                                                  
                                                  selectInput('VarCreateTop', "Create variables based on", multiple=FALSE,  
                                                              choices=c('Nominal ID', 'Arithmetic functions', 
@@ -951,34 +944,34 @@ ui = function(request){
                                                                 style = "margin-left:19px;",
                                                                 uiOutput('input_tri_cent')),
                                                
-                                               actionButton('runNew',"Run function",
-                                                            style="color: #fff; background-color: #6da363; border-color: #800000;"),
+                                               actionButton('runNew',"Run function",class = "btn-secondary"),
                                                
-                                               tags$hr(style = "border-top: 3px solid #bbb;"),
                                                
-                                               textInput('notesNew', "Notes", value=NULL, 
-                                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                                               actionButton('callTextDownloadNew','Save notes'),
-                                               
-                                               tags$br(), tags$br(),
-                                               
-                                               ##Inline scripting 
-                                               textInput("exprN", label = "Enter an R expression",
-                                                         value = "values$dataset"),
-                                               actionButton("runN", "Run", class = "btn-success"),
-                                               div(style = "margin-top: 2em;",
-                                                   uiOutput('resultN')
+                                               bslib::accordion(open = FALSE,
+                                                                bslib::accordion_panel(
+                                                                  "Other actions", icon = bsicons::bs_icon("menu-app"), 
+                                                                  
+                                                                  textInput('notesNew', "Notes", value=NULL, 
+                                                                            placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                                                  
+                                                                  actionButton('callTextDownloadNew','Save notes', class = "btn-success"),
+                                                                  
+                                                                  tags$br(), tags$br(),
+                                                                  
+                                                                  textInput("exprN", label = "Enter an R expression",
+                                                                            value = "values$dataset"),
+                                                                  actionButton("runN", "Run", class = "btn-success"),
+                                                                  div(style = "margin-top: 2em;",
+                                                                      uiOutput('resultN')
+                                                                      
+                                                                  )
+                                                                )
                                                ),
-                                               
-                                               tags$button(
-                                                 id = 'closeNew',
-                                                 type = "button",
-                                                 style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                                 class = "btn action-button",
-                                                 onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                                 "Close app"
-                                               )
-                       ),
+                                               actionButton("closeNew", "Close app", icon = icon("circle-xmark"),
+                                                            width = "50%",                                                           
+                                                            class = "btn-danger", 
+                                                            onclick = "setTimeout(function(){window.close();},500);")
+                                               ),
                        tags$br(),
                        
                        DT::DTOutput("output_table_create"),
@@ -1020,20 +1013,32 @@ ui = function(request){
                                                                                    conditionalPanel("input.assign_fun == 'Fleet assignment'",
                                                                                                     fleet_assignUI("f_assign")),
                                                                                    
-                                                                                   tags$hr(style = "border-top: 3px solid #bbb;"),
-
-                                                                                   noteUI("fleet"),
-
-                                                                                   # RexpressionUI("fleet")
-                                                                                   textInput("exprFleet", label = "Enter an R expression",
-                                                                                             value = "values$dataset"),
-                                                                                   actionButton("runFleet", "Run", class = "btn-success"),
-                                                                                   div(style = "margin-top: 2em;",
-                                                                                       uiOutput('resultFleet')
+                                                                                   bslib::accordion(open = FALSE,
+                                                                                                    bslib::accordion_panel(
+                                                                                                      "Other actions", icon = bsicons::bs_icon("menu-app"), 
+                                                                                                      
+                                                                                                      noteUI("fleet"),
+                                                                                                      # textInput('notesNew', "Notes", value=NULL, 
+                                                                                                      #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                                                                                      # 
+                                                                                                      # actionButton('callTextDownloadNew','Save notes', class = "btn-success"),
+                                                                                                      # 
+                                                                                                      tags$br(), tags$br(),
+                                                                                                      
+                                                                                                      textInput("exprFleet", label = "Enter an R expression",
+                                                                                                                value = "values$dataset"),
+                                                                                                      actionButton("runFleet", "Run", class = "btn-success"),
+                                                                                                      div(style = "margin-top: 2em;",
+                                                                                                          uiOutput('resultFleet')
+                                                                                                          
+                                                                                                      )
+                                                                                                    )
                                                                                    ),
+
 
                                                                                    closeAppUI("fleet")
                                                           ),
+                                                          page_fillable(
                                                           
                                                           conditionalPanel("input.assign_fun == 'Define fleets'",
                                                                            fleet_exprUI("f_table"),
@@ -1041,6 +1046,7 @@ ui = function(request){
                                                           
                                                           conditionalPanel("input.assign_fun == 'Fleet assignment'",
                                                                            fleet_assignOut("f_assign"))
+                                                        )
                                                         )
                                        ),
                                        
@@ -1091,10 +1097,9 @@ ui = function(request){
                                                                                    
                                                                                    uiOutput("run_fleet_fun"), # run function
                                                                                    
-                                                                                   tags$br(),
-                                                                                   
-                                                                                   tags$hr(style = "border-top: 3px solid #bbb;"),
-                                                                                   
+                                                                              bslib::accordion(open = FALSE,
+                                                                                        bslib::accordion_panel(
+                                                                                        "Other actions", icon = bsicons::bs_icon("menu-app"),                                                                                    
                                                                                    noteUI("fleet_summary"),
                                                                                    
                                                                                    # RexpressionUI("fleet")
@@ -1103,9 +1108,10 @@ ui = function(request){
                                                                                    actionButton("runFleetSummary", "Run", class = "btn-success"),
                                                                                    div(style = "margin-top: 2em;",
                                                                                        uiOutput('resultFleetSummary')
-                                                                                   ),
-                                                                                   
-                                                                                   closeAppUI("fleet_summary")
+                                                                                   )
+                                                              )  
+                                                                              ),
+                                                              closeAppUI("fleet_summary"),
                                                           ),
                                                           
                                                           conditionalPanel("input.fleet_fun == 'vessel_count'",
@@ -1148,43 +1154,44 @@ ui = function(request){
                                                  uiOutput("disableMsg1"),
                                                  
                                                  actionButton("save_final_modal", "Save final table to FishSET database",
-                                                              style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+                                                              class= "btn-primary"),
                                                  
-                                                 actionButton('altc_save','Save choices', style = "color: white; background-color: green;"), 
+                                                 actionButton('altc_save','Save choices', class= "btn-primary"), 
+
                                                  
                                                  #  tags$br(), tags$br(),
                                                  
-                                                 actionButton("refreshZ", "Refresh data", 
-                                                              style = "color: white; background-color: blue;" 
+                                                 actionButton("refreshZ", "Refresh data", icon = icon('sync', verify_fa = FALSE),
+                                                             class= "btn-primary", width = "100%" 
                                                  ),
                                                  
                                                  #tags$br(), tags$br(),
                                                  
-                                                 tags$hr(style = "border-top: 3px solid #bbb;"),
+                                                 bslib::accordion(open = FALSE,
+                                                                  bslib::accordion_panel(
+                                                                    "Other actions", icon = bsicons::bs_icon("menu-app"), 
                                                  
-                                                 textInput('notesAltc', "Notes", value = NULL, 
-                                                           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                                                 
-                                                 actionButton('callTextDownloadAlt','Save notes'),
-                                                 
-                                                 tags$br(), tags$br(),
-                                                 
-                                                 # Inline scripting 
-                                                 textInput("exprZ", label = "Enter an R expression",
-                                                           value = "values$dataset"),
-                                                 actionButton("runZ", "Run", class = "btn-success"),
-                                                 div(style = "margin-top: 2em;",
-                                                     uiOutput('resultZ')
-                                                 ),
-                                                 
-                                                 tags$button(
-                                                   id = 'altc_close',
-                                                   type = "button",
-                                                   style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                                   class = "btn action-button",
-                                                   onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                                   "Close app"
-                                                 )
+                                                   textInput('notesAltc', "Notes", value = NULL, 
+                                                             placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                                   
+                                                   actionButton('callTextDownloadAlt','Save notes',class = "btn-success"),
+                                                   
+                                                   tags$br(), tags$br(),
+                                                   
+                                                   # Inline scripting 
+                                                   textInput("exprZ", label = "Enter an R expression",
+                                                             value = "values$dataset"),
+                                                   actionButton("runZ", "Run", class = "btn-success"),
+                                                   div(style = "margin-top: 2em;",
+                                                       uiOutput('resultZ')
+                                                   )
+                                                  )
+                                             ),
+                                             
+                                             actionButton("altc_close", "Close app", icon = icon("circle-xmark"),
+                                                          width = "50%",                                                           
+                                                          class = "btn-danger", 
+                                                          onclick = "setTimeout(function(){window.close();},500);")
                        ),
                        
                        uiOutput('altc_ui'),
@@ -1212,7 +1219,8 @@ ui = function(request){
                                                           sidebar = bslib::sidebar(width = 550,
                                                                                    
                                                                                    actionButton("refreshEC", "Refresh data", 
-                                                                                                style = "color: white; background-color: blue;"),
+                                                                                                icon = icon('sync', verify_fa = FALSE),
+                                                                                                class = "btn-primary"),
                                                                                    
                                                                                    tags$br(),
                                                                                    
@@ -1287,32 +1295,30 @@ ui = function(request){
                                                 value = FALSE),
                                   
                                   actionButton("exp_submit", "Run expected catch/revenue function", 
-                                               style="color: #fff; background-color: #6da363; border-color: #800000;"), 
-                                  
-                                  tags$hr(style = "border-top: 3px solid #bbb;"),
-                                  
-                                  textInput('notesEC', "Notes", value=NULL, 
-                                            placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                                  
-                                  actionButton('callTextDownloadEC','Save notes'),
-                                  
-                                  tags$br(), tags$br(),
+                                               class = "btn-secondary"), 
                                   
                                   ##Inline scripting 
-                                  textInput("exprEC", label = "Enter an R expression",
-                                            value = "values$dataset"),
-                                  actionButton("runEC", "Run", class = "btn-success"),
-                                  div(style = "margin-top: 2em;",
-                                      uiOutput('resultEC')),
-                                  
-                                  tags$button(
-                                    id = 'closeEC',
-                                    type = "button",
-                                    style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                    class = "btn action-button",
-                                    onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                    "Close app")
+                                  bslib::accordion(open = FALSE,
+                                                   bslib::accordion_panel(
+                                                     "Other actions", icon = bsicons::bs_icon("menu-app"), 
+                                                     textInput('notesEC', "Notes", value=NULL, 
+                                                               placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                                     
+                                                     actionButton('callTextDownloadEC','Save notes',class = "btn-success"),
+                                                      textInput("exprEC", label = "Enter an R expression",
+                                                                value = "values$dataset"),
+                                                      actionButton("runEC", "Run", class = "btn-success"),
+                                                      div(style = "margin-top: 2em;",
+                                                          uiOutput('resultEC'))
+                                                      )
+                                      ),
+                                        
+                                  actionButton("closeEC", "Close app", icon = icon("circle-xmark"),
+                                               width = "50%",                                                           
+                                               class = "btn-danger", 
+                                               onclick = "setTimeout(function(){window.close();},500);")
                                                           ),
+
                                   
                                   tags$br(),tags$br(),
                                   h4(tags$b('Compute expected catch for each observation and zone')),
@@ -1364,7 +1370,7 @@ ui = function(request){
                                                    bslib::page_sidebar(
                                                      sidebar = bslib::sidebar(width = 550,
                                                                                actionButton('exp_merge_reload', 'Refresh expected catch list', 
-                                                                                            style = "color: white; background-color: blue;"),
+                                                                                            class = "btn-primary"),
                                                                                
                                                                                tags$br(),
                                                                                
@@ -1373,7 +1379,7 @@ ui = function(request){
                                                                                uiOutput('exp_merge_ui'),
                                                                                
                                                                                actionButton('exp_merge_run', 'Merge expected catch', 
-                                                                                            style="color: #fff; background-color: #6da363; border-color: #800000;"),
+                                                                                            class = "btn-secondary"),
                                                      ),
                                                      
                                                      fluidRow(
@@ -1396,11 +1402,11 @@ ui = function(request){
                                                           sidebar = bslib::sidebar(width = 550,
                                                                                    # Models can't be run if final dataset not detected
                                                                                    uiOutput("disableMsg"),
-                                                                                   
+
                                                                                    # tags$br(),
                                                                                    
                                                                                    actionButton("mod_check", "Run model checks",
-                                                                                                style="color: #fff; background-color: #6da363; border-color: #800000;"), 
+                                                                                                class = "btn-primary"), 
                                                                                    
                                                                                    uiOutput('mod_add_run_bttn'),
                                                                                    
@@ -1409,30 +1415,31 @@ ui = function(request){
                                                                                    tags$p(tags$strong("More information"), tags$br(),
                                                                                           "Model parameter table is editable. Double click a cell to edit."),
                                                                                    
-                                                                                   tags$hr(style = "border-top: 3px solid #bbb;"),
-                                                                                   
-                                                                                   textInput('notesModel', "Notes", value=NULL, 
-                                                                                             placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                                                                                   
-                                                                                   actionButton('callTextDownloadModels','Save notes'),
-                                                                                   
-                                                                                   tags$br(), tags$br(),
-                                                                                   
-                                                                                   ##Inline scripting 
-                                                                                   textInput("exprM", label = "Enter an R expression",
-                                                                                             value = "values$dataset"),
-                                                                                   actionButton("runM", "Run", class = "btn-success"),
-                                                                                   div(style = "margin-top: 2em;", uiOutput('resultM')),
-                                                                                   
-                                                                                   tags$button(
-                                                                                     id = 'closeModel',
-                                                                                     type = "button",
-                                                                                     style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                                                                     class = "btn action-button",
-                                                                                     onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                                                                     "Close app"
-                                                                                   )
+                                                                                   bslib::accordion(open = FALSE,
+                                                                                                    bslib::accordion_panel(
+                                                                                                      "Other actions", icon = bsicons::bs_icon("menu-app"),                                                                                    
+                                                                                         textInput('notesModel', "Notes", value=NULL, 
+                                                                                                   placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                                                                         
+                                                                                         actionButton('callTextDownloadModels','Save notes', class = "btn-success"),
+                                                                                         
+                                                                                         tags$br(), tags$br(),
+                                                                                         
+                                                                                         
+                                                                                         ##Inline scripting 
+                                                                                         textInput("exprM", label = "Enter an R expression",
+                                                                                                   value = "values$dataset"),
+                                                                                         actionButton("runM", "Run", class = "btn-success"),
+                                                                                         div(style = "margin-top: 2em;", uiOutput('resultM')),
+                                                                                                    )
+                                                                                   ),
+                                                                                   actionButton("closeModel", "Close app", icon = icon("circle-xmark"),
+                                                                                                width = "50%",                                                           
+                                                                                                class = "btn-danger", 
+                                                                                                onclick = "setTimeout(function(){window.close();},500);")
                                                           ),
+                                                                                
+                                                          
                                                           
                                                           div(id = "form",
                                                               
@@ -1480,12 +1487,13 @@ ui = function(request){
                                                       tags$br(),
                                                       
                                                       actionButton('mod_add_exp', 'Add expected catch entry',
-                                                                   style = 'background-color: blue; color: white;'),
+                                                                   class = "btn-secondary"),
                                                       
                                                       actionButton('mod_add_exp_reset', 'Reset',
-                                                                   style = 'background-color: red; color: white;'),
+                                                                   class = "btn-secondary"),
                                                       
-                                                      uiOutput('mod_select_exp_ui')
+                                                      uiOutput('mod_select_exp_ui'))
+                                                    
                                                               ),
                                                       
                                                       uiOutput('mod_spat_ui'),
@@ -1543,27 +1551,27 @@ ui = function(request){
                                      
                                      DT::DTOutput('mod_param_table')
                                      
-                                                          ))),
+                                                          )
+                                     #)
+                                     ),
                                      
                                      
                                      bslib::nav_panel(title = "Compare models", id = 'model_compare',
                                                       bslib::page_sidebar(
                                                         sidebar = bslib::sidebar( width = 550,
-                                                                                  tags$br(),tags$br(),
-                                                                                  actionButton("mod_reload", "Reload model output", 
-                                                                                               style = 'background-color: blue; color: white;'),
-                                                                                  actionButton("mod_compare_delete", "Delete row"),
-                                                                                  h3(''),
-                                                                                  actionButton("mod_save_table", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;"),
-                                                                                  tags$br(),tags$br(),
-                                                                                  tags$button(
-                                                                                    id = 'closeCM',
-                                                                                    type = "button",
-                                                                                    style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                                                                    class = "btn action-button",
-                                                                                    onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                                                                    "Close window"
-                                                                                  ) 
+                                                                                  actionButton("mod_reload", "Reload model output",  class = "btn-primary"),
+                                                                                  actionButton("mod_compare_delete", "Delete row", class = "btn-primary"),
+                                                                                #  h3(''),
+                                                                                  actionButton("mod_save_table", "Save table", class = "btn-primary"),
+                                                                                  # tags$br(),tags$br(),
+                                                                                  # tags$button(
+                                                                                  #   id = 'closeCM',
+                                                                                  #   type = "button",
+                                                                                  #   style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                                                                  #   class = "btn action-button",
+                                                                                  #   onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                                                                  #   "Close window"
+                                                                                  # ) 
                                                         ),
                                                         fluidRow(
                                                           column(12,
@@ -1587,10 +1595,10 @@ ui = function(request){
                                                       bslib::page_sidebar(
                                                         sidebar = bslib::sidebar( width = 550,
                                                                                   actionButton("mod_reload", "Reload model output",
-                                                                                               style = 'background-color: blue; color: white;'),
+                                                                                               class = "btn-primary"),
                                                                                   
                                                                                   actionButton('mod_delete', 'Delete model(s)',
-                                                                                               style = 'background-color: red; color: white;')
+                                                                                               class = "btn-primary")
                                                                                   
                                                         ),
                                                         
@@ -1615,7 +1623,7 @@ ui = function(request){
                                                       bslib::page_sidebar(
                                                         sidebar = bslib::sidebar( width = 550,
                                                                                   actionButton('mod_list_reload', 'Reload model list',
-                                                                                               style = 'background-color: blue; color: white;'),
+                                                                                               class = "btn-primary"),
                                                                                   
                                                         ),
                                                         
@@ -1627,13 +1635,10 @@ ui = function(request){
                                                       bslib::page_sidebar(
                                                         sidebar = bslib::sidebar( width = 550,
                                                                                   actionButton('run_cv', "Run cross-validation",
-                                                                                               style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-                                                                                  
-                                                                                  tags$br(),
-                                                                                  tags$br(),
-                                                                                  
+                                                                                               class = "btn-primary"),
+                                                                
                                                                                   actionButton('reload_cv', "Reload output",
-                                                                                               style = "background-color: blue; color: white;"),
+                                                                                               class = "btn-primary"),
                                                                                   
                                                                                   tags$br(),
                                                                                   tags$br(),
@@ -1702,7 +1707,7 @@ ui = function(request){
     bslib::nav_menu(title ='Policy', 
                     bslib::nav_panel(title = "Zone Closure", id = "zone_closures",
                                      bslib::page_sidebar(
-                                       sidebar = bslib::sidebar( 
+                                       sidebar = bslib::sidebar(  width = 550,
                                          "Click on one or more zones to select closed zones.",
                                          "\nPress the 'Add closure' button to record choices.",
                                          "Repeat to add another closure.",
@@ -1715,16 +1720,51 @@ ui = function(request){
                                       )
                     
     ),
-    bslib::nav_panel(title = "Run Policy", id = "run_policy",
-                     bslib::page_sidebar(
-                       sidebar = bslib::sidebar( width = 550,
-                                                 p("select zones")
-                                                 
-                       )
-                     )
-    )
-                     
-    ),
+                    bslib::nav_panel(title = "Run Policy", id = "run_policy",
+                                     bslib::page_sidebar(
+                                       sidebar = bslib::sidebar( width = 550,
+                                       bslib::accordion(
+                                            bslib::accordion_panel(
+                                              "To run policy scenarios", icon = bsicons::bs_icon("sliders"),
+                                              run_policyUI("run_policy")),
+  
+                                            bslib::accordion_panel(
+                                              "To create predicted probabilities map", icon = bsicons::bs_icon("map"),
+                                              predict_map_sidebarUI("run_policy")
+                                            ),
+                                            bslib::accordion_panel(
+                                              "Other actions", icon = bsicons::bs_icon("menu-app"), 
+                                            textInput('notesPolicy', "Notes", value=NULL,
+                                                      placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+
+                                            actionButton('callTextDownloadPolicy','Save notes', class = "btn-success"),
+
+                                            tags$br(), tags$br(),
+                                            
+                                            ##Inline scripting 
+                                            textInput("exprP", label = "Enter an R expression",
+                                                      value = "values$dataset"),
+                                            actionButton("runP", "Run", class = "btn-success"),
+                                            div(style = "margin-top: 2em;", uiOutput('resultP')),
+                                            
+                                            
+                                            )
+                                 ),
+                                 actionButton("closePolicy", "Close app", icon = icon("circle-xmark"),
+                                              width = "50%",                                                           
+                                              class = "btn-danger", 
+                                              onclick = "setTimeout(function(){window.close();},500);")
+                                       
+                                       ),
+                                       bslib::page_fillable(
+                                         bslib::accordion(
+                                           pred_plotsUI("run_policy"),
+                                           predict_map_mainUI("run_policy")
+                                     )
+                             )
+                         )
+                      )                
+                    ),
     
     
     #--- 
@@ -1735,20 +1775,12 @@ ui = function(request){
                                        bslib::nav_panel(title ="Bookmark", id = "bookmark_page",
                                                         
                                                         tags$br(),
-                                                        tags$button(
-                                                          id = 'closeB',
-                                                          type = "button",
-                                                          style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                                          class = "btn action-button",
-                                                          onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                                          "Close app"
-                                                        ),
                                                         tags$br(),tags$br(),
                                                         h4('Bookmark selected choices'),
-                                                        bookmarkButton(),
+                                                        bookmarkButton(width = "25%"),
                                                         tags$br(),
                                                         textInput('notesBook', "Notes", value=NULL, placeholder = 'Paste bookmarked URL here.'),
-                                                        actionButton('callTextDownloadBook','Save notes'),
+                                                        actionButton('callTextDownloadBook','Save notes', width = "25%", class = "btn-primary"),
                                                         downloadLink("downloadTextBook", label=''),
                                                         tags$br(),tags$br(),
                                                         h4('Upload previously saved bookmarked state (.rds file)'),
@@ -1769,31 +1801,34 @@ ui = function(request){
                                                         tags$ul(tags$ul(tags$li('Reload the data in the Upload Data tab.'))),
                                                         tags$ul(tags$ul(tags$li('Selections and inputs will be reloaded but function calls will not be
                                                    run. Go to the', tags$em('log rerun'),
-                                                   'subtab to rerun logged function calls.')))
+                                                   'subtab to rerun logged function calls.'))),
+                                    actionButton("closeB", "Close app", icon = icon("circle-xmark"),
+                                                 width = "25%",                                                           
+                                                 class = "btn-danger", 
+                                                 onclick = "setTimeout(function(){window.close();},500);"),
                                        ),
                                        bslib::nav_panel(title = "Rerun logged function calls", id = "log_rerun",
                                                         bslib::page_sidebar(
                                                           sidebar = bslib::sidebar( width = 550,
-                                                                                    tags$button(
-                                                                                      id = "closeRerun",
-                                                                                      type = "button",
-                                                                                      style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                                                                      class = "btn action-button",
-                                                                                      onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                                                                      "Close app"
-                                                                                    ),
                                                                                     
                                                                                     actionButton("run_log", "Rerun log",
-                                                                                                 style="color: #fff; background-color: #6da363; border-color: #800000;"),
+                                                                                                 class = "btn-secondary"),
+                                                                                    
                                                                                     
                                                                                     uiOutput('new_dat_cb_choices'),
                                                                                     
                                                                                     
-                                                                                    p("Click on the table rows to run specific function calls.")
+                                                                                    p("Click on the table rows to run specific function calls."),
+                                                                                    actionButton("closeRerun", "Close app", icon = icon("circle-xmark"),
+                                                                                                 width = "50%",                                                           
+                                                                                                 class = "btn-danger", 
+                                                                                                 onclick = "setTimeout(function(){window.close();},500);")
+                                                            
                                                           ),
                                                           
-                                                          
-                                                          shinycssloaders::withSpinner(DT::DTOutput("log_table"), type = 6),
+                                                          bslib::page_fillable(
+                                                          shinycssloaders::withSpinner(DT::DTOutput("log_table"), type = 6)
+                                                          )
                                                         )
                                        )
                      )
