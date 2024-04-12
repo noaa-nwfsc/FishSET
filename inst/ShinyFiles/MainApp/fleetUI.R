@@ -1231,7 +1231,7 @@ fleetOut <- function(id) {
 fleet_tableOut <- function(id) {
   ns <- NS(id)
   tagList(
-   bslib::card(card_header(strong("Fleet Definition Table"), class = "text-primary"),
+   bslib::card(bslib::card_header(strong("Fleet Definition Table"), class = "text-primary"),
                card_body(height="400px", fluidRow(column(8,
                     actionButton(ns("deselect"), "Deselect", 
                                  class = "btn-success"),
