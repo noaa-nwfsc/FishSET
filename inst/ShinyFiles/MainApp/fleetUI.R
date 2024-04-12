@@ -7,10 +7,10 @@ saveFleetUI <- function(id) {
   tagList(
     downloadLink(ns('downloadplotHIDE'), label = ''),
     actionButton(ns('downloadplot'), label = 'Save plot to folder',
-                 style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+                 class = "btn-primary"),
     downloadLink(ns('downloadTableHIDE'), label = ''),
     actionButton(ns('downloadTable'), label = 'Save table to folder as csv',
-                 style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+                 class = "btn-primary")
   )
 }
 
@@ -20,7 +20,8 @@ plotSaveUI <- function(id) {
   tagList(
     downloadLink(ns('downloadPlotHIDE'), label = ''),
     actionButton(ns('save_plot'), label = 'Save plot to folder',
-                 style = "color: #fff; background-color: #6EC479; border-color:#000000;"))
+                 class = "btn-primary",
+                 width = "49%"))
 }
 
 tableSaveUI <- function(id) {
@@ -29,7 +30,8 @@ tableSaveUI <- function(id) {
   tagList(
     downloadLink(ns('downloadTableHIDE'), label = ''),
     actionButton(ns('save_table'), label = 'Save table to folder as csv',
-                 style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+                 class = "btn-primary",
+                 width = "50%")
   )
 }
 
@@ -60,7 +62,8 @@ modSaveUI <- function(id) {
   tagList(
     downloadLink(ns('downloadModHIDE'), label = ''),
     actionButton(ns('save_mod'), label = 'Save summary to folder as txt',
-                 style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+                 width = "100%",
+                 class = "btn-primary")
   )
 }
 
@@ -72,8 +75,7 @@ noteUI <- function(id) {
     textInput(ns('notes'), "Notes", value = NULL, 
               placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
     
-    actionButton(ns('callTextDownload'),'Save notes')
-                 # style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+    actionButton(ns('callTextDownload'),'Save notes', class = "btn-success")
   )
 }
 
@@ -93,36 +95,32 @@ RexpressionUI <- function(id) {
 
 saveDataTableUI <- function(id) {
   ns <- NS(id)
-  actionButton(ns('saveData'),'Save data to FishSET database')
+  actionButton(ns('saveData'),'Save data to FishSET database', class = "btn-primary")
 }
 
 refreshUI <- function(id) {
   
   ns <- NS(id)
   actionButton(ns("refresh"), "Refresh data", 
-               icon = icon('sync', verify_fa = FALSE),
-               style = "color: white; background-color: blue;")
+               icon = icon('sync', verify_fa = FALSE), class = "btn-primary")
 }
 
 closeAppUI <- function(id) {
   
   ns <- NS(id)
   
-  tags$button(
-    id = ns('close'),
-    type = "button",
-    style ="color: #fff; background-color: #FF6347; border-color: #800000;",
-    class = "btn action-button",
-    onclick = "setTimeout(function(){window.close();},500);",  # close browser
-    "Close app"
-  )
+  actionButton(ns("close"), "Close app", icon = icon("circle-xmark"),
+               width = "50%",                                                           
+               class = "btn-danger", 
+               onclick = "setTimeout(function(){window.close();},500);")
+
 }
 
 runFunUI <- function(id) {
   
   ns <- NS(id)
   actionButton(ns("fun_run"), "Run function",
-               style = "color: #fff; background-color: #6da363; border-color: #800000;")
+               class = "btn-secondary")
 }
 
 filter_periodUI <- function(id, dat, date, type) {
@@ -349,10 +347,7 @@ vessel_countUI <- function(id) {
                             "weekday"),
                 multiple = FALSE, selected = "year_month"),
     
-    # conditionalPanel("input.period !== 'no_period'", 
-    #                  ns = ns, style = "margin-left:19px;",
-    
-    uiOutput(ns("date_select")),#),
+    uiOutput(ns("date_select")),
     
     checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     
@@ -1096,14 +1091,14 @@ fleet_tableUI <- function(id) {
     tags$br(),
     
     actionButton(ns("save"), "Save table to FishSET database",
-                 style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+                 class = "btn-secondary"),
     
     tags$br(), tags$br(),
     
     fileInput(ns("file"), "Import table from local file"),
     
     actionButton(ns("upload"), "Import table",
-                 style = "color: white; background-color: blue;"),
+                 class = "btn-secondary"),
     
     tags$br(), tags$br(),
     
@@ -1111,7 +1106,7 @@ fleet_tableUI <- function(id) {
       textInput(ns("colname"), label = NULL, placeholder = "Enter new column name"),
       
       actionButton(ns("colname_btn"), "Change column name",
-                   style = "color: white; background-color: blue;")
+                   class = "btn-secondary")
     ),
   )
 }
@@ -1163,15 +1158,15 @@ fleet_exprUI <- function(id) {
     div(id = "n_expr_container"),
     
     actionButton(ns("add_expr"), label = "Add to expression", icon = icon(name = "plus"), 
-                 style = "background-color: blue; color: white;"), 
+                class = "btn-info"), 
     
     tags$br(), tags$br(),
     h6(strong("Expression")),
     verbatimTextOutput(ns("expr_txt")),
     tags$br(), tags$br(),
     
-    actionButton(ns("reset_expr"), "Reset expression", style = "color: white; background-color: blue;"),
-    actionButton(ns("insert_expr"), "Insert expression", style = "color: white; background-color: green;"),
+    actionButton(ns("reset_expr"), "Reset expression", class = "btn-info"),
+    actionButton(ns("insert_expr"), "Insert expression", class = "btn-info"),
     
     tags$br(), tags$br()
   )
@@ -1198,12 +1193,12 @@ fleet_assignUI <- function(id) {
     p(strong("Import table")),
     
     actionButton(ns("refresh_tabs"), "Refresh saved tables", 
-                 icon = icon('sync', verify_fa = FALSE), style = "color: blue;"),
+                 icon = icon('sync', verify_fa = FALSE), class = "btn-info"),
     
     uiOutput(ns("available_tabs")),
     
     actionButton(ns("load_btn"), "Load table",
-                 style = "color: white; background-color: blue;"),
+                 class = "btn-info"),
     
     tags$br(), tags$br(),
     
@@ -1236,68 +1231,52 @@ fleetOut <- function(id) {
 fleet_tableOut <- function(id) {
   ns <- NS(id)
   tagList(
-    h4(strong("Fleet Definition Table")),
+   bslib::card(card_header(strong("Fleet Definition Table"), class = "text-primary"),
+               card_body(height="400px", fluidRow(column(8,
+                    actionButton(ns("deselect"), "Deselect", 
+                                 class = "btn-success"),
+                    
+                    actionButton(ns("select_row"), "Select row", 
+                                 class = "btn-success"),
+                    
+                    actionButton(ns("select_column"), "Select column", 
+                                 class = "btn-success"),
+                    
+                    actionButton(ns("select_cell"), "Select cell", 
+                                 class = "btn-success"))),
+    DT::DTOutput(ns("f_tab")))),
     
     fluidRow(
      
-      column(6,
-        div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; margin-bottom: 2em;",
-          p("Double-click to edit table. Press Crtl + Enter to save changes, Esc to exit edit mode.")))
-    ),
-    
-    fluidRow(
-      
-      div(style = "margin-left: 19px;",
+      column(8,
+        div(
+          h5(strong("Double-click to edit table. Press Crtl + Enter to save changes, Esc to exit edit mode.", class = "text-warning")))),
+
+  column(4,  align = 'right',
           actionButton(ns("addrow"), "Add row",
-                   style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+                       class = "btn-info"),
           
           actionButton(ns("deleterow"), "Delete row",
-                       style = "color: #fff; background-color: #EB8C34; border-color:#000000;"),
+                       class = "btn-info"),
           
           conditionalPanel("input.upload > 0", ns = ns,
             
             actionButton(ns("addcol"), "Add column",
-                         style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+                         class = "btn-info"),
             
             actionButton(ns("deletecol"), "Delete column",
-                         style = "color: #fff; background-color: #EB8C34; border-color:#000000;"))
+                         class = "btn-info"))
           )
+
       ),
     
-    tags$br(),
-    
-    fluidRow(column(8,
-                    actionButton(ns("deselect"), "Deselect", 
-                                 style = "background-color:#E8E8E8;
-                                    color:#000000; border-color:#BEBEBE;
-                                    border-style:double; border-width:3px;
-                                    border-radius:0%; font-size:14px;"),
-                    
-                    actionButton(ns("select_row"), "Select row", 
-                                 style = "background-color:#E8E8E8;
-                                    color:#000000; border-color:#BEBEBE;
-                                    border-style:double; border-width:3px;
-                                    border-radius:0%; font-size:14px;"),
-                    
-                    actionButton(ns("select_column"), "Select column", 
-                                 style = "background-color:#E8E8E8;
-                                    color:#000000; border-color:#BEBEBE;
-                                    border-style:double; border-width:3px;
-                                    border-radius:0%; font-size:14px;"),
-                    
-                    actionButton(ns("select_cell"), "Select cell", 
-                                 style = "background-color:#E8E8E8;
-                                   color:#000000; border-color:#BEBEBE;
-                                   border-style:double; border-width:3px;
-                                   border-radius:0%; font-size:14px;"))),
-  DT::DTOutput(ns("f_tab")),
-  
   tags$br(), tags$br(),
   
   fluidRow(column(4, 
                   h4(strong("Reference Table")),
                   tableOutput(ns("reference"))))
   )
+  
 }
 
 fleet_assignOut <- function(id) {

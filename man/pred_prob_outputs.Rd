@@ -4,10 +4,12 @@
 \alias{pred_prob_outputs}
 \title{Summarize predicted probabilities}
 \usage{
-pred_prob_outputs(project, output_option = "table")
+pred_prob_outputs(project, mod.name = NULL, output_option = "table")
 }
 \arguments{
 \item{project}{Name of project}
+
+\item{mod.name}{Name of model}
 
 \item{output_option}{"table" to return summary table (default); "model_fig" for predicted probabilities; or "policy_fig" 
 to return predicted probabilities for each model/policy scenario.}
