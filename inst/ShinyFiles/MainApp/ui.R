@@ -1038,7 +1038,7 @@ ui = function(request){
 
                                                                                    closeAppUI("fleet")
                                                           ),
-                                                          page_fillable(
+                                                          bslib::page_fillable(
                                                           
                                                           conditionalPanel("input.assign_fun == 'Define fleets'",
                                                                            fleet_exprUI("f_table"),
