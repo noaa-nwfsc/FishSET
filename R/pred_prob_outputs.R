@@ -6,6 +6,7 @@
 #' predicted probabilities for each model, and the second figure option shows predicted probabilities for each model and policy.
 #'
 #' @param project Name of project
+#' @param mod.name Name of model
 #' @param output_option "table" to return summary table (default); "model_fig" for predicted probabilities; or "policy_fig" 
 #' to return predicted probabilities for each model/policy scenario.
 #' @return A model prediction summary table (default), model prediction figure, or policy prediction figure. See \code{output_option} argument.
@@ -21,7 +22,7 @@
 #'pred_prob_outputs(project = "scallop")
 #'
 #'}
-pred_prob_outputs <- function(project, output_option = "table"){
+pred_prob_outputs <- function(project, mod.name = NULL, output_option = "table"){
   
   # Create connection to database and remove connection on exit of this function
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
@@ -34,39 +35,63 @@ pred_prob_outputs <- function(project, output_option = "table"){
   # make model and prediction tables exist in the database
   # TODO: If this is running in the Shiny and one or more of the tables above do not exist then show error message and stop running function here
   tryCatch({
-    model_output <- unserialize_table(paste0(project, "ModelOut"), project)},
-    
+  #  model_output <<- model_design_list("scallopMod")[[which(lapply(model_design_list("scallopMod"), "[[", "mod.name") == "lz")]]},
+    model_output <- model_design_list(project)[[which(lapply(model_design_list(project), "[[", "mod.name") == mod.name)]]},
+
+   
     error = function(err){message(paste0("Model output table not found in ", project))}
   )
   tryCatch({
-    pred_output <- unserialize_table(paste0(project, "predictOutput"), project)},
     
+   # pred_out <- unserialize_table(paste0("scallopMod", "predictOutput"), "scallopMod")
+    pred_out <- unserialize_table(paste0(project, "predictOutput"), project)
+    
+   # test_name <- "lz"
+    
+    
+    get_mod_pred_out <- lapply(pred_out, function(x){
+      mod_name <- x$modelDat$mod.name
+    #  if(mod_name == "lz"){
+        
+      if(mod_name == mod.name){
+        return(1)
+      } else {
+        return(0)
+      }
+    })
+    
+    pred_output <- pred_out[which(unlist(get_mod_pred_out) == 1)]
+  },
+    
+  
     error = function(err){message(paste0("Prediction output table not found in ", project))}  
   )
 
   # Calculate percent observations per zone
-  prop_obs <- table(as.factor(model_output[[1]]$choice.table$choice)) / sum(table(as.factor(model_output[[1]]$choice.table$choice)))
-  prop_obs <- data.frame(ZoneID = names(prop_obs), Proportion.Observations = as.vector(prop_obs))
+ # prop_obs <- table(as.factor(model_output[[1]]$choice.table$choice)) / sum(table(as.factor(model_output[[1]]$choice.table$choice)))
+  prop_obs<-table(as.factor(model_output$choice$choice)) / sum(table(as.factor(model_output$choice$choice)))
+  
+  prop_obs<-data.frame(ZoneID = names(prop_obs), Proportion.Observations = as.vector(prop_obs))
   
   # Get a list of model names from prediction output scenario names
-  predict_n <- unlist(lapply(pred_output, function(x) x$scenario.name))
-  mod_n <- unique(sapply(strsplit(predict_n, split = " "), "[", 1))
+  predict_n<-unlist(lapply(pred_output, function(x) x$scenario.name))
+  mod_n<-unique(sapply(strsplit(predict_n, split = " "), "[", 1))
   
   # Get the index for the first prediction output for each model name
-  predOut_ind <- unlist(lapply(mod_n, function(x) grep(x, predict_n)[1]))
+  predOut_ind<-unlist(lapply(mod_n, function(x) grep(x, predict_n)[1]))
   
   # Get predicted probabilities by zone for each model
-  predProbs <- lapply(pred_output[predOut_ind], function(x) x$prob[,1]/100)
+  predProbs<-lapply(pred_output[predOut_ind], function(x) x$prob[,1]/100)
   
   # Return table without running code below ---------------------------------------------------------------------------------
   if(output_option == "table"){
     # Calculate squared error between percent observations and predicted probabilities
-    predSE <- lapply(predProbs, function(x) (x - prop_obs$Proportion.Observations)^2)
+    predSE<-lapply(predProbs, function(x) (x - prop_obs$Proportion.Observations)^2)
     
     # Combine proportion of observation, predicted probabilities and squared error
     out_tab <- prop_obs
     for(i in 1:length(predProbs)){
-      tmp_df <- as.data.frame(cbind(predProbs[[i]], predSE[[i]]))
+      tmp_df<-as.data.frame(cbind(predProbs[[i]], predSE[[i]]))
       names(tmp_df) <- c(mod_n[i], paste0(mod_n[i],"_SE"))
       out_tab <- cbind(out_tab, tmp_df)
     }
@@ -86,7 +111,7 @@ pred_prob_outputs <- function(project, output_option = "table"){
     # Return bargraph with model pred probabilities ------------------------------------------------------------------------
     if(output_option == "model_fig"){
       # Add prop observation and convert to long format dataframe
-      fig_df <- tmp_df %>%
+      fig_df<-tmp_df %>%
         mutate(Proportion.Observations = prop_obs$Proportion.Observations) %>%
         gather(key = "Model", value = "Probability", -ZoneID)
       
@@ -97,7 +122,26 @@ pred_prob_outputs <- function(project, output_option = "table"){
         scale_fill_viridis_d() +
         theme_classic() +
         theme(text = element_text(size= 16),
-              axis.text.x = element_text(angle = 45, vjust = 1, hjust = 0.95))
+              axis.text.x = element_text(angle = 90, vjust = 1, hjust = 0.95))
+      
+      out_fig <- ggplotly(out_fig)%>% 
+        plotly::layout(
+        legend =list(
+          orientation = "h",
+          # show entries horizontally
+          bgcolor = "white",
+          bordercolor = "black",
+          xanchor = "center",
+          # use center of legend as anchor
+          x = 0.5,
+          y = -0.7,
+          font = list(
+            family = "sans-serif",
+            size = 15,
+            color = "black"
+          )
+        )
+      )
       
       return(out_fig)
       
@@ -121,6 +165,9 @@ pred_prob_outputs <- function(project, output_option = "table"){
         theme_classic() +
         theme(text = element_text(size= 16),
               axis.text.x = element_text(angle = 45, vjust = 1, hjust = 0.95))
+      
+      out_fig <- ggplotly(out_fig)
+      
       
       return(out_fig)
     } 

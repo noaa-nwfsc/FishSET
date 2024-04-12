@@ -7,10 +7,10 @@ zone_closure_sidebarUI <- function(id){
   tagList(
        uiOutput(ns("zone_closure_cat")),
       actionButton(ns('zoneplot'), "Plot zones",
-                 style = "color: white; background-color: blue;"),
+                 class = "btn-primary"),
        textInput(ns('scenarioname'), 'Scenario Name', value=''),
        actionButton(ns('addClose'), 'Add closure',
-                    style = "color: white; background-color: blue;")
+                    class = "btn-primary")
 
 )
 }
@@ -50,7 +50,7 @@ zone_closure_tableUI <- function(id){
          bslib::card_header(class = "d-flex justify-content-between",
                             "New Closure Scenarios",
                             actionButton(ns('saveClose'), 'Save Closure', width = "20%",
-                                         style = "color: white; background-color: blue;")),
+                                         class = "btn-success")),
          bslib::card_body(
               verbatimTextOutput(ns("closureVTO1")),
 
@@ -61,7 +61,7 @@ zone_closure_tableUI <- function(id){
          bslib::card_header(class = "d-flex justify-content-between",
                             "Saved Closure Scenarios",
                             actionButton(ns('editClose'), 'Edit closure', width = "20%",
-                                         style = "color: white; background-color: blue;")),
+                                         class = "btn-success")),
          bslib::card_body(
            verbatimTextOutput(ns("closureVTO2")))
        )

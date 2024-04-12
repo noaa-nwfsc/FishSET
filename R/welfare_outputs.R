@@ -38,7 +38,12 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   ##
   # Load, filter, format main data ----
   ##
-  dat <- table_view(paste0(project,"MainDataTable"), project)
+  if (shiny::isRunning()) 
+    {dat <- table_view(paste0(project,"MainDataTable_final"), project)}
+  
+  else {
+   dat <- get(paste0(project,"MainDataTable"))
+  }
 
   # Creat connection to database
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
@@ -82,8 +87,19 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   prc_welfare <- data.table::fread(paste0(locoutput(project), "prcwelfare_output.csv"))
 
   # combine simulation and primary data if grouping by a variable
-  welfare <- as.data.frame(cbind(welfare, dat))
-  prc_welfare <- as.data.frame(cbind(prc_welfare, dat))
+ # tryCatch() stop and check for NAs
+  flag <- 0
+  tryCatch(
+    {
+      welfare <- data.frame(cbind(welfare, dat))
+      prc_welfare <- data.frame(cbind(prc_welfare, dat))
+    },
+    warning=function(w) {
+      stop(paste0('Data frames are differing length, please check for NAs in the ', project,'MainDataTable'), call. = FALSE)
+
+    }
+  )
+
 
   # closure scenario names for dataframe variable names
   scenario_names <- unlist(lapply(closures, function(x){x$scenario}))

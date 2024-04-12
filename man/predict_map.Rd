@@ -6,6 +6,7 @@
 \usage{
 predict_map(
   project,
+  mod.name = NULL,
   policy.name = NULL,
   spat,
   zone.spat,
@@ -15,6 +16,8 @@ predict_map(
 }
 \arguments{
 \item{project}{Name of project}
+
+\item{mod.name}{Name of model}
 
 \item{policy.name}{Name of policy scenario}
 
