@@ -4,6 +4,7 @@
 #'
 #' @param project Name of project
 #' @param policy.name Name of policy scenario
+#' @param mod.name Name of model
 #' @param spat A spatial data file containing information on fishery management 
 #'  or regulatory zones boundaries. `sf` objects are recommended, but `sp` objects 
 #'  can be used as well. See [dat_to_sf()] to convert a spatial table read from 
@@ -29,7 +30,7 @@
 #'
 #' }
 
-predict_map <- function(project, policy.name = NULL, spat, zone.spat, outsample = FALSE, outsample_pred = NULL){
+predict_map <- function(project,mod.name = NULL, policy.name = NULL, spat, zone.spat, outsample = FALSE, outsample_pred = NULL){
   
   # Policy map ----------------------------------------------------------------------------------------------------------------
   if(!outsample){
@@ -41,13 +42,27 @@ predict_map <- function(project, policy.name = NULL, spat, zone.spat, outsample 
     # make sure prediction table exist in the database
     # TODO: If this is running in the Shiny and one or more of the tables above do not exist then show error message and stop running function here
     tryCatch({
-      model_output <- unserialize_table(paste0(project, "ModelOut"), project)},
+      model_output <- model_design_list(project)[[which(lapply(model_design_list(project), "[[", "mod.name") == mod.name)]]},
       
       error = function(err){message(paste0("Model output table not found in ", project))}
     )
     tryCatch({
-      pred_output <- unserialize_table(paste0(project, "predictOutput"), project)},
+      pred_out <- unserialize_table(paste0(project, "predictOutput"), project)
       
+      # test_name <- "lz"
+      
+      
+      get_mod_pred_out <- lapply(pred_out, function(x){
+        mod_name <- x$modelDat$mod.name
+        if(mod_name == mod.name){
+          return(1)
+        } else {
+          return(0)
+        }
+      })
+      
+      pred_output <- pred_out[which(unlist(get_mod_pred_out) == 1)]
+    },      
       error = function(err){message(paste0("Prediction output table not found in ", project))}  
     )
     
@@ -86,6 +101,7 @@ predict_map <- function(project, policy.name = NULL, spat, zone.spat, outsample 
   
   # Parse spatial dataset
   spatout <- data_pull(spat, project)
+  
   spatdat <- spatout$dataset
   spat <- parse_data_name(spat, "spat", project)
   spatdat[[zone.spat]] <- as.character(spatdat[[zone.spat]])
@@ -95,70 +111,54 @@ predict_map <- function(project, policy.name = NULL, spat, zone.spat, outsample 
   probs_df[,1] <- as.character(probs_df[,1])
   
   # Merge spatial dataset with predicted probabilities
-  spat_join <- dplyr::left_join(spatdat[zone.spat], probs_df, by = zone.spat)
+  spat_join <- dplyr::left_join(spatdat[zone.spat], probs_df, by = zone.spat) 
   
-  # use WGS 84 if crs is missing
-  if(is.na(sf::st_crs(spatdat))) {
-    spat_join <- sf::st_transform(spat_join, crs = 4326)
-  } 
   
-  if(any(!(sf::st_is_valid(spatdat)))) {
-    spat_join <- sf::st_make_valid(spat_join)
-  } 
-  
-  # create a bbox using zones that exist in dat
-  z_ind <- spatdat[[zone.spat]] %in% unlist(probs_df[zone.spat])
-  bbox <- sf::st_bbox(spatdat[z_ind, ]) # keeps shifted long
-  
-  # If this is na then input settings not correct
-  if(is.na(bbox["xmin"])){
-    return(1)
-  }
-  
-  # world2 uses 0 - 360 lon format
-  base_map <- ggplot2::map_data(map = ifelse(shift_long(spatdat), "world2", "world"),
-                                xlim = c(bbox["xmin"], bbox["xmax"]),
-                                ylim = c(bbox["ymin"], bbox["ymax"]))
-  
-  # convert data to sf for plotting purposes
-  base_map <- sf::st_as_sf(base_map, coords = c("long", "lat"),
-                           crs = sf::st_crs(spat_join))
-  
-  # convert points to polygon
-  base_map <-
-    base_map %>%
-    dplyr::group_by(across(all_of("group"))) %>%
-    dplyr::summarize(do_union = FALSE) %>%
-    sf::st_cast("POLYGON")
+  spat_join <-  sf::st_transform(spat_join, "+proj=longlat +datum=WGS84")
+
   
   var_sym <- function() rlang::sym("Probability")
   
   # breaks ----
   prob_range <- range(probs_df$Probability)
-  brks <- pretty(probs_df$Probability, n = 10)
+  brks <- pretty(probs_df$Probability, n = 8)
   bin_colors <- fishset_viridis(length(brks))
   
-  rescale_val <- scales::rescale(brks)
+
+  pal <- colorBin(
+    bin_colors,
+    bins = brks,
+    # colors depend on the count variable
+    domain = spat_join$Probability,
+  )
+  
   
   # Plot
-  out <- 
-    ggplot2::ggplot() +  
-    ggplot2::geom_sf(data = base_map) +  
-    ggplot2::geom_sf(data = spat_join, 
-                     ggplot2::aes(fill = !!var_sym()), color = "black", alpha = .8) +
-    ggplot2::coord_sf(xlim = c(bbox[1]-1, bbox[3]+1), ylim = c(bbox[2]-1, bbox[4]+1),
-                      expand = TRUE) +
-    ggplot2::binned_scale(aesthetics = "fill",
-                          scale_name = "stepsn", 
-                          palette = function(x) bin_colors,
-                          breaks = brks,
-                          show.limits = TRUE,
-                          guide = "colorsteps",
-                          name = "Probability",
-                          labels = scales::comma) +
-    fishset_theme() +
-    ggplot2::theme(legend.key.size = unit(1, "cm"), 
-                   legend.background = ggplot2::element_rect(fill = "grey90"))
+  out <- leaflet::leaflet() %>%
+    leaflet::addProviderTiles("OpenStreetMap") %>% 
+    leaflet::addPolygons(data =  spat_join,
+                         fillColor = "white",
+                         fillOpacity = 0.5,
+                         color = "black",
+                         stroke = TRUE,
+                         weight = 0.5,
+                         layerId = ~var_sym(),
+                         group = "regions") %>% 
+    leaflet::addPolygons(data = (spat_join %>% filter(!is.na(spat_join$Probability))),
+                         fillColor = ~pal(Probability), 
+                         color = "black",
+                         fillOpacity = 1, 
+                         stroke = TRUE,
+                         weight = 1, 
+                         smoothFactor = 0.2,
+                         layerId = ~var_sym(),
+                         label = ~paste0("Probability: ", round(Probability,2))) %>% 
+    leaflet::addLegend(pal = pal, 
+              values = spat_join$Probability, 
+              position = "bottomright", 
+              title = "Probability")
+  
+  
   
   return(out)
 }

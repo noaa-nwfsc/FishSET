@@ -55,22 +55,14 @@ map_viewer_serv <- function(id, dat, spatdat, project) {
                            
           ),
           
-          actionButton(ns("run"), "Run", style = "color: #fff; background-color: #6da363; border-color: #800000;"),
+          actionButton(ns("run"), "Run", class = "btn-primary"),
           
           tags$br(),
           
-          # actionButton(ns("save"), "Save"),
-          # 
-          # tags$br(),
-          
-          tags$button(
-            id = ns("map_close"),
-            type = "button",
-            style="color: #fff; background-color: #FF6347; border-color: #800000;",
-            class = "btn action-button",
-            onclick = "setTimeout(function(){window.close();},500);",  # close browser
-            "Close app"
-          )
+          actionButton(ns("map_close"), "Close app", icon = icon("circle-xmark"),
+                       width = "50%",                                                           
+                       class = "btn-danger", 
+                       onclick = "setTimeout(function(){window.close();},500);")
         ),
         
           shinycssloaders::withSpinner(
