@@ -6,6 +6,8 @@ source("zone_outsample_UI.R", local = TRUE)
 source("zone_outsample_server.R", local = TRUE)
 source("zone_closure_UI.R", local = TRUE)
 source("zone_closure_Server.R", local = TRUE)
+source("run_policy_UI.R", local = TRUE)
+source("run_policy_server.R", local = TRUE)
 
 # default global search value
 if(!exists("default_search")) {default_search <- ""}
@@ -34,31 +36,32 @@ server = function(input, output, session) {
   #Inline scripting ----
   #---
   r <- reactiveValues(done = 0, ok = TRUE, output = "")
-  
-  observeEvent(input$runUp, {
-    shinyjs::hide("error")
-    r$ok <- FALSE
-    tryCatch(
-      {
-        r$output <- isolate(
-          paste(utils::capture.output(eval(parse(text = input$exprUp))), collapse = '\n')
-        )
-        r$ok <- TRUE
-      },
-      error = function(err) {r$output <- err$message}
-    )
-    r$done <- r$done + 1
-  })
-  output$resultUp <- renderUI({
-    if(r$done > 0 ) { 
-      content <- paste(paste(">", isolate(input$expr)), r$output, sep = '\n')
-      if(r$ok) {
-        pre(content)
-      } else {
-        pre( style = "color: red; font-weight: bold;", content)
-      }
-    }
-  })
+
+
+ observeEvent(input$runUp, {
+   shinyjs::hide("error")
+   r$ok <- FALSE
+   tryCatch(
+     {
+       r$output <- isolate(
+         paste(utils::capture.output(eval(parse(text = input$exprUp))), collapse = '\n')
+       )
+       r$ok <- TRUE
+     },
+     error = function(err) {r$output <- err$message}
+   )
+   r$done <- r$done + 1
+ })
+ output$resultUp <- renderUI({
+   if(r$done > 0 ) {
+     content <- paste(paste(">", isolate(input$expr)), r$output, sep = '\n')
+     if(r$ok) {
+       pre(content)
+     } else {
+       pre( style = "color: red; font-weight: bold;", content)
+     }
+   }
+ })
   
   
   observeEvent(input$runI, {
@@ -235,6 +238,31 @@ server = function(input, output, session) {
       }
     }
   })
+  
+  observeEvent(input$runP, {
+    shinyjs::hide("error")
+    r$ok <- FALSE
+    tryCatch(
+      {
+        r$output <- isolate(
+          paste(capture.output(eval(parse(text = input$exprP))), collapse = '\n')
+        )
+        r$ok <- TRUE
+      },
+      error = function(err) {r$output <- err$message}
+    )
+    r$done <- r$done + 1
+  })
+  output$resultP <- renderUI({
+    if(r$done > 0 ) { 
+      content <- paste(paste(">", isolate(input$exprP)), r$output, sep = '\n')
+      if(r$ok) {
+        pre(content)
+      } else {
+        pre( style = "color: red; font-weight: bold;", content)
+      }
+    }
+  })
   #---
   
   ##Pull data functions ----
@@ -287,7 +315,7 @@ server = function(input, output, session) {
   output$AcrossTabsText <- renderUI({
     if(input$QuickStartChoices=='AcrossTabs'){
       tags$div(
-        tags$br(), tags$br(),
+     #   tags$br(), tags$br(),
         tags$p('All tabs have the following elements:',
                tags$ul(
                  tags$li('Buttons that enable you to close the app and refresh the data.', 
@@ -315,7 +343,7 @@ server = function(input, output, session) {
   output$UploadTabsText <- renderUI({
     if(input$QuickStartChoices=='UploadTab'){ 
       tags$div(
-        tags$br(), tags$br(),
+        #tags$br(), tags$br(),
         tags$p(tags$strong('Purpose:'), tags$br(), 'The', tags$em('Upload Data'), 
                'tab is used to load data (primary, port, map, gridded, auxiliary) from the FishSET database or 
                         from a local file location, and to manage project tables, confidentiality settings,',
@@ -407,7 +435,8 @@ server = function(input, output, session) {
   
   output$DQTabsText <- renderUI({
     if(input$QuickStartChoices=='DQTab'){ 
-      p(tags$br(), tags$br(),
+      p(
+        #tags$br(), tags$br(),
         tags$strong('Purpose:'), tags$br(), 
         'The', tags$em('Data Quality and Evaluation'), 'tab is used to identify and correct common data quality issues such as erroneous outliers and missing values.',
         tags$br(),tags$br(),
@@ -452,7 +481,8 @@ server = function(input, output, session) {
   
   output$FleetText <- renderUI({
     if(input$QuickStartChoices=='FleetTab'){ 
-      p(tags$br(), tags$br(),
+      p(
+        #tags$br(), tags$br(),
         tags$strong('Purpose:'), tags$br(), 
         'The', tags$em(' Fleet Assignment and Summary'), 'tab is used to define fleets and explore data at a fleet level.',
         tags$br(), tags$br(),
@@ -631,7 +661,8 @@ server = function(input, output, session) {
   
   output$ExploreTabsText <- renderUI({
     if(input$QuickStartChoices=='ExplorTab'){ 
-      p(tags$br(), tags$br(),
+      p(
+        #tags$br(), tags$br(),
         tags$strong('Purpose:'), tags$br(), 
         'The', tags$em('Data Exploration'), 'tab is used to view and explore the loaded data.',
         tags$br(),tags$br(),
@@ -698,7 +729,8 @@ server = function(input, output, session) {
   
   output$AnalTabsText <- renderUI({
     if(input$QuickStartChoices=='AnalTab'){ 
-      p(tags$br(), tags$br(), 
+      p(
+        #tags$br(), tags$br(), 
         tags$strong('Purpose:'), tags$br(),
         'The', tags$em('Simple Analyses'), 'tab is used to view correlation and simple linear regression among selected variables.', 
         tags$br(),tags$br(),
@@ -719,7 +751,8 @@ server = function(input, output, session) {
   
   output$NewVarsTabsText <- renderUI({
     if(input$QuickStartChoices=='NewVarsTab'){ 
-      p(tags$br(), tags$br(),
+      p(
+        #tags$br(), tags$br(),
         tags$strong('Purpose:'), tags$br(),
         'The', tags$em('Compute New Variables'), 'tab is used to parse variables and derive new variables such as CPUE or trip mid-point.',
         tags$br(),tags$br(),
@@ -784,7 +817,8 @@ server = function(input, output, session) {
   
   output$MapTabsText <- renderUI({
     if(input$QuickStartChoices=='MapTab'){ 
-      p(tags$br(), tags$br(),
+      p(
+        #tags$br(), tags$br(),
         tags$strong('Purpose:'), tags$br(), 
         'The', tags$em("Map Viewer"),'tab is used to view the spatial distribution of hauls.',
         tags$br(), tags$br(),
@@ -841,7 +875,8 @@ server = function(input, output, session) {
   
   output$ZonalTabsText <- renderUI({
     if(input$QuickStartChoices=='ZonalTab'){ 
-      p(tags$br(), tags$br(),
+      p(
+        #tags$br(), tags$br(),
         tags$strong('Purpose:'), tags$br(), 
         'The', tags$em("Define Alternative Fishing Choices"),'tab is used to define alternative fishing choices.',
         tags$br(), tags$br(),
@@ -880,7 +915,8 @@ server = function(input, output, session) {
   
   output$ExpectedTabsText <- renderUI({
     if(input$QuickStartChoices=='ExpectedTab'){ 
-      p(tags$br(), tags$br(),
+      p(
+        #tags$br(), tags$br(),
         tags$strong('Purpose:'), tags$br(), 
         'The', tags$em('Expected Catch/Revenue'), 'tab is used to calculate the expected catch or revenue matrix for alternative
             fishing zones (zones where fishing could have happened but did not). A', tags$code('catch variable'), 
@@ -931,7 +967,8 @@ server = function(input, output, session) {
   
   output$ModelTabsText <- renderUI({
     if(input$QuickStartChoices=='ModelTab'){ 
-      p(tags$br(),tags$br(),
+      p(
+        #tags$br(),tags$br(),
         tags$strong('Purpose:'), tags$br(), 
         'The', tags$em('Models'), 'tab is used to define model parameters (including the likelihood function), 
             and then run model and compare output.',
@@ -956,7 +993,8 @@ server = function(input, output, session) {
   
   output$BookmarkTabsText <- renderUI({
     if(input$QuickStartChoices=='BookmarkTab'){ 
-      p(tags$br(), tags$br(),
+      p(
+        #tags$br(), tags$br(),
         tags$strong('Purpose:'), tags$br(),
         'The', tags$em('Bookmark Choices'), 'tab is used to save choices made in the FishSET R Shiny', 
         'application and enable current application state to be reloaded at a later date.',
@@ -1036,8 +1074,8 @@ server = function(input, output, session) {
 
   
   output$load_manage_proj_ui <- renderUI({
-      actionButton('load_manage_proj', 'Manage Projects',
-                   style = "color: white; background-color: blue;")
+      actionButton('load_manage_proj', 'Manage Projects', class = "btn-secondary", 
+                   style = "padding-left:20px; padding-right: 20px;")
   })
   
   # Manage Projects
@@ -1114,9 +1152,12 @@ server = function(input, output, session) {
       
       tagList(
         fluidRow(
-          column(5, fileInput("maindat", "Choose primary data file",
+          column(12,
+            #5,
+                 fileInput("maindat", "Choose primary data file",
                               multiple = FALSE, placeholder = 'Required data')),
-          column(width=8, offset=4, 
+          column(12,
+                 #width=8, offset=4, 
                  textInput('mainadd', label=div(style = "font-size:14px;  font-weight: 400;", 
                                                 'Write additional arguments for reading in data'), 
                            placeholder = "header=FALSE, sep=','"))
@@ -1131,7 +1172,7 @@ server = function(input, output, session) {
           
           tagList(
             fluidRow(
-              column(5,
+              column(12,#5,
                      selectInput("main_db_table", "Choose a main table",
                                  choices = main_tables(project$name, show_all = FALSE))
               ))
@@ -1310,7 +1351,8 @@ server = function(input, output, session) {
     if(input$load_port_src=='Upload new file'){ 
       tagList(
         fluidRow(
-          column(5, fileInput("portdat", "Choose port data file",
+          column(12, #5, 
+            fileInput("portdat", "Choose port data file",
                               multiple = FALSE, placeholder = 'Required data'))
         ))
     } else if (input$load_port_src == 'FishSET database') {
@@ -1319,7 +1361,8 @@ server = function(input, output, session) {
         
         tagList(
           fluidRow(
-            column(5, selectInput("port_db_table", "Choose a port table",
+            column(12, #5,
+              selectInput("port_db_table", "Choose a port table",
                                   choices = list_tables(project = project$name, type = "port")))
           ))
       } 
@@ -1330,12 +1373,13 @@ server = function(input, output, session) {
     
     if(is.null(input$portdat)) return()
     tagList(
-      column(width=10, offset=3, 
+      column(12,#width=10, offset=3, 
              selectInput('port_name', "Enter column name containing port names", 
                          choices=names(FishSET::read_dat(input$portdat$datapath, if(sub('.*\\.', '', input$portdat$name) == 'shp') { 
                            'shape'} else if(sub('.*\\.', '', input$portdat$name) == 'RData') { 
                              'R'} else { sub('.*\\.', '', input$portdat$name)})), selected="")),
-      column(width=10, offset=3,textInput('portadd', div(style = "font-size:14px;  font-weight: 400;", 
+      column(12,#width=10, offset=3,
+             textInput('portadd', div(style = "font-size:14px;  font-weight: 400;", 
                                                          'Additional arguments for reading in data'), placeholder="header=T, sep=';', skip=2"))
       
       # ))#label=div(style = "font-size:14px;  font-weight: 400;", 'Enter column name containing port names'), 
@@ -1512,16 +1556,19 @@ server = function(input, output, session) {
       
       if (input$filefolder == 'Upload single file') {
         fluidRow(
-          column(5, fileInput("spatialdat", "Choose spatial data file",
+          column(12,#5,
+                 fileInput("spatialdat", "Choose spatial data file",
                               multiple = FALSE, placeholder = 'Suggested data')),
-          column(7, offset=4, textInput('spatadd', div(style = "font-size:14px;  font-weight: 400;",
+          column(12, #7, offset=4,
+                 textInput('spatadd', div(style = "font-size:14px;  font-weight: 400;",
                                                        'Additional arguments for reading in data'),
                                         placeholder="header=T, sep=',', skip=2"))
         )
         
       } else if (input$filefolder == 'Upload shape files') {
         fluidRow(
-          column(5, fileInput("spatialdatshape", "Choose spatial data file",
+          column(12, #5,
+                 fileInput("spatialdatshape", "Choose spatial data file",
                               accept=c('.shp','.dbf','.sbn','.sbx','.shx',".prj", ".cpg"),
                               multiple = TRUE, placeholder = 'Suggested data'))
         )
@@ -1533,7 +1580,8 @@ server = function(input, output, session) {
         
         tagList(
           fluidRow(
-            column(5, selectInput("spat_db_table", "Choose a spatial table",
+            column(12, #5,
+                   selectInput("spat_db_table", "Choose a spatial table",
                                   choices = list_tables(project$name, "spat")))
           ))   
       }
@@ -1545,7 +1593,8 @@ server = function(input, output, session) {
     if (!is.null(input$spatialdat) | !is.null(input$spatialdatshape)) {
         tagList(
           fluidRow(
-            column(5, textInput("spatName", "Spatial table name")  )
+            column(12,#5,
+                   textInput("spatName", "Spatial table name")  )
           )
         )
     }
@@ -1698,12 +1747,14 @@ server = function(input, output, session) {
       
       tagList(
         fluidRow(
-          column(5, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
+          column(12, #5,
+                 fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
                               multiple = FALSE, placeholder = 'Optional data')),
-          column(7, offset=4, textInput('gridadd', div(style = "font-size:14px;  font-weight: 400;", 
+          column(12, #7, offset=4, 
+                 textInput('gridadd', div(style = "font-size:14px;  font-weight: 400;", 
                                                        'Additional arguments for reading in data'), 
                                         placeholder="header=T, sep=';', skip=2")),
-          column(5, 
+          column(12,#5, 
                  
                  if (!is.null(input$griddat)) {
                    
@@ -1718,7 +1769,8 @@ server = function(input, output, session) {
         
         tagList(
           fluidRow(
-            column(5, selectInput("grid_db_table", "Choose a gridded table",
+            column(12, #5,
+                   selectInput("grid_db_table", "Choose a gridded table",
                                   choices = list_tables(project = project$name, type = "grid")))
           ))
       }
@@ -1818,12 +1870,15 @@ server = function(input, output, session) {
     if(input$load_aux_src=='Upload new file') { 
       tagList(
         fluidRow(
-          column(5, fileInput("auxdat", "Choose auxiliary data file that links to primary data",
+          column(12, #5,
+                 fileInput("auxdat", "Choose auxiliary data file that links to primary data",
                               multiple = FALSE, placeholder = 'Optional data')),
-          column(7, offset=4, textInput('auxadd', div(style = "font-size:14px;  font-weight: 400;", 
+          column(12, #7, offset=4,
+                 textInput('auxadd', div(style = "font-size:14px;  font-weight: 400;", 
                                                       'Additional arguments for reading in data'), 
                                         placeholder="c(header=T, sep=';', skip=2)")),
-          column(5, uiOutput('auxNameUI'))
+          column(12, #5, 
+                 uiOutput('auxNameUI'))
         ))
       
     } else if (input$load_aux_src == 'FishSET database') { 
@@ -1832,7 +1887,8 @@ server = function(input, output, session) {
         
         tagList(
           fluidRow(
-            column(5, selectInput("aux_db_table", "Choose a auxiliary table",
+            column(12, #5,
+                   selectInput("aux_db_table", "Choose a auxiliary table",
                                   choices = list_tables(project = project$name, type = "aux")))))
       }
     }
@@ -3153,7 +3209,7 @@ server = function(input, output, session) {
                        choices = category_cols(values$dataset),
                        multiple = TRUE, options = list(maxItems = 1, create = TRUE)),
         actionButton("runSpatQAQC", "Run spatial check",
-                     style = "color: white; background-color: #0073e6;")
+                     class = "btn-secondary")
       )
     }
   })
@@ -3609,11 +3665,11 @@ server = function(input, output, session) {
     values$dataset <- values$dataset[,-(input$output_table_exploration_columns_selected+1)]
   })
   
-  output$editText <- renderText('Edit cells: double click. \nEdited table will not \nbe loaded into working \nenvironment until saved.
+  output$editText <- renderText('Edit cells: double click. Edited table will not be loaded into \nworking environment until saved.
                                     \nFilter: Boxes at top.
-                                    \nFilter functions saved to \nFishSET database as \nFilterTable when "save \ndata" button is pushed.
-                                    \nRemove variables: Click on \ncolumn cell(s), then click \n"Remove Variable" button.\nVariables can be added back \nusing the add_vars function.
-                                    \nClick the "Save Data" button \nto save changes.')
+                                    \nFilter functions saved to FishSET database as FilterTable \nwhen "save data" button is pushed.
+                                    \nRemove variables: Click on column cell(s), then click "Remove \nVariable" button. Variables can be added back using \nthe add_vars function.
+                                    \nClick the "Save Data" button to save changes.')
   
   #Subset by columns
   
@@ -3843,7 +3899,7 @@ server = function(input, output, session) {
       
       if (names(spatdat$dataset)[1]=='var1') {
         
-        tags$div(h5('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
+        tags$div(h5('Spatial data file not loaded. Please load on Upload Data tab', class = "text-danger"))
       },
       
       tags$div(style = "margin-left:19px;", 
@@ -3895,7 +3951,7 @@ server = function(input, output, session) {
 
       if (names(spatdat$dataset)[1]=='var1') {
 
-        tags$div(h5('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
+        tags$div(h5('Spatial data file not loaded. Please load on Upload Data tab', class = "text-danger"))
       },
 
       tags$div(style = "margin-left:19px;",
@@ -4528,7 +4584,7 @@ server = function(input, output, session) {
     tagList(
       if (names(spatdat$dataset)[1]=='var1') {
         
-        tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
+        tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', class = "text-danger"))
       },
       
       selectizeInput('lat_dat_zone', 'Latitude from data', choices = find_lat(values$dataset),
@@ -4567,7 +4623,7 @@ server = function(input, output, session) {
       if (names(spatdat$dataset)[1]=='var1') {
         
         return(
-          tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
+          tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab',class = "text-danger"))
         )
         
       },
@@ -4618,7 +4674,7 @@ server = function(input, output, session) {
         if (names(spatdat$dataset)[1]=='var1') {
           
           tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab if required', 
-                      style="color:red"))
+                      class = "text-danger"))
         }
       }
     }
@@ -4642,7 +4698,7 @@ server = function(input, output, session) {
     tagList(
       if (names(spatdat$dataset)[1]=='var1'){
         tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', 
-                    style="color:red"))    
+                    class = "text-danger"))    
       },
       
       selectInput('start', 'Starting location',
@@ -4721,7 +4777,7 @@ server = function(input, output, session) {
       
       if (names(spatdat$dataset)[1]=='var1') {
         tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', 
-                    style="color:red"))
+                    class = "text-danger"))
       },
       
       tags$div(style = "margin-left:19px;",
@@ -5240,7 +5296,7 @@ server = function(input, output, session) {
     
     if (names(spatdat$dataset)[1]=='var1') {
       
-      return(h5('Spatial data file not loaded. Please load on Upload Data tab.', style="color:red"))
+      return(h5('Spatial data file not loaded. Please load on Upload Data tab.',class = "text-danger"))
     }
     
     selectInput('altc_spatID', "Select zone ID column from spatial dataset",
@@ -5813,7 +5869,7 @@ server = function(input, output, session) {
                        
                        if (names(spatdat$dataset)[1]=='var1') {
                          
-                         tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
+                         tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', class = "text-danger"))
                        },
                        
                        selectInput('mod_spatID_SL', "Property from spatial data file identifying zones or areas", 
@@ -6825,7 +6881,7 @@ server = function(input, output, session) {
       
       add_prompter(
         actionButton('run_outsample_filter', "Filter out-of-sample data",
-                     style = "background-color: blue; color: white;"),
+                     class = "btn-secondary"),
         message = 'QAQC filters are automatically applied and remove rows containing NA and NAN values',
         position = "top", type='info', size='medium', 
       )
@@ -6921,7 +6977,7 @@ server = function(input, output, session) {
       
       add_prompter(
         actionButton('make_outsample_design', "Create out-of-sample model design",
-                     style = "background-color: blue; color: white;"),
+                     class = "btn-secondary"),
         message = 'Select main model name in Step 2 above if not done already',
         position = "top", type='info', size='medium' 
       )
@@ -6984,7 +7040,7 @@ server = function(input, output, session) {
       tags$br(),
       
       actionButton('run_outsample', "Run prediction",
-                   style = "color: #fff; background-color: #6da363; border-color: #800000;")
+                   class = "btn-secondary")
     )
   })
   
@@ -7203,6 +7259,7 @@ server = function(input, output, session) {
                  input$callTextDownloadAlt,
                  input$callTextDownloadEC,
                  input$callTextDownloadModels,
+                 input$callTextDownloadPolicy,
                  input$callTextDownloadBook),{
                    
                    if (!isTruthy(project$name)) {
@@ -7234,6 +7291,8 @@ server = function(input, output, session) {
                      updateTextInput(session, 'notesEC', "Notes", value = "",
                                      placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                      updateTextInput(session, 'notesModel', "Notes", value = "", 
+                                     placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                     updateTextInput(session, 'notesPolicy', "Notes", value = "", 
                                      placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                      updateTextInput(session, 'notesBook', "Notes", value = "", placeholder = 'Paste bookmarked URL here.')
                      
@@ -7367,13 +7426,13 @@ server = function(input, output, session) {
   
   #Stop shiny ----
   ##---
-  observeEvent(c(input$closeDat, input$closeQAQC, input$closeExplore, 
-                 input$closeAnalysis, input$closeNew, input$altc_close, 
-                 input$closeEC, input$closeModel, input$closeCM, input$closeB, 
-                 input$closeRerun), {
+  observeEvent(c(input$closeDat, input$closeQAQC, input$closeExplore,
+                 input$closeAnalysis, input$closeNew, input$altc_close,
+                 input$closeEC, input$closeModel, input$closeCM, input$closeB,
+                 input$closeRerun, input$closePolicy, input$closeUp), {
                    stopApp()
                  }, ignoreInit = TRUE)
-  
+
   ###---
   
   #Update From Bookmarked state----
@@ -7651,5 +7710,12 @@ server = function(input, output, session) {
   zone_closure_tblServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V)
   
 
-}
 
+
+
+# run_policy ------
+
+  pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset)
+  pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
+  
+}
