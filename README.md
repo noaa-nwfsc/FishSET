@@ -1,4 +1,4 @@
-FishSET
+FishSET (Fisheries Spatial Economics Toolbox)
 =========
 ---
 
