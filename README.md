@@ -1,21 +1,10 @@
 # FishSET
 
-<ul class="nav">
-  <li>[Overview](#Overview)
-  <li>[Local Install](#LocalInstall)
-  <li>[Gitlab Install](#GitlabInstall)
-  <li>[Documentation](#Documentation)
-  <li>[Issues](#bugs)
-  <li>[Citation](#cite)
-  <li>[License](#license)
-  <li>[Troubleshooting](#Troubleshoot)
-</ul>
-
 ## Overview 
 The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools developed as an R package for organizing and visualizing data; developing, improving and disseminating modeling best practices.
 Contact [FishSET@noaa.gov](mailto:FishSET@noaa.gov) with any questions regarding the FishSET R package and to report issues.
 
-
+## GitHub Install
 
 ## <a name="GitlabInstall"> Gitlab Install </a>
 
