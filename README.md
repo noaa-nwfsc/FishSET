@@ -1,8 +1,4 @@
-FishSET
-=========
----
-
-If you run into problems you can contact [FishSET@noaa.gov](mailto:FishSET@noaa.gov)
+# FishSET
 
 <ul class="nav">
   <li>[Overview](#Overview)
@@ -15,8 +11,9 @@ If you run into problems you can contact [FishSET@noaa.gov](mailto:FishSET@noaa.
   <li>[Troubleshooting](#Troubleshoot)
 </ul>
 
-## <a name="Overview"> Overview 
-The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools for organizing and visualizing data; developing, improving and disseminating modeling best practices.
+## Overview 
+The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools developed as an R package for organizing and visualizing data; developing, improving and disseminating modeling best practices.
+Contact [FishSET@noaa.gov](mailto:FishSET@noaa.gov) with any questions regarding the FishSET R package and to report issues.
 
 
 
