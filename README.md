@@ -5,6 +5,25 @@ The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools develope
 Contact [FishSET@noaa.gov](mailto:FishSET@noaa.gov) with any questions regarding the FishSET R package and to report issues.
 
 ## GitHub Install
+Currntly, the FishSET repo is only available internally and access to the NOAA GHEC organization is required for installation. We plan on making this repo public soon.
+
+Run the following lines of code in R:
+
+```
+# Set configuration
+usethis::use_git_config(user.name = "INSERT GITHUB USER NAME", user.emal = "INSERT EMAIL")
+
+# This line will take you to GitHub to generate a personal access token (PAT).
+# IMPORTANT: Copy and save the PAT once it is generated. Once you leave the GitHub page you will not be able to view the PAT.
+usethis::create_github_token()
+
+# Paste your PAT here
+credentials::set_github_pat("PASTE PAT HERE")
+
+# Install the package (see troubleshooting section below if this doesn't work)
+remotes::install_github("noaa-nwfsc/FishSET")
+```
+ 
 
 ## Local Install
 The team is phasing out local installs, but the team will provide for a local install if a user cannot install through GitHub.
@@ -40,6 +59,12 @@ If you use FishSET results in publications, please cite the the package:
 Alan Haynie, Melanie Harsch, Bryce McManus, Allen Chen, Min-Yang Lee, Anna Abelman, Paul Carvalho, Lisa Pfeiffer (2024). FishSET: Spatial Economics Toolbox for Fisheries. R package version 1.0.1.
 
 ## Troubleshooting
+<details><summary>Error in utils::download.file(url, path, method = method, quiet = quiet...</summary>
+Run the following line of code, then run remotes::install_github
+  
+```options(download.file.method = "wininet")```
+</details> 
+
 <details><summary>Error in dyn.load(file, DLLpath = DLLpath, ...): unable to load shared object ... </summary>
 This error message indicates that the filepath to a necessary package is 'corrupted' and cannot load properly. To fix this issue, reinstall the package indicated in the error message using `install.packages([Name of package])` and restart the R session. If the issue persists, try uninstalling and reinstalling R/RStudio. If both options fail, report the[issue](https://gitlab-afsc.fisheries.noaa.gov/bryce.mcmanus/FishSET_RPackage/-/issues).
 </details> 
