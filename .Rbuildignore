@@ -4,3 +4,7 @@
 ^data/ExpData\.RData$
 ^data/PollockData\.RData$
 ^doc$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$
