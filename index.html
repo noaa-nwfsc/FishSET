@@ -63,7 +63,7 @@
     <a class="dropdown-item" href="articles/RconsoleVignette/07-Policy_Welfare.html">UNKNOWN TITLE</a>
     <a class="dropdown-item" href="articles/RconsoleVignette/08_reporting.html">UNKNOWN TITLE</a>
     <a class="dropdown-item" href="articles/RconsoleVignette/index.html">Using FishSET in the RConsole</a>
-    <a class="dropdown-item" href="articles/scallop-example.html">scallop-example</a>
+    <a class="dropdown-item" href="articles/scallop-example.html">Scallop Example</a>
     <a class="dropdown-item" href="articles/scallop-mod-example.html">Scallop Conditional Logit Model Example</a>
   </div>
 </li>
@@ -84,6 +84,8 @@
 <img src="logo.png" class="logo" alt=""><h1 id="fishset-">FishSET <a class="anchor" aria-label="anchor" href="#fishset-"></a>
 </h1>
 </div>
+<!-- badges: start -->
+
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
@@ -92,6 +94,20 @@
 <div class="section level2">
 <h2 id="github-install">GitHub Install<a class="anchor" aria-label="anchor" href="#github-install"></a>
 </h2>
+<p>Currntly, the FishSET repo is only available internally and access to the NOAA GHEC organization is required for installation. We plan on making this repo public soon.</p>
+<p>Run the following lines of code in R:</p>
+<pre><code><span><span class="co"># Set configuration</span></span>
+<span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/use_git_config.html" class="external-link">use_git_config</a></span><span class="op">(</span>user.name <span class="op">=</span> <span class="st">"INSERT GITHUB USER NAME"</span>, user.email <span class="op">=</span> <span class="st">"INSERT EMAIL"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># This line will take you to GitHub to generate a personal access token (PAT).</span></span>
+<span><span class="co"># IMPORTANT: Copy and save the PAT once it is generated. Once you leave the GitHub page you will not be able to view the PAT.</span></span>
+<span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/github-token.html" class="external-link">create_github_token</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Paste your PAT here</span></span>
+<span><span class="fu">credentials</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/credentials/reference/set_github_pat.html" class="external-link">set_github_pat</a></span><span class="op">(</span><span class="st">"PASTE PAT HERE"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Install the package (see troubleshooting section below if this doesn't work)</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"noaa-nwfsc/FishSET"</span><span class="op">)</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="local-install">Local Install<a class="anchor" aria-label="anchor" href="#local-install"></a>
@@ -125,6 +141,10 @@
 <h2 id="troubleshooting">Troubleshooting<a class="anchor" aria-label="anchor" href="#troubleshooting"></a>
 </h2>
 <details><summary>
+Error in utils::download.file(url, path, method = method, quiet = quiet…
+</summary><p>Run the following line of code, then run remotes::install_github</p>
+<code>options(download.file.method = "wininet")</code>
+</details><details><summary>
 Error in dyn.load(file, DLLpath = DLLpath, …): unable to load shared object …
 </summary>
 This error message indicates that the filepath to a necessary package is ‘corrupted’ and cannot load properly. To fix this issue, reinstall the package indicated in the error message using <code>install.packages([Name of package])</code> and restart the R session. If the issue persists, try uninstalling and reinstalling R/RStudio. If both options fail, report the<a href="https://gitlab-afsc.fisheries.noaa.gov/bryce.mcmanus/FishSET_RPackage/-/issues" class="external-link">issue</a>.
@@ -159,7 +179,9 @@ Error: failed to lock directory…
 <div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li><a href="https://www.r-project.org/Licenses/GPL-2" class="external-link">GPL-2</a></li>
+<li>
+<a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a>
+</li>
 </ul>
 </div>
 
@@ -178,7 +200,12 @@ Error: failed to lock directory…
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>
