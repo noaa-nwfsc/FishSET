@@ -1,10 +1,10 @@
-# FishSET 
+# FishSET  <img src="man/figures/logo.png" align="right" align="right" width="20%"  hspace="0" vspace="0"/>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-## Overview <img src="https://github.com/noaa-nwfsc/FishSET/blob/master/docs/fishset_logo.png" align="right" width="20%"  hspace="0" vspace="0"/>
+## Overview
 The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools developed as an R package for organizing and visualizing data; developing, improving and disseminating modeling best practices.
 Contact [FishSET@noaa.gov](mailto:FishSET@noaa.gov) with any questions regarding the FishSET R package and to report issues.
 
@@ -87,3 +87,9 @@ This repository is a scientific product and is not official communication of the
 
 ## License
 This content was created by U.S. Government employees as part of their official duties. This content is not subject to copyright in the United States (17 U.S.C. §105) and is in the public domain within the United States of America. Additionally, copyright is waived worldwide through the MIT License.
+
+<img src="https://raw.githubusercontent.com/nmfs-fish-tools/nmfspalette/main/man/figures/noaa-fisheries-rgb-2line-horizontal-small.png" width="200" style="height: 75px !important;"   alt="NOAA Fisheries Logo">
+
+
+ [U.S. Department of Commerce](https://www.commerce.gov/) | [National Oceanographic and Atmospheric Administration](https://www.noaa.gov) | [NOAA Fisheries](https://www.fisheries.noaa.gov/)
+
