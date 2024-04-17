@@ -11,7 +11,7 @@ Run the following lines of code in R:
 
 ```
 # Set configuration
-usethis::use_git_config(user.name = "INSERT GITHUB USER NAME", user.emal = "INSERT EMAIL")
+usethis::use_git_config(user.name = "INSERT GITHUB USER NAME", user.email = "INSERT EMAIL")
 
 # This line will take you to GitHub to generate a personal access token (PAT).
 # IMPORTANT: Copy and save the PAT once it is generated. Once you leave the GitHub page you will not be able to view the PAT.
