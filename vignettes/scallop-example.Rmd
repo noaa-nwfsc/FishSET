@@ -1,11 +1,11 @@
 ---
-title: "scallop-example"
+title: "Scallop Example"
 output: 
   rmarkdown::html_vignette:
     fig_width: 6
     fig_height: 4
 vignette: >
-  %\VignetteIndexEntry{scallop-example}
+  %\VignetteIndexEntry{Scallop Example}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
