@@ -1,5 +1,9 @@
 # FishSET 
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
 ## Overview <img src="https://github.com/noaa-nwfsc/FishSET/blob/master/docs/fishset_logo.png" align="right" width="20%"  hspace="0" vspace="0"/>
 The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools developed as an R package for organizing and visualizing data; developing, improving and disseminating modeling best practices.
 Contact [FishSET@noaa.gov](mailto:FishSET@noaa.gov) with any questions regarding the FishSET R package and to report issues.
