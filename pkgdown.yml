@@ -1,0 +1,18 @@
+pandoc: 3.1.1
+pkgdown: 2.0.7
+pkgdown_sha: ~
+articles:
+  FishSET_FunctionList: FishSET_FunctionList.html
+  FishSET_GUI_Quickstart_Guide: FishSET_GUI_Quickstart_Guide.html
+  02-Data: RconsoleVignette/02-Data.html
+  03-DataExploration: RconsoleVignette/03-DataExploration.html
+  04-Spatial: RconsoleVignette/04-Spatial.html
+  05-DataCreation: RconsoleVignette/05-DataCreation.html
+  06-Modeling: RconsoleVignette/06-Modeling.html
+  07-Policy_Welfare: RconsoleVignette/07-Policy_Welfare.html
+  08_reporting: RconsoleVignette/08_reporting.html
+  index: RconsoleVignette/index.html
+  scallop-example: scallop-example.html
+  scallop-mod-example: scallop-mod-example.html
+last_built: 2024-04-17T21:28Z
+
