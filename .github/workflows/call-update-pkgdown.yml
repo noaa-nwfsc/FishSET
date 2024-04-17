@@ -5,7 +5,7 @@ name: call-update-pkgdown
 on:
 # this workflow runs on pushes to main or master or any time a new tag is pushed
   push:
-    branches: [main, master]
+    branches: [pkgdown]
     tags: ['*']
 jobs:
   call-workflow:
