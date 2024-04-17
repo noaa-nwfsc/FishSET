@@ -8,7 +8,7 @@ Maintainer: Alan Haynie - NOAA Federal <FishSET@noaa.gov>
 Description: The Spatial Economics Toolbox for Fisheries (FishSET) is a
     set of tools for organizing data; developing, improving and
     disseminating modeling best practices.
-License: GPL-2
+License: MIT + file LICENSE
 URL: to provide
 BugReports: https://pkgname.bugtracker.url
 Depends: 
