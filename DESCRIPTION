@@ -51,6 +51,7 @@ Imports:
     spdep,
     stats,
     stringi,
+    rstudioapi,
     tibble,
     tidyr,
     vctrs,
@@ -67,7 +68,6 @@ Suggests:
     R.matlab,
     readODS,
     rmarkdown,
-    rstudioapi (>= 1.1.287),
     testthat
 VignetteBuilder: 
     knitr
