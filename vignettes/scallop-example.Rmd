@@ -198,16 +198,16 @@ degree(scallopMainDataTable, project = proj,
 ### Spatial QAQC 
 
 ```{r}
-spat_qaqc_out <- spatial_qaqc(scallopMainDataTable, project = proj,
-                              spat = scallopTenMNSQRSpatTable, lon.dat = "DDLON", lat.dat = "DDLAT")
-
-spat_qaqc_out$dataset <- NULL # drop dataset
-
-# spat_qaqc_out$spatial_summary %>% 
-#   pretty_lab(cols = "n") %>% 
-#   pretty_tab() 
-
-spat_qaqc_out[2:4]
+# spat_qaqc_out <- spatial_qaqc(scallopMainDataTable, project = proj,
+#                               spat = scallopTenMNSQRSpatTable, lon.dat = "DDLON", lat.dat = "DDLAT")
+# 
+# spat_qaqc_out$dataset <- NULL # drop dataset
+# 
+# spat_qaqc_out$spatial_summary %>%
+#   pretty_lab(cols = "n") %>%
+#   pretty_tab()
+# 
+# spat_qaqc_out[2:4]
 ```
 
 <br><br><br>
