@@ -1,6 +1,0 @@
-# Reporting
-
-FishSET includes a report template.  It is written in RMarkdown and allows for output from FishSET to be easily incorporated into a shareable report. The template is divided into sections, each with a series of guiding questions and suggestions for your analysis. These questions will prompt you to explain how important aspects of your analysis were conducted, such as how the data was prepared, how models were defined, and which plots and tables to include. This is a suggested report structure. Sections and subsections can be added, deleted, or moved. 
-
-The report template is called `report_tempate.Rmd` and is available in the *report* folder of the FishSET package. Open the file and choose *Save as…* in the **File** tab in RStudio. Save the template to a meaningful name. This can be done for each project. 
-The template contains guidance on working in RMarkdown and examples of script.  
