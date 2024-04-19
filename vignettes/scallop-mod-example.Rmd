@@ -120,7 +120,7 @@ scallopModMainDataTable <-
 Plot the number of observations by zone.
 
 ```{r}
-zone_summary(scallopModMainDataTable, 
+zone_summary(dat = scallopModMainDataTable, 
              spat = scallopModTenMnSqrSpatTable, 
              project = "scallopMod",
              zone.dat = "ZoneID",
