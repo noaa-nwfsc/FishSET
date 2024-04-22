@@ -410,15 +410,15 @@ agg_helper(scallopMainDataTable, value = "in_closure",
 
 The number of observations by zone.
 ```{r}
-zone_out <- zone_summary(scallopMainDataTable, project = proj,
-                         spat = scallopTenMNSQRSpatTable, 
-                         zone.dat = "ZONE_ID",
-                         zone.spat = "TEN_ID",
-                         output = "tab_plot",
-                         count = TRUE,
-                         breaks = NULL, n.breaks = 10, 
-                         na.rm = TRUE)
-
+# zone_out <- zone_summary(scallopMainDataTable, project = proj,
+#                          spat = scallopTenMNSQRSpatTable, 
+#                          zone.dat = "ZONE_ID",
+#                          zone.spat = "TEN_ID",
+#                          output = "tab_plot",
+#                          count = TRUE,
+#                          breaks = NULL, n.breaks = 10, 
+#                          na.rm = TRUE)
+# 
 # zone_out$plot
 # zone_out$table %>%
 #   pretty_lab(cols = "n") %>%
