@@ -64,6 +64,7 @@ Suggests:
     graphics,
     haven,
     lwgeom,
+    maps,
     mapedit,
     R.matlab,
     readODS,
