@@ -1,0 +1,444 @@
+---
+title: "FishSET R package functions"
+output:
+   rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{FishSET R package functions} 
+  %\VignetteEncoding{UTF-8}  
+  %\VignetteEngine{knitr::rmarkdown}  
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+<!--  pdf_document: default -->
+
+<!--  html_notebook: default-->
+
+<!--  word_document: default-->
+
+<!--  html_document:-->
+
+<!--    df_print: paged-->
+
+##Getting started The FishSET R package includes functions that can be
+used in the R console or that can be run through the FishSET app (a
+guided user interface built u sing the Shiny R package). Calling
+function through the R console allows for greater flexibility and ease
+in troubleshooting but requires knowledge of R and the FishSET R
+package. The FishSET app is meant to allow for users to use functions
+and models with limited knowledge of R. The FishSET app is opened by
+typing `run_fishset()` in the R console. This tutorial does not use the
+FishSET app but walks through examples of FishSET R package functions in
+the R console.
+
+##Load the package.
+
+```{r eval=FALSE}
+install.packages('devtools')
+library(devtools)
+install.packages("PATH/TO/Directory/Containing/FishSET", repos=NULL, type='source')
+library(FishSET)
+```
+
+##Upload data When the data is loaded into the FishSET database a series
+of checks are performed. The output of these checks will be printed to
+the R console. Check these messages to identify if any corrections
+should be made. In the box below, we load both the main data set and the
+port data. We will also need a spatial data set. We will load that with
+the `read_dat` function. The `read_dat` function recognizes most data
+formats, including spss, json, and stata, and reads the data into the
+working environment. The functions does not save the data into the
+FishSET database.
+
+```{r eval=FALSE}
+#Upload data
+load_maindata(dat, over_write = TRUE, project = 'EXAMP') 
+load_port(dat, port_name = port, over_write = TRUE, project = 'EXAMP')
+spatdat <- read_dat('')
+```
+
+Data are now loaded into the FishSET database. The first line of code
+below returns a list of all the data tables in the FishSET database. The
+second line of code returns the first six lines of data from the data
+table you just loaded into the database.
+
+```{r  eval=FALSE}
+tables_database()
+head(table_view('projectMainDataTable'))
+```
+
+Additional codes for working within the FishSET database:
+
+```{r eval=FALSE}
+#Check whether a table exists in the database.
+  table_exists()      
+#Remove a table from the database.
+ table_remove()     
+table_fields()      View column names of data table.
+```
+
+##Data Quality FishSET has built-in functions to check for NAs, NaNs,
+outliers, unique observations, empty variables, and whether latitude and
+longitude variables are in the correct format. The `data_verification`
+function checks for these potential issues. All messages returned to R
+console are also saved in the log file.
+
+```{r  eval=FALSE}
+  data_verification()
+  # The following functions are contained in `data_verification` but can be run on their own too.
+    outlier_check()
+    nan_identify()
+```
+
+Functions also exist to view table or plot output of data quality
+assessments. All plots and tables are automatically saved with project
+name to the `output` folder in the FishSET R package.
+
+```{r  eval=FALSE}
+#Table output functions
+  summary_stats()
+  outlier_table() 
+  
+#Plots output functions
+  outlier_plot()
+```
+
+Functions to correct data quality issues.
+
+```{r  eval=FALSE}
+  na_filter()
+  nan_filter()
+
+  outlier_remove()
+
+  unique_filter()
+
+  empty_vars_filter()
+
+  degree()
+```
+
+Data tables can be filtered using the `filter_table` and `filter_dat`
+functions. The filter statements are saved as a table in the FishSET
+database and can be applied to any dataset using the `filter_dat`
+function. No function has been written to remove variables from the
+working data set. Users should use base R functions for this. Within the
+FishSET app variables can be removed from the working data set in the
+`Data Exploration` tab. Use the `add_vars` function to add variables
+from the raw data set back into the working data set.
+
+```{r  eval=FALSE}
+#Filter
+  filter_table()
+  filter_dat()
+
+#Add variables back into the working data set
+  add_vars()
+```
+
+##Data Exploration\
+View the spatial (`map_plot`) and temporal (`temp_plot`) distribution of
+data and the relationship between variables (`xy_plot`). Plots and
+tables to the `output` folder. The `map_kernel`, `getis_ord_stats`, and
+`moran_stats` functions provide measures of clustering, or hot spot
+analysis. The `density_plot` creates a density or cumulative
+distribution function plot of the selected variable.
+
+```{r  eval=FALSE}
+
+#Map
+  map_plot()
+#map kernel
+  map_kernel()
+#Getis Ord
+  getis_ord_stats()
+#Moran's I
+  moran_stats()
+#Temporal Plots
+  temp_plot()
+#x-y plots
+  xy_plot(dat, project, var1, var2, regress = FALSE) 
+  density_plot()
+
+```
+
+##Fleet Analyses Fleet functions focus on functions that allow users to
+assign vessels to fleet and view fleet characteristics (vessel count)
+and fleet effort (trip length, weekly effort), and catch as a fleet
+(species catch, by catch, weekly catch). All functions return output as
+plots and/or tables that are output to the R console and saved to the
+`output` folder.
+
+```{r  eval=FALSE}
+#Define and store fleet expressions 
+  fleet_assign(dat, project, cond = NULL, fleet_val = NULL, table = NULL, save = TRUE)
+#Number of unique vessels by time period
+  vessel_count(dat, project, v, t, period = "month", group = NULL, 
+                         year = NULL, position = "stack", output = c("table", "plot"))
+#Total species catch by period
+  species_catch(dat, project, species, date, period = "month_abv", fun = "sum", group = NULL, year = NULL, 
+                          convert_to_tons = TRUE, value = c("count", "percent"), 
+                          output = c("table", "plot"), position = "stack", format_tab = c("wide", "long"))
+#Compare bycatch to other species caught
+  bycatch(dat, project, cpue, catch = NULL , date, names = NULL, group = NULL, 
+                    year = NULL, period = "year", value = c("count", "stc"), 
+                    output = c("table", "plot"), format_tab = "wide")
+#Aggregate species catch by unique vessel ID
+  sum_catch("MainDataTable", "myProject", "catch", "species == 'cod' & catch > .5", val = "per", out = "logical")
+#Catch total by week
+  weekly_catch(dat, project, species, date, year = NULL, group = NULL, fun = "sum", position = "stack",
+                         convert_to_tons = FALSE, value ="percent", output = c("plot", "table"))
+#Average CPUE by week
+  weekly_effort(dat, project, cpue, date, group = NULL, year = NULL, plot_type = "line_point", 
+                          output = c("plot", "table"), format_tab = "wide")
+#Create a plot or table of vessel trip length
+  trip_length(dat, project, start, end, units = "days", catch = NULL, 
+                        hauls = NULL, output = c("table", "plot"), haul_to_trip = FALSE)
+```
+
+##Simple Analyses\
+View and quantify relationship between variables. The correlation
+function, `corr_out` returns a plot and table of correlations values
+between all numberic variables supplied. The regression function,
+`xy_plot', returns a plot with fitted simple linear regression line and test statitistics whne regress is set to TRUE. When`regress\`
+is set to FALSE, points are plotted without a best fit line.
+
+```{r  eval=FALSE}
+#correlation
+  corr_out(dat, project, variables='all')
+#regression
+  xy_plot(dat, project, var1, var2, regress = TRUE)
+```
+
+##Compute New Variables\
+Modify or create variables such as cpue and trip centroid. Functions
+focus on data transformations, generating ID variables (for haul or
+fishery season), computing simple arithmetic functions such as catch per
+unit effort or sum of hauls, generate dummy variablesm, create a variety
+of spatial variables such as distance between hauls or the latitude and
+longitude of the haul midpoint, and create trip level functions such
+collapsing haul to trip and identfiying trip centroid.
+
+```{r  eval=FALSE}
+#Data Transformations
+  ##Change time unit
+  temporal_mod
+  ##Coded variable based on quantiles
+  set_quants()
+#Nominal ID
+  #Haul or Trip ID
+  ID_var()
+  #Fishery Seasonal Identifier
+  create_seasonal_ID()
+#Arithmetic and temporal
+  #Numeric functions
+  create_var_num()
+  #CPUE
+  cpue()
+#Dummy
+  #From variable
+  dummy_num()
+  dummy_matrix()
+#spatial
+  #Distance between two points
+  create_dist_between()
+  #Haul midpoint 
+  create_mid_haul()
+  #Duration of time
+  create_duration()
+  #Zone when choice where to go next was made
+  create_startingloc()
+#Trip-level Functions
+  #Collapse Haul to trip
+  haul_to_trip()
+  #Trip distance
+  create_trip_distance()
+  #Trip centroid
+  create_trip_centroid()
+```
+
+##Zonal Definition\
+Functions in this group require a spatial data frame defining fishing or
+regulatory zone. Both the `find_centroid` and `assignment_column` can be
+used on their own but are called as necessary in other function. The
+`find_centroid` function identifies the centroid of a zone and the
+`assignment_column` function assigns observations in the primary data
+set to zones. The `create_alternative_choice` function defines
+alternative fishing choices and is required.
+
+```{r  eval=FALSE}
+  find_centroid()
+  assignment_column()
+  create_alternative_choice()
+
+```
+
+##Expected Catch/Revenue\
+Compute expected catch or expected revenue. The function creates the
+expected catch/revenue matrix based on user-provided parameters, and
+three default cases: Near-term: Movng window size of two days. In this
+case, vessels are grouped based on defineGroup parameter. Medium-term:
+Moving window size of seven days. In this case, there is no grouping and
+catch for entire fleet is used. Long-term: Moving window size of seven
+days from the previous year. In this case, there is no grouping and
+catch for entire fleet is used. Output is saved in the FishSET database
+and called in the `make_model_design` function.
+
+The `sparstable` function provides a table of data sparsity by time
+periods. It should be used to assess the availability of data for
+defining the temporal moving window size in the `create_expectations`
+function. Sparse data is not suited for shorter moving window sizes.
+
+```{r  eval=FALSE}
+  sparsetable()  
+  create_expectations()
+```
+
+##Model design file and run The `make_model_design` function creates a
+list with data and parameters required to run the models, which are
+called in the `discretefish_subroutine` function. The
+`discretefish_subroutine` requires inputs of initial parameters,
+optimization options (maximum iterations, the relative tolerance of x,
+report frequency, and whether to report iterations), the optimization
+method chosen, which must be one of the base R `optim` options, and a
+name for the model to allow for easier tracking and comparison of
+models. The subroutine also requires `catch`, `choice`, and `distance`
+data, plus any other data `otherdat` needed to run the chosen
+likelihood, such as expected catches or harvester data. These data are
+defined in the `make_model_design` file. Expected catches is pulled by
+the `make_model_design` function from the saved table generated by the
+`create_expectations` function. `make_model_design` calls output from
+`create_alternative_choice` to generate distance data.
+
+```{r  eval=FALSE}
+make_model_design()
+discretefish_subroutine()
+```
+
+###Likelihood functions FishSET includes six functions. User-created
+functions can be saved and logged using the `log_func-model` function.
+`logit_c` Conditional logit likelihood `logit_avgcat` Average catch
+multinomial logit procedure `logit_correction` Full information model
+with Dahl's correction function `epm_normal` Expected profit model
+normal catch function `epm_lognormal` Expected profit model lognormal
+catch function `epm_weibull` Expected profit model Weibull catch
+function
+
+###Model run output The discretefish_subroutine function can take 30 or
+minutes to run. Model run status is returned to the R console. The
+subroutine function outputs model results in a list that can be
+summarized as:
+
+    errorExplain: If it exists, a description of the model error.
+    OutLogit: A matrix of coefficients, standard errors, and t-statistics
+    optoutput: Optimization information (such as number of function iterations)
+    seoutmat2: Standard errors
+    MCM: Model comparison metrics (e.g. AIC, BIC)
+    H1: The inverse hessian
+
+The output can be viewed using:
+
+```{r  eval=FALSE}
+#Display errorExplain output
+globalcheck_view('pcodldglobalcheck20190604')
+#Display all other model output.
+model_out_view('pcod')
+
+```
+
+###Selecting models Model comparison metrics are conveniently saved in a
+table in the FishSET database. To access the table use `model_fit` with
+the project name. Identifying the best model for future reference
+requires `select_model`. This function utilized R Shiny to open an
+interactive window where best models can be selected and saved. Model
+selection can also be accomplished from the discretefish_subroutine
+function by setting the `select.model` parameter to TRUE. When the
+parameter is set to TRUE, a interactive window opens after the model has
+compiled and output has saved.
+
+```{r  eval=FALSE}
+model_fit('pollock')
+select_model()
+```
+
+##Interactivity R Shiny is used to provide interactive interfaces. All
+FishSET functions described here can be run through a user interface
+with `run_fishset_gui`. The user interace guides users through loading
+data to model evaluation. In addition, users can use the `select_vars`
+function to open an interactive interface for selecting a subset of
+variables to keep in the working data set and the `add_vars` function to
+interactively select vars to add back into the working data set from the
+raw dataset.
+
+```{r  eval=FALSE}
+run_fishset_gui()
+select_vars()
+select_model()
+add_vars()
+```
+
+## Reproducibility
+
+FishSET was designed with the aim of reproducibility. All function calls
+are logged in a dated file. Log files are stored in the `Logs` folder.
+Each log call has a functionID and a list of parameters supplies (args).
+Some logged functions includs kwargs, optional arguments, an output, or
+a message. The message section is used to save text output from a
+function call that users may want to reference later, such as the number
+of number of rows with missing data.
+
+For example, the function call
+
+```{r eval=FALSE}
+filter_table(dat = 'pcodmaindatatable', project = 'pcod', x = 'PERFORMANCE_Code', exp = 'PERFORMANCE_Code==1')
+```
+
+returns the following log entry:
+
+```{r eval=FALSE}
+
+
+ {
+          "functionID": "filter_table",
+          "args": [
+            "pcodMainDataTable",
+            "pcod",
+            "PERFORMANCE_Code",
+            "PERFORMANCE_Code==1"
+          ],
+          "kwargs": [],
+          "output": "",
+          "msg": [
+            {
+              "dataframe": "pcodMainDataTable",
+              "vector": "PERFORMANCE_Code",
+              "FilterFunction": "PERFORMANCE_Code==1"
+            }
+          ]
+        }
+```
+
+Log entries are written in JSON. Future version of FishSET will include
+a function that will read the log files and rerun function calls with
+current or updated data.
+
+Logging is built into FishSET functions. However, it is possible to
+start a new log file using `log_reset`. New log files are started each
+day. User-created functions, such as likelihoods, can be saved for
+future use and logged using `log_func_model`.
+
+###Logging
+
+```{r  eval=FALSE}
+`log_reset`
+`log_func_model`
+```
+
+In the FishSET app, each tab has a `Notes` sections that is saved to the
+`Output` folder. Comments, observations, or thoughts typed by the user
+in this section are saved in dated text files. Additional pre-build
+messages are also saved, such as output from data evaluation functions.
+
+Finally, the FishSET package includes a Notebook template for report
+writing.
