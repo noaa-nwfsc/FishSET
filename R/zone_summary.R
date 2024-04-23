@@ -106,7 +106,7 @@ zone_summary <- function(dat,
 
   spatout <- data_pull(spat, project)
   spatdat <- spatout$dataset
-  # spat <- parse_data_name(spat, "spat", project)
+  spat <- parse_data_name(spat, "spat", project)
 
   # multi_plot <- FALSE
   # 
