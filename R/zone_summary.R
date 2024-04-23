@@ -345,7 +345,7 @@ zone_summary <- function(dat,
         ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
                           expand = TRUE)
 
-      # binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
+      binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
 
       # choose between stepn and binned scale
       if (binned) {
@@ -427,7 +427,7 @@ zone_summary <- function(dat,
                                             bin_colors = break_list$colors,
                                             legend_name = legend_name))
 
-      # z_plot <- suppressWarnings(plotly::ggplotly(tmp_z_plot)) %>%
+      z_plot <- suppressWarnings(plotly::ggplotly(tmp_z_plot)) #%>%
                                  # plotly::style(line.width = 1) %>%
                                  # plotly::config(scrollZoom = TRUE) %>%
                                  # plotly::plotly_build())
