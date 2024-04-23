@@ -109,13 +109,13 @@ zone_summary <- function(dat,
   spatdat <- spatout$dataset
   spat <- parse_data_name(spat, "spat", project)
 
-  multi_plot <- FALSE
-
-  # secondary column when fun = percent
-  val_2 <- NULL
-  val_rescale <- is.null(bin_colors)
-  scale_args <- list(brks = breaks, bc = bin_colors)
-  binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
+  # multi_plot <- FALSE
+  # 
+  # # secondary column when fun = percent
+  # val_2 <- NULL
+  # val_rescale <- is.null(bin_colors)
+  # scale_args <- list(brks = breaks, bc = bin_colors)
+  # binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
 
   # # summary table ----
   # 
