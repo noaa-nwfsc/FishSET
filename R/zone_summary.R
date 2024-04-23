@@ -421,12 +421,12 @@ zone_summary <- function(dat,
 
     } else {
 
-      # break_list <- z_brk_fun(spat_join, breaks, n.breaks, bin_colors, count = count)
-      # 
-      # z_plot <- suppressWarnings(z_plot_fun(spat_join, brks = break_list$brks,
-      #                                       bin_colors = break_list$colors,
-      #                                       legend_name = legend_name))
-      # 
+      break_list <- z_brk_fun(spat_join, breaks, n.breaks, bin_colors, count = count)
+
+      z_plot <- suppressWarnings(z_plot_fun(spat_join, brks = break_list$brks,
+                                            bin_colors = break_list$colors,
+                                            legend_name = legend_name))
+
       # z_plot <- suppressWarnings(plotly::ggplotly(z_plot) %>%
       #                              plotly::style(line.width = 1) %>%
       #                              plotly::config(scrollZoom = TRUE) %>%
