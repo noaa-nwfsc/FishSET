@@ -934,43 +934,43 @@ parse_data_name <- function(dat, type, project) {
   #' @export
   
   
-  # if (shiny::isRunning()) {
-  #   
-  #   p_set <- get_proj_settings(project)
-  #   dat <- p_set$tables[[type]]
-  #   
-  # } else { 
-  #   
-  #   if (!is.character(dat)) {
-  #     
-  #     if (type == "main") {
-  #       
-  #       dat <- deparse(substitute(dat, rlang::caller_env())) 
-  #       
-  #     } else if (type == "aux") {
-  #       
-  #       dat <- deparse(substitute(aux, rlang::caller_env())) 
-  #       
-  #     } else if (type == "grid") {
-  #       
-  #       dat <- deparse(substitute(grid, rlang::caller_env())) 
-  #       
-  #     } else if (type == "port") {
-  #       
-  #       dat <- deparse(substitute(port, rlang::caller_env())) 
-  #       
-  #     } else if (type == "spat") {
-  #       
-  #       dat <- deparse(substitute(spat, rlang::caller_env())) 
-  #       
-  #     } else if (type == "outsample") {
-  #       
-  #       dat <- deparse(substitute(outsample, rlang::caller_env())) 
-  #     }
-  #   }
-  # }
+  if (shiny::isRunning()) {
+
+    # p_set <- get_proj_settings(project)
+    # dat <- p_set$tables[[type]]
+
+  } else {
+
+    # if (!is.character(dat)) {
+    # 
+    #   if (type == "main") {
+    # 
+    #     dat <- deparse(substitute(dat, rlang::caller_env()))
+    # 
+    #   } else if (type == "aux") {
+    # 
+    #     dat <- deparse(substitute(aux, rlang::caller_env()))
+    # 
+    #   } else if (type == "grid") {
+    # 
+    #     dat <- deparse(substitute(grid, rlang::caller_env()))
+    # 
+    #   } else if (type == "port") {
+    # 
+    #     dat <- deparse(substitute(port, rlang::caller_env()))
+    # 
+    #   } else if (type == "spat") {
+    # 
+    #     dat <- deparse(substitute(spat, rlang::caller_env()))
+    # 
+    #   } else if (type == "outsample") {
+    # 
+    #     dat <- deparse(substitute(outsample, rlang::caller_env()))
+    #   }
+    # }
+  }
   
-  dat
+  dat <- "dat"
 }
 
 data_upload_helper <- function(dat, type, ...) {
