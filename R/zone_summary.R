@@ -142,67 +142,67 @@ zone_summary <- function(dat,
   zone_tab <- agg_helper(dataset, value = var, group = c(zone.dat, group),
                          fun = fun, count = count)
 
-  # # percent flag
-  # if (!is.null(fun) && fun == "percent"){
-  #   calc_perc <- TRUE
-  # } else {
-  #   calc_perc <- FALSE
-  # }
-  # 
-  # if (count) {
-  # 
-  #   if (!calc_perc & is.null(group)) {
-  #     # count zones
-  #     val_var <- "n"
-  #     legend_name <- "# of obs"
-  # 
-  #   } else if (calc_perc & is.null(group)) {
-  #     # count zones, then perc
-  #     val_var <- "perc"
-  #     val_2  <- "n"
-  #     legend_name <- "% of total obs"
-  # 
-  #   } else if (calc_perc & !is.null(group)) {
-  #     # count group by zone, then perc (one plot per group)
-  #     val_var <- "perc"
-  #     val_2  <- "n"
-  #     multi_plot <- TRUE
-  # 
-  #   } else if (!calc_perc & !is.null(group)) {
-  #     # count group by zone (one plot per group)
-  #     val_var <- "n"
-  #     multi_plot <- TRUE
-  # 
-  #   } else stop("Invalid arguments.", call. = FALSE)
-  # 
-  # } else {
-  # 
-  #   if (!calc_perc & is.null(var)) {
-  # 
-  #     stop("Invalid arguments. Set 'count = TRUE' or include a numeric variable",
-  #          " to aggregate by.", call. = FALSE)
-  # 
-  #   } else if (calc_perc & is.null(var)) {
-  # 
-  #     stop("Invalid arguments. Include a numeric variable to aggregate by.",
-  #          call. = FALSE)
-  # 
-  #   } else if (!calc_perc & !is.null(var)) {
-  #     # agg var by zone
-  #     legend_name <- paste0(var, " (", fun, ")")
-  #     val_var <- var
-  # 
-  #   } else if (calc_perc & !is.null(var)) {
-  #     # agg var by zone, then perc
-  #     val_var <- paste0(var,"_perc")
-  #     val_2 <- var
-  #     legend_name <- paste("% of total", var)
-  # 
-  #   } else stop("Invalid arguments.", call. = FALSE)
-  # 
-  #   if (!is.null(group)) multi_plot <- TRUE
-  # }
-  # 
+  # percent flag
+  if (!is.null(fun) && fun == "percent"){
+    calc_perc <- TRUE
+  } else {
+    calc_perc <- FALSE
+  }
+
+  if (count) {
+
+    if (!calc_perc & is.null(group)) {
+      # count zones
+      val_var <- "n"
+      legend_name <- "# of obs"
+
+    } else if (calc_perc & is.null(group)) {
+      # count zones, then perc
+      val_var <- "perc"
+      val_2  <- "n"
+      legend_name <- "% of total obs"
+
+    } else if (calc_perc & !is.null(group)) {
+      # count group by zone, then perc (one plot per group)
+      val_var <- "perc"
+      val_2  <- "n"
+      multi_plot <- TRUE
+
+    } else if (!calc_perc & !is.null(group)) {
+      # count group by zone (one plot per group)
+      val_var <- "n"
+      multi_plot <- TRUE
+
+    } else stop("Invalid arguments.", call. = FALSE)
+
+  } else {
+
+    if (!calc_perc & is.null(var)) {
+
+      stop("Invalid arguments. Set 'count = TRUE' or include a numeric variable",
+           " to aggregate by.", call. = FALSE)
+
+    } else if (calc_perc & is.null(var)) {
+
+      stop("Invalid arguments. Include a numeric variable to aggregate by.",
+           call. = FALSE)
+
+    } else if (!calc_perc & !is.null(var)) {
+      # agg var by zone
+      legend_name <- paste0(var, " (", fun, ")")
+      val_var <- var
+
+    } else if (calc_perc & !is.null(var)) {
+      # agg var by zone, then perc
+      val_var <- paste0(var,"_perc")
+      val_2 <- var
+      legend_name <- paste("% of total", var)
+
+    } else stop("Invalid arguments.", call. = FALSE)
+
+    if (!is.null(group)) multi_plot <- TRUE
+  }
+
   # # confid check ----
   # # skip check if rule = "k" and count = TRUE
   # cc_par <- get_confid_check(project)
