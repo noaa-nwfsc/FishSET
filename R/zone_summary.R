@@ -285,137 +285,137 @@ zone_summary <- function(dat,
       dplyr::summarize(do_union = FALSE) %>%
       sf::st_cast("POLYGON")
 
-    # # breaks ----
-    # z_brk_fun <- function(dat, breaks, n.breaks, bin_colors, count) {
-    # 
-    #   # check if breaks include range, show.limits = TRUE will add additional bins
-    #   # Note: this can reject users bin_colors
-    # 
-    #   val_range <- range(dat[[val_var]])
-    # 
-    #   if (is.null(breaks)) brks <- pretty(dat[[val_var]], n = n.breaks)
-    #   else                 brks <- breaks
-    # 
-    #   if (!is.null(bin_colors)) {
-    # 
-    #     if (length(bin_colors) != length(brks)) {
-    # 
-    #       warning("bin_colors length is not equal to breaks. Using default colors.",
-    #               call. = FALSE) # TODO: use bin_colors[seq_along(brks)] ?
-    #       bin_colors <- fishset_viridis(length(brks))
-    #     }
-    # 
-    #   } else {
-    # 
-    #     bin_colors <- fishset_viridis(length(brks))
-    #   }
-    # 
-    #   if (count) {
-    # 
-    #     if (min(brks) == 0) {
-    # 
-    #       if (brks[2] > 10) brks[1] <- 10
-    #       else  brks[1] <- round((brks[2]/2))
-    #     }
-    # 
-    #     if (is.null(scale_args$bc)) {
-    # 
-    #       bin_colors <- c("white", fishset_viridis(length(brks - 1)))
-    #     }
-    #   }
-    # 
-    #   list(brks = brks, colors = bin_colors)
-    # }
-    # 
-    # # plot ----
-    # var_sym <- function() rlang::sym(val_var)
-    # 
-    # z_plot_fun <- function(spatdat, brks, bin_colors, legend_name) {
-    # 
-    #   rescale_val <- function() if (val_rescale) scales::rescale(brks) else NULL
-    # 
-    #   Zone <- spatdat[[zone.spat]] # Need to assign zone so "Zone" is displayed when hovering in plotly
-    # 
-    #   out <-
-    #   ggplot2::ggplot() +
-    #     ggplot2::geom_sf(data = base_map) +
-    #     ggplot2::geom_sf(data = spatdat,
-    #                      ggplot2::aes(fill = !!var_sym(), label = Zone),
-    #                      color = "black", alpha = .8) +
-    #     ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
-    #                       expand = TRUE)
-    # 
-    #   # binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
-    # 
-    #   # choose between stepn and binned scale
-    #   if (binned) {
-    #     # # this gives the exact color from bin_colors
-    #     out <- out +
-    #       ggplot2::binned_scale(aesthetics = "fill",
-    #                             scale_name = "stepsn",
-    #                             palette = function(x) bin_colors,
-    #                             breaks = brks,
-    #                             show.limits = TRUE,
-    #                             guide = "colorsteps",
-    #                             name = legend_name,
-    #                             labels = scales::comma)
-    # 
-    #   } else {
-    #     # this will "ramp" (scale) the colors in bin_colors
-    #     out <- out +
-    #       ggplot2::scale_fill_stepsn(breaks = brks,
-    #                                  colors = bin_colors,
-    #                                  labels = scales::comma,
-    #                                  show.limits = TRUE,
-    #                                  values = scales::rescale(brks),
-    #                                  name = legend_name,
-    #                                  na.value = "white")
-    #   }
-    # 
-    #  out <-
-    #    out + fishset_theme() +
-    #    ggplot2::theme(legend.key.size = unit(1, "cm"),
-    #                   legend.background = ggplot2::element_rect(fill = "grey90"))
-    # 
-    #  out
-    # }
-    # 
-    # if (multi_plot) {
-    # 
-    #   # GROUP ZONE FUNCTION
-    #   group_zone <- function(spat_join) {
-    #     p_levels <- unique(spat_join[[group]]) # what if too many levels?
-    # 
-    #     z_plot <- lapply(p_levels, function(x) {
-    #       dat <- dplyr::filter(spat_join, .data[[group]] == !!x)
-    # 
-    #       if (count) {
-    #         # update legend to include group name
-    #         if (calc_perc) legend_name <- paste0("% of total obs: \n ", x)
-    #         else legend_name <- paste("# of obs: \n ", x)
-    # 
-    #       } else {
-    # 
-    #         if (calc_perc) legend_name <- paste0("% of ", var, ": \n", x)
-    #         else legend_name <- paste0(fun, " ", var, ": \n", x)
-    #       }
-    # 
-    #       break_list <- z_brk_fun(dat, breaks, n.breaks, bin_colors, count = count)
-    # 
-    #       tmp_z_plot <- suppressWarnings(z_plot_fun(dat, brks = break_list$brks,
-    #                                                 bin_colors = break_list$colors,
-    #                                                 legend_name = legend_name))
-    # 
-    #       suppressWarnings(plotly::ggplotly(tmp_z_plot) %>%
-    #                          plotly::style(line.width = 1) %>%
-    #                          plotly::config(scrollZoom = TRUE) %>%
-    #                          plotly::plotly_build())
-    #     })
-    #     z_plot
-    #   } # END GROUP ZONE FUNCTION
-    # 
-    #   z_plot <- group_zone(spat_join)
-    # 
+    # breaks ----
+    z_brk_fun <- function(dat, breaks, n.breaks, bin_colors, count) {
+
+      # check if breaks include range, show.limits = TRUE will add additional bins
+      # Note: this can reject users bin_colors
+
+      val_range <- range(dat[[val_var]])
+
+      if (is.null(breaks)) brks <- pretty(dat[[val_var]], n = n.breaks)
+      else                 brks <- breaks
+
+      if (!is.null(bin_colors)) {
+
+        if (length(bin_colors) != length(brks)) {
+
+          warning("bin_colors length is not equal to breaks. Using default colors.",
+                  call. = FALSE) # TODO: use bin_colors[seq_along(brks)] ?
+          bin_colors <- fishset_viridis(length(brks))
+        }
+
+      } else {
+
+        bin_colors <- fishset_viridis(length(brks))
+      }
+
+      if (count) {
+
+        if (min(brks) == 0) {
+
+          if (brks[2] > 10) brks[1] <- 10
+          else  brks[1] <- round((brks[2]/2))
+        }
+
+        if (is.null(scale_args$bc)) {
+
+          bin_colors <- c("white", fishset_viridis(length(brks - 1)))
+        }
+      }
+
+      list(brks = brks, colors = bin_colors)
+    }
+
+    # plot ----
+    var_sym <- function() rlang::sym(val_var)
+
+    z_plot_fun <- function(spatdat, brks, bin_colors, legend_name) {
+
+      rescale_val <- function() if (val_rescale) scales::rescale(brks) else NULL
+
+      Zone <- spatdat[[zone.spat]] # Need to assign zone so "Zone" is displayed when hovering in plotly
+
+      out <-
+      ggplot2::ggplot() +
+        ggplot2::geom_sf(data = base_map) +
+        ggplot2::geom_sf(data = spatdat,
+                         ggplot2::aes(fill = !!var_sym(), label = Zone),
+                         color = "black", alpha = .8) +
+        ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
+                          expand = TRUE)
+
+      # binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
+
+      # choose between stepn and binned scale
+      if (binned) {
+        # # this gives the exact color from bin_colors
+        out <- out +
+          ggplot2::binned_scale(aesthetics = "fill",
+                                scale_name = "stepsn",
+                                palette = function(x) bin_colors,
+                                breaks = brks,
+                                show.limits = TRUE,
+                                guide = "colorsteps",
+                                name = legend_name,
+                                labels = scales::comma)
+
+      } else {
+        # this will "ramp" (scale) the colors in bin_colors
+        out <- out +
+          ggplot2::scale_fill_stepsn(breaks = brks,
+                                     colors = bin_colors,
+                                     labels = scales::comma,
+                                     show.limits = TRUE,
+                                     values = scales::rescale(brks),
+                                     name = legend_name,
+                                     na.value = "white")
+      }
+
+     out <-
+       out + fishset_theme() +
+       ggplot2::theme(legend.key.size = unit(1, "cm"),
+                      legend.background = ggplot2::element_rect(fill = "grey90"))
+
+     out
+    }
+
+    if (multi_plot) {
+
+      # GROUP ZONE FUNCTION
+      group_zone <- function(spat_join) {
+        p_levels <- unique(spat_join[[group]]) # what if too many levels?
+
+        z_plot <- lapply(p_levels, function(x) {
+          dat <- dplyr::filter(spat_join, .data[[group]] == !!x)
+
+          if (count) {
+            # update legend to include group name
+            if (calc_perc) legend_name <- paste0("% of total obs: \n ", x)
+            else legend_name <- paste("# of obs: \n ", x)
+
+          } else {
+
+            if (calc_perc) legend_name <- paste0("% of ", var, ": \n", x)
+            else legend_name <- paste0(fun, " ", var, ": \n", x)
+          }
+
+          break_list <- z_brk_fun(dat, breaks, n.breaks, bin_colors, count = count)
+
+          tmp_z_plot <- suppressWarnings(z_plot_fun(dat, brks = break_list$brks,
+                                                    bin_colors = break_list$colors,
+                                                    legend_name = legend_name))
+
+          suppressWarnings(plotly::ggplotly(tmp_z_plot) %>%
+                             plotly::style(line.width = 1) %>%
+                             plotly::config(scrollZoom = TRUE) %>%
+                             plotly::plotly_build())
+        })
+        z_plot
+      } # END GROUP ZONE FUNCTION
+
+      z_plot <- group_zone(spat_join)
+
     #   # save plot
     #   save_nplot(project, "zone_summary", z_plot)
     # 
