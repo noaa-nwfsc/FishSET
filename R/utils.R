@@ -945,7 +945,7 @@ parse_data_name <- function(dat, type, project) {
       
       if (type == "main") {
         
-        dat <- deparse(substitute(dat, rlang::caller_env())) 
+        dat <- deparse(substitute(dat)) 
         
       } else if (type == "aux") {
         
