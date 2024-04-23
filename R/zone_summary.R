@@ -428,12 +428,12 @@ zone_summary <- function(dat,
                                             legend_name = legend_name))
 
       z_plot <- suppressWarnings(plotly::ggplotly(z_plot) %>%
-                                   plotly::style(line.width = 1) %>%
-                                   plotly::config(scrollZoom = TRUE) %>%
-                                   plotly::plotly_build())
+                                 plotly::style(line.width = 1) %>%
+                                 plotly::config(scrollZoom = TRUE) %>%
+                                 plotly::plotly_build())
 
       # save plot
-      save_plot(project, "zone_summary", z_plot)
+      # save_plot(project, "zone_summary", z_plot)
     }
 
     # # confid plot ----
