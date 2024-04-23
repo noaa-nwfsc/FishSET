@@ -416,26 +416,26 @@ zone_summary <- function(dat,
 
       z_plot <- group_zone(spat_join)
 
-    #   # save plot
-    #   save_nplot(project, "zone_summary", z_plot)
-    # 
-    # } else {
-    # 
-    #   break_list <- z_brk_fun(spat_join, breaks, n.breaks, bin_colors, count = count)
-    # 
-    #   z_plot <- suppressWarnings(z_plot_fun(spat_join, brks = break_list$brks,
-    #                                         bin_colors = break_list$colors,
-    #                                         legend_name = legend_name))
-    # 
-    #   z_plot <- suppressWarnings(plotly::ggplotly(z_plot) %>%
-    #                                plotly::style(line.width = 1) %>%
-    #                                plotly::config(scrollZoom = TRUE) %>%
-    #                                plotly::plotly_build())
-    # 
-    #   # save plot
-    #   save_plot(project, "zone_summary", z_plot)
-    # }
-    # 
+      # save plot
+      save_nplot(project, "zone_summary", z_plot)
+
+    } else {
+
+      break_list <- z_brk_fun(spat_join, breaks, n.breaks, bin_colors, count = count)
+
+      z_plot <- suppressWarnings(z_plot_fun(spat_join, brks = break_list$brks,
+                                            bin_colors = break_list$colors,
+                                            legend_name = legend_name))
+
+      z_plot <- suppressWarnings(plotly::ggplotly(z_plot) %>%
+                                   plotly::style(line.width = 1) %>%
+                                   plotly::config(scrollZoom = TRUE) %>%
+                                   plotly::plotly_build())
+
+      # save plot
+      save_plot(project, "zone_summary", z_plot)
+    }
+
     # # confid plot ----
     # 
     # if (check_c && any(check_out$suppress)) {
