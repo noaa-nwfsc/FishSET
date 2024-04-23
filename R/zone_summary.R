@@ -56,7 +56,6 @@
 #'@import dplyr
 #'@import sf
 #'@importFrom plotly ggplotly style config plotly_build
-#'@md
 #'@examples 
 #'\dontrun{
 #'
