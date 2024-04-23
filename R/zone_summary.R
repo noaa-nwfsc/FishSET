@@ -1,88 +1,3 @@
-#' Summarize zones, closure areas
-#' 
-#' `zone_summary` counts observations and aggregates values in `dat` 
-#' by regulatory zone or closure area.
-#' 
-#'@param dat Primary data containing information on hauls or trips. 
-#'  Table in FishSET database contains the string 'MainDataTable'.
-#'@param spat A spatial data file containing information on fishery management 
-#'  or regulatory zones boundaries. `sf` objects are recommended, but `sp` objects 
-#'  can be used as well. See [dat_to_sf()] to convert a spatial table read from 
-#'  a csv file to an `sf` object. To upload your spatial data to the FishSETFolder 
-#'  see [load_spatial()].
-#'@param project Name of project.
-#'@param zone.dat Name of zone ID column in `dat`.
-#'@param zone.spat Name of zone ID column in `spat`.
-#'@param count Logical. if `TRUE`, then the number observations per zone 
-#'  will be returned. Can be paired with `fun = "percent"` and `group`.
-#'  `zone_summary` will return an error if `var` is include and 
-#'  `count = TRUE`.
-#'@param var Optional, name of numeric variable to aggregate by zone/closure
-#'  area. 
-#'@param group Name of grouping variable to aggregate by zone/closure area. Only
-#'  one variable is allowed. 
-#'@param fun Function name (string) to aggregate by. `"percent"` the 
-#'  percentage of observations in a given zone. Other options include "sum", 
-#'  "mean", "median", "min", and "max". 
-#'@param breaks A numeric vector of breaks to bin zone frequencies by. Overrides
-#'  `n.breaks` if entered. 
-#'@param n.breaks The number of break points to create if breaks are not given 
-#'  directly. Defaults to 10. 
-#'@param bin_colors Optional, a vector of colors to use in plot. Must be same length
-#'  as breaks. Defaults to `fishset_viridis(10)`.
-#'@param na.rm Logical, whether to remove zones with zero counts. 
-#'@param dat.center Logical, whether the plot should center on `dat` 
-#'  (`TRUE`) or `spat` (`FALSE`). Recommend `dat.center = TRUE`
-#'  when aggregating by regulatory zone and `dat.center = FALSE` when
-#'  aggregating by closure area. 
-#'@param output  Output a `"plot"`, `"table"`, or both (`"tab_plot"`).
-#'  Defaults to `"plot"`.
-#'@details Observations in `dat` must be assigned to regulatory zones to 
-#'  use this function. See [assignment_column()] for details. 
-#'  `zone_summary` can return: the number of observations per zone 
-#'  (`count = TRUE`, `fun = NULL`, `group = NULL`), the percentage
-#'  of observations by zone (`count = TRUE`, `fun = "percent"`, 
-#'  `group = NULL`), the percentage of observations by zone and group 
-#'  (`count = TRUE`, `fun = "percent"`, `group = "group"`), summary 
-#'  of a numeric variable by zone (`count = FALSE`, `var = "var"`, 
-#'  `fun = "sum"`, `group = NULL`), summary of a numeric variable
-#'  by zone and group (`count = FALSE`, `var = "var"`, `fun = "sum"`, 
-#'  `group = "group"`), share (percentage) of a numeric variable by zone
-#'  (`count = FALSE`, `var = "var"`, `fun = "percent"`, `group = NULL`), 
-#'  share (percentage) of a numeric variable by zone and group (`count = FALSE`, 
-#'  `var = "var"`, `fun = "percent"`, `group = "group"`).
-#'@export
-#'@import ggplot2
-#'@import dplyr
-#'@import sf
-#'@importFrom plotly ggplotly style config plotly_build
-#'@examples 
-#'\dontrun{
-#'
-#'# count # of obs
-#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
-#'             zone.spat = "NMFS_AREA")
-#'             
-#'# percent of obs
-#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
-#'             zone.spat = "NMFS_AREA", count = TRUE, fun = "percent")
-#'
-#'# count by group
-#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
-#'             zone.spat = "NMFS_AREA", group = "GEAR_TYPE")   
-#'
-#'# total catch by zone           
-#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
-#'             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
-#'             count = FALSE, fun = "sum")  
-#'
-#'# percent of catch by zone           
-#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
-#'             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
-#'             count = FALSE, fun = "percent")         
-#'             
-#'}
-
 zone_summary <- function(dat,
                          spat,
                          project,
@@ -98,6 +13,91 @@ zone_summary <- function(dat,
                          na.rm = TRUE,
                          dat.center = TRUE,
                          output = "plot") {
+  #' Summarize zones, closure areas
+  #' 
+  #' `zone_summary` counts observations and aggregates values in `dat` 
+  #' by regulatory zone or closure area.
+  #' 
+  #'@param dat Primary data containing information on hauls or trips. 
+  #'  Table in FishSET database contains the string 'MainDataTable'.
+  #'@param spat A spatial data file containing information on fishery management 
+  #'  or regulatory zones boundaries. `sf` objects are recommended, but `sp` objects 
+  #'  can be used as well. See [dat_to_sf()] to convert a spatial table read from 
+  #'  a csv file to an `sf` object. To upload your spatial data to the FishSETFolder 
+  #'  see [load_spatial()].
+  #'@param project Name of project.
+  #'@param zone.dat Name of zone ID column in `dat`.
+  #'@param zone.spat Name of zone ID column in `spat`.
+  #'@param count Logical. if `TRUE`, then the number observations per zone 
+  #'  will be returned. Can be paired with `fun = "percent"` and `group`.
+  #'  `zone_summary` will return an error if `var` is include and 
+  #'  `count = TRUE`.
+  #'@param var Optional, name of numeric variable to aggregate by zone/closure
+  #'  area. 
+  #'@param group Name of grouping variable to aggregate by zone/closure area. Only
+  #'  one variable is allowed. 
+  #'@param fun Function name (string) to aggregate by. `"percent"` the 
+  #'  percentage of observations in a given zone. Other options include "sum", 
+  #'  "mean", "median", "min", and "max". 
+  #'@param breaks A numeric vector of breaks to bin zone frequencies by. Overrides
+  #'  `n.breaks` if entered. 
+  #'@param n.breaks The number of break points to create if breaks are not given 
+  #'  directly. Defaults to 10. 
+  #'@param bin_colors Optional, a vector of colors to use in plot. Must be same length
+  #'  as breaks. Defaults to `fishset_viridis(10)`.
+  #'@param na.rm Logical, whether to remove zones with zero counts. 
+  #'@param dat.center Logical, whether the plot should center on `dat` 
+  #'  (`TRUE`) or `spat` (`FALSE`). Recommend `dat.center = TRUE`
+  #'  when aggregating by regulatory zone and `dat.center = FALSE` when
+  #'  aggregating by closure area. 
+  #'@param output  Output a `"plot"`, `"table"`, or both (`"tab_plot"`).
+  #'  Defaults to `"plot"`.
+  #'@details Observations in `dat` must be assigned to regulatory zones to 
+  #'  use this function. See [assignment_column()] for details. 
+  #'  `zone_summary` can return: the number of observations per zone 
+  #'  (`count = TRUE`, `fun = NULL`, `group = NULL`), the percentage
+  #'  of observations by zone (`count = TRUE`, `fun = "percent"`, 
+  #'  `group = NULL`), the percentage of observations by zone and group 
+  #'  (`count = TRUE`, `fun = "percent"`, `group = "group"`), summary 
+  #'  of a numeric variable by zone (`count = FALSE`, `var = "var"`, 
+  #'  `fun = "sum"`, `group = NULL`), summary of a numeric variable
+  #'  by zone and group (`count = FALSE`, `var = "var"`, `fun = "sum"`, 
+  #'  `group = "group"`), share (percentage) of a numeric variable by zone
+  #'  (`count = FALSE`, `var = "var"`, `fun = "percent"`, `group = NULL`), 
+  #'  share (percentage) of a numeric variable by zone and group (`count = FALSE`, 
+  #'  `var = "var"`, `fun = "percent"`, `group = "group"`).
+  #'@export
+  #'@import ggplot2
+  #'@import dplyr
+  #'@import sf
+  #'@importFrom plotly ggplotly style config plotly_build
+  #'@examples 
+  #'\dontrun{
+  #'
+  #'# count # of obs
+  #'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
+  #'             zone.spat = "NMFS_AREA")
+  #'             
+  #'# percent of obs
+  #'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
+  #'             zone.spat = "NMFS_AREA", count = TRUE, fun = "percent")
+  #'
+  #'# count by group
+  #'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
+  #'             zone.spat = "NMFS_AREA", group = "GEAR_TYPE")   
+  #'
+  #'# total catch by zone           
+  #'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
+  #'             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
+  #'             count = FALSE, fun = "sum")  
+  #'
+  #'# percent of catch by zone           
+  #'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
+  #'             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
+  #'             count = FALSE, fun = "percent")         
+  #'             
+  #'}
+  
   
   # Call in datasets
   out <- data_pull(dat, project)
