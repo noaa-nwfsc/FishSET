@@ -259,8 +259,8 @@ zone_summary <- function(dat,
       spat_join
     }
 
-    # spat_join <- merge_spat(zone_tab)
-    # 
+    spat_join <- merge_spat(zone_tab)
+
     # # base map ----
     # if (dat.center)  {
     #   # create a bbox using zones that exist in dat
@@ -466,18 +466,18 @@ zone_summary <- function(dat,
     # }
   }
 
-  # save table
-  save_table(zone_tab, project, "zone_summary")
-
-  # log function
-  zone_summary_function <- list()
-  zone_summary_function$functionID <- "zone_summary"
-  zone_summary_function$args <- list(dat, spat, project, zone.dat, zone.spat,
-                                     count, var, group, fun, breaks, n.breaks,
-                                     bin_colors, na.rm, dat.center, output)
-  log_call(project, zone_summary_function)
-
-  if (output == "plot") z_plot
-  else if (output == "tab_plot") list(table = zone_tab, plot = z_plot)
-  else zone_tab
+  # # save table
+  # save_table(zone_tab, project, "zone_summary")
+  # 
+  # # log function
+  # zone_summary_function <- list()
+  # zone_summary_function$functionID <- "zone_summary"
+  # zone_summary_function$args <- list(dat, spat, project, zone.dat, zone.spat,
+  #                                    count, var, group, fun, breaks, n.breaks,
+  #                                    bin_colors, na.rm, dat.center, output)
+  # log_call(project, zone_summary_function)
+  # 
+  # if (output == "plot") z_plot
+  # else if (output == "tab_plot") list(table = zone_tab, plot = z_plot)
+  # else zone_tab
 }
