@@ -427,13 +427,13 @@ zone_summary <- function(dat,
                                             bin_colors = break_list$colors,
                                             legend_name = legend_name))
 
-      # z_plot <- suppressWarnings(plotly::ggplotly(z_plot) %>%
-      #                              plotly::style(line.width = 1) %>%
-      #                              plotly::config(scrollZoom = TRUE) %>%
-      #                              plotly::plotly_build())
-      # 
-      # # save plot
-      # save_plot(project, "zone_summary", z_plot)
+      z_plot <- suppressWarnings(plotly::ggplotly(z_plot) %>%
+                                   plotly::style(line.width = 1) %>%
+                                   plotly::config(scrollZoom = TRUE) %>%
+                                   plotly::plotly_build())
+
+      # save plot
+      save_plot(project, "zone_summary", z_plot)
     }
 
     # # confid plot ----
