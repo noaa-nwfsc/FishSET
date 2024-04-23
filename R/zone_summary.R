@@ -345,32 +345,32 @@ zone_summary <- function(dat,
         ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
                           expand = TRUE)
 
-      binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
-
-      # choose between stepn and binned scale
-      if (binned) {
-        # # this gives the exact color from bin_colors
-        out <- out +
-          ggplot2::binned_scale(aesthetics = "fill",
-                                scale_name = "stepsn",
-                                palette = function(x) bin_colors,
-                                breaks = brks,
-                                show.limits = TRUE,
-                                guide = "colorsteps",
-                                name = legend_name,
-                                labels = scales::comma)
-
-      } else {
-        # this will "ramp" (scale) the colors in bin_colors
-        out <- out +
-          ggplot2::scale_fill_stepsn(breaks = brks,
-                                     colors = bin_colors,
-                                     labels = scales::comma,
-                                     show.limits = TRUE,
-                                     values = scales::rescale(brks),
-                                     name = legend_name,
-                                     na.value = "white")
-      }
+      # binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
+      # 
+      # # choose between stepn and binned scale
+      # if (binned) {
+      #   # # this gives the exact color from bin_colors
+      #   out <- out +
+      #     ggplot2::binned_scale(aesthetics = "fill",
+      #                           scale_name = "stepsn",
+      #                           palette = function(x) bin_colors,
+      #                           breaks = brks,
+      #                           show.limits = TRUE,
+      #                           guide = "colorsteps",
+      #                           name = legend_name,
+      #                           labels = scales::comma)
+      # 
+      # } else {
+      #   # this will "ramp" (scale) the colors in bin_colors
+      #   out <- out +
+      #     ggplot2::scale_fill_stepsn(breaks = brks,
+      #                                colors = bin_colors,
+      #                                labels = scales::comma,
+      #                                show.limits = TRUE,
+      #                                values = scales::rescale(brks),
+      #                                name = legend_name,
+      #                                na.value = "white")
+      # }
 
      out <-
        out + fishset_theme() +
