@@ -410,6 +410,10 @@ agg_helper(scallopMainDataTable, value = "in_closure",
 
 The number of observations by zone.
 ```{r}
+outlier_table(scallopMainDataTable, proj, x = "VPUE") %>% 
+  pretty_lab() %>% 
+  pretty_tab()
+
 zone_out <- zone_summary(scallopMainDataTable, project = proj,
                          spat = scallopTenMNSQRSpatTable,
                          zone.dat = "ZONE_ID",
