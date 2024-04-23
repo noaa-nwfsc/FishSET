@@ -261,30 +261,30 @@ zone_summary <- function(dat,
 
     spat_join <- merge_spat(zone_tab)
 
-    # # base map ----
-    # if (dat.center)  {
-    #   # create a bbox using zones that exist in dat
-    #   z_ind <- spatdat[[zone.spat]] %in% unique(zone_tab[[zone.dat]])
-    #   bbox <- sf::st_bbox(spatdat[z_ind, ]) # keeps shifted long
-    # 
-    # } else bbox <- sf::st_bbox(spatdat) # use entire spatial data
-    # 
-    # # world2 uses 0 - 360 lon format
-    # base_map <- ggplot2::map_data(map = ifelse(shift_long(spatdat), "world2", "world"),
-    #                               xlim = c(bbox["xmin"], bbox["xmax"]),
-    #                               ylim = c(bbox["ymin"], bbox["ymax"]))
-    # 
-    # # convert data to sf for plotting purposes
-    # base_map <- sf::st_as_sf(base_map, coords = c("long", "lat"),
-    #                          crs = sf::st_crs(spat_join))
-    # 
-    # # convert points to polygon
-    # base_map <-
-    #   base_map %>%
-    #   dplyr::group_by(across(all_of("group"))) %>%
-    #   dplyr::summarize(do_union = FALSE) %>%
-    #   sf::st_cast("POLYGON")
-    # 
+    # base map ----
+    if (dat.center)  {
+      # create a bbox using zones that exist in dat
+      z_ind <- spatdat[[zone.spat]] %in% unique(zone_tab[[zone.dat]])
+      bbox <- sf::st_bbox(spatdat[z_ind, ]) # keeps shifted long
+
+    } else bbox <- sf::st_bbox(spatdat) # use entire spatial data
+
+    # world2 uses 0 - 360 lon format
+    base_map <- ggplot2::map_data(map = ifelse(shift_long(spatdat), "world2", "world"),
+                                  xlim = c(bbox["xmin"], bbox["xmax"]),
+                                  ylim = c(bbox["ymin"], bbox["ymax"]))
+
+    # convert data to sf for plotting purposes
+    base_map <- sf::st_as_sf(base_map, coords = c("long", "lat"),
+                             crs = sf::st_crs(spat_join))
+
+    # convert points to polygon
+    base_map <-
+      base_map %>%
+      dplyr::group_by(across(all_of("group"))) %>%
+      dplyr::summarize(do_union = FALSE) %>%
+      sf::st_cast("POLYGON")
+
     # # breaks ----
     # z_brk_fun <- function(dat, breaks, n.breaks, bin_colors, count) {
     # 
