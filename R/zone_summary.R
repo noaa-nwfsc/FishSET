@@ -414,10 +414,10 @@ zone_summary <- function(dat,
         z_plot
       } # END GROUP ZONE FUNCTION
 
-      # z_plot <- group_zone(spat_join)
-      # 
-      # # save plot
-      # save_nplot(project, "zone_summary", z_plot)
+      z_plot <- group_zone(spat_join)
+
+      # save plot
+      save_nplot(project, "zone_summary", z_plot)
 
     } else {
 
