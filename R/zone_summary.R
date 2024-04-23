@@ -203,281 +203,281 @@ zone_summary <- function(dat,
     if (!is.null(group)) multi_plot <- TRUE
   }
 
-  # # confid check ----
-  # # skip check if rule = "k" and count = TRUE
-  # cc_par <- get_confid_check(project)
-  # 
-  # check_c <- cc_par$check & (cc_par$rule == "n" | cc_par$rule == "k" & !count)
-  # 
-  # if (check_c) {
-  # 
-  #   check_out <-
-  #     check_confidentiality(dataset, project, v_id = cc_par$v_id, value_var = var,
-  #                           group = c(zone.dat, group), rule = cc_par$rule,
-  #                           value = cc_par$value)
-  # 
-  #   if (any(check_out$suppress)) {
-  # 
-  #     zone_tab_c <-
-  #       suppress_table(check_out$table, zone_tab, value_var = c(val_2, val_var),
-  #                      group = c(zone.dat, group), rule = cc_par$rule, type = "code")
-  # 
-  #     save_table(zone_tab_c, project, "zone_summary_confid")
-  #   }
-  # }
-  # 
-  # if (output %in% c("plot", "tab_plot")) {
-  # 
-  #   zone_tab[[zone.dat]] <- as.character(zone_tab[[zone.dat]])
-  #   spatdat[[zone.spat]] <- as.character(spatdat[[zone.spat]])
-  # 
-  #   merge_spat <- function(z_tab) {
-  # 
-  #     by_vec <- zone.dat
-  #     names(by_vec) <- zone.spat
-  # 
-  #     # merge spatdat w/ zone summary
-  #     spat_join <- dplyr::left_join(spatdat[zone.spat], z_tab, by = by_vec)
-  # 
-  #     # use WGS 84 if crs is missing
-  #     if (is.na(sf::st_crs(spatdat))) {
-  # 
-  #       spat_join <- sf::st_transform(spat_join, crs = 4326)
-  #     }
-  # 
-  #     if (any(!(sf::st_is_valid(spatdat)))) {
-  # 
-  #       spat_join <- sf::st_make_valid(spat_join)
-  #     }
-  # 
-  #     if (na.rm) {
-  # 
-  #       # filter out zero counts
-  #       spat_join <- spat_join[!is.na(spat_join[[val_var]]), ]
-  #     }
-  # 
-  #     spat_join
-  #   }
-  # 
-  #   spat_join <- merge_spat(zone_tab)
-  # 
-  #   # base map ----
-  #   if (dat.center)  {
-  #     # create a bbox using zones that exist in dat
-  #     z_ind <- spatdat[[zone.spat]] %in% unique(zone_tab[[zone.dat]])
-  #     bbox <- sf::st_bbox(spatdat[z_ind, ]) # keeps shifted long
-  # 
-  #   } else bbox <- sf::st_bbox(spatdat) # use entire spatial data
-  # 
-  #   # world2 uses 0 - 360 lon format
-  #   base_map <- ggplot2::map_data(map = ifelse(shift_long(spatdat), "world2", "world"),
-  #                                 xlim = c(bbox["xmin"], bbox["xmax"]),
-  #                                 ylim = c(bbox["ymin"], bbox["ymax"]))
-  # 
-  #   # convert data to sf for plotting purposes
-  #   base_map <- sf::st_as_sf(base_map, coords = c("long", "lat"),
-  #                            crs = sf::st_crs(spat_join))
-  # 
-  #   # convert points to polygon
-  #   base_map <-
-  #     base_map %>%
-  #     dplyr::group_by(across(all_of("group"))) %>%
-  #     dplyr::summarize(do_union = FALSE) %>%
-  #     sf::st_cast("POLYGON")
-  # 
-  #   # breaks ----
-  #   z_brk_fun <- function(dat, breaks, n.breaks, bin_colors, count) {
-  # 
-  #     # check if breaks include range, show.limits = TRUE will add additional bins
-  #     # Note: this can reject users bin_colors
-  # 
-  #     val_range <- range(dat[[val_var]])
-  # 
-  #     if (is.null(breaks)) brks <- pretty(dat[[val_var]], n = n.breaks)
-  #     else                 brks <- breaks
-  # 
-  #     if (!is.null(bin_colors)) {
-  # 
-  #       if (length(bin_colors) != length(brks)) {
-  # 
-  #         warning("bin_colors length is not equal to breaks. Using default colors.",
-  #                 call. = FALSE) # TODO: use bin_colors[seq_along(brks)] ?
-  #         bin_colors <- fishset_viridis(length(brks))
-  #       }
-  # 
-  #     } else {
-  # 
-  #       bin_colors <- fishset_viridis(length(brks))
-  #     }
-  # 
-  #     if (count) {
-  # 
-  #       if (min(brks) == 0) {
-  # 
-  #         if (brks[2] > 10) brks[1] <- 10
-  #         else  brks[1] <- round((brks[2]/2))
-  #       }
-  # 
-  #       if (is.null(scale_args$bc)) {
-  # 
-  #         bin_colors <- c("white", fishset_viridis(length(brks - 1)))
-  #       }
-  #     }
-  # 
-  #     list(brks = brks, colors = bin_colors)
-  #   }
-  # 
-  #   # plot ----
-  #   var_sym <- function() rlang::sym(val_var)
-  # 
-  #   z_plot_fun <- function(spatdat, brks, bin_colors, legend_name) {
-  # 
-  #     rescale_val <- function() if (val_rescale) scales::rescale(brks) else NULL
-  # 
-  #     Zone <- spatdat[[zone.spat]] # Need to assign zone so "Zone" is displayed when hovering in plotly
-  # 
-  #     out <-
-  #     ggplot2::ggplot() +
-  #       ggplot2::geom_sf(data = base_map) +
-  #       ggplot2::geom_sf(data = spatdat,
-  #                        ggplot2::aes(fill = !!var_sym(), label = Zone),
-  #                        color = "black", alpha = .8) +
-  #       ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
-  #                         expand = TRUE)
-  # 
-  #     # binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
-  # 
-  #     # choose between stepn and binned scale
-  #     if (binned) {
-  #       # # this gives the exact color from bin_colors
-  #       out <- out +
-  #         ggplot2::binned_scale(aesthetics = "fill",
-  #                               scale_name = "stepsn",
-  #                               palette = function(x) bin_colors,
-  #                               breaks = brks,
-  #                               show.limits = TRUE,
-  #                               guide = "colorsteps",
-  #                               name = legend_name,
-  #                               labels = scales::comma)
-  # 
-  #     } else {
-  #       # this will "ramp" (scale) the colors in bin_colors
-  #       out <- out +
-  #         ggplot2::scale_fill_stepsn(breaks = brks,
-  #                                    colors = bin_colors,
-  #                                    labels = scales::comma,
-  #                                    show.limits = TRUE,
-  #                                    values = scales::rescale(brks),
-  #                                    name = legend_name,
-  #                                    na.value = "white")
-  #     }
-  # 
-  #    out <-
-  #      out + fishset_theme() +
-  #      ggplot2::theme(legend.key.size = unit(1, "cm"),
-  #                     legend.background = ggplot2::element_rect(fill = "grey90"))
-  # 
-  #    out
-  #   }
-  # 
-  #   if (multi_plot) {
-  # 
-  #     # GROUP ZONE FUNCTION
-  #     group_zone <- function(spat_join) {
-  #       p_levels <- unique(spat_join[[group]]) # what if too many levels?
-  # 
-  #       z_plot <- lapply(p_levels, function(x) {
-  #         dat <- dplyr::filter(spat_join, .data[[group]] == !!x)
-  # 
-  #         if (count) {
-  #           # update legend to include group name
-  #           if (calc_perc) legend_name <- paste0("% of total obs: \n ", x)
-  #           else legend_name <- paste("# of obs: \n ", x)
-  # 
-  #         } else {
-  # 
-  #           if (calc_perc) legend_name <- paste0("% of ", var, ": \n", x)
-  #           else legend_name <- paste0(fun, " ", var, ": \n", x)
-  #         }
-  # 
-  #         break_list <- z_brk_fun(dat, breaks, n.breaks, bin_colors, count = count)
-  # 
-  #         tmp_z_plot <- suppressWarnings(z_plot_fun(dat, brks = break_list$brks,
-  #                                                   bin_colors = break_list$colors,
-  #                                                   legend_name = legend_name))
-  # 
-  #         suppressWarnings(plotly::ggplotly(tmp_z_plot) %>%
-  #                            plotly::style(line.width = 1) %>%
-  #                            plotly::config(scrollZoom = TRUE) %>%
-  #                            plotly::plotly_build())
-  #       })
-  #       z_plot
-  #     } # END GROUP ZONE FUNCTION
-  # 
-  #     z_plot <- group_zone(spat_join)
-  # 
-  #     # save plot
-  #     save_nplot(project, "zone_summary", z_plot)
-  # 
-  #   } else {
-  # 
-  #     break_list <- z_brk_fun(spat_join, breaks, n.breaks, bin_colors, count = count)
-  # 
-  #     z_plot <- suppressWarnings(z_plot_fun(spat_join, brks = break_list$brks,
-  #                                           bin_colors = break_list$colors,
-  #                                           legend_name = legend_name))
-  # 
-  #     z_plot <- suppressWarnings(plotly::ggplotly(z_plot) %>%
-  #                                  plotly::style(line.width = 1) %>%
-  #                                  plotly::config(scrollZoom = TRUE) %>%
-  #                                  plotly::plotly_build())
-  # 
-  #     # save plot
-  #     save_plot(project, "zone_summary", z_plot)
-  #   }
-  # 
-  #   # confid plot ----
-  # 
-  #   if (check_c && any(check_out$suppress)) {
-  #   # filter out suppressed values
-  #   spat_join_c <- merge_spat(zone_tab_c)
-  #   spat_join_c <- spat_join_c %>% dplyr::filter(.data[[val_var]] != -999)
-  # 
-  #     if (multi_plot) {
-  # 
-  #       z_plot_c <- group_zone(spat_join_c)
-  #       # save plot
-  #       save_nplot(project, "zone_summary_confid", z_plot_c)
-  # 
-  #     } else {
-  # 
-  #       break_list_c <- z_brk_fun(spat_join_c, breaks, n.breaks, bin_colors, count = count)
-  # 
-  #       z_plot_c <- suppressWarnings(z_plot_fun(spat_join_c, brks = break_list_c$brks,
-  #                                               bin_colors = break_list_c$colors,
-  #                                               legend_name = legend_name))
-  #       z_plot_c <- suppressWarnings(plotly::ggplotly(z_plot_c) %>%
-  #                                    plotly::style(line.width = 1) %>%
-  #                                    plotly::config(scrollZoom = TRUE) %>%
-  #                                    plotly::plotly_build())
-  #       # save plot
-  #       save_plot(project, "zone_summary_confid", z_plot_c)
-  #     }
-  #   }
-  # }
-  # 
-  # # save table
-  # save_table(zone_tab, project, "zone_summary")
-  # 
-  # # log function
-  # zone_summary_function <- list()
-  # zone_summary_function$functionID <- "zone_summary"
-  # zone_summary_function$args <- list(dat, spat, project, zone.dat, zone.spat,
-  #                                    count, var, group, fun, breaks, n.breaks,
-  #                                    bin_colors, na.rm, dat.center, output)
-  # log_call(project, zone_summary_function)
-  # 
-  # if (output == "plot") z_plot
-  # else if (output == "tab_plot") list(table = zone_tab, plot = z_plot)
-  # else zone_tab
+  # confid check ----
+  # skip check if rule = "k" and count = TRUE
+  cc_par <- get_confid_check(project)
+
+  check_c <- cc_par$check & (cc_par$rule == "n" | cc_par$rule == "k" & !count)
+
+  if (check_c) {
+
+    check_out <-
+      check_confidentiality(dataset, project, v_id = cc_par$v_id, value_var = var,
+                            group = c(zone.dat, group), rule = cc_par$rule,
+                            value = cc_par$value)
+
+    if (any(check_out$suppress)) {
+
+      zone_tab_c <-
+        suppress_table(check_out$table, zone_tab, value_var = c(val_2, val_var),
+                       group = c(zone.dat, group), rule = cc_par$rule, type = "code")
+
+      save_table(zone_tab_c, project, "zone_summary_confid")
+    }
+  }
+
+  if (output %in% c("plot", "tab_plot")) {
+
+    zone_tab[[zone.dat]] <- as.character(zone_tab[[zone.dat]])
+    spatdat[[zone.spat]] <- as.character(spatdat[[zone.spat]])
+
+    merge_spat <- function(z_tab) {
+
+      by_vec <- zone.dat
+      names(by_vec) <- zone.spat
+
+      # merge spatdat w/ zone summary
+      spat_join <- dplyr::left_join(spatdat[zone.spat], z_tab, by = by_vec)
+
+      # use WGS 84 if crs is missing
+      if (is.na(sf::st_crs(spatdat))) {
+
+        spat_join <- sf::st_transform(spat_join, crs = 4326)
+      }
+
+      if (any(!(sf::st_is_valid(spatdat)))) {
+
+        spat_join <- sf::st_make_valid(spat_join)
+      }
+
+      if (na.rm) {
+
+        # filter out zero counts
+        spat_join <- spat_join[!is.na(spat_join[[val_var]]), ]
+      }
+
+      spat_join
+    }
+
+    # spat_join <- merge_spat(zone_tab)
+    # 
+    # # base map ----
+    # if (dat.center)  {
+    #   # create a bbox using zones that exist in dat
+    #   z_ind <- spatdat[[zone.spat]] %in% unique(zone_tab[[zone.dat]])
+    #   bbox <- sf::st_bbox(spatdat[z_ind, ]) # keeps shifted long
+    # 
+    # } else bbox <- sf::st_bbox(spatdat) # use entire spatial data
+    # 
+    # # world2 uses 0 - 360 lon format
+    # base_map <- ggplot2::map_data(map = ifelse(shift_long(spatdat), "world2", "world"),
+    #                               xlim = c(bbox["xmin"], bbox["xmax"]),
+    #                               ylim = c(bbox["ymin"], bbox["ymax"]))
+    # 
+    # # convert data to sf for plotting purposes
+    # base_map <- sf::st_as_sf(base_map, coords = c("long", "lat"),
+    #                          crs = sf::st_crs(spat_join))
+    # 
+    # # convert points to polygon
+    # base_map <-
+    #   base_map %>%
+    #   dplyr::group_by(across(all_of("group"))) %>%
+    #   dplyr::summarize(do_union = FALSE) %>%
+    #   sf::st_cast("POLYGON")
+    # 
+    # # breaks ----
+    # z_brk_fun <- function(dat, breaks, n.breaks, bin_colors, count) {
+    # 
+    #   # check if breaks include range, show.limits = TRUE will add additional bins
+    #   # Note: this can reject users bin_colors
+    # 
+    #   val_range <- range(dat[[val_var]])
+    # 
+    #   if (is.null(breaks)) brks <- pretty(dat[[val_var]], n = n.breaks)
+    #   else                 brks <- breaks
+    # 
+    #   if (!is.null(bin_colors)) {
+    # 
+    #     if (length(bin_colors) != length(brks)) {
+    # 
+    #       warning("bin_colors length is not equal to breaks. Using default colors.",
+    #               call. = FALSE) # TODO: use bin_colors[seq_along(brks)] ?
+    #       bin_colors <- fishset_viridis(length(brks))
+    #     }
+    # 
+    #   } else {
+    # 
+    #     bin_colors <- fishset_viridis(length(brks))
+    #   }
+    # 
+    #   if (count) {
+    # 
+    #     if (min(brks) == 0) {
+    # 
+    #       if (brks[2] > 10) brks[1] <- 10
+    #       else  brks[1] <- round((brks[2]/2))
+    #     }
+    # 
+    #     if (is.null(scale_args$bc)) {
+    # 
+    #       bin_colors <- c("white", fishset_viridis(length(brks - 1)))
+    #     }
+    #   }
+    # 
+    #   list(brks = brks, colors = bin_colors)
+    # }
+    # 
+    # # plot ----
+    # var_sym <- function() rlang::sym(val_var)
+    # 
+    # z_plot_fun <- function(spatdat, brks, bin_colors, legend_name) {
+    # 
+    #   rescale_val <- function() if (val_rescale) scales::rescale(brks) else NULL
+    # 
+    #   Zone <- spatdat[[zone.spat]] # Need to assign zone so "Zone" is displayed when hovering in plotly
+    # 
+    #   out <-
+    #   ggplot2::ggplot() +
+    #     ggplot2::geom_sf(data = base_map) +
+    #     ggplot2::geom_sf(data = spatdat,
+    #                      ggplot2::aes(fill = !!var_sym(), label = Zone),
+    #                      color = "black", alpha = .8) +
+    #     ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
+    #                       expand = TRUE)
+    # 
+    #   # binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
+    # 
+    #   # choose between stepn and binned scale
+    #   if (binned) {
+    #     # # this gives the exact color from bin_colors
+    #     out <- out +
+    #       ggplot2::binned_scale(aesthetics = "fill",
+    #                             scale_name = "stepsn",
+    #                             palette = function(x) bin_colors,
+    #                             breaks = brks,
+    #                             show.limits = TRUE,
+    #                             guide = "colorsteps",
+    #                             name = legend_name,
+    #                             labels = scales::comma)
+    # 
+    #   } else {
+    #     # this will "ramp" (scale) the colors in bin_colors
+    #     out <- out +
+    #       ggplot2::scale_fill_stepsn(breaks = brks,
+    #                                  colors = bin_colors,
+    #                                  labels = scales::comma,
+    #                                  show.limits = TRUE,
+    #                                  values = scales::rescale(brks),
+    #                                  name = legend_name,
+    #                                  na.value = "white")
+    #   }
+    # 
+    #  out <-
+    #    out + fishset_theme() +
+    #    ggplot2::theme(legend.key.size = unit(1, "cm"),
+    #                   legend.background = ggplot2::element_rect(fill = "grey90"))
+    # 
+    #  out
+    # }
+    # 
+    # if (multi_plot) {
+    # 
+    #   # GROUP ZONE FUNCTION
+    #   group_zone <- function(spat_join) {
+    #     p_levels <- unique(spat_join[[group]]) # what if too many levels?
+    # 
+    #     z_plot <- lapply(p_levels, function(x) {
+    #       dat <- dplyr::filter(spat_join, .data[[group]] == !!x)
+    # 
+    #       if (count) {
+    #         # update legend to include group name
+    #         if (calc_perc) legend_name <- paste0("% of total obs: \n ", x)
+    #         else legend_name <- paste("# of obs: \n ", x)
+    # 
+    #       } else {
+    # 
+    #         if (calc_perc) legend_name <- paste0("% of ", var, ": \n", x)
+    #         else legend_name <- paste0(fun, " ", var, ": \n", x)
+    #       }
+    # 
+    #       break_list <- z_brk_fun(dat, breaks, n.breaks, bin_colors, count = count)
+    # 
+    #       tmp_z_plot <- suppressWarnings(z_plot_fun(dat, brks = break_list$brks,
+    #                                                 bin_colors = break_list$colors,
+    #                                                 legend_name = legend_name))
+    # 
+    #       suppressWarnings(plotly::ggplotly(tmp_z_plot) %>%
+    #                          plotly::style(line.width = 1) %>%
+    #                          plotly::config(scrollZoom = TRUE) %>%
+    #                          plotly::plotly_build())
+    #     })
+    #     z_plot
+    #   } # END GROUP ZONE FUNCTION
+    # 
+    #   z_plot <- group_zone(spat_join)
+    # 
+    #   # save plot
+    #   save_nplot(project, "zone_summary", z_plot)
+    # 
+    # } else {
+    # 
+    #   break_list <- z_brk_fun(spat_join, breaks, n.breaks, bin_colors, count = count)
+    # 
+    #   z_plot <- suppressWarnings(z_plot_fun(spat_join, brks = break_list$brks,
+    #                                         bin_colors = break_list$colors,
+    #                                         legend_name = legend_name))
+    # 
+    #   z_plot <- suppressWarnings(plotly::ggplotly(z_plot) %>%
+    #                                plotly::style(line.width = 1) %>%
+    #                                plotly::config(scrollZoom = TRUE) %>%
+    #                                plotly::plotly_build())
+    # 
+    #   # save plot
+    #   save_plot(project, "zone_summary", z_plot)
+    # }
+    # 
+    # # confid plot ----
+    # 
+    # if (check_c && any(check_out$suppress)) {
+    # # filter out suppressed values
+    # spat_join_c <- merge_spat(zone_tab_c)
+    # spat_join_c <- spat_join_c %>% dplyr::filter(.data[[val_var]] != -999)
+    # 
+    #   if (multi_plot) {
+    # 
+    #     z_plot_c <- group_zone(spat_join_c)
+    #     # save plot
+    #     save_nplot(project, "zone_summary_confid", z_plot_c)
+    # 
+    #   } else {
+    # 
+    #     break_list_c <- z_brk_fun(spat_join_c, breaks, n.breaks, bin_colors, count = count)
+    # 
+    #     z_plot_c <- suppressWarnings(z_plot_fun(spat_join_c, brks = break_list_c$brks,
+    #                                             bin_colors = break_list_c$colors,
+    #                                             legend_name = legend_name))
+    #     z_plot_c <- suppressWarnings(plotly::ggplotly(z_plot_c) %>%
+    #                                  plotly::style(line.width = 1) %>%
+    #                                  plotly::config(scrollZoom = TRUE) %>%
+    #                                  plotly::plotly_build())
+    #     # save plot
+    #     save_plot(project, "zone_summary_confid", z_plot_c)
+    #   }
+    # }
+  }
+
+  # save table
+  save_table(zone_tab, project, "zone_summary")
+
+  # log function
+  zone_summary_function <- list()
+  zone_summary_function$functionID <- "zone_summary"
+  zone_summary_function$args <- list(dat, spat, project, zone.dat, zone.spat,
+                                     count, var, group, fun, breaks, n.breaks,
+                                     bin_colors, na.rm, dat.center, output)
+  log_call(project, zone_summary_function)
+
+  if (output == "plot") z_plot
+  else if (output == "tab_plot") list(table = zone_tab, plot = z_plot)
+  else zone_tab
 }
