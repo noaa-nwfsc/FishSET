@@ -970,7 +970,7 @@ parse_data_name <- function(dat, type, project) {
     # }
   }
   
-  dat <- "dat"
+  dat <- "TESTMAINDAT"
 }
 
 data_upload_helper <- function(dat, type, ...) {
