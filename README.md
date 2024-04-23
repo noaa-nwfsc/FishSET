@@ -2,7 +2,7 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml)
-[![gitleaks](https://github.com/noaa-nwfsc/FishSET/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/noaa-nwfsc/FishSET/actions/workflows/gitleaks.yml)
+[![gitleaks](https://github.com/noaa-nwfsc/FishSET/actions/workflows/secretScan.yml/badge.svg)](https://github.com/noaa-nwfsc/FishSET/actions/workflows/secretScan.yml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
