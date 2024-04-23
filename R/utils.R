@@ -937,7 +937,7 @@ parse_data_name <- function(dat, type, project) {
   if (shiny::isRunning()) {
     
     p_set <- get_proj_settings(project)
-    dat <- p_set[["tables"]][[type]]
+    dat <- p_set$tables[[type]]
     
   } else { 
     
