@@ -336,8 +336,7 @@ zone_summary <- function(dat,
 
       Zone <- spatdat[[zone.spat]] # Need to assign zone so "Zone" is displayed when hovering in plotly
 
-      out <-
-      ggplot2::ggplot() +
+      out <- ggplot2::ggplot() +
         ggplot2::geom_sf(data = base_map) +
         ggplot2::geom_sf(data = spatdat,
                          ggplot2::aes(fill = !!var_sym(), label = Zone),
@@ -427,57 +426,56 @@ zone_summary <- function(dat,
                                             bin_colors = break_list$colors,
                                             legend_name = legend_name))
 
-      z_plot <- suppressWarnings(plotly::ggplotly(tmp_z_plot)) #%>%
-                                 # plotly::style(line.width = 1) %>%
-                                 # plotly::config(scrollZoom = TRUE) %>%
-                                 # plotly::plotly_build())
+      z_plot <- suppressWarnings(plotly::ggplotly(tmp_z_plot) %>%
+                                 plotly::style(line.width = 1) %>%
+                                 plotly::config(scrollZoom = TRUE) %>%
+                                 plotly::plotly_build())
 
       # save plot
-      # save_plot(project, "zone_summary", z_plot)
+      save_plot(project, "zone_summary", z_plot)
     }
 
-    # # confid plot ----
-    # 
-    # if (check_c && any(check_out$suppress)) {
-    # # filter out suppressed values
-    # spat_join_c <- merge_spat(zone_tab_c)
-    # spat_join_c <- spat_join_c %>% dplyr::filter(.data[[val_var]] != -999)
-    # 
-    #   if (multi_plot) {
-    # 
-    #     z_plot_c <- group_zone(spat_join_c)
-    #     # save plot
-    #     save_nplot(project, "zone_summary_confid", z_plot_c)
-    # 
-    #   } else {
-    # 
-    #     break_list_c <- z_brk_fun(spat_join_c, breaks, n.breaks, bin_colors, count = count)
-    # 
-    #     z_plot_c <- suppressWarnings(z_plot_fun(spat_join_c, brks = break_list_c$brks,
-    #                                             bin_colors = break_list_c$colors,
-    #                                             legend_name = legend_name))
-    #     z_plot_c <- suppressWarnings(plotly::ggplotly(z_plot_c) %>%
-    #                                  plotly::style(line.width = 1) %>%
-    #                                  plotly::config(scrollZoom = TRUE) %>%
-    #                                  plotly::plotly_build())
-    #     # save plot
-    #     save_plot(project, "zone_summary_confid", z_plot_c)
-    #   }
-    # }
+    # confid plot ----
+    if (check_c && any(check_out$suppress)) {
+    # filter out suppressed values
+    spat_join_c <- merge_spat(zone_tab_c)
+    spat_join_c <- spat_join_c %>% dplyr::filter(.data[[val_var]] != -999)
+
+      if (multi_plot) {
+
+        z_plot_c <- group_zone(spat_join_c)
+        # save plot
+        save_nplot(project, "zone_summary_confid", z_plot_c)
+
+      } else {
+
+        break_list_c <- z_brk_fun(spat_join_c, breaks, n.breaks, bin_colors, count = count)
+
+        z_plot_c <- suppressWarnings(z_plot_fun(spat_join_c, brks = break_list_c$brks,
+                                                bin_colors = break_list_c$colors,
+                                                legend_name = legend_name))
+        z_plot_c <- suppressWarnings(plotly::ggplotly(z_plot_c) %>%
+                                     plotly::style(line.width = 1) %>%
+                                     plotly::config(scrollZoom = TRUE) %>%
+                                     plotly::plotly_build())
+        # save plot
+        save_plot(project, "zone_summary_confid", z_plot_c)
+      }
+    }
   }
 
-  # # save table
-  # save_table(zone_tab, project, "zone_summary")
-  # 
-  # # log function
-  # zone_summary_function <- list()
-  # zone_summary_function$functionID <- "zone_summary"
-  # zone_summary_function$args <- list(dat, spat, project, zone.dat, zone.spat,
-  #                                    count, var, group, fun, breaks, n.breaks,
-  #                                    bin_colors, na.rm, dat.center, output)
-  # log_call(project, zone_summary_function)
-  # 
-  # if (output == "plot") z_plot
-  # else if (output == "tab_plot") list(table = zone_tab, plot = z_plot)
-  # else zone_tab
+  # save table
+  save_table(zone_tab, project, "zone_summary")
+
+  # log function
+  zone_summary_function <- list()
+  zone_summary_function$functionID <- "zone_summary"
+  zone_summary_function$args <- list(dat, spat, project, zone.dat, zone.spat,
+                                     count, var, group, fun, breaks, n.breaks,
+                                     bin_colors, na.rm, dat.center, output)
+  log_call(project, zone_summary_function)
+
+  if (output == "plot") z_plot
+  else if (output == "tab_plot") list(table = zone_tab, plot = z_plot)
+  else zone_tab
 }
