@@ -101,9 +101,9 @@ zone_summary <- function(dat,
                          output = "plot") {
   
   # Call in datasets
-  out <- data_pull(dat, project)
-  dataset <- out$dataset
-  dat <- parse_data_name(dat, "main", project)
+  # out <- data_pull(dat, project)
+  # dataset <- out$dataset
+  # dat <- parse_data_name(dat, "main", project)
 
   # spatout <- data_pull(spat, project)
   # spatdat <- spatout$dataset
