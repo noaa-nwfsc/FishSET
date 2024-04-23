@@ -102,7 +102,7 @@ zone_summary <- function(dat,
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat = dat, type = "main", project = project)
+  # dat <- parse_data_name(dat = dat, type = "main", project = project)
 
   # spatout <- data_pull(spat, project)
   # spatdat <- spatout$dataset
