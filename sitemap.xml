@@ -4,37 +4,10 @@
     <loc>/404.html</loc>
   </url>
   <url>
-    <loc>/LICENSE-text.html</loc>
-  </url>
-  <url>
     <loc>/articles/FishSET_FunctionList.html</loc>
   </url>
   <url>
     <loc>/articles/FishSET_GUI_Quickstart_Guide.html</loc>
-  </url>
-  <url>
-    <loc>/articles/RconsoleVignette/02-Data.html</loc>
-  </url>
-  <url>
-    <loc>/articles/RconsoleVignette/03-DataExploration.html</loc>
-  </url>
-  <url>
-    <loc>/articles/RconsoleVignette/04-Spatial.html</loc>
-  </url>
-  <url>
-    <loc>/articles/RconsoleVignette/05-DataCreation.html</loc>
-  </url>
-  <url>
-    <loc>/articles/RconsoleVignette/06-Modeling.html</loc>
-  </url>
-  <url>
-    <loc>/articles/RconsoleVignette/07-Policy_Welfare.html</loc>
-  </url>
-  <url>
-    <loc>/articles/RconsoleVignette/08_reporting.html</loc>
-  </url>
-  <url>
-    <loc>/articles/RconsoleVignette/index.html</loc>
   </url>
   <url>
     <loc>/articles/index.html</loc>
@@ -43,22 +16,13 @@
     <loc>/articles/scallop-example.html</loc>
   </url>
   <url>
-    <loc>/articles/scallop-mod-example.html</loc>
-  </url>
-  <url>
     <loc>/authors.html</loc>
   </url>
   <url>
     <loc>/index.html</loc>
   </url>
   <url>
-    <loc>/reference/ID_var.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PollockData.html</loc>
-  </url>
-  <url>
-    <loc>/reference/SST.html</loc>
+    <loc>/LICENSE-text.html</loc>
   </url>
   <url>
     <loc>/reference/aboutUI.html</loc>
@@ -127,16 +91,19 @@
     <loc>/reference/change_class.html</loc>
   </url>
   <url>
+    <loc>/reference/checklist.html</loc>
+  </url>
+  <url>
     <loc>/reference/check_and_suppress.html</loc>
   </url>
   <url>
-    <loc>/reference/check_conf_rc.html</loc>
+    <loc>/reference/check_confidentiality.html</loc>
   </url>
   <url>
     <loc>/reference/check_confid_par.html</loc>
   </url>
   <url>
-    <loc>/reference/check_confidentiality.html</loc>
+    <loc>/reference/check_conf_rc.html</loc>
   </url>
   <url>
     <loc>/reference/check_exp.html</loc>
@@ -149,9 +116,6 @@
   </url>
   <url>
     <loc>/reference/check_spatdat.html</loc>
-  </url>
-  <url>
-    <loc>/reference/checklist.html</loc>
   </url>
   <url>
     <loc>/reference/choose_directory.html</loc>
@@ -169,9 +133,6 @@
     <loc>/reference/colDescUI.html</loc>
   </url>
   <url>
-    <loc>/reference/col_desc.html</loc>
-  </url>
-  <url>
     <loc>/reference/collapse_leaf.html</loc>
   </url>
   <url>
@@ -179,6 +140,9 @@
   </url>
   <url>
     <loc>/reference/column_check.html</loc>
+  </url>
+  <url>
+    <loc>/reference/col_desc.html</loc>
   </url>
   <url>
     <loc>/reference/combine_zone.html</loc>
@@ -259,9 +223,6 @@
     <loc>/reference/current_out.html</loc>
   </url>
   <url>
-    <loc>/reference/dat_to_sf.html</loc>
-  </url>
-  <url>
     <loc>/reference/data_check.html</loc>
   </url>
   <url>
@@ -292,6 +253,9 @@
     <loc>/reference/date_title.html</loc>
   </url>
   <url>
+    <loc>/reference/dat_to_sf.html</loc>
+  </url>
+  <url>
     <loc>/reference/dd2dms.html</loc>
   </url>
   <url>
@@ -307,10 +271,10 @@
     <loc>/reference/delete_models.html</loc>
   </url>
   <url>
-    <loc>/reference/dens_plot_helper.html</loc>
+    <loc>/reference/density_plot.html</loc>
   </url>
   <url>
-    <loc>/reference/density_plot.html</loc>
+    <loc>/reference/dens_plot_helper.html</loc>
   </url>
   <url>
     <loc>/reference/deparse_name.html</loc>
@@ -370,9 +334,6 @@
     <loc>/reference/erase_project.html</loc>
   </url>
   <url>
-    <loc>/reference/exp_catch_names.html</loc>
-  </url>
-  <url>
     <loc>/reference/expand_data.html</loc>
   </url>
   <url>
@@ -383,6 +344,9 @@
   </url>
   <url>
     <loc>/reference/explore_startparams_discrete.html</loc>
+  </url>
+  <url>
+    <loc>/reference/exp_catch_names.html</loc>
   </url>
   <url>
     <loc>/reference/facet_period.html</loc>
@@ -478,6 +442,9 @@
     <loc>/reference/function_summary.html</loc>
   </url>
   <url>
+    <loc>/reference/getis_ord_stats.html</loc>
+  </url>
+  <url>
     <loc>/reference/get_closure_scenario.html</loc>
   </url>
   <url>
@@ -499,16 +466,13 @@
     <loc>/reference/get_user_locoutput.html</loc>
   </url>
   <url>
-    <loc>/reference/getis_ord_stats.html</loc>
-  </url>
-  <url>
     <loc>/reference/globalcheck_view.html</loc>
   </url>
   <url>
-    <loc>/reference/grid_lab_helper.html</loc>
+    <loc>/reference/gridcheck.html</loc>
   </url>
   <url>
-    <loc>/reference/gridcheck.html</loc>
+    <loc>/reference/grid_lab_helper.html</loc>
   </url>
   <url>
     <loc>/reference/group_cumsum.html</loc>
@@ -521,6 +485,9 @@
   </url>
   <url>
     <loc>/reference/haul_to_trip.html</loc>
+  </url>
+  <url>
+    <loc>/reference/ID_var.html</loc>
   </url>
   <url>
     <loc>/reference/index.html</loc>
@@ -604,6 +571,18 @@
     <loc>/reference/loc.html</loc>
   </url>
   <url>
+    <loc>/reference/locdatabase.html</loc>
+  </url>
+  <url>
+    <loc>/reference/loclog.html</loc>
+  </url>
+  <url>
+    <loc>/reference/locoutput.html</loc>
+  </url>
+  <url>
+    <loc>/reference/locproject.html</loc>
+  </url>
+  <url>
     <loc>/reference/loc_data.html</loc>
   </url>
   <url>
@@ -616,16 +595,16 @@
     <loc>/reference/loc_meta.html</loc>
   </url>
   <url>
-    <loc>/reference/locdatabase.html</loc>
+    <loc>/reference/logit_c.html</loc>
   </url>
   <url>
-    <loc>/reference/loclog.html</loc>
+    <loc>/reference/logit_correction.html</loc>
   </url>
   <url>
-    <loc>/reference/locoutput.html</loc>
+    <loc>/reference/logit_predict.html</loc>
   </url>
   <url>
-    <loc>/reference/locproject.html</loc>
+    <loc>/reference/logit_zonal.html</loc>
   </url>
   <url>
     <loc>/reference/log_call.html</loc>
@@ -644,18 +623,6 @@
   </url>
   <url>
     <loc>/reference/log_reset.html</loc>
-  </url>
-  <url>
-    <loc>/reference/logit_c.html</loc>
-  </url>
-  <url>
-    <loc>/reference/logit_correction.html</loc>
-  </url>
-  <url>
-    <loc>/reference/logit_predict.html</loc>
-  </url>
-  <url>
-    <loc>/reference/logit_zonal.html</loc>
   </url>
   <url>
     <loc>/reference/long_expectations.html</loc>
@@ -712,6 +679,9 @@
     <loc>/reference/metaCreateServ.html</loc>
   </url>
   <url>
+    <loc>/reference/metadata_gui.html</loc>
+  </url>
+  <url>
     <loc>/reference/metaDeleteServ.html</loc>
   </url>
   <url>
@@ -760,9 +730,6 @@
     <loc>/reference/meta_tables.html</loc>
   </url>
   <url>
-    <loc>/reference/metadata_gui.html</loc>
-  </url>
-  <url>
     <loc>/reference/mixed_logit_predict.html</loc>
   </url>
   <url>
@@ -805,12 +772,6 @@
     <loc>/reference/mvgrnd.html</loc>
   </url>
   <url>
-    <loc>/reference/n_breaks.html</loc>
-  </url>
-  <url>
-    <loc>/reference/na_filter.html</loc>
-  </url>
-  <url>
     <loc>/reference/name_check.html</loc>
   </url>
   <url>
@@ -818,6 +779,9 @@
   </url>
   <url>
     <loc>/reference/nan_identify.html</loc>
+  </url>
+  <url>
+    <loc>/reference/na_filter.html</loc>
   </url>
   <url>
     <loc>/reference/new_zone_id.html</loc>
@@ -829,10 +793,13 @@
     <loc>/reference/nmfs_manage_simple.html</loc>
   </url>
   <url>
+    <loc>/reference/numeric_cols.html</loc>
+  </url>
+  <url>
     <loc>/reference/num_breaks.html</loc>
   </url>
   <url>
-    <loc>/reference/numeric_cols.html</loc>
+    <loc>/reference/n_breaks.html</loc>
   </url>
   <url>
     <loc>/reference/order_factor.html</loc>
@@ -892,10 +859,10 @@
     <loc>/reference/policy_metrics.html</loc>
   </url>
   <url>
-    <loc>/reference/polyval.html</loc>
+    <loc>/reference/PollockData.html</loc>
   </url>
   <url>
-    <loc>/reference/pred_prob_outputs.html</loc>
+    <loc>/reference/polyval.html</loc>
   </url>
   <url>
     <loc>/reference/predict_map.html</loc>
@@ -905,6 +872,9 @@
   </url>
   <url>
     <loc>/reference/predict_probability.html</loc>
+  </url>
+  <url>
+    <loc>/reference/pred_prob_outputs.html</loc>
   </url>
   <url>
     <loc>/reference/pretty_lab.html</loc>
@@ -919,7 +889,7 @@
     <loc>/reference/previous_loc.html</loc>
   </url>
   <url>
-    <loc>/reference/proj_settings_exists.html</loc>
+    <loc>/reference/projects.html</loc>
   </url>
   <url>
     <loc>/reference/project_exists.html</loc>
@@ -934,7 +904,7 @@
     <loc>/reference/project_tables.html</loc>
   </url>
   <url>
-    <loc>/reference/projects.html</loc>
+    <loc>/reference/proj_settings_exists.html</loc>
   </url>
   <url>
     <loc>/reference/pull_log.html</loc>
@@ -961,10 +931,10 @@
     <loc>/reference/qaqc_helper.html</loc>
   </url>
   <url>
-    <loc>/reference/quiet_safe_test.html</loc>
+    <loc>/reference/quietly_test.html</loc>
   </url>
   <url>
-    <loc>/reference/quietly_test.html</loc>
+    <loc>/reference/quiet_safe_test.html</loc>
   </url>
   <url>
     <loc>/reference/randomize_lonlat_zone.html</loc>
@@ -1069,13 +1039,13 @@
     <loc>/reference/short_expectations.html</loc>
   </url>
   <url>
-    <loc>/reference/sim_welfare.html</loc>
-  </url>
-  <url>
     <loc>/reference/simpleCap.html</loc>
   </url>
   <url>
     <loc>/reference/simplify_list.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim_welfare.html</loc>
   </url>
   <url>
     <loc>/reference/skewness.html</loc>
@@ -1090,9 +1060,6 @@
     <loc>/reference/sparsplot.html</loc>
   </url>
   <url>
-    <loc>/reference/spat_qaqc_gui.html</loc>
-  </url>
-  <url>
     <loc>/reference/spatial_hist.html</loc>
   </url>
   <url>
@@ -1100,6 +1067,9 @@
   </url>
   <url>
     <loc>/reference/spatial_summary.html</loc>
+  </url>
+  <url>
+    <loc>/reference/spat_qaqc_gui.html</loc>
   </url>
   <url>
     <loc>/reference/species_catch.html</loc>
@@ -1111,13 +1081,16 @@
     <loc>/reference/split_dat.html</loc>
   </url>
   <url>
-    <loc>/reference/sub_date_check.html</loc>
+    <loc>/reference/SST.html</loc>
   </url>
   <url>
     <loc>/reference/subset_date.html</loc>
   </url>
   <url>
     <loc>/reference/subset_var.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sub_date_check.html</loc>
   </url>
   <url>
     <loc>/reference/summary_stats.html</loc>
@@ -1127,6 +1100,9 @@
   </url>
   <url>
     <loc>/reference/suppress_table.html</loc>
+  </url>
+  <url>
+    <loc>/reference/tables_database.html</loc>
   </url>
   <url>
     <loc>/reference/table_exists.html</loc>
@@ -1150,7 +1126,7 @@
     <loc>/reference/table_view.html</loc>
   </url>
   <url>
-    <loc>/reference/tables_database.html</loc>
+    <loc>/reference/temporal_mod.html</loc>
   </url>
   <url>
     <loc>/reference/temp_obs_table.html</loc>
@@ -1160,9 +1136,6 @@
   </url>
   <url>
     <loc>/reference/temp_plot_helper.html</loc>
-  </url>
-  <url>
-    <loc>/reference/temporal_mod.html</loc>
   </url>
   <url>
     <loc>/reference/tenMNSQR.html</loc>
@@ -1177,10 +1150,10 @@
     <loc>/reference/trim_space.html</loc>
   </url>
   <url>
-    <loc>/reference/trip_dur_out.html</loc>
+    <loc>/reference/trip_duration_plot.html</loc>
   </url>
   <url>
-    <loc>/reference/trip_duration_plot.html</loc>
+    <loc>/reference/trip_dur_out.html</loc>
   </url>
   <url>
     <loc>/reference/unique_closure.html</loc>
@@ -1225,13 +1198,13 @@
     <loc>/reference/view_spat.html</loc>
   </url>
   <url>
-    <loc>/reference/week_labeller.html</loc>
-  </url>
-  <url>
     <loc>/reference/weekly_catch.html</loc>
   </url>
   <url>
     <loc>/reference/weekly_effort.html</loc>
+  </url>
+  <url>
+    <loc>/reference/week_labeller.html</loc>
   </url>
   <url>
     <loc>/reference/welfare_outputs.html</loc>
