@@ -333,50 +333,22 @@ zone_summary <- function(dat,
     z_plot_fun <- function(spatdat, brks, bin_colors, legend_name) {
 
       rescale_val <- function() if (val_rescale) scales::rescale(brks) else NULL
-
+      
       Zone <- spatdat[[zone.spat]] # Need to assign zone so "Zone" is displayed when hovering in plotly
-
+      
       out <- ggplot2::ggplot() +
         ggplot2::geom_sf(data = base_map) +
         ggplot2::geom_sf(data = spatdat,
                          ggplot2::aes(fill = !!var_sym(), label = Zone),
                          color = "black", alpha = .8) +
+        ggplot2::scale_fill_viridis_c() +
         ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
-                          expand = TRUE)
-
-      # binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
-      # 
-      # # choose between stepn and binned scale
-      # if (binned) {
-      #   # # this gives the exact color from bin_colors
-      #   out <- out +
-      #     ggplot2::binned_scale(aesthetics = "fill",
-      #                           scale_name = "stepsn",
-      #                           palette = function(x) bin_colors,
-      #                           breaks = brks,
-      #                           show.limits = TRUE,
-      #                           guide = "colorsteps",
-      #                           name = legend_name,
-      #                           labels = scales::comma)
-      # 
-      # } else {
-      #   # this will "ramp" (scale) the colors in bin_colors
-      #   out <- out +
-      #     ggplot2::scale_fill_stepsn(breaks = brks,
-      #                                colors = bin_colors,
-      #                                labels = scales::comma,
-      #                                show.limits = TRUE,
-      #                                values = scales::rescale(brks),
-      #                                name = legend_name,
-      #                                na.value = "white")
-      # }
-
-     out <-
-       out + fishset_theme() +
-       ggplot2::theme(legend.key.size = unit(1, "cm"),
-                      legend.background = ggplot2::element_rect(fill = "grey90"))
-
-     out
+                          expand = TRUE) +
+        fishset_theme() +
+        ggplot2::theme(legend.key.size = unit(1, "cm"),
+                       legend.background = ggplot2::element_rect(fill = "grey90"))
+      
+      out
     }
 
     if (multi_plot) {

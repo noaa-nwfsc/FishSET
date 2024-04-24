@@ -419,10 +419,10 @@ zone_out <- zone_summary(scallopMainDataTable, project = proj,
                          breaks = NULL, n.breaks = 10,
                          na.rm = TRUE)
 
-# zone_out$plot
-# zone_out$table %>%
-#   pretty_lab(cols = "n") %>%
-#   pretty_tab_sb(width = "40%")
+zone_out$plot
+zone_out$table %>%
+  pretty_lab(cols = "n") %>%
+  pretty_tab_sb(width = "40%")
 ```
 
 <br><br>
