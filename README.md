@@ -37,6 +37,7 @@ pak::pak("noaa-nwfsc/FishSET")
 The team is phasing out local installs, but the team will provide for a local install if a user cannot install through GitHub.
 
 To install, run the following lines in R (remember to replace path in install_local() function to the actual file path on your computer):
+
 ```
 install.packages("devtools")
 library(devtools)
