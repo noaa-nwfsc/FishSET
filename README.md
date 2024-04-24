@@ -32,7 +32,6 @@ install.packages("pak")
 
 pak::pak("noaa-nwfsc/FishSET")
 ```
- 
 
 ## Local Install
 The team is phasing out local installs, but the team will provide for a local install if a user cannot install through GitHub.
