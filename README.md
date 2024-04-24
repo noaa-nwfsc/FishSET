@@ -27,7 +27,9 @@ usethis::create_github_token()
 credentials::set_github_pat("PASTE PAT HERE")
 
 # Install the package (see troubleshooting section below if this doesn't work)
-remotes::install_github("noaa-nwfsc/FishSET")
+install.packages("pak")
+
+pak::pak("noaa-nwfsc/FishSET")
 ```
  
 
