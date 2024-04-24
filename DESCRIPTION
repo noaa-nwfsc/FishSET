@@ -3,8 +3,34 @@ Package: FishSET
 Title: Spatial Economics Toolbox for Fisheries
 Version: 0.1.8
 Date: 2021
-Author: Alan Haynie, Melanie Harsch, Bryce McManus, Paul Carvalho
-Maintainer: Alan Haynie - NOAA Federal <FishSET@noaa.gov>
+Authors@R:
+    c(person(given = "Lisa",
+             family = "Pfeiffer",
+             role = c("aut","cre"),
+             email = "lisa.pfeiffer@noaa.gov"),
+      person(given = "Paul G",
+             family = "Carvalho",
+             role = c("aut","cre"),
+             email = "paul.carvalho@noaa.gov",
+             comment = c(ORCID = "0000-0003-2106-4954")),
+      person(given = "Anna",
+             family = "Abelman",
+             role = c("aut"),
+             email = "anna.abelman@noaa.gov"),
+      person(given = "Min-Yang",
+             family = "Lee",
+             role = c("aut"),
+             email = "min-yang.lee@noaa.gov"),
+      person(given = "Melanie",
+             family = "Harsch",
+             role = c("aut")),
+      person(given = "Bryce",
+             family = "McManus",
+             role = c("aut")),
+      person(given = "Alan",
+             family = "Haynie",
+             role = c("aut"),
+             comment = c(ORCID = "0000-0003-0981-2016")))
 Description: The Spatial Economics Toolbox for Fisheries (FishSET) is a
     set of tools for organizing data; developing, improving and
     disseminating modeling best practices.
