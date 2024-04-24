@@ -6,12 +6,13 @@
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
+Contact nmfs.fishset@noaa.gov with any questions regarding the FishSET R package and to report issues.
+
 ## Overview
-The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools developed as an R package for organizing and visualizing data; developing, improving and disseminating modeling best practices.
-Contact [FishSET@noaa.gov](mailto:FishSET@noaa.gov) with any questions regarding the FishSET R package and to report issues.
+The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools developed as an R package for organizing and visualizing data; developing, improving and disseminating modeling best practices; and simulating policy scenarios to explore the welfare consequences of management decisions. 
 
 ## GitHub Install
-Currntly, the FishSET repo is only available internally and access to the NOAA GHEC organization is required for installation. We plan on making this repo public soon.
+Currently, the FishSET repo is only available internally and access to the NOAA GHEC organization is required for installation. We plan on making this repo public soon.
 
 Run the following lines of code in R:
 
