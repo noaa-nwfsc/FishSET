@@ -59,7 +59,7 @@ Refer to the [FishSET R Package User Manual](https://docs.google.com/document/d/
 
 ## Issues and Bug Reports
 
-Add issues in GitHub [https://github.com/noaa-nwfsc/FishSET/issues](https://github.com/noaa-nwfsc/FishSET/issues). Or contact [FishSET@noaa.gov](mailto:FishSET@noaa.gov).
+Add issues in GitHub [https://github.com/noaa-nwfsc/FishSET/issues](https://github.com/noaa-nwfsc/FishSET/issues). Or contact nmfs.fishset@noaa.gov.
 
 ## <a name="cite"> Citation </a>
 
