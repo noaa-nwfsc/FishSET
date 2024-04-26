@@ -93,7 +93,6 @@ Suggests:
     htmlwidgets (>= 1.6.0),
     lwgeom,
     maps,
-    mapedit,
     R.matlab,
     readODS,
     rmarkdown,
