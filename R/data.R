@@ -118,20 +118,6 @@
 "alaskaPorts"
 
 
-#' Alaskan NMFS Areas
-#' 
-#' A spatial dataset of Alaskan NMFS areas.
-#' 
-#' @format `alaskaNMFSAreas`
-#' A simple features multipolygon dataframe with 10 features and two fields:
-#' \describe{
-#'   \item{NMFS_AREA}{NMFS area number.}
-#'   \item{geometry}{Coordinates for NMFS area.}
-#' }
-#' 
-"alaskaNMFSAreas"
-
-
 #' Pollock Data
 #'
 #' @description
