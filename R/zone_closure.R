@@ -23,6 +23,8 @@
 #' @import leaflet
 #' @import dplyr
 #' @import bslib
+#' @import bsicons
+
 
 #' @details Define zone closure scenarios. Function opens an interactive map. 
 #'   Define zone closures by clicking on one or more zones and clicking the 
