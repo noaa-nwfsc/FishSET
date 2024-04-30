@@ -555,15 +555,6 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
     pass <- FALSE
   }
   
-  # TODO: remove or change these checks, not comprehensive
-  # if (any(grepl("area|zone", names(dataset), ignore.case = TRUE)) == FALSE & 
-  #     (any(grepl("lat", names(dataset), ignore.case = TRUE)) == FALSE |
-  #      any(grepl("lon", names(dataset), ignore.case = TRUE)) ==  FALSE)) {
-  #   
-  #   warning("Neither Latitude/Longitude or Area/Zone variables are included. Data will not be saved.")
-  #   pass <- FALSE
-  # }
-  
   if (pass == FALSE) { 
     
     warning('Dataset not saved. Check that column names are case-insensitive ',
