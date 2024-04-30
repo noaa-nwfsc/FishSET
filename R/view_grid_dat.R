@@ -20,10 +20,6 @@ view_grid_dat <- function(grid, project, lon, lat, value, split_by = NULL,
   #' @export
   #' @import ggplot2
   #' @importFrom rlang sym
-  #' @examples 
-  #' \dontrun{
-  #' view_grid_dat('SST', "pollock", "lon", "lat", value = "analysed_sst")
-  #' }
   #'
 
   out <- data_pull(grid, project)
