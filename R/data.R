@@ -101,19 +101,3 @@
 #' }
 #' 
 "windLease"
-
-
-#' Pollock Data
-#'
-#' @description
-#' Bering Sea pollock data from 2011
-#'
-#' @format `PollockData` 
-#' A dataframe with 36 columns and 839 rows:
-#' \describe{
-#' }
-#'
-#' @usage data(PollockData)
-#'
-"PollockData"
-
