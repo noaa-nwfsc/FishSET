@@ -65,7 +65,7 @@ scallop$LANDED_thousands<-scallop$LANDED_OBSCURED/1000
 scallop$DOLLAR_2020_thousands<-scallop$DOLLAR_2020_OBSCURED/1000
 
 vars_to_keep <- c('TRIPID', 'PERMIT.y', 'DATE_TRIP', 'DDLON', 'DDLAT', 'ZoneID', 
-                  'LANDED_thousands', 'DOLLAR_2020_thousands', 'port_lon', 'port_lat', 'previous_namelsad',
+                  'LANDED_thousands', 'DOLLAR_2020_thousands', 'port_lon', 'port_lat',
                   'previous_port_lon', 'previous_port_lat')
 scallop <- scallop[vars_to_keep]
 ```
