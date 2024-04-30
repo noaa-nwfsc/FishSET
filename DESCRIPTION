@@ -40,6 +40,7 @@ BugReports: https://pkgname.bugtracker.url
 Depends: 
     R (>= 3.5.0)
 Imports: 
+    bsicons (>= 0.1.2),
     bslib (>= 0.5.1),
     data.table,
     DBI,
@@ -85,7 +86,6 @@ Imports:
     yaml,
     zoo
 Suggests: 
-    bsicons (>= 0.1.2),
     foreign,
     googlesheets4,
     graphics,
