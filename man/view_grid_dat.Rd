@@ -41,9 +41,3 @@ for each longitude-latitude pair across the entire dataset.}
 \description{
 Visualize gridded data on a map
 }
-\examples{
-\dontrun{
-view_grid_dat('SST', "pollock", "lon", "lat", value = "analysed_sst")
-}
-
-}
