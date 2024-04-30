@@ -7,21 +7,12 @@
 #' \describe{
 #'   \item{TRIPID}{Randomly assigned trip ID number.}
 #'   \item{DATE_TRIP}{Date of landing.}
-#'   \item{scallop_fishing_year}{Scallop fishing year.}
-#'   \item{OPERNUM}{Randomly assigned captains Identification number.}
 #'   \item{PERMIT.y}{Randomly assigned six-digit vessel fishing permit number.}
 #'   \item{TRIP_LENGTH}{Days calculated from the elapsed time between the 
 #'   date-time sailed and date-time landed; this is a measure of days absent.}
-#'   \item{DEALER_RPT_ID}{}
 #'   \item{GEARCODE}{Fishing gear used on the trip.}
-#'   \item{dbsource}{Primary data source for observation.}
-#'   \item{geoid}{10 digit county subdivision from US Census.}
-#'   \item{namelsad}{Port of landing.}
 #'   \item{port_lat}{Latitude of the geoid.}
 #'   \item{port_lon}{longitude of the geoid.}
-#'   \item{previous_namelsad}{Previous port of landing.}
-#'   \item{previous_state_fips}{Previous 2 digit state fips code.}
-#'   \item{previous_geoid}{Previous geoid.}
 #'   \item{previous_port_lat}{Previous latitude of geoid.}
 #'   \item{previous_port_lon}{Previous longitude of geoid.}
 #'   \item{Plan Code}{Portion of the VMS declaration code that identifies the 
@@ -38,8 +29,6 @@
 #'   99th percentile value, respectively.}
 #'   \item{DDLAT}{The latitude reported on a VTR (Vessel Trip Reports).}
 #'   \item{DDLON}{The longitude reported on a VTR (Vessel Trip Reports).}
-#'   \item{MN30SQID}{Unique identifier assigned to a thirty minute square.}
-#'   \item{MN10SQID}{Unique identifier assigned to a ten minute square.}
 #'   \item{NAME}{Name of wind lease which is found within a given ten minute square.}
 #'   \item{ZoneID}{FishSET's version of a ten minute square.}
 #'   \item{POUNDS}{Live pounds.}
@@ -101,48 +90,3 @@
 #' }
 #' 
 "windLease"
-
-
-#' Alaskan Ports
-#' 
-#' A dataframe of Alaskan ports.
-#' 
-#' @format `alaskaPorts`
-#' A dataframe with three columns and 88 rows:
-#' \describe{
-#'   \item{PORT}{Name of port.}
-#'   \item{LONGITUDE}{LONGITUDE of port.}
-#'   \item{LATITUDE}{LATITUDE of port.}
-#' }
-#' 
-"alaskaPorts"
-
-
-#' Alaskan NMFS Areas
-#' 
-#' A spatial dataset of Alaskan NMFS areas.
-#' 
-#' @format `alaskaNMFSAreas`
-#' A simple features multipolygon dataframe with 10 features and two fields:
-#' \describe{
-#'   \item{NMFS_AREA}{NMFS area number.}
-#'   \item{geometry}{Coordinates for NMFS area.}
-#' }
-#' 
-"alaskaNMFSAreas"
-
-
-#' Pollock Data
-#'
-#' @description
-#' Bering Sea pollock data from 2011
-#'
-#' @format `PollockData` 
-#' A dataframe with 36 columns and 839 rows:
-#' \describe{
-#' }
-#'
-#' @usage data(PollockData)
-#'
-"PollockData"
-
