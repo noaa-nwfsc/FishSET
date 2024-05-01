@@ -1387,11 +1387,11 @@ server = function(input, output, session) {
     )
   })
   
-  ptdat <- reactiveValues(
+  portdat <- reactiveValues(
     dataset = data.frame('var1'=0, 'var2'=0)
   )
   
-  ptdat_temp <- reactiveValues(
+  portdat_temp <- reactiveValues(
     dataset = data.frame('var1' = 0, 'var2' = 0)
   )
   
@@ -1412,6 +1412,8 @@ server = function(input, output, session) {
       if (isTruthy(input$port_db_table)) {
         
         portdat$dataset <- table_view(input$port_db_table, project$name)
+        
+        cat(file = stderr(), "\n TEST \n")
         
         edit_proj_settings(project$name, 
                            tab_name = input$port_db_table, 
@@ -1500,7 +1502,7 @@ server = function(input, output, session) {
     }
   })
   # merge server module (see fleetServ.R)
-  mergeServer("port_combine", main = ptdat, other = ptdat_temp, 
+  mergeServer("port_combine", main = portdat, other = portdat_temp, 
               reactive(project$name), merge_type = "full", 
               dat_type = "port", show)
   
@@ -1509,7 +1511,7 @@ server = function(input, output, session) {
     
     if (!is.null(input$port_combine_fi)) {
       
-      ptdat_temp$dataset <- read_dat(input$port_combine_fi$datapath)
+      portdat_temp$dataset <- read_dat(input$port_combine_fi$datapath)
       
       show$port_merge <- TRUE 
       show$save <- FALSE
@@ -4787,36 +4789,28 @@ server = function(input, output, session) {
                
                selectInput('haul_order_SL', 'Variable defining haul order within a trip. Can be time, coded variable, etc.',
                            choices=c('', names(values$dataset)), selectize=TRUE),
-               selectInput('zone_SL', 'Zone/area assignment variable (if exists in data)', 
-                           choices=c("", 'ZoneID', colnames(values$dataset)), selected=''),
                
-               selectizeInput('starting_port_SL',  "Variable that identifies port at start of trip", 
-                              choices = find_port(values$dataset), 
+               selectizeInput('starting_port_SL',  "Variable in the primary data table that identifies port at start of trip", 
+                              choices = colnames(values$dataset), 
                               options = list(create = TRUE, placeholder='Select or type variable name')),
                
-               selectizeInput('lon_dat_SL', "Longitude variable in primary data table", 
-                              choices= find_lon(values$dataset), 
-                              options = list(create = TRUE, placeholder='Select or type variable name')), 
+               selectInput('zone_dat_SL', 'Zone ID variable from the PRIMARY data table', 
+                           choices=colnames(values$dataset), selected=''),
                
-               selectizeInput('lat_dat_SL', "Latitude variable in primary data table",
-                              choices= find_lat(values$dataset),
-                              options = list(create = TRUE, placeholder='Select or type variable name')),
+               selectInput('zone_spat_SL', 'Zone ID variable from the SPATIAL data table', 
+                           choices=colnames(spatdat$dataset), selected=''),
                
-               selectInput("port.dat", "Choose port table from the FishSET database",
-                           choices = list_tables(project$name, "port"), 
+               selectInput("port_name_SL", "Select variable from port table with port names",
+                           choices = colnames(portdat$dataset), 
                            multiple = FALSE),
                
-               if (!('sf' %in% class(spatdat$dataset))) {
-                 
-                 tagList(
-                   selectInput('lat_grid_SL', 'Select vector containing latitude from spatial data file', 
-                               choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE),
-                   selectInput('lon_grid_SL', 'Select vector containing longitude from spatial data file', 
-                               choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE, selectize=TRUE))
-               },
+               selectInput("port_lon_SL", "Select variable from port table with port longitude",
+                           choices = colnames(portdat$dataset), 
+                           multiple = FALSE),
                
-               selectInput('cat_SL', "Property from spatial data file that identifies zones or areas names", 
-                           choices = names(as.data.frame(spatdat$dataset)))    
+               selectInput("port_lat_SL", "Select variable from port table with port latitude",
+                           choices = colnames(portdat$dataset), 
+                           multiple = FALSE)
       )
     )
   })
@@ -5069,10 +5063,11 @@ server = function(input, output, session) {
       
       q_test <- quietly_test(create_startingloc)
       output <-  q_test(dat = values$dataset, project = project$name, spat = spatdat$dataset, 
-                        port = input$port.dat, trip_id = input$trip_id_SL,
-                        haul_order = input$haul_order_SL, starting_port = input$starting_port_SL, 
-                        
-                        zoneID = input$zone_SL, name = input$varname)
+                        port = portdat$dataset, trip_id = input$trip_id_SL, haul_order = input$haul_order_SL, 
+                        starting_port = input$starting_port_SL, zoneID = input$zone_dat_SL,
+                        spatID = input$zone_spat_SL, port_name = input$port_name_SL,
+                        port_lon = input$port_lon_SL, port_lat = input$port_lat_SL,
+                        name = input$varname)
       notif <- "Starting location"
       
     } else if (input$VarCreateTop == 'Trip-level functions' & input$trip == 'haul_to_trip') {
