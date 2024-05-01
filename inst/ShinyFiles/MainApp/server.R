@@ -1411,7 +1411,7 @@ server = function(input, output, session) {
       
       if (isTruthy(input$port_db_table)) {
         
-        ptdat$dataset <- table_view(input$port_db_table, project$name)
+        portdat$dataset <- table_view(input$port_db_table, project$name)
         
         edit_proj_settings(project$name, 
                            tab_name = input$port_db_table, 
@@ -1427,17 +1427,17 @@ server = function(input, output, session) {
         
         if (!is_empty(input$portadd)) {
           
-          ptdat$dataset <- do.call(read_dat, c(list(input$portdat$datapath),
+          portdat$dataset <- do.call(read_dat, c(list(input$portdat$datapath),
                                                eval(parse(text=paste0("list(",input$portadd, ")"))) ))
         } else {
           
-          ptdat$dataset <- read_dat(input$portdat$datapath)
+          portdat$dataset <- read_dat(input$portdat$datapath)
         }
         
         q_test <- quietly_test(load_port)
         
         qc_pass <- 
-          q_test(ptdat$dataset, port_name = input$port_name, over_write = TRUE, 
+          q_test(portdat$dataset, port_name = input$port_name, over_write = TRUE, 
                  project = project$name, compare = FALSE, y = NULL)
         
         if (qc_pass) {
@@ -1453,12 +1453,12 @@ server = function(input, output, session) {
           
         } else {
           
-          ptdat$dataset <- data.frame('var1' = 0, 'var2' = 0)
+          portdat$dataset <- data.frame('var1' = 0, 'var2' = 0)
         }
       }
     }
     
-    if (names(ptdat$dataset)[1] != 'var1') {
+    if (names(portdat$dataset)[1] != 'var1') {
       
       showNotification("Port data loaded.", type = 'message', duration = 10)
       show$port_combine <- TRUE
@@ -1531,13 +1531,13 @@ server = function(input, output, session) {
     req(project$name)
     
     q_test <- quietly_test(load_port)
-    q_test(ptdat$dataset, port_name = "Port_Name", over_write = TRUE, 
+    q_test(portdat$dataset, port_name = "Port_Name", over_write = TRUE, 
            project = project$name, compare = FALSE, y = NULL)
     
     showNotification("Combined port table saved to database.", type = "message", 
                      duration = 10)
     # so column names match with DB version
-    ptdat$dataset <- table_view(paste0(project$name, 'PortTable'), project$name)  
+    portdat$dataset <- table_view(paste0(project$name, 'PortTable'), project$name)  
     
     edit_proj_settings(project$name, 
                        tab_name = paste0(project$name, 'PortTable'), 
@@ -3557,7 +3557,7 @@ server = function(input, output, session) {
     } else {
       switch(input$SelectDatasetExplore,
              "main" = values$dataset,
-             "port" = ptdat$dataset,
+             "port" = portdat$dataset,
              "auxiliary" = aux$dataset)
     }
   })
@@ -3568,7 +3568,7 @@ server = function(input, output, session) {
                    if (input$SelectDatasetExplore == "main") {
                      values$dataset <- explore_temp()
                    } else if (input$SelectDatasetExplore == "port") {
-                     ptdat$dataset <- explore_temp()
+                     portdat$dataset <- explore_temp()
                    } else if (input$SelectDatasetExplore == "grid") {
                      grddat[[input$grid_select]] <- explore_temp()
                    } else if (input$SelectDatasetExplore == "aux") {
@@ -5068,12 +5068,11 @@ server = function(input, output, session) {
     } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'create_startingloc') {
       
       q_test <- quietly_test(create_startingloc)
-      output <-  q_test(values$dataset, project = project$name, spat = spatdat$dataset, 
-                        portTable = input$port.dat, trip_id = input$trip_id_SL,
+      output <-  q_test(dat = values$dataset, project = project$name, spat = spatdat$dataset, 
+                        port = input$port.dat, trip_id = input$trip_id_SL,
                         haul_order = input$haul_order_SL, starting_port = input$starting_port_SL, 
-                        lon.dat = input$lon_dat_SL, lat.dat = input$lat_dat_SL, 
-                        cat = input$cat_SL, zoneid = input$zone_SL, name = input$varname, 
-                        lon.spat = input$lon_grid_SL, lat.spat = input$lat_grid_SL)
+                        
+                        zoneID = input$zone_SL, name = input$varname)
       notif <- "Starting location"
       
     } else if (input$VarCreateTop == 'Trip-level functions' & input$trip == 'haul_to_trip') {
@@ -7113,7 +7112,7 @@ server = function(input, output, session) {
       
     } else if (input$SelectDatasetExplore == "port") {
       
-      saved <- q_test(ptdat$dataset, project = project$name, type = "port")
+      saved <- q_test(portdat$dataset, project = project$name, type = "port")
       
     } else if (input$SelectDatasetExplore == "grid") {
       
