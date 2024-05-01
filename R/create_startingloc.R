@@ -12,6 +12,9 @@
 #' @param port Port data. Contains columns: Port_Name, Port_Long, Port_Lat. 
 #'   Table is generated using the \code{\link{load_port}} and saved in the FishSET 
 #'   database as the project and port table, for example 'pollockPortTable'.
+#' @param port_name Character string indicating the column in port table that contains the port name
+#' @param port_lon Character string indication the column in port table that contains port longitude
+#' @param port_lat Character string indication the column in port table that contains port latitude
 #' @param trip_id Variable in \code{dat} that identifies unique trips.
 #' @param haul_order Variable in \code{dat} containing information on the order 
 #'   that hauls occur within a trip. Can be time, coded variable, etc.
