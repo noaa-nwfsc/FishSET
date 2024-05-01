@@ -45,23 +45,24 @@
 #' )
 #' }
 #
-create_startingloc <-
-  function(dat,
-           project = NULL,
-           spat,
-           port,
-           trip_id,
-           haul_order,
-           starting_port,
-           zoneID,
-           spatID, 
-           name = "startingloc") {
+create_startingloc <- function(dat,
+                               project = NULL,
+                               spat,
+                               port,
+                               port_name,
+                               port_lon,
+                               port_lat,
+                               trip_id,
+                               haul_order,
+                               starting_port,
+                               zoneID,
+                               spatID, 
+                               name = "startingloc") {
     
   # TODO: consider removing assignment_column() functionality
   # TODO: Change this to required? project is required for nearly every other function
   # why not here?
   if (is.null(project)) {
-    
     project <- sub("\\MainDataTable", "", dat)
   }
   
@@ -78,29 +79,29 @@ create_startingloc <-
   # Call in spatial data
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
-  spat <- parse_data_name(dat, "spat", project)
+  spat <- parse_data_name(spat, "spat", project)
   
+  # Make sure columns are present in primary data table
   column_check(dataset, cols = c(trip_id, haul_order, starting_port, zoneID))
   
-  column_check(spatdat, cols = c(zoneID))
+  # Make sure columns are present in spat table
+  column_check(spatdat, cols = c(spatID))
   
- # name <- ifelse(is_empty(name), "startingloc", name)
+  # Make sure new column name is unique and doesn't already exist
   name <- name_check(dataset, name, repair = TRUE)
   
   port.table <- assignment_column(
     dat = port.table, project = project, spat = spatdat, hull.polygon = FALSE, 
-    lon.dat = "Port_Long", lat.dat = "Port_Lat", cat = spatID, closest.pt = TRUE, 
+    lon.dat = port_lon, lat.dat = port_lat, cat = spatID, closest.pt = TRUE, 
     log.fun = FALSE, bufferval = 100 # need to consider how this affects things
   )
 
   # Create starting loc variable
   # TODO: trip_id is currently required; can't be NULL. Resolve.
   if (is.null(trip_id)) {
-    
     dataset <- dataset[order(dataset[[haul_order]]), ]
     
   } else {
-    
     dataset <- dataset[order(dataset[[trip_id]], dataset[[haul_order]]), ]
   }
   
@@ -109,24 +110,23 @@ create_startingloc <-
 
   # Make starting of trips set to zone of starting port
   if (!is.null(trip_id)) {
-    
-    rownumbers <- match(trimws(dataset[tapply(seq_along(dataset[[trip_id]]), dataset[[trip_id]], min), starting_port]), port.table$Port_Name)
+    rownumbers <- match(
+      trimws(dataset[tapply(seq_along(dataset[[trip_id]]), dataset[[trip_id]], min), starting_port][[1]]), 
+      port.table[port_name])
     
     if (any(is.na(rownumbers))) { 
-      
       warning('NAs produced. At least one disembarked port was not found in the port table.')
     }
     
     newvar[tapply(seq_along(dataset[[trip_id]]), dataset[[trip_id]], min)] <- port.table[rownumbers, 'ZoneID']
     
   } else {
-    
     rownumbers <- match(trimws(dataset[1, starting_port]), port.table$Port_Name)
     newvar[1] <- port.table[rownumbers, zoneID]
   }
   
   g <- cbind(dataset, newvar)
-  colnames(g)[dim(g)[2]] = name
+  colnames(g)[dim(g)[2]] <- name
 
   create_startingloc_function <- list()
   create_startingloc_function$functionID <- "create_startingloc"
