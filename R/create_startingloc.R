@@ -129,7 +129,7 @@ create_startingloc <- function(dat,
     newvar[1] <- port.table[rownumbers, zoneID]
   }
   
-  g <- cbind(dataset, newvar)
+  g <- cbind(dataset, as.character(newvar))
   colnames(g)[dim(g)[2]] <- name
 
   create_startingloc_function <- list()
