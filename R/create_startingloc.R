@@ -1,8 +1,9 @@
 #' Create starting location variable
 #'
 #' Creates a variable containing the zone/area location of a vessel when choice of 
-#' where to fish next was made. This variable is required for the full information 
-#' model with Dahl's correction (\code{\link{logit_correction}}).
+#' where to fish next was made. This variable is required for data with multiple sets
+#' or hauls in a single trip and for the full information model with 
+#' Dahl's correction (\code{\link{logit_correction}}).
 #'
 #' @param dat  Primary data containing information on hauls or trips.
 #'   Table in FishSET database contains the string 'MainDataTable'.
