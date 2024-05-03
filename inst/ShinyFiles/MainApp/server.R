@@ -1413,8 +1413,6 @@ server = function(input, output, session) {
         
         portdat$dataset <- table_view(input$port_db_table, project$name)
         
-        cat(file = stderr(), "\n TEST \n")
-        
         edit_proj_settings(project$name, 
                            tab_name = input$port_db_table, 
                            tab_type = "port")
