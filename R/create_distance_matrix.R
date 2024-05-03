@@ -52,6 +52,7 @@ create_dist_matrix <-
     warning("CRS is not specfied, distance matrix will be created using WGS 84 (4326).",
             call. = FALSE)
   }
+  
   # occasion ----
   
   ## Centroid ----
@@ -62,12 +63,10 @@ create_dist_matrix <-
     
     fromXY <- dataset[zone_ind, o_var]
     
-      if (occasion == "zonal centroid") cent_tab <- zone_cent
-      else if (occasion == "fishing centroid") cent_tab <- fish_cent 
+    if (occasion == "zonal centroid") cent_tab <- zone_cent
+    else if (occasion == "fishing centroid") cent_tab <- fish_cent 
       
-    if (o_var == zoneID | !any(fromXY[[o_var]] %in% port$Port_Name)) {
-      # o_var == zoneID = single haul
-      # otherwise, multi-haul w/ prev area variable
+    if (o_var == zoneID){ # o_var == zoneID = single haul
       # join centroid lon-lat by zoneID
       join_by <- stats::setNames("ZoneID", o_var)
       fromXY <- dplyr::left_join(fromXY, cent_tab, by = join_by)
@@ -75,7 +74,6 @@ create_dist_matrix <-
     } else { # Previous Area (multi-haul)
       # include port table previous area if o_var contains port names (this happens 
       # when creating a previous area/starting loc variable and the port is not within a zone)
-      
       area_tab <- 
         do.call(rbind, 
                 lapply(list(port, cent_tab), function(x) {
@@ -124,6 +122,7 @@ create_dist_matrix <-
     # occasion_var should be names of lon-lat cols
     fromXY <- dataset[zone_ind, occasion_var]
   }
+  
   
   # alt_var ----
   

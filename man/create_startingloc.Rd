@@ -9,6 +9,9 @@ create_startingloc(
   project = NULL,
   spat,
   port,
+  port_name,
+  port_lon,
+  port_lat,
   trip_id,
   haul_order,
   starting_port,
@@ -29,6 +32,12 @@ Shape, json, geojson, and csv formats are supported.}
 \item{port}{Port data. Contains columns: Port_Name, Port_Long, Port_Lat. 
 Table is generated using the \code{\link{load_port}} and saved in the FishSET 
 database as the project and port table, for example 'pollockPortTable'.}
+
+\item{port_name}{Character string indicating the column in port table that contains the port name}
+
+\item{port_lon}{Character string indication the column in port table that contains port longitude}
+
+\item{port_lat}{Character string indication the column in port table that contains port latitude}
 
 \item{trip_id}{Variable in \code{dat} that identifies unique trips.}
 
