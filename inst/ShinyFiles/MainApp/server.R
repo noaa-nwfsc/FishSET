@@ -1713,7 +1713,8 @@ server = function(input, output, session) {
         q_test <- quietly_test(load_spatial)
         pass <- q_test(spatdat$dataset, name = input$spatName, overwrite = TRUE, 
                        project = project$name)
-        
+        spatdat$dataset <- table_view(table = paste0(project$name,input$spatName,"SpatTable"), 
+                                      project = project$name)
         
         if (is.null(pass)) pass <- FALSE
         
