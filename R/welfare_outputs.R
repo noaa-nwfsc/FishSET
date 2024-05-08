@@ -38,10 +38,10 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   ##
   # Load, filter, format main data ----
   ##
-  if (shiny::isRunning()) 
-    {dat <- table_view(paste0(project,"MainDataTable_final"), project)}
-  
-  else {
+  if (shiny::isRunning()) {
+    dat <- table_view(paste0(project,"MainDataTable_final"), project)
+    
+    } else {
    dat <- get(paste0(project,"MainDataTable"))
   }
 
@@ -120,15 +120,15 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   if(is.null(group_var)){ # summarize across closure scenarios
     welfare_summ <- welfare_long %>%
       dplyr::group_by(Scenario) %>%
-      dplyr::summarise(mean = mean(welfare_change),
-                q = list(quantile(welfare_change, probs = c(0.025,0.05,0.5,0.95,0.975), na.rm = TRUE))) %>%
+      dplyr::summarise(mean = round(mean(welfare_change),2),
+                q = list(round(quantile(welfare_change, probs = c(0.025,0.05,0.5,0.95,0.975), na.rm = TRUE),2))) %>%
       tidyr::unnest_wider(q) %>%
       dplyr::ungroup()
 
     prc_welfare_summ <- prc_welfare_long %>%
       dplyr::group_by(Scenario) %>%
-      dplyr::summarise(mean = mean(welfare_change),
-                q = list(quantile(welfare_change, probs = c(0.025,0.05,0.5,0.95,0.975), na.rm = TRUE))) %>%
+      dplyr::summarise(mean = round(mean(welfare_change),2),
+                       q = list(round(quantile(welfare_change, probs = c(0.025,0.05,0.5,0.95,0.975), na.rm = TRUE),2))) %>%
       tidyr::unnest_wider(q) %>%
       dplyr::ungroup()
 
@@ -136,15 +136,15 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   } else { # summarize across scenarios and grouping variable
     welfare_summ <- welfare_long %>%
       dplyr::group_by(Scenario, !!sym(group_var)) %>%
-      dplyr::summarise(mean = mean(welfare_change),
-                q = list(quantile(welfare_change, probs = c(0.025,0.05,0.5,0.95,0.975), na.rm = TRUE))) %>%
+      dplyr::summarise(mean =round(mean(welfare_change),2),
+                       q = list(round(quantile(welfare_change, probs = c(0.025,0.05,0.5,0.95,0.975), na.rm = TRUE),2))) %>%
       tidyr::unnest_wider(q) %>%
       dplyr::ungroup()
 
     prc_welfare_summ <- prc_welfare_long %>%
       dplyr::group_by(Scenario, !!sym(group_var)) %>%
-      dplyr::summarise(mean = mean(welfare_change),
-                q = list(quantile(welfare_change, probs = c(0.025,0.05,0.5,0.95,0.975), na.rm = TRUE))) %>%
+      dplyr::summarise(mean = round(mean(welfare_change),2),
+                       q = list(round(quantile(welfare_change, probs = c(0.025,0.05,0.5,0.95,0.975), na.rm = TRUE),2))) %>%
       tidyr::unnest_wider(q) %>%
       dplyr::ungroup()
   }
@@ -171,13 +171,15 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   ##
   if(is.null(group_var)){
     p1 <- ggplot() +
-      geom_bar(data = welfare_summ, aes(x = Scenario, y = mean), stat = "identity") +
+      geom_bar(data = welfare_summ, aes(x = Scenario, y = mean, fill = Scenario), stat = "identity") +
       geom_point(data = welfare_summ, aes(x = Scenario, y = `50%`), size = 2) +
       geom_errorbar(data = welfare_summ, aes(x = Scenario, ymin = `97.5%`, ymax = `2.5%`), width = 1) +
       labs(x = "Policy scanarios", y = "Welfare loss[-]/gain[+] ($)") +
       theme_classic() +
+      scale_fill_nmfs()+
       geom_hline(yintercept = 0)
     p1 <- plotly::ggplotly(p1)
+    
 
   } else {
     p1 <- ggplot(data = welfare_summ, aes(x = Scenario, y = mean, ymin = `2.5%`, ymax = `97.5%`, fill = !!sym(group_var))) +
@@ -191,6 +193,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
     p1 <- plotly::ggplotly(p1) %>%
       plotly::config(scrollZoom = TRUE) %>%
       plotly::plotly_build()
+    
 
     # change markers to filled circles
     p1$x$data <- lapply(p1$x$data, function(x_tmp){
@@ -209,13 +212,15 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   ##
   if(is.null(group_var)){
     p2 <- ggplot() +
-      geom_bar(data = prc_welfare_summ, aes(x = Scenario, y = mean), stat = "identity") +
+      geom_bar(data = prc_welfare_summ, aes(x = Scenario, y = mean, fill = Scenario), stat = "identity") +
       geom_point(data = prc_welfare_summ, aes(x = Scenario, y = `50%`)) +
       geom_errorbar(data = prc_welfare_summ, aes(x = Scenario, ymin = `97.5%`, ymax = `2.5%`), width = 1) +
       labs(x = "Policy scanarios", y = "Welfare loss[-]/gain[+] (%)") +
       theme_classic() +
+      scale_fill_nmfs()+
       geom_hline(yintercept = 0)
     p2 <- plotly::ggplotly(p2)
+    
 
   } else {
     p2 <- ggplot(data = prc_welfare_summ, aes(x = Scenario, y = mean, ymin = `2.5%`, ymax = `97.5%`, fill = !!sym(group_var))) +
@@ -243,7 +248,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
 
   # Return list of plots and tables (dataframes)
   return(list(p1, p2, welfare_summ, prc_welfare_summ, welfare_details))
+  
 }
-
 
 

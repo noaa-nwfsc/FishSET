@@ -40,6 +40,7 @@ BugReports: https://pkgname.bugtracker.url
 Depends: 
     R (>= 3.5.0)
 Imports: 
+    nmfspalette, 
     bsicons (>= 0.1.2),
     bslib (>= 0.5.1),
     data.table,

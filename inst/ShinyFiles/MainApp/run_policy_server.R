@@ -57,6 +57,7 @@ pred_plotsServer <- function(id, project, spatdat, values){
 
       })
       
+      
       observeEvent(input$run_policy_button,{
         req(project)
         req(input$select_pol_mod)
@@ -66,13 +67,51 @@ pred_plotsServer <- function(id, project, spatdat, values){
         req(input$pol_prim_sel_cat)
        
         
-        run_policy(project, mod.name = isolate(input$select_pol_mod), betadraws = input$pol_betadraws, 
+        outputs_welf <- run_policy(project, mod.name = isolate(input$select_pol_mod), betadraws = input$pol_betadraws, 
                    marg_util_income = input$select_marg_inc, 
                    income_cost = input$income_cost_pol,
                    zone.dat = input$pol_prim_sel_cat, enteredPrice = NULL, expected.catch = NULL, 
                    use.scalers = FALSE, scaler.func = NULL) 
         
+        output$welfare_plot_dol <- plotly::renderPlotly({
+          req(project)
+          req(input$run_policy_button)
+
+          outputs_welf[[1]]
+          
+        })
+        
+        output$welfare_plot_prc <- plotly::renderPlotly({
+          req(project)
+          req(input$run_policy_button)
+          
+          outputs_welf[[2]]
+          
+        })
+        
+        output$welfare_tbl_dol <- DT::renderDataTable({
+          req(project)
+          req(input$run_policy_button)
+          
+          outputs_welf[[3]]
+        })
+        
+        output$welfare_tbl_prc <- DT::renderDataTable({
+          req(project)
+          req(input$run_policy_button)
+          
+          outputs_welf[[4]]
+        })
+        
+        output$welfare_tbl_details <- DT::renderDataTable({
+          req(project)
+          req(input$run_policy_button)
+          
+          outputs_welf[[5]]
+        })
       })
+      
+     
       
       output$pred_prob_tbl <- DT::renderDataTable({
         req(project)
@@ -119,7 +158,7 @@ pred_mapServer <- function(id, project, spatdat){
         req(project)
         
         selectInput(ns("pred_pol_name"), "Select closure scenario",
-                    choices = c(close_names(project)))
+                    choices = c("no closure", close_names(project)))
         
       })
       
@@ -140,10 +179,19 @@ pred_mapServer <- function(id, project, spatdat){
      #   req(input$select_pol_mod)
         req(input$pred_pol_name)
         req(input$pred_map_sel_cat)
-
-        v$plot <-  predict_map(project, mod.name = isolate(input$select_pol_mod), policy.name = paste0(isolate(input$select_pol_mod), " ",input$pred_pol_name), 
+        
+        if(input$pred_pol_name == "no closure"){
+        v$plot <-  predict_map(project, mod.name = isolate(input$select_pol_mod),
+                               policy.name = isolate(input$select_pol_mod), 
                                spat = spatdat, zone.spat = input$pred_map_sel_cat)
-      })
+        
+      } else {
+
+        v$plot <-  predict_map(project, mod.name = isolate(input$select_pol_mod),
+                               policy.name = paste0(isolate(input$select_pol_mod), " ",input$pred_pol_name), 
+                               spat = spatdat, zone.spat = input$pred_map_sel_cat)
+      }
+    })
       
       output$predict_map <- leaflet::renderLeaflet({
         req(input$run_pred_map)

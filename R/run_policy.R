@@ -119,10 +119,11 @@ run_policy <- function(project, mod.name = NULL, betadraws = 1000, marg_util_inc
   ##
   # 6. Generate tables and plots
   ## 
-  outputs <- welfare_outputs(project = project, mod.name = mod.name, closures = closures, 
+   outputs_welf <- welfare_outputs(project = project, mod.name = mod.name, closures = closures, 
                              betadraws = betadraws, zone.dat = zone.dat, group_var = group_var)
+   
+   return(outputs_welf)
   
-
   ##
   # 7. log run_policy function call ----
   ##

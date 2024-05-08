@@ -55,7 +55,7 @@ pred_plotsUI <- function(id){
                            ),
                            bslib::card(
                              full_screen = TRUE,
-                             bslib::card_header(strong("Policy Plot"), class = "bg-info"), 
+                             bslib::card_header(strong("Policy plot"), class = "bg-info"), 
                              bslib::card_body(shinycssloaders::withSpinner(plotly::plotlyOutput(ns('pred_prod_pol_fig'))
                                                           ,type = 6))
                            )
@@ -77,4 +77,38 @@ predict_map_mainUI <- function(id){
                                                         ,type = 6))
                          )
   )
+}
+
+welfare_outputsUI <- function(id){
+  ns <- NS(id)
+  
+  bslib::accordion_panel("Welfare figures",
+                         bslib::layout_column_wrap(
+                           width = 1/2,
+                           bslib::card(
+                             full_screen = TRUE,
+                             bslib::card_header(strong("Welfare loss/gain for all scenarios as dollars"), class = "bg-info"), 
+                             bslib::card_body(shinycssloaders::withSpinner(plotly::plotlyOutput(ns('welfare_plot_dol'))
+                                                                           ,type = 6), 
+                                              shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_dol"))
+                                                                           ,type = 6))
+                           ),
+                           bslib::card(
+                             full_screen = TRUE,
+                             bslib::card_header(strong("Welfare loss/gain for all scenarios as percentage"), class = "bg-info"), 
+                             bslib::card_body(shinycssloaders::withSpinner(plotly::plotlyOutput(ns('welfare_plot_prc'))
+                                                                           ,type = 6),
+                                              shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_prc"))
+                                                                           ,type = 6))
+                           )),
+                           bslib::card(
+                             full_screen = TRUE,
+                             bslib::card_header(strong("Supplementary information table"), class = "bg-info"), 
+                             bslib::card_body(shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_details"))
+                                                                           ,type = 6))
+                           )
+
+                         
+  )
+  
 }
