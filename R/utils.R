@@ -78,7 +78,7 @@ locproject <- function() {
     
   } else {
     # have user select folder
-    proj_dir <-  loc()
+    proj_dir <- loc()
   }
   
   # add trailing slash
