@@ -27,8 +27,22 @@ pred_plotsServer <- function(id, project, spatdat, values){
         
       })
       
+      output$run_pol_sel_scen <- renderUI({
+        
+        req(project)
+        
+        checkboxGroupInput(
+              inputId = ns("run_pol_chk_scen"),
+              label = "Select closure scenario(s):", 
+              choices = c(close_names(project)),
+              inline = TRUE
+            )
+            
+      })
+      
       output$pol_prim_cat <- renderUI({
-        selectInput(ns("pol_prim_sel_cat"), "Select zone ID from primary data",
+        selectInput(ns("pol_prim_sel_cat"), 
+                    "Select zone ID from primary data",
                     choices = unique(names(values)))
         
       })
@@ -57,61 +71,85 @@ pred_plotsServer <- function(id, project, spatdat, values){
 
       })
       
+     # pol <- reactiveValues(outputs_welf = NULL)
       
-      observeEvent(input$run_policy_button,{
+    observeEvent(input$run_policy_button,{
         req(project)
         req(input$select_pol_mod)
+        req(input$run_pol_chk_scen)
         req(input$pol_betadraws)
         req(input$select_marg_inc)
         req(input$income_cost_pol)
         req(input$pol_prim_sel_cat)
+       # req(input$pred_pol_name)
        
         
-        outputs_welf <- run_policy(project, mod.name = isolate(input$select_pol_mod), betadraws = input$pol_betadraws, 
-                   marg_util_income = input$select_marg_inc, 
-                   income_cost = input$income_cost_pol,
-                   zone.dat = input$pol_prim_sel_cat, enteredPrice = NULL, expected.catch = NULL, 
-                   use.scalers = FALSE, scaler.func = NULL) 
-        
-        output$welfare_plot_dol <- plotly::renderPlotly({
-          req(project)
-          req(input$run_policy_button)
-
-          outputs_welf[[1]]
-          
-        })
-        
-        output$welfare_plot_prc <- plotly::renderPlotly({
-          req(project)
-          req(input$run_policy_button)
-          
-          outputs_welf[[2]]
-          
-        })
-        
-        output$welfare_tbl_dol <- DT::renderDataTable({
-          req(project)
-          req(input$run_policy_button)
-          
-          outputs_welf[[3]]
-        })
-        
-        output$welfare_tbl_prc <- DT::renderDataTable({
-          req(project)
-          req(input$run_policy_button)
-          
-          outputs_welf[[4]]
-        })
-        
-        output$welfare_tbl_details <- DT::renderDataTable({
-          req(project)
-          req(input$run_policy_button)
-          
-          outputs_welf[[5]]
-        })
-      })
-      
+          run_policy(project, 
+                                       mod.name = isolate(input$select_pol_mod),
+                                       policy.name = c(input$run_pol_chk_scen), 
+                                       betadraws = input$pol_betadraws, 
+                                       marg_util_income = input$select_marg_inc, 
+                                       income_cost = input$income_cost_pol,
+                                       zone.dat = input$pol_prim_sel_cat, 
+                                       group_var = NULL,
+                                       enteredPrice = NULL,
+                                       expected.catch = NULL, 
+                                       use.scalers = FALSE, 
+                                       scaler.func = NULL) 
      
+      
+      
+    #     output$welfare_plot_dol <- plotly::renderPlotly({
+    #       req(project)
+    #       req(input$run_policy_button)
+    #       
+    #       if (is.null(pol$outputs_welf)) return()
+    #       pol$outputs_welf[[1]]
+    #       
+    #     })
+    #     
+    #  
+    #     
+    #     output$welfare_plot_prc <- plotly::renderPlotly({
+    #       req(project)
+    #       req(input$run_policy_button)
+    # 
+    #       if (is.null(pol$outputs_welf)) return()
+    #       pol$outputs_welf[[2]]
+    #      # outputs_welf[[2]]
+    # 
+    #     })
+    # 
+    #     output$welfare_tbl_dol <- DT::renderDataTable({
+    #       req(project)
+    #       req(input$run_policy_button)
+    # 
+    #       if (is.null(pol$outputs_welf)) return()
+    #       pol$outputs_welf[[3]]
+    # 
+    #     #  outputs_welf[[3]]
+    #     })
+    # 
+    #     output$welfare_tbl_prc <- DT::renderDataTable({
+    #       req(project)
+    #       req(input$run_policy_button)
+    # 
+    #       if (is.null(pol$outputs_welf)) return()
+    #       pol$outputs_welf[[4]]
+    #      # outputs_welf[[4]]
+    #     })
+    # 
+    #     output$welfare_tbl_details <- DT::renderDataTable({
+    #       req(project)
+    #       req(input$run_policy_button)
+    # 
+    #       if (is.null(pol$outputs_welf)) return()
+    #       pol$outputs_welf[[5]]
+    #      # outputs_welf[[5]]
+    #     })
+    # 
+    # 
+     })   
       
       output$pred_prob_tbl <- DT::renderDataTable({
         req(project)
@@ -119,27 +157,27 @@ pred_plotsServer <- function(id, project, spatdat, values){
 
         pred_prob_outputs(project, mod.name = isolate(input$select_pol_mod), output_option = "table")
       })
-      
+
       output$pred_prod_mod_fig <- plotly::renderPlotly({
         req(project)
         req(input$run_policy_button)
 
-        
+
         pred_prob_outputs(project, mod.name = isolate(input$select_pol_mod), output_option = "model_fig")
-        
-        
+
+
       })
-      
+
       output$pred_prod_pol_fig <- plotly::renderPlotly({
         req(project)
         req(input$run_policy_button)
 
-        
+
         pred_prob_outputs(project, mod.name = isolate(input$select_pol_mod), output_option = "policy_fig")
-        
-        
+
+
       })
-      
+
     }
     )
 }
@@ -153,14 +191,7 @@ pred_mapServer <- function(id, project, spatdat){
       
       ns <- session$ns
       
-      output$policy_select_scenario <- renderUI({
-        
-        req(project)
-        
-        selectInput(ns("pred_pol_name"), "Select closure scenario",
-                    choices = c("no closure", close_names(project)))
-        
-      })
+      
       
       v <- reactiveValues(plot = NULL,
                           text = NULL)
@@ -169,6 +200,15 @@ pred_mapServer <- function(id, project, spatdat){
       output$pred_map_cat <- renderUI({
         selectInput(ns("pred_map_sel_cat"), "Select zone ID from spatial data",
                     choices = unique(names(spatdat)))
+        
+      })
+      
+      output$policy_select_scenario <- renderUI({
+        
+        req(project)
+        
+        selectInput(ns("pred_pol_name"), "Select closure scenario",
+                    choices = c("no closure", close_names(project)))
         
       })
       

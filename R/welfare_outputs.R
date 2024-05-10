@@ -88,7 +88,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
 
   # combine simulation and primary data if grouping by a variable
  # tryCatch() stop and check for NAs
-  flag <- 0
+  #flag <- 0
   tryCatch(
     {
       welfare <- data.frame(cbind(welfare, dat))
@@ -157,7 +157,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
                                                                  dplyr::group_by(Scenario) %>%
                                                                  dplyr::summarise(mean_loss_per_trip=mean(welfare_change)) %>%
                                                                  dplyr::select(mean_loss_per_trip)),
-                                mean_total_welfare_loss = unlist(lapply(welfare[,c(1:length(closures))],
+                                mean_total_welfare_loss = unlist(lapply(welfare[,c(1:length(closures), drop = FALSE)],
                                                                         FUN = function(x, draws){
                                                                           tmp <- matrix(x, nrow = length(x) / draws, ncol = draws)
                                                                           tmp <- colSums(tmp)
@@ -176,7 +176,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
       geom_errorbar(data = welfare_summ, aes(x = Scenario, ymin = `97.5%`, ymax = `2.5%`), width = 1) +
       labs(x = "Policy scanarios", y = "Welfare loss[-]/gain[+] ($)") +
       theme_classic() +
-      scale_fill_nmfs()+
+      nmfspalette::scale_fill_nmfs()+
       geom_hline(yintercept = 0)
     p1 <- plotly::ggplotly(p1)
     
@@ -217,7 +217,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
       geom_errorbar(data = prc_welfare_summ, aes(x = Scenario, ymin = `97.5%`, ymax = `2.5%`), width = 1) +
       labs(x = "Policy scanarios", y = "Welfare loss[-]/gain[+] (%)") +
       theme_classic() +
-      scale_fill_nmfs()+
+      nmfspalette::scale_fill_nmfs()+
       geom_hline(yintercept = 0)
     p2 <- plotly::ggplotly(p2)
     
