@@ -1,0 +1,161 @@
+ body { margin:0; padding:0; }
+#map {
+  width: 100%;
+  height: 120vh;
+    }
+
+
+#allinfo {
+    box-sizing: border-box;
+    width: 22vw;
+    height: 40vh;
+    right: 0px;
+    position: absolute;
+    overflow-y: auto;
+    border:2px; /* solid black; */
+    flex-shrink: 1;
+
+}
+.container{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+/*.map-overlay-outer {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 280px;
+  top: 30px;
+  left: 10px;
+  padding: 10px;
+  margin-left: 5px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  margin-right: 5px;
+  z-index: 1;
+  font: 15px arial, sans-serif;
+}
+*/
+.map-overlay {
+  position: absolute;
+  width: 300px;
+  top: 0;
+  left: 0px;
+  margin-left: 2px;
+  margin-top: 2px;
+  margin-bottom: 0px;
+  margin-right: 5px;
+  z-index: 1;
+  font: 15px arial, sans-serif;
+   height:120vh;
+}
+
+.map-overlay .map-overlay-inner {
+  background: rgba(128,128,128,0.8);
+  width: 300px;
+  height: 120vh;
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10);
+  border-radius: 2px;
+  margin-bottom: 0;
+  z-index: 1;
+  position: absolute;
+}
+
+.spacing{
+  margin-top:1px;
+}
+.spacing2{
+  box-sizing: border-box;
+  bottom: 0;
+  width: 30vw;
+  /*position: absolute;*/
+  background: rgba(10, 10, 10, .2);
+  }
+
+/*#info {
+  margin-right: 2px;
+  text-align: right;
+  right: 30vw;
+  left: 10px;
+  font: 15px arial, sans-serif;
+  border: none;
+  font-size: 12px;
+  color: #222;
+  background: none;
+  height:auto;
+  position: absolute;
+  z-index: 1;
+
+} */
+
+.scatterLegend, .zoneLegend{
+background-color: transparent;
+border-radius: 0px;
+margin: 0px; /* 6 */
+box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+font: 13px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+right: 2px;
+z-index: 1;
+height: 150px;
+/*overflow: auto;*/ /*!important;*/
+}
+
+svg {
+font-size: 13px;
+height: 140px;
+}
+
+.legendQuant{
+  width:30vw;
+}
+
+.bar {
+border-radius: 4px;
+}
+
+
+
+#viz  {
+
+    border: none;
+    width: 100%;
+    /*height: 70vh;*/
+    z-index: 1;
+
+}
+
+#viz .barText {
+ fill: #f5faf8;
+}
+
+.axisY text, .axisX text, .headerText text{
+ fill: #0b3536;
+}
+
+
+.mapboxgl-popup-content{
+  overflow: auto;
+}
+
+/*
+.column {
+  float: left;
+
+
+}
+
+
+.column h4 {
+color: #111;
+margin: 24px 0 -12px 20px;
+}
+*/
+
+
+/*for toggle layers*/
+
+
+
