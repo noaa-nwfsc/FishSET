@@ -9,7 +9,8 @@ test_that("Test loading main data works", {
   expect_error(load_maindata(dat = cbind(FishSET::scallop, FishSET::scallop), over_write = TRUE, project = "testload"))
   
   # Test that data load successfully
-  expect_true(load_maindata(dat = FishSET::scallop, over_write = TRUE, project = "testload"))
+  expect_true(load_maindata(dat = FishSET::scallop, over_write = TRUE, project = "testload_maindat"))
+  fs::dir_delete("testdata/FishSETFolder/testload_maindat") # remove after test project is created
 })
 
 # Test load_spatial
