@@ -83,7 +83,10 @@ This error could appear when your last package installation was interrupted, whe
 
 1. Locate and delete the ".../00LOCK-[packagename]" and "[packagename]" folders in the library folder, which should be displayed with the error message (this can also be done using the unlink() function in R), then attempt to reinstall the problem package using install.packages(). If FishSET is the problem package, follow the steps above to install again.
 
-2. If the first options does not work, try adding "--no-lock" to your install options: "install.packages(INSTALL_opts = '--no-lock')" 
+2. If the first options does not work, try adding "--no-lock" to your install options: "install.packages(INSTALL_opts = '--no-lock')"
+
+3. If this still doesn't work, try using ``pacman::p_unlock(lib.lock=path_to_directory)``
+
 </details> 
 
 ## Disclaimer
