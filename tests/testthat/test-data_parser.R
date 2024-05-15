@@ -10,7 +10,7 @@ test_that("Test loading main data works", {
   
   # Test that data load successfully
   expect_true(load_maindata(dat = FishSET::scallop, over_write = TRUE, project = "testload_maindat"))
-  fs::dir_delete("testdata/FishSETFolder/testload_maindat") # remove after test project is created
+  unlink("testdata/FishSETFolder/testload_maindat", recursive = TRUE) # remove after test project is created
 })
 
 # Test load_spatial
