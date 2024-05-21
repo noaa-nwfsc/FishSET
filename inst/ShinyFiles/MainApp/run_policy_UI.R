@@ -8,13 +8,13 @@ run_policyUI <- function(id){
       uiOutput(ns("run_pol_sel_scen")),
   add_prompter(
     numericInput(ns("pol_betadraws"), "Betadraws", value = 1000),
-        position = "bottom", type='info', size='medium', 
+        position = "top", type='info', size='medium', 
         message = "Integer indicating the number of times to run the welfare simulation."),
   uiOutput(ns("pol_prim_cat")),
   
   add_prompter(
     uiOutput(ns("pol_likelihood")),
-        position = "bottom", type='info', size='medium', 
+        position = "top", type='info', size='medium', 
         message = "For conditional and zonal logit models. Name of the coefficient to use as marginal utility of income."),
 
     actionButton(ns("run_policy_button"), "Run Policy Function",

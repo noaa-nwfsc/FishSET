@@ -73,8 +73,7 @@ pred_plotsServer <- function(id, project, spatdat, values){
       
     pol <- reactiveValues(outputs_welf = NULL)
     
-    check_val <- reactiveValues(check = NULL)
-      
+
     observeEvent(input$run_policy_button,{
         req(project)
         req(input$select_pol_mod)
@@ -107,24 +106,22 @@ pred_plotsServer <- function(id, project, spatdat, values){
                 closeOnClickOutside = TRUE,
                 width = "50%"
               )
-        
+    })     
       
         output$welfare_plot_dol <- plotly::renderPlotly({
           req(project)
           req(input$run_policy_button)
 
-          if (is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
+          if(is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
           pol$outputs_welf[[1]][[1]]
 
         })
-
-
 
         output$welfare_plot_prc <- plotly::renderPlotly({
           req(project)
           req(input$run_policy_button)
 
-          if (is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
+          if(is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
           pol$outputs_welf[[1]][[2]]
 
         })
@@ -133,7 +130,7 @@ pred_plotsServer <- function(id, project, spatdat, values){
           req(project)
           req(input$run_policy_button)
 
-          if (is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
+          if(is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
           pol$outputs_welf[[1]][[3]]
 
         })
@@ -142,7 +139,7 @@ pred_plotsServer <- function(id, project, spatdat, values){
           req(project)
           req(input$run_policy_button)
 
-          if (is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
+          if(is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
           pol$outputs_welf[[1]][[4]]
         })
 
@@ -150,63 +147,67 @@ pred_plotsServer <- function(id, project, spatdat, values){
           req(project)
           req(input$run_policy_button)
 
-          if (is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
+          if(is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
           pol$outputs_welf[[1]][[5]]
         })
 
 
-})
+         output$pred_prob_tbl <- DT::renderDataTable({
+           req(project)
+           req(input$run_policy_button)
+           req(isTruthy(pol$outputs_welf))
+        
+        
+           if(is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
+           pred_prob_outputs(project, mod.name = isolate(input$select_pol_mod), output_option = "table")
+         })
+        
+         output$pred_prod_mod_fig <- plotly::renderPlotly({
+           req(project)
+           req(input$run_policy_button)
+           req(isTruthy(pol$outputs_welf))
+           
+        
+           if(is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
+           pred_prob_outputs(project, mod.name = isolate(input$select_pol_mod), output_option = "model_fig")
 
- output$pred_prob_tbl <- DT::renderDataTable({
-   req(project)
-   req(input$run_policy_button)
+         })
+        
+         output$pred_prod_pol_fig <- plotly::renderPlotly({
+           req(project)
+           req(input$pol_prim_sel_cat)
+           req(input$run_policy_button)
+           req(isTruthy(pol$outputs_welf))
+           
+        
+        
+           if(is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
+           pred_prob_outputs(project, mod.name = isolate(input$select_pol_mod),
+                             policy.name = c(input$run_pol_chk_scen),
+                             output_option = "policy_fig")
 
+         })
+        
+         output$pol_mod_diff_tbl <- function() {
+           req(project)
+           req(input$run_policy_button)
+           req(input$pol_prim_sel_cat)
+           req(input$run_pol_chk_scen)
+           req(isTruthy(pol$outputs_welf))
+           
+        
+        
+           if(is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
+           pred_prob_outputs(project, mod.name = isolate(input$select_pol_mod),
+                             zone.dat = input$pol_prim_sel_cat,
+                             policy.name = c(input$run_pol_chk_scen),
+                             output_option = "diff_table")
 
-   if(pol$outputs_welf[[2]] <0)return()
-   pred_prob_outputs(project, mod.name = isolate(input$select_pol_mod), output_option = "table")
-   
- })
-
- output$pred_prod_mod_fig <- plotly::renderPlotly({
-   req(project)
-   req(input$run_policy_button)
-
-   if(pol$outputs_welf[[2]] <0)return()
-   pred_prob_outputs(project, mod.name = isolate(input$select_pol_mod), output_option = "model_fig")
-   
- })
-
- output$pred_prod_pol_fig <- plotly::renderPlotly({
-   req(project)
-   req(input$pol_prim_sel_cat)
-   req(input$run_policy_button)
-
-
-   if(pol$outputs_welf[[2]] <0)return()
-   pred_prob_outputs(project, mod.name = isolate(input$select_pol_mod),
-                     policy.name = c(input$run_pol_chk_scen),
-                     output_option = "policy_fig")
-   
- })
-
- output$pol_mod_diff_tbl <- function() {
-   req(project)
-   req(input$run_policy_button)
-   req(input$pol_prim_sel_cat)
-   req(input$run_pol_chk_scen)
-
-
-   if(pol$outputs_welf[[2]] <0)return()
-   pred_prob_outputs(project, mod.name = isolate(input$select_pol_mod),
-                     zone.dat = input$pol_prim_sel_cat,
-                     policy.name = c(input$run_pol_chk_scen),
-                     output_option = "diff_table")
- 
-
- }
-    }
+        
+         }
+      }
     )
-    }
+  }
 
 
 
