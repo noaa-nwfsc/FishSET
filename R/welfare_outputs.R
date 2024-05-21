@@ -157,7 +157,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
                                                                  dplyr::group_by(Scenario) %>%
                                                                  dplyr::summarise(mean_loss_per_trip=mean(welfare_change)) %>%
                                                                  dplyr::select(mean_loss_per_trip)),
-                                mean_total_welfare_loss = unlist(lapply(welfare[,c(1:length(closures), drop = FALSE)],
+                                mean_total_welfare_loss = unlist(lapply(welfare[ ,1:length(closures), drop = FALSE],
                                                                         FUN = function(x, draws){
                                                                           tmp <- matrix(x, nrow = length(x) / draws, ncol = draws)
                                                                           tmp <- colSums(tmp)

@@ -293,8 +293,11 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
         theta <- mu_rand_new[which(rownames(mod.out$OutLogit) == marg_util_income)]
         if(income_cost) theta <- -theta # take negative value if theta estimated using cost variable
         # Check if theta is negative value
+        if(isRunning()){
+        
+        } else{
         if(theta < 0) stop("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income.")
-
+}
         # set up distance matrix
         distance <- as.matrix(distance, nrow = dim(distance)[1], ncol = dim(distance)[2])
 
@@ -357,6 +360,8 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
   # Write data to csv files - files are overwritten each time welfare_predict() is called
   fwrite(welfare_output, file = paste0(locoutput(project), "welfare_output.csv"), col.names = FALSE, row.names = FALSE)
   fwrite(prcwelfare_output, file = paste0(locoutput(project), "prcwelfare_output.csv"), col.names = FALSE, row.names = FALSE)
+  
+  return(theta)
 }
 
 

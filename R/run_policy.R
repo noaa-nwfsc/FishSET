@@ -128,18 +128,16 @@ run_policy <- function(project, mod.name = NULL, policy.name=NULL, betadraws = 1
   ##
   # 4. Run welfare predict ----
   ##
-  welfare_predict(project = project, mod.name = modname, closures = closures_output, betadraws = betadraws,
+  theta_output <- welfare_predict(project = project, mod.name = modname, closures = closures_output, betadraws = betadraws,
                   marg_util_income = marg_util_income, income_cost = income_cost,
                   expected.catch = expected.catch, enteredPrice = enteredPrice)
   
-  
-  ##
   # 6. Generate tables and plots
   ## 
    outputs_welf <- welfare_outputs(project = project, mod.name = mod.name, closures = closures_output, 
                              betadraws = betadraws, zone.dat = zone.dat, group_var = group_var)
    
-   return(outputs_welf)
+   return(list(outputs_welf, theta_output))
   
   ##
   # 7. log run_policy function call ----

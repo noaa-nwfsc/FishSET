@@ -60,6 +60,13 @@ pred_plotsUI <- function(id){
                              bslib::card_body(shinycssloaders::withSpinner(plotly::plotlyOutput(ns('pred_prod_pol_fig'))
                                                           ,type = 6))
                            )
+                           
+                         ),
+                         bslib::card(
+                           full_screen = TRUE,
+                           bslib::card_header(strong("Policy difference table"), class = "bg-info"), 
+                           bslib::card_body(shinycssloaders::withSpinner(tableOutput(ns('pol_mod_diff_tbl'))
+                                                                         ,type = 6))
                          )
   )
   
