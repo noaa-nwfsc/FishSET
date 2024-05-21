@@ -59,7 +59,7 @@ Imports:
     leaflet,
     lubridate,
     methods,
-    nmfspalette, 
+    nmfspalette,
     openxlsx,
     pander,
     plotly,
