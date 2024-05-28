@@ -7,8 +7,11 @@
 #'
 #' @param project Name of project
 #' @param mod.name Name of model
+#' @param zone.dat Variable in primary data table that contains unique zone ID.
+#' @param policy.name List of policy scenario names created in zone_closure function
 #' @param output_option "table" to return summary table (default); "model_fig" for predicted probabilities; or "policy_fig" 
-#' to return predicted probabilities for each model/policy scenario.
+#' to return predicted probabilities for each model/policy scenario ; "diff_table" to return difference between predicted probabilities between 
+#' model and policy scenario for each zone.
 #' @return A model prediction summary table (default), model prediction figure, or policy prediction figure. See \code{output_option} argument.
 #' @details This function requires that model and prediction output tables exist in the FishSET database. If these tables are not 
 #' present in the database to function with terminate and return an error message.
@@ -22,7 +25,7 @@
 #'pred_prob_outputs(project = "scallop")
 #'
 #'}
-pred_prob_outputs <- function(project, mod.name = NULL, output_option = "table"){
+pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.name = NULL, output_option = "table"){
   
   # Create connection to database and remove connection on exit of this function
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
@@ -43,16 +46,13 @@ pred_prob_outputs <- function(project, mod.name = NULL, output_option = "table")
   )
   tryCatch({
     
-   # pred_out <- unserialize_table(paste0("scallopMod", "predictOutput"), "scallopMod")
     pred_out <- unserialize_table(paste0(project, "predictOutput"), project)
     
-   # test_name <- "lz"
-    
+
     
     get_mod_pred_out <- lapply(pred_out, function(x){
       mod_name <- x$modelDat$mod.name
-    #  if(mod_name == "lz"){
-        
+
       if(mod_name == mod.name){
         return(1)
       } else {
@@ -99,7 +99,7 @@ pred_prob_outputs <- function(project, mod.name = NULL, output_option = "table")
     return(out_tab)
     
   # Format data for figures -------------------------------------------------------------------------------------------------
-  } else if(output_option %in% c("model_fig", "policy_fig")){
+  } else if(output_option %in% c("model_fig", "policy_fig", "diff_table")){
     # Save model predicted probabilities for each zone
     tmp_df <- data.frame(ZoneID = prop_obs$ZoneID)
     for(i in 1:length(predProbs)){
@@ -155,7 +155,8 @@ pred_prob_outputs <- function(project, mod.name = NULL, output_option = "table")
       
       # Combine with base case predictions for each model and convert to long format
       fig_df <- cbind(tmp_df, policy_probs) %>%
-        gather(key = "Model", value = "Probability", -ZoneID)
+        gather(key = "Model", value = "Probability", -ZoneID) %>% 
+        filter(Model %in% c(mod_n, paste0(mod_n, " ", policy.name)))
     
       out_fig <- ggplot() +
         geom_col(aes(x = fig_df$Model, y = fig_df$Probability, fill = fig_df$ZoneID), width = 0.6, position = position_dodge(0.6)) +
@@ -170,12 +171,39 @@ pred_prob_outputs <- function(project, mod.name = NULL, output_option = "table")
       
       
       return(out_fig)
-    } 
+   # } 
+    
+  } else if(output_option == "diff_table"){
+    policy_probs <- unlist(lapply(pred_output, function(x){ x$prob[,2] }))
+    policy_probs <- matrix(policy_probs/100, ncol = length(pred_output), byrow = FALSE)
+    policy_probs <- as.data.frame(policy_probs)
+    colnames(policy_probs) <- predict_n
+    
+    diff_df <- cbind(tmp_df, policy_probs)
+    
+    tm <- diff_df %>% 
+      pivot_longer(., -c(any_of(zone.dat), any_of(mod_n))) %>% 
+      group_by(across(any_of(zone.dat)), name) %>% 
+      mutate(difference = value- !!rlang::sym(mod_n)) %>% 
+      mutate(across(where(is.numeric), ~ round(., 3))) %>%
+      filter(name %in% c(paste0(mod_n, " ", policy.name))) %>% 
+      pivot_wider(., names_from = c("name"), values_from = c("difference", "value"))%>%
+      select(any_of(zone.dat), any_of(mod.name), starts_with("value"), everything()) %>% 
+      mutate(across(c(starts_with("difference")), ~ kableExtra::cell_spec(., color = case_when(. < 0 ~"red",
+                                                                                           . >= 0 ~ "green"))))
+    
+    
+     diff_output <-  kbl(tm,"html", align = "c", booktabs = T, escape=FALSE) %>% 
+       kable_styling(bootstrap_options = c("hover", "responsive", "bordered", "striped"),  full_width = T)
+     
+      
+    return(diff_output)
     
   } else {
     
     message("Invalid output option")
     return(NA)
+  }
   }
 }
 

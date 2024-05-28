@@ -9,6 +9,7 @@
 #'   the name of the saved `best` model. If more than one model is saved, 
 #'   \code{mod.name} should be the numeric indicator of which model to use.
 #'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
+#' @param policy.name List of policy scenario names created in zone_closure function
 #' @param betadraws Integer indicating the number of times to run the welfare simulation. Default value is
 #'   \code{betadraws = 1000}
 #' @param marg_util_income For conditional and zonal logit models. Name of the coefficient to use as 
@@ -45,7 +46,7 @@
 #  welfare_predict
 #  sim_welfare
 
-run_policy <- function(project, mod.name = NULL, betadraws = 1000, marg_util_income = NULL, 
+run_policy <- function(project, mod.name = NULL, policy.name=NULL, betadraws = 1000, marg_util_income = NULL, 
                        income_cost = NULL, zone.dat = NULL, group_var = NULL,
                        enteredPrice = NULL, expected.catch = NULL, use.scalers = FALSE, scaler.func = NULL) {
   
@@ -60,6 +61,22 @@ run_policy <- function(project, mod.name = NULL, betadraws = 1000, marg_util_inc
   if (utils::file_test("-f", paste0(locoutput(project), pull_output(project, type = 'zone', fun = 'closures')))) {
     closures <- yaml::read_yaml(paste0(locoutput(project), pull_output(project, type = 'zone', fun = 'closures')))
     
+    
+
+    get_closures_out <-lapply(closures, function(x){
+    #  closures[[x]]$scenario == policy.name
+
+     pol_nm <-  x$scenario
+
+      if(pol_nm %in% policy.name){
+        return(1)
+      } else {
+        return(0)
+      }
+    })
+
+    closures_output <- closures[which(unlist(get_closures_out) == 1)]
+    # 
   } else {
     stop('No policy scenario tables found. Run the zone_closure function.')
     
@@ -104,25 +121,24 @@ run_policy <- function(project, mod.name = NULL, betadraws = 1000, marg_util_inc
   # 3. Run model_prediction function ----
   ##
   model_prediction(project = project, mod.name = modname,
-                   closures = closures, enteredPrice = enteredPrice,
+                   closures = closures_output, enteredPrice = enteredPrice,
                    use.scalers = use.scalers, scaler.func = scaler.func)
   
   
   ##
   # 4. Run welfare predict ----
   ##
-  welfare_predict(project = project, mod.name = modname, closures = closures, betadraws = betadraws,
+  theta_output <- welfare_predict(project = project, mod.name = modname, closures = closures_output, betadraws = betadraws,
                   marg_util_income = marg_util_income, income_cost = income_cost,
                   expected.catch = expected.catch, enteredPrice = enteredPrice)
   
-  
-  ##
   # 6. Generate tables and plots
   ## 
-  outputs <- welfare_outputs(project = project, mod.name = mod.name, closures = closures, 
+   outputs_welf <- welfare_outputs(project = project, mod.name = mod.name, closures = closures_output, 
                              betadraws = betadraws, zone.dat = zone.dat, group_var = group_var)
+   
+   return(list(outputs_welf, theta_output))
   
-
   ##
   # 7. log run_policy function call ----
   ##
