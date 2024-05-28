@@ -176,7 +176,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
       geom_errorbar(data = welfare_summ, aes(x = Scenario, ymin = `97.5%`, ymax = `2.5%`), width = 1) +
       labs(x = "Policy scanarios", y = "Welfare loss[-]/gain[+] ($)") +
       theme_classic() +
-      nmfspalette::scale_fill_nmfs()+
+      scale_fill_viridis_d() +
       geom_hline(yintercept = 0)
     p1 <- plotly::ggplotly(p1)
     
@@ -217,7 +217,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
       geom_errorbar(data = prc_welfare_summ, aes(x = Scenario, ymin = `97.5%`, ymax = `2.5%`), width = 1) +
       labs(x = "Policy scanarios", y = "Welfare loss[-]/gain[+] (%)") +
       theme_classic() +
-      nmfspalette::scale_fill_nmfs()+
+      scale_fill_viridis_d() +
       geom_hline(yintercept = 0)
     p2 <- plotly::ggplotly(p2)
     

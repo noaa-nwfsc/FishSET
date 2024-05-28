@@ -119,7 +119,7 @@ pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.
         geom_col(aes(x = fig_df$ZoneID, y = fig_df$Probability, fill = fig_df$Model), width = 0.6, position = position_dodge(0.6)) +
         labs(x = "Zone ID", y = "Probability", fill = "Model") +
         scale_y_continuous(expand = c(0,0), limits = c(0, max(fig_df$Probability) + 0.05)) +
-        nmfspalette::scale_fill_nmfs()+
+        scale_fill_viridis_d() +
         theme_classic() +
         theme(text = element_text(size= 16),
               axis.text.x = element_text(angle = 90, vjust = 1, hjust = 0.95))
