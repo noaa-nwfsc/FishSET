@@ -12,21 +12,10 @@ Contact nmfs.fishset@noaa.gov with any questions regarding the FishSET R package
 The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools developed as an R package for organizing and visualizing data; developing, improving and disseminating modeling best practices; and simulating policy scenarios to explore the welfare consequences of management decisions. 
 
 ## GitHub Install
-Currently, the FishSET repo is only available internally and access to the NOAA GHEC organization is required for installation. We plan on making this repo public soon.
 
 Run the following lines of code in R:
 
 ```
-# Set configuration
-usethis::use_git_config(user.name = "INSERT GITHUB USER NAME", user.email = "INSERT EMAIL")
-
-# This line will take you to GitHub to generate a personal access token (PAT).
-# IMPORTANT: Copy and save the PAT once it is generated. Once you leave the GitHub page you will not be able to view the PAT.
-usethis::create_github_token()
-
-# Paste your PAT here
-credentials::set_github_pat("PASTE PAT HERE")
-
 # Install the package (see troubleshooting section below if this doesn't work)
 install.packages("pak")
 
