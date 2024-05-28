@@ -83,19 +83,8 @@
 <div class="section level2">
 <h2 id="github-install">GitHub Install<a class="anchor" aria-label="anchor" href="#github-install"></a>
 </h2>
-<p>Currently, the FishSET repo is only available internally and access to the NOAA GHEC organization is required for installation. We plan on making this repo public soon.</p>
 <p>Run the following lines of code in R:</p>
-<pre><code><span><span class="co"># Set configuration</span></span>
-<span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/use_git_config.html" class="external-link">use_git_config</a></span><span class="op">(</span>user.name <span class="op">=</span> <span class="st">"INSERT GITHUB USER NAME"</span>, user.email <span class="op">=</span> <span class="st">"INSERT EMAIL"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># This line will take you to GitHub to generate a personal access token (PAT).</span></span>
-<span><span class="co"># IMPORTANT: Copy and save the PAT once it is generated. Once you leave the GitHub page you will not be able to view the PAT.</span></span>
-<span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/github-token.html" class="external-link">create_github_token</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Paste your PAT here</span></span>
-<span><span class="fu">credentials</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/credentials/reference/set_github_pat.html" class="external-link">set_github_pat</a></span><span class="op">(</span><span class="st">"PASTE PAT HERE"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Install the package (see troubleshooting section below if this doesn't work)</span></span>
+<pre><code><span><span class="co"># Install the package (see troubleshooting section below if this doesn't work)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"noaa-nwfsc/FishSET"</span><span class="op">)</span></span></code></pre>
@@ -119,7 +108,7 @@
 <div class="section level2">
 <h2 id="issues-and-bug-reports">Issues and Bug Reports<a class="anchor" aria-label="anchor" href="#issues-and-bug-reports"></a>
 </h2>
-<p>Add issues in GitHub <a href="https://github.com/noaa-nwfsc/FishSET/issues" class="external-link">https://github.com/noaa-nwfsc/FishSET/issues</a>. Or contact <a href="mailto:FishSET@noaa.gov">FishSET@noaa.gov</a>.</p>
+<p>Add issues in GitHub <a href="https://github.com/noaa-nwfsc/FishSET/issues" class="external-link">https://github.com/noaa-nwfsc/FishSET/issues</a>. Or contact <a href="mailto:nmfs.fishset@noaa.gov" class="email">nmfs.fishset@noaa.gov</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="id_-citation-">
@@ -145,6 +134,7 @@ Error: failed to lock directory…
 <ol style="list-style-type: decimal">
 <li><p>Locate and delete the “…/00LOCK-[packagename]” and “[packagename]” folders in the library folder, which should be displayed with the error message (this can also be done using the unlink() function in R), then attempt to reinstall the problem package using install.packages(). If FishSET is the problem package, follow the steps above to install again.</p></li>
 <li><p>If the first options does not work, try adding “–no-lock” to your install options: “install.packages(INSTALL_opts = ‘–no-lock’)”</p></li>
+<li><p>If this still doesn’t work, try using <code>pacman::p_unlock(lib.lock=path_to_directory)</code></p></li>
 </ol></details>
 </div>
 <div class="section level2">
@@ -170,9 +160,8 @@ Error: failed to lock directory…
 <div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li>
-<a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a>
-</li>
+<li><a href="LICENSE.html">Full license</a></li>
+<li><small><a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a></small></li>
 </ul>
 </div>
 

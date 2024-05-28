@@ -28,6 +28,9 @@
     <loc>/LICENSE-text.html</loc>
   </url>
   <url>
+    <loc>/LICENSE.html</loc>
+  </url>
+  <url>
     <loc>/reference/aboutUI.html</loc>
   </url>
   <url>
@@ -47,12 +50,6 @@
   </url>
   <url>
     <loc>/reference/agg_helper.html</loc>
-  </url>
-  <url>
-    <loc>/reference/alaskaNMFSAreas.html</loc>
-  </url>
-  <url>
-    <loc>/reference/alaskaPorts.html</loc>
   </url>
   <url>
     <loc>/reference/alt_choice_list.html</loc>
@@ -299,12 +296,6 @@
   </url>
   <url>
     <loc>/reference/dummy_var.html</loc>
-  </url>
-  <url>
-    <loc>/reference/edit_map_gui.html</loc>
-  </url>
-  <url>
-    <loc>/reference/edit_map_manual.html</loc>
   </url>
   <url>
     <loc>/reference/edit_proj_settings.html</loc>
@@ -862,9 +853,6 @@
     <loc>/reference/policy_metrics.html</loc>
   </url>
   <url>
-    <loc>/reference/PollockData.html</loc>
-  </url>
-  <url>
     <loc>/reference/polyval.html</loc>
   </url>
   <url>
@@ -1082,9 +1070,6 @@
   </url>
   <url>
     <loc>/reference/split_dat.html</loc>
-  </url>
-  <url>
-    <loc>/reference/SST.html</loc>
   </url>
   <url>
     <loc>/reference/subset_date.html</loc>

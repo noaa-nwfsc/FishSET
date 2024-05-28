@@ -62,6 +62,9 @@ model with Dahl's correction (<code><a href="logit_correction.html">logit_correc
 <span>  project <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">spat</span>,</span>
 <span>  <span class="va">port</span>,</span>
+<span>  <span class="va">port_name</span>,</span>
+<span>  <span class="va">port_lon</span>,</span>
+<span>  <span class="va">port_lat</span>,</span>
 <span>  <span class="va">trip_id</span>,</span>
 <span>  <span class="va">haul_order</span>,</span>
 <span>  <span class="va">starting_port</span>,</span>
@@ -91,6 +94,18 @@ Shape, json, geojson, and csv formats are supported.</p></dd>
 <dd><p>Port data. Contains columns: Port_Name, Port_Long, Port_Lat. 
 Table is generated using the <code><a href="load_port.html">load_port</a></code> and saved in the FishSET 
 database as the project and port table, for example 'pollockPortTable'.</p></dd>
+
+
+<dt>port_name</dt>
+<dd><p>Character string indicating the column in port table that contains the port name</p></dd>
+
+
+<dt>port_lon</dt>
+<dd><p>Character string indication the column in port table that contains port longitude</p></dd>
+
+
+<dt>port_lat</dt>
+<dd><p>Character string indication the column in port table that contains port latitude</p></dd>
 
 
 <dt>trip_id</dt>

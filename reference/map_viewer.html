@@ -143,13 +143,12 @@ onto the map. At this time, the map can only be saved by taking a screen shot.</
 <span class="r-in"><span>           avd <span class="op">=</span> <span class="st">'ZoneID'</span>, avm <span class="op">=</span> <span class="st">'TEN_ID'</span>, num_vars <span class="op">=</span> <span class="st">'LANDED_thousands'</span>, </span></span>
 <span class="r-in"><span>           temp_vars <span class="op">=</span> <span class="st">'DATE_TRIP'</span>, lon_start <span class="op">=</span> <span class="st">'previous_port_lon'</span>, </span></span>
 <span class="r-in"><span>           lat_start <span class="op">=</span> <span class="st">'previous_port_lat'</span>, lon_end <span class="op">=</span> <span class="st">'DDLON'</span>, </span></span>
-<span class="r-in"><span>           lat_end <span class="op">=</span> <span class="st">'DDLAT'</span>, id_vars <span class="op">=</span> <span class="st">'previous_namelsad'</span><span class="op">)</span></span></span>
+<span class="r-in"><span>           lat_end <span class="op">=</span> <span class="st">'DDLAT'</span><span class="op">)</span></span></span>
 <span class="r-in"><span>   </span></span>
 <span class="r-in"><span><span class="co"># Plot observed fishing locations        </span></span></span>
 <span class="r-in"><span><span class="fu">map_viewer</span><span class="op">(</span><span class="va">scallopMainDataTable</span>, <span class="st">'scallop'</span>, <span class="st">"scallopTMSSpatTable"</span>, </span></span>
 <span class="r-in"><span>           avd <span class="op">=</span> <span class="st">'ZoneID'</span>, avm <span class="op">=</span> <span class="st">'TEN_ID'</span>, num_vars <span class="op">=</span> <span class="st">'LANDED_thousands'</span>, </span></span>
-<span class="r-in"><span>           temp_vars <span class="op">=</span> <span class="st">'DATE_TRIP'</span>, lon_start <span class="op">=</span> <span class="st">'DDLON'</span>, lat_start <span class="op">=</span> <span class="st">'DDLAT'</span>, </span></span>
-<span class="r-in"><span>           id_vars <span class="op">=</span> <span class="st">'previous_namelsad'</span><span class="op">)</span></span></span>
+<span class="r-in"><span>           temp_vars <span class="op">=</span> <span class="st">'DATE_TRIP'</span>, lon_start <span class="op">=</span> <span class="st">'DDLON'</span>, lat_start <span class="op">=</span> <span class="st">'DDLAT'</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">#Plot haul path</span></span></span>
 <span class="r-in"><span><span class="fu">map_viewer</span><span class="op">(</span><span class="va">pollockMainDataTable</span>, <span class="st">'pollock'</span>, spat<span class="op">=</span><span class="va">spatdat</span>, avd<span class="op">=</span><span class="st">'NMFS_AREA'</span>,</span></span>
