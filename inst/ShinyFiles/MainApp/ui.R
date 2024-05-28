@@ -1759,7 +1759,8 @@ ui = function(request){
                                        bslib::page_fillable(
                                          bslib::accordion(
                                            pred_plotsUI("run_policy"),
-                                           predict_map_mainUI("run_policy")
+                                           predict_map_mainUI("run_policy"),
+                                           welfare_outputsUI("run_policy")
                                      )
                              )
                          )

@@ -7710,5 +7710,6 @@ server = function(input, output, session) {
 
   pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset)
   pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
+
   
 }
