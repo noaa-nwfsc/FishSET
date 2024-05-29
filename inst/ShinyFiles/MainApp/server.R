@@ -5185,7 +5185,7 @@ server = function(input, output, session) {
                                           'Lon-Lat Coordinates' = 'lon-lat')),
                  
                  message = 'A centroid table must be saved to the FishSET database to be used as trip/haul occurances',
-                 type = 'info', size = 'large', position = 'bottom'),
+                 type = 'info', size = 'large', position = 'right'),
                
                conditionalPanel("input.altc_occasion=='zone'||input.altc_alt_var=='zone'",
                                 uiOutput('altc_zone_cent_ui')),
@@ -5205,7 +5205,7 @@ server = function(input, output, session) {
                                           'Nearest Point' = 'near')),
                  
                  message = 'A centroid table must be saved to the FishSET database to be used as trip/haul occurances',
-                 type = 'info', size = 'large', position = 'bottom'),
+                 type = 'info', size = 'large', position = 'right'),
                
                selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
                               selected = 'miles'),
