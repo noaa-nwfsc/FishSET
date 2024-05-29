@@ -2473,17 +2473,21 @@ server = function(input, output, session) {
                             'poisson', 'negative binomial'), selected='normal'))
   })
   
+  output$remove_vars <- renderUI({
+    tagList(selectInput('varsToRemove', 'Select variables to remove', choices = names(values$dataset), multiple = TRUE))
+    
+  })
+  
   #Lat/Lon
   output$LatLonDir <- renderUI({
     tagList(
-      conditionalPanel(condition="input.checks=='Lat_Lon units'",
-                       selectizeInput('LatDirection','Latitudinal variable', 
-                                      choices=c('None', find_lat(values$dataset)),
-                                      options = list(create = TRUE, placeholder='Select or type variable name')),
-                       
-                       selectizeInput('LonDirection','Longitudinal variable', 
-                                      choices=c('None', find_lon(values$dataset)),
-                                      options = list(create = TRUE, placeholder='Select or type variable name')))
+      selectizeInput('LatDirection','Latitudinal variable', 
+                     choices=c('None', find_lat(values$dataset)),
+                     options = list(create = TRUE, placeholder='Select or type variable name')),
+      
+      selectizeInput('LonDirection','Longitudinal variable', 
+                     choices=c('None', find_lon(values$dataset)),
+                     options = list(create = TRUE, placeholder='Select or type variable name'))
     )
   })
   
@@ -2535,11 +2539,12 @@ server = function(input, output, session) {
     } else if(input$checks=='NaNs'){
       nan_filter(values$dataset, project = project$name, x=qaqc_helper(values$dataset, "NaN", "names"), 
                  replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
+    } else if (input$checks=='Remove variables'){ 
+      h4("Select variables to remove from the dataset")
     } else if(input$checks=='Unique observations'){
       unique_filter(values$dataset, project = project$name, remove=FALSE)
     } else if(input$checks=='Empty variables'){
       empty_vars_filter(values$dataset, project = project$name, remove=FALSE)
-      
     } else if(input$checks=='Lat_Lon units'){
       degree(values$dataset, project = project$name, lat=NULL, lon=NULL, latsign=NULL, lonsign=NULL, replace=FALSE)
     } else {
@@ -3133,6 +3138,16 @@ server = function(input, output, session) {
     }
   })
   
+  observeEvent(input$removeVars,{
+    if(!is_value_empty(input$varsToRemove != "")){
+      values$dataset <- subset(values$dataset, select = -which(names(values$dataset) %in% input$varsToRemove))
+      showNotification(paste0("Variable(s) ", paste(input$varsToRemove, collapse = ", "), " removed from dataset."), type = "message")
+    } else {
+      showNotification("No variables selected.", type = "warning")
+    }
+    
+  })
+  
   observeEvent(input$Outlier_Filter, {
     
     q_test <- quietly_test(outlier_remove)
@@ -3563,8 +3578,7 @@ server = function(input, output, session) {
     }
   })
   
-  observeEvent(c(input$subsetData,
-                 input$output_table_exploration_search_columns), {
+  observeEvent(input$output_table_exploration_search_columns, {
                    # cell edited? 
                    if (input$SelectDatasetExplore == "main") {
                      values$dataset <- explore_temp()
@@ -3660,16 +3674,9 @@ server = function(input, output, session) {
     #values$dataset <- temp
   })
   
-  
-  observeEvent(input$subsetData,{
-    req(!is.null(input$output_table_exploration_columns_selected))
-    values$dataset <- values$dataset[,-(input$output_table_exploration_columns_selected+1)]
-  })
-  
   output$editText <- renderText('Edit cells: double click. Edited table will not be loaded into \nworking environment until saved.
                                     \nFilter: Boxes at top.
                                     \nFilter functions saved to FishSET database as FilterTable \nwhen "save data" button is pushed.
-                                    \nRemove variables: Click on column cell(s), then click "Remove \nVariable" button. Variables can be added back using \nthe add_vars function.
                                     \nClick the "Save Data" button to save changes.')
   
   #Subset by columns
