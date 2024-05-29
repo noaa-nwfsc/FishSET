@@ -359,20 +359,14 @@ ui = function(request){
                                                  
                                                  radioButtons("checks", "Select data quality check function to run:", 
                                                               choices = c('Variable class', 'Summary table', 'Outliers', 
-                                                                          'NAs', 'NaNs', 'Unique observations', 'Empty variables', 
-                                                                          'Latitude and Longitude'='Lat_Lon units', 'Spatial data')),
+                                                                          'NAs', 'NaNs', 'Remove variables', 'Unique observations', 
+                                                                          'Empty variables', 'Latitude and Longitude'='Lat_Lon units', 
+                                                                          'Spatial data')),
                                                  
-                                                 conditionalPanel(
-                                                   condition = "input.checks == 'Variable class'",
-                                                   
+                                                 conditionalPanel(condition = "input.checks == 'Variable class'",
                                                    uiOutput('change_var_inputs'),
-
                                                    actionButton('rchclass', 'Change variable classes', class = "btn-secondary")
                                                  ),
-                                                 uiOutput('outlier_column'),
-                                                 uiOutput('outlier_subset_method'),
-                                                 uiOutput('outlier_subset'),
-                                                 uiOutput('outlier_dist'),
                                                  conditionalPanel("input.checks == 'NAs'",
                                                                   actionButton('NA_Filter_all', 'Remove all NAs',class = "btn-secondary"),
                                                                   actionButton('NA_Filter_mean', 'Replace NAs with mean value', class = "btn-secondary")
@@ -381,6 +375,15 @@ ui = function(request){
                                                                   actionButton('NAN_Filter_all', 'Remove all NaNs', class = "btn-secondary"),
                                                                   actionButton('NAN_Filter_mean', 'Replace NaNs with mean value', class = "btn-secondary")
                                                  ),
+                                                 conditionalPanel("input.checks == 'Remove variables'",
+                                                                  uiOutput('remove_vars'),
+                                                                  actionButton("removeVars", "Remove variables", class = "btn-secondary")
+
+                                                 ),
+                                                 uiOutput('outlier_column'),
+                                                 uiOutput('outlier_subset_method'),
+                                                 uiOutput('outlier_subset'),
+                                                 uiOutput('outlier_dist'),
                                                  conditionalPanel("input.checks=='Outliers'",
                                                                   actionButton('Outlier_Filter', 'Remove outliers', class = "btn-secondary"),
                                                                   uiOutput("hover_info1")
@@ -391,9 +394,8 @@ ui = function(request){
                                                  conditionalPanel("input.checks=='Empty variables'",
                                                                   actionButton('Empty_Filter', 'Remove empty variables', class = "btn-secondary")
                                                  ),
-                                                 uiOutput('LatLonDir'),
-                                                 
                                                  conditionalPanel("input.checks=='Lat_Lon units'",
+                                                                  uiOutput('LatLonDir'),
                                                                   selectInput('LatLon_Filter_Lat', 'Change sign for latitude direction', 
                                                                               choices=c('None', 'All values'='all', 'Positve to negative'='neg', 
                                                                                         'Negative to positive'='pos'), selected='None'),
@@ -507,11 +509,6 @@ ui = function(request){
                                                                                   tabPlotUI("explore")
                                                                  
                                                                  ),
-                                                                 conditionalPanel("input.plot_table=='Table'",
-                                                                                  actionButton('subsetData', 'Remove variable from dataset',
-                                                                                               width = "100%",
-                                                                                               class = "btn-primary")
-                                                                 ),
                                                                  
                                                                  actionButton("refresh", "Refresh data", 
                                                                               width = "100%",
@@ -519,7 +516,6 @@ ui = function(request){
                                                                 
                                                                  ),
                                                                  
-
                                                                  conditionalPanel("input.SelectDatasetExplore=='main' || input.SelectDatasetExplore=='grid'",
                                                                                   selectInput('plot_table', 'View data table or plots', 
                                                                                               choices=c('Table','Plots'), selected='Table')
