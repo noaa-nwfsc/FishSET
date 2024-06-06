@@ -17,8 +17,15 @@ Run the following lines of code in R:
 
 ```
 # Install the package (see troubleshooting section below if this doesn't work)
-install.packages("pak")
+install.packages("devtools")
+options(download.file.method = "wininet")
+devtools::install_github("noaa-nwfsc/FishSET")
+```
 
+If the above does not work try:
+
+```
+install.packages("pak")
 pak::pak("noaa-nwfsc/FishSET")
 ```
 
