@@ -3235,6 +3235,7 @@ server = function(input, output, session) {
   
   # run spatial checks 
   observeEvent(input$runSpatQAQC, {
+    withProgress({
     q_test <- quietly_test(spatial_qaqc)
     
     out <- q_test(dat = values$dataset, project = project$name, spat = spatdat$dataset, 
@@ -3254,7 +3255,9 @@ server = function(input, output, session) {
       # out
       spat_qaqc$out <- out
     }
-    
+    },
+    message = "Running checks: ",
+    detail = 'Can take up to a few seconds to run.')
   }, ignoreInit = TRUE, ignoreNULL = TRUE)
   
   # Spatial checks output
