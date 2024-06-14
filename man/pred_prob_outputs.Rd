@@ -4,15 +4,26 @@
 \alias{pred_prob_outputs}
 \title{Summarize predicted probabilities}
 \usage{
-pred_prob_outputs(project, mod.name = NULL, output_option = "table")
+pred_prob_outputs(
+  project,
+  mod.name = NULL,
+  zone.dat = NULL,
+  policy.name = NULL,
+  output_option = "table"
+)
 }
 \arguments{
 \item{project}{Name of project}
 
 \item{mod.name}{Name of model}
 
+\item{zone.dat}{Variable in primary data table that contains unique zone ID.}
+
+\item{policy.name}{List of policy scenario names created in zone_closure function}
+
 \item{output_option}{"table" to return summary table (default); "model_fig" for predicted probabilities; or "policy_fig" 
-to return predicted probabilities for each model/policy scenario.}
+to return predicted probabilities for each model/policy scenario ; "diff_table" to return difference between predicted probabilities between 
+model and policy scenario for each zone.}
 }
 \value{
 A model prediction summary table (default), model prediction figure, or policy prediction figure. See \code{output_option} argument.
