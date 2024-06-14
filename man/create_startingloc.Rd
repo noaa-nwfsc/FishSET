@@ -60,8 +60,9 @@ Primary data set with starting location variable added.
 }
 \description{
 Creates a variable containing the zone/area location of a vessel when choice of 
-where to fish next was made. This variable is required for the full information 
-model with Dahl's correction (\code{\link{logit_correction}}).
+where to fish next was made. This variable is required for data with multiple sets
+or hauls in a single trip and for the full information model with 
+Dahl's correction (\code{\link{logit_correction}}).
 }
 \details{
 Function creates the \code{startloc} vector that is required for the 
