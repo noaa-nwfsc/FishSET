@@ -35,7 +35,7 @@ Description: The Spatial Economics Toolbox for Fisheries (FishSET) is a
     set of tools for organizing data; developing, improving and
     disseminating modeling best practices.
 License: MIT + file LICENSE
-URL: to provide
+URL: https://github.com/noaa-nwfsc/FishSET
 BugReports: https://pkgname.bugtracker.url
 Depends: 
     R (>= 3.5.0)
