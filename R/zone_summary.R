@@ -235,7 +235,7 @@ zone_summary <- function(dat,
 
       by_vec <- zone.dat
       names(by_vec) <- zone.spat
-
+      
       # merge spatdat w/ zone summary
       spat_join <- dplyr::left_join(spatdat[zone.spat], z_tab, by = by_vec)
 
@@ -260,7 +260,7 @@ zone_summary <- function(dat,
     }
 
     spat_join <- merge_spat(zone_tab)
-
+    
     # base map ----
     if (dat.center)  {
       # create a bbox using zones that exist in dat
@@ -382,6 +382,10 @@ zone_summary <- function(dat,
                              plotly::config(scrollZoom = TRUE) %>%
                              plotly::plotly_build())
         })
+        
+        z_plot <- z_plot %>% 
+          style(hoveron = "fills")
+        
         z_plot
       } # END GROUP ZONE FUNCTION
 
@@ -399,10 +403,13 @@ zone_summary <- function(dat,
                                             legend_name = legend_name))
 
       z_plot <- suppressWarnings(plotly::ggplotly(tmp_z_plot) %>%
-                                 plotly::style(line.width = 1) %>%
+                                 plotly::style(line.width = 0.5) %>%
                                  plotly::config(scrollZoom = TRUE) %>%
                                  plotly::plotly_build())
 
+      z_plot <- z_plot %>% 
+        style(hoveron = "fills")
+      
       # save plot
       save_plot(project, "zone_summary", z_plot)
     }
