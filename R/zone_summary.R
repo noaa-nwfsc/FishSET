@@ -378,13 +378,10 @@ zone_summary <- function(dat,
                                                     legend_name = legend_name))
 
           suppressWarnings(plotly::ggplotly(tmp_z_plot) %>%
-                             plotly::style(line.width = 1) %>%
+                             plotly::style(line.width = 1, hoveron = "fills") %>%
                              plotly::config(scrollZoom = TRUE) %>%
                              plotly::plotly_build())
         })
-        
-        z_plot <- z_plot %>% 
-          style(hoveron = "fills")
         
         z_plot
       } # END GROUP ZONE FUNCTION
@@ -437,6 +434,10 @@ zone_summary <- function(dat,
                                      plotly::style(line.width = 1) %>%
                                      plotly::config(scrollZoom = TRUE) %>%
                                      plotly::plotly_build())
+        
+        z_plot_c <- z_plot_c %>%
+          style(hoveron = "fills")
+        
         # save plot
         save_plot(project, "zone_summary_confid", z_plot_c)
       }
