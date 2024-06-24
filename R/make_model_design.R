@@ -5,7 +5,8 @@
 #'
 #' @param project String, name of project.
 #' @param catchID  String, variable from `dat` that contains catch data.
-#' @param likelihood String, name of likelihood function. Details on likelihood 
+#' @param likelihood String, name of likelihood function. A description of explanatory variables for each 
+#'   likelihood is provided below in the details sections. Information on likelihood- 
 #'   specific initial parameter specification can be found in 
 #'   [discretefish_subroutine()] documentation.
 #' \tabular{rlll}{
