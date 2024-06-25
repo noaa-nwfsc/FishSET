@@ -38,7 +38,7 @@ map_viewer_serv <- function(id, dat, spatdat, project) {
                                         create = TRUE)),
           
           selectInput(ns("point_path"), "Show vessel points or path",
-                      choices=c('Point', 'Path'), selected='Path'),
+                      choices=c('Point', 'Path'), selected='Point'),
           
           selectInput(ns("lon_start"), label="Starting longitude or point",
                       choices = colnames(dat$dataset)[grep('lon', colnames(dat$dataset), ignore.case = TRUE)]),
