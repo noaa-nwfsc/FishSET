@@ -145,7 +145,6 @@ create_dist_matrix <-
   } else if (alt_var == "nearest point") {
     
     ## nearest point ----
-    
     if (is_value_empty(spat) | is_value_empty(spatID)) {
       
       stop("'spat' and 'spatID' are required for alt_var = 'nearest point'.", 
@@ -172,6 +171,7 @@ create_dist_matrix <-
       stop("'spat' contains zones not found in alternative choice list. Do you ",
            "have the correct spatial table?", call. = FALSE)
     }
+    
   } 
   
   # Distance Matrix ----
@@ -190,9 +190,10 @@ create_dist_matrix <-
     
   if (alt_var == "nearest point") {
     
-    toXY <- spat[spat[[spatID]] %in% unique(choice), spatID]
-    # transform fromXY CRS to match
+    # Filter nearest point
+    toXY <- spat[spat[[spatID]] %in% unique(choice[zone_ind]), spatID]
     
+    # transform fromXY CRS to match
     if (is.na(crs)) {
       # for testing purposes only
       sf::st_crs(fromXY) <- NA
@@ -202,7 +203,7 @@ create_dist_matrix <-
       fromXY <- sf::st_transform(fromXY, crs = sf::st_crs(toXY))
     }
     
-    z_nms <- sort(unique(choice))
+    z_nms <- sort(unique(choice[zone_ind]))
     
   } else {
     
