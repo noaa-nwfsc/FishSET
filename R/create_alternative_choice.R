@@ -71,7 +71,7 @@
 #'   `list_tables("project", type = "centroid")` to view existing centroid tables.
 #'   See [create_centroid()] to create centroid tables or [centroid_to_fsdb()] to 
 #'   create a centroid table from columns found in `dat`.
-#' @param spat Required when `alt_var = 'nearest point'`. `spat` is a spatial 
+#' @param spatname Required when `alt_var = 'nearest point'`. `spat` is a spatial 
 #'   data file  containing information on fishery management or regulatory zones 
 #'   boundaries. `sf` objects are recommended, but `sp` objects can be used as 
 #'   well. See [dat_to_sf()] to convert a spatial table read from a csv file to 
@@ -120,7 +120,7 @@
 #'         fish_cent: \tab Fishing centroid for each zone. Generated from [find_fishing_centroid()]\cr
 #'         zone_cent_name: \tab Name of the zonal centroid table\cr
 #'         fish_cent_name: \tab Name of the fishing centroid table\cr
-#'         spat: \tab Spatial data file\cr
+#'         spat: \tab Spatial data object\cr
 #'         spatID: \tab Variable in spat that identifies individuals zones
 #'         }
 
@@ -135,7 +135,7 @@ create_alternative_choice <-
            zoneID, 
            zone.cent.name = NULL,
            fish.cent.name = NULL,
-           spat = NULL,
+           spatname = NULL,
            spatID = NULL,
            outsample = FALSE) {
   
@@ -150,9 +150,9 @@ create_alternative_choice <-
     dat <- parse_data_name(dat, "main", project)  
   }
   
-  spat_out <- data_pull(spat, project)
+  spat_out <- data_pull(spatname, project)
   spatdat <- spat_out$dataset
-  spat <- parse_data_name(spat, "spat", project)
+  spat <- parse_data_name(spatname, "spat", project)
   
   column_check(dataset, cols = c(zoneID, occasion_var))
   
@@ -408,7 +408,7 @@ create_alternative_choice <-
     fish_cent = fish_cent,
     zone_cent_name = zone.cent.name,
     fish_cent_name = fish.cent.name,
-    spat = spat_out,
+    spat = spatdat,
     spatID = spatID
     )
   
@@ -457,7 +457,7 @@ create_alternative_choice <-
   create_alternative_choice_function$args <- 
     list(dat, project, occasion, occasion_var, alt_var, 
          dist.unit, min.haul, zoneID, zone.cent.name, 
-         fish.cent.name, spat, spatID)
+         fish.cent.name, spatname, spatID)
   
   create_alternative_choice_function$kwargs <- list()
   create_alternative_choice_function$output <- list()
