@@ -5375,7 +5375,7 @@ server = function(input, output, session) {
     q_test(dat=values$dataset, project=project$name, occasion=occ_type,
            occasion_var=input$altc_occ_var, alt_var=alt_type, 
            dist.unit=input$altc_dist, min.haul=input$altc_min_haul, 
-           spat=spatdat$dataset, zoneID=input$altc_zoneID, spatID = input$altc_spatID,
+           spatname=spatdat$dataset, zoneID=input$altc_zoneID, spatID = input$altc_spatID,
            zone.cent.name=input$altc_zone_cent, fish.cent.name=input$altc_fish_cent)
     
   }, ignoreInit = FALSE) 
@@ -6272,7 +6272,6 @@ server = function(input, output, session) {
     q_test(project = project$name, 
            catchID = input$mod_catch,
            likelihood = input$model, 
-           # initparams = paste(int_name(), collapse = ","),
            initparams = iparams$data$Initial_value,
            optimOpt = c(input$mod_iter, input$mod_relTolX,
                         input$mod_report_freq, input$mod_detail_report),
@@ -6281,7 +6280,7 @@ server = function(input, output, session) {
            vars1 = input$mod_ind_vars, vars2 = input$mod_grid_vars,
            priceCol = input$mod_price, expectcatchmodels = mod_rv$exp_list,
            startloc = input$mod_startloc, polyn = input$mod_polyn,
-           spat = input$mod_spat, spatID = input$mod_spatID, crs = mod_crs)
+           crs = mod_crs)
     
     # reset exp select
     mod_rv$exp_list <- NULL
