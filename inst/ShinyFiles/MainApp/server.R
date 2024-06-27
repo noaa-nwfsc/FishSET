@@ -5217,6 +5217,10 @@ server = function(input, output, session) {
                  message = 'A centroid table must be saved to the FishSET database to be used as trip/haul occurances',
                  type = 'info', size = 'large', position = 'right'),
                
+               conditionalPanel("input.altc_alt_var == 'near'",
+                                selectInput('mod_spatID', 'Select spatial ID column',
+                                            choices = colnames(spatdat$dataset))),
+               
                selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
                               selected = 'miles'),
                
@@ -5228,10 +5232,6 @@ server = function(input, output, session) {
       conditionalPanel("input.altc_occasion=='fish'||input.altc_alt_var=='fish'",
                        
                        uiOutput('altc_fish_cent_ui')),
-      
-      conditionalPanel("input.altc_alt_var=='near'", 
-                       
-                       uiOutput('altc_spat_ui')),
       
       uiOutput('altc_occ_var_ui')
     )
@@ -5288,23 +5288,13 @@ server = function(input, output, session) {
                 choices = altc$fish_cent)
   })
   
+  
   # update zone/fish centroid tab list when alt choice tab is selected
   observeEvent(input$tabs == 'altc', { 
     
     altc$zone_cent <- suppressWarnings(grep('ZoneCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
     altc$fish_cent <- suppressWarnings(grep('FishCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
   }, ignoreNULL = TRUE, ignoreInit = TRUE)
-  
-  output$altc_spat_ui <- renderUI({
-    
-    if (names(spatdat$dataset)[1]=='var1') {
-      
-      return(h5('Spatial data file not loaded. Please load on Upload Data tab.',class = "text-danger"))
-    }
-    
-    selectInput('altc_spatID', "Select zone ID column from spatial dataset",
-                choices = colnames(spatdat$dataset))
-  })
   
   output$zoneIDText <- renderText({
     
@@ -5375,7 +5365,7 @@ server = function(input, output, session) {
     q_test(dat=values$dataset, project=project$name, occasion=occ_type,
            occasion_var=input$altc_occ_var, alt_var=alt_type, 
            dist.unit=input$altc_dist, min.haul=input$altc_min_haul, 
-           spatname=spatdat$dataset, zoneID=input$altc_zoneID, spatID = input$altc_spatID,
+           spatname=input$spat_db_table, zoneID=input$altc_zoneID, spatID = input$mod_spatID,
            zone.cent.name=input$altc_zone_cent, fish.cent.name=input$altc_fish_cent)
     
   }, ignoreInit = FALSE) 
@@ -6127,29 +6117,6 @@ server = function(input, output, session) {
       spat <- table_view(input$mod_spat, project$name)
       colnames(spat)
     }
-  })
-  
-  output$mod_spat_ui <- renderUI({
-    
-    if (mod_rv$alt_choice == 'nearest point') {
-      
-      tagList(
-        h5(strong('Alternative Choice: Nearest Point')),
-        
-        selectizeInput('mod_spat', 'Select spatial table', 
-                       choices = list_tables(project$name, 'spat'), 
-                       multiple = TRUE, options = list(maxItems = 1)),
-        
-        uiOutput('mod_spatID_ui')
-        
-      )
-    }
-  })
-  
-  output$mod_spatID_ui <- renderUI({
-    
-    selectInput('mod_spatID', 'Select spatial ID column',
-                choices = spatID_choices())
   })
   
   # Add model design file 
