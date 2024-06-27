@@ -5185,45 +5185,57 @@ server = function(input, output, session) {
       
       h4(tags$b('Define how alternative fishing choices are calculated between occurrence and alternative location')),
       
-      fluidRow(
-        column(5,
-               add_prompter(
-                 
-                 selectizeInput('altc_occasion', 'occurrence:', 
-                                choices=c('Centroid of zonal assignment' = 'zone',
-                                          'Fishing centroid' = 'fish', 'Port' = 'port', 
-                                          'Lon-Lat Coordinates' = 'lon-lat')),
-                 
-                 message = 'A centroid table must be saved to the FishSET database to be used as trip/haul occurances',
-                 type = 'info', size = 'large', position = 'right'),
-               
-               conditionalPanel("input.altc_occasion=='zone'||input.altc_alt_var=='zone'",
-                                uiOutput('altc_zone_cent_ui')),
-               
+      layout_column_wrap(
+        width = 1/2,
+        bslib::card(card_header("Starting location"), 
+            card_body(
+              fillable = FALSE, 
+              
+              layout_column_wrap(
+                width = 1/2,
+                fillable = FALSE,
+                padding = 0,
+                selectizeInput('altc_occasion', '', 
+                                                choices=c('Centroid of zonal assignment' = 'zone',
+                                                          'Fishing centroid' = 'fish', 
+                                                          'Port' = 'port', 
+                                                          'Lon-Lat Coordinates' = 'lon-lat')),
+                                 
+                conditionalPanel("input.altc_occasion == 'zone'||input.altc_occasion == 'fish'",
+                    h6(tags$em('A centroid table must be saved to the FishSET database to be used as trip/haul occurances'))),
+                
+
                selectizeInput('altc_zoneID', 'Column containing zone identifier', 
                               choices = colnames(values$dataset), options = list(maxItems = 1), 
                               multiple = TRUE)
-        ),
+            )),
         
-        column(5, 
-               add_prompter(
-                 
-                 selectizeInput('altc_alt_var', 'alternative location:', 
+        ),
+        bslib::card(card_header("Alternative locations"), 
+               card_body(
+                 fillable = TRUE, 
+                 layout_column_wrap(
+                   width = 1/2,
+                   fillable = FALSE,
+                 selectizeInput('altc_alt_var', '', 
                                 
                                 choices=c('Centroid of zonal assignment' = 'zone',
                                           'Fishing centroid' = 'fish', 
                                           'Nearest Point' = 'near')),
                  
-                 message = 'A centroid table must be saved to the FishSET database to be used as trip/haul occurances',
-                 type = 'info', size = 'large', position = 'right'),
+                 conditionalPanel("input.altc_alt_var == 'zone'||input.altc_alt_var == 'fish'",
+                                  h6(tags$em('A centroid table must be saved to the FishSET database to be used as trip/haul occurances')))
+                 ),
+               
+               conditionalPanel("input.altc_occasion=='zone'||input.altc_alt_var=='zone'",
+                                uiOutput('altc_zone_cent_ui')),
                
                selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
                               selected = 'miles'),
                
                numericInput('altc_min_haul', 'Include zones with more observations than', 
-                            min = 1, max = 1000, value = 1)
-        )
-      ),     
+                            min = 1, max = 1000, value = 1),
+    
       
       conditionalPanel("input.altc_occasion=='fish'||input.altc_alt_var=='fish'",
                        
@@ -5234,6 +5246,10 @@ server = function(input, output, session) {
                        uiOutput('altc_spat_ui')),
       
       uiOutput('altc_occ_var_ui')
+               )
+        )
+      
+    )
     )
   })
   
