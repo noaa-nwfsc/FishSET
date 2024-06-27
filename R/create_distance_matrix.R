@@ -190,8 +190,9 @@ create_dist_matrix <-
     
   if (alt_var == "nearest point") {
     
-    # Filter nearest point
+    # Filter and reorder nearest point
     toXY <- spat[spat[[spatID]] %in% unique(choice[zone_ind]), spatID]
+    toXY <- toXY[order(toXY[[spatID]]),]
     
     # transform fromXY CRS to match
     if (is.na(crs)) {
