@@ -157,6 +157,6 @@ model_design_outsample <- function(project, mod.name, outsample.mod.name = NULL,
   make_model_design(project = project, catchID = mdf$catchID, likelihood = mdf$likelihood, initparams = mdf$initparams,
                     optimOpt = mdf$optimOpt, methodname = mdf$methodname, mod.name = outsample.mod.name,
                     vars1 = mdf$vars1, vars2 = mdf$vars2, priceCol = mdf$priceCol, expectcatchmodels = mdf$expectcatchmodels,
-                    startloc = mdf$startloc, polyn = mdf$polyn, spat = mdf$spat, spatID = mdf$spatID, crs = mdf$crs, 
+                    startloc = mdf$startloc, polyn = mdf$polyn, crs = mdf$crs, 
                     outsample = TRUE, CV_dat = CV_dat)
 }
