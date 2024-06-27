@@ -30,7 +30,8 @@ make_model_design(
 
 \item{catchID}{String, variable from \code{dat} that contains catch data.}
 
-\item{likelihood}{String, name of likelihood function. Details on likelihood
+\item{likelihood}{String, name of likelihood function. A description of explanatory variables for each
+likelihood is provided below in the details sections. Information on likelihood-
 specific initial parameter specification can be found in
 \code{\link[=discretefish_subroutine]{discretefish_subroutine()}} documentation.
 \tabular{rlll}{
