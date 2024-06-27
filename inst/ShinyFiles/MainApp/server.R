@@ -5185,13 +5185,13 @@ server = function(input, output, session) {
       
       h4(tags$b('Define how alternative fishing choices are calculated between occurrence and alternative location')),
       
-      layout_column_wrap(
+      bslib::layout_column_wrap(
         width = 1/2,
         bslib::card(card_header("Starting location"), 
-            card_body(
+           bslib::card_body(
               fillable = FALSE, 
               
-              layout_column_wrap(
+              bslib::layout_column_wrap(
                 width = 1/2,
                 fillable = FALSE,
                 padding = 0,
@@ -5212,9 +5212,9 @@ server = function(input, output, session) {
         
         ),
         bslib::card(card_header("Alternative locations"), 
-               card_body(
+              bslib::card_body(
                  fillable = TRUE, 
-                 layout_column_wrap(
+                 bslib::layout_column_wrap(
                    width = 1/2,
                    fillable = FALSE,
                  selectizeInput('altc_alt_var', '', 
