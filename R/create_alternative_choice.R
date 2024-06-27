@@ -409,7 +409,8 @@ create_alternative_choice <-
     zone_cent_name = zone.cent.name,
     fish_cent_name = fish.cent.name,
     spat = spatdat,
-    spatID = spatID
+    spatID = spatID,
+    spatname = spat
     )
   
   # write Alt to datafile ----
