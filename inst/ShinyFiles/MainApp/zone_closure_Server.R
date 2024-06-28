@@ -34,6 +34,7 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
       
       
       observeEvent(input$select_zone_cat, {
+        
 
         req(project)
 
@@ -53,6 +54,8 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
           mod_zones$data <- NULL
         }
         return(mod_zones$data)
+          
+       
 
       })
 
@@ -66,6 +69,8 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
             mutate(zone = as.character(spatdat[[input$select_zone_cat]])) 
         
       })
+     
+      
       
       
 output$zmap <- leaflet::renderLeaflet({
@@ -78,7 +83,7 @@ output$zmap <- leaflet::renderLeaflet({
         req(input$select_zone_cat)
         req(zone_df())
 
-        
+showNotification("Can take up to a few seconds to run.", duration = 10, type = "warning")
       # Generate map
         if(any(!is_empty(mod_zones$data))) {
           
@@ -129,12 +134,14 @@ output$zmap <- leaflet::renderLeaflet({
         }
         
         
+        
       })
       
    # })
       
       observeEvent(input$zmap_shape_click, {
         
+
         # create object for clicked polygon
         click <- input$zmap_shape_click
         
@@ -181,6 +188,8 @@ output$zmap <- leaflet::renderLeaflet({
                                          layerId = clicked_polys[[z_id]])
           
         }
+
+        
       })
       
       # add closure ----
