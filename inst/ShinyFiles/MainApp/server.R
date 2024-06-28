@@ -1601,9 +1601,9 @@ server = function(input, output, session) {
   })
   
   spatdat <- reactiveValues(
-    dataset = data.frame('var1'=0, 'var2'=0)
+    dataset = data.frame('var1'=0, 'var2'=0),
+    tablename = NULL
   )
-  
   
   observeEvent(input$loadDat, {
     
@@ -1623,6 +1623,7 @@ server = function(input, output, session) {
       if (isTruthy(input$spat_db_table)) {
         
         spatdat$dataset <- table_view(input$spat_db_table, project$name)
+        spatdat$tablename <- input$spat_db_table
         track_load$spat$DB <- input$spat_db_table
         load_r$spat <- load_r$spat + 1
         
@@ -1715,6 +1716,7 @@ server = function(input, output, session) {
                        project = project$name)
         spatdat$dataset <- table_view(table = paste0(project$name,input$spatName,"SpatTable"), 
                                       project = project$name)
+        spatdat$tablename <- paste0(project$name,input$spatName,"SpatTable")
         
         if (is.null(pass)) pass <- FALSE
         
@@ -1739,7 +1741,6 @@ server = function(input, output, session) {
     } 
     
   }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-  
   
   ## Grid ----     
   output$grid_upload <- renderUI({     
@@ -5361,11 +5362,11 @@ server = function(input, output, session) {
                        'fish' = 'fishing centroid', 'near' = 'nearest point')
     
     q_test <- quietly_test(create_alternative_choice, show_msg = TRUE)
-    
+
     q_test(dat=values$dataset, project=project$name, occasion=occ_type,
            occasion_var=input$altc_occ_var, alt_var=alt_type, 
            dist.unit=input$altc_dist, min.haul=input$altc_min_haul, 
-           spatname=input$spat_db_table, zoneID=input$altc_zoneID, spatID = input$mod_spatID,
+           spatname=spatdat$tablename, zoneID=input$altc_zoneID, spatID=input$mod_spatID,
            zone.cent.name=input$altc_zone_cent, fish.cent.name=input$altc_fish_cent)
     
   }, ignoreInit = FALSE) 
@@ -6111,14 +6112,6 @@ server = function(input, output, session) {
     }))
   })
   
-  spatID_choices <- reactive({
-    if (!is_value_empty(input$mod_spat)) {
-      
-      spat <- table_view(input$mod_spat, project$name)
-      colnames(spat)
-    }
-  })
-  
   # Add model design file 
   observeEvent(input$mod_add, {
     
@@ -6187,7 +6180,7 @@ server = function(input, output, session) {
                    'startloc'= str_rpl(input$mod_startloc),# 'startingloc',
                    'polyn'= input$mod_polyn,
                    'exp' = str_rpl(exp_list),
-                   'spat' = str_rpl(input$mod_spat),
+                   'spat' = str_rpl(spatdat$tablename),
                    'spatID' = str_rpl(input$mod_spatID),
                    'crs' = str_rpl(mod_crs)),
         rv$data)
