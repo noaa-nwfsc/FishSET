@@ -1601,9 +1601,9 @@ server = function(input, output, session) {
   })
   
   spatdat <- reactiveValues(
-    dataset = data.frame('var1'=0, 'var2'=0)
+    dataset = data.frame('var1'=0, 'var2'=0),
+    tablename = NULL
   )
-  
   
   observeEvent(input$loadDat, {
     
@@ -1623,6 +1623,7 @@ server = function(input, output, session) {
       if (isTruthy(input$spat_db_table)) {
         
         spatdat$dataset <- table_view(input$spat_db_table, project$name)
+        spatdat$tablename <- input$spat_db_table
         track_load$spat$DB <- input$spat_db_table
         load_r$spat <- load_r$spat + 1
         
@@ -1715,6 +1716,7 @@ server = function(input, output, session) {
                        project = project$name)
         spatdat$dataset <- table_view(table = paste0(project$name,input$spatName,"SpatTable"), 
                                       project = project$name)
+        spatdat$tablename <- paste0(project$name,input$spatName,"SpatTable")
         
         if (is.null(pass)) pass <- FALSE
         
@@ -1739,7 +1741,6 @@ server = function(input, output, session) {
     } 
     
   }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-  
   
   ## Grid ----     
   output$grid_upload <- renderUI({     
@@ -5188,68 +5189,68 @@ server = function(input, output, session) {
       bslib::layout_column_wrap(
         width = 1/2,
         bslib::card(card_header("Starting location"), 
-           bslib::card_body(
-              fillable = FALSE, 
-              
-              bslib::layout_column_wrap(
-                width = 1/2,
-                fillable = FALSE,
-                padding = 0,
-                selectizeInput('altc_occasion', '', 
-                                                choices=c('Centroid of zonal assignment' = 'zone',
-                                                          'Fishing centroid' = 'fish', 
-                                                          'Port' = 'port', 
-                                                          'Lon-Lat Coordinates' = 'lon-lat')),
-                                 
-                conditionalPanel("input.altc_occasion == 'zone'||input.altc_occasion == 'fish'",
-                    h6(tags$em('A centroid table must be saved to the FishSET database to be used as trip/haul occurances'))),
-                
-
-               selectizeInput('altc_zoneID', 'Column containing zone identifier', 
-                              choices = colnames(values$dataset), options = list(maxItems = 1), 
-                              multiple = TRUE)
-            )),
-        
+                    bslib::card_body(
+                      fillable = FALSE, 
+                      
+                      bslib::layout_column_wrap(
+                        width = 1/2,
+                        fillable = FALSE,
+                        padding = 0,
+                        selectizeInput('altc_occasion', '', 
+                                       choices=c('Centroid of zonal assignment' = 'zone',
+                                                 'Fishing centroid' = 'fish', 
+                                                 'Port' = 'port', 
+                                                 'Lon-Lat Coordinates' = 'lon-lat')),
+                        
+                        conditionalPanel("input.altc_occasion == 'zone'||input.altc_occasion == 'fish'",
+                                         h6(tags$em('A centroid table must be saved to the FishSET database to be used as trip/haul occurances'))),
+                        
+                        selectizeInput('altc_zoneID', 'Column containing zone identifier', 
+                                       choices = colnames(values$dataset), options = list(maxItems = 1), 
+                                       multiple = TRUE)
+                      ),
+                      
+                      uiOutput('altc_occ_var_ui')
+                    ),
         ),
+        
         bslib::card(card_header("Alternative locations"), 
-              bslib::card_body(
-                 fillable = TRUE, 
-                 bslib::layout_column_wrap(
-                   width = 1/2,
-                   fillable = FALSE,
-                 selectizeInput('altc_alt_var', '', 
-                                
-                                choices=c('Centroid of zonal assignment' = 'zone',
-                                          'Fishing centroid' = 'fish', 
-                                          'Nearest Point' = 'near')),
-                 
-                 conditionalPanel("input.altc_alt_var == 'zone'||input.altc_alt_var == 'fish'",
-                                  h6(tags$em('A centroid table must be saved to the FishSET database to be used as trip/haul occurances')))
-                 ),
-               
-               conditionalPanel("input.altc_occasion=='zone'||input.altc_alt_var=='zone'",
-                                uiOutput('altc_zone_cent_ui')),
-               
-               selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
-                              selected = 'miles'),
-               
-               numericInput('altc_min_haul', 'Include zones with more observations than', 
-                            min = 1, max = 1000, value = 1),
-    
-      
-      conditionalPanel("input.altc_occasion=='fish'||input.altc_alt_var=='fish'",
-                       
-                       uiOutput('altc_fish_cent_ui')),
-      
-      conditionalPanel("input.altc_alt_var=='near'", 
-                       
-                       uiOutput('altc_spat_ui')),
-      
-      uiOutput('altc_occ_var_ui')
-               )
+                    bslib::card_body(
+                      fillable = TRUE, 
+                      bslib::layout_column_wrap(
+                        width = 1/2,
+                        fillable = FALSE,
+                        selectizeInput('altc_alt_var', '', 
+                                       
+                                       choices=c('Centroid of zonal assignment' = 'zone',
+                                                 'Fishing centroid' = 'fish', 
+                                                 'Nearest Point' = 'near')),
+                        
+                        conditionalPanel("input.altc_alt_var == 'zone'||input.altc_alt_var == 'fish'",
+                                         h6(tags$em('A centroid table must be saved to the FishSET database to be used as trip/haul occurances')))
+                      ),
+                      
+                      conditionalPanel("input.altc_occasion=='zone'||input.altc_alt_var=='zone'",
+                                       uiOutput('altc_zone_cent_ui')),
+                      
+                      conditionalPanel("input.altc_alt_var == 'near'",
+                                       selectInput('mod_spatID', 'Select spatial ID column',
+                                                   choices = colnames(spatdat$dataset))),
+                      
+                      selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
+                                     selected = 'miles'),
+                      
+                      numericInput('altc_min_haul', 'Include zones with more observations than', 
+                                   min = 1, max = 1000, value = 1),
+                      
+                      
+                      conditionalPanel("input.altc_occasion=='fish'||input.altc_alt_var=='fish'",
+                                       
+                                       uiOutput('altc_fish_cent_ui'))
+                    )
         )
-      
-    )
+        
+      )
     )
   })
   
@@ -5304,23 +5305,13 @@ server = function(input, output, session) {
                 choices = altc$fish_cent)
   })
   
+  
   # update zone/fish centroid tab list when alt choice tab is selected
   observeEvent(input$tabs == 'altc', { 
     
     altc$zone_cent <- suppressWarnings(grep('ZoneCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
     altc$fish_cent <- suppressWarnings(grep('FishCentroid$', list_tables(project$name, 'centroid'), value = TRUE))
   }, ignoreNULL = TRUE, ignoreInit = TRUE)
-  
-  output$altc_spat_ui <- renderUI({
-    
-    if (names(spatdat$dataset)[1]=='var1') {
-      
-      return(h5('Spatial data file not loaded. Please load on Upload Data tab.',class = "text-danger"))
-    }
-    
-    selectInput('altc_spatID', "Select zone ID column from spatial dataset",
-                choices = colnames(spatdat$dataset))
-  })
   
   output$zoneIDText <- renderText({
     
@@ -5387,11 +5378,11 @@ server = function(input, output, session) {
                        'fish' = 'fishing centroid', 'near' = 'nearest point')
     
     q_test <- quietly_test(create_alternative_choice, show_msg = TRUE)
-    
+
     q_test(dat=values$dataset, project=project$name, occasion=occ_type,
            occasion_var=input$altc_occ_var, alt_var=alt_type, 
            dist.unit=input$altc_dist, min.haul=input$altc_min_haul, 
-           spat=spatdat$dataset, zoneID=input$altc_zoneID, spatID = input$altc_spatID,
+           spatname=spatdat$tablename, zoneID=input$altc_zoneID, spatID=input$mod_spatID,
            zone.cent.name=input$altc_zone_cent, fish.cent.name=input$altc_fish_cent)
     
   }, ignoreInit = FALSE) 
@@ -6137,37 +6128,6 @@ server = function(input, output, session) {
     }))
   })
   
-  spatID_choices <- reactive({
-    if (!is_value_empty(input$mod_spat)) {
-      
-      spat <- table_view(input$mod_spat, project$name)
-      colnames(spat)
-    }
-  })
-  
-  output$mod_spat_ui <- renderUI({
-    
-    if (mod_rv$alt_choice == 'nearest point') {
-      
-      tagList(
-        h5(strong('Alternative Choice: Nearest Point')),
-        
-        selectizeInput('mod_spat', 'Select spatial table', 
-                       choices = list_tables(project$name, 'spat'), 
-                       multiple = TRUE, options = list(maxItems = 1)),
-        
-        uiOutput('mod_spatID_ui')
-        
-      )
-    }
-  })
-  
-  output$mod_spatID_ui <- renderUI({
-    
-    selectInput('mod_spatID', 'Select spatial ID column',
-                choices = spatID_choices())
-  })
-  
   # Add model design file 
   observeEvent(input$mod_add, {
     
@@ -6236,7 +6196,7 @@ server = function(input, output, session) {
                    'startloc'= str_rpl(input$mod_startloc),# 'startingloc',
                    'polyn'= input$mod_polyn,
                    'exp' = str_rpl(exp_list),
-                   'spat' = str_rpl(input$mod_spat),
+                   'spat' = str_rpl(spatdat$tablename),
                    'spatID' = str_rpl(input$mod_spatID),
                    'crs' = str_rpl(mod_crs)),
         rv$data)
@@ -6288,7 +6248,6 @@ server = function(input, output, session) {
     q_test(project = project$name, 
            catchID = input$mod_catch,
            likelihood = input$model, 
-           # initparams = paste(int_name(), collapse = ","),
            initparams = iparams$data$Initial_value,
            optimOpt = c(input$mod_iter, input$mod_relTolX,
                         input$mod_report_freq, input$mod_detail_report),
@@ -6297,7 +6256,7 @@ server = function(input, output, session) {
            vars1 = input$mod_ind_vars, vars2 = input$mod_grid_vars,
            priceCol = input$mod_price, expectcatchmodels = mod_rv$exp_list,
            startloc = input$mod_startloc, polyn = input$mod_polyn,
-           spat = input$mod_spat, spatID = input$mod_spatID, crs = mod_crs)
+           crs = mod_crs)
     
     # reset exp select
     mod_rv$exp_list <- NULL

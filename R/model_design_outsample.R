@@ -97,7 +97,7 @@ model_design_outsample <- function(project, mod.name, outsample.mod.name = NULL,
   create_alternative_choice(outsample_dat, project, occasion = alt_insample$occasion, occasion_var = alt_insample$occasion_var,
                             alt_var = alt_insample$alt_var, dist.unit = alt_insample$altChoiceUnits, min.haul = 0, zoneID = alt_insample$zoneID,
                             zone.cent.name = alt_insample$zone_cent_name, fish.cent.name = alt_insample$fish_cent_name,
-                            spat = alt_insample$spat, spatID = alt_insample$spatID, outsample = TRUE)
+                            spatname = alt_insample$spatname, spatID = alt_insample$spatID, outsample = TRUE)
   
   
   # Create expected catch matrix for out-of-sample data ---------------------------------------------------------------------------------------------
@@ -157,6 +157,6 @@ model_design_outsample <- function(project, mod.name, outsample.mod.name = NULL,
   make_model_design(project = project, catchID = mdf$catchID, likelihood = mdf$likelihood, initparams = mdf$initparams,
                     optimOpt = mdf$optimOpt, methodname = mdf$methodname, mod.name = outsample.mod.name,
                     vars1 = mdf$vars1, vars2 = mdf$vars2, priceCol = mdf$priceCol, expectcatchmodels = mdf$expectcatchmodels,
-                    startloc = mdf$startloc, polyn = mdf$polyn, spat = mdf$spat, spatID = mdf$spatID, crs = mdf$crs, 
+                    startloc = mdf$startloc, polyn = mdf$polyn, crs = mdf$crs, 
                     outsample = TRUE, CV_dat = CV_dat)
 }
