@@ -60,14 +60,6 @@
 #'   location vector.
 #' @param polyn Numeric, correction polynomial degree. Required for 
 #'   [logit_correction()] likelihood.
-#' @param spat A spatial data file containing information on fishery management 
-#'   or regulatory zones boundaries. Only required if `alt_var = "nearest point"`
-#'   was used in the alternative choice matrix (see [create_alternative_choice()]).
-#'   Defaults to `NULL`. This should be the same spatial file used to assign
-#'   observations to zones. 
-#' @param spatID Variable in `spat` that identifies the individual areas or zones. 
-#'   Only required if `alt_var = "nearest point"` was used in the alternative 
-#'   choice matrix (see [create_alternative_choice()]). Defaults to `NULL`.
 #' @param crs coordinate reference system to be assigned when creating the 
 #'   distance matrix. Passed on to [create_dist_matrix()].
 #' @param outsample Logical, indicates whether the model design is for main data (\code{FALSE})
@@ -258,8 +250,6 @@ make_model_design <-
            expectcatchmodels = list('all'),
            startloc = NULL,
            polyn = NULL,
-           spat = NULL,
-           spatID = NULL,
            crs = NULL,
            outsample = FALSE,
            CV_dat = NULL) {
@@ -283,10 +273,6 @@ make_model_design <-
   } else if (outsample & !is.null(CV_dat)) {
     dataset <- CV_dat # assign cross validation dataset
   }
-  
-  spat_out <- data_pull(spat, project)
-  spatdat <- spat_out$dataset
-  spat <- parse_data_name(spat, "spat", project)
   
   port <- NULL #initialize to NULL if no port included
   tryCatch({
@@ -445,6 +431,14 @@ make_model_design <-
   alts <- length(unique(choice))
   zoneRow <- Alt$zoneRow
   zoneID <- Alt$zoneID
+  
+  if(Alt$alt_var == "nearest point"){
+    spatdat <- Alt$spat
+    spatID <- Alt$spatID
+  } else {
+    spatdat <- NULL
+    spatID <- NULL
+  }
   
   # startingloc ----
   if (is_value_empty(startloc)) {
@@ -773,7 +767,7 @@ make_model_design <-
     make_model_design_function$args <- list(
       project, catchID, likelihood,initparams, optimOpt, methodname, 
       as.character(mod.name), vars1, vars2, priceCol, expectcatchmodels, 
-      startloc, polyn, spat, spatID, crs
+      startloc, polyn, crs
     )
     make_model_design_function$kwargs <- list()
     
