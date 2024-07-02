@@ -4,7 +4,8 @@
 #'   FishSET database contains the string 'MainDataTable'.
 #' @param project Project name. 
 #' @param uniqueID Variable in \code{dat} containing unique occurrence identifier.
-#' @param latlon Vector of names for variables with lat, lon coordinates to be check.
+#' @param latlon Vector of names for variables with lat, lon coordinates to be check if using 'lat-lon' as 
+#'   starting location.
 #' @param save.file Logical, if TRUE and no data issues are identified, the dataset 
 #'   is saved to the FishSET database. Defaults to \code{TRUE}.
 #' @return Returns statements of data quality issues in the data. Saves table to 
@@ -26,7 +27,7 @@
 #' check_model_data(MainDataTable, uniqueID = "uniqueID_Code", save.file = TRUE)
 #' }
 #'
-check_model_data <- function(dat, project, uniqueID, latlon, save.file = TRUE) {
+check_model_data <- function(dat, project, uniqueID, latlon = NULL, save.file = TRUE) {
   
   end <- FALSE
 
@@ -80,28 +81,30 @@ check_model_data <- function(dat, project, uniqueID, latlon, save.file = TRUE) {
   
   # lat/lon degree format
   # TODO: omit variables with NAs otherwise this will break 
-  lat_lon <- which(names(dataset) %in% latlon)
-
-  tmp_latlon_df <- dataset[lat_lon] # create a temporary dataframe and replace na and nan values with numeric 0. 
-  tmp_latlon_df[is.na(tmp_latlon_df)] <- 0 # setting nas to 0 allows test to run on non-na and non-nan values.
-  tmp_latlon_df[apply(tmp_latlon_df,2,is.nan)] <- 0
-  
-  num_ll <- qaqc_helper(tmp_latlon_df, function(x) !is.numeric(x))
-  deg_ll <- qaqc_helper(tmp_latlon_df, function(x) any(nchar(trunc(abs(x))) > 3)) 
-  
-  if (any(c(deg_ll, num_ll))) {
+  if(!(is.null(latlon))){
+    lat_lon <- which(names(dataset) %in% latlon)  
     
-    deg_ind <- which(deg_ll)
-    num_ind <- which(num_ll)
-    degree_msg <- 
-      paste("The following latitude/longitude variables are not in decimal degrees:", 
-            paste(names(dat)[unique(c(num_ind, deg_ind))], collapse = ","))
+    tmp_latlon_df <- dataset[lat_lon] # create a temporary dataframe and replace na and nan values with numeric 0. 
+    tmp_latlon_df[is.na(tmp_latlon_df)] <- 0 # setting nas to 0 allows test to run on non-na and non-nan values.
+    tmp_latlon_df[apply(tmp_latlon_df,2,is.nan)] <- 0
     
-    cat(degree_msg, file = tmp, append = TRUE)
-    warning(degree_msg)
-    end <- TRUE
+    num_ll <- qaqc_helper(tmp_latlon_df, function(x) !is.numeric(x))
+    deg_ll <- qaqc_helper(tmp_latlon_df, function(x) any(nchar(trunc(abs(x))) > 3)) 
+    
+    if (any(c(deg_ll, num_ll))) {
+      
+      deg_ind <- which(deg_ll)
+      num_ind <- which(num_ll)
+      degree_msg <- 
+        paste("The following latitude/longitude variables are not in decimal degrees:", 
+              paste(names(dat)[unique(c(num_ind, deg_ind))], collapse = ","))
+      
+      cat(degree_msg, file = tmp, append = TRUE)
+      warning(degree_msg)
+      end <- TRUE
+    }
   }
-
+  
   if (end) warning("At least one test did not pass. Data set will not be saved.")
   
   if (end == FALSE) {
