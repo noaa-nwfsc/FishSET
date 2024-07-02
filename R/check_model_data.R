@@ -28,7 +28,7 @@
 #' }
 #'
 check_model_data <- function(dat, project, uniqueID, latlon = NULL, save.file = TRUE) {
-  
+
   end <- FALSE
 
   # Call in data sets
