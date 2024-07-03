@@ -2445,7 +2445,7 @@ server = function(input, output, session) {
     conditionalPanel(
       condition="input.checks=='Outliers'",
       selectInput('column_check', 'Choose variable',
-                  choices= c('', numeric_cols(values$dataset)), selected='', selectize=TRUE))
+                  choices= numeric_cols(values$dataset), selectize=TRUE))
   })
   output$outlier_subset_method <- renderUI({
     conditionalPanel(condition="input.checks=='Outliers'",
