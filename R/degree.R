@@ -95,6 +95,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE,
     
     if(isRunning()){
       showNotification("Latitude and longitude variables in decimal degrees. No further action required.")
+      writeLines("Latitude and longitude variables in decimal degrees. No further action required.", con = tmp) 
     } else {
       cat("Latitude and longitude variables in decimal degrees. No further action required.", file = tmp)    
     }
@@ -107,10 +108,10 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE,
   degree_function$functionID <- "degree"
   degree_function$args <- list(dat, project, lat, lon, latsign, lonsign, replace)
   degree_function$output <- list(dat)
-  degree_function$msg <- suppressWarnings(readLines(tmp))
-  log_call(project, degree_function)
+  # degree_function$msg <- suppressWarnings(readLines(tmp))
+  # log_call(project, degree_function)
   
-  unlink(tmp)
+  # unlink(tmp)
   
   if (replace == TRUE) {
     if (!is.null(lat)) {
