@@ -7175,7 +7175,7 @@ server = function(input, output, session) {
                 selectInput("final_uniqueID", "Select column containing unique occurrence identifier",
                             choices = names(values$dataset)),
                 
-                selectInput("final_latlon", "Select lat/lon variables to be used in models",
+                selectInput("final_latlon", HTML("Select lat/lon variables <b>ONLY IF</b> using coordinates as starting location (order does not matter)"),
                             choices = names(values$dataset), multiple = TRUE),
                 
                 shinycssloaders::withSpinner(
