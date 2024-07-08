@@ -57,8 +57,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE,
   dat <- parse_data_name(dat, "main", project)
   
   tmp <- tempfile()
-  on.exit(unlink(tmp), add = TRUE)
-  
+
   if (is.null(lat)) {
     lat_cols <- find_lat(dataset)
   } else {
@@ -91,13 +90,10 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE,
               "\nSelect a lat and lon variable below and then select a conversion",
               "option on the the left to convert to decimal degrees."), 
         file = tmp)
+    
   } else {
     
-    if(isRunning()){
-      showNotification("Latitude and longitude variables in decimal degrees. No further action required.")
-    } else {
-      cat("Latitude and longitude variables in decimal degrees. No further action required.", file = tmp)    
-    }
+    cat("Latitude and longitude variables in decimal degrees. No further action required.", file = tmp)
     
   }
   
@@ -132,9 +128,6 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE,
         #   temp,
         #   "\\s+"
         # ), "[", 3)) / 360
-        
-        
-        
         dataset[[lat]] <- dms_to_dd(dataset[[lat]])
         
       } else if (any(nchar(trunc(abs(dataset[[lat]]))) > 2, na.rm = TRUE)) {
@@ -168,7 +161,6 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE,
         #   temp,
         #   "\\s+"
         # ), "[", 3)) / 360
-        
         dataset[[lon]] <- dms_to_dd(dataset[[lon]])
         
       } else if (any(nchar(trunc(abs(as.numeric(dataset[[lon]])))) > 3, na.rm = TRUE)) {
