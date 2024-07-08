@@ -402,7 +402,7 @@ ui = function(request){
                                                                   selectInput('LatLon_Filter_Lon', 'Change sign for longitude direction', 
                                                                               choices=c('None', 'All values'='all', 'Positve to negative'='neg', 
                                                                                         'Negative to positive'='pos'), selected='None'),
-                                                                  actionButton('LatLon_Filter', 'Convert lat/long to decimal degrees', 
+                                                                  actionButton('LatLon_Filter', 'Convert data', 
                                                                                value=FALSE, class = "btn-secondary")
                                                  ),
                                                  
