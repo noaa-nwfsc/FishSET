@@ -3431,7 +3431,7 @@ server = function(input, output, session) {
   },
   
   server = TRUE, 
-  editable = list(target ='cell', disable = list(columns = c(1:2,5:7))), 
+  editable = list(target ='cell', disable = list(columns = c(1,4:5))), 
   filter = 'top', extensions = c("Buttons"),
   options = list(autoWidth = TRUE, scrolly = TRUE, responsive = TRUE, pageLength = 15,
                  searchCols = default_search_columns, buttons = c('csv'))
@@ -3612,16 +3612,13 @@ server = function(input, output, session) {
   )
   
   observeEvent(input$output_table_exploration_cell_edit, {
-    info = 
-      str(info)
-    i = info$row
-    j = info$col + 1
-    v = info$value
-    values$dataset[i, j] <<- DT:::coerceValue(v, values$dataset[i, j])
-    
-    #replaceData(proxy, x, resetPaging = FALSE, rownames = FALSE)
+    info <- input$output_table_exploration_cell_edit
+    row <- info$row
+    col <- names(values$dataset)[info$col+1]
+    value <- info$value
+
+    values$dataset[col][row,1] <- value
   })
-  
   
   # TODO: check that this is working properly (very messy)
   observeEvent(input$saveData,{
