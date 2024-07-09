@@ -3621,7 +3621,10 @@ server = function(input, output, session) {
   })
   
   # TODO: check that this is working properly (very messy)
-  observeEvent(input$saveData,{
+  observeEvent(input$saveDataFiltered,{
+    
+    cat(file=stderr(), "\n", "TESTING", "\n")
+    
     req(project$name)
     # when it updates, save the search strings so they're not lost
     # update global search and column search strings
