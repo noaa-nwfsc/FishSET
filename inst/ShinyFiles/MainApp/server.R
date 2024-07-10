@@ -3620,23 +3620,20 @@ server = function(input, output, session) {
     values$dataset[col][row,1] <- value
   })
   
-  # TODO: check that this is working properly (very messy)
   # Save filtered data table
   observeEvent(input$saveDataExplore,{
-    
     req(project$name)
     # when it updates, save the search strings so they're not lost
     # update global search and column search strings
     default_search_columns <- c(input$output_table_exploration_search_columns)
     default_sub <- which(default_search_columns!='')
-    temp <- values$dataset
-    table_type <- #switch(input$SelectDatasetExplore, # NEED TO FIX THIS
-      #"main" = 
-      "MainDataTable"#,
-    #"port" = "PortTable",
-    #"grid" = input$GridName,
-    #"auxiliary" = input$AuxName)
-    
+    temp <- explore_temp() # assign temp the selected data table 
+    table_type <- switch(input$SelectDatasetExplore,
+                         "main" = "MainDataTable",
+                         "port" = "PortTable",
+                         "grid" = "GridTable",
+                         "auxiliary" = "AuxTable")
+
     if(length(default_sub)==0){ # No filtering
       NULL
       
@@ -3652,7 +3649,7 @@ server = function(input, output, session) {
       for(i in 1:length(default_sub)){
         tmp_tablename <- paste0(project$name, table_type)
         tmp_colname <- colnames(explore_temp()[default_sub])[i]
-        
+
         # Filter with > and < for numeric variables
         if(grepl("\\..\\.", default_search_columns[default_sub[i]])==TRUE){
           tmp_lower <- trimws(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), head, 1))
@@ -3660,20 +3657,31 @@ server = function(input, output, session) {
           
           FilterTable <- rbind(FilterTable, c(tmp_tablename, tmp_colname, 
                                               paste(tmp_colname, '>', tmp_lower, '&', tmp_colname, '<', tmp_higher)))
-    
-          if(is.Date(pull(values$dataset, tmp_colname))){
+
+          if(is.Date(pull(temp, tmp_colname))){
             tmp_lower <- paste0('"',tmp_lower,'"')
             tmp_higher <- paste0('"',tmp_higher,'"')
           }
           
-          values$dataset <-  subset(explore_temp(), eval(parse(text=paste(tmp_colname, '>', tmp_lower, '&', tmp_colname, '<', tmp_higher))))
+          temp <- subset(explore_temp(), eval(parse(text=paste(tmp_colname, '>', tmp_lower, '&', tmp_colname, '<', tmp_higher))))
         
         # Filter with ==    
         } else {
           FilterTable <- rbind(FilterTable, c(tmp_tablename, tmp_colname, 
                                               paste0("grepl('", default_search_columns[default_sub[i]],"', ", tmp_colname,")")))
           
-          values$dataset <-  subset(explore_temp(), eval(parse(text=  paste0("grepl('", default_search_columns[default_sub[i]],"', ", tmp_colname,")"))))
+          temp <-  subset(explore_temp(), eval(parse(text=  paste0("grepl('", default_search_columns[default_sub[i]],"', ", tmp_colname,")"))))
+        }
+        
+        # Save temp to the dataset
+        if(table_type == "MainDataTable"){
+          values$dataset <- temp
+        } else if(table_type == "PortTable"){
+          portdat$dataset <- temp
+        } else if(table_type == "GridTable"){
+          grddat[[input$grid_select]] <- temp
+        } else if(table_type == "AuxTable"){
+          aux$dataset <- temp
         }
       }
       showNotification('Filter table saved to FishSET database', type='message', duration=10)
@@ -3696,8 +3704,6 @@ server = function(input, output, session) {
                                     \nFilter: Boxes at top.
                                     \nFilter functions saved to FishSET database as FilterTable.
                                     \nClick the "Save data to FishSET database" button to save changes.')
-  
-  #Subset by columns
   
   #2. Temporal PLOTS
   output$xy_selectUI <- renderUI({
