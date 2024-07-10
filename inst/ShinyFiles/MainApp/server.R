@@ -3621,9 +3621,7 @@ server = function(input, output, session) {
   })
   
   # TODO: check that this is working properly (very messy)
-  observeEvent(input$saveDataFiltered,{
-    
-    cat(file=stderr(), "\n", "TESTING", "\n")
+  observeEvent(input$saveDataExplore,{
     
     req(project$name)
     # when it updates, save the search strings so they're not lost
