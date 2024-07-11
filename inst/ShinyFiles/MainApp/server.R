@@ -3650,20 +3650,22 @@ server = function(input, output, session) {
         tmp_tablename <- paste0(project$name, table_type)
         tmp_colname <- colnames(explore_temp()[default_sub])[i]
 
+        cat(file=stderr(), "\n", default_search_columns[default_sub[i]], "\n")
+        
         # Filter with > and < for numeric variables
         if(grepl("\\..\\.", default_search_columns[default_sub[i]])==TRUE){
           tmp_lower <- trimws(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), head, 1))
           tmp_higher <- trimws(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), tail, 1))
           
           FilterTable <- rbind(FilterTable, c(tmp_tablename, tmp_colname, 
-                                              paste(tmp_colname, '>', tmp_lower, '&', tmp_colname, '<', tmp_higher)))
+                                              paste(tmp_colname, '>=', tmp_lower, '&', tmp_colname, '<=', tmp_higher)))
 
           if(is.Date(pull(temp, tmp_colname))){
             tmp_lower <- paste0('"',tmp_lower,'"')
             tmp_higher <- paste0('"',tmp_higher,'"')
           }
           
-          temp <- subset(explore_temp(), eval(parse(text=paste(tmp_colname, '>', tmp_lower, '&', tmp_colname, '<', tmp_higher))))
+          temp <- subset(explore_temp(), eval(parse(text=paste(tmp_colname, '>=', tmp_lower, '&', tmp_colname, '<=', tmp_higher))))
         
         # Filter with ==    
         } else {
