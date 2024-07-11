@@ -3650,8 +3650,6 @@ server = function(input, output, session) {
         tmp_tablename <- paste0(project$name, table_type)
         tmp_colname <- colnames(explore_temp()[default_sub])[i]
 
-        cat(file=stderr(), "\n", default_search_columns[default_sub[i]], "\n")
-        
         # Filter with > and < for numeric variables
         if(grepl("\\..\\.", default_search_columns[default_sub[i]])==TRUE){
           tmp_lower <- trimws(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), head, 1))
@@ -3669,10 +3667,22 @@ server = function(input, output, session) {
         
         # Filter with ==    
         } else {
-          FilterTable <- rbind(FilterTable, c(tmp_tablename, tmp_colname, 
-                                              paste0("grepl('", default_search_columns[default_sub[i]],"', ", tmp_colname,")")))
+          val <- default_search_columns[default_sub[i]]
           
-          temp <-  subset(explore_temp(), eval(parse(text=  paste0("grepl('", default_search_columns[default_sub[i]],"', ", tmp_colname,")"))))
+          # if logical is selected, then need to clean up the input passed to the filtering expression
+          if(is.logical(pull(temp, tmp_colname))){
+            if(grepl("\\[", default_search_columns[default_sub[i]])==TRUE){
+              val <- gsub("\\[", "", val)
+              val <- gsub("\\]", "", val)
+              val <- gsub('\\"', "", val)
+              val <- toupper(val)
+            }
+          }
+          
+          FilterTable <- rbind(FilterTable, c(tmp_tablename, tmp_colname, 
+                                              paste0("grepl('", val,"', ", tmp_colname,")")))
+          
+          temp <-  subset(explore_temp(), eval(parse(text=  paste0("grepl('", val,"', ", tmp_colname,")"))))
         }
         
         # Save temp to the dataset
