@@ -503,7 +503,6 @@ ui = function(request){
                                                                  actionButton('saveDataExplore','Save data to FishSET database',
                                                                               width = "100%",
                                                                               class = "btn-primary"),
-                                                                 
 
                                                                  conditionalPanel("input.plot_table=='Plots'",
                                                                                   tabPlotUI("explore")

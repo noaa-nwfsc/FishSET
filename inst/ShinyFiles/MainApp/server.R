@@ -3431,7 +3431,7 @@ server = function(input, output, session) {
   },
   
   server = TRUE, 
-  editable = list(target ='cell', disable = list(columns = c(1:2,5:7))), 
+  editable = list(target ='cell', disable = list(columns = c(1,4:5))), 
   filter = 'top', extensions = c("Buttons"),
   options = list(autoWidth = TRUE, scrolly = TRUE, responsive = TRUE, pageLength = 15,
                  searchCols = default_search_columns, buttons = c('csv'))
@@ -3612,53 +3612,88 @@ server = function(input, output, session) {
   )
   
   observeEvent(input$output_table_exploration_cell_edit, {
-    info = 
-      str(info)
-    i = info$row
-    j = info$col + 1
-    v = info$value
-    values$dataset[i, j] <<- DT:::coerceValue(v, values$dataset[i, j])
-    
-    #replaceData(proxy, x, resetPaging = FALSE, rownames = FALSE)
+    info <- input$output_table_exploration_cell_edit
+    row <- info$row
+    col <- names(values$dataset)[info$col+1]
+    value <- info$value
+
+    values$dataset[col][row,1] <- value
   })
   
-  
-  # TODO: check that this is working properly (very messy)
-  observeEvent(input$saveData,{
+  # Save filtered data table
+  observeEvent(input$saveDataExplore,{
     req(project$name)
     # when it updates, save the search strings so they're not lost
     # update global search and column search strings
     default_search_columns <- c(input$output_table_exploration_search_columns)
     default_sub <- which(default_search_columns!='')
-    temp <- values$dataset
-    table_type <- #switch(input$SelectDatasetExplore, 
-      #"main" = 
-      "MainDataTable"#,
-    #"port" = "PortTable",
-    #"grid" = input$GridName,
-    #"auxiliary" = input$AuxName)
-    
-    if(length(default_sub)==0){
+    temp <- explore_temp() # assign temp the selected data table 
+    table_type <- switch(input$SelectDatasetExplore,
+                         "main" = "MainDataTable",
+                         "port" = "PortTable",
+                         "grid" = "GridTable",
+                         "auxiliary" = "AuxTable")
+
+    if(length(default_sub)==0){ # No filtering
       NULL
+      
     } else {
       if(table_exists(paste0(project$name, "FilterTable"), project$name) == FALSE) {
         FilterTable <- data.frame(dataframe = NA, vector = NA, FilterFunction = NA)
+        
       } else {
         FilterTable <- table_view(paste0(project$name, "FilterTable"), project$name)
       }
+      
+      # Loop through columns for filtering
       for(i in 1:length(default_sub)){
-        if( grepl("\\..\\.", default_search_columns[default_sub[i]])==TRUE){
-          FilterTable <- rbind(FilterTable, c(paste0(project$name, table_type), (colnames(explore_temp()[default_sub])[i]), 
-                                              paste(colnames(explore_temp()[default_sub])[i], '>', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), head, 1)), '&', 
-                                                    colnames(explore_temp()[default_sub])[i], '<', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), tail, 1)))))
-          values$dataset <-  subset(explore_temp(), eval(parse(text=paste(colnames(explore_temp()[default_sub])[i], '>', 
-                                                                          as.numeric(sapply(strsplit(input$output_table_exploration_search_columns[default_sub[i]], "\\..\\."), head, 1)), '&', 
-                                                                          colnames(explore_temp()[default_sub])[i], '<', 
-                                                                          as.numeric(sapply(strsplit(input$output_table_exploration_search_columns[default_sub[i]], "\\..\\."), tail, 1))))))
+        tmp_tablename <- paste0(project$name, table_type)
+        tmp_colname <- colnames(explore_temp()[default_sub])[i]
+
+        # Filter with > and < for numeric variables
+        if(grepl("\\..\\.", default_search_columns[default_sub[i]])==TRUE){
+          tmp_lower <- trimws(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), head, 1))
+          tmp_higher <- trimws(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), tail, 1))
+          
+          FilterTable <- rbind(FilterTable, c(tmp_tablename, tmp_colname, 
+                                              paste(tmp_colname, '>=', tmp_lower, '&', tmp_colname, '<=', tmp_higher)))
+
+          if(is.Date(pull(temp, tmp_colname))){
+            tmp_lower <- paste0('"',tmp_lower,'"')
+            tmp_higher <- paste0('"',tmp_higher,'"')
+          }
+          
+          temp <- subset(explore_temp(), eval(parse(text=paste(tmp_colname, '>=', tmp_lower, '&', tmp_colname, '<=', tmp_higher))))
+        
+        # Filter with ==    
         } else {
-          FilterTable <- rbind(FilterTable, c(paste0(project$name, table_type), (colnames(explore_temp()[default_sub])[i]), 
-                                              paste0("grepl('", default_search_columns[default_sub[i]],"', ", colnames(explore_temp()[default_sub])[i],")")))
-          values$dataset <-  subset(explore_temp(), eval(parse(text=  paste0("grepl('", default_search_columns[default_sub[i]],"', ", colnames(explore_temp()[default_sub])[i],")"))))
+          val <- default_search_columns[default_sub[i]]
+          
+          # if logical is selected, then need to clean up the input passed to the filtering expression
+          if(is.logical(pull(temp, tmp_colname))){
+            if(grepl("\\[", default_search_columns[default_sub[i]])==TRUE){
+              val <- gsub("\\[", "", val)
+              val <- gsub("\\]", "", val)
+              val <- gsub('\\"', "", val)
+              val <- toupper(val)
+            }
+          }
+          
+          FilterTable <- rbind(FilterTable, c(tmp_tablename, tmp_colname, 
+                                              paste0("grepl('", val,"', ", tmp_colname,")")))
+          
+          temp <-  subset(explore_temp(), eval(parse(text=  paste0("grepl('", val,"', ", tmp_colname,")"))))
+        }
+        
+        # Save temp to the dataset
+        if(table_type == "MainDataTable"){
+          values$dataset <- temp
+        } else if(table_type == "PortTable"){
+          portdat$dataset <- temp
+        } else if(table_type == "GridTable"){
+          grddat[[input$grid_select]] <- temp
+        } else if(table_type == "AuxTable"){
+          aux$dataset <- temp
         }
       }
       showNotification('Filter table saved to FishSET database', type='message', duration=10)
@@ -3675,15 +3710,12 @@ server = function(input, output, session) {
       DBI::dbWriteTable(fishset_db, paste0(project$name, 'FilterTable'),  FilterTable, overwrite=TRUE)
       DBI::dbDisconnect(fishset_db)
     }
-    #values$dataset <- temp
   })
   
   output$editText <- renderText('Edit cells: double click. Edited table will not be loaded into \nworking environment until saved.
                                     \nFilter: Boxes at top.
-                                    \nFilter functions saved to FishSET database as FilterTable \nwhen "save data" button is pushed.
-                                    \nClick the "Save Data" button to save changes.')
-  
-  #Subset by columns
+                                    \nFilter functions saved to FishSET database as FilterTable.
+                                    \nClick the "Save data to FishSET database" button to save changes.')
   
   #2. Temporal PLOTS
   output$xy_selectUI <- renderUI({
