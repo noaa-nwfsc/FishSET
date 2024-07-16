@@ -41,14 +41,11 @@ pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.
   #  model_output <<- model_design_list("scallopMod")[[which(lapply(model_design_list("scallopMod"), "[[", "mod.name") == "lz")]]},
     model_output <- model_design_list(project)[[which(lapply(model_design_list(project), "[[", "mod.name") == mod.name)]]},
 
-   
     error = function(err){message(paste0("Model output table not found in ", project))}
   )
   tryCatch({
     
     pred_out <- unserialize_table(paste0(project, "predictOutput"), project)
-    
-
     
     get_mod_pred_out <- lapply(pred_out, function(x){
       mod_name <- x$modelDat$mod.name
@@ -63,25 +60,23 @@ pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.
     pred_output <- pred_out[which(unlist(get_mod_pred_out) == 1)]
   },
     
-  
     error = function(err){message(paste0("Prediction output table not found in ", project))}  
   )
 
   # Calculate percent observations per zone
  # prop_obs <- table(as.factor(model_output[[1]]$choice.table$choice)) / sum(table(as.factor(model_output[[1]]$choice.table$choice)))
-  prop_obs<-table(as.factor(model_output$choice$choice)) / sum(table(as.factor(model_output$choice$choice)))
-  
-  prop_obs<-data.frame(ZoneID = names(prop_obs), Proportion.Observations = as.vector(prop_obs))
+  prop_obs <- table(as.factor(model_output$choice$choice)) / sum(table(as.factor(model_output$choice$choice)))
+  prop_obs <- data.frame(ZoneID = names(prop_obs), Proportion.Observations = as.vector(prop_obs))
   
   # Get a list of model names from prediction output scenario names
-  predict_n<-unlist(lapply(pred_output, function(x) x$scenario.name))
-  mod_n<-unique(sapply(strsplit(predict_n, split = " "), "[", 1))
+  predict_n <- unlist(lapply(pred_output, function(x) x$scenario.name))
+  mod_n <- unique(sapply(strsplit(predict_n, split = " "), "[", 1))
   
   # Get the index for the first prediction output for each model name
-  predOut_ind<-unlist(lapply(mod_n, function(x) grep(x, predict_n)[1]))
+  predOut_ind <- unlist(lapply(mod_n, function(x) grep(x, predict_n)[1]))
   
   # Get predicted probabilities by zone for each model
-  predProbs<-lapply(pred_output[predOut_ind], function(x) x$prob[,1]/100)
+  predProbs <- lapply(pred_output[predOut_ind], function(x) x$prob[,1]/100)
   
   # Return table without running code below ---------------------------------------------------------------------------------
   if(output_option == "table"){
@@ -111,7 +106,7 @@ pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.
     # Return bargraph with model pred probabilities ------------------------------------------------------------------------
     if(output_option == "model_fig"){
       # Add prop observation and convert to long format dataframe
-      fig_df<-tmp_df %>%
+      fig_df <- tmp_df %>%
         mutate(Proportion.Observations = prop_obs$Proportion.Observations) %>%
         gather(key = "Model", value = "Probability", -ZoneID)
       
@@ -124,7 +119,11 @@ pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.
         theme(text = element_text(size= 16),
               axis.text.x = element_text(angle = 90, vjust = 1, hjust = 0.95))
       
-      out_fig <- ggplotly(out_fig)%>% 
+      if(!isRunning()){
+        return(out_fig)
+      }
+      
+      out_fig <- ggplotly(out_fig) %>% 
         plotly::layout(
         legend =list(
           orientation = "h",
@@ -167,43 +166,42 @@ pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.
         theme(text = element_text(size= 16),
               axis.text.x = element_text(angle = 45, vjust = 1, hjust = 0.95))
       
+      if(!isRunning()){
+        return(out_fig)
+      }
+      
       out_fig <- ggplotly(out_fig)
       
-      
       return(out_fig)
-   # } 
     
-  } else if(output_option == "diff_table"){
-    policy_probs <- unlist(lapply(pred_output, function(x){ x$prob[,2] }))
-    policy_probs <- matrix(policy_probs/100, ncol = length(pred_output), byrow = FALSE)
-    policy_probs <- as.data.frame(policy_probs)
-    colnames(policy_probs) <- predict_n
-    
-    diff_df <- cbind(tmp_df, policy_probs)
-    
-    tm <- diff_df %>% 
-      pivot_longer(., -c(any_of(zone.dat), any_of(mod_n))) %>% 
-      group_by(across(any_of(zone.dat)), name) %>% 
-      mutate(difference = value- !!rlang::sym(mod_n)) %>% 
-      mutate(across(where(is.numeric), ~ round(., 3))) %>%
-      filter(name %in% c(paste0(mod_n, " ", policy.name))) %>% 
-      pivot_wider(., names_from = c("name"), values_from = c("difference", "value"))%>%
-      select(any_of(zone.dat), any_of(mod.name), starts_with("value"), everything()) %>% 
-      mutate(across(c(starts_with("difference")), ~ kableExtra::cell_spec(., color = case_when(. < 0 ~"red",
-                                                                                           . >= 0 ~ "green"))))
-    
-    
-     diff_output <-  kbl(tm,"html", align = "c", booktabs = T, escape=FALSE) %>% 
-       kable_styling(bootstrap_options = c("hover", "responsive", "bordered", "striped"),  full_width = T)
-     
+    } else if(output_option == "diff_table"){
+      policy_probs <- unlist(lapply(pred_output, function(x){ x$prob[,2] }))
+      policy_probs <- matrix(policy_probs/100, ncol = length(pred_output), byrow = FALSE)
+      policy_probs <- as.data.frame(policy_probs)
+      colnames(policy_probs) <- predict_n
       
-    return(diff_output)
-    
-  } else {
-    
-    message("Invalid output option")
-    return(NA)
-  }
+      diff_df <- cbind(tmp_df, policy_probs)
+      
+      tm <- diff_df %>% 
+        pivot_longer(., -c(any_of("ZoneID"), any_of(mod_n))) %>% 
+        group_by(across(any_of("ZoneID")), name) %>% 
+        mutate(difference = value- !!rlang::sym(mod_n)) %>% 
+        mutate(across(where(is.numeric), ~ round(., 3))) %>%
+        filter(name %in% c(paste0(mod_n, " ", policy.name))) %>% 
+        pivot_wider(., names_from = c("name"), values_from = c("difference", "value")) %>%
+        select(any_of("ZoneID"), any_of(mod.name), starts_with("value"), everything()) %>% 
+        mutate(across(c(starts_with("difference")), ~ kableExtra::cell_spec(., color = case_when(. < 0 ~"red",
+                                                                                                 . >= 0 ~ "green"))))
+      
+      diff_output <-  kbl(tm,"html", align = "c", booktabs = T, escape=FALSE) %>% 
+        kable_styling(bootstrap_options = c("hover", "responsive", "bordered", "striped"),  full_width = T)
+      
+      return(diff_output)
+      
+    } else {
+      message("Invalid output option")
+      return(NA)
+    }
   }
 }
 
