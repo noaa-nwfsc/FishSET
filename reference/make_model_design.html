@@ -35,7 +35,13 @@ to model call function"><meta property="og:image" content="/logo.png"><!-- mathj
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
-      <ul class="navbar-nav"></ul></div>
+      <ul class="navbar-nav"><li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/noaa-nwfsc/FishSET/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div>
 
     
   </div>
@@ -43,7 +49,7 @@ to model call function"><meta property="og:image" content="/logo.png"><!-- mathj
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Make model design file</h1>
-      
+      <small class="dont-index">Source: <a href="https://github.com/noaa-nwfsc/FishSET/blob/HEAD/R/make_model_design.R" class="external-link"><code>R/make_model_design.R</code></a></small>
       <div class="d-none name"><code>make_model_design.Rd</code></div>
     </div>
 
@@ -87,7 +93,8 @@ to model call function</p>
 
 
 <dt>likelihood</dt>
-<dd><p>String, name of likelihood function. Details on likelihood
+<dd><p>String, name of likelihood function. A description of explanatory variables for each
+likelihood is provided below in the details sections. Information on likelihood-
 specific initial parameter specification can be found in
 <code><a href="discretefish_subroutine.html">discretefish_subroutine()</a></code> documentation.</p><table class="table table"><tr><td>logit_c:</td><td>Conditional logit likelihood</td><td>logit_zonal:</td><td>Zonal logit with area-specific constants procedure</td></tr><tr><td>logit_correction:</td><td>Full information model with Dahl's correction function</td><td>epm_normal:</td><td>Expected profit model with normal catch function</td></tr><tr><td>epm_weibull:</td><td>Expected profit model with Weibull catch function</td><td>epm_lognormal:</td><td>Expected profit model with lognormal catch function</td></tr></table></dd>
 

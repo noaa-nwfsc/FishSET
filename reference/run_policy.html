@@ -35,7 +35,13 @@ influence fisher location choice."><meta property="og:image" content="/logo.png"
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
-      <ul class="navbar-nav"></ul></div>
+      <ul class="navbar-nav"><li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/noaa-nwfsc/FishSET/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div>
 
     
   </div>
@@ -43,7 +49,7 @@ influence fisher location choice."><meta property="og:image" content="/logo.png"
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Runs policy scenarios</h1>
-      
+      <small class="dont-index">Source: <a href="https://github.com/noaa-nwfsc/FishSET/blob/HEAD/R/run_policy.R" class="external-link"><code>R/run_policy.R</code></a></small>
       <div class="d-none name"><code>run_policy.Rd</code></div>
     </div>
 
@@ -57,6 +63,7 @@ influence fisher location choice.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">run_policy</span><span class="op">(</span></span>
 <span>  <span class="va">project</span>,</span>
 <span>  mod.name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  policy.name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  betadraws <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  marg_util_income <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  income_cost <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -81,6 +88,10 @@ can be pulled the `modelChosen` table. Leave <code>mod.name</code> empty to use
 the name of the saved `best` model. If more than one model is saved, 
 <code>mod.name</code> should be the numeric indicator of which model to use.
 Use <code>table_view("modelChosen", project)</code> to view a table of saved models.</p></dd>
+
+
+<dt>policy.name</dt>
+<dd><p>List of policy scenario names created in zone_closure function</p></dd>
 
 
 <dt>betadraws</dt>

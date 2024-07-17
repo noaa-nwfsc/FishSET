@@ -60,7 +60,14 @@
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
 </form>
 
-      <ul class="navbar-nav"></ul>
+      <ul class="navbar-nav">
+<li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/noaa-nwfsc/FishSET/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 
     
@@ -74,9 +81,9 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>FishSET GUI Quickstart Guide</h1>
             
-            <h4 data-toc-skip class="date">2024-05-28</h4>
+            <h4 data-toc-skip class="date">2024-07-17</h4>
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/noaa-nwfsc/FishSET/blob/HEAD/vignettes/FishSET_GUI_Quickstart_Guide.Rmd" class="external-link"><code>vignettes/FishSET_GUI_Quickstart_Guide.Rmd</code></a></small>
       <div class="d-none name"><code>FishSET_GUI_Quickstart_Guide.Rmd</code></div>
     </div>
 
@@ -105,747 +112,154 @@ run in an R console or here in this FishSET Graphical User Interface
 through the steps necessary to run discrete choice models. The FishSET
 GUI requires no knowledge of coding or the R programming language as all
 steps to prepare and run discrete choice models can be run in a
-graphical user interface apart from writing the report. See ***** for
-details on writing the report.</p>
-<p>The FishSET GUI is divided into tabs to guide users through the steps
-of creation, from uploading and exploring data to developing and
-evaluating models. Tabs can be navigated in any order. All data is
-automatically saved to a SQL database called the FishSET database when
-first loaded. The database is housed in the projects directory withing
-the FishSET R package directory. Modified versions of the data can be
+graphical user interface.</p>
+<p>The FishSET GUI is divided into tabs to guide users through functions
+from uploading and exploring data to running models and simulating
+policy scenarios. All data are automatically saved to a local SQLite
+database on the users computer (data not shared with other users or
+FishSET developers) called the FishSET database when first loaded. The
+database is housed in the project’s directory withing the FishSET R
+package directory (FishSETFolder). Modified versions of the data can be
 saved to the FishSET database in the Data Quality Evaluation and Compute
 New Variables tabs. Plots and table outputs are saved in an output
-folder within the projects directory. Function calls, including chosen
-parameters, are saved to the Logs folder within the projects directory.
+folder within the project’s directory. Function calls, including input
+parameters, are saved to the Logs folder within the project’s directory.
 The Quickstart Guide subtab provides further assistance on using the
 FishSET GUI.</p>
-<p>This documents details how to use the FishSET GUI. Details and
-backgroud on the functions an be found in the FishSET Help Manual
-available at the FishSET <strong>WEBSITE</strong>.</p>
-<p>For questions and comments please contact:
-<!--FishSET@noaa.gov --></p>
+<p>This document includes basic instructions on how to use the FishSET
+GUI. Refer to the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.epgu0wlvmcy6" class="external-link">FishSET
+User Manual</a> for information on installing R software and to the <a href="https://noaa-nwfsc.github.io/FishSET/index.html" class="external-link">main page</a> of
+this website for FishSET installation instructions.</p>
+<p>For questions and comments please contact: <a href="mailto:nmfs.fishset@noaa.gov">nmfs.fishset@noaa.gov</a></p>
 <p>This document walks through the steps of:</p>
 <ol style="list-style-type: decimal">
-<li>Installing R and R Studio</li>
-<li>Installing and loading the FishSET package</li>
 <li>Opening the FishSET GUI</li>
 <li>Using the FishSET GUI</li>
 <li>Using the <em>Report template</em> to generate a report.</li>
 </ol>
 <div class="section level3">
-<h3 id="installing-r">Installing R<a class="anchor" aria-label="anchor" href="#installing-r"></a>
-</h3>
-<p>To use the FishSET GUI, users must first install R and RStudio.</p>
-<p><a href="https://cloud.r-project.org" title="R project website" class="external-link">R can
-be installed from</a>&gt;.<br><a href="https://rstudio.com/products/rstudio/download/#download" title="RStudio website" class="external-link">RStudio from</a>.</p>
-<p>Installation files for both R and RStudio are platform
-specific.<br>
-Install the most recent version of R and RStudio available.<br>
-Default settings do not need to be changed .</p>
-<p>For more details see the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.1fob9te" title="Installing R and RStudio" class="external-link">FishSET Help Manual</a>.</p>
-</div>
-<div class="section level3">
-<h3 id="installing-the-fishset-package">Installing the FishSET package<a class="anchor" aria-label="anchor" href="#installing-the-fishset-package"></a>
-</h3>
-<p>FishSET is provided as compressed file that can be installed directly
-from the FishSET GitHUB site or from a locally saved file location.</p>
-<p>We recommend installing directly from the GitHUB site.<br>
-For more details see the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.h8fxguvqf0mn" title="Installing FishSET" class="external-link">FishSET Manual</a>.</p>
-<ol style="list-style-type: decimal">
-<li><p>Open RStudio</p></li>
-<li><dl>
-<dt>Install the <strong>devtools</strong> package (this package is
-necessary to install and build FishSET)</dt>
-<dd>
-<p>In the RStudio Console paste the following code<br><code>install.packages("devtools")</code><br><code><a href="https://devtools.r-lib.org/" class="external-link">library(devtools)</a></code></p>
-</dd>
-</dl></li>
-<li><dl>
-<dt>Install the FishSET package</dt>
-<dd>
-<p>To install FishSET from GitHUB In the RStudio Console paste the
-following code<br><code>devtools::install_github("name/FishSET")</code><br><code><a href="https://rdrr.io/r/base/library.html" class="external-link">library(FishSET)</a></code></p>
-</dd>
-<dd>
-<p>To install FishSET from local file directory<br><code>devtools::install_local("PATH/TO/Directory/Containing/FishSET")</code><br><code><a href="https://rdrr.io/r/base/library.html" class="external-link">library(FishSET)</a></code></p>
-</dd>
-</dl></li>
-</ol>
-<p><strong>GITHUB SITE TO BE FILLED IN</strong></p>
-<p>See the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.h8fxguvqf0mn" title="Installing FishSET" class="external-link">FishSET Help Manual</a> if you experience any
-issues when installing the <strong>devtools</strong> or
-<strong>FishSET</strong> packages.</p>
-</div>
-<div class="section level3">
 <h3 id="opening-the-fishset-gui">Opening the FishSET GUI<a class="anchor" aria-label="anchor" href="#opening-the-fishset-gui"></a>
 </h3>
 <dl>
-<dt>To open the FishSET GUI type or paste the following script in the
-RStudio console:</dt>
+<dt>To open the FishSET GUI run the following lines of code in
+RStudio:</dt>
 <dd>
-<p><code><a href="../reference/run_fishset_gui.html">run_fishset_gui()</a></code></p>
+<p><code><a href="https://github.com/noaa-nwfsc/FishSET" class="external-link">library(FishSET)</a></code></p>
+</dd>
+<dd>
+<code><a href="../reference/run_fishset_gui.html">run_fishset_gui()</a></code>
 </dd>
 </dl>
 </div>
 <div class="section level3">
 <h3 id="using-the-fishset-gui">Using the FishSET GUI<a class="anchor" aria-label="anchor" href="#using-the-fishset-gui"></a>
 </h3>
-<p>The FishSET GUI is divided into tabs. The tabs are ordered in the
-suggested order of steps to build and run a discrete choice model but do
-not have to be used in a specific order. Next we detail the purpose of
-each tab and how to use the tabs.</p>
-<div class="section level4">
-<h4 id="functionality-available-across-all-tabs">Functionality available across all tabs<a class="anchor" aria-label="anchor" href="#functionality-available-across-all-tabs"></a>
-</h4>
-<ul>
-<li>
-<p>Save plot and table buttons</p>
-<ul>
-<li>Optional buttons to save output to a user-specified location.</li>
-<li>Tables, plots, and notes are automatically saved to the
-<code>Output</code> folder in the projects directory when generated.
-These buttons should be used only if you want to save output to a
-location other than the projects directory.<br>
-</li>
-</ul>
-</li>
-<li>
-<p>Refresh data</p>
-<ul>
-<li>Resets the primary data to the most recently saved version in the
-FishSET database.</li>
-<li>To refresh to a specific saved version of the data table, go to the
-<code>Upload data</code> tab.</li>
-<li>Unsaved changes to the data table will be lost when the data is
-refreshed.</li>
-</ul>
-</li>
-<li>
-<p>Close app</p>
-<ul>
-<li>Closes the FishSET GUI.</li>
-<li>This is the preferred method to close the FishSET GUI.</li>
-</ul>
-</li>
-<li>
-<p>Notes</p>
-<ul>
-<li>Write observations, comments, or other notes in the
-<code>Notes</code> box.</li>
-<li>Press <code>Save notes</code> to save the notes in the
-<code>Output</code> folder.</li>
-</ul>
-</li>
-<li>
-<p>Running R expressions</p>
-<ul>
-<li>Located at the bottom of the land-hand panel.</li>
-<li>Enter and run R code.</li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="section level4">
-<h4 id="information">Information<a class="anchor" aria-label="anchor" href="#information"></a>
-</h4>
-<p>The <code>Information tab</code> has four subtabs:</p>
-<ol style="list-style-type: decimal">
-<li>Background * Details purpose of FishSET. * Provides general
-information on FishSET.</li>
-<li>Quickstart Guide * Brief detail on how to use each of the FishSET
-GUI tabs.</li>
-<li>Alaska Details * Information on the Alaskan fisheries.</li>
-<li>FishSET Background * Links to partners.</li>
-</ol>
-</div>
 <div class="section level4">
 <h4 id="upload-data">Upload Data<a class="anchor" aria-label="anchor" href="#upload-data"></a>
 </h4>
 <p>The <code>Upload Data</code> tab is used to load data (primary, port,
-spatial, gridded, and auxiliary) from the FishSET database or from a
-local file directory.</p>
-<p>Data files types:</p>
-<ul>
-<li>Primary (Required)<br>
-Contains the main data for the model.</li>
-<li>Port (Required)<br>
-Contains the latitude and longitude locations of ports.</li>
-<li>Spatial (Required)<br>
-Spatial data set defining boundaries of fishing zones.</li>
-<li>Auxiliary (Optional)<br>
-Contains additional data that links to the primary data.</li>
-<li>Gridded (Optional)<br>
-Contains additional data that varies by two dimensions.</li>
-</ul>
-<p>See the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.36sb14g0441y" title="Data Types" class="external-link">FishSET Manual</a> for more details on the different
-required and optional data tables.</p>
-<p>Steps to upload data:</p>
-<ol style="list-style-type: decimal">
-<li><p>Select or fill in project name.</p></li>
-<li>
-<p>For primary, port, auxiliary, and gridded data files select
-to:</p>
-<ul>
-<li>
-<p><code>Upload new file</code> from local file directory then</p>
-<ul>
-<li>
-<code>Browse</code> to file directory location.</li>
-</ul>
-</li>
-<li>
-<p>Load data from <code>FishSET database</code> then</p>
-<ul>
-<li>
-<code>Choose a table</code>.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p>For spatial data files, the only option is to:</p>
-<ul>
-<li>Browse to file directory location.</li>
-</ul>
-</li>
-<li><p>To load the data, click the <code>Load Data</code>
-button.</p></li>
-<li><p>Merge auxiliary data with primary data: * Check
-<code>Merge auxiliary table</code>. * Select
-<code>Main table keys</code> and
-<code>Auxiliary table keys</code>.<br>
-These are column names to merge the two data tables by.</p></li>
-<li><p>If including confidentiality checks: * Click blue
-<code>Confidentiality</code> button. * Check the
-<code>Check for confidentiality</code> box. * From
-<code>Select vessel identifier column</code>, select the column name
-containing identifier of unique observational units. * Select a
-<code>Rule</code> (<code>n</code>: rule of n or <code>k</code>: majority
-allocation). * Select a <code>Threshold</code> value such as 3 for rule
-of n or 90% for majority allocation. * Click <code>Save</code> and
-repeat if adding the other confidentiality rule. * Click the
-<code>Close</code> button.</p></li>
-</ol>
-<p>See the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.36sb14g0441y" title="Uploading data" class="external-link">FishSET Manual</a> for more details on uploading
-data and merging data.</p>
+spatial, gridded, and auxiliary) from local files on your computer or
+from the FishSET database. Follow the instructions provided in the left
+side panel of the GUI.</p>
+<p>See the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.36sb14g0441y" class="external-link">FishSET
+User Manual</a> for more information on the different types of data.</p>
+<p>If including confidentiality checks: - Click the
+<code>Confidentiality</code> button (appears after loading data). -
+Check the <code>Check for confidentiality</code> box. -
+<code>Select vessel identifier variable</code> from the dropdown menu. -
+Select a <code>Rule</code> (<code>n</code>: rule of n or <code>k</code>:
+majority allocation). - Select a <code>Threshold</code> value such as 3
+for rule of n or 90% for majority allocation. - Click <code>Save</code>
+and repeat if more confidentiality rules are needed. - Click the
+<code>Close</code> button when finished.</p>
 </div>
 <div class="section level4">
 <h4 id="data-quality-evaluation">Data Quality Evaluation<a class="anchor" aria-label="anchor" href="#data-quality-evaluation"></a>
 </h4>
 <p>The <code>Data Quality and Evaluation</code> tab is used to identify
-and correct common data quality issues such as erroneous outliers and
-missing values.</p>
-<ul>
-<li>
-<p>Variable class</p>
-<ul>
-<li>Check and change variable classes.<br>
-</li>
-<li>Classes are numeric, character, factor, and date.</li>
-</ul>
-</li>
-<li>
-<p>Summary table</p>
-<ul>
-<li>View minimum, median, mean, maximum, no. missing, no. unique
-observations, no. 0s.</li>
-</ul>
-</li>
-<li>
-<p>Outliers<br>
-View tables and plots to assess if outliers exist.</p>
-<ol style="list-style-type: decimal">
-<li><p><code>Choose variable</code> to assess.</p></li>
-<li>
-<p>Select <code>Method to subset the data</code> by:</p>
-<ul>
-<li>none</li>
-<li>5_95_quant (remove values outside 5th and 95th quantiles)</li>
-<li>25_75_quant (remove values outside 25th and 75th quantiles)</li>
-<li>mean_2SD (remove values outside 2 standard deviations from the
-mean)</li>
-<li>mean_3SD (remove values outside 3 standard deviations from the
-mean)</li>
-<li>median_2SD (remove values outside 2 standard deviations from the
-median)</li>
-<li>median_3SD (remove values outside 3 standard deviations from the
-median)</li>
-</ul>
-</li>
-<li>
-<p>Select <code>Distribution</code> of data:</p>
-<ul>
-<li>Normal</li>
-<li>Lognormal</li>
-<li>Exponential</li>
-<li>Weibull</li>
-<li>Poisson</li>
-<li>Negative binomial</li>
-</ul>
-</li>
-</ol>
-</li>
-<li>
-<p>NAs</p>
-<ul>
-<li><p>Displays table of variables containing missing values.</p></li>
-<li>
-<p>Remove or replace NAs:</p>
-<ul>
-<li>
-<code>Remove NAs</code> removes the entire row of data containing
-NAs.</li>
-<li>
-<code>Replace NAs with mean values</code> replaces NAs.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p>NaNs</p>
-<ul>
-<li><p>Displays table of variables containing non-numbers.</p></li>
-<li>
-<p>Remove or replace NaNs:</p>
-<ul>
-<li>
-<code>Remove NaNs</code> removes the entire row of data containing
-NaNs.</li>
-<li>
-<code>Replace NaNs with mean values</code> replaces NaNs.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p>Unique observations</p>
-<ul>
-<li>Checks that all rows of the dataset are unique.</li>
-<li>To remove non-unique rows, select
-<code>Remove non-unique rows</code>.</li>
-</ul>
-</li>
-<li>
-<p>Empty variables</p>
-<ul>
-<li>Returns a list of variables that are empty.</li>
-<li>To remove, press <code>Remove empty variables</code>.</li>
-</ul>
-</li>
-<li>
-<p>Latitude and Longitude units</p>
-<ul>
-<li>Returns the first six rows of all latitude and longitude
-variables.<br>
-</li>
-<li>Checks whether values are in decimal degree and that sign is
-correct.</li>
-<li>Select variable and action to make corrections.</li>
-</ul>
-</li>
-</ul>
-<p>See the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.gvjfmr8m6yax" class="external-link">Recommended
-data quality check steps</a> the Cleaning and Data Quality section of
-the FishSET manual for more details.</p>
+and correct common data quality issues such as erroneous outliers,
+missing values (NA or NaN), and coordinates that occur on land. Use the
+radio buttons in the left side panel to navigate between data quality
+and control functions. After running each function, click on the ‘Save
+data to FishSET database’ button to save changes.</p>
+<p>See the recommended data quality checks in the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.gvjfmr8m6yax" class="external-link">FishSET
+User Manual</a>.</p>
 </div>
 <div class="section level4">
-<h4 id="data-exploration">Data Exploration<a class="anchor" aria-label="anchor" href="#data-exploration"></a>
+<h4 id="explore-the-data">Explore the Data<a class="anchor" aria-label="anchor" href="#explore-the-data"></a>
 </h4>
-<p>The <code>Data Exploration</code> tab is used to view and explore the
-loaded data.</p>
-<p>Select to view data tables or plots.</p>
-<ul>
-<li>
-<p>Tables</p>
-<ul>
-<li><p>Select data file type to view.</p></li>
-<li>
-<p>Edit cells:</p>
-<ul>
-<li>Double click on a cell to edit.</li>
-</ul>
-</li>
-<li>
-<p>Filter table:</p>
-<ul>
-<li>Add and apply filters in the boxes between column names and first
-row of data.</li>
-</ul>
-</li>
-<li>
-<p>Remove variables:</p>
-<ul>
-<li>Click anywhere on a column to highlight column. Multiple columns can
-be selected at a time.</li>
-<li>Press the <code>Remove data from dataset</code> to remove the
-variables from the dataset.</li>
-</ul>
-</li>
-<li><p>Changes will be applied but will not be saved until the
-<code>Save to FishSET database</code> button is pressed.</p></li>
-</ul>
-</li>
-<li>
-<p>Plots</p>
-<ul>
-<li>
-<p>Temporal</p>
-<ul>
-<li>Displays three plots for the selected variable.<br>
-</li>
-<li>The first data variable in the data set will used for the
-x-axis.</li>
-</ul>
-</li>
-<li>
-<p>Spatial</p>
-<ul>
-<li>Two plots are shown.</li>
-<li>The first can be zoomed in and out. Individual points can be
-identified by hovering over them.<br>
-</li>
-<li>Fill out the additional options in the left-hand panel to show
-Getis-Ord and Moran’s I statistics.</li>
-<li>NOTE: This spatial check must be completed before you can run
-models.</li>
-</ul>
-</li>
-<li>
-<p>x-y</p>
-<ul>
-<li>Plot selected <code>x</code> variable against selected
-<code>y</code> variable.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>For more details see the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.46r0co2" title="Data Exploration" class="external-link">Data Exploreation section of the FishSET
-Manual</a>.</p>
-</div>
-<div class="section level4">
-<h4 id="fleet-assignment-and-summary">Fleet Assignment and Summary<a class="anchor" aria-label="anchor" href="#fleet-assignment-and-summary"></a>
-</h4>
-<p>The <code>Fleet Assignment and Summary</code> tab is used to define
-fleets and explore data at a fleet level.</p>
-<p>There are two subtabs, fleet assignment and fleet summary.</p>
 <div class="section level5">
-<h5 id="fleet-assignment">Fleet assignment<a class="anchor" aria-label="anchor" href="#fleet-assignment"></a>
+<h5 id="data-exploration">Data Exploration<a class="anchor" aria-label="anchor" href="#data-exploration"></a>
 </h5>
-<p>Define fleets and apply fleet definitions to the primary dataset.</p>
-<p>Under <code>Select task</code> (in left-hand panel), select
-<code>Define Fleets</code>.</p>
-<ol style="list-style-type: decimal">
-<li>
-<p>Expression Builder</p>
-<ol style="list-style-type: decimal">
-<li>Select a variable, operator, and value to create an expression.</li>
-<li>Select <code>Add to expression</code> to expand the expression if
-needed.</li>
-<li>Select <code>Insert expression</code> to insert an expression into
-the Fleet Definition Table.</li>
-</ol>
-</li>
-<li>
-<p>Fleet Definition Table</p>
-<ul>
-<li>To insert into a specific cell, click <code>Select cell</code>,
-choose a cell, and then select <code>Insert expression</code>.</li>
-<li>To enter a fleet name, double-click the definition table.</li>
-<li>To create a new expression, click
-<code>Reset expression</code>.</li>
-<li>To edit the definition table, double-click on the cell.</li>
-<li>Press Ctrl+Enter to save changes.</li>
-<li>Click the <code>Save table to FishSET database</code> button to save
-the table.</li>
-</ul>
-</li>
-</ol>
-<p>Select <code>Fleet Assignment</code> under <code>Select task</code>
-(in left-hand panel).</p>
-<ol style="list-style-type: decimal">
-<li>
-<p>Load fleet definition table. * Select from available fleet
-tables.</p>
-<ul>
-<li>If no tables are shown or the desired table is not shown, press
-<code>Refresh saved tables</code>. * Press <code>Load table</code><br>
-The table should now be in the main panel.</li>
-<li>Repeat the previous steps if the loaded table is not the desired
-table.</li>
-</ul>
-</li>
-<li><p>Press the <code>Assign fleets</code> button to assign vessels to
-defined fleets.</p></li>
-</ol>
+<p>The <code>Data Exploration</code> tab is used to view, filter, and
+explore the data tables. Use the input options in the left side panel to
+select tables and plots to view.</p>
+<p>The table view can be used to directly filter/edit datasets, and any
+changes made to the tables will be logged for reproducibility. Click on
+the <code>Save data to FishSET database</code> to save any changes.</p>
+<p>Also, plots generated in the GUI will be automatically saved in the
+project’s output folder in the FishSETFolder directory.</p>
+<p>For more details see the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.g2cn6i5a6srj" class="external-link">FishSET
+User Manual</a>.</p>
 </div>
 <div class="section level5">
-<h5 id="fleet-summary">Fleet Summary<a class="anchor" aria-label="anchor" href="#fleet-summary"></a>
+<h5 id="simple-analyses">Simple Analyses<a class="anchor" aria-label="anchor" href="#simple-analyses"></a>
 </h5>
-<p>Functions:</p>
-<ul>
-<li>Vessel count<br>
-View number of vessels by fleet and/or group.<br>
-</li>
-<li>Species catch<br>
-Aggregate species catch by time period.</li>
-<li>Rolling catch<br>
-Rolling catch (specify window size and summary statistic).</li>
-<li>Weekly catch<br>
-View catch variable summarized over weeks.</li>
-<li>Weekly effort<br>
-View mean weekly catch per unit effort.</li>
-<li>Bycatch<br>
-Compare average CPUE and catch total/share of total catch between one or
-more species.<br>
-</li>
-<li>Trip length<br>
-View trip duration.<br>
-</li>
-<li>Density plot<br>
-View density plot.</li>
-</ul>
-<p>Plotting options:</p>
-<ul>
-<li><p>View table and/or plot.</p></li>
-<li>
-<p>Subset</p>
-<ul>
-<li>Subset by date.</li>
-<li>Subset by variable.</li>
-</ul>
-</li>
-<li>
-<p>Group</p>
-<ul>
-<li>Select grouping variable or time period.</li>
-</ul>
-</li>
-<li>
-<p>Split</p>
-<ul>
-<li>Select variable or time period to split plot by.</li>
-</ul>
-</li>
-<li>
-<p>Plot options</p>
-<ul>
-<li>Change format, adjust axes, etc.</li>
-<li>Adjust table (wide &lt;-&gt; long).</li>
-</ul>
-</li>
-</ul>
-<p>Populate additional function-specific options.</p>
-<p>Click <code>Run function</code> button to run function and display
-output.</p>
-<p>For more details see the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.46r0co2" class="external-link">Fleet
-and group summaries section</a> in the <em>Exploratory data
-analysis</em> chapter of the FishSET Manual.</p>
+<p>The <code>Simple Analyses</code> tab is used to run correlation
+analysis and simple linear regressions between variables in the primary
+table. Tables and plots generated here will be automatically save to the
+project’s output folder in the FishSETFolder directory.</p>
+<p>For more details see the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.g2cn6i5a6srj" class="external-link">FishSET
+User Manual</a>.</p>
 </div>
-</div>
-<div class="section level4">
-<h4 id="simple-analyses">Simple Analyses<a class="anchor" aria-label="anchor" href="#simple-analyses"></a>
-</h4>
-<p>The <code>Simple Analyses</code> tab is used to view correlation and
-simple linear regression among selected variables.</p>
-<ul>
-<li>
-<p>Select to show correlations or simple linear regression.</p>
-<ul>
-<li>Option in left-hand panel.</li>
-</ul>
-</li>
-<li>
-<p>Correlations</p>
-<ul>
-<li>
-<p>Select variables to include in correlation test.</p>
-<ul>
-<li>To remove a variable, click on it and press <code>Delete</code> or
-<code>Backspace</code>.</li>
-<li>To add variables back in, click on an empty space and then click on
-the desired variable.</li>
-</ul>
-</li>
-<li><p>Table shows correlation values.</p></li>
-<li>
-<p>Correlation matrix plot:</p>
-<ul>
-<li>Color strength represents strength of correlation.</li>
-<li>Red is positively correlated.</li>
-<li>Blue is negatively correlated.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p>Linear regression</p>
-<ul>
-<li>Select a response variable.</li>
-<li>Select an explanatory variable.</li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="section level4">
-<h4 id="compute-new-variables">Compute New Variables<a class="anchor" aria-label="anchor" href="#compute-new-variables"></a>
-</h4>
-<p>The <code>Compute New Variables</code> tab is used to transform or
-derive new variables.</p>
-<p>Steps:</p>
-<ol style="list-style-type: decimal">
-<li><p>Select to <code>Create variables based</code> on the desired
-broad categories.</p></li>
-<li><p>Select a function.</p></li>
-<li><p>Populate options.</p></li>
-<li>
-<p>Press the <code>Run Function</code> button.</p>
-<ul>
-<li>The new variable will be added to the end of the table.</li>
-</ul>
-</li>
-<li>
-<p>Save the finalized dataset before moving on to modeling
-functions.</p>
-<ul>
-<li>To save the FishSET database, click
-<code>Save final table to FishSET DB</code>.</li>
-<li>To save to local file directory, select a file format in the
-<code>Export data as:</code> box and click
-<code>Download data</code>.</li>
-</ul>
-</li>
-</ol>
-<p>Function details can be found in the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.3ygebqi" class="external-link">Exploratory
-Data Analysis</a> section of the FishSET Manual.</p>
-<p>Functions:</p>
-<ul>
-<li>
-<p>Arithmetic</p>
-<ul>
-<li>Numeric functions (add, subtract, multiply, divide two
-variables)</li>
-<li>Catch per unit</li>
-</ul>
-</li>
-<li>
-<p>Data transformations</p>
-<ul>
-<li>Within-group percentage</li>
-<li>Within-group lagged difference<br>
-</li>
-<li>Within-group running sum<br>
-</li>
-<li>Coded variable based on quartiles</li>
-</ul>
-</li>
-<li>
-<p>Dummy</p>
-<ul>
-<li>From variable<br>
-</li>
-<li>From policy dates<br>
-</li>
-<li>From area/zone closures</li>
-</ul>
-</li>
-<li>
-<p>Nominal ID</p>
-<ul>
-<li>Create distinct haul or trip ID<br>
-</li>
-<li>Create fishery season identifier<br>
-</li>
-</ul>
-</li>
-<li>
-<p>Spatial</p>
-<ul>
-<li>Assign observations to zones<br>
-</li>
-<li>Distance between two points</li>
-<li>Midpoint location (lon/lat) for each haul</li>
-<li>Zone when choice of where to go next was made<br>
-</li>
-</ul>
-</li>
-<li>
-<p>Temporal</p>
-<ul>
-<li>Change time unit (convert or extract)</li>
-<li>Duration of time between two temporal variables</li>
-</ul>
-</li>
-<li>
-<p>Trip-level</p>
-<ul>
-<li>Collapse data from haul-level to trip-level</li>
-<li>Calculate trip distance</li>
-<li>Calculate trip centroid</li>
-</ul>
-</li>
-</ul>
 </div>
 <div class="section level4">
 <h4 id="map-viewer">Map Viewer<a class="anchor" aria-label="anchor" href="#map-viewer"></a>
 </h4>
 <p>The <code>Map Viewer</code> tab is used to view the spatial
-distribution of hauls.</p>
-<p>Required:</p>
-<ol style="list-style-type: decimal">
-<li>Spatial data file.</li>
-<li>Zone identifier variable in primary dataset.</li>
-</ol>
-<p>Choices:</p>
-<ol style="list-style-type: decimal">
-<li><p>Area variable (data)<br>
-Variable in primary data containing zone identifier such as
-ZoneID.</p></li>
-<li><p>Area variable (map)<br>
-Name of the property in the spatial data file that identifies the
-zones.<br>
-Links to Area variable (data) .</p></li>
-<li><p>Numeric variables (required)<br>
-Points on the map are color coded based on the numeric variable
-value.<br>
-Multiple numeric variables can be included but only one will be plotted
-at a time .</p></li>
-<li><p>Temporal variables (required)<br>
-Used in scatter plot. Temporal variable is plotted against numeric
-variable.<br>
-Multiple temporal variables can be included but only one will be plotted
-at a time .</p></li>
-<li><p>ID variables (recommended)<br>
-Categorical variables for grouping in plots.<br>
-Multiple ID variables can be included but only one will be plotted at a
-time .</p></li>
-<li>
-<p>Location point or path<br>
-Should the map show hauls as individual points or paths?</p>
-<ul>
-<li>
-<p>Points</p>
-<ul>
-<li>Longitude point<br>
-</li>
-<li>Latitude point</li>
-</ul>
-</li>
-<li>
-<p>Path</p>
-<ul>
-<li>Starting longitude<br>
-</li>
-<li>Starting latitude<br>
-</li>
-<li>Ending longitude<br>
-</li>
-<li>Ending latitude</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
+distribution of hauls. Use the input options in the left side panel to
+plot hauls as points or paths using start and end locations.</p>
+<p>Required: 1. Spatial data file. 2. Zone identifier variable in
+primary dataset.</p>
+<p>For more details see the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.g2cn6i5a6srj" class="external-link">FishSET
+User Manual</a>.</p>
+</div>
+<div class="section level4">
+<h4 id="compute-new-variables">Compute New Variables<a class="anchor" aria-label="anchor" href="#compute-new-variables"></a>
+</h4>
+<p>The <code>Compute New Variables</code> tab is used to transform or
+derive new variables. There are a variety of predefined functions to
+chose from in the dropdown menus in the side panel. Importantly, this is
+where users can create centroid tables (in the “Spatial functions”
+options), which can be used to represent alternative locations in
+discrete choice models. After creating a new variable, click
+<code>Save data to FishSET database</code> to save new variables.</p>
+</div>
+<div class="section level4">
+<h4 id="fleet-assignment-and-summary">Fleet Assignment and Summary<a class="anchor" aria-label="anchor" href="#fleet-assignment-and-summary"></a>
+</h4>
+<p>The <code>Fleet Assignment and Summary</code> tab is used to define
+fleets and explore data at a fleet level. There are two subtabs, fleet
+assignment and fleet summary.</p>
+<div class="section level5">
+<h5 id="fleet-assignment">Fleet assignment<a class="anchor" aria-label="anchor" href="#fleet-assignment"></a>
+</h5>
+<p>Define fleets and apply fleet definitions to the primary dataset.
+Follow the instructions in the left side panel of the GUI. Use the
+<code>Save table to FishSET database</code> at the bottom of the side
+panel to save fleet definitions prior to fleet assignments. Then select
+<code>Fleet assignment</code> from the <code>Select task</code> dropdown
+menu, load the fleet definition table at the bottom of the left side
+panel and assign fleets.</p>
+</div>
+<div class="section level5">
+<h5 id="fleet-summary">Fleet Summary<a class="anchor" aria-label="anchor" href="#fleet-summary"></a>
+</h5>
+<p>The <code>Fleet Summary</code> subtab is used to generate tables and
+plots that summarize data by fleets.</p>
+<p>For more details see the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.g2cn6i5a6srj" class="external-link">FishSET
+User Manual</a>.</p>
+</div>
 </div>
 <div class="section level4">
 <h4 id="define-alternative-fishing-choices">Define Alternative Fishing Choices<a class="anchor" aria-label="anchor" href="#define-alternative-fishing-choices"></a>
@@ -853,38 +267,19 @@ Should the map show hauls as individual points or paths?</p>
 <p>The <code>Define Alternative Fishing Choices</code> tab is used to
 define how the distance matrix between observed fishing locations and
 alternative fishing locations should be calculated.</p>
-<p>Steps:</p>
-<ol style="list-style-type: decimal">
-<li>
-<p>Should distance matrix come from:</p>
-<ul>
-<li>Primary haul- or trip-level data or</li>
-<li>Gridded data file.</li>
-</ul>
-</li>
-</ol>
-<p>If data comes from the primary dataset:</p>
-<ol style="list-style-type: decimal">
-<li>
-<p>Define how alternative fishing choices are calculated
-between:</p>
-<ul>
-<li>occurrence</li>
-<li>and alternative locations.</li>
-</ul>
-</li>
-<li><p>Select the distance units.</p></li>
-<li><p>Select the minimum number of hauls required for the zone to be
-included.</p></li>
-<li><p>Press <code>Save choices</code>.</p></li>
-</ol>
-<p>If data comes from a gridded data file:</p>
-<ol style="list-style-type: decimal">
-<li>Load the data</li>
-</ol>
-<p>See the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.3cqmetx" class="external-link">Data</a>
-section of the <em>Model Development</em> chapter of the FishSET Manual
-for more details.</p>
+<p>Prior to selecting input options, click on
+<code>Save final table to FishSET database</code> and follow
+instructions. This step is to ensure that alternative choices and
+following steps for setting up the discrete choice model can be
+completed successfully.</p>
+<p>Then, select options from the drop down menus. In the
+<code>Include zones with more observations than</code> input box, insert
+the minimum number of observations needed for a zone to be included in
+the model. Click <code>Save choices</code> in the left side panel to
+save alternative choice table.</p>
+<p>See the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.3cqmetx" class="external-link">FishSET
+User Manual</a> for more information on defining alternative choices and
+model development.</p>
 </div>
 <div class="section level4">
 <h4 id="expected-catchrevenue">Expected Catch/Revenue<a class="anchor" aria-label="anchor" href="#expected-catchrevenue"></a>
@@ -892,94 +287,46 @@ for more details.</p>
 <p>The <code>Expected Catch/Revenue</code> tab is used to calculate the
 expected catch or revenue matrix for alternative fishing zones (zones
 where fishing could have happened but did not). A catch variable is
-required. Include a price or value variable if you want expected
-revenue.</p>
-<p>Steps:</p>
-<ol style="list-style-type: decimal">
-<li><p>Select catch variable.</p></li>
-<li><p>Select price or value variable if calculating expected
-revenue.<br>
-Price is multiplied against catch to produce revenue. If a revenue
-variable exists in the dataset, it can be used for the Catch
-Variable.<br>
-This matrix is required to run the conditional logit model .</p></li>
-<li>
-<p>Decide whether to account for potential that catch differs
-between groups.</p>
-<ul>
-<li>Select <code>Fleet (no group)</code> or column name containing group
-identifier.</li>
-</ul>
-</li>
-<li>
-<p>Decide whether temporal patterns in catch should be taken into
-account.</p>
-<ul>
-<li>
-<p>If taking temporal patterns into account select:</p>
-<ul>
-<li>Temporal variable</li>
-<li>Time lags</li>
-<li>Window for averaging</li>
-<li>Populate other options</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>Decide how to hand empty expected catch values.</p></li>
-<li><p>Press <code>Run expected catch/revenue function</code>.</p></li>
-</ol>
-<p>Four expected catch or expected revenue matrices will be generated
-and saved to the FishSET database based on <em>predefined window size
-and lags in days and years</em> and all other user-defined
-arguments:</p>
-<ul>
-<li>Selected temporal arguments.</li>
-<li>Expected catch/revenue based the previous two days (short-term)
-catch.</li>
-<li>Expected catch/revenue based the previous seven days (medium-term)
-catch.</li>
-<li>Expected catch/revenue based on the previous years (long-term)
-catch.</li>
-</ul>
-<p>See the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.3cqmetx" class="external-link">Data</a>
-section of the <em>Model Development</em> chapter of the FishSET Manual
-for more details.</p>
+required, and include a price or value variable if you want expected
+revenue. Select input options in the left side panel. In addition, users
+can select from a number of default matrices in the main panel
+(checkboxes for these options are at the bottom of the page).</p>
+<p>See the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.3cqmetx" class="external-link">FishSET
+User Manual</a> for more information about how expected catch/revenue is
+calculated and model development.</p>
 </div>
 <div class="section level4">
 <h4 id="models">Models<a class="anchor" aria-label="anchor" href="#models"></a>
 </h4>
-<p>The <code>Models</code> tab is used to define model parameters, run
-models, and compare output.</p>
-<p>Steps:</p>
-<ol style="list-style-type: decimal">
-<li>Select a likelihood function.</li>
-<li>Select optimization method.</li>
-<li>Select variables to include in the model.</li>
-<li>Select optimization methods.</li>
-<li>Select initial parameter values.<br>
-Initial parameter values can be defined or come from parameter values
-from a previous model. The number of required parameter values will auto
-populate.<br>
-See function documentation for order of parameters.<br>
-Parameter starting values should be within the bounds of the variable
-data.</li>
-<li>Press <code>Save model and add new model</code>.<br>
-The model will appear in the table.</li>
-<li>If more models are to be defined, repeat the above steps until all
-have been specified.<br>
-Models can be removed using the table.</li>
-<li>When done specifying models, press <code>Run model(s)</code>.</li>
-</ol>
-<p>The models may take several minutes to run.<br>
-When the models are completed, the tables in the
-<code>Compare models</code> subtab will be populated.<br>
-Use these tables to assess convergence, fit, and select the preferred
-model for future analyses .</p>
-<p>See the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.3cqmetx" class="external-link">Model
-Development</a> section of the FishSET manual for details on model
-choices, including likelihood functions, optimization method, and
-initial parameter estimates.</p>
+<p>The <code>Models</code> tab is used to design/run discrete choice
+models, compare outputs between models, and quantify model robustness.
+FishSET includes default likelihood functions to chose from. Conditional
+logit models require an expected catch matrix. EPMs require price
+data.</p>
+<p>See the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.3cqmetx" class="external-link">FishSET
+User Manual</a> for more information on model development.</p>
+</div>
+<div class="section level4">
+<h4 id="policy">Policy<a class="anchor" aria-label="anchor" href="#policy"></a>
+</h4>
+<div class="section level5">
+<h5 id="zone-closure">Zone Closure<a class="anchor" aria-label="anchor" href="#zone-closure"></a>
+</h5>
+<p>The <code>Zone closure</code> tab is used to design spatial closures,
+and required for the <code>Run Policy</code> tab. Simply select which
+zones to close and provide a name for the scenario.</p>
+</div>
+<div class="section level5">
+<h5 id="run-policy">Run Policy<a class="anchor" aria-label="anchor" href="#run-policy"></a>
+</h5>
+<p>The <code>Run Policy</code> tab is used to simulate redistributed
+fishing effort and calculate welfare changes following implementation of
+the policy scenarios. Select input options from the left side panel -
+including the number of simulations (“Betadraws”) to run.</p>
+<p>For more information on simulating policy scenarios in FishSET see
+the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.3q5sasy" class="external-link">User
+Manual</a>.</p>
+</div>
 </div>
 <div class="section level4">
 <h4 id="bookmark-choices">Bookmark Choices<a class="anchor" aria-label="anchor" href="#bookmark-choices"></a>
@@ -987,20 +334,7 @@ initial parameter estimates.</p>
 <p>The <code>Bookmark Choices</code> tabs is used to store choices and
 actions made in the FishSET GUI and enable choices and actions to be
 reloaded at a later date.</p>
-<div class="section level5">
-<h5 id="bookmark-subtab">Bookmark subtab<a class="anchor" aria-label="anchor" href="#bookmark-subtab"></a>
-</h5>
-<p>Restore selections made in the FishSET GUI.<br>
-Data will not be reloaded. Got to the <em>Upload Data</em> tab to load
-data.<br>
-Previous actions, such as deriving variables, will not be rerun .</p>
-</div>
-<div class="section level5">
-<h5 id="rerun-logged-function-subtab">Rerun logged function subtab<a class="anchor" aria-label="anchor" href="#rerun-logged-function-subtab"></a>
-</h5>
-<p>Rerun previous actions, including loading data, data corrections, and
-modifying or deriving variables.</p>
-</div>
+<p>NOTE: This tab is still underdevelopment (7/17/2024)</p>
 </div>
 </div>
 <div class="section level3">
@@ -1010,46 +344,9 @@ modifying or deriving variables.</p>
 process of writing a reproducible report and inserting output from the
 FishSET GUI into the report.</p>
 <p>This report cannot be written in the FishSET GUI. It must be opened
-in the R console.</p>
-<p>Steps:</p>
-<ol style="list-style-type: decimal">
-<li><p>Open RStudio</p></li>
-<li>
-<p>Locate the report template file location.</p>
-<ul>
-<li><dl>
-<dt>In the RStudio Console paste</dt>
-<dd>
-<p><code>system.file('rmd', 'report_template.Rmd', package='FishSET')</code></p>
-</dd>
-</dl></li>
-</ul>
-</li>
-<li>
-<p>Open the template</p>
-<ul>
-<li>Press Ctrl+O in RStudio or click File -&gt; Open File.</li>
-<li>Browse to file and click Open.</li>
-</ul>
-</li>
-<li>
-<p>Resave the report template * Click <code>File</code>.</p>
-<ul>
-<li>Select <code>Save As...</code>.</li>
-<li>Provide an informative project-specific name.</li>
-</ul>
-</li>
-<li>
-<p>Begin writing</p>
-<ul>
-<li>The template provides guidance and how to format and build (knit)
-the document.</li>
-<li>Example functions to insert figures, tables, and notes are
-provided.</li>
-</ul>
-</li>
-</ol>
-<p>Details on using the report template is in the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.3q5sasy" title="Reporting" class="external-link">Reporting</a> chapter of the FishSET Manual.</p>
+and edited in RStudio. Locate the template in the FishSETFolder &gt;
+[project folder] &gt; doc subdirectory. Instructions for filling in the
+report are included in the template file.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

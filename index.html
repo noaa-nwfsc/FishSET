@@ -60,7 +60,14 @@
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="search.json" id="search-input" placeholder="Search for" autocomplete="off">
 </form>
 
-      <ul class="navbar-nav"></ul>
+      <ul class="navbar-nav">
+<li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/noaa-nwfsc/FishSET/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 
     
@@ -85,8 +92,11 @@
 </h2>
 <p>Run the following lines of code in R:</p>
 <pre><code><span><span class="co"># Install the package (see troubleshooting section below if this doesn't work)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span></span>
-<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>download.file.method <span class="op">=</span> <span class="st">"wininet"</span><span class="op">)</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"noaa-nwfsc/FishSET"</span><span class="op">)</span></span></code></pre>
+<p>If the above does not work try:</p>
+<pre><code><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"noaa-nwfsc/FishSET"</span><span class="op">)</span></span></code></pre>
 </div>
 <div class="section level2">
@@ -127,7 +137,7 @@ Error in utils::download.file(url, path, method = method, quiet = quiet…
 </details><details><summary>
 Error in dyn.load(file, DLLpath = DLLpath, …): unable to load shared object …
 </summary>
-This error message indicates that the filepath to a necessary package is ‘corrupted’ and cannot load properly. To fix this issue, reinstall the package indicated in the error message using <code>install.packages([Name of package])</code> and restart the R session. If the issue persists, try uninstalling and reinstalling R/RStudio. If both options fail, report the<a href="https://gitlab-afsc.fisheries.noaa.gov/bryce.mcmanus/FishSET_RPackage/-/issues" class="external-link">issue</a>.
+This error message indicates that the filepath to a necessary package is ‘corrupted’ and cannot load properly. To fix this issue, reinstall the package indicated in the error message using <code>install.packages([Name of package])</code> and restart the R session. If the issue persists, try uninstalling and reinstalling R/RStudio. If both options fail, report the issue (<a href="https://github.com/noaa-nwfsc/FishSET/issues" class="external-link uri">https://github.com/noaa-nwfsc/FishSET/issues</a>).
 </details><details><summary>
 Error: failed to lock directory…
 </summary><p>This error could appear when your last package installation was interrupted, when updated you version of R, and probably other situations that we are not aware of.</p>
@@ -153,8 +163,8 @@ Error: failed to lock directory…
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/noaa-nwfsc/FishSET" class="external-link">FishSET GitHub Repo</a></li>
-<li><a href="https://github.com/noaa-nwfsc/FishSET/issues" class="external-link">Report an issue</a></li>
+<li><a href="https://github.com/noaa-nwfsc/FishSET/" class="external-link">Browse source code</a></li>
+<li><a href="https://pkgname.bugtracker.url" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
