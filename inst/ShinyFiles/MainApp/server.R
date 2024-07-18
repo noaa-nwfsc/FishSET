@@ -3049,10 +3049,7 @@ server = function(input, output, session) {
   })
   
   
-  ##Filtering options
-  #output_table())
-  
-  
+  # Filtering options
   observeEvent(input$NA_Filter_all, {
     
     na_names <- qaqc_helper(values$dataset, "NA", output = "names")
@@ -3232,30 +3229,29 @@ server = function(input, output, session) {
   })
   
   spat_qaqc_r <- reactiveValues(flag = FALSE, c_tab = NULL)
-  spat_qaqc <- reactiveValues(out = NULL)
+  spat_qaqc <- reactiveValues(out = NULL, out_df = NULL)
   
   # run spatial checks 
   observeEvent(input$runSpatQAQC, {
     withProgress({
-    q_test <- quietly_test(spatial_qaqc)
-    
-    out <- q_test(dat = values$dataset, project = project$name, spat = spatdat$dataset, 
-                  lon.dat = input$spat_qaqc_lon, lat.dat = input$spat_qaqc_lat,
-                  date = input$spat_qaqc_date, group = input$spat_qaqc_grp, epsg = input$spat_qaqc_epsg)
-    
-    if (!is_value_empty(out)) {
+      q_test <- quietly_test(spatial_qaqc)
       
-      flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY")
-      spat_qaqc_r$flag <- vapply(flag_nms, function(x) x %in% names(out$dataset), logical(1))
+      out <- q_test(dat = values$dataset, project = project$name, spat = spatdat$dataset, 
+                    lon.dat = input$spat_qaqc_lon, lat.dat = input$spat_qaqc_lat,
+                    date = input$spat_qaqc_date, group = input$spat_qaqc_grp, epsg = input$spat_qaqc_epsg)
       
-      values$dataset <- subset(out$dataset, select=-c(YEAR)) # remove 'YEAR' from table
-      out$dataset <- NULL
-      
-      qaqc_out_proj$spat <- project$name
-      
-      # out
-      spat_qaqc$out <- out
-    }
+      if (!is_value_empty(out)) {
+        
+        flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY")
+        spat_qaqc_r$flag <- vapply(flag_nms, function(x) x %in% names(out$dataset), logical(1))
+        
+        spat_qaqc$out_df <- subset(out$dataset, select=-c(YEAR)) # remove 'YEAR' from table
+        out$dataset <- NULL
+        
+        qaqc_out_proj$spat <- project$name
+        
+        spat_qaqc$out <- out
+      }
     },
     message = "Running checks: ",
     detail = 'Can take up to a few seconds to run.')
@@ -3308,11 +3304,11 @@ server = function(input, output, session) {
   output$spatQAQC_correctUI <- renderUI({
     
     if (any(spat_qaqc_r$flag)) {
-      
       tagList(
         h6("Spatial correction options:"),
-        p("1. The table to the right can be used to edit spatial columns as needed. Note that the table can be filtered (e.g., show only rows where ON_LAND = true)."),
+        p("1. The table to the right can be used to view data and filter the view. Note that edits to this table will not change the primary data table."),
         p("2. Use the inputs below to change signs of latitude or longitude. Running spatial corrections will also convert lat, lon coordinates to decimal degrees."),
+        p("3. If data are outside of spatial bounds or on land, options to remove these from the dataset will be available below"),
         
         selectInput('spat_filter_lat', 'Change sign for latitude direction', 
                     choices=c('None', 'All values'='all', 'Positve to negative'='neg', 
@@ -3329,18 +3325,27 @@ server = function(input, output, session) {
                      convert lat and lon coordinates to decimal degress if not already in this format",
           type = "info", size = "medium", position = "top"),
         
-        if ("NEAREST_ZONE_DIST_M" %in% names(values$dataset)) {
-          
+        if ("NEAREST_ZONE_DIST_M" %in% names(spat_qaqc$out_df)) {
           tagList(
             actionButton("dist_remove_bttn", "Remove points",
                          style = "color: white; background-color: #0073e6;"),
+            
             numericInput("dist_remove", "Distance (m) from nearest zone",
                          value = 100, min = 1),
+            
             sliderInput("dist_slider", "",
                         min = 1,
-                        max = ceiling(max(values$dataset$NEAREST_ZONE_DIST_M, na.rm = TRUE)),
+                        max = ceiling(max(spat_qaqc$out_df$NEAREST_ZONE_DIST_M, na.rm = TRUE)),
                         value = 100))
+        },
+        
+        if ("ON_LAND" %in% names(spat_qaqc$out_df)){
+          tagList(
+            actionButton("land_remove_bttn", "Remove obs on land",
+                         style = "color: white; background-color: #0073e6;")
+          )
         }
+          
       )
     }
   })
@@ -3382,7 +3387,6 @@ server = function(input, output, session) {
                       c(input$spat_qaqc_lon, input$spat_qaqc_lat))
     
     spat_qaqc_r$disable <- which(!(seq_along(values$dataset) %in% latlon))
-    #
     
   })
   
@@ -3391,11 +3395,22 @@ server = function(input, output, session) {
     
     if (any(spat_qaqc_r$flag)) {
       
-      if ("NEAREST_ZONE_DIST_M" %in% names(values$dataset)) {
+      if ("NEAREST_ZONE_DIST_M" %in% names(spat_qaqc$out_df)) {
         
-        values$dataset$NEAREST_ZONE_DIST_M >= input$dist_slider
+        spat_qaqc$out_df$NEAREST_ZONE_DIST_M >= input$dist_slider
         
       } else FALSE
+    }
+  })
+  
+  # Land filter
+  land_filter <- reactive({
+    if (any(spat_qaqc_r$flag)) {
+      
+      if("ON_LAND" %in% names(spat_qaqc$out_df)) {
+        
+        cat(file = stderr(), which(spat_qaqc$out_df$ON_LAND))
+      }
     }
   })
   
@@ -3405,15 +3420,15 @@ server = function(input, output, session) {
     if (any(spat_qaqc_r$flag)) {
       
       if (input$select_spat_tab == "out_zone") {
-          
-        if (sum(dist_filter()) > 0) values$dataset[dist_filter(), c(input$spat_qaqc_ID, input$spat_qaqc_date, input$spat_qaqc_lat,
+        
+        if (sum(dist_filter()) > 0) spat_qaqc$out_df[dist_filter(), c(input$spat_qaqc_ID, input$spat_qaqc_date, input$spat_qaqc_lat,
                                                                     input$spat_qaqc_lon, "ON_LAND", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")]
       } else { # "all"
         
         new_cols <- c("ON_LAND", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
         new_cols <- new_cols[which(spat_qaqc_r$flag)]
         
-        values$dataset[,c(input$spat_qaqc_ID, input$spat_qaqc_lat,
+        spat_qaqc$out_df[,c(input$spat_qaqc_ID, input$spat_qaqc_lat,
                           input$spat_qaqc_lon, new_cols)]
       }
     }
@@ -3426,7 +3441,6 @@ server = function(input, output, session) {
   
   # Correction table
   output$spat_correct_tab <- DT::renderDT({
-    
     c_tab()
   },
   
@@ -3464,7 +3478,7 @@ server = function(input, output, session) {
   observeEvent(sum(dist_filter()), {
     
     updateActionButton(session, "dist_remove_bttn",
-                       label = paste("Remove", sum(dist_filter()), "points"))
+                       label = paste("Remove", sum(dist_filter()), "point(s) out of spatial bounds"))
   })
   
   # remove points based on distance
@@ -3493,6 +3507,7 @@ server = function(input, output, session) {
     nr <- sum(dist_filter())
     
     values$dataset <- values$dataset[!dist_filter(), ]
+    spat_qaqc$out_df <- spat_qaqc$out_df[!dist_filter(), ] # need to also update the reactive
     
     removeModal()
     
@@ -3507,6 +3522,19 @@ server = function(input, output, session) {
                                          "observations in total."))
     
   }, ignoreInit = TRUE)
+  
+  # remove points on land
+  observeEvent(input$land_remove_bttn, {
+    
+    land_remove_i <- which(spat_qaqc$out_df$ON_LAND)
+    
+    if(length(land_remove_i) > 0){
+      values$dataset <- values$dataset[-land_remove_i,] # change main data table
+      spat_qaqc$out_df <- spat_qaqc$out_df[-land_remove_i,] # need to update the reactive  
+    }
+    
+    showNotification(paste0(length(land_remove_i), " points removed"), type = "message")
+  })
   
   # update Lat Lon
   observeEvent(input$spat_correct_tab_cell_edit, {
@@ -3546,6 +3574,8 @@ server = function(input, output, session) {
                lon = input$spat_qaqc_lon, latsign = input$spat_filter_lat,
                lonsign = input$spat_filter_lon, replace = TRUE)
     }
+    
+    showNotification("Spatial corrections completed.", type = "message")
   })
   
   
