@@ -3306,8 +3306,9 @@ server = function(input, output, session) {
     if (any(spat_qaqc_r$flag)) {
       tagList(
         h6("Spatial correction options:"),
-        p("1. The table to the right can be used to edit spatial columns as needed. Note that the table can be filtered (e.g., show only rows where ON_LAND = true)."),
+        p("1. The table to the right can be used to view data and filter the view. Note that edits to this table will not change the primary data table."),
         p("2. Use the inputs below to change signs of latitude or longitude. Running spatial corrections will also convert lat, lon coordinates to decimal degrees."),
+        p("3. If data are outside of spatial bounds or on land, options to remove these from the dataset will be available below"),
         
         selectInput('spat_filter_lat', 'Change sign for latitude direction', 
                     choices=c('None', 'All values'='all', 'Positve to negative'='neg', 
@@ -3328,9 +3329,9 @@ server = function(input, output, session) {
           tagList(
             actionButton("dist_remove_bttn", "Remove points",
                          style = "color: white; background-color: #0073e6;"),
+            
             numericInput("dist_remove", "Distance (m) from nearest zone",
                          value = 100, min = 1),
-            
             
             sliderInput("dist_slider", "",
                         min = 1,
@@ -3386,7 +3387,6 @@ server = function(input, output, session) {
                       c(input$spat_qaqc_lon, input$spat_qaqc_lat))
     
     spat_qaqc_r$disable <- which(!(seq_along(values$dataset) %in% latlon))
-    #
     
   })
   
@@ -3397,7 +3397,7 @@ server = function(input, output, session) {
       
       if ("NEAREST_ZONE_DIST_M" %in% names(spat_qaqc$out_df)) {
         
-        values$dataset$NEAREST_ZONE_DIST_M >= input$dist_slider
+        spat_qaqc$out_df$NEAREST_ZONE_DIST_M >= input$dist_slider
         
       } else FALSE
     }
@@ -3441,7 +3441,6 @@ server = function(input, output, session) {
   
   # Correction table
   output$spat_correct_tab <- DT::renderDT({
-    
     c_tab()
   },
   
@@ -3479,7 +3478,7 @@ server = function(input, output, session) {
   observeEvent(sum(dist_filter()), {
     
     updateActionButton(session, "dist_remove_bttn",
-                       label = paste("Remove", sum(dist_filter()), "points"))
+                       label = paste("Remove", sum(dist_filter()), "point(s) out of spatial bounds"))
   })
   
   # remove points based on distance
@@ -3508,6 +3507,7 @@ server = function(input, output, session) {
     nr <- sum(dist_filter())
     
     values$dataset <- values$dataset[!dist_filter(), ]
+    spat_qaqc$out_df <- spat_qaqc$out_df[!dist_filter(), ] # need to also update the reactive
     
     removeModal()
     
@@ -3527,10 +3527,13 @@ server = function(input, output, session) {
   observeEvent(input$land_remove_bttn, {
     
     land_remove_i <- which(spat_qaqc$out_df$ON_LAND)
-    values$dataset <- values$dataset[-land_remove_i,]
+    
+    if(length(land_remove_i) > 0){
+      values$dataset <- values$dataset[-land_remove_i,] # change main data table
+      spat_qaqc$out_df <- spat_qaqc$out_df[-land_remove_i,] # need to update the reactive  
+    }
     
     showNotification(paste0(length(land_remove_i), " points removed"), type = "message")
-    
   })
   
   # update Lat Lon
@@ -3571,6 +3574,8 @@ server = function(input, output, session) {
                lon = input$spat_qaqc_lon, latsign = input$spat_filter_lat,
                lonsign = input$spat_filter_lon, replace = TRUE)
     }
+    
+    showNotification("Spatial corrections completed.", type = "message")
   })
   
   
