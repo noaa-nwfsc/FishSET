@@ -3304,7 +3304,6 @@ server = function(input, output, session) {
   output$spatQAQC_correctUI <- renderUI({
     
     if (any(spat_qaqc_r$flag)) {
-      
       tagList(
         h6("Spatial correction options:"),
         p("1. The table to the right can be used to edit spatial columns as needed. Note that the table can be filtered (e.g., show only rows where ON_LAND = true)."),
@@ -3325,18 +3324,27 @@ server = function(input, output, session) {
                      convert lat and lon coordinates to decimal degress if not already in this format",
           type = "info", size = "medium", position = "top"),
         
-        if ("NEAREST_ZONE_DIST_M" %in% names(values$dataset)) {
-          
+        if ("NEAREST_ZONE_DIST_M" %in% names(spat_qaqc$out_df)) {
           tagList(
             actionButton("dist_remove_bttn", "Remove points",
                          style = "color: white; background-color: #0073e6;"),
             numericInput("dist_remove", "Distance (m) from nearest zone",
                          value = 100, min = 1),
+            
+            
             sliderInput("dist_slider", "",
                         min = 1,
-                        max = ceiling(max(values$dataset$NEAREST_ZONE_DIST_M, na.rm = TRUE)),
+                        max = ceiling(max(spat_qaqc$out_df$NEAREST_ZONE_DIST_M, na.rm = TRUE)),
                         value = 100))
+        },
+        
+        if ("ON_LAND" %in% names(spat_qaqc$out_df)){
+          tagList(
+            actionButton("land_remove_bttn", "Remove obs on land",
+                         style = "color: white; background-color: #0073e6;")
+          )
         }
+          
       )
     }
   })
@@ -3387,11 +3395,22 @@ server = function(input, output, session) {
     
     if (any(spat_qaqc_r$flag)) {
       
-      if ("NEAREST_ZONE_DIST_M" %in% names(values$dataset)) {
+      if ("NEAREST_ZONE_DIST_M" %in% names(spat_qaqc$out_df)) {
         
         values$dataset$NEAREST_ZONE_DIST_M >= input$dist_slider
         
       } else FALSE
+    }
+  })
+  
+  # Land filter
+  land_filter <- reactive({
+    if (any(spat_qaqc_r$flag)) {
+      
+      if("ON_LAND" %in% names(spat_qaqc$out_df)) {
+        
+        cat(file = stderr(), which(spat_qaqc$out_df$ON_LAND))
+      }
     }
   })
   
@@ -3503,6 +3522,16 @@ server = function(input, output, session) {
                                          "observations in total."))
     
   }, ignoreInit = TRUE)
+  
+  # remove points on land
+  observeEvent(input$land_remove_bttn, {
+    
+    land_remove_i <- which(spat_qaqc$out_df$ON_LAND)
+    values$dataset <- values$dataset[-land_remove_i,]
+    
+    showNotification(paste0(length(land_remove_i), " points removed"), type = "message")
+    
+  })
   
   # update Lat Lon
   observeEvent(input$spat_correct_tab_cell_edit, {
