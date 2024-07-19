@@ -5405,14 +5405,20 @@ server = function(input, output, session) {
     req(input$altc_zoneID)
     
     dat <- zone_freq()
+    
     z_sym <- rlang::sym(input$altc_zoneID)
     
-    ggplot2::ggplot(dat[dat$include, ]) +
-      ggplot2::geom_col(ggplot2::aes(x=!!z_sym, y = n)) + 
-      fishset_theme()
+    tmp <- dat[which(dat$include),]
+    
+    ggplot2::ggplot(tmp) +
+      ggplot2::geom_col(ggplot2::aes(x=as.factor(!!z_sym), y = n)) +
+      ggplot2::labs(x = "Zone ID", y = "n") +
+      ggplot2::scale_y_continuous(expand = c(0,0)) +
+      fishset_theme() +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
   })
   
-  output$altc_zone_plot <- renderPlot(zoneIDNumbers_dat())
+  output$altc_zone_plot <- renderPlot(zoneIDNumbers_dat(), width = 400, height = 300)
   
   # map showing which zones will be included
   output$zone_include_plot <- renderPlot({
@@ -5428,7 +5434,7 @@ server = function(input, output, session) {
                        ggplot2::aes(fill = include), color = "black", alpha = .8) +
       ggplot2::scale_fill_manual(breaks = c(TRUE, FALSE), values=c('green', 'grey20')) + 
       fishset_theme()
-  })
+  }, width = 350, height = 400)
   
   # Save alternative choice 
   observeEvent(input$altc_save, {
