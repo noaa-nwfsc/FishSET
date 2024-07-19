@@ -223,7 +223,13 @@ ui = function(request){
                                                  p("2. Enter name of project. If uploading from FishSET database, projects will appear after 'FishSET database' is selected."),
                                                  p("3. Select files to upload."),
                                                  p("4. Click on 'Load data' to create FishSET database and upload files into tables."),
-                                                 actionButton(inputId = 'loadDat',label ="Load data", class = "btn-primary"),
+                                                 splitLayout(
+                                                 actionButton(inputId = 'loadDat',label ="Load data", class = "btn-primary",width = "100%"),
+                                                 actionButton("refresh", "Refresh data",
+                                                              class = "btn-primary",
+                                                              icon = icon('sync', verify_fa = FALSE),
+                                                              width = "100%")
+                                                  ),
 
                                                  tags$br(), 
                                                 
@@ -345,15 +351,15 @@ ui = function(request){
     bslib::nav_panel("Data Quality Evaluation", value = "qaqc",
                      bslib::page_sidebar(
                        sidebar = bslib::sidebar( width = 550,
-                                                 splitLayout(
+                                               #  splitLayout(
                                                  actionButton('saveData','Save data to FishSET database',
                                                               width = "100%",
                                                               class = "btn-primary"),
-                                                 actionButton("refresh1", "Refresh data", 
-                                                              class = "btn-primary",
-                                                              icon = icon('sync', verify_fa = FALSE),
-                                                              width = "100%")
-                                                 ),
+                                                 # actionButton("refresh1", "Refresh data", 
+                                                 #              class = "btn-primary",
+                                                 #              icon = icon('sync', verify_fa = FALSE),
+                                                 #              width = "100%")
+                                               #  ),
                                                  splitLayout(
                                                  tabPlotUI("qaqc", type = "tab_plot")),
                                                  
@@ -375,11 +381,11 @@ ui = function(request){
                                                                   actionButton('NAN_Filter_all', 'Remove all NaNs', class = "btn-secondary"),
                                                                   actionButton('NAN_Filter_mean', 'Replace NaNs with mean value', class = "btn-secondary")
                                                  ),
-                                                 conditionalPanel("input.checks == 'Remove variables'",
-                                                                  uiOutput('remove_vars'),
-                                                                  actionButton("removeVars", "Remove variables", class = "btn-secondary")
-
-                                                 ),
+                                                 # conditionalPanel("input.checks == 'Remove variables'",
+                                                 #                  uiOutput('remove_vars'),
+                                                 #                  actionButton("removeVars", "Remove variables", class = "btn-secondary")
+                                                 # 
+                                                 # ),
                                                  uiOutput('outlier_column'),
                                                  uiOutput('outlier_subset_method'),
                                                  uiOutput('outlier_subset'),
@@ -444,6 +450,12 @@ ui = function(request){
                        ),#END SIDEBAR LAYOUT             
                        tags$br(),
                        htmlOutput("Case"),
+                       conditionalPanel("input.checks == 'Remove variables'",
+                                        uiOutput('remove_vars'),
+                                          actionButton("removeVars", "Remove variables", class = "btn-secondary", width = "25%")
+                                          
+                                        
+                       ),
                        conditionalPanel("input.checks == 'Variable class'",
                                         DT::dataTableOutput('changetable') ),
                        conditionalPanel("input.checks=='Summary table'",
@@ -509,11 +521,11 @@ ui = function(request){
                                                                  
                                                                  ),
                                                                  
-                                                                 actionButton("refresh", "Refresh data", 
-                                                                              width = "100%",
-                                                                              class = "btn-primary"
-                                                                
-                                                                 ),
+                                                                 # actionButton("refresh", "Refresh data", 
+                                                                 #              width = "100%",
+                                                                 #              class = "btn-primary"
+                                                                 # 
+                                                                 # ),
                                                                  
                                                                  conditionalPanel("input.SelectDatasetExplore=='main' || input.SelectDatasetExplore=='grid'",
                                                                                   selectInput('plot_table', 'View data table or plots', 
@@ -646,16 +658,8 @@ ui = function(request){
                                                                  splitLayout(
                                                                  tabPlotUI("anal")),
                                                                  
-                                                                 splitLayout(modSaveUI("anal"),
-                                                                 
-                                                                 
-                                                                 actionButton("refresh2", "Refresh data", 
-                                                                              width = "100%",
-                                                                              icon = icon('sync', verify_fa = FALSE),
-                                                                              class = "btn-primary"
-                                                                 )),
-                                                                 
-                                                                 
+                                                                   modSaveUI("anal"),
+                                                              
                                                                  selectInput('corr_reg','Show correlations or simple linear regression', 
                                                                              choices=c('Correlation','Regression'), selected='Correlation'),
                                                                  
@@ -728,16 +732,14 @@ ui = function(request){
     bslib::nav_panel(title = 'Compute New Variables', id='new',#value
                      bslib::page_sidebar(
                        sidebar = bslib::sidebar( width = 550,
-                                                 splitLayout(
                                                    actionButton('saveDataNewVars','Save data to FishSET database',
                                                                 width = "100%",
                                                                 class = "btn-primary"),
 
                                                  # downloadLink('downloadplotNew', label=''),
                                                  # actionButton('downloadplotNew', label='Save plot to folder'),
-                                                 actionButton("refreshNew", "Refresh data",
-                                                              width = "100%",class = "btn-primary")),
-                                                 #tags$br(),
+
+                                                 # #tags$br(),
                                                  
                                                  selectInput('VarCreateTop', "Create variables based on", multiple=FALSE,  
                                                              choices=c('Nominal ID', 'Arithmetic functions', 
@@ -995,7 +997,7 @@ ui = function(request){
                                                                                    uiOutput("fleetSaveOutput1"), # "Save table..." and "Save plot..."
                                                                                    tags$br(),
                                                                                    
-                                                                                   refreshUI("fleet"), # "Refresh data"
+                                                                                  # refreshUI("fleet"), # "Refresh data"
                                                                                    tags$br(),
                                                                                    
                                                                                    selectInput("assign_fun", label = "Select task",
@@ -1054,7 +1056,6 @@ ui = function(request){
                                                                                    uiOutput("fleetSaveOutput2"), # "Save table..." and "Save plot..."
                                                                                    tags$br(),
                                                                                    
-                                                                                   refreshUI("fleet_summary"), # "Refresh data"
                                                                                    tags$br(),
                                                                                    
                                                                                    selectInput("fleet_fun", "Select function",
@@ -1097,7 +1098,6 @@ ui = function(request){
                                                                                         "Other actions", icon = bsicons::bs_icon("menu-app"),                                                                                    
                                                                                    noteUI("fleet_summary"),
                                                                                    
-                                                                                   # RexpressionUI("fleet")
                                                                                    textInput("exprFleetSummary", label = "Enter an R expression",
                                                                                              value = "values$dataset"),
                                                                                    actionButton("runFleetSummary", "Run", class = "btn-success"),
@@ -1153,15 +1153,7 @@ ui = function(request){
                                                  
                                                  actionButton('altc_save','Save choices', class= "btn-primary"), 
 
-                                                 
-                                                 #  tags$br(), tags$br(),
-                                                 
-                                                 actionButton("refreshZ", "Refresh data", icon = icon('sync', verify_fa = FALSE),
-                                                             class= "btn-primary", width = "100%" 
-                                                 ),
-                                                 
-                                                 #tags$br(), tags$br(),
-                                                 
+
                                                  bslib::accordion(open = FALSE,
                                                                   bslib::accordion_panel(
                                                                     "Other actions", icon = bsicons::bs_icon("menu-app"), 
@@ -1212,10 +1204,6 @@ ui = function(request){
                                        bslib::nav_panel(title = 'Create expected catch', id = 'exp_create', 
                                                         bslib::page_sidebar(
                                                           sidebar = bslib::sidebar(width = 550,
-                                                                                   
-                                                                                   actionButton("refreshEC", "Refresh data", 
-                                                                                                icon = icon('sync', verify_fa = FALSE),
-                                                                                                class = "btn-primary"),
                                                                                    
                                                                                    tags$br(),
                                                                                    

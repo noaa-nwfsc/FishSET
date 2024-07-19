@@ -424,22 +424,22 @@ saveDataTableServ <- function(id, values, project) {
   })
 }
 
-refreshServ <- function(id, values, project) {
-  
-  moduleServer(id, function(input, output, session) {
-    # TODO: simplify/clean this
-    observeEvent(input$refresh, {
-      req(project)
-      tmp_tabs <- tables_database(project())[grep(paste0(project(), 'MainDataTable\\d+'), tables_database(project()))]
-      tab_dates1 <- unlist(stringi::stri_extract_all_regex(tmp_tabs, "\\d{6,}")) # all dates following MainDataTable
-      tab_dates2 <- max(tab_dates1) # max date
-      tmp_tabs <- tmp_tabs[which(tab_dates1 == tab_dates2)] # get the latest table
-      
-      values$dataset <- table_view(tmp_tabs, project())
-      showNotification("Data refreshed", type = 'message', duration = 10)
-    }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-  })
-}
+# refreshServ <- function(id, values, project) {
+#   
+#   moduleServer(id, function(input, output, session) {
+#     # TODO: simplify/clean this
+#     observeEvent(input$refresh, {
+#       req(project)
+#       tmp_tabs <- tables_database(project())[grep(paste0(project(), 'MainDataTable\\d+'), tables_database(project()))]
+#       tab_dates1 <- unlist(stringi::stri_extract_all_regex(tmp_tabs, "\\d{6,}")) # all dates following MainDataTable
+#       tab_dates2 <- max(tab_dates1) # max date
+#       tmp_tabs <- tmp_tabs[which(tab_dates1 == tab_dates2)] # get the latest table
+#       
+#       values$dataset <- table_view(tmp_tabs, project())
+#       showNotification("Data refreshed", type = 'message', duration = 10)
+#     }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+#   })
+# }
 
 
 closeAppServ <-  function(id) {

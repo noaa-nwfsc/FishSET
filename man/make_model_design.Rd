@@ -18,8 +18,6 @@ make_model_design(
   expectcatchmodels = list("all"),
   startloc = NULL,
   polyn = NULL,
-  spat = NULL,
-  spatID = NULL,
   crs = NULL,
   outsample = FALSE,
   CV_dat = NULL
@@ -95,16 +93,6 @@ location vector.}
 
 \item{polyn}{Numeric, correction polynomial degree. Required for
 \code{\link[=logit_correction]{logit_correction()}} likelihood.}
-
-\item{spat}{A spatial data file containing information on fishery management
-or regulatory zones boundaries. Only required if \code{alt_var = "nearest point"}
-was used in the alternative choice matrix (see \code{\link[=create_alternative_choice]{create_alternative_choice()}}).
-Defaults to \code{NULL}. This should be the same spatial file used to assign
-observations to zones.}
-
-\item{spatID}{Variable in \code{spat} that identifies the individual areas or zones.
-Only required if \code{alt_var = "nearest point"} was used in the alternative
-choice matrix (see \code{\link[=create_alternative_choice]{create_alternative_choice()}}). Defaults to \code{NULL}.}
 
 \item{crs}{coordinate reference system to be assigned when creating the
 distance matrix. Passed on to \code{\link[=create_dist_matrix]{create_dist_matrix()}}.}
