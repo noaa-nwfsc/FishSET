@@ -1081,6 +1081,7 @@ fleet_tableUI <- function(id) {
     p("To edit the definition table double-click on the cell. Press Ctrl+Enter 
       to save changes."),
     p(strong("5)"), "Click the \"Save table to FishSET database\" button to save the table."),
+    p(strong("6)"), "In the \"Select task\" dropdown menu above, select \"Fleet assignment\""),
     
     tags$br(),
     
