@@ -15,7 +15,7 @@ create_alternative_choice(
   zoneID,
   zone.cent.name = NULL,
   fish.cent.name = NULL,
-  spat = NULL,
+  spatname = NULL,
   spatID = NULL,
   outsample = FALSE
 )
@@ -96,7 +96,7 @@ create a centroid table from columns found in \code{dat}.}
 See \code{\link[=create_centroid]{create_centroid()}} to create centroid tables or \code{\link[=centroid_to_fsdb]{centroid_to_fsdb()}} to
 create a centroid table from columns found in \code{dat}.}
 
-\item{spat}{Required when \code{alt_var = 'nearest point'}. \code{spat} is a spatial
+\item{spatname}{Required when \code{alt_var = 'nearest point'}. \code{spat} is a spatial
 data file  containing information on fishery management or regulatory zones
 boundaries. \code{sf} objects are recommended, but \code{sp} objects can be used as
 well. See \code{\link[=dat_to_sf]{dat_to_sf()}} to convert a spatial table read from a csv file to
@@ -131,7 +131,7 @@ zone_cent: \tab Geographic centroid for each zone. Generated from \code{\link[=f
 fish_cent: \tab Fishing centroid for each zone. Generated from \code{\link[=find_fishing_centroid]{find_fishing_centroid()}}\cr
 zone_cent_name: \tab Name of the zonal centroid table\cr
 fish_cent_name: \tab Name of the fishing centroid table\cr
-spat: \tab Spatial data file\cr
+spat: \tab Spatial data object\cr
 spatID: \tab Variable in spat that identifies individuals zones
 }
 }

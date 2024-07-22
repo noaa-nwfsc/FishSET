@@ -13,8 +13,7 @@ metaProjUI <- function(id) {
   ns <- NS(id)
   tagList(
     uiOutput(ns("proj_select")), 
-    uiOutput(ns("proj_tabs_list")),
-    actionButton(ns("refresh"), "Refresh tables")
+    uiOutput(ns("proj_tabs_list"))#,
   )
 }
 

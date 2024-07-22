@@ -98,12 +98,6 @@ saveDataTableUI <- function(id) {
   actionButton(ns('saveData'),'Save data to FishSET database', class = "btn-primary")
 }
 
-refreshUI <- function(id) {
-  
-  ns <- NS(id)
-  actionButton(ns("refresh"), "Refresh data", 
-               icon = icon('sync', verify_fa = FALSE), class = "btn-primary")
-}
 
 closeAppUI <- function(id) {
   
