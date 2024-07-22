@@ -14,7 +14,6 @@ metaProjUI <- function(id) {
   tagList(
     uiOutput(ns("proj_select")), 
     uiOutput(ns("proj_tabs_list"))#,
-  #  actionButton(ns("refresh"), "Refresh tables")
   )
 }
 

@@ -4228,10 +4228,6 @@ server = function(input, output, session) {
   
   closeAppServ("fleet_summary")
   
-  #refreshServ("fleet", values, reactive(project$name))
-  
- # refreshServ("fleet_summary", values, reactive(project$name))
-  
   output$run_fleet_fun <- renderUI({
     runFunUI(fleet_id())
   })
@@ -6731,15 +6727,6 @@ server = function(input, output, session) {
     showNotification("Table saved to database")
     DBI::dbDisconnect(fishset_db)
   })
-  
-  
-  
-  ## Resetting inputs
-  # observeEvent(input$refresh1,{
-  #   
-  #   updateCheckboxInput(session, 'Outlier_Filter', value=FALSE)
-  #   
-  # })         
   
   
   ## Model performance and prediction ----

@@ -351,15 +351,9 @@ ui = function(request){
     bslib::nav_panel("Data Quality Evaluation", value = "qaqc",
                      bslib::page_sidebar(
                        sidebar = bslib::sidebar( width = 550,
-                                               #  splitLayout(
                                                  actionButton('saveData','Save data to FishSET database',
                                                               width = "100%",
                                                               class = "btn-primary"),
-                                                 # actionButton("refresh1", "Refresh data", 
-                                                 #              class = "btn-primary",
-                                                 #              icon = icon('sync', verify_fa = FALSE),
-                                                 #              width = "100%")
-                                               #  ),
                                                  splitLayout(
                                                  tabPlotUI("qaqc", type = "tab_plot")),
                                                  
@@ -381,11 +375,6 @@ ui = function(request){
                                                                   actionButton('NAN_Filter_all', 'Remove all NaNs', class = "btn-secondary"),
                                                                   actionButton('NAN_Filter_mean', 'Replace NaNs with mean value', class = "btn-secondary")
                                                  ),
-                                                 # conditionalPanel("input.checks == 'Remove variables'",
-                                                 #                  uiOutput('remove_vars'),
-                                                 #                  actionButton("removeVars", "Remove variables", class = "btn-secondary")
-                                                 # 
-                                                 # ),
                                                  uiOutput('outlier_column'),
                                                  uiOutput('outlier_subset_method'),
                                                  uiOutput('outlier_subset'),
@@ -520,13 +509,6 @@ ui = function(request){
                                                                                   tabPlotUI("explore")
                                                                  
                                                                  ),
-                                                                 
-                                                                 # actionButton("refresh", "Refresh data", 
-                                                                 #              width = "100%",
-                                                                 #              class = "btn-primary"
-                                                                 # 
-                                                                 # ),
-                                                                 
                                                                  conditionalPanel("input.SelectDatasetExplore=='main' || input.SelectDatasetExplore=='grid'",
                                                                                   selectInput('plot_table', 'View data table or plots', 
                                                                                               choices=c('Table','Plots'), selected='Table')
@@ -735,12 +717,6 @@ ui = function(request){
                                                    actionButton('saveDataNewVars','Save data to FishSET database',
                                                                 width = "100%",
                                                                 class = "btn-primary"),
-
-                                                 # downloadLink('downloadplotNew', label=''),
-                                                 # actionButton('downloadplotNew', label='Save plot to folder'),
-
-                                                 # #tags$br(),
-                                                 
                                                  selectInput('VarCreateTop', "Create variables based on", multiple=FALSE,  
                                                              choices=c('Nominal ID', 'Arithmetic functions', 
                                                                        'Dummy variables', 'Temporal functions',
@@ -995,10 +971,7 @@ ui = function(request){
                                                                                    tags$br(),
                                                                                    
                                                                                    uiOutput("fleetSaveOutput1"), # "Save table..." and "Save plot..."
-                                                                                   tags$br(),
-                                                                                   
-                                                                                  # refreshUI("fleet"), # "Refresh data"
-                                                                                   tags$br(),
+                                                                                   tags$br(), tags$br(),
                                                                                    
                                                                                    selectInput("assign_fun", label = "Select task",
                                                                                                choices = c("Define fleets", "Fleet assignment"),
@@ -1015,11 +988,7 @@ ui = function(request){
                                                                                                       "Other actions", icon = bsicons::bs_icon("menu-app"), 
                                                                                                       
                                                                                                       noteUI("fleet"),
-                                                                                                      # textInput('notesNew', "Notes", value=NULL, 
-                                                                                                      #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                                                                                                      # 
-                                                                                                      # actionButton('callTextDownloadNew','Save notes', class = "btn-success"),
-                                                                                                      # 
+
                                                                                                       tags$br(), tags$br(),
                                                                                                       
                                                                                                       textInput("exprFleet", label = "Enter an R expression",
