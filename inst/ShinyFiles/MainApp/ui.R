@@ -1190,8 +1190,7 @@ ui = function(request){
                                   
                                   div(style = "margin-left:19px;font-size: 12px", 
                                       selectInput('exp_temporal', 'Method to sort time:', 
-                                                  choices = c('Entire record of catch (no time)', 
-                                                              'Daily timeline'='daily', 
+                                                  choices = c('Daily timeline'='daily', 
                                                               'Sequential order'='sequential'),
                                                   selected = 'daily')),
                                   
