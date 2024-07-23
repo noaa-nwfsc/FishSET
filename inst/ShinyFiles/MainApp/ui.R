@@ -119,7 +119,7 @@ ui = function(request){
                                                               Function calls, including chosen parameters, are saved to the', tags$em('src'), 'folder in the projects directory. 
                                                               The', tags$em('Quickstart Guide'), 'subtab provides further assistance on using the FishSET GUI.',
                                                               "The", tags$em('User Manual'), "provides greater detail and background on functions."),
-                                                        tags$p('For questions and comments please contact: FishSET@noaa.gov'))
+                                                        tags$p('For questions and comments please contact: nmfs.fishset@noaa.gov'))
                                         )
                                       )
                     ),
