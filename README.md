@@ -30,24 +30,19 @@ pak::pak("noaa-nwfsc/FishSET")
 ```
 
 ## Local Install
-The team is phasing out local installs, but the team will provide for a local install if a user cannot install through GitHub.
+Use this option if remote installation from GitHub fails.
 
-To install, run the following lines in R (remember to replace path in install_local() function to the actual file path on your computer):
-
+1. Click on the [current release version](https://github.com/noaa-nwfsc/FishSET/releases) in the right side panel of the FishSET repo.
+2. Download the tar.gz file.
+3. Open RStudio and select "Tools" from the top menu bar.
+4. Select "Install Packages...", and install from "Package Archive File (.zip; .tar.gz)"
+5. Click on the "Browse..." button and select the downloaded tar.gz file.
+6. Click "Install"
+   
+Note: after downloading the file from GitHub (step 2 above), the following line of code can be used to install the package from the R console.
 ```
-install.packages("devtools")
-library(devtools)
-devtools::install_local("PATH/TO/Directory/Containing/FishSET")
+install.packages("[file path to tar.gz file]", repos = NULL, type = "source")
 ```
-
-Directories:
-FishSET functions call data files from the SQLite FishSET database and save output (log of function calls, plot output, table output, notes, function messages) to a "Logs" folder and an "output" folder.
-
-The FishSET database and output folders are assumed to be in the FishSET package directory. If they are not, 
-then the location needs to be specified.
-Use loc to specify directory location of the database and loc2 to specify location of Log file.
-For example, loc <- getwd().
-
 
 ## Documentation and Tutorials
 
