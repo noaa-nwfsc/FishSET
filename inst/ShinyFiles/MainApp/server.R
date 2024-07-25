@@ -139,6 +139,31 @@ server = function(input, output, session) {
     }
   })
   
+  observeEvent(input$runExplore, {
+    shinyjs::hide("error")
+    r$ok <- FALSE
+    tryCatch(
+      {
+        r$output <- isolate(
+          paste(capture.output(eval(parse(text = input$exprExplore))), collapse = '\n')
+        )
+        r$ok <- TRUE
+      },
+      error = function(err) {r$output <- err$message}
+    )
+    r$done <- r$done + 1
+  })
+  output$resultExplore <- renderUI({
+    if(r$done > 0 ) { 
+      content <- paste(paste(">", isolate(input$exprExplore)), r$output, sep = '\n')
+      if(r$ok) {
+        pre(content)
+      } else {
+        pre( style = "color: red; font-weight: bold;", content)
+      }
+    }
+  })
+  
   observeEvent(input$runN, {
     shinyjs::hide("error")
     r$ok <- FALSE
@@ -1480,73 +1505,14 @@ server = function(input, output, session) {
                          fileInput("port_combine_fi", "Import additional port table"),
                          fluidRow(
                            actionButton("port_combine_load", "Load table"),
-                           
-                           shinyjs::disabled(
-                             actionButton("port_combine_save", "Save combined port table to FishSET Database",
-                                          style = "color: white; background-color: blue;")
-                           )
+
                          ))
       )
     }
   })
   
   
-  # conditional panel for merging port tables
-  output$PortAddtableMerge <- renderUI({
-    
-    if (show$port_merge) {
-      # merge UI module see fleetUI.R)
-      mergeUI("port_combine", dat_type = "port")
-    }
-  })
-  # merge server module (see fleetServ.R)
-  mergeServer("port_combine", main = portdat, other = portdat_temp, 
-              reactive(project$name), merge_type = "full", 
-              dat_type = "port", show)
-  
-  # load additional port table
-  observeEvent(input$port_combine_load, {
-    
-    if (!is.null(input$port_combine_fi)) {
-      
-      portdat_temp$dataset <- read_dat(input$port_combine_fi$datapath)
-      
-      show$port_merge <- TRUE 
-      show$save <- FALSE
-      showNotification("Additional port table loaded", type = "message")
-    }
-    
-  }, ignoreInit = TRUE, ignoreNULL = TRUE)
-  
-  
-  # enable save combined port table button
-  observe({
-    shinyjs::toggleState("port_combine_save", condition = {show$save == TRUE})
-  })
-  
-  
-  # save combined port table to FishSET DB
-  observeEvent(input$port_combine_save, {
-    
-    req(project$name)
-    
-    q_test <- quietly_test(load_port)
-    q_test(portdat$dataset, port_name = "Port_Name", over_write = TRUE, 
-           project = project$name, compare = FALSE, y = NULL)
-    
-    showNotification("Combined port table saved to database.", type = "message", 
-                     duration = 10)
-    # so column names match with DB version
-    portdat$dataset <- table_view(paste0(project$name, 'PortTable'), project$name)  
-    
-    edit_proj_settings(project$name, 
-                       tab_name = paste0(project$name, 'PortTable'), 
-                       tab_type = "port")
-    
-    show$save <- FALSE
-    show$port_merge <- FALSE
-    
-  }, ignoreInit = TRUE, ignoreNULL = TRUE)
+
   
   
   ## Spatial ----
@@ -3594,8 +3560,45 @@ server = function(input, output, session) {
                                    selected='main')),
       conditionalPanel("input.SelectDatasetExplore == 'grid'",
                        selectInput("grid_select", "select gridded data file", 
-                                   choices = names(grddat)))
+                                   choices = names(grddat))),
+      
+      conditionalPanel("input.SelectDatasetExplore == 'port'",
+                       h6("To merge the port table to the primary data table:"),
+                       selectInput("porttable_id", "Select the port table id",
+                                   choices = c(names(portdat$dataset))),
+                       selectInput("maintable_port", "Select the primary data id",
+                                   choices = c(names(values$dataset))),
+                       actionButton("merge_port", "Merge Port Data"))
     )
+  })
+  
+  # to merge in port with primary by key
+  observeEvent(input$merge_port,{
+    req(input$porttable_id)
+    req(input$maintable_port)
+
+    
+    other_key <- input$porttable_id
+    main_key <- input$maintable_port
+
+    merge_by <- stats::setNames(other_key, c(main_key))
+    
+      temp_port <- portdat$dataset %>% 
+        rename_with(~ ifelse(. == input$porttable_id,., paste0(., "_merged")))
+       
+    
+    
+      values$dataset <- merge_dat(dat = values$dataset,
+                                  other = temp_port,
+                                  project = project$name,
+                                  main_key = main_key,
+                                  other_key = other_key,
+                                  other_type = "port",
+                                  merge_type = "left")
+    
+     
+    showNotification("port table merged to primary table")
+
   })
   
   explore_temp <- reactive({
@@ -5257,7 +5260,6 @@ server = function(input, output, session) {
                         selectizeInput('altc_occasion', '', 
                                        choices=c('Centroid of zonal assignment' = 'zone',
                                                  'Fishing centroid' = 'fish', 
-                                                 'Port' = 'port', 
                                                  'Lon-Lat Coordinates' = 'lon-lat')),
                         
                         conditionalPanel("input.altc_occasion == 'zone'||input.altc_occasion == 'fish'",
@@ -5436,10 +5438,12 @@ server = function(input, output, session) {
   observeEvent(input$altc_save, {
     # switch to values that function accepts
     occ_type <- switch(input$altc_occasion, 'zone' = 'zonal centroid', 
-                       'fish' = 'fishing centroid', 'port' = 'port', 'lon-lat' = 'lon-lat')
+                       'fish' = 'fishing centroid',
+                       'lon-lat' = 'lon-lat')
     
     alt_type <- switch(input$altc_alt_var, 'zone' = 'zonal centroid', 
                        'fish' = 'fishing centroid', 'near' = 'nearest point')
+    
     
     q_test <- quietly_test(create_alternative_choice, show_msg = TRUE)
 
