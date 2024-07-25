@@ -119,7 +119,7 @@ ui = function(request){
                                                               Function calls, including chosen parameters, are saved to the', tags$em('src'), 'folder in the projects directory. 
                                                               The', tags$em('Quickstart Guide'), 'subtab provides further assistance on using the FishSET GUI.',
                                                               "The", tags$em('User Manual'), "provides greater detail and background on functions."),
-                                                        tags$p('For questions and comments please contact: FishSET@noaa.gov'))
+                                                        tags$p('For questions and comments please contact: nmfs.fishset@noaa.gov'))
                                         )
                                       )
                     ),
@@ -1190,8 +1190,7 @@ ui = function(request){
                                   
                                   div(style = "margin-left:19px;font-size: 12px", 
                                       selectInput('exp_temporal', 'Method to sort time:', 
-                                                  choices = c('Entire record of catch (no time)', 
-                                                              'Daily timeline'='daily', 
+                                                  choices = c('Daily timeline'='daily', 
                                                               'Sequential order'='sequential'),
                                                   selected = 'daily')),
                                   
