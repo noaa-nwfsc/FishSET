@@ -46,7 +46,7 @@ install.packages("[file path to tar.gz file]", repos = NULL, type = "source")
 
 ## Documentation and Tutorials
 
-Refer to the [FishSET R Package User Manual](https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit) for more package information, quickstart guides, and troubleshooting tips.
+Refer to the [FishSET R Package User Manual](https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit) for more package information, quickstart guides, and troubleshooting tips.
 
 ## Issues and Bug Reports
 
