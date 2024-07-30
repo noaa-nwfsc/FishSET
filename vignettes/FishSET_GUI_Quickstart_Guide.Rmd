@@ -40,7 +40,7 @@ The FishSET GUI is a user-friendly interface that guides users through the steps
 
 The FishSET GUI is divided into tabs to guide users through functions from uploading and exploring data to running models and simulating policy scenarios. All data are automatically saved to a local SQLite database on the users computer (data not shared with other users or FishSET developers) called the FishSET database when first loaded. The database is housed in the project's directory withing the FishSET R package directory (FishSETFolder). Modified versions of the data can be saved to the FishSET database in the Data Quality Evaluation and Compute New Variables tabs. Plots and table outputs are saved in an output folder within the project's directory. Function calls, including input parameters, are saved to the Logs folder within the project's directory. The Quickstart Guide subtab provides further assistance on using the FishSET GUI.
 
-This document includes basic instructions on how to use the FishSET GUI. Refer to the [FishSET User Manual](https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit) for information on installing R software and to the [main page](https://noaa-nwfsc.github.io/FishSET/index.html) of this website for FishSET installation instructions.
+This document includes basic instructions on how to use the FishSET GUI. Refer to the [FishSET User Manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html) for information on installing R software and to the [main page](https://noaa-nwfsc.github.io/FishSET/index.html) of this website for FishSET installation instructions.
 
 For questions and comments please contact: [nmfs.fishset@noaa.gov](mailto:nmfs.fishset@noaa.gov)
 
@@ -65,7 +65,7 @@ To open the FishSET GUI run the following lines of code in RStudio:
 
 The `Upload Data` tab is used to load data (primary, port, spatial, gridded, and auxiliary) from local files on your computer or from the FishSET database. Follow the instructions provided in the left side panel of the GUI.
 
-See [Chapter 4 of the FishSET User Manual](https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.3as4poj) for more information on the different types of data.
+See [Chapter 4 of the FishSET User Manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html) for more information on the different types of data.
 
 If including confidentiality checks:
 -   Click the `Confidentiality` button (appears after loading data).
@@ -80,7 +80,7 @@ If including confidentiality checks:
 
 The `Data Quality and Evaluation` tab is used to identify and correct common data quality issues such as erroneous outliers, missing values (NA or NaN), and coordinates that occur on land. Use the radio buttons in the left side panel to navigate between data quality and control functions. After running each function, click on the 'Save data to FishSET database' button to save changes.
 
-See the recommended data quality checks in [Chapter 4 of the FishSET User Manual](https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.gvjfmr8m6yax).
+See the recommended data quality checks in [Chapter 4 of the FishSET User Manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html).
 
 ### Explore the Data
 #### Data Exploration
@@ -90,12 +90,12 @@ The table view can be used to directly filter/edit datasets, and any changes mad
 
 Also, plots generated in the GUI will be automatically saved in the project's output folder in the FishSETFolder directory.
 
-For more details see [Chapter 6 of the FishSET User Manual](https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.g2cn6i5a6srj).
+For more details see [Chapter 6 of the FishSET User Manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html).
 
 #### Simple Analyses
 The `Simple Analyses` tab is used to run correlation analysis and simple linear regressions between variables in the primary table. Tables and plots generated here will be automatically save to the project's output folder in the FishSETFolder directory.
 
-For more details see [Chapter 6 of the FishSET User Manual](https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.g2cn6i5a6srj).
+For more details see [Chapter 6 of the FishSET User Manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html).
 
 ### Map Viewer
 
@@ -105,7 +105,7 @@ Required:
 1.  Spatial data file.
 2.  Zone identifier variable in primary dataset.
 
-For more details see [Chapter 6 of the FishSET User Manual](https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.g2cn6i5a6srj).
+For more details see [Chapter 6 of the FishSET User Manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html).
 
 ### Compute New Variables
 
@@ -121,7 +121,7 @@ Define fleets and apply fleet definitions to the primary dataset. Follow the ins
 #### Fleet Summary
 The `Fleet Summary` subtab is used to generate tables and plots that summarize data by fleets.
 
-For more details see [Chapter 6 of the FishSET User Manual](https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.g2cn6i5a6srj).
+For more details see [Chapter 6 of the FishSET User Manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html).
 
 ### Define Alternative Fishing Choices
 
@@ -131,19 +131,19 @@ Prior to selecting input options, click on `Save final table to FishSET database
 
 Then, select options from the drop down menus. In the `Include zones with more observations than` input box, insert the minimum number of observations needed for a zone to be included in the model. Click `Save choices` in the left side panel to save alternative choice table.
 
-See [Chapter 8 of the FishSET User Manual](https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.3cqmetx) for more information on defining alternative choices and model development.
+See [Chapter 8 of the FishSET User Manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html) for more information on defining alternative choices and model development.
 
 ### Expected Catch/Revenue
 
 The `Expected Catch/Revenue` tab is used to calculate the expected catch or revenue matrix for alternative fishing zones (zones where fishing could have happened but did not). A catch variable is required, and include a price or value variable if you want expected revenue. Select input options in the left side panel. In addition, users can select from a number of default matrices in the main panel (checkboxes for these options are at the bottom of the page).
 
-See [Chapter 8 of the FishSET User Manual](https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.3cqmetx) for more information about how expected catch/revenue is calculated and model development.
+See [Chapter 8 of the FishSET User Manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html) for more information about how expected catch/revenue is calculated and model development.
 
 ### Models
 
 The `Models` tab is used to design/run discrete choice models, compare outputs between models, and quantify model robustness. FishSET includes default likelihood functions to chose from. Conditional logit models require an expected catch matrix. EPMs require price data.
 
-See [Chapter 8 of the FishSET User Manual](https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.3cqmetx) for more information on model development.
+See [Chapter 8 of the FishSET User Manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html) for more information on model development.
 
 ### Policy
 #### Zone Closure
@@ -152,7 +152,7 @@ The `Zone closure` tab is used to design spatial closures, and required for the 
 #### Run Policy
 The `Run Policy` tab is used to simulate redistributed fishing effort and calculate welfare changes following implementation of the policy scenarios. Select input options from the left side panel - including the number of simulations ("Betadraws") to run.
 
-For more information on simulating policy scenarios see [Chapter 9 of the FishSET User Manual](https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.3q5sasy).
+For more information on simulating policy scenarios see [Chapter 9 of the FishSET User Manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html).
 
 ### Bookmark Choices
 
