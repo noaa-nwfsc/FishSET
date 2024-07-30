@@ -15,6 +15,8 @@ The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools develope
 
 Run the following lines of code in R:
 
+IMPORTANT NOTE - when asked to update packages in the R console, enter an empty line and FishSET will load the required versions for package dependencies.
+
 ```
 # Install the package (see troubleshooting section below if this doesn't work)
 install.packages("devtools")
