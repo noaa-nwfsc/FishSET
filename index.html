@@ -34,7 +34,7 @@
     
     <a class="navbar-brand me-2" href="index.html">FishSET</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +49,6 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="articles/FishSET_v100_User_Manual.pdf">FishSET User Manual</a>  
     <a class="dropdown-item" href="articles/FishSET_FunctionList.html">FishSET R package functions</a>
     <a class="dropdown-item" href="articles/FishSET_GUI_Quickstart_Guide.html">FishSET GUI Quickstart Guide</a>
     <a class="dropdown-item" href="articles/scallop-example.html">Scallop Example</a>
@@ -92,6 +91,7 @@
 <h2 id="github-install">GitHub Install<a class="anchor" aria-label="anchor" href="#github-install"></a>
 </h2>
 <p>Run the following lines of code in R:</p>
+<p>IMPORTANT NOTE - when asked to update packages in the R console, enter an empty line and FishSET will load the required versions for package dependencies.</p>
 <pre><code><span><span class="co"># Install the package (see troubleshooting section below if this doesn't work)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>download.file.method <span class="op">=</span> <span class="st">"wininet"</span><span class="op">)</span></span>
@@ -103,18 +103,22 @@
 <div class="section level2">
 <h2 id="local-install">Local Install<a class="anchor" aria-label="anchor" href="#local-install"></a>
 </h2>
-<p>The team is phasing out local installs, but the team will provide for a local install if a user cannot install through GitHub.</p>
-<p>To install, run the following lines in R (remember to replace path in install_local() function to the actual file path on your computer):</p>
-<pre><code><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/" class="external-link">devtools</a></span><span class="op">)</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_local.html" class="external-link">install_local</a></span><span class="op">(</span><span class="st">"PATH/TO/Directory/Containing/FishSET"</span><span class="op">)</span></span></code></pre>
-<p>Directories: FishSET functions call data files from the SQLite FishSET database and save output (log of function calls, plot output, table output, notes, function messages) to a “Logs” folder and an “output” folder.</p>
-<p>The FishSET database and output folders are assumed to be in the FishSET package directory. If they are not, then the location needs to be specified. Use loc to specify directory location of the database and loc2 to specify location of Log file. For example, loc &lt;- getwd().</p>
+<p>Use this option if remote installation from GitHub fails.</p>
+<ol style="list-style-type: decimal">
+<li>Click on the <a href="https://github.com/noaa-nwfsc/FishSET/releases" class="external-link">current release version</a> in the right side panel of the FishSET repo.</li>
+<li>Download the tar.gz file.</li>
+<li>Open RStudio and select “Tools” from the top menu bar.</li>
+<li>Select “Install Packages…”, and install from “Package Archive File (.zip; .tar.gz)”</li>
+<li>Click on the “Browse…” button and select the downloaded tar.gz file.</li>
+<li>Click “Install”</li>
+</ol>
+<p>Note: after downloading the file from GitHub (step 2 above), the following line of code can be used to install the package from the R console.</p>
+<pre><code><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"[file path to tar.gz file]"</span>, repos <span class="op">=</span> <span class="cn">NULL</span>, type <span class="op">=</span> <span class="st">"source"</span><span class="op">)</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="documentation-and-tutorials">Documentation and Tutorials<a class="anchor" aria-label="anchor" href="#documentation-and-tutorials"></a>
 </h2>
-<p>Refer to the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit" class="external-link">FishSET R Package User Manual</a> for more package information, quickstart guides, and troubleshooting tips.</p>
+<p>Refer to the <a href="https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit" class="external-link">FishSET R Package User Manual</a> for more package information, quickstart guides, and troubleshooting tips.</p>
 </div>
 <div class="section level2">
 <h2 id="issues-and-bug-reports">Issues and Bug Reports<a class="anchor" aria-label="anchor" href="#issues-and-bug-reports"></a>
@@ -164,8 +168,8 @@ Error: failed to lock directory…
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/noaa-nwfsc/FishSET/" class="external-link">FishSET GitHub Repo</a></li>
-<li><a href="https://github.com/noaa-nwfsc/FishSET/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/noaa-nwfsc/FishSET/" class="external-link">Browse source code</a></li>
+<li><a href="https://pkgname.bugtracker.url" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 

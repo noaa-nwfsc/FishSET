@@ -18,7 +18,7 @@ the FishSET Database, see occasion_var for details."><meta property="og:image" c
     
     <a class="navbar-brand me-2" href="../index.html">FishSET</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -80,7 +80,7 @@ the FishSET Database, see <code>occasion_var</code> for details.</p>
 <span>  <span class="va">zoneID</span>,</span>
 <span>  zone.cent.name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fish.cent.name <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  spat <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  spatname <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  spatID <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  outsample <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -194,7 +194,7 @@ See <code><a href="create_centroid.html">create_centroid()</a></code> to create 
 create a centroid table from columns found in <code>dat</code>.</p></dd>
 
 
-<dt>spat</dt>
+<dt>spatname</dt>
 <dd><p>Required when <code>alt_var = 'nearest point'</code>. <code>spat</code> is a spatial
 data file  containing information on fishery management or regulatory zones
 boundaries. <code>sf</code> objects are recommended, but <code>sp</code> objects can be used as
@@ -226,7 +226,7 @@ Output includes: <br></p>
 
 
 <table class="table table"><tr><td>dataZoneTrue:</td><td>Vector of 0/1 indicating whether the data from that
-zone is to be included in the model</td><td>greaterNZ:</td><td>Zones which pass numofNecessary test</td></tr><tr><td>numOfNecessary:</td><td>Minimum number of hauls for zone to be included</td><td>altChoiceUnits:</td><td>Set to miles</td></tr><tr><td>altChoiceType:</td><td>Set to distance</td><td>occasion:</td><td>Identifies how to find latitude and longitude for starting point</td></tr><tr><td>occasion_var:</td><td>Identifies how to find latitude and longitude for starting point</td><td>alt_var:</td><td>Identifies how to find latitude and longitude for alternative choice</td></tr><tr><td>zoneRow:</td><td>Zones and choices array</td><td>zone_cent:</td><td>Geographic centroid for each zone. Generated from <code><a href="find_centroid.html">find_centroid()</a></code></td></tr><tr><td>fish_cent:</td><td>Fishing centroid for each zone. Generated from <code><a href="find_fishing_centroid.html">find_fishing_centroid()</a></code></td><td>zone_cent_name:</td><td>Name of the zonal centroid table</td></tr><tr><td>fish_cent_name:</td><td>Name of the fishing centroid table</td><td>spat:</td><td>Spatial data file</td></tr></table></div>
+zone is to be included in the model</td><td>greaterNZ:</td><td>Zones which pass numofNecessary test</td></tr><tr><td>numOfNecessary:</td><td>Minimum number of hauls for zone to be included</td><td>altChoiceUnits:</td><td>Set to miles</td></tr><tr><td>altChoiceType:</td><td>Set to distance</td><td>occasion:</td><td>Identifies how to find latitude and longitude for starting point</td></tr><tr><td>occasion_var:</td><td>Identifies how to find latitude and longitude for starting point</td><td>alt_var:</td><td>Identifies how to find latitude and longitude for alternative choice</td></tr><tr><td>zoneRow:</td><td>Zones and choices array</td><td>zone_cent:</td><td>Geographic centroid for each zone. Generated from <code><a href="find_centroid.html">find_centroid()</a></code></td></tr><tr><td>fish_cent:</td><td>Fishing centroid for each zone. Generated from <code><a href="find_fishing_centroid.html">find_fishing_centroid()</a></code></td><td>zone_cent_name:</td><td>Name of the zonal centroid table</td></tr><tr><td>fish_cent_name:</td><td>Name of the fishing centroid table</td><td>spat:</td><td>Spatial data object</td></tr></table></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Defines the alternative fishing choices. These choices are used to develop

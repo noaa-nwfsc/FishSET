@@ -34,7 +34,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">FishSET</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,7 +81,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>FishSET GUI Quickstart Guide</h1>
             
-            <h4 data-toc-skip class="date">2024-07-17</h4>
+            <h4 data-toc-skip class="date">2024-07-30</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/noaa-nwfsc/FishSET/blob/HEAD/vignettes/FishSET_GUI_Quickstart_Guide.Rmd" class="external-link"><code>vignettes/FishSET_GUI_Quickstart_Guide.Rmd</code></a></small>
       <div class="d-none name"><code>FishSET_GUI_Quickstart_Guide.Rmd</code></div>
@@ -127,7 +127,7 @@ parameters, are saved to the Logs folder within the project’s directory.
 The Quickstart Guide subtab provides further assistance on using the
 FishSET GUI.</p>
 <p>This document includes basic instructions on how to use the FishSET
-GUI. Refer to the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.epgu0wlvmcy6" class="external-link">FishSET
+GUI. Refer to the <a href="https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit" class="external-link">FishSET
 User Manual</a> for information on installing R software and to the <a href="https://noaa-nwfsc.github.io/FishSET/index.html" class="external-link">main page</a> of
 this website for FishSET installation instructions.</p>
 <p>For questions and comments please contact: <a href="mailto:nmfs.fishset@noaa.gov">nmfs.fishset@noaa.gov</a></p>
@@ -144,7 +144,7 @@ this website for FishSET installation instructions.</p>
 <dt>To open the FishSET GUI run the following lines of code in
 RStudio:</dt>
 <dd>
-<p><code><a href="https://github.com/noaa-nwfsc/FishSET" class="external-link">library(FishSET)</a></code></p>
+<p><code><a href="https://rdrr.io/r/base/library.html" class="external-link">library(FishSET)</a></code></p>
 </dd>
 <dd>
 <code><a href="../reference/run_fishset_gui.html">run_fishset_gui()</a></code>
@@ -161,8 +161,9 @@ RStudio:</dt>
 spatial, gridded, and auxiliary) from local files on your computer or
 from the FishSET database. Follow the instructions provided in the left
 side panel of the GUI.</p>
-<p>See the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.36sb14g0441y" class="external-link">FishSET
-User Manual</a> for more information on the different types of data.</p>
+<p>See <a href="https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.3as4poj" class="external-link">Chapter
+4 of the FishSET User Manual</a> for more information on the different
+types of data.</p>
 <p>If including confidentiality checks: - Click the
 <code>Confidentiality</code> button (appears after loading data). -
 Check the <code>Check for confidentiality</code> box. -
@@ -182,8 +183,8 @@ missing values (NA or NaN), and coordinates that occur on land. Use the
 radio buttons in the left side panel to navigate between data quality
 and control functions. After running each function, click on the ‘Save
 data to FishSET database’ button to save changes.</p>
-<p>See the recommended data quality checks in the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.gvjfmr8m6yax" class="external-link">FishSET
-User Manual</a>.</p>
+<p>See the recommended data quality checks in <a href="https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.gvjfmr8m6yax" class="external-link">Chapter
+4 of the FishSET User Manual</a>.</p>
 </div>
 <div class="section level4">
 <h4 id="explore-the-data">Explore the Data<a class="anchor" aria-label="anchor" href="#explore-the-data"></a>
@@ -199,8 +200,8 @@ changes made to the tables will be logged for reproducibility. Click on
 the <code>Save data to FishSET database</code> to save any changes.</p>
 <p>Also, plots generated in the GUI will be automatically saved in the
 project’s output folder in the FishSETFolder directory.</p>
-<p>For more details see the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.g2cn6i5a6srj" class="external-link">FishSET
-User Manual</a>.</p>
+<p>For more details see <a href="https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.g2cn6i5a6srj" class="external-link">Chapter
+6 of the FishSET User Manual</a>.</p>
 </div>
 <div class="section level5">
 <h5 id="simple-analyses">Simple Analyses<a class="anchor" aria-label="anchor" href="#simple-analyses"></a>
@@ -209,8 +210,8 @@ User Manual</a>.</p>
 analysis and simple linear regressions between variables in the primary
 table. Tables and plots generated here will be automatically save to the
 project’s output folder in the FishSETFolder directory.</p>
-<p>For more details see the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.g2cn6i5a6srj" class="external-link">FishSET
-User Manual</a>.</p>
+<p>For more details see <a href="https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.g2cn6i5a6srj" class="external-link">Chapter
+6 of the FishSET User Manual</a>.</p>
 </div>
 </div>
 <div class="section level4">
@@ -221,8 +222,8 @@ distribution of hauls. Use the input options in the left side panel to
 plot hauls as points or paths using start and end locations.</p>
 <p>Required: 1. Spatial data file. 2. Zone identifier variable in
 primary dataset.</p>
-<p>For more details see the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.g2cn6i5a6srj" class="external-link">FishSET
-User Manual</a>.</p>
+<p>For more details see <a href="https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.g2cn6i5a6srj" class="external-link">Chapter
+6 of the FishSET User Manual</a>.</p>
 </div>
 <div class="section level4">
 <h4 id="compute-new-variables">Compute New Variables<a class="anchor" aria-label="anchor" href="#compute-new-variables"></a>
@@ -257,8 +258,8 @@ panel and assign fleets.</p>
 </h5>
 <p>The <code>Fleet Summary</code> subtab is used to generate tables and
 plots that summarize data by fleets.</p>
-<p>For more details see the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.g2cn6i5a6srj" class="external-link">FishSET
-User Manual</a>.</p>
+<p>For more details see <a href="https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.g2cn6i5a6srj" class="external-link">Chapter
+6 of the FishSET User Manual</a>.</p>
 </div>
 </div>
 <div class="section level4">
@@ -277,9 +278,9 @@ completed successfully.</p>
 the minimum number of observations needed for a zone to be included in
 the model. Click <code>Save choices</code> in the left side panel to
 save alternative choice table.</p>
-<p>See the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.3cqmetx" class="external-link">FishSET
-User Manual</a> for more information on defining alternative choices and
-model development.</p>
+<p>See <a href="https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.3cqmetx" class="external-link">Chapter
+8 of the FishSET User Manual</a> for more information on defining
+alternative choices and model development.</p>
 </div>
 <div class="section level4">
 <h4 id="expected-catchrevenue">Expected Catch/Revenue<a class="anchor" aria-label="anchor" href="#expected-catchrevenue"></a>
@@ -291,9 +292,9 @@ required, and include a price or value variable if you want expected
 revenue. Select input options in the left side panel. In addition, users
 can select from a number of default matrices in the main panel
 (checkboxes for these options are at the bottom of the page).</p>
-<p>See the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.3cqmetx" class="external-link">FishSET
-User Manual</a> for more information about how expected catch/revenue is
-calculated and model development.</p>
+<p>See <a href="https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.3cqmetx" class="external-link">Chapter
+8 of the FishSET User Manual</a> for more information about how expected
+catch/revenue is calculated and model development.</p>
 </div>
 <div class="section level4">
 <h4 id="models">Models<a class="anchor" aria-label="anchor" href="#models"></a>
@@ -303,8 +304,9 @@ models, compare outputs between models, and quantify model robustness.
 FishSET includes default likelihood functions to chose from. Conditional
 logit models require an expected catch matrix. EPMs require price
 data.</p>
-<p>See the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.3cqmetx" class="external-link">FishSET
-User Manual</a> for more information on model development.</p>
+<p>See <a href="https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.3cqmetx" class="external-link">Chapter
+8 of the FishSET User Manual</a> for more information on model
+development.</p>
 </div>
 <div class="section level4">
 <h4 id="policy">Policy<a class="anchor" aria-label="anchor" href="#policy"></a>
@@ -323,9 +325,8 @@ zones to close and provide a name for the scenario.</p>
 fishing effort and calculate welfare changes following implementation of
 the policy scenarios. Select input options from the left side panel -
 including the number of simulations (“Betadraws”) to run.</p>
-<p>For more information on simulating policy scenarios in FishSET see
-the <a href="https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.3q5sasy" class="external-link">User
-Manual</a>.</p>
+<p>For more information on simulating policy scenarios see <a href="https://docs.google.com/document/d/1t8ZWrtmV0gV5etClT-ITTJMTH89GnvaqTNYtQJsLLaE/edit#heading=h.3q5sasy" class="external-link">Chapter
+9 of the FishSET User Manual</a>.</p>
 </div>
 </div>
 <div class="section level4">

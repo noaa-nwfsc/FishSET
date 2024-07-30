@@ -12,7 +12,7 @@ to model call function"><meta property="og:image" content="/logo.png"><!-- mathj
     
     <a class="navbar-brand me-2" href="../index.html">FishSET</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -74,8 +74,6 @@ to model call function</p>
 <span>  expectcatchmodels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"all"</span><span class="op">)</span>,</span>
 <span>  startloc <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  polyn <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  spat <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  spatID <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  crs <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  outsample <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  CV_dat <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -170,20 +168,6 @@ location vector.</p></dd>
 <dt>polyn</dt>
 <dd><p>Numeric, correction polynomial degree. Required for
 <code><a href="logit_correction.html">logit_correction()</a></code> likelihood.</p></dd>
-
-
-<dt>spat</dt>
-<dd><p>A spatial data file containing information on fishery management
-or regulatory zones boundaries. Only required if <code>alt_var = "nearest point"</code>
-was used in the alternative choice matrix (see <code><a href="create_alternative_choice.html">create_alternative_choice()</a></code>).
-Defaults to <code>NULL</code>. This should be the same spatial file used to assign
-observations to zones.</p></dd>
-
-
-<dt>spatID</dt>
-<dd><p>Variable in <code>spat</code> that identifies the individual areas or zones.
-Only required if <code>alt_var = "nearest point"</code> was used in the alternative
-choice matrix (see <code><a href="create_alternative_choice.html">create_alternative_choice()</a></code>). Defaults to <code>NULL</code>.</p></dd>
 
 
 <dt>crs</dt>
