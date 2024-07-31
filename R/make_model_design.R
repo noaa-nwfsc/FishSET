@@ -288,15 +288,15 @@ make_model_design <-
   
   if (likelihood == "logit_c") {
     
-    column_check(dataset, c(catchID, vars1, priceCol, startloc))
+    column_check(dataset, c(catchID, vars1, vars2, priceCol, startloc))
     
-    lapply(vars2, function(x) {
-      
-      if (!table_exists(x, project)) {
-        
-        stop("Gridded table '", x, "' does not exist.", call. = FALSE)
-      }
-    })
+    # lapply(vars2, function(x) {
+    #   
+    #   if (!table_exists(x, project)) {
+    #     
+    #     stop("Gridded table '", x, "' does not exist.", call. = FALSE)
+    #   }
+    # })
     
   } else {
     
@@ -587,12 +587,13 @@ make_model_design <-
 
       # TODO: check if gridded table has correct # of rows, if not error out and 
       # tell user to re-run format_grid()
-      gridVariablesInclude <- lapply(gridVars, function(x) {
-        
-        grid_tab <- table_view(x, project)
-        
-        grid_tab[zone_ind, names(grid_tab) %in% unique(choice)]
-      })
+      # gridVariablesInclude <- lapply(gridVars, function(x) {
+      #   
+      #   grid_tab <- table_view(x, project)
+      #   
+      #   grid_tab[zone_ind, names(grid_tab) %in% unique(choice)]
+      # })
+      gridVariablesInclude <- lapply(gridVars, function(x) dataset[[x]][zone_ind])
       
     } else {
       

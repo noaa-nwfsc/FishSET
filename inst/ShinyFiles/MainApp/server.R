@@ -1715,22 +1715,15 @@ server = function(input, output, session) {
       
       tagList(
         fluidRow(
-          column(12, #5,
-                 fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
-                              multiple = FALSE, placeholder = 'Optional data')),
-          column(12, #7, offset=4, 
-                 textInput('gridadd', div(style = "font-size:14px;  font-weight: 400;", 
-                                                       'Additional arguments for reading in data'), 
-                                        placeholder="header=T, sep=';', skip=2")),
-          column(12,#5, 
-                 
-                 if (!is.null(input$griddat)) {
-                   
-                   textInput("GridName", "Grid table name")
-                 }
-          )
+          column(12,
+                 fileInput("griddat", "Choose data file that varies over one or two dimensions (gridded)",
+                           multiple = FALSE, placeholder = 'Optional data')),
+          column(12,
+                 textInput('gridadd', label=div(style = "font-size:14px;  font-weight: 400;", 
+                                                'Write additional arguments for reading in data'), 
+                           placeholder = "header=FALSE, sep=','")),
         ))
-      
+
     } else if (input$load_grid_src == 'FishSET database') {
       
       if (isTruthy(project$name)) {
@@ -1746,6 +1739,16 @@ server = function(input, output, session) {
     
   })
   
+  output$grid_upload2 <- renderUI({
+    if (!is.null(input$griddat)) {
+      tagList(
+        fluidRow(
+          column(12,#5,
+                 textInput("GridName", "Grid table name"))
+        )
+      )
+    }
+  })
   
   grddat <- reactiveValues()
   
@@ -1753,82 +1756,87 @@ server = function(input, output, session) {
     
     req(project$name)
     req(load_helper("grid"))
-    
+
     if (input$load_grid_src == 'FishSET database') {
-      
+
       if (isTruthy(input$grid_db_table)) {
-        
+
         grid_name <-input$grid_db_table
         grddat[[grid_name]] <- table_view(grid_name, project$name)
         track_load$grid$DB <- input$grid_db_table
         load_r$grid <- load_r$grid + 1
-        
-        edit_proj_settings(project$name, 
+
+        edit_proj_settings(project$name,
                            tab_name = input$grid_db_table,
                            tab_type = "grid")
       }
-      
+
     } else if (input$load_grid_src == 'Upload new file' & !is.null(input$griddat)) {
-      
+
       if (!isTruthy(input$GridName)) {
-        
+
         showNotification("Please enter a name for Gridded table.",
                          type = "warning", duration = 10)
       }
-      
+
       req(input$GridName)
-      
+
       grid_name <- paste0(project$name, input$GridName)
-      
+
       if (!is_empty(input$gridadd)) {
-        
-        grddat[[grid_name]] <- do.call(read_dat, c(list(input$griddat$datapath), 
+
+        grddat[[grid_name]] <- do.call(read_dat, c(list(input$griddat$datapath),
                                                    eval(parse(text=paste0("list(",input$gridadd, ")")))))
       } else {
-        
-        grddat[[grid_name]] <- read_dat(input$griddat$datapath)   
+
+        grddat[[grid_name]] <- read_dat(input$griddat$datapath)
       }
-      
+
       q_test <- quietly_test(load_grid)
-      
-      qc_pass <- 
-        q_test(paste0(project$name, 'MainDataTable'), grid = grddat[[grid_name]], 
+
+      qc_pass <-
+        q_test(paste0(project$name, 'GridTable'), grid = grddat[[grid_name]],
                name = input$GridName, over_write = TRUE, project = project$name)
+
+      cat(file=stderr(), "\n", "TEST1", "\n")
       
       if (qc_pass) {
         
+        cat(file=stderr(), "\n", "TEST4a", "\n")
+
         showNotification('Gridded data saved to database.', type = 'message', duration = 10)
         track_load$grid$file <- input$griddat
         load_r$grid <- load_r$grid + 1
-        
-        edit_proj_settings(project$name, 
+
+        edit_proj_settings(project$name,
                            tab_name = paste0(project$name, input$GridName, "GridTable"),
                            tab_type = "grid")
-        
+
       } else {
+
+        cat(file=stderr(), "\n", "TEST4b", "\n")
         
         grddat[[grid_name]] <- NULL
         # showNotification('Gridded data was not saved to database.', type = 'warning', duration = 10)
       }
     }
-    
-    if (length(names(grddat)) > 0) {
-      
-      showNotification("Gridded data loaded.", type = 'message', duration = 10)
-    }
+    # 
+    # if (length(names(grddat)) > 0) {
+    # 
+    #   showNotification("Gridded data loaded.", type = 'message', duration = 10)
+    # }
     
   }, ignoreInit = TRUE, ignoreNULL = TRUE)
   
   
   output$gridded_uploaded <- renderUI({
-    
-    if (length(names(grddat)) > 0) {
-      
-      tagList(
-        p(strong("Gridded data tables uploaded:")),
-        renderText(paste(names(grddat), collapse = ", "))
-      )
-    }
+    # if (length(names(grddat)) > 0) {
+    # 
+    #   tagList(
+    #     p(strong("Gridded data tables uploaded:")),
+    #     renderText(paste(names(grddat), collapse = ", "))
+    #   )
+    # }
   })
   
   ## Auxiliary ----     

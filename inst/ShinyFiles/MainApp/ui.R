@@ -328,6 +328,7 @@ ui = function(request){
                                                 choices=c('Upload new file','FishSET database'), 
                                                 selected='Upload new file', inline=TRUE),
                          uiOutput('grid_upload'),
+                         uiOutput('grid_upload2'),
                          uiOutput('gridded_uploaded')),
 
                      bslib::card(
