@@ -2717,60 +2717,193 @@ server = function(input, output, session) {
                           models = "Models: ",
                           book = "Bookmark URL: ")
   
+  # TODO: Create a function for saving notes instead of repeated the if else statements below
   observeEvent(c(input$callTextDownloadAnal,
                  input$callTextDownloadQAQC,
                  input$callTextDownloadExplore,
                  input$callTextDownloadUp,
                  input$callTextDownloadNew,
                  input[["fleet-callTextDownload"]],
+                 input[["fleet_summary-callTextDownload"]],
                  input$callTextDownloadAlt,
                  input$callTextDownloadEC,
                  input$callTextDownloadModels,
+                 input$callTextDownloadPolicy,
                  input$callTextDownloadBook), {
                    
-                   if (input$tabs == 'upload') {
-                     if (!is.null(input$notesUp)) {
-                       notes$upload <- c(notes$upload, paste0(input$notesUp, "\n"))
+                   if (input$tabs == 'Upload Data') {
+                     # File already exists
+                     if(file.exists(paste0(locoutput(project$name),"upload_notes.txt"))) {
+                       if (!is.null(input$notesUp) & !is_empty(input$notesUp)) {
+                         tmp_note <- paste0(format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesUp, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"upload_notes.txt"), append = TRUE)
+                       }
+                       # Create new file
+                     } else {
+                       if (!is.null(input$notesUp) & !is_empty(input$notesUp)) {
+                         tmp_note <- paste0("Upload Data Notes: \n")
+                         tmp_note <- paste0(tmp_note, format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesUp, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"upload_notes.txt"))
+                       }
                      }
+                     
                    } else if (input$tabs == 'qaqc') {
-                     if (!is.null(input$notesQAQC)) {
-                       notes$dataQuality <- c(notes$dataQuality, paste0(input$notesQAQC, "\n"))
+                     # File already exists
+                     if(file.exists(paste0(locoutput(project$name),"qaqc_notes.txt"))) {
+                       if (!is.null(input$notesQAQC) & !is_empty(input$notesQAQC)) {
+                         tmp_note <- paste0(format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesQAQC, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"qaqc_notes.txt"), append = TRUE)
+                       }
+                       # Create new file
+                     } else {
+                       if (!is.null(input$notesQAQC) & !is_empty(input$notesQAQC)) {
+                         tmp_note <- paste0("QA/QC Notes: \n")
+                         tmp_note <- paste0(tmp_note, format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesQAQC, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"qaqc_notes.txt"))
+                       }
                      }
-                   } else if (input$tabs == 'explore') {
-                     if (!is.null(input$notesExplore)) {
-                       notes$explore <- c(notes$explore, paste0(input$notesExplore, "\n"))
+                     
+                   } else if (input$tabs == 'Data Exploration') {
+                     # File already exists
+                     if(file.exists(paste0(locoutput(project$name),"explore_data_notes.txt"))) {
+                       if (!is.null(input$notesExplore) & !is_empty(input$notesExplore)) {
+                         tmp_note <- paste0(format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesExplore, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"explore_data_notes.txt"), append = TRUE)
+                       }
+                       # Create new file
+                     } else {
+                       if (!is.null(input$notesExplore) & !is_empty(input$notesExplore)) {
+                         tmp_note <- paste0("Data Exploration Notes: \n")
+                         tmp_note <- paste0(tmp_note, format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesExplore, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"explore_data_notes.txt"))
+                       }
                      }
+                     
+                   } else if (input$tabs == 'Simple Analyses') {
+                     # File already exists
+                     if(file.exists(paste0(locoutput(project$name),"explore_data_notes.txt"))) {
+                       if (!is.null(input$notesAnal) & !is_empty(input$notesAnal)) {
+                         tmp_note <- paste0(format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesAnal, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"explore_data_notes.txt"), append = TRUE)
+                       }
+                       # Create new file
+                     } else {
+                       if (!is.null(input$notesAnal) & !is_empty(input$notesAnal)) {
+                         tmp_note <- paste0("Data Exploration Notes: \n")
+                         tmp_note <- paste0(tmp_note, format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesAnal, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"explore_data_notes.txt"))
+                       }
+                     }
+                     
+                   } else if (input$tabs == 'Compute New Variables') {
+                     # File already exists
+                     if(file.exists(paste0(locoutput(project$name),"compute_new_vars_notes.txt"))) {
+                       if (!is.null(input$notesNew) & !is_empty(input$notesNew)) {
+                         tmp_note <- paste0(format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesNew, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"compute_new_vars_notes.txt"), append = TRUE)
+                       }
+                       # Create new file
+                     } else {
+                       if (!is.null(input$notesNew) & !is_empty(input$notesNew)) {
+                         tmp_note <- paste0("Compute New Variables Notes: \n")
+                         tmp_note <- paste0(tmp_note, format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesNew, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"compute_new_vars_notes.txt"))
+                       }
+                     }
+                     
                    } else if (input$tabs == 'fleet') {
-                     if (!is.null(input[["fleet-notes"]])) {
-                       notes$fleet <- c(notes$fleet, paste0(input[["fleet-notes"]], "\n"))
+                     # File already exists
+                     if(file.exists(paste0(locoutput(project$name),"fleet_summary_notes.txt"))) {
+                       if (!is.null(input[["fleet-notes"]]) & !is_empty(input[["fleet-notes"]])) {
+                         tmp_note <- paste0(format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input[["fleet-notes"]], "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"fleet_summary_notes.txt"), append = TRUE)
+                       } else if(!is.null(input[["fleet_summary-notes"]]) & !is_empty(input[["fleet_summary-notes"]])) {
+                         tmp_note <- paste0(format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input[["fleet_summary-notes"]], "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"fleet_summary_notes.txt"), append = TRUE)
+                       }
+                       # Create new file
+                     } else {
+                       if (!is.null(input[["fleet-notes"]]) & !is_empty(input[["fleet-notes"]])) {
+                         tmp_note <- paste0("Fleet Assignment and Summary Notes: \n")
+                         tmp_note <- paste0(tmp_note, format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input[["fleet-notes"]], "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"fleet_summary_notes.txt"))
+                       } else if (!is.null(input[["fleet_summary-notes"]]) & !is_empty(input[["fleet_summary-notes"]])) {
+                         tmp_note <- paste0("Fleet Assignment and Summary Notes: \n")
+                         tmp_note <- paste0(tmp_note, format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input[["fleet_summary-notes"]], "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"fleet_summary_notes.txt"))
+                       } 
                      }
-                   } else if (input$tabs == 'analysis') {
-                     if (!is.null(input$notesAnal)) {
-                       notes$analysis <- c(notes$analysis, paste0(input$notesAnal, "\n"))
+                     
+                   } else if (input$tabs == 'Define Alternative Fishing Choices') {
+                     # File already exists
+                     if(file.exists(paste0(locoutput(project$name),"alt_choice_notes.txt"))) {
+                       if (!is.null(input$notesAltc) & !is_empty(input$notesAltc)) {
+                         tmp_note <- paste0(format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesAltc, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"alt_choice_notes.txt"), append = TRUE)
+                       }
+                       # Create new file
+                     } else {
+                       if (!is.null(input$notesAltc) & !is_empty(input$notesAltc)) {
+                         tmp_note <- paste0("Define Alternative Choices Notes: \n")
+                         tmp_note <- paste0(tmp_note, format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesAltc, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"alt_choice_notes.txt"))
+                       }
                      }
-                   } else if (input$tabs == 'new') {
-                     if (!is.null(input$notesNew)) {
-                       notes$new <- c(notes$new, paste0(input$notesNew, '\n'))
+                     
+                   } else if (input$tabs == 'Expected Catch/Revenue') {
+                     # File already exists
+                     if(file.exists(paste0(locoutput(project$name),"exp_catch_notes.txt"))) {
+                       if (!is.null(input$notesEC) & !is_empty(input$notesEC)) {
+                         tmp_note <- paste0(format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesEC, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"exp_catch_notes.txt"), append = TRUE)
+                       }
+                       # Create new file
+                     } else {
+                       if (!is.null(input$notesEC) & !is_empty(input$notesEC)) {
+                         tmp_note <- paste0("Expected Catch/Revenue Notes: \n")
+                         tmp_note <- paste0(tmp_note, format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesEC, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"exp_catch_notes.txt"))
+                       }
                      }
-                   } else if (input$tabs == 'altc') {
-                     if (!is.null(input$notesAltc)) {
-                       notes$altchoice <- c(notes$altchoice, paste0(input$notesAltc, "\n"))
-                     } 
-                   } else if (input$tabs == 'expectedCatch') {
-                     if (!is.null(input$notesEC)) {
-                       notes$ec <- c(notes$ec, paste0(input$notesEC, "\n"))
-                     } 
-                   } else if (input$tabs == 'models') {
-                     if (!is.null(input$notesModel)) {
-                       notes$models <- c(notes$models, paste0(input$notesModel, "\n"))
+                     
+                   } else if (input$tabs == 'Models') {
+                     # File already exists
+                     if(file.exists(paste0(locoutput(project$name),"model_notes.txt"))) {
+                       if (!is.null(input$notesModel) & !is_empty(input$notesModel)) {
+                         tmp_note <- paste0(format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesModel, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"model_notes.txt"), append = TRUE)
+                       }
+                       # Create new file
+                     } else {
+                       if (!is.null(input$notesModel) & !is_empty(input$notesModel)) {
+                         tmp_note <- paste0("Model Design and Run Notes: \n")
+                         tmp_note <- paste0(tmp_note, format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesModel, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"model_notes.txt"))
+                       }
                      }
+                     
+                   } else if (input$tabs == 'Run Policy') {
+                     # File already exists
+                     if(file.exists(paste0(locoutput(project$name),"policy_notes.txt"))) {
+                       if (!is.null(input$notesPolicy) & !is_empty(input$notesPolicy)) {
+                         tmp_note <- paste0(format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesPolicy, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"policy_notes.txt"), append = TRUE)
+                       }
+                       # Create new file
+                     } else {
+                       if (!is.null(input$notesPolicy) & !is_empty(input$notesPolicy)) {
+                         tmp_note <- paste0("Policy Simulation Notes: \n")
+                         tmp_note <- paste0(tmp_note, format(Sys.time(), "%Y-%m-%d %H:%M"), ": ", input$notesPolicy, "\n")
+                         write(tmp_note, file = paste0(locoutput(project$name),"policy_notes.txt"))
+                       }
+                     }
+                     
                    } else if (input$tabs == 'book') {
                      if (!is.null(input$notesBook)) {
                        notes$book <- c(notes$book, paste0(input$notesBook, '\n'))
                      }
                    }
                  })
-  
   
   #---
   #Continue   QAQC   
@@ -7293,6 +7426,7 @@ server = function(input, output, session) {
                  input$callTextDownloadUp,
                  input$callTextDownloadNew,
                  input[["fleet-callTextDownload"]],
+                 input[["fleet_summary-callTextDownload"]],
                  input$callTextDownloadAlt,
                  input$callTextDownloadEC,
                  input$callTextDownloadModels,
@@ -7305,12 +7439,6 @@ server = function(input, output, session) {
                      
                    } else {
                      
-                     savedText$answers <- reactiveValuesToList(notes)
-                     nms <- c("dataQuality", "explore", "analysis")
-                     for (n in nms) {
-                       savedText$answers[[n]] <- c(savedText$answers[[n]], case_to_print[[n]])
-                     }
-                     
                      updateTextInput(session, 'notesUp', "Notes", value = "", 
                                      placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                      updateTextInput(session, 'notesQAQC', "Notes", value="", 
@@ -7318,6 +7446,8 @@ server = function(input, output, session) {
                      updateTextInput(session, 'notesExplore', "Notes", value = "", 
                                      placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                      updateTextInput(session, "fleet-notes", "Notes", value = "",
+                                     placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                     updateTextInput(session, "fleet_summary-notes", "Notes", value = "",
                                      placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                      updateTextInput(session, 'notesAnal', "Notes", value="", 
                                      placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
@@ -7692,44 +7822,9 @@ server = function(input, output, session) {
   
   onStop(function() {
     
-    if (isTruthy(isolate(project$name))) {
-      
-      if (sum(isolate(c(input$callTextDownloadAnal,
-                        input$callTextDownloadQAQC,
-                        input$callTextDownloadExplore,
-                        input[["fleet-callTextDownload"]],
-                        input$callTextDownloadUp,
-                        input$callTextDownloadNew,
-                        input$callTextDownloadAlt,
-                        input$callTextDownloadEC,
-                        input$callTextDownloadModels,
-                        input$callTextDownloadBook))) > 0) {
-        
-        notes_out <- unlist(isolate(savedText$answers))
-        
-        filename <- paste0(locoutput(project = project$name), isolate(project$name), "_notes_", Sys.Date(), ".txt")
-        
-        if (file.exists(filename)) {
-          
-          note_pd <- paste0(isolate(project$name), "_notes_", Sys.Date())
-          
-          note_int <- sum(grepl(note_pd, current_out(project$name)))
-          
-          writeLines(notes_out,
-                     con = paste0(locoutput(project = project$name), isolate(project$name),
-                                  "_notes_", Sys.Date(), "(", (note_int + 1), ").txt"))
-          
-        } else {
-          
-          writeLines(notes_out, con = filename)
-        }
-      }
-    }
-    
     # map viewer -- add check to see if run w/ servr::daemon_list()
     servr::daemon_stop()
   }) 
-  
   
   
   # policy -----

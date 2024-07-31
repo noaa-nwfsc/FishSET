@@ -1062,18 +1062,21 @@ ui = function(request){
                                                                                    
                                                                                    uiOutput("run_fleet_fun"), # run function
                                                                                    
-                                                                              bslib::accordion(open = FALSE,
-                                                                                        bslib::accordion_panel(
-                                                                                        "Other actions", icon = bsicons::bs_icon("menu-app"),                                                                                    
-                                                                                   noteUI("fleet_summary"),
-                                                                                   
-                                                                                   textInput("exprFleetSummary", label = "Enter an R expression",
-                                                                                             value = "values$dataset"),
-                                                                                   actionButton("runFleetSummary", "Run", class = "btn-success"),
-                                                                                   div(style = "margin-top: 2em;",
-                                                                                       uiOutput('resultFleetSummary')
-                                                                                   )
-                                                              )  
+                                                                                   bslib::accordion(open = FALSE,
+                                                                                                    bslib::accordion_panel(
+                                                                                                      "Other actions", icon = bsicons::bs_icon("menu-app"),
+                                                                                                      
+                                                                                                      noteUI("fleet_summary"),
+                                                                                                      
+                                                                                                      tags$br(), tags$br(),
+                                                                                                      
+                                                                                                      textInput("exprFleetSummary", label = "Enter an R expression",
+                                                                                                                value = "values$dataset"),
+                                                                                                      actionButton("runFleetSummary", "Run", class = "btn-success"),
+                                                                                                      div(style = "margin-top: 2em;",
+                                                                                                          uiOutput('resultFleetSummary')
+                                                                                                      )
+                                                                                                    )  
                                                                               ),
                                                               closeAppUI("fleet_summary"),
                                                           ),
@@ -1256,6 +1259,9 @@ ui = function(request){
                                                                placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                                      
                                                      actionButton('callTextDownloadEC','Save notes',class = "btn-success"),
+                                                     
+                                                     tags$br(),tags$br(),
+                                                     
                                                       textInput("exprEC", label = "Enter an R expression",
                                                                 value = "values$dataset"),
                                                       actionButton("runEC", "Run", class = "btn-success"),
@@ -1368,7 +1374,8 @@ ui = function(request){
                                                                                    
                                                                                    bslib::accordion(open = FALSE,
                                                                                                     bslib::accordion_panel(
-                                                                                                      "Other actions", icon = bsicons::bs_icon("menu-app"),                                                                                    
+                                                                                                      "Other actions", icon = bsicons::bs_icon("menu-app"),
+                                                                                                      
                                                                                          textInput('notesModel', "Notes", value=NULL, 
                                                                                                    placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                                                                          
@@ -1684,7 +1691,8 @@ ui = function(request){
                                               predict_map_sidebarUI("run_policy")
                                             ),
                                             bslib::accordion_panel(
-                                              "Other actions", icon = bsicons::bs_icon("menu-app"), 
+                                              "Other actions", icon = bsicons::bs_icon("menu-app"),
+                                              
                                             textInput('notesPolicy', "Notes", value=NULL,
                                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
 
