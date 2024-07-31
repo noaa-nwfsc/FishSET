@@ -7,7 +7,7 @@
 #'   of the saved "best" model. Leave \code{mod.name} empty to use the saved "best" model. If more than
 #'   one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
 #'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
-#' @param zone.dat Variable in main data table that identifies the individual zones or areas.
+#' @param zone.dat Variable in primary data table that identifies the individual zones or areas.
 #' @param groups Determine how to subset dataset into groups for training and testing
 #' @param k Integer, value required if \code{groups = 'Observations'} to determine the number of groups for splitting data 
 #' into training and testing datasets. The value of \code{k} should be chosen to balance bias and variance and values of

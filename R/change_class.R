@@ -3,7 +3,7 @@
 #' View data class for each variable and call appropriate functions to change 
 #' data class as needed.
 #'
-#' @param dat Main data frame over which to apply function. Table in FishSET 
+#' @param dat Primary data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
 #' @param project Name of project.
 #' @param x A character string of variable(s) in \code{dat} that will be changed 

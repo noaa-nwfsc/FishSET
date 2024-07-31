@@ -2199,7 +2199,7 @@ add_prompter <- function(ui_element,
 outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal", 
                              sd_val = NULL, plot_type) {
   #' Evaluate outliers through plots
-  #' @param dat Main data frame over which to apply function. Table in fishet_db 
+  #' @param dat Primary data frame over which to apply function. Table in fishet_db 
   #'   database should contain the string `MainDataTable`.
   #' @param x Column in dataframe to check for outliers.
   #' @param dat_remove Defines method to subset the data. Choices include: 'none', 

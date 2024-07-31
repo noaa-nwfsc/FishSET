@@ -321,7 +321,7 @@ write_dat <- function (dat, project, path=NULL, file_type = "csv",  ...) {
   invisible(TRUE)
 }
 
-# Read in main data table from database into working environment
+# Read in primary data table from database into working environment
 load_data <- function(project, name = NULL) {
   #' Load data from FishSET database into the R environment
   #' 
@@ -474,8 +474,8 @@ fishset_compare <- function(x, y, compare = c(TRUE, FALSE), project) {
 load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y = NULL) {
   #' Import, parse, and save data to the FishSET Database
   #' 
-  #' \code{load_maindata()} saves the main dataset to the FishSET Database (located
-  #' in the FishSETFolder) and is a required step. The main data will also be loaded 
+  #' \code{load_maindata()} saves the primary dataset to the FishSET Database (located
+  #' in the FishSETFolder) and is a required step. The primary data will also be loaded 
   #' into the working environment as a dataframe named "projectMainDataTable". 
   #' Running \code{load_maindata()} creates a new project directory in the FishSETFolder.
   #' To see a list of existing projects run \code{projects()} or open the FishSETFolder.
@@ -501,7 +501,7 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
   #'   The raw table is the original, unedited table. The working table contains 
   #'   any changes made to the table after uploading. An eight digit date string 
   #'   is included in the name of the raw table (e.g. "pollockMainDataTable20220210"). 
-  #'   The main data is loaded into the working environment as ‘projectMainDataTable’.
+  #'   The primary data is loaded into the working environment as ‘projectMainDataTable’.
   #'   The \code{fishset_compare} argument compares \code{dat} to an existing FishSET 
   #'   table in \code{y} and returns a message noting basic differences between the two.
   #'   The column names are checked for case-insensitivity and uniqueness.  
@@ -516,7 +516,7 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
   #' load_maindata(dat = Mydata, project = 'pollock', over_write = TRUE, 
   #'               compare = TRUE, y = 'MainDataTable01012011')
   #'               
-  #' # upload from an exisitng FishSET main data table
+  #' # upload from an exisitng FishSET primary data table
   #' looad_maindata(dat = "pollockMainDataTable", project = "pollock2020")
   #' }
   #' 
@@ -637,12 +637,12 @@ load_outsample <- function(dat, project, over_write = FALSE, compare = FALSE, y 
   #' Import, parse, and save out-of-sample data to FishSET database
   #' 
   #' \code{load_outsample()} saves out-of-sample dataset to the FishSET Database (located
-  #' in the FishSETFolder) and the structure must match the main dataset. A project must exist before 
+  #' in the FishSETFolder) and the structure must match the primary dataset. A project must exist before 
   #' running \code{load_outsample()}. See \code{\link{load_maindata}} to create a new project. Note: if the 
   #' data are out-of-sample temporally then upload a new datafile, if the data are only out-of-sample spatially
-  #' then upload the main data file in this function.
+  #' then upload the primary data file in this function.
   #'
-  #' @param dat Out-of-sample data containing information on hauls or trips with same structure as the main data table. 
+  #' @param dat Out-of-sample data containing information on hauls or trips with same structure as the primary data table. 
   #'   This can be the full path to the file, the name of a out-of-sample table in the FishSET database,
   #'   or a dataframe object in the working environment. Out-of-sample tables in the FishSET 
   #'   database contain the string 'OutSampleDataTable'. A complete list of FishSET
@@ -1063,7 +1063,7 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
   #'   gridded data file need to be variables included in the primary data set.
   #'   The grid locations (zones) must define the columns and the optional second 
   #'   dimension defines the rows. The row variable must have the exact name as the 
-  #'   variable in the main data frame that it will be linked to. The function DOES 
+  #'   variable in the primary data frame that it will be linked to. The function DOES 
   #'   NOT check that column and row variables match a variable in the primary data set.
   #'   The function checks that each row is unique, that no variables are empty, 
   #'   and that column names are case-insensitive unique. These data issues are 

@@ -493,7 +493,7 @@ server = function(input, output, session) {
 				tags$br(), tags$br(),
 				tags$p(tags$strong("Spatial checks"), tags$br(),
 				       'To perform a spatial data check, upload a spatial file containing regulatory zones then select a latitude, longitude,',
-				       'and date column from the main data table. An EPSG code and a grouping variable are optional. Spatial checks determine',
+				       'and date column from the primary data table. An EPSG code and a grouping variable are optional. Spatial checks determine',
 				       'whether points occur on land, outside zone, on zone boundaries, and/or at sea and within zones.',
 				       tags$br(), tags$br(),
 				       'The spatial corrections tab allows users to change lat/lon signs, remove points by distance from nearest zone, and',
@@ -907,7 +907,7 @@ server = function(input, output, session) {
         tags$br(), tags$br(),
         #$div(style="display: inline-block; align:center", img(src="zonal.png", height="75%", width="75%")),
         #	           tags$li('(Required) Identify fishery zones or management areas, calculate zone or fishing centroids, and assign each observations 
-        #                      in the main data table to zones. FishSET defaults to geographic centroids. #
+        #                      in the primary data table to zones. FishSET defaults to geographic centroids. #
         #					             To use fishing centroids, select a weighting variable in the weighted centroid box. Points that fall outside of 
         #	                    any zones can be assigned to the closest zone by checking the', tags$code('Use closest polygon to point'), 'box. 
         #	                    If spatial data creating polygons are sparse or irregular, the', tags$code('Use convex hull method'),'is recommended. 
@@ -3300,12 +3300,12 @@ server = function(input, output, session) {
   output$spatQAQC_checkUI <- renderUI({
     if (names(spatdat$dataset)[1] != "var1") {
       tagList(
-        selectInput("spat_qaqc_ID", "Select zone ID from main data",
+        selectInput("spat_qaqc_ID", "Select zone ID from primary data",
                     choices = colnames(values$dataset), multiple = FALSE),
-        selectizeInput("spat_qaqc_lon", "Select Longitude from main data",
+        selectizeInput("spat_qaqc_lon", "Select Longitude from primary data",
                        choices = find_lon(values$dataset), multiple = FALSE, 
                        options = list(create = TRUE)),
-        selectizeInput("spat_qaqc_lat", "Select Latitude from main data",
+        selectizeInput("spat_qaqc_lat", "Select Latitude from primary data",
                        choices = find_lat(values$dataset), multiple = FALSE, 
                        options = list(create = TRUE)),
         selectizeInput("spat_qaqc_date", "Select date variable", 
@@ -3628,7 +3628,7 @@ server = function(input, output, session) {
     land_remove_i <- which(spat_qaqc$out_df$ON_LAND)
     
     if(length(land_remove_i) > 0){
-      values$dataset <- values$dataset[-land_remove_i,] # change main data table
+      values$dataset <- values$dataset[-land_remove_i,] # change primary data table
       spat_qaqc$out_df <- spat_qaqc$out_df[-land_remove_i,] # need to update the reactive  
     }
     
@@ -3697,9 +3697,9 @@ server = function(input, output, session) {
       
       conditionalPanel("input.SelectDatasetExplore == 'port'",
                        h6("To merge the port table to the primary data table:"),
-                       selectInput("porttable_id", "Select the port table id",
+                       selectInput("porttable_id", "Select the port table ID",
                                    choices = c(names(portdat$dataset))),
-                       selectInput("maintable_port", "Select the primary data id",
+                       selectInput("maintable_port", "Select the primary data ID",
                                    choices = c(names(values$dataset))),
                        actionButton("merge_port", "Merge Port Data"))
     )
@@ -4165,7 +4165,7 @@ server = function(input, output, session) {
       },
 
       tags$div(style = "margin-left:19px;",
-               selectInput('zone_summ_dat', 'Select column containing zone ID in main data table',
+               selectInput('zone_summ_dat', 'Select column containing zone ID in primary data table',
                            choices = colnames(values$dataset))),
 
       tags$div(style = "margin-left:19px;",
@@ -4859,7 +4859,7 @@ server = function(input, output, session) {
   output$fish_weight_cent <- renderUI({
     
     tagList(
-      textInput('cat_cent', 'Zone identifier in main data file or spatial data file', 
+      textInput('cat_cent', 'Zone identifier in primary data file or spatial data file', 
                 value='ZoneID'),
       selectInput('weight_var_cent', 'Weighting variable', 
                   choices=c('none'="", colnames(values$dataset))),

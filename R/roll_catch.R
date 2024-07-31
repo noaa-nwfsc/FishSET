@@ -1,6 +1,6 @@
 #' Apply moving average function to catch
 #'
-#' @param dat Main data frame over which to apply function. Table in FishSET database
+#' @param dat Primary data frame over which to apply function. Table in FishSET database
 #'   should contain the string `MainDataTable`.
 #' @param project Name of project.
 #' @param catch Variable name or names containing catch data. Multiple variables can
