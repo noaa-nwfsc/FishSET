@@ -9,7 +9,7 @@
 #' @param use.scalers Input for \code{\link{create_model_input}}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
 #' numeric vector unless specified with \code{scaler.func}.
 #' @param scaler.func Input for \code{\link{create_model_input}}. Function to calculate rescaling factors.
-#' @param outsample Logical, \code{FALSE} if predicting probabilities for main data, and \code{TRUE} if predicting for out-of-sample data. \code{outsample = FALSE} 
+#' @param outsample Logical, \code{FALSE} if predicting probabilities for primary data, and \code{TRUE} if predicting for out-of-sample data. \code{outsample = FALSE} 
 #'   is the default setting.
 #' @return Returns probability of epm model by choice
 #' @export

@@ -19,7 +19,7 @@
 #' 
 #' @details
 #' This function automatically pulls model settings from the selected model and creates an alternative choice matrix, expected catch/revenue matrices, 
-#' and model design for a hold-out dataset. The hold-out data set can be an out-of-sample dataset or subset of main data for cross validation.
+#' and model design for a hold-out dataset. The hold-out data set can be an out-of-sample dataset or subset of primary data for cross validation.
 #' If running out-of-sample data, this function requires that a filtered out-of-sample data file (.rds file) exists in the output folder. For cross
 #' validation, this function is called in the \code{cross_validation()} function.
 #' Note: the out-of-sample functions only work with a single selected model at a time. To run out-of-sample functions on a new
