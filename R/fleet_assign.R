@@ -172,7 +172,7 @@ fleet_assign <- function(dat, project, fleet_tab, assign = NULL, overlap = FALSE
                          format_var = "string") {
   #' Create fleet variable using fleet definition table
   #'
-  #' Add a fleet ID column to the main data using a fleet table (see \code{\link{fleet_table}} 
+  #' Add a fleet ID column to the primary data using a fleet table (see \code{\link{fleet_table}} 
   #' for details).
   #'
   #' @param dat Primary data containing information on hauls or trips. Table in 

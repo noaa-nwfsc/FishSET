@@ -34,7 +34,7 @@ merge_dat <- function(dat, other, project, main_key, other_key, other_type,
   #'               main_key = "PORT_CODE", other_key = "PORT_CODE")
   #' } 
 
-  # pull main data
+  # pull primary data
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
@@ -163,7 +163,7 @@ split_dat <- function(dat, aux = NULL, project, split_by = NULL, key, output = "
   #' split_dat("pollockMainDataTable", "pollock", aux = "pollockPortTable", key = "PORT_CODE")
   #' }
 
-  # pull main data
+  # pull primary data
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
@@ -216,7 +216,7 @@ split_dat <- function(dat, aux = NULL, project, split_by = NULL, key, output = "
       aux_dat <- dplyr::distinct(aux_dat)
     }
       
-    # remove all aux columns from main data (except key) 
+    # remove all aux columns from primary data (except key) 
     split_by <- split_by[!(split_by %in% key)]
     dataset <- dataset[, !(main_cols %in% split_by)]
   }
@@ -255,9 +255,9 @@ split_check <- function(main, split, key, arg) {
   
   if (!all(split %in% main)) {
     
-    # note which colnames aren't in main data
+    # note which colnames aren't in primary data
     not_found <- split[!(split %in% main)]
-    stop(paste0("Main data does not contain column(s) ", paste(not_found, collapse = ", "), 
+    stop(paste0("Primary data does not contain column(s) ", paste(not_found, collapse = ", "), 
                 ". Did you specify the correct columns in '", arg, "'?"), call. = FALSE)
   }
   
@@ -265,7 +265,7 @@ split_check <- function(main, split, key, arg) {
     
     # note which keys aren't in main data
     not_found <- key[!(key %in% main)]
-    stop(paste0("Main data does not contain column(s) ", paste(not_found, collapse = ", "), 
+    stop(paste0("Primary data does not contain column(s) ", paste(not_found, collapse = ", "), 
                 ". Did you specify the correct columns in 'key'?"), call. = FALSE)
   }
   

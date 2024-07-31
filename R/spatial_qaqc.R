@@ -488,7 +488,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     )
 
   ind <- vapply(out, function(x) !is.null(x), logical(1))
-  out_nms <- names(ind[ind][-1])# skip main data
+  out_nms <- names(ind[ind][-1])# skip primary data
 
   # save output ----
   lapply(out_nms, function(nm) {
@@ -671,9 +671,9 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
           tagList(         
             actionButton("runSpatQAQC", "Run spatial check",
                          style = "color: white; background-color: #0073e6;"), 
-            selectInput("spat_qaqc_lat", "Select Latitude from main data",
+            selectInput("spat_qaqc_lat", "Select Latitude from primary data",
                         choices = find_lat(dataset)),
-            selectInput("spat_qaqc_lon", "Select Longitude from main data",
+            selectInput("spat_qaqc_lon", "Select Longitude from primary data",
                         choices = find_lon(dataset)),
             selectInput("spat_qaqc_date", "Select date variable", 
                         choices = date_cols(dataset)),
@@ -784,9 +784,9 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
         if (!is.null(checks)) {
           
           tagList(
-            selectInput("spat_qaqc_lat", "Select Latitude from main data",
+            selectInput("spat_qaqc_lat", "Select Latitude from primary data",
                         choices = find_lat(dataset)), 
-            selectInput("spat_qaqc_lon", "Select Longitude from main data",
+            selectInput("spat_qaqc_lon", "Select Longitude from primary data",
                         choices = find_lon(dataset)),
           )
         }

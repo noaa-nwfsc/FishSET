@@ -36,7 +36,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   Scenario<-`2.5%`<-`5%`<-`50%`<-`95%`<-`97.5%`<-welfare_change<-mean_loss_per_trip<- NULL
   
   ##
-  # Load, filter, format main data ----
+  # Load, filter, format primary data ----
   ##
   if (shiny::isRunning()) {
     dat <- table_view(paste0(project,"MainDataTable_final"), project)
@@ -49,7 +49,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  # Need to get zones included in the model and pull from main data table
+  # Need to get zones included in the model and pull from primary data table
   x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "ModelInputData LIMIT 1"))$ModelInputData[[1]])
   
   # Make sure model exists
@@ -63,7 +63,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   zones <- unique(x_new$choice)$choice
 
   if(!is.null(group_var)){
-    # Filter main data table for zones in the model and grouping variables
+    # Filter primary data table for zones in the model and grouping variables
     dat <- dat %>%
       dplyr::filter((!!rlang::sym(zone.dat)) %in% zones) %>%
       dplyr::select(c((!!rlang::sym(zone.dat)), (!!sym(group_var)))) %>%

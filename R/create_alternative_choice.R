@@ -6,7 +6,7 @@
 #' [assignment_column()]). In certain cases a centroid table must be saved to 
 #' the FishSET Database, see `occasion_var` for details.
 #'
-#' @param dat  Required, main data frame containing data on hauls or trips.
+#' @param dat  Required, Primary data frame containing data on hauls or trips.
 #'   Table in FishSET database should contain the string `MainDataTable`.
 #' @param project Required, name of project.
 #' @param occasion String, determines the starting point when calculating the 
@@ -83,7 +83,7 @@
 #'   in the FishSET database.
 #' @param spatID Required when `alt_var = 'nearest point'`. Variable in `spat` 
 #'   that identifies the individual zones or areas. 
-#' @param outsample Logical, indicating whether this is for main data or out-of
+#' @param outsample Logical, indicating whether this is for primary data or out-of
 #'   sample data.
 #' @importFrom DBI dbExecute
 #' @export create_alternative_choice
@@ -237,7 +237,7 @@ create_alternative_choice <-
     if (!any(cent_tab$ZoneID %in% unique(dataset[[zoneID]]))) {
       
       stop('Zones do not match between centroid table and zonal assignments ',
-           'in main data table. Rerun find_centroid() using same spatial data file ',
+           'in primary data table. Rerun find_centroid() using same spatial data file ',
            'as was using with the assignment_column() function.', call. = FALSE)
     }
     

@@ -3,7 +3,7 @@
 #' Compare bycatch CPUE and total catch/percent of total catch for one or more 
 #' species
 #'
-#' @param dat Main data frame over which to apply function. Table in FishSET 
+#' @param dat Primary data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
 #' @param project name of project.
 #' @param cpue A string of CPUE variable names. The function outputs 

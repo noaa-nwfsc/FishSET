@@ -35,7 +35,7 @@ table_save <- function(table, project, type, name = NULL) {
  #' 
  #' @param table A dataframe to save to the FishSET Database.
  #' @param project Name of project.
- #' @param type The table type. Options include, \code{"main"} for main data tables,
+ #' @param type The table type. Options include, \code{"main"} for primary data tables,
  #'    \code{"port"} for port tables, \code{"grid"} for gridded tables, \code{"aux"}
  #'    for auxiliary tables. 
  #' @param name String, table name. Applicable only for gridded, auxiliary, and
@@ -60,7 +60,7 @@ table_save <- function(table, project, type, name = NULL) {
     if (!table_exists(tab_name, project)) {
       
      stop("Main table '", tab_name, "' does not exist. Check spelling or use ", 
-          "load_maindata() to import a main data table.")
+          "load_maindata() to import a primary data table.")
     }
     
   } else if (type == "port") {

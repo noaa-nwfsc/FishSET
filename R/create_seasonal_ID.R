@@ -144,7 +144,7 @@ return(dataset)
 #' `SeasonID` is defined by whether the target fishery is open on the date in the primary dataset or a different fishery. The
 #' vector is filled with 'target' or 'other'.\cr\cr
 #' `SeasonID*fishery` variables are a 1/0 seasonID vector for each fishery (labeled by seasonID and fishery) where 1
-#' indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
+#' indicates the dates for a given row in the primary data table fall within the fishery dates for that fishery.
 
 #' @examples
 #' \dontrun{
@@ -168,7 +168,7 @@ create_seasonal_ID <- function(dat, project, seasonal.dat, use.location = c(TRUE
   # Test that location_data match
   if (use.location == TRUE) {
     if (!any(match(names(dataset)[grep("area|zon", names(dataset), ignore.case = TRUE)], names(seasonaldat), nomatch = 0) > 0)) {
-      stop("Area or zone must be defined and match in both the main dataset and the seasonal dataset. No match found.")
+      stop("Area or zone must be defined and match in both the primary dataset and the seasonal dataset. No match found.")
     } else {
       loc.name <- names(seasonaldat)[match(names(dataset)[grep("area|zon", names(dataset), ignore.case = TRUE)], names(seasonaldat), nomatch = 0)[which(match(names(dataset)[grep("area|zon",
         names(dataset),
@@ -179,7 +179,7 @@ create_seasonal_ID <- function(dat, project, seasonal.dat, use.location = c(TRUE
 
   if (use.geartype == TRUE) {
     if (!any(match(names(dataset)[grep("gear", names(dataset), ignore.case = TRUE)], names(seasonaldat), nomatch = 0) > 0)) {
-      stop("Gear type must be defined and match in both the main dataset and the seasonal dataset. No match found.")
+      stop("Gear type must be defined and match in both the primary dataset and the seasonal dataset. No match found.")
     } else {
       gear.name <- names(seasonaldat)[match(names(dataset)[grep("gear", names(dataset), ignore.case = TRUE)], names(seasonaldat), nomatch = 0)[which(match(names(dataset)[grep("gear",
         names(dataset),

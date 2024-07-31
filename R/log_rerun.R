@@ -5,7 +5,7 @@ log_rerun <- function(log_file, dat = NULL, portTable = NULL, aux = NULL,
   #' 
   #' @param log_file String, name of the log file starting with the date (YYYY-MM-DD) and
   #'   ending in ".json". 
-  #' @param dat String, new main data table to rerun log 
+  #' @param dat String, new primary data table to rerun log 
   #' @param portTable String, name of port table. Defualts to NULL.
   #' @param aux String, name of auxiliary table. Defaults to NULL.
   #' @param gridfile String, name of gridded data table. Defaults to NULL.
