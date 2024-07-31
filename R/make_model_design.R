@@ -62,7 +62,7 @@
 #'   [logit_correction()] likelihood.
 #' @param crs coordinate reference system to be assigned when creating the 
 #'   distance matrix. Passed on to [create_dist_matrix()].
-#' @param outsample Logical, indicates whether the model design is for main data (\code{FALSE})
+#' @param outsample Logical, indicates whether the model design is for primary data (\code{FALSE})
 #'   or out-of-sample data (\code{TRUE}). The default is \code{outsample = FALSE}.
 #' @param CV_dat Dataframe that contains training or testing data for k-fold cross validation. Defaults to
 #'   \code{CV_dat = NULL}.

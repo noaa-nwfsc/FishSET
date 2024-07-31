@@ -419,7 +419,7 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
                        create_group_ID = FALSE, drop_total_col = FALSE) {
   #' Create a within-group percentage variable 
   #'
-  #' @param dat Main data frame over which to apply function. Table in FishSET 
+  #' @param dat Primary data frame over which to apply function. Table in FishSET 
   #'   database should contain the string `MainDataTable`.
   #' @param project String, project name.
   #' @param id_group String, primary grouping variable(s). Used to create the "total_value" 
@@ -1169,7 +1169,7 @@ randomize_value_row <- function(dat, project, value) {
   #'
   #' Randomize value between rows
   #'
-  #' @param dat Main data frame over which to apply function. Table in FishSET 
+  #' @param dat Primary data frame over which to apply function. Table in FishSET 
   #'   database should contain the string `MainDataTable`.
   #' @param project Project name. 
   #' @param value String, variable name to be randomly distributed between rows. 
@@ -1201,7 +1201,7 @@ randomize_value_range <- function(dat, project, value, perc = NULL) {
   #' 
   #' Randomize variable value by percentage range
   #' 
-  #' @param dat Main data frame over which to apply function. Table in FishSET 
+  #' @param dat Primary data frame over which to apply function. Table in FishSET 
   #'   database should contain the string `MainDataTable`.
   #' @param project Project name. 
   #' @param value String, name of variable to jitter. 
@@ -1266,7 +1266,7 @@ jitter_lonlat <- function(dat, project, lon, lat, factor = 1, amount = NULL) {
   #'
   #' Jitter longitude and latitude variables
   #'
-  #' @param dat Main data frame over which to apply function. Table in FishSET 
+  #' @param dat Primary data frame over which to apply function. Table in FishSET 
   #'   database should contain the string `MainDataTable`.
   #' @param project Project name. 
   #' @param lon String, variable name containing longitude.
@@ -1311,7 +1311,7 @@ randomize_lonlat_zone <- function(dat, project, spat, lon, lat, zone) {
   #' 
   #' Randomize latitude and longitude points by zone
   #' 
-  #' @param dat Main data frame over which to apply function. Table in FishSET 
+  #' @param dat Primary data frame over which to apply function. Table in FishSET 
   #'   database should contain the string `MainDataTable`.
   #' @param project Project name. 
   #' @param spat Spatial data table containing regulatory zones. This can be 
@@ -1413,7 +1413,7 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
   #'
   #' Assign longitude and latitude points to zonal centroid
   #' 
-  #' @param dat Main data frame over which to apply function. Table in FishSET 
+  #' @param dat Primary data frame over which to apply function. Table in FishSET 
   #'   database should contain the string `MainDataTable`.
   #' @param project Project name. 
   #' @param lon String, variable name containing longitude.
