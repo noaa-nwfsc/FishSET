@@ -6142,15 +6142,30 @@ server = function(input, output, session) {
   
   output$mod_grid_var_ui <- renderUI({
     
-    add_prompter(selectizeInput('mod_grid_vars', 
-                                label = list(gridlab(), icon('info-circle', verify_fa = FALSE)),
-                                multiple=TRUE, choices = colnames(values$dataset)),
-                 
-                 position = "top", type='info', size='medium', 
-                 message = "Generally, variables that vary by zonal alternatives 
-                   or are interacted with zonal constants. See Likelihood functions 
+    if(input$model == "logit_c"){
+      add_prompter(selectizeInput('mod_grid_vars', 
+                                  label = list(gridlab(), icon('info-circle', verify_fa = FALSE)),
+                                  multiple=TRUE, choices = gsub("GridTable", "", gsub(project$name, "", list_tables(project$name, "grid")))),
+                   
+                   position = "top", type='info', size='medium', 
+                   message = "Generally, variables that vary by zonal alternatives 
+                   or are interacted with zonal constants. Conditional logit models require a
+                   gridded table for alternative-specific variables. See Likelihood functions 
                    sections of the FishSET Help Manual for details. Select 'none' 
                    if no variables are to be included.")
+    } else {
+      add_prompter(selectizeInput('mod_grid_vars', 
+                                  label = list(gridlab(), icon('info-circle', verify_fa = FALSE)),
+                                  multiple=TRUE, choices = colnames(values$dataset)),
+                   
+                   position = "top", type='info', size='medium', 
+                   message = "Generally, variables that vary by zonal alternatives 
+                   or are interacted with zonal constants. Conditional logit models require a
+                   gridded table for alternative-specific variables. See Likelihood functions 
+                   sections of the FishSET Help Manual for details. Select 'none' 
+                   if no variables are to be included.")
+    }
+    
   })
   
   # Determine the # of parameters needed

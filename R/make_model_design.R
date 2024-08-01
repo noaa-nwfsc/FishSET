@@ -288,15 +288,13 @@ make_model_design <-
   
   if (likelihood == "logit_c") {
     
-    column_check(dataset, c(catchID, vars1, vars2, priceCol, startloc))
+    column_check(dataset, c(catchID, vars1, priceCol, startloc))
     
-    # lapply(vars2, function(x) {
-    #   
-    #   if (!table_exists(x, project)) {
-    #     
-    #     stop("Gridded table '", x, "' does not exist.", call. = FALSE)
-    #   }
-    # })
+    lapply(vars2, function(x){
+      if(!table_exists(paste0(project,x,"GridTable"), project)){
+        stop("Gridded table '", paste0(project,x,"GridTable"), "' does not exist.", call. = FALSE)
+      }
+    })
     
   } else {
     
