@@ -1794,16 +1794,9 @@ server = function(input, output, session) {
 
       q_test <- quietly_test(load_grid)
 
-      qc_pass <-
-        q_test(paste0(project$name, 'GridTable'), grid = grddat[[grid_name]],
-               name = input$GridName, over_write = TRUE, project = project$name)
+      qc_pass <- q_test(grid = grddat[[grid_name]], name = input$GridName, project = project$name, over_write = TRUE)
 
-      cat(file=stderr(), "\n", "TEST1", "\n")
-      
       if (qc_pass) {
-        
-        cat(file=stderr(), "\n", "TEST4a", "\n")
-
         showNotification('Gridded data saved to database.', type = 'message', duration = 10)
         track_load$grid$file <- input$griddat
         load_r$grid <- load_r$grid + 1
@@ -1813,30 +1806,27 @@ server = function(input, output, session) {
                            tab_type = "grid")
 
       } else {
-
-        cat(file=stderr(), "\n", "TEST4b", "\n")
-        
         grddat[[grid_name]] <- NULL
-        # showNotification('Gridded data was not saved to database.', type = 'warning', duration = 10)
+        showNotification('Gridded data was not saved to database.', type = 'warning', duration = 10)
       }
     }
-    # 
-    # if (length(names(grddat)) > 0) {
-    # 
-    #   showNotification("Gridded data loaded.", type = 'message', duration = 10)
-    # }
+
+    if (length(names(grddat)) > 0) {
+
+      showNotification("Gridded data loaded.", type = 'message', duration = 10)
+    }
     
   }, ignoreInit = TRUE, ignoreNULL = TRUE)
   
   
   output$gridded_uploaded <- renderUI({
-    # if (length(names(grddat)) > 0) {
-    # 
-    #   tagList(
-    #     p(strong("Gridded data tables uploaded:")),
-    #     renderText(paste(names(grddat), collapse = ", "))
-    #   )
-    # }
+    if (length(names(grddat)) > 0) {
+
+      tagList(
+        p(strong("Gridded data tables uploaded:")),
+        renderText(paste(names(grddat), collapse = ", "))
+      )
+    }
   })
   
   ## Auxiliary ----     
