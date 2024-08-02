@@ -322,9 +322,9 @@ discretefish_subroutine <- function(project,
       }
       
       # likelihood ----
-      LL_start <- fr.name(starts2, datamatrix$d, datamatrix$otherdat, 
-                          max(datamatrix$choice), project = project, 
-                          datamatrix$expname, as.character(datamatrix$mod.name))
+      LL_start <- fr.name(starts3 = starts2, dat = datamatrix$d, otherdat = datamatrix$otherdat, 
+                          alts = max(datamatrix$choice), project = project, 
+                          expname = datamatrix$expname, mod.name = as.character(datamatrix$mod.name))
       
       if (is.null(LL_start) || is.nan(LL_start) || is.infinite(LL_start)) {
         # haven't checked what happens when error yet
