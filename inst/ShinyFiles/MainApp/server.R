@@ -6029,7 +6029,13 @@ server = function(input, output, session) {
   
   output$mod_name_ui <- renderUI({
     
-    textInput('mod_name', 'Type model name', value = mod_name_r())
+    add_prompter(textInput('mod_name', 
+                           label = list('Type model name', icon('info-circle', verify_fa = FALSE)), 
+                           value = mod_name_r()),
+                 position = "right", type = "info", size = "large",
+                 message = "Model names that contain 'test' or 'train' are reserved for cross-validations and
+                            model tests for developers. Names that contain these patterns will not be available in
+                            the 'Select models to run' input in the left panel.")
   })
   
   
@@ -6147,7 +6153,7 @@ server = function(input, output, session) {
                                   label = list(gridlab(), icon('info-circle', verify_fa = FALSE)),
                                   multiple=TRUE, choices = gsub("GridTable", "", gsub(project$name, "", list_tables(project$name, "grid")))),
                    
-                   position = "top", type='info', size='medium', 
+                   position = "right", type='info', size='large', 
                    message = "Generally, variables that vary by zonal alternatives 
                    or are interacted with zonal constants. Conditional logit models require a
                    gridded table for alternative-specific variables. See Likelihood functions 
