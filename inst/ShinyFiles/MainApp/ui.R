@@ -1487,7 +1487,7 @@ ui = function(request){
                                          message = tags$p("Starting values can be changed. 
                                         The function will explore the parameter space to find better starting values. 
                                         The order of starting parameter values differ between likelihood functions.
-                                        Conditional logit and zonal logit: alternative-specific parameters,  travel-distance parameters
+                                        Conditional logit and zonal logit: alternative-specific parameters (betas),  travel-distance parameters (gammas)
                                         Logit correction:  marginal utility from catch, catch-function parameters, polynomial starting parameters, travel-distance parameters, catch sigma
                                         EPM likelihood functions:  catch-function parameters, travel-distance parameters, catch sigma(s), scale parameter 
                                         See Likelihood section of Help Manual for more details.")),

@@ -444,12 +444,12 @@ discretefish_subroutine <- function(project,
       
       PseudoR2 <- round((LL_start - LL) / LL_start, 3)
       
-      if (!is.null(datamatrix$expname)) {
-        
-        modOutName <- paste0(c(mdf[[i]][["mod.name"]], datamatrix$expname), collapse = '.')
-        
-      } else modOutName <- mdf[[i]][["mod.name"]]
-      
+      # if (!is.null(datamatrix$expname)) {
+      #   
+      #   modOutName <- paste0(c(mdf[[i]][["mod.name"]], datamatrix$expname), collapse = '.')
+      # } else 
+      modOutName <- mdf[[i]][["mod.name"]]
+    
       mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
       mod.out[, 1] <- c(AIC, AICc, BIC, PseudoR2)
       rownames(mod.out) <- c("AIC", "AICc", "BIC", "PseudoR2")
@@ -607,7 +607,7 @@ discretefish_subroutine <- function(project,
           
           rownames(OutLogit) <- c(n1, ind_vars, n2, n3)
           
-        }else {
+        } else {
           # Q: will this always be the correct order?
           rownames(OutLogit) <- c(ec_names, p_names)
         }

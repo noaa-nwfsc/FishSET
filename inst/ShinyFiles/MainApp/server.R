@@ -6220,7 +6220,8 @@ server = function(input, output, session) {
   iparams <- reactiveValues(data = NULL)
   
   # Generate parameter names for each likelihood
-  observeEvent(c(input$model, input$alt_spec_epm1, input$alt_spec_epm2, project$name), {
+  observeEvent(c(input$model, input$alt_spec_epm1, input$alt_spec_epm2, project$name,
+                 input$mod_ind_vars, input$mod_grid_vars, input$mod_select_exp_1), {
     # # Extra code just in case numInits() == 0 in the future
     # # Below code will pull output to autofill table if numInits() == 0, but I don't think this will ever be zero given numInits code above
     # x_temp <- read_dat(paste0(locoutput(project$name),
@@ -6231,9 +6232,10 @@ server = function(input, output, session) {
       # Get the number of beta and gamma variables to name and initialize parameter values
       gridNum <- length(input$mod_grid_vars)
       intNum <- length(input$mod_ind_vars)
+      
       if (gridNum == 0 || is.null(gridNum)) gridNum <- 1
       if (intNum == 0 || is.null(intNum)) intNum <- 1
-
+      
       # Generate parameter names based on likelihood function
       if(input$model == "logit_c"){
         par.names <- c(unlist(lapply(1:gridNum, function(x) {paste0('beta.',x)})),

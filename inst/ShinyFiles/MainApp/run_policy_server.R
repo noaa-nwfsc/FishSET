@@ -23,7 +23,7 @@ pred_plotsServer <- function(id, project, spatdat, values){
         req(project)
         
         selectInput(ns("select_pol_mod"), 'Select a model', 
-                    choices = c(model_names(project)))
+                    choices = c(lapply(model_out_view(project=project), "[[", "name")))
         
       })
       
@@ -50,11 +50,12 @@ pred_plotsServer <- function(id, project, spatdat, values){
       output$pol_likelihood <- renderUI({
         req(project)
         req(input$select_pol_mod)
+        
         if((model_design_list(project)[[which(lapply(model_design_list(project=project), "[[", "mod.name")
-                                                      == input$select_pol_mod)]]$likelihood %in% c("logit_c", "logit_zonal"))){
+                                              == input$select_pol_mod)]]$likelihood %in% c("logit_c", "logit_zonal"))){
           tagList(
           selectInput(ns("select_marg_inc"),'Marginal utility of income coefficient', 
-                     choices = row.names(model_out_view(project)[[which(lapply(model_design_list(project=project), "[[", "mod.name")
+                     choices = row.names(model_out_view(project)[[which(lapply(model_out_view(project), "[[", "name")
                                                                           == input$select_pol_mod)]]$OutLogit)),
      
           add_prompter(
