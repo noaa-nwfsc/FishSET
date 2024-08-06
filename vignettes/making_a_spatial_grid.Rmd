@@ -51,6 +51,9 @@ grid_sf <- st_sf(geometry = grid_sf, crs = 4326)
 ```
 
 ### Add zone ID variable to the spatial object
+
+The zone ID variable in the primary data table can be reassigned to match the zone IDs in the spatial grid object based on the lat/lon of fishing location in the primary data table.
+
 ```{r zoneID, echo=TRUE}
 # Assign zone ID variable
 # Here the ID is just a sequence from 1 to the number of grids in the spatial object
