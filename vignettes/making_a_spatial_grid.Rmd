@@ -75,7 +75,7 @@ ggplot() +
   geom_sf(data = base_map) +
   geom_sf(data = grid_sf, fill=NA) +
   theme_minimal() +
-  labs(title = "Spatial Grid")
+  labs(title = "5x5 Degree Spatial Grid")
 ```
 
 ### Save spatial grid
