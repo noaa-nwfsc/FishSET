@@ -527,7 +527,6 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
   
   dataset <- data_upload_helper(dat, "main")
   
-  
   # coerce to tibble
   # TODO: customize column name check (case-insensitive)
   dataset <- tibble::as_tibble(dataset)
@@ -1042,7 +1041,7 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
   }
 }
 
-load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
+load_grid <- function(grid, name, project, over_write = TRUE) {
   #' Import, parse, and save gridded data to FishSET database
   #'
   #' Gridded data is data that varies by two dimensions. Column names must be zone 
@@ -1050,13 +1049,11 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
   #' exist before running \code{load_grid()}. See \code{\link{load_maindata}}
   #' to create a new project. 
   #' 
-  #' @param dat Primary data containing information on hauls or trips. 
-  #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param grid File name, including path, of gridded data. 
   #' @param name Name gridded data should be saved as in FishSET database.
+  #' @param project String, name of project.
   #' @param over_write Logical, If TRUE, saves dat over previously saved data table 
   #'   in the FishSET database.
-  #' @param project String, name of project.
   #' @details Grid data is an optional data frame that contains a variable that 
   #'   varies by the map grid (ex. sea surface temperature, wind speed). Data can 
   #'   also vary by a second dimension (e.g., date/time). Both dimensions in the 
@@ -1083,7 +1080,6 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
   #' }
   #' 
   
-  
   if (project_exists(project) == FALSE) {
     
     stop("Project '", project, "' does not exist. Check spelling or create a",
@@ -1096,12 +1092,18 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
   
   check <- TRUE
   
-  out <- data_pull(dat, project)
-  # Note: dataset is not used
-  dataset <- out$dataset
-  dat <- parse_data_name(dat, "main", project)
+  if(!is.data.frame(grid)){
+    grid <- as.data.frame(grid)
+  }
   
   grid <- data_upload_helper(grid, "grid")
+  
+  # Coerce to tibble
+  if(any(is.na(names(grid)))){
+    i_rm <- which(is.na(names(grid)))
+    grid <- grid[,-i_rm]
+  }
+  grid <- tibble::as_tibble(grid)
   
   if (check == FALSE) { 
     
@@ -1135,8 +1137,7 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
       
       load_gridded_function <- list()
       load_gridded_function$functionID <- "load_grid"
-      load_gridded_function$args <- list(deparse_name(dat), deparse_name(grid), 
-                                         name, over_write, project)
+      load_gridded_function$args <- list(deparse_name(grid), name, project, over_write)
       log_call(project, load_gridded_function)
       
       message("Grid table saved to database.")

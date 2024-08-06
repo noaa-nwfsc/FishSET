@@ -290,13 +290,11 @@ make_model_design <-
     
     column_check(dataset, c(catchID, vars1, priceCol, startloc))
     
-    lapply(vars2, function(x) {
-      
-      if (!table_exists(x, project)) {
-        
-        stop("Gridded table '", x, "' does not exist.", call. = FALSE)
+    invisible(lapply(vars2, function(x){
+      if(!table_exists(paste0(project, x, "GridTable"), project)){
+        stop("Gridded table '", paste0(project,x,"GridTable"), "' does not exist.", call. = FALSE)
       }
-    })
+    }))
     
   } else {
     
@@ -417,7 +415,6 @@ make_model_design <-
     }
   }
   
-
   alt_var <- Alt$alt_var
   occasion <- Alt$occasion
   occasion_var <- Alt$occasion_var
@@ -567,10 +564,7 @@ make_model_design <-
   # }
   
   # Gridded ----
-  # Note: create_alternative_choice() currently cannot create a distance matrix from a 
   # gridded dataset
-  
-
   if (is_value_empty(gridVars)) {
     
     if (is_value_empty(unlist(expectcatchmodels))) {
@@ -588,11 +582,34 @@ make_model_design <-
       # TODO: check if gridded table has correct # of rows, if not error out and 
       # tell user to re-run format_grid()
       gridVariablesInclude <- lapply(gridVars, function(x) {
+
+        grid_tab <- table_view(paste0(project, x, "GridTable"), project)
+
+        if(dim(grid_tab)[1] > 1) {
+          stop("The two dimensional alternative-specfic variable option is under development. 
+               Use single dimensional grid variables. Please check with developers for updates on progress.")
+        }
         
-        grid_tab <- table_view(x, project)
+        if(!all(zoneRow$ZoneID %in% names(grid_tab))){
+          stop("One or more zones in the model are missing from the ",  x, " GridTable")
+        }
         
-        grid_tab[zone_ind, names(grid_tab) %in% unique(choice)]
+        grid_tab
       })
+      
+      # Change format to match expected catch dimensions
+      gridVariablesInclude <- lapply(gridVariablesInclude, function(x) {
+        grid_tab <- x[,which(names(x) %in% zoneRow$ZoneID)] # Get only the zones in the model
+        grid_tab <- do.call("rbind", replicate(sum(dataZoneTrue), grid_tab, simplify = FALSE))
+      })
+      
+      check_dim <- lapply(gridVariablesInclude, function(x) {
+        all(dim(x) == dim(ExpectedCatch[[1]]))
+      })
+      
+      if(!all(unlist(check_dim))){
+        stop("Dimensions of grid variables do not match expected catch matrix dimensions. Check grid tables")
+      }
       
     } else {
       

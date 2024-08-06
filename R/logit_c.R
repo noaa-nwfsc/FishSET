@@ -81,7 +81,6 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
   #' }
   #'
 
-  
   griddat <- as.matrix(do.call(cbind, otherdat$griddat))
   intdat <- as.matrix(do.call(cbind, otherdat$intdat))
 
@@ -113,9 +112,9 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
 
   # Sum beta and gamma components of the model for each observation
   prof <- rowSums(djztemp, dims = 2)
-  profx <- prof - prof[, 1]
+  profx <- prof - prof[, 1] # relative to the alternative that was chosen
 
-  exb <- exp(profx)
+  exb <- exp(profx) # numerator of the conditional logit function
 
   ldchoice <- (-log(rowSums(exb)))
 
