@@ -1319,6 +1319,13 @@ server = function(input, output, session) {
         track_load$project <- project$name
         track_load$main$DB <- input$main_db_table
         load_r$main <- load_r$main + 1
+        
+        # Save package version and recent git commit to the output folder
+        fishset_commit <- packageDescription("FishSET")$GithubSHA1
+        fishset_version <- packageDescription("FishSET")$Version
+        fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
+        version_file <- paste0(locoutput(project$name), "fishset_version_history.txt")
+        cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"), file = version_file, append = TRUE)
       }
       
     } else if (input$load_main_src=='Upload new file' & !is.null(input$maindat)) {
@@ -1351,6 +1358,13 @@ server = function(input, output, session) {
         edit_proj_settings(project$name, 
                            tab_name = paste0(project$name, "MainDataTable"),
                            tab_type = "main")
+        
+        # Save package version and recent git commit to the output folder
+        fishset_commit <- packageDescription("FishSET")$GithubSHA1
+        fishset_version <- packageDescription("FishSET")$Version
+        fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
+        version_file <- paste0(locoutput(project$name), "fishset_version_history.txt")
+        cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"), file = version_file, append = TRUE)
         
       } else {
         # reset values$dataset
