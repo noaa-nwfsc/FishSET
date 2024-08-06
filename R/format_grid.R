@@ -58,7 +58,6 @@ format_grid <-
     grid <- parse_data_name(grid, "grid", project)
     
     # Note: if no date var, allow format?
-    
     stopifnot("'area.dat' is required" = !is_value_empty(area.dat),
               "'id.cols' is required" = !is_value_empty(id.cols))
     
@@ -72,7 +71,7 @@ format_grid <-
       g_names <- colnames(griddat)
       g_areas <- g_names[!g_names %in% id.cols]
       d_areas <- unique(as.character(dataset[[area.dat]]))
-      a_ind <- g_areas %in% d_areas
+      a_ind <- g_names %in% d_areas
       
       if (sum(a_ind) == 0) {
         

@@ -1729,22 +1729,15 @@ server = function(input, output, session) {
       
       tagList(
         fluidRow(
-          column(12, #5,
-                 fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
-                              multiple = FALSE, placeholder = 'Optional data')),
-          column(12, #7, offset=4, 
-                 textInput('gridadd', div(style = "font-size:14px;  font-weight: 400;", 
-                                                       'Additional arguments for reading in data'), 
-                                        placeholder="header=T, sep=';', skip=2")),
-          column(12,#5, 
-                 
-                 if (!is.null(input$griddat)) {
-                   
-                   textInput("GridName", "Grid table name")
-                 }
-          )
+          column(12,
+                 fileInput("griddat", "Choose data file that varies over one or two dimensions (gridded)",
+                           multiple = FALSE, placeholder = 'Optional data')),
+          column(12,
+                 textInput('gridadd', label=div(style = "font-size:14px;  font-weight: 400;", 
+                                                'Write additional arguments for reading in data'), 
+                           placeholder = "header=FALSE, sep=','")),
         ))
-      
+
     } else if (input$load_grid_src == 'FishSET database') {
       
       if (isTruthy(project$name)) {
@@ -1760,6 +1753,16 @@ server = function(input, output, session) {
     
   })
   
+  output$grid_upload2 <- renderUI({
+    if (!is.null(input$griddat)) {
+      tagList(
+        fluidRow(
+          column(12,#5,
+                 textInput("GridName", "Grid table name"))
+        )
+      )
+    }
+  })
   
   grddat <- reactiveValues()
   
@@ -1767,67 +1770,63 @@ server = function(input, output, session) {
     
     req(project$name)
     req(load_helper("grid"))
-    
+
     if (input$load_grid_src == 'FishSET database') {
-      
+
       if (isTruthy(input$grid_db_table)) {
-        
+
         grid_name <-input$grid_db_table
         grddat[[grid_name]] <- table_view(grid_name, project$name)
         track_load$grid$DB <- input$grid_db_table
         load_r$grid <- load_r$grid + 1
-        
-        edit_proj_settings(project$name, 
+
+        edit_proj_settings(project$name,
                            tab_name = input$grid_db_table,
                            tab_type = "grid")
       }
-      
+
     } else if (input$load_grid_src == 'Upload new file' & !is.null(input$griddat)) {
-      
+
       if (!isTruthy(input$GridName)) {
-        
+
         showNotification("Please enter a name for Gridded table.",
                          type = "warning", duration = 10)
       }
-      
+
       req(input$GridName)
-      
+
       grid_name <- paste0(project$name, input$GridName)
-      
+
       if (!is_empty(input$gridadd)) {
-        
-        grddat[[grid_name]] <- do.call(read_dat, c(list(input$griddat$datapath), 
+
+        grddat[[grid_name]] <- do.call(read_dat, c(list(input$griddat$datapath),
                                                    eval(parse(text=paste0("list(",input$gridadd, ")")))))
       } else {
-        
-        grddat[[grid_name]] <- read_dat(input$griddat$datapath)   
+
+        grddat[[grid_name]] <- read_dat(input$griddat$datapath)
       }
-      
+
       q_test <- quietly_test(load_grid)
-      
-      qc_pass <- 
-        q_test(paste0(project$name, 'MainDataTable'), grid = grddat[[grid_name]], 
-               name = input$GridName, over_write = TRUE, project = project$name)
-      
+
+      qc_pass <- q_test(grid = grddat[[grid_name]], name = input$GridName, project = project$name, over_write = TRUE)
+
       if (qc_pass) {
-        
         showNotification('Gridded data saved to database.', type = 'message', duration = 10)
         track_load$grid$file <- input$griddat
         load_r$grid <- load_r$grid + 1
-        
-        edit_proj_settings(project$name, 
+
+        edit_proj_settings(project$name,
                            tab_name = paste0(project$name, input$GridName, "GridTable"),
                            tab_type = "grid")
-        
+
       } else {
-        
         grddat[[grid_name]] <- NULL
-        # showNotification('Gridded data was not saved to database.', type = 'warning', duration = 10)
+        showNotification('Gridded data was not saved to database.', type = 'warning', duration = 10)
       }
     }
-    
+
     if (length(names(grddat)) > 0) {
-      
+
       showNotification("Gridded data loaded.", type = 'message', duration = 10)
     }
     
@@ -1835,9 +1834,8 @@ server = function(input, output, session) {
   
   
   output$gridded_uploaded <- renderUI({
-    
     if (length(names(grddat)) > 0) {
-      
+
       tagList(
         p(strong("Gridded data tables uploaded:")),
         renderText(paste(names(grddat), collapse = ", "))
@@ -6045,7 +6043,13 @@ server = function(input, output, session) {
   
   output$mod_name_ui <- renderUI({
     
-    textInput('mod_name', 'Type model name', value = mod_name_r())
+    add_prompter(textInput('mod_name', 
+                           label = list('Type model name', icon('info-circle', verify_fa = FALSE)), 
+                           value = mod_name_r()),
+                 position = "right", type = "info", size = "large",
+                 message = "Model names that contain 'test' or 'train' are reserved for cross-validations and
+                            model tests for developers. Names that contain these patterns will not be available in
+                            the 'Select models to run' input in the left panel.")
   })
   
   
@@ -6158,15 +6162,30 @@ server = function(input, output, session) {
   
   output$mod_grid_var_ui <- renderUI({
     
-    add_prompter(selectizeInput('mod_grid_vars', 
-                                label = list(gridlab(), icon('info-circle', verify_fa = FALSE)),
-                                multiple=TRUE, choices = colnames(values$dataset)),
-                 
-                 position = "top", type='info', size='medium', 
-                 message = "Generally, variables that vary by zonal alternatives 
-                   or are interacted with zonal constants. See Likelihood functions 
+    if(input$model == "logit_c"){
+      add_prompter(selectizeInput('mod_grid_vars', 
+                                  label = list(gridlab(), icon('info-circle', verify_fa = FALSE)),
+                                  multiple=TRUE, choices = gsub("GridTable", "", gsub(project$name, "", list_tables(project$name, "grid")))),
+                   
+                   position = "right", type='info', size='large', 
+                   message = "Generally, variables that vary by zonal alternatives 
+                   or are interacted with zonal constants. Conditional logit models require a
+                   gridded table for alternative-specific variables. See Likelihood functions 
                    sections of the FishSET Help Manual for details. Select 'none' 
                    if no variables are to be included.")
+    } else {
+      add_prompter(selectizeInput('mod_grid_vars', 
+                                  label = list(gridlab(), icon('info-circle', verify_fa = FALSE)),
+                                  multiple=TRUE, choices = colnames(values$dataset)),
+                   
+                   position = "top", type='info', size='medium', 
+                   message = "Generally, variables that vary by zonal alternatives 
+                   or are interacted with zonal constants. Conditional logit models require a
+                   gridded table for alternative-specific variables. See Likelihood functions 
+                   sections of the FishSET Help Manual for details. Select 'none' 
+                   if no variables are to be included.")
+    }
+    
   })
   
   # Determine the # of parameters needed
@@ -6215,7 +6234,8 @@ server = function(input, output, session) {
   iparams <- reactiveValues(data = NULL)
   
   # Generate parameter names for each likelihood
-  observeEvent(c(input$model, input$alt_spec_epm1, input$alt_spec_epm2, project$name), {
+  observeEvent(c(input$model, input$alt_spec_epm1, input$alt_spec_epm2, project$name,
+                 input$mod_ind_vars, input$mod_grid_vars, input$mod_select_exp_1), {
     # # Extra code just in case numInits() == 0 in the future
     # # Below code will pull output to autofill table if numInits() == 0, but I don't think this will ever be zero given numInits code above
     # x_temp <- read_dat(paste0(locoutput(project$name),
@@ -6226,9 +6246,10 @@ server = function(input, output, session) {
       # Get the number of beta and gamma variables to name and initialize parameter values
       gridNum <- length(input$mod_grid_vars)
       intNum <- length(input$mod_ind_vars)
+      
       if (gridNum == 0 || is.null(gridNum)) gridNum <- 1
       if (intNum == 0 || is.null(intNum)) intNum <- 1
-
+      
       # Generate parameter names based on likelihood function
       if(input$model == "logit_c"){
         par.names <- c(unlist(lapply(1:gridNum, function(x) {paste0('beta.',x)})),

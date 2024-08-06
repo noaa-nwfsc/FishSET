@@ -174,10 +174,11 @@ create_model_input <-
       warning("Startingloc parameter is not specified. Rerun the create_alternative_choice function")
     }
     
+    # Flattened identity matrices (alts x alts) in each row, and nrows = number of observations
     dataCompile <- create_logit_input(choice)
     
     # IMPORTANT NOTE: Both choice possibilities AND distances are sorted/shifted even though the column names for distances are not shifted.
-    d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
+    d <- shift_sort_x(x = dataCompile, ch = choice, y = catch, distance = distance, alts = max(choice), ab = ab)
     
     # Data needs will vary by the likelihood function
     if (grepl("epm", fr)) {
