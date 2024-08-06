@@ -1,8 +1,8 @@
 Type: Package
 Package: FishSET
 Title: Spatial Economics Toolbox for Fisheries
-Version: 0.1.0
-Date: 2024
+Version: 1.0.0
+Date: August 1, 2024
 Authors@R:
     c(person(given = "Lisa",
              family = "Pfeiffer",
@@ -107,3 +107,4 @@ Encoding: UTF-8
 RoxygenNote: 7.3.1
 LazyData: true
 Config/testthat/edition: 3
+GithubSHA1: d65b9a34f1ca5d334fbb9b749da6acc382df8f61
