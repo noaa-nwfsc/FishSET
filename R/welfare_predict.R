@@ -45,7 +45,6 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  
   #---
   # Pull output data from model optimization ----
   #---
@@ -129,7 +128,6 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
       pricedat <- matrix(enteredPrice, nrow = obsnum)
     } 
   } 
-  
   
   #---
   # Save coefficients ----
@@ -295,7 +293,6 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
         # Check if theta is negative value
         if(!isRunning()){
           if(theta < 0) stop("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income.")
-          
         } 
 
         # set up distance matrix
@@ -311,8 +308,6 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
           gridbetas <- matrix(rep(gridcoef, each = alts), nrow = obsnum, ncol = alts*gridnum, byrow = TRUE) * griddat
           dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
           gridbetas <- rowSums(gridbetas, dims = 2)
-
-          as.vector(matrix(rep(gridcoef, each = alts), nrow = obsnum, ncol = alts*2, byrow = TRUE))
 
           ## logit_zonal ----
         } else if(mod.ll == "logit_zonal"){
