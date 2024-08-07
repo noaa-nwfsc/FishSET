@@ -20,15 +20,14 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## How to create a spatial grid object
-
-### Load packages
+## Load packages
 ```{r packages}
 library(sf) 
 library(ggplot2)
 ```
 
-### Create a spatial grid
+## Create a spatial grid
+
 ```{r grid, echo=TRUE}
 # Define the bounding box of the grid
 # latitude: 10 to 40 degrees N
@@ -49,6 +48,7 @@ grid_sf <- st_make_grid(
 # Convert to an sf object
 grid_sf <- st_sf(geometry = grid_sf, crs = 4326)
 ```
+If you have a spatial data table loaded as a dataframe, use the [st_as_sf()](https://www.rdocumentation.org/packages/sf/versions/1.0-16/topics/st_as_sf) function from the [sf](https://www.rdocumentation.org/packages/sf/versions/1.0-16) package to convert the dataframe to an sf object.
 
 ### Add zone ID variable to the spatial object
 
