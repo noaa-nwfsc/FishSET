@@ -34,6 +34,8 @@ The tools standardize data management and organization, enable the use of locati
 
 The FishSET toolbox is provided as a set of R functions that can be run in an R console or here in this FishSET Graphical User Interface (FishSET GUI).
 
+In addition to this Quickstart Guide, check out the [FishSET video tutorial](https://bcove.video/3WCSb5N) that walks through the GUI.
+
 # FishSET GUI
 
 The FishSET GUI is a user-friendly interface that guides users through the steps necessary to run discrete choice models. The FishSET GUI requires no knowledge of coding or the R programming language as all steps to prepare and run discrete choice models can be run in a graphical user interface.
