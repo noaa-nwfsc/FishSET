@@ -1,7 +1,7 @@
 Type: Package
 Package: FishSET
 Title: Spatial Economics Toolbox for Fisheries
-Version: 1.0.0
+Version: 1.1.0
 Date: August 1, 2024
 Authors@R:
     c(person(given = "Lisa",
