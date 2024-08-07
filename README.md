@@ -50,6 +50,8 @@ install.packages("[file path to tar.gz file]", repos = NULL, type = "source")
 
 Refer to the [FishSET R Package User Manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html) for more package information, quickstart guides, and troubleshooting tips.
 
+We also offer a [video tutorial](https://bcove.video/3WCSb5N) that demonstrates how to use the FishSET GUI.
+
 ## Issues and Bug Reports
 
 Add issues in GitHub [https://github.com/noaa-nwfsc/FishSET/issues](https://github.com/noaa-nwfsc/FishSET/issues). Or contact nmfs.fishset@noaa.gov.
