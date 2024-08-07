@@ -34,7 +34,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">FishSET</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,9 +49,9 @@
 <li class="active nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/FishSET_User_Manual.html">FishSET User Manual</a>
     <a class="dropdown-item" href="../articles/FishSET_FunctionList.html">FishSET R package functions</a>
     <a class="dropdown-item" href="../articles/FishSET_GUI_Quickstart_Guide.html">FishSET GUI Quickstart Guide</a>
+    <a class="dropdown-item" href="../articles/making_a_spatial_grid.html">Making a spatial grid file</a>
     <a class="dropdown-item" href="../articles/scallop-example.html">Scallop Example</a>
     <a class="dropdown-item" href="../articles/scallop-mod-example.html">Scallop Conditional Logit Model Example</a>
   </div>
@@ -82,7 +82,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>FishSET GUI Quickstart Guide</h1>
             
-            <h4 data-toc-skip class="date">2024-07-30</h4>
+            <h4 data-toc-skip class="date">2024-08-07</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/noaa-nwfsc/FishSET/blob/HEAD/vignettes/FishSET_GUI_Quickstart_Guide.Rmd" class="external-link"><code>vignettes/FishSET_GUI_Quickstart_Guide.Rmd</code></a></small>
       <div class="d-none name"><code>FishSET_GUI_Quickstart_Guide.Rmd</code></div>
@@ -105,6 +105,8 @@ modeling and visualization tools.</p>
 <p>The FishSET toolbox is provided as a set of R functions that can be
 run in an R console or here in this FishSET Graphical User Interface
 (FishSET GUI).</p>
+<p>In addition to this Quickstart Guide, check out the <a href="https://bcove.video/3WCSb5N" class="external-link">FishSET video tutorial</a> that walks
+through the GUI.</p>
 </div>
 <div class="section level2">
 <h2 id="fishset-gui">FishSET GUI<a class="anchor" aria-label="anchor" href="#fishset-gui"></a>
@@ -145,7 +147,7 @@ this website for FishSET installation instructions.</p>
 <dt>To open the FishSET GUI run the following lines of code in
 RStudio:</dt>
 <dd>
-<p><code><a href="https://rdrr.io/r/base/library.html" class="external-link">library(FishSET)</a></code></p>
+<p><code><a href="https://github.com/noaa-nwfsc/FishSET" class="external-link">library(FishSET)</a></code></p>
 </dd>
 <dd>
 <code><a href="../reference/run_fishset_gui.html">run_fishset_gui()</a></code>
