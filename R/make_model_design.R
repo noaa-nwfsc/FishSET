@@ -585,9 +585,32 @@ make_model_design <-
 
         grid_tab <- table_view(paste0(project, x, "GridTable"), project)
 
-        if(dim(grid_tab)[1] > 1) {
-          stop("The two dimensional alternative-specfic variable option is under development. 
+        # Two-dimensional grid file
+        if(dim(grid_tab)[1] > 1){
+          
+          # Check if the first variable contains a date variable
+          tryCatch({
+            tmp_dates <- as.Date(grid_tab[,1][[1]])
+          }, error = function(cond){
+            message("First column in a two-dimensional gridded file must be a date variable")
+          })
+          
+          # Check if dates are sequential from min to max dates in the primary data table
+          if(all(tmp_dates == seq(min(tmp_dates), max(tmp_dates), "days"))){
+            # Format dates to match expected catch matrix
+            grid_tab <- lapply(as.Date(rownames(ExpectedCatch[[1]])), function(x){
+              tmp_df <- grid_tab[which(tmp_dates == x), ]
+              tmp_df[,1][[1]] <- x # set the date variable
+              return(tmp_df)
+            })
+            grid_tab <- bind_rows(grid_tab)
+            
+          # Else check is dates in the grid file match dates in the primary data table  
+          } else {
+            stop("The two dimensional alternative-specfic variable option is under development. 
                Use single dimensional grid variables. Please check with developers for updates on progress.")
+            
+          }
         }
         
         if(!all(zoneRow$ZoneID %in% names(grid_tab))){
@@ -600,7 +623,15 @@ make_model_design <-
       # Change format to match expected catch dimensions
       gridVariablesInclude <- lapply(gridVariablesInclude, function(x) {
         grid_tab <- x[,which(names(x) %in% zoneRow$ZoneID)] # Get only the zones in the model
-        grid_tab <- do.call("rbind", replicate(sum(dataZoneTrue), grid_tab, simplify = FALSE))
+        
+        # 1-dimension gridded file
+        if(dim(grid_tab)[1] == 1){
+          grid_tab <- do.call("rbind", replicate(sum(dataZoneTrue), grid_tab, simplify = FALSE))
+          
+        # 2-dimension gridded file
+        } else if (dim(grid_tab)[1] == sum(dataZoneTrue)){
+          grid_tab
+        }
       })
       
       check_dim <- lapply(gridVariablesInclude, function(x) {
