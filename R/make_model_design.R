@@ -596,19 +596,24 @@ make_model_design <-
           })
           
           # Check if dates are sequential from min to max dates in the primary data table
-          if(all(tmp_dates == seq(min(tmp_dates), max(tmp_dates), "days"))){
-            # Format dates to match expected catch matrix
+          if(length(tmp_dates) == length(seq(min(tmp_dates), max(tmp_dates), "days"))){
+            if(all(tmp_dates == seq(min(tmp_dates), max(tmp_dates), "days"))){
+              # Format dates to match expected catch matrix
+              grid_tab <- lapply(as.Date(rownames(ExpectedCatch[[1]])), function(x){
+                tmp_df <- grid_tab[which(tmp_dates == x), ]
+                tmp_df[,1][[1]] <- x # set the date variable
+                return(tmp_df)
+              })
+              grid_tab <- bind_rows(grid_tab)
+            }  
+          } else {
+            
             grid_tab <- lapply(as.Date(rownames(ExpectedCatch[[1]])), function(x){
               tmp_df <- grid_tab[which(tmp_dates == x), ]
               tmp_df[,1][[1]] <- x # set the date variable
               return(tmp_df)
             })
             grid_tab <- bind_rows(grid_tab)
-            
-          # Else check is dates in the grid file match dates in the primary data table  
-          } else {
-            stop("The two dimensional alternative-specfic variable option is under development. 
-               Use single dimensional grid variables. Please check with developers for updates on progress.")
             
           }
         }
