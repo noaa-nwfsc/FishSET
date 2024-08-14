@@ -1112,9 +1112,6 @@ load_grid <- function(grid, name, project, over_write = TRUE) {
     
   } else {
     
-    #unique rows
-    grid <- unique_rows(grid)
-    
     # TODO: Use name_check() 
     #unique column names
     if(length(toupper(colnames(grid))) != length(unique(toupper(colnames(grid))))){

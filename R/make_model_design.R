@@ -585,22 +585,49 @@ make_model_design <-
 
         grid_tab <- table_view(paste0(project, x, "GridTable"), project)
 
-        if(dim(grid_tab)[1] > 1) {
-          stop("The two dimensional alternative-specfic variable option is under development. 
-               Use single dimensional grid variables. Please check with developers for updates on progress.")
+        # Two-dimensional grid file
+        if(dim(grid_tab)[1] > 1){
+          
+          # Check if the first variable contains a date variable
+          tryCatch({
+            tmp_dates <- as.Date(grid_tab[,1][[1]])
+          }, error = function(cond){
+            message("First column in a two-dimensional gridded file must be a date variable")
+          })
+          
+          # Gridded variable needs to match the expected catch matrix dates
+          grid_tab <- lapply(as.Date(rownames(ExpectedCatch[[1]])), function(x){
+            tmp_df <- grid_tab[which(tmp_dates == x)[1], ]
+            tmp_df[,1][[1]] <- x # set the date variable
+            return(tmp_df)
+          })
+          
+          grid_tab <- bind_rows(grid_tab)
+        }
+        
+        if(sum(is.na(grid_tab)) > 0){
+          stop("Model not saved. Missing values present in the gridded data table. This may be due to NAs in the data or dates missing from a 2-dimensional gridded file.")
         }
         
         if(!all(zoneRow$ZoneID %in% names(grid_tab))){
           stop("One or more zones in the model are missing from the ",  x, " GridTable")
         }
-        
+      
         grid_tab
       })
       
       # Change format to match expected catch dimensions
       gridVariablesInclude <- lapply(gridVariablesInclude, function(x) {
         grid_tab <- x[,which(names(x) %in% zoneRow$ZoneID)] # Get only the zones in the model
-        grid_tab <- do.call("rbind", replicate(sum(dataZoneTrue), grid_tab, simplify = FALSE))
+        
+        # 1-dimension gridded file
+        if(dim(grid_tab)[1] == 1){
+          grid_tab <- do.call("rbind", replicate(sum(dataZoneTrue), grid_tab, simplify = FALSE))
+          
+        # 2-dimension gridded file
+        } else if (dim(grid_tab)[1] == sum(dataZoneTrue)){
+          grid_tab
+        }
       })
       
       check_dim <- lapply(gridVariablesInclude, function(x) {
