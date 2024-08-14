@@ -595,33 +595,24 @@ make_model_design <-
             message("First column in a two-dimensional gridded file must be a date variable")
           })
           
-          # Check if dates are sequential from min to max dates in the primary data table
-          if(length(tmp_dates) == length(seq(min(tmp_dates), max(tmp_dates), "days"))){
-            if(all(tmp_dates == seq(min(tmp_dates), max(tmp_dates), "days"))){
-              # Format dates to match expected catch matrix
-              grid_tab <- lapply(as.Date(rownames(ExpectedCatch[[1]])), function(x){
-                tmp_df <- grid_tab[which(tmp_dates == x), ]
-                tmp_df[,1][[1]] <- x # set the date variable
-                return(tmp_df)
-              })
-              grid_tab <- bind_rows(grid_tab)
-            }  
-          } else {
-            
-            grid_tab <- lapply(as.Date(rownames(ExpectedCatch[[1]])), function(x){
-              tmp_df <- grid_tab[which(tmp_dates == x), ]
-              tmp_df[,1][[1]] <- x # set the date variable
-              return(tmp_df)
-            })
-            grid_tab <- bind_rows(grid_tab)
-            
-          }
+          # Gridded variable needs to match the expected catch matrix dates
+          grid_tab <- lapply(as.Date(rownames(ExpectedCatch[[1]])), function(x){
+            tmp_df <- grid_tab[which(tmp_dates == x)[1], ]
+            tmp_df[,1][[1]] <- x # set the date variable
+            return(tmp_df)
+          })
+          
+          grid_tab <- bind_rows(grid_tab)
+        }
+        
+        if(sum(is.na(grid_tab)) > 0){
+          stop("Model not saved. Missing values present in the gridded data table. This may be due to NAs in the data or dates missing from a 2-dimensional gridded file.")
         }
         
         if(!all(zoneRow$ZoneID %in% names(grid_tab))){
           stop("One or more zones in the model are missing from the ",  x, " GridTable")
         }
-        
+      
         grid_tab
       })
       
