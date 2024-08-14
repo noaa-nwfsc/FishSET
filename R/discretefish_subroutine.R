@@ -140,9 +140,9 @@ discretefish_subroutine <- function(project,
     stop('Model input table does not exist.', call. = FALSE)
   }
 
-
   # model names from MDF
   mdf_n <- model_names(project)
+  
   # full names (as they would be in MOT)
   mdf_nn <- lapply(mdf, function(x) {
     
