@@ -3709,9 +3709,9 @@ server = function(input, output, session) {
       
       conditionalPanel("input.SelectDatasetExplore == 'port'",
                        h6("To merge the port table to the primary data table:"),
-                       selectInput("porttable_id", "Select the port table ID",
+                       selectInput("porttable_id", "Select the port ID in the port table",
                                    choices = c(names(portdat$dataset))),
-                       selectInput("maintable_port", "Select the primary data ID",
+                       selectInput("maintable_port", "Select the port ID in the primary data table",
                                    choices = c(names(values$dataset))),
                        actionButton("merge_port", "Merge Port Data"))
     )
@@ -3729,10 +3729,8 @@ server = function(input, output, session) {
     merge_by <- stats::setNames(other_key, c(main_key))
     
       temp_port <- portdat$dataset %>% 
-        rename_with(~ ifelse(. == input$porttable_id,., paste0(., "_merged")))
+        rename_with(~ ifelse(. == input$porttable_id,., paste0(., "_port_merged")))
        
-    
-    
       values$dataset <- merge_dat(dat = values$dataset,
                                   other = temp_port,
                                   project = project$name,
@@ -3743,7 +3741,6 @@ server = function(input, output, session) {
     
      
     showNotification("port table merged to primary table")
-
   })
   
   explore_temp <- reactive({
