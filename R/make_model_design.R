@@ -609,7 +609,7 @@ make_model_design <-
           stop("Model not saved. Missing values present in the gridded data table. This may be due to NAs in the data or dates missing from a 2-dimensional gridded file.")
         }
         
-        if(!all(zoneRow$ZoneID %in% names(grid_tab))){
+        if(!all(zoneRow[[zoneID]] %in% names(grid_tab))){
           stop("One or more zones in the model are missing from the ",  x, " GridTable")
         }
       
@@ -618,7 +618,7 @@ make_model_design <-
       
       # Change format to match expected catch dimensions
       gridVariablesInclude <- lapply(gridVariablesInclude, function(x) {
-        grid_tab <- x[,which(names(x) %in% zoneRow$ZoneID)] # Get only the zones in the model
+        grid_tab <- x[,which(names(x) %in% zoneRow[[zoneID]])] # Get only the zones in the model
         
         # 1-dimension gridded file
         if(dim(grid_tab)[1] == 1){
