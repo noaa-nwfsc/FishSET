@@ -404,34 +404,57 @@ discretefish_subroutine <- function(project,
         DBI::dbExecute(fishset_db, ld_sql)
         DBI::dbExecute(fishset_db, second_sql, 
                        params = list(data = list(serialize(LDGlobalCheck, NULL))))
-        
-        
-        if (res[[1]][1] == "Optimization error, check 'LDGlobalCheck'") {
-          
-          print(
-            list(
-              error = paste('optimization error for', mdf[[i]]$mod.name,
-                            ', check LDGlobalCheck'),
-              name = names(mdf[[i]][["gridVaryingVariables"]])[i], 
-              errorExplain = res, OutLogit = OutLogit, optoutput = optoutput,
-              seoutmat2 = seoutmat2, MCM = MCM, H1 = H1
-            )
-          )
-          
-          next
-        }
       }
       
-      q2 <- res[["par"]]
-      LL <- res[["value"]]
+      tryCatch({
+        q2 <- res[["par"]]
+      }, error = function(e) {
+        q2 <<- NA
+      })
       
-      output <- list(
-        counts = res[["counts"]], convergence = res[["convergence"]],
-        optim_message = res[["message"]]
-      )
+      tryCatch({
+        LL <- res[["value"]]
+      }, error = function(e) {
+        LL <<- NA
+      })
       
-      H <- res[["hessian"]]
-  
+      tryCatch({
+        output <- list(
+          counts = res[["counts"]], convergence = res[["convergence"]],
+          optim_message = res[["message"]]
+        )
+      }, error = function(e) {
+        output <<- list(
+          counts = NA, convergence = NA,
+          optim_message = paste0("Optimization error for ", mdf[[i]]$mod.name))
+      })
+      
+      tryCatch({
+        H <- res[["hessian"]]
+      }, error = function(e) {
+        H <<- NA
+      })
+      
+      if (res[[1]][1] == "Optimization error, check 'LDGlobalCheck'") {
+        
+        print(
+          list(
+            error = paste('optimization error for', mdf[[i]]$mod.name,
+                          ', check LDGlobalCheck'),
+            name = names(mdf[[i]][["gridVaryingVariables"]])[i], 
+            errorExplain = res, OutLogit = OutLogit, optoutput = optoutput,
+            seoutmat2 = seoutmat2, MCM = MCM, H1 = H1
+          )
+        )
+        
+        if(isRunning()){
+          showNotification(paste0("Optimization error for ", mdf[[i]]$mod.name), type = "error")
+        }
+        
+        errorExplain <- res
+        # next
+      }
+      
       # Model comparison metrics (MCM) ----
       
       param <- length(starts2)
@@ -444,10 +467,6 @@ discretefish_subroutine <- function(project,
       
       PseudoR2 <- round((LL_start - LL) / LL_start, 3)
       
-      # if (!is.null(datamatrix$expname)) {
-      #   
-      #   modOutName <- paste0(c(mdf[[i]][["mod.name"]], datamatrix$expname), collapse = '.')
-      # } else 
       modOutName <- mdf[[i]][["mod.name"]]
     
       mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
@@ -496,10 +515,8 @@ discretefish_subroutine <- function(project,
         Htrial <- function(x) {
           
           tryCatch({
-            
               solve(x)
             },
-            
             error = function(e) {
               return(single_mat_error)
           })
@@ -523,49 +540,39 @@ discretefish_subroutine <- function(project,
           diagtrial
         }
         
-        if (H1[1] != single_mat_error) {
+        # Check for missing values and error messages in Hessian
+        if(is.na(H1[1])){
+          OutLogit <- data.frame(estimate = rep(NA, param), std_error = rep(NA, param), t_value = rep(NA, param))    
           
+        } else if(H1[1] != single_mat_error) {
           diag2 <- diagtrial(H1)
           print(diag2)
-        }
-        
-        if (H1[1] != single_mat_error) {
           
-          if (diag2[1] != "Error, NAs, check 'LDGlobalCheck'") {
-            
+          if(diag2[1] != "Error, NAs, check 'LDGlobalCheck'") {
             se2 <- tryCatch({
-              
-                sqrt(diag2)
-              },
-              
-              warning = function(war) {
-                
-                print(se_error)
-                sqrt(diag2)
-              }
-            )
+              sqrt(diag2)
+            }, warning = function(war) {
+              print(se_error)
+              sqrt(diag2)
+            })
             
           } else {
-            
             warning = function(war) {
-              
               print(se_error)
             }
-          }
-        }
-       
-        if (H1[1] != single_mat_error && se2[1]!= se_error) {
+          } 
+          
+          if(se2[1] != se_error){
+            seoutmat2 <- t(se2) # standard errors
+            optoutput <- output # optimization info - counts, convergence, optimization error
+            tLogit <- t(t(q2) / se2)
+            OutLogit <- data.frame(estimate = q2, std_error = se2, t_value = tLogit)
+            OutLogit <- round(OutLogit, 3)
             
-          seoutmat2 <- t(se2) # standard errors
-          optoutput <- output # optimization info - counts, convergence, optimization error
-          tLogit <- t(t(q2) / se2)
-          OutLogit <- data.frame(estimate = q2, std_error = se2, t_value = tLogit)
-          OutLogit <- round(OutLogit, 3)
-          
-        } else {
-          
-          outmat2 <- t(q2)
-          OutLogit <- data.frame(estimate = round(q2, 3), std_error = NA, t_value = NA)
+          } else {
+            outmat2 <- t(q2)
+            OutLogit <- data.frame(estimate = round(q2, 3), std_error = NA, t_value = NA)    
+          }
         }
         
         # TODO: make sure this works for each model type
