@@ -6663,17 +6663,29 @@ server = function(input, output, session) {
       
       mod_tab[i,1] <- mod_sum_out()[[i]]$name
       mod_tab[i,2] <- 1
-      tryCatch({
-        mod_tab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
-      }, error = function(cond){
-        # do nothing
-      })
+      
+      if(is_empty(mod_sum_out()[[i]]$optoutput$convergence)){
+        mod_tab[i,2] <- NA
+      } else {
+        tryCatch({
+          mod_tab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
+        }, error = function(cond){
+          # do nothing
+        })  
+      }
+      
       model_out <- mod_sum_out()[[i]]$OutLogit
       mod_tab[i,3] <- to_html_table(model_out, rownames = TRUE, digits = 3)
+      
       if(length(grep("Error", mod_sum_out()[[i]]$H1)) == 0){
-        hess <- round(mod_sum_out()[[i]]$H1, 5)
-        colnames(hess) <- row.names(model_out)
-        mod_tab[i,4] <- to_html_table(hess, digits = 5)
+        if(any(is.na(mod_sum_out()[[i]]$H1))){
+          hess <- 1
+          mod_tab[i,4] <- 1
+        } else {
+          hess <- round(mod_sum_out()[[i]]$H1, 5)
+          colnames(hess) <- row.names(model_out)
+          mod_tab[i,4] <- to_html_table(hess, digits = 5)  
+        }
       } else {
         hess <- 1
         mod_tab[i,4] <- 1
