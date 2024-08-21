@@ -5412,6 +5412,8 @@ server = function(input, output, session) {
                                        multiple = TRUE)
                       ),
                       
+                      tags$br(),
+                      
                       uiOutput('altc_occ_var_ui')
                     ),
         ),
@@ -5476,8 +5478,13 @@ server = function(input, output, session) {
       
     } else {
       
-      selectInput('altc_occ_var', 'Choose occasion ID variable',
-                  choices = colnames(values$dataset))
+      
+      add_prompter(tags$div(selectInput('altc_occ_var', 'Choose starting zone ID variable',
+                                        choices = colnames(values$dataset))),
+                   position = 'right', type = 'info', size = 'medium',
+                   message = 'The starting zone ID variable can be created in the Compute New Variables tab in the
+                              spatial functions'
+      )
     }
     
   })
