@@ -1,4 +1,4 @@
-explore_startparams_discrete <- function(space, dev, breakearly=TRUE, startsr=NULL,
+explore_startparams_discrete <- function(space, dev, breakearly=TRUE, max.iterations=500, startsr=NULL,
                                          fr, d, otherdat, choice, project) {
   # func, catch, choice, distance, otherdat) {
   #' Explore starting value parameter space
@@ -10,18 +10,22 @@ explore_startparams_discrete <- function(space, dev, breakearly=TRUE, startsr=NU
   #'   \code{space} is the number of starting value permutations to test (the size of
   #'   the space to explore). The greater the \code{dev} argument, the larger the
   #'   \code{space} argument should be.
-  #' @param startsr Optional. List, average starting value parameters for
-  #'     revenue/location-specific covariates then cost/distance. The best
-  #'     guess at what the starting value parameters should be (e.g. all
-  #'     ones). Specify starting value parameters for each model if values should be different than ones.
-  #'     The number of starting value parameters should correspond to the likelihood and data that you want to
-  #'     test. 
   #' @param dev List of length 1 or length equal to the number of models to be evaluated.
   #'   \code{dev} refers to how far to deviate from the average parameter values when
   #'   exploring (random normal deviates). The less certain the average parameters are,
   #'   the greater the \code{dev} argument should be.
   #' @param breakearly Logical, should the function return the first set of inits that do not return INF or search the entire space 
   #'   and return the inits with the lowest LLoglikelihood.
+  #' @param max.iterations If \code{explorestarts = TRUE}, max.iterations indicates the
+  #'   maximum number of iterations to run in search of valid starting parameter values.
+  #'   If the maximum is reached before valid parameter values are found (i.e., likelihood 
+  #'   = Inf) the loop will terminate and an error message will be reported for that model.
+  #' @param startsr Optional. List, average starting value parameters for
+  #'     revenue/location-specific covariates then cost/distance. The best
+  #'     guess at what the starting value parameters should be (e.g. all
+  #'     ones). Specify starting value parameters for each model if values should be different than ones.
+  #'     The number of starting value parameters should correspond to the likelihood and data that you want to
+  #'     test. 
   #' @param fr Name of likelihood function to test.
   #' @param d  Data from \code{shift_sort_x}
   #' @param otherdat Other data (as a list, corresponding to the likelihood function you want to test).
@@ -56,8 +60,9 @@ explore_startparams_discrete <- function(space, dev, breakearly=TRUE, startsr=NU
       saveLLstarts[[1]] <- fr.name(startsr, d, otherdat, alts = max(choice), project=project, 
                                    mod.name=NULL, expname = NULL) #alts,
 
+      k <- length(unlist(saveLLstarts))
       
-      while(is.infinite(saveLLstarts[[length(unlist(saveLLstarts))]])){
+      while(is.infinite(saveLLstarts[[length(unlist(saveLLstarts))]]) & (k <= max.iterations)){
         k <- length(unlist(saveLLstarts)) + 1
         savestarts[[k]] <- rnorm(length(startsr), startsr, dev)
         saveLLstarts[[k]] <- fr.name(savestarts[[k]], d, otherdat, alts = max(choice), project=project, 

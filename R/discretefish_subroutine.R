@@ -17,6 +17,10 @@
 #'   Set to \code{TRUE} if unsure of the number of starting parameter values to 
 #'   include or of reasonable starting parameters values. Better starting parameter 
 #'   values can help with model convergence.
+#' @param max.iterations If \code{explorestarts = TRUE}, max.iterations indicates the
+#'   maximum number of iterations to run in search of valid starting parameter values.
+#'   If the maximum is reached before valid parameter values are found (i.e., likelihood 
+#'   = Inf) the loop will terminate and an error message will be reported for that model.
 #' @param breakearly Logical, if \code{explorestarts = TRUE}, should the first set 
 #'   of starting parameter values that returns a valid (numeric) loglikelihood 
 #'   value be returned (\code{TRUE}) or should the entire parameter space be considered 
@@ -116,6 +120,7 @@ discretefish_subroutine <- function(project,
                                     run = 'new',
                                     select.model = FALSE,
                                     explorestarts = TRUE,
+                                    max.iterations = 500,
                                     breakearly = TRUE,
                                     space = NULL,
                                     dev = NULL,
@@ -313,7 +318,8 @@ discretefish_subroutine <- function(project,
         devr <- if (is_empty(dev[i])) 5 else dev[i] 
         
         starts2 <- explore_startparams_discrete(space = sp, dev = devr, 
-                                                breakearly = breakearly, 
+                                                breakearly = breakearly,
+                                                max.iterations = max.iterations,
                                                 startsr = starts2, fr = fr, 
                                                 d = datamatrix$d, 
                                                 otherdat = datamatrix$otherdat, 
