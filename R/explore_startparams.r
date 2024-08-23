@@ -62,7 +62,7 @@ explore_startparams_discrete <- function(space, dev, breakearly=TRUE, max.iterat
 
       k <- length(unlist(saveLLstarts))
       
-      while(is.infinite(saveLLstarts[[length(unlist(saveLLstarts))]]) & (k <= max.iterations)){
+      while(is.infinite(saveLLstarts[[length(unlist(saveLLstarts))]]) & (k < max.iterations)){
         k <- length(unlist(saveLLstarts)) + 1
         savestarts[[k]] <- rnorm(length(startsr), startsr, dev)
         saveLLstarts[[k]] <- fr.name(savestarts[[k]], d, otherdat, alts = max(choice), project=project, 
@@ -79,6 +79,14 @@ explore_startparams_discrete <- function(space, dev, breakearly=TRUE, max.iterat
         }
       }
        
+      if(k == max.iterations && is.infinite(saveLLstarts[[length(unlist(saveLLstarts))]])){
+        if(isRunning()){
+          showNotification("Not able to find valid starting parameters. Check model specification and/or update initial parameter values.",
+                           type = "error", duration = 10)
+        } else {
+          cat("Initial function results bad (Nan, Inf, or undefined), check 'LDGlobalCheck'")  
+        }
+      }
       
       if(breakearly==FALSE && (length(unlist(saveLLstarts))) < space){
         k <- length(unlist(saveLLstarts)) + 1
