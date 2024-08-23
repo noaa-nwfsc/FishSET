@@ -5412,6 +5412,8 @@ server = function(input, output, session) {
                                        multiple = TRUE)
                       ),
                       
+                      tags$br(),
+                      
                       uiOutput('altc_occ_var_ui')
                     ),
         ),
@@ -5476,8 +5478,13 @@ server = function(input, output, session) {
       
     } else {
       
-      selectInput('altc_occ_var', 'Choose occasion ID variable',
-                  choices = colnames(values$dataset))
+      
+      add_prompter(tags$div(selectInput('altc_occ_var', 'Choose starting zone ID variable',
+                                        choices = colnames(values$dataset))),
+                   position = 'right', type = 'info', size = 'medium',
+                   message = 'The starting zone ID variable can be created in the Compute New Variables tab in the
+                              spatial functions'
+      )
     }
     
   })
@@ -5893,6 +5900,16 @@ server = function(input, output, session) {
                        position = 'top', type = 'info', size = 'medium',
                        message = 'Default = FALSE. Set to TRUE if unsure of the number of starting parameter values
                                       to include or unsure of reasonable starting values.'
+          ),
+          
+          add_prompter(tags$div(style = "margin-left:60px;", 
+                                numericInput('max_iter', 
+                                            label = list('Maximum num of iterations', icon('info-circle', verify_fa = FALSE)),
+                                            value = 500, min = 1)),
+                       position = 'top', type = 'info', size = 'medium',
+                       message = 'Used if explore starting parameters = TRUE. The maximum number of iterations to search 
+                                  for valid starting parameters. If the likelihood value is still Inf when the maximum is 
+                                  reached, the search and model run will terminate.'
           ),
           
           conditionalPanel("input.mod_explore_starts=='TRUE'",
@@ -6496,13 +6513,6 @@ server = function(input, output, session) {
     
   }, ignoreNULL = TRUE, ignoreInit = TRUE)
   
-  
-  
-  
-  #      observeEvent(input$resetModel, {
-  #        shinyjs::reset("form")
-  #      })
-  
   parseDeleteEvent <- function(idstr) {
     res <- as.integer(sub(".*_([0-9]+)", "\\1", idstr))
     if (! is.na(res)) res
@@ -6622,7 +6632,8 @@ server = function(input, output, session) {
     
     withProgress(
       discretefish_subroutine(project = project$name, run = mod_run, select.model = FALSE, 
-                              explorestarts = input$mod_explore_starts, breakearly = input$mod_break_early, space = space_val, 
+                              explorestarts = input$mod_explore_starts, max.iterations = input$max_iter,
+                              breakearly = input$mod_break_early, space = space_val, 
                               dev = dev_val, use.scalers = FALSE, scaler.func = NULL),
       message = "Running model(s): ",
       detail = 'Models can take up to a few minutes to run. All buttons are inactive while models are running.
