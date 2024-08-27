@@ -1,0 +1,77 @@
+---
+title: "Create your own likelihood function"
+author: "Paul Carvalho"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 4
+vignette: >
+  %\VignetteIndexEntry{Create your own likelihood function}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+The FishSET package contains...
+
+If you would like to create your own and add to FishSET here is a template...
+
+## Create a likelihood function
+
+```{r function1, eval = FALSE}
+likelihood_function <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
+```
+
+Give your likelihood function an informative name (replace `likelihood_function` in the code chunk above). However, the name and order of input arguments must match the code above.
+
+### Input arguments
+
+- **starts3**: Numeric vector that contains starting parameter values. The length and order of parameter values will depend on your model structure. For example, the order of `starts3` for the [conditional logit model](https://noaa-nwfsc.github.io/FishSET/reference/logit_c.html) is c([alternative-specific parameters], [travel-distance parameters]), and the length of each depends on the number of variables included in the [model design](https://noaa-nwfsc.github.io/FishSET/reference/make_model_design.html).
+
+- **dat**: Numeric matrix that is generated in the `shift_sort_x()` function. The first column contains catch (thus rows represent observations); the second column indicates the zone fished; columns 3 to the square of alternatives + 2 (example, if there are 4 alternatives/zones, then column 3-18) contains a flattened identity matrix that has been shifted and sorted such that the zone selected is moved to the first column position of the matrix (see example below); and the last x columns, where x equals the number of alternatives/zones, contains distances from the starting location to each alternative (distances have also been shifted such that the distance to the zone selected is first - see example below).
+
+|           Here is an example row from a `dat` matrix:.
+
+```{r matrix1, echo = FALSE, results = 'asis'}
+write_matex <- function(x) {
+  begin <- "$$\\begin{bmatrix}"
+  end <- "\\end{bmatrix}$$"
+  X <-
+    apply(x, 1, function(x) {
+      paste(
+        paste(x, collapse = "&"),
+        "\\\\"
+      )
+    })
+  writeLines(c(begin, X, end))
+}
+
+# Create matrix 
+mat1 <- matrix(c(17,2,0,0,1,1,0,0,0,1,0,5,10,15), nrow = 1, byrow=TRUE)
+write_matex(mat1)
+```
+
+|           This row indicates that the catch is **17**, from zone **2**, and the shifted, flattened matrix can be rewritten as:
+
+```{r matrix2, echo = FALSE, results = 'asis'}
+# Create matrix 
+mat2 <- matrix(c(0,0,1,1,0,0,0,1,0), nrow = 3, byrow=TRUE)
+write_matex(mat2)
+```
+
+|           where the columns of the identity matrix have been shifted such that the second column is now in the first 
+|           position, followed by 3 and 1. Finally, the distances from the starting location to zones 2, 3, and 1 are 5,
+|           10, 15, repectively.
+\
+
+- **otherdat**: A list that contains variables used in the model.
+
