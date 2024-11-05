@@ -39,7 +39,7 @@ The names and order of input arguments must match the code above. These inputs a
 
 ### Input arguments
 
-- **starts3**: Numeric vector that contains starting parameter values. The length and order of parameter values will depend on your model structure. For example, the order of `starts3` for the [conditional logit model](https://noaa-nwfsc.github.io/FishSET/reference/logit_c.html) is c([alternative-specific parameters], [travel-distance parameters]), and the length of each depends on the number of variables included in the [model design](https://noaa-nwfsc.github.io/FishSET/reference/make_model_design.html).
+- **starts3**: Numeric vector that contains starting parameter values. The length and order of parameter values will depend on your model structure. For example, the order of `starts3` for the [conditional logit model](https://noaa-nwfsc.github.io/FishSET/reference/logit_c.html) is `c([alternative-specific parameters], [travel-distance parameters])`, and the length of each depends on the number of variables included in the [model design](https://noaa-nwfsc.github.io/FishSET/reference/make_model_design.html).
 
 - **dat**: Numeric matrix that is generated in the `shift_sort_x()` function. The first column contains catch (thus rows represent observations); the second column indicates the zone fished; columns 3 to the square of alternatives + 2 (example, if there are 4 alternatives/zones, then columns 3-18) contains a flattened identity matrix that has been shifted and sorted such that the zone selected is moved to the first column position of the matrix (see example below); and the last x columns, where x equals the number of alternatives/zones, contains distances from the starting location to each alternative (distances have also been shifted such that the distance to the zone selected is first - see example below).
 
@@ -95,7 +95,7 @@ Use base R functions to calculate the negative log-likelihood (nll) and comprehe
 Save the nll value to a variable named `ld`, and insert the following code at then end of your function to log inputs and outputs of the function call:
 
 ```{r function_body1, eval = FALSE}
-if (is.nan(ld) == TRUE) {
+  if (is.nan(ld) == TRUE) {
     ld <- .Machine$double.xmax
   }
 
@@ -115,10 +115,12 @@ if (is.nan(ld) == TRUE) {
   return(ld)
 ```
 
-## After completing function
+## Integrating your function with FishSET
 
-Review code...
+### Review code and test function
+Before submitting a Pull Request, we ask contributors to thoroughly review code and test likelihood functions (ideally on multiple datasets if possible). Also, verify that the function is well-documented and remove unnecessary or redundant code that might have been left behind during development. Please reach out to the FishSET team ([nmfs.fishset@noaa.gov](mailto:nmfs@fishset.gov)) if any questions come up during the review and testing process.
 
-Test function with data...
+### Create a pull request
+Give the Pull Request the same name as the likelihood function you just created and provide a brief description. Once the FishSET team receives the Pull Request we will do our best to review the function in a timely manner and notify you if we merge it with the main package or request any changes to the function prior to merging.
 
-Finally create a pull request on GitHub
+The Pull Request for your likelihood function should not change any other code in the FishSET package. If changes to the package outside of your function are necessary, please contact the FishSET development team ([nmfs.fishset@noaa.gov](mailto:nmfs@fishset.gov)) to solve any issues.
