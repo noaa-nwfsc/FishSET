@@ -23,9 +23,22 @@ knitr::opts_chunk$set(echo = TRUE)
 
 The FishSET R package currently features six statistical functions for maximum likelihood estimation, detailed in section 8.3 of the [user manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html). These functions offer a solid foundation for a variety of analyses. However, we recognize that these built-in functions may not suit your specific modeling needs. We encourage users with more specialized modeling requirements to develop their own likelihood functions that can be integrated into the FishSET R package. By doing so, users will not only be able to take advantage of other FishSET features such as policy simulation tools but also contribute to a richer toolkit for the FishSET user community. 
 
-Here we provide a template for developing a likelihood function that can be seamlessly integrated into the FishSET package. We request that users "fork" the FishSET GitHub repo to develop and test new likelihood functions and create a pull request when the function is ready to be integrated into the package. More information on "forking" repositories and the GitHub workflow can be found [here](https://git-scm.com/book/en/v2/GitHub-Contributing-to-a-Project).
+Here we provide a template for developing a likelihood function that can be seamlessly integrated into the FishSET package. Feel free to reach out to our team at [nmfs.fishset@noaa.gov](mailto:nmfs@fishset.gov) with any questions about developing your own likelihood function.
 
-Feel free to reach out to our team at [nmfs.fishset@noaa.gov](mailto:nmfs@fishset.gov) with any questions about developing your own likelihood function.
+## Development guidelines
+1. Fork the [FishSET repo](https://github.com/noaa-nwfsc/FishSET) and clone the forked repository to your computer. More information on "forking" repositories and the GitHub workflow can be found [here](https://git-scm.com/book/en/v2/GitHub-Contributing-to-a-Project).
+
+2. Open the FishSET_RPackage.Rproj file.
+
+3. Create a new script for you likelihood function and follow the template below. 
+
+4. Commit and push changes.
+
+5. Review and test code.
+
+6. If you have gone through the steps above but it has been a while since you worked on the code, pull changes from the original FishSET repo to your clone.
+
+7. Submit a [pull request](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project#making-a-pull-request).
 
 ## Create a likelihood function
 
@@ -33,7 +46,7 @@ Feel free to reach out to our team at [nmfs.fishset@noaa.gov](mailto:nmfs@fishse
 likelihood_function <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
 ```
 
-Give your likelihood function an informative name (replace `likelihood_function` in the code chunk above). 
+Give your likelihood function an informative name (replace `likelihood_function` in the code chunk above) and save the script with the same name. Only include the likelihood function in the R script. 
 
 The names and order of input arguments must match the code above. These inputs are created within the [`make_model_design()`](https://noaa-nwfsc.github.io/FishSET/reference/make_model_design.html) and [`discretefish_subroutine()`](https://noaa-nwfsc.github.io/FishSET/reference/discretefish_subroutine.html) functions and described in detail below.
 
@@ -74,7 +87,7 @@ write_matex(mat2)
 
 |           where the columns of the identity matrix have been shifted such that the second column is now in the first 
 |           position (because zone 2 was fished), followed by 3 and 1. Finally, the distances from the starting location 
-|           to zones 2, 3, and 1 are 5, 10, 15, repectively.
+|           to zones 2, 3, and 1 are 5, 10, and 15, repectively.
 \
 
 - **otherdat**: A list that contains variables used in the model. For example, `otherdat` for conditional logit models contains `intdat` variables (as a list object) that interact with travel distance and `griddat` variables (as a list object) that vary across alternatives. The `otherdat` list is generated in the [`make_model_design()`](https://noaa-nwfsc.github.io/FishSET/reference/make_model_design.html) function. If your input variables are not compatible with the current version of `make_model_design()`, reach out to our team at  [nmfs.fishset@noaa.gov](mailto:nmfs.fishset@noaa.gov) and we will do our best to update the function to accommodate your modeling requirements.
@@ -85,7 +98,7 @@ write_matex(mat2)
 
 - **expname**: Name of expected catch table(s). This input is used for conditional logit models.
 
-- **mod.name**: Name of model, which is created in the `make_model_design()` function.
+- **mod.name**: Name of the model, which is designated in the `make_model_design()` function.
 
 
 ### Function body
