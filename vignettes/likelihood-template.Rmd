@@ -46,7 +46,7 @@ Here we provide a template for developing a likelihood function that can be seam
 likelihood_function <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
 ```
 
-Give your likelihood function an informative name (replace `likelihood_function` in the code chunk above) and save the script with the same name. Only include the likelihood function in the R script. 
+Give your likelihood function an informative name (replace `likelihood_function` in the code chunk above) and save the script with the same name. Only include code for the likelihood function in the R script. 
 
 The names and order of input arguments must match the code above. These inputs are created within the [`make_model_design()`](https://noaa-nwfsc.github.io/FishSET/reference/make_model_design.html) and [`discretefish_subroutine()`](https://noaa-nwfsc.github.io/FishSET/reference/discretefish_subroutine.html) functions and described in detail below.
 
@@ -136,4 +136,4 @@ Before submitting a Pull Request, we ask contributors to thoroughly review code 
 ### Create a pull request
 Give the Pull Request the same name as the likelihood function you just created and provide a brief description. Once the FishSET team receives the Pull Request we will do our best to review the function in a timely manner and notify you if we merge it with the main package or request any changes to the function prior to merging.
 
-The Pull Request for your likelihood function should not change any other code in the FishSET package. If changes to the package outside of your function are necessary, please contact the FishSET development team ([nmfs.fishset@noaa.gov](mailto:nmfs@fishset.gov)) to solve any issues.
+The Pull Request for your likelihood function should not change any other code in the FishSET package. If changes to the package outside of your function are necessary, please contact the FishSET development team ([nmfs.fishset@noaa.gov](mailto:nmfs@fishset.gov)) to resolve any issues.
