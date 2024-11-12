@@ -30,7 +30,7 @@ Here we provide a template for developing a likelihood function that can be seam
 
 2. Open the FishSET_RPackage.Rproj file.
 
-3. Create a new script for you likelihood function and follow the template below. 
+3. Create a new script for your likelihood function following the template below.  Save it in the `R` folder. 
 
 4. Commit and push changes.
 
