@@ -2,6 +2,7 @@ pandoc: '3.2'
 pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
+  FishSET_User_Manual: FishSET_User_Manual.html
   FishSET_FunctionList: FishSET_FunctionList.html
   FishSET_GUI_Quickstart_Guide: FishSET_GUI_Quickstart_Guide.html
   likelihood-template: likelihood-template.html
