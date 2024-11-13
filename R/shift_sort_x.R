@@ -13,7 +13,6 @@ shift_sort_x <- function(x, ch, y, distance, alts, ab) {
   #' @return d: matrix of choice possibilities and distance. IMPORTANT NOTE: both choice probabilities AND distances are sorted even though the 
   #'  column names for distances remain unchanged.
   #' @export
-  #' @keywords internal
   #'
 
   ch0 <- ch - 1

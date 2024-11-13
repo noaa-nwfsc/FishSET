@@ -1,8 +1,6 @@
 logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
   #' Full information model with Dahl's correction function
   #'
-  #' Full information model with Dahl's correction function
-  #'
   #' @param starts3 Starting values as a vector (num). For this likelihood,
   #'     the order takes: c([marginal utility from catch], [catch-function
   #'     parameters], [polynomial starting parameters], [travel-distance

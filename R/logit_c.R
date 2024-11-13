@@ -1,8 +1,6 @@
 logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
   #' Conditional logit likelihood
   #'
-  #' Conditional logit likelihood
-  #'
   #' @param starts3 Starting values as a vector (num). For this likelihood,
   #'     the order takes: c([alternative-specific parameters],
   #'     [travel-distance parameters]). \cr \cr
