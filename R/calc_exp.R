@@ -44,8 +44,6 @@ calc_exp <- function(dataset,
   # TODO: when revenue col exists, either automatically create col of ones (currently user must do this) 
   # or allow catch arg to also be revenue. Use generic name (e.g. value) 
   
-  # TODO: Add warning if the number of alternatives is high (or/also include in create_alternative_choice())
-  
   catch_name <- catch # save variable name for settings
   
   dataZoneTrue <- Alt[["dataZoneTrue"]] # used for catch and other variables
@@ -62,7 +60,7 @@ calc_exp <- function(dataset,
     fleet <- as.integer(as.factor(dataset[[defineGroup]]))
   }
   
-  z_ind <- which(dataZoneTrue == 1)
+  z_ind <- which(dataZoneTrue == 1) # index for which observations are included in the model
   fleet <- fleet[z_ind]
   
   areas <- choice[z_ind] # mapping to to the map file (zones)
@@ -90,7 +88,6 @@ calc_exp <- function(dataset,
   catch <- as.numeric(dataset[[catch]][z_ind])
   
   if (price != "none" && !is_value_empty(price)) {
-    
     price <- as.numeric(dataset[[price]][z_ind])
     catch <- catch * price
   }
@@ -255,7 +252,7 @@ calc_exp <- function(dataset,
           # Get the average for each date-area combination prior to calculating the window average
           tmp_df <- aggregate(catch ~ areas + fleet + dateFloor, data = new_df,
                               FUN = mean, na.action = stats::na.pass, na.rm = TRUE)
-
+          
           aggregate(catch ~ areas + fleet, data = tmp_df,
                     FUN = mean, na.action = stats::na.pass, na.rm = TRUE)
         } else {
