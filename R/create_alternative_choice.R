@@ -366,12 +366,13 @@ create_alternative_choice <-
   }
   
   # Grid-sampling ----
+  # TODO - as we build additional options for grid sampling we will want to move this code to its own function
   if(grid_sample){
     # Create a matrix with nrows = observations, and columns = alts. The first column = choice.
     rand_alts_mat <- matrix(choice, nrow = length(choice), ncol = 1)
     
     draw_alts <- function(choice, all_alts, numAlts){
-      c(choice, sample(all_alts[all_alts != choice], numAlts))
+      c(choice, sample(all_alts[!(all_alts %in% choice)], numAlts))
     }
     
     rand_alts_mat <- do.call(rbind, lapply(rand_alts_mat, draw_alts, all_alts = zone_cent$ZoneID, numAlts = grid_sample_n))  
@@ -403,8 +404,7 @@ create_alternative_choice <-
     spatname = spat,
     grid_sample = grid_sample,
     grid_sample_n = grid_sample_n,
-    rand_alts_mat = rand_alts_mat
-    )
+    rand_alts_mat = rand_alts_mat)
   
   # write Alt to datafile ----
   # Save table names
