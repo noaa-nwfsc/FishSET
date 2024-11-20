@@ -49,6 +49,11 @@ calc_exp <- function(dataset,
   dataZoneTrue <- Alt[["dataZoneTrue"]] # used for catch and other variables
   choice <- Alt[["choice"]] # used for catch and other variables
   
+  # Random grid sampling arguments
+  grid_sample <- Alt[["grid_sample"]] # TRUE indicates randomly sampling zones
+  grid_sample_n <- Alt[["grid_sample_n"]] # Number of zones to sample
+  rand_alts_mat <- Alt[["rand_alts_mat"]] # Randomly sampled zones
+  
   # user-defined ----
   # check whether defining a group or using all fleet averaging
   if (is_value_empty(defineGroup)) {
@@ -64,8 +69,14 @@ calc_exp <- function(dataset,
   fleet <- fleet[z_ind]
   
   areas <- choice[z_ind] # mapping to to the map file (zones)
-  altc_areas <- as.character(unique(areas)) 
-  altc_fleet <- unique(paste0(fleet, areas))
+  
+  if(!grid_sample){ # aggregating by zones
+    altc_areas <- as.character(unique(areas)) 
+    altc_fleet <- unique(paste0(fleet, areas))  
+  } else { # random sampling from grid
+    altc_areas <- as.character(unique(as.vector(rand_alts_mat))) 
+    altc_fleet <- unique(paste0(fleet, areas))  
+  }
   
   altc_names <- if (is_value_empty(defineGroup)) altc_areas else altc_fleet
   
@@ -404,3 +415,74 @@ calc_exp <- function(dataset,
                               "year.lag" = year.lag, "dummy.exp" = dummy.exp, "weight_avg" = weight_avg))
   )
 }
+
+
+
+##### TEST SOLUTION FROM AI #####
+moving_average_2d_optimized <- function(mat, window_size) {
+  # Check if window_size is valid
+  if (window_size <= 0 | window_size %% 1 != 0) {
+    stop("Window size should be a positive integer.")
+  }
+  
+  # Get the number of rows and columns
+  nrows <- nrow(mat)
+  ncols <- ncol(mat)
+  
+  # Initialize the result matrix
+  result <- matrix(NA, nrow = nrows, ncol = ncols)
+  
+  # Loop through each column (spatial zones)
+  for (j in 1:ncols) {
+    # Initialize a running sum and the count of non-NA values in the window
+    running_sum <- 0
+    running_count <- 0
+    
+    # Loop through each row (dates)
+    for (i in 1:nrows) {
+      # Add the current value to the running sum if it's not NA
+      if (!is.na(mat[i, j])) {
+        running_sum <- running_sum + mat[i, j]
+        running_count <- running_count + 1
+      }
+      
+      # If the window has exceeded the desired size, remove the value that is sliding out
+      if (i > window_size) {
+        if (!is.na(mat[i - window_size, j])) {
+          running_sum <- running_sum - mat[i - window_size, j]
+          running_count <- running_count - 1
+        }
+      }
+      
+      # Store the moving average in the result matrix (avoid division by zero)
+      if (running_count > 0) {
+        result[i, j] <- running_sum / running_count
+      }
+    }
+  }
+  
+  return(result)
+}
+
+# Example usage: matrix with dates as rows and spatial zones as columns
+set.seed(42)
+dates <- seq.Date(from = as.Date("2024-01-01"), by = "days", length.out = 10)
+zones <- c("Zone1", "Zone2", "Zone3")
+data_matrix <- matrix(rnorm(30), nrow = 10, ncol = 3, dimnames = list(dates, zones))
+
+# Introduce some missing data (NA values)
+data_matrix[3, 2] <- NA  # Missing data in Zone2 on 2024-01-03
+data_matrix[5, 1] <- NA  # Missing data in Zone1 on 2024-01-05
+data_matrix[8, 3] <- NA  # Missing data in Zone3 on 2024-01-08
+
+# Print the original matrix with missing data
+print("Original Data Matrix (with missing values):")
+print(data_matrix)
+
+# Apply moving average with a window size of 3
+window_size <- 3
+moving_avg_result <- moving_average_2d_optimized(data_matrix, window_size)
+
+# Print the moving average result
+print("\nOptimized Moving Average Result (with missing values handled):")
+print(moving_avg_result)

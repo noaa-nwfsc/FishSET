@@ -158,7 +158,6 @@ create_expectations <-
     
   }
   
-  
   # checks ----
   
   column_check(dataset, c(catch, price, temp.var, defineGroup))
