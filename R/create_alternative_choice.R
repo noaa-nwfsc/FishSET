@@ -142,7 +142,7 @@ create_alternative_choice <-
            fish.cent.name = NULL,
            spatname = NULL,
            spatID = NULL,
-           grid_sample = FALSE,
+           grid_sample = FALSE, #TODO Need to add an option for when pairwise comparison between zones that are "in" (eg wind lease area, MPA) vs "out"
            grid_sample_n = NULL,
            outsample = FALSE) {
   
@@ -327,7 +327,21 @@ create_alternative_choice <-
     stop("Invalid 'occasion' option.", call. = FALSE)
   }
   
+  # Check if spat and spatID are NULL
+  if(spat == "NULL"){
+    spat_out <- NULL
+  } else {
+    spat_out <- spat
+  }
+  
   # min hauls ----
+  # if grid sample, then add dummy rows for zones that were not observed in the main data
+  if(grid_sample & !(all(spatdat[[spatID]] %in% dataset[[zoneID]]))){ # when sampling from grid and not all zones are present in the main dataset
+    zones_not_in_maindat <- unique(spatdat[[spatID]])[which(!(unique(spatdat[[spatID]]) %in% unique(dataset[[zoneID]])))]
+    dataset[(nrow(dataset)+1):(nrow(dataset)+length(zones_not_in_maindat)),] <- NA
+    dataset$ZoneID <- replace(dataset$ZoneID, (length(dataset$ZoneID) - length(zones_not_in_maindat) + 1):length(dataset$ZoneID), zones_not_in_maindat)
+  }
+  
   choice <- dataset[[zoneID]]
   
   if (anyNA(choice) == TRUE) {
@@ -357,13 +371,6 @@ create_alternative_choice <-
   # create connection to database
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-
-  # Check if spat and spatID are NULL
-  if(spat == "NULL"){
-    spat_out <- NULL
-  } else {
-    spat_out <- spat
-  }
   
   # Grid-sampling ----
   # TODO - as we build additional options for grid sampling we will want to move this code to its own function
