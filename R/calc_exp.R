@@ -293,6 +293,7 @@ calc_exp <- function(dataset,
     }
     
     # list entries contain the window avg for each day
+    ## TODO: NO NEED TO RUN THE LAPPLY FUNCTION FOR DATES WITHOUT ANY CATCH DATA
     # tic()
     ave_list <- lapply(unique(df$dateFloor), window_ave, weight_avg = weight_avg)
     # toc()
