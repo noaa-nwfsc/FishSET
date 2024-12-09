@@ -243,6 +243,9 @@ calc_exp <- function(dataset,
 
     window_ave <- function(x, weight_avg) {
       
+      #TODO: Add radius search for grid sample method
+      #TODO: For grid sampling, we could omit date/zone combinations that are not included as alternatives?
+      
       ind <-
         df$dateFloor >= ((x - lubridate::years(year.lag)) - temp.lag - temp.window + 1) &
         df$dateFloor <= ((x - lubridate::years(year.lag)) - temp.lag)
@@ -294,9 +297,9 @@ calc_exp <- function(dataset,
     
     # list entries contain the window avg for each day
     ## TODO: NO NEED TO RUN THE LAPPLY FUNCTION FOR DATES WITHOUT ANY CATCH DATA
-    # tic()
+    tic()
     ave_list <- lapply(unique(df$dateFloor), window_ave, weight_avg = weight_avg)
-    # toc()
+    toc()
     
     # add loop to extract values 
     

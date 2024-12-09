@@ -335,13 +335,6 @@ create_alternative_choice <-
   }
   
   # min hauls ----
-  # if grid sample, then add dummy rows for zones that were not observed in the main data
-  # if(grid_sample & !(all(spatdat[[spatID]] %in% dataset[[zoneID]]))){ # when sampling from grid and not all zones are present in the main dataset
-  #   zones_not_in_maindat <- unique(spatdat[[spatID]])[which(!(unique(spatdat[[spatID]]) %in% unique(dataset[[zoneID]])))]
-  #   dataset[(nrow(dataset)+1):(nrow(dataset)+length(zones_not_in_maindat)),] <- NA
-  #   dataset$ZoneID <- replace(dataset$ZoneID, (length(dataset$ZoneID) - length(zones_not_in_maindat) + 1):length(dataset$ZoneID), zones_not_in_maindat)
-  # }
-  
   choice <- dataset[[zoneID]]
   
   if (anyNA(choice) == TRUE) {
