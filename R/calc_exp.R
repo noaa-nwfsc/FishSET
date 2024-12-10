@@ -240,6 +240,39 @@ calc_exp <- function(dataset,
     }
     
     # Moving window ----
+    
+    ################################################################################################################
+    ################################################################################################################
+    # TRY NEW METHOD FOR CALC EXP CATCH
+    
+    # Get a single observation and the corresponding alternatives
+    # NEED TO LOOP THROUGH THESE DATA, but could also put this in an lapply()
+    tmp_exp_mat <- matrix(NA, nrow=nrow(rand_alts_mat), ncol=ncol(rand_alts_mat))
+    
+    i <- 7
+    tmp_x <- dataset[i,]
+    tmp_alts <- rand_alts_mat[i,]
+    weight_avg <- weight_avg
+    
+    # Filter data for zones and dates
+    tmp1 <- dataset %>%
+      filter(dataset$ZoneID %in% tmp_alts) %>% # NEED TO ADD ZONE ID AS INPUT
+      filter(.[[temp.var]] >= (tmp_x[[temp.var]] - lubridate::years(year.lag)) - temp.lag - temp.window + 1) %>%
+      filter(.[[temp.var]] <= (tmp_x[[temp.var]] - lubridate::years(year.lag)) - temp.lag) %>% 
+      group_by(ZoneID) %>%
+      summarize(exp_val = mean(landed_thousands, na.rm = TRUE)) %>%
+      ungroup() %>% 
+      left_join(data.frame(ZoneID = tmp_alts), ., by = "ZoneID")
+    
+      
+    all(
+      $ZoneID == tmp_alts)
+    
+    
+    
+    ################################################################################################################
+    ################################################################################################################
+    
 
     window_ave <- function(x, weight_avg) {
       
@@ -402,10 +435,12 @@ calc_exp <- function(dataset,
     }
     
     # convert to occasion (n obs by altc) ----
+    tic()
     exp_matrix <- lapply(as.character(date), function(x) {
       ind <- which(exp_dates == x)
       ec_small[ind, , drop = FALSE]
     })
+    toc()
     
     exp_matrix <- do.call(rbind, exp_matrix)
     # order columns
