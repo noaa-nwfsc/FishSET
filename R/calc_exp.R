@@ -245,11 +245,102 @@ calc_exp <- function(dataset,
     ################################################################################################################
     # TRY NEW METHOD FOR CALC EXP CATCH
     
+    # Notes: 
+    # - This currently works for the "daily" timeline, but need to make some adjustments for "sequential" timeline.
+    #
+    
     # Get a single observation and the corresponding alternatives
     # NEED TO LOOP THROUGH THESE DATA, but could also put this in an lapply()
-    tmp_exp_mat <- matrix(NA, nrow=nrow(rand_alts_mat), ncol=ncol(rand_alts_mat))
     
-    i <- 7
+    # lapply(1:nrow(dataset), function(tmp_dataset, tmp_alts, i){
+    microbenchmark::microbenchmark(
+      "test1" = {
+        tmp_exp_mat <- lapply(1:nrow(dataset), function(tmp_dataset, tmp_alts, temp.var, year.lag, temp.lag, temp.window, weight_avg, i){
+          irow_dataset <- tmp_dataset[i,]
+          irow_alts <- tmp_alts[i,]
+          
+          tmp_dataset <- tmp_dataset %>%
+            filter(tmp_dataset$ZoneID %in% irow_alts) %>% # BASE SUBSETTING IS FASTER THAN DPLYR dataset[dataset$ZoneID %in% tmp_alts,] # NEED TO ADD ZONE ID AS INPUT
+            filter(.[[temp.var]] >= (irow_dataset[[temp.var]] - lubridate::years(year.lag)) - temp.lag - temp.window + 1) %>%
+            filter(.[[temp.var]] <= (irow_dataset[[temp.var]] - lubridate::years(year.lag)) - temp.lag) %>%
+            group_by(ZoneID) %>%
+            summarize(expected_val = mean(landed_thousands, na.rm = TRUE)) %>%
+            ungroup() %>% 
+            left_join(data.frame(ZoneID = irow_alts), ., by = "ZoneID") %>%
+            select(expected_val)
+          
+          as.vector(tmp_dataset$expected_val)
+        }, 
+        tmp_dataset = dataset, 
+        tmp_alts = rand_alts_mat, 
+        temp.var = temp.var, 
+        year.lag = year.lag,
+        temp.lag = temp.lag,
+        temp.window = temp.window,
+        weight_avg = weight_avg)
+      },
+      
+      "test2" = {
+        
+      }
+    )
+    
+    
+    # tmp_exp_mat <- lapply(1:nrow(dataset), function(tmp_dataset, tmp_alts, temp.var, year.lag, temp.lag, temp.window, weight_avg, i){
+    #   irow_dataset <- tmp_dataset[i,]
+    #   irow_alts <- tmp_alts[i,]
+    #   
+    #   tmp_dataset <- tmp_dataset %>%
+    #     filter(tmp_dataset$ZoneID %in% irow_alts) %>% # BASE SUBSETTING IS FASTER THAN DPLYR dataset[dataset$ZoneID %in% tmp_alts,] # NEED TO ADD ZONE ID AS INPUT
+    #     filter(.[[temp.var]] >= (irow_dataset[[temp.var]] - lubridate::years(year.lag)) - temp.lag - temp.window + 1) %>%
+    #     filter(.[[temp.var]] <= (irow_dataset[[temp.var]] - lubridate::years(year.lag)) - temp.lag) %>%
+    #     group_by(ZoneID) %>%
+    #     summarize(expected_val = mean(landed_thousands, na.rm = TRUE)) %>%
+    #     ungroup() %>% 
+    #     left_join(data.frame(ZoneID = irow_alts), ., by = "ZoneID") %>%
+    #     select(expected_val)
+    #   
+    #   as.vector(tmp_dataset$expected_val)
+    # }, 
+    # tmp_dataset = dataset, 
+    # tmp_alts = rand_alts_mat, 
+    # temp.var = temp.var, 
+    # year.lag = year.lag,
+    # temp.lag = temp.lag,
+    # temp.window = temp.window,
+    # weight_avg = weight_avg)
+    # toc()
+    
+    tmp_exp_mat <- do.call(rbind, tmp_exp_mat)
+    
+    
+    tmp_exp_mat <- lapply(1:nrow(dataset), function(tmp_dataset, tmp_alts, temp.var, year.lag, temp.lag, temp.window, weight_avg, i){
+      
+    },
+    tmp_dataset = dataset, 
+    tmp_alts = rand_alts_mat, 
+    temp.var = temp.var, 
+    year.lag = year.lag,
+    temp.lag = temp.lag,
+    temp.window = temp.window,
+    weight_avg = weight_avg
+    )
+      
+        test_time2 <- dataset[dataset$ZoneID %in% tmp_alts,]
+        test_time2 <- test_time2[test_time2[[temp.var]] >= start_dates_i & test_time2[[temp.var]] <= end_dates_i, ]
+        expected_val <- tapply(test_time2$landed_thousands, test_time2$ZoneID, mean, na.rm = TRUE)
+        expected_val_result <- expected_val[as.character(tmp_alts)]
+      
+    
+    
+    
+    
+    start_dates <- dataset[[temp.var]] - lubridate::years(year.lag) - temp.lag - temp.window + 1
+    end_dates <- dataset[[temp.var]] - lubridate::years(year.lag) - temp.lag
+    start_dates_i <- start_dates[i]
+    end_dates_i <- end_dates[i]
+    
+    i <- 88
     tmp_x <- dataset[i,]
     tmp_alts <- rand_alts_mat[i,]
     weight_avg <- weight_avg
@@ -264,9 +355,8 @@ calc_exp <- function(dataset,
       ungroup() %>% 
       left_join(data.frame(ZoneID = tmp_alts), ., by = "ZoneID")
     
-      
-    all(
-      $ZoneID == tmp_alts)
+    tmp_exp_mat[i,] <- tmp1$exp_val 
+    
     
     
     
