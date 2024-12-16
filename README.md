@@ -24,10 +24,11 @@ options(download.file.method = "wininet")
 devtools::install_github("noaa-nwfsc/FishSET")
 ```
 
-If the above does not work try:
+If the above does not work try using "pak":
 
 ```
-install.packages("pak")
+install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))
+
 pak::pak("noaa-nwfsc/FishSET")
 ```
 
