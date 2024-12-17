@@ -5391,7 +5391,7 @@ server = function(input, output, session) {
       
       bslib::layout_column_wrap(
         width = 1/2,
-        bslib::card(card_header("Starting location"), 
+        bslib::card(bslib::card_header("Starting location"), 
                     bslib::card_body(
                       fillable = FALSE, 
                       
@@ -5418,7 +5418,7 @@ server = function(input, output, session) {
                     ),
         ),
         
-        bslib::card(card_header("Alternative locations"), 
+        bslib::card(bslib::card_header("Alternative locations"), 
                     bslib::card_body(
                       fillable = TRUE, 
                       bslib::layout_column_wrap(
