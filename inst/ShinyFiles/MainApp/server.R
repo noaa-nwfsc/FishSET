@@ -1378,7 +1378,7 @@ server = function(input, output, session) {
     }
     
     if (names(values$dataset)[1]!='var1') {
-      showNotification("Primary data loaded.", type='message', duration=10)
+      showNotification("Primary data loaded.", type='message', duration=15)
     }
     
   }, ignoreInit = TRUE, ignoreNULL = TRUE) 
