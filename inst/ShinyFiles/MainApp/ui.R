@@ -88,8 +88,27 @@ ui = function(request){
                                 width: 500px;
                               }"
       )),
+      
+      tags$style(HTML(".shiny-notification {
+                      background-color:#AACDE5;
+                      color:#000000;
+                      }"
+      )),
+      
       tags$style(HTML(".shiny-notification-message {
                       background-color:#B5E26F;
+                      color:#000000;
+                      }"
+      )),
+      
+      tags$style(HTML(".shiny-notification-warning {
+                      background-color:#FCE205;
+                      color:#000000;
+                      }"
+      )),
+      
+      tags$style(HTML(".shiny-notification-error {
+                      background-color:#BA110C;
                       color:#000000;
                       }"
       ))

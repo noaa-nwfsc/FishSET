@@ -313,9 +313,9 @@ server = function(input, output, session) {
       )
       
       if(ref_err){
-        showNotification("Error refreshing data", type='error', duration=10)
+        showNotification("Error refreshing data", type='error', duration=60)
       } else {
-        showNotification("Data refreshed", type='message', duration=10)  
+        showNotification("Data refreshed", type='message', duration=60)  
       }
     }
     
@@ -1140,7 +1140,7 @@ server = function(input, output, session) {
     
     if (is_value_empty(input$load_proj_cb)) {
       
-      showNotification('No projects selected')
+      showNotification('No projects selected', type = "error", duration = 60)
       
     } else {
       
@@ -1290,12 +1290,11 @@ server = function(input, output, session) {
       
       if (input$load_main_src == 'FishSET database') {
         
-        showNotification("No project found. Please upload a new file.", 
-                         type = 'message', duration = 10)
+        showNotification("No project found - please upload a new file", type = 'warning', duration = 60)
         
       } else if (input$load_main_src=='Upload new file') {
         
-        showNotification("Please enter a project name.", type='message', duration=10)
+        showNotification("Project name missing", type = 'error', duration = 60)
       }
     }
     
@@ -1378,7 +1377,7 @@ server = function(input, output, session) {
     }
     
     if (names(values$dataset)[1]!='var1') {
-      showNotification("Primary data loaded.", type='message', duration=15)
+      showNotification("Primary data loaded successfully", type='error', duration=30)
     }
     
   }, ignoreInit = TRUE, ignoreNULL = TRUE) 
@@ -1437,11 +1436,6 @@ server = function(input, output, session) {
   show <- reactiveValues(port_combine = FALSE, port_merge = FALSE, save = FALSE)
   
   observeEvent(input$loadDat, { 
-    
-    if (!isTruthy(project$name)) {
-      
-      showNotification("Please enter a project name.", type = 'message', duration = 10)
-    }
     
     req(project$name)
     req(load_helper("port"))
@@ -1586,11 +1580,6 @@ server = function(input, output, session) {
   )
   
   observeEvent(input$loadDat, {
-    
-    if (!isTruthy(project$name)) {
-      
-      showNotification("Please enter a project name.", type = 'message', duration = 10)
-    }
     
     req(project$name)
     req(load_helper("spat"))
