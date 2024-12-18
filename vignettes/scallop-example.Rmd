@@ -24,7 +24,7 @@ This vignette is an example of an exploratory data analysis using `FishSET`. It
 utilizes a range of `FishSET` functions for importing and upload data, performing
 quality assessment/quality control, and summarizing and visualizing data. 
 
-<br><br>
+<br>
 
 ## Packages
 
@@ -36,7 +36,7 @@ library(ggplot2)
 library(maps)
 ```
 
-<br><br>
+<br>
 
 ## Project Setup
 
@@ -49,7 +49,7 @@ folderpath <- tempdir()
 proj <- "scallop"
 ```
 
-<br><br>
+<br>
 
 ## Data Import
 
@@ -86,12 +86,12 @@ PERMIT.y|int |  An identifier variable for a vessel. Rows with the same value in
 |DOLLAR_ALL_SP_2020_OBSCURED|num |Value of all species landed on a trip, 2020 dollars (**O**) |
 (**O**) indicates the values in the columns have been obscured.
 
-
-<br><br>
+<br>
 
 This data contains `r nrow(scallopMainDataTable)` rows and `r ncol(scallopMainDataTable)` variables.
 
-<br><br>
+<br>
+
 A commonly used grid in the Northeast United States is the 10 minute grid.  Each
 grid cell is 10' latitude by 10' longitude.  This may or may not be the 
 appropriate grid for your research question.  
@@ -101,6 +101,7 @@ Upload and view the ten minute squares map from the FishSET package.
 load_spatial(spat = FishSET::tenMNSQR, project = proj, name = "TenMNSQR")
 plot_spat(tenMNSQR)
 ```
+
 We have included the locations of prospective Wind Lease areas in the Northeast
 United States as of early 2023. These are intended to illustrate FishSET
 capabilities.  
@@ -114,17 +115,17 @@ plot_spat(windLease)
 
 ```
 
-<br><br>
+<br>
 
 Assign the the 10 minute squares cells (`scallopTenMNSQRSpatTable`) and Wind
-areas (`scallopWindCloseSpatTable`) to the working environment.
+areas (`scallopWindCloseSpatTable`) to variables for the working environment.
 
 ```{r}
 scallopTenMNSQRSpatTable <- table_view("scallopTenMNSQRSpatTable", proj)
 scallopWindCloseSpatTable <- table_view("scallopWindCloseSpatTable", proj)
 ```
 
-<br><br>
+<br>
 
 ### Fleet assignment
 
@@ -154,7 +155,7 @@ scallopMainDataTable <-
                fleet_tab = fleet_tab_name)
 ```
 
-<br><br>
+<br>
 
 ### Bin Gears
 The data contain several types of fishing gear. For simplicity, the 
@@ -171,6 +172,8 @@ table(scallopMainDataTable$GEARCODE)
 scallopMainDataTable$GEARCODE[!(scallopMainDataTable$GEARCODE %in% c('DREDGE','TRAWL-BOTTOM'))] <- 'OTHER'
 ```
 
+<br>
+
 ### Operating Profit
 Calculate operating profit of a trip by subtracting trip costs from revenues. 
 ```{r calculate operating profit}
@@ -179,7 +182,7 @@ scallopMainDataTable <-
   mutate(OPERATING_PROFIT_2020 = DOLLAR_ALL_SP_2020_OBSCURED - TRIP_COST_WINSOR_2020_DOL)
 ```
 
-<br><br>
+<br>
 
 ### Summary Table
 FishSET can construct a table of summary statistics.   To do so, use FishSET's 
@@ -190,7 +193,7 @@ summary_stats(scallopMainDataTable, proj) %>%
   pretty_tab_sb()
 ```
 
-<br><br><br>
+<br>
 
 ## QAQC
 
@@ -209,7 +212,7 @@ The ``na_filter()`` shows that some columns have missing values.  By setting
 ``remove=TRUE,`` these can be dropped, although other methods of handling
 missing data may be better.
 
-<br><br>
+<br>
 
 ### NaN Check
 ```{r}
@@ -219,7 +222,8 @@ nan_filter(scallopMainDataTable,
            rep.value = NA, over_write = FALSE)
 ```
 The ``nan_filter()`` shows the data does not have any NaNs
-<br><br>
+
+<br>
 
 ### Unique Rows
 
@@ -228,18 +232,18 @@ unique_filter(scallopMainDataTable, project = proj, remove = FALSE)
 ```
 
 The ``unique_filter()`` shows that all rows are unique.  
-<br><br>
+
+<br>
 
 ### Empty Variables
-"Empty" variables contain all `NA`s.
+"Empty" variables contain only `NA`s.
 ```{r}
 empty_vars_filter(scallopMainDataTable, project = proj, remove = FALSE)
 ```
 The ``empty_vars_filter()`` shows that none of the columns are exclusively 
 filled with NAs.   
 
-<br><br>
-
+<br>
 
 ### Lon/Lat Format
 
@@ -249,7 +253,8 @@ degree(scallopMainDataTable, project = proj,
        latsign = NULL, lonsign = NULL,
        replace = FALSE)
 ```
-<br><br>
+
+<br>
 
 ### Spatial QAQC 
 
@@ -273,6 +278,7 @@ spat_qaqc_out$spatial_summary %>%
 
 spat_qaqc_out[2:4]
 ```
+
 There are a few rows where the reported fishing location is on land.
 
 There are also a few rows where the fishing location is exactly on the boundary
@@ -281,7 +287,7 @@ located on vertices of cells (not the lines connecting the vertices). This is
 not particularly surprising.  Each of the points on a vertex could reasonably 
 be assigned to one of the four cells that share that vertex.  
 
-<br><br><br>
+<br>
 
 ## Data Creation
 
@@ -293,18 +299,19 @@ scallopMainDataTable <-
   mutate(DB_LANDING_YEAR = as.numeric(format(date_parser(DATE_TRIP), "%Y")))
 ```
 
-<br><br>
+<br>
 
-### Finagle LANDED_OBSCURED to Thousands of Pounds
+### Scale LANDED_OBSCURED to Thousands of Pounds
 ```{r}
 scallopMainDataTable$LANDED_OBSCURED <- scallopMainDataTable$LANDED_OBSCURED / 1000
 ```
 
-<br><br>
+<br>
 
 ### Catch per Unit Effort (CPUE)
 
-FishSET can create Catch per Unit Effort variables.  
+FishSET can create Catch per Unit Effort variables.
+
 Create `CPUE` variable using `TRIP_LENGTH` and `LANDED_OBSCURED`. Filter out any 
 infinite values. 
 ```{r}
@@ -319,7 +326,7 @@ scallopMainDataTable <-
   filter(!is.infinite(CPUE))
 ```
 
-<br><br>
+<br>
 
 #### CPUE Percent Rank
 Add a percent rank column to filter outliers.
@@ -333,7 +340,7 @@ scallopMainDataTable <-
   mutate(CPUE_p = percent_rank(CPUE))
 ```
 
-<br><br>
+<br>
 
 ### Value Per Unit Effort
 Similar to catch per unit effort, FishSET can create Value (or Revenue) per Unit
@@ -351,7 +358,7 @@ scallopMainDataTable <-
   filter(!is.infinite(VPUE))
 ```
 
-<br><br>
+<br>
 
 #### VPUE Percent Rank
 
@@ -366,7 +373,7 @@ scallopMainDataTable <-
   mutate(VPUE_p = percent_rank(VPUE))
 ```
 
-<br><br>
+<br>
 
 ### Fleet Tabulation
 
@@ -378,7 +385,7 @@ scallopMainDataTable %>%
   pretty_tab()
 ```
 
-<br><br>
+<br>
 
 ### Zone Assignment
 
@@ -395,7 +402,7 @@ scallopMainDataTable <-
                     hull.polygon = FALSE)
 ```
 
-<br><br>
+<br>
 
 ### Closure Area Assignment
 Assign each observation to a closure area. An observation will have an `NA` if
@@ -416,7 +423,7 @@ scallopMainDataTable <-
   mutate(in_closure = !is.na(closeID))
 ```
 
-<br><br>
+<br>
 
 `r sum(scallopMainDataTable$in_closure)` 
 observations (`r round(sum(scallopMainDataTable$in_closure)/nrow(scallopMainDataTable) * 100, 2)`%) occurred inside a closure area. 
@@ -431,7 +438,7 @@ agg_helper(scallopMainDataTable,
   pretty_tab()
 ```
 
-<br><br>
+<br>
 
 Observations inside/outside closures by fleet. 
 ```{r}
@@ -443,7 +450,7 @@ agg_helper(scallopMainDataTable, group = "fleet",
   pretty_tab()
 ```
 
-<br><br>
+<br>
 
 Observations inside/outside closures by year. 
 ```{r}
@@ -458,7 +465,7 @@ agg_helper(scallopMainDataTable, value = "in_closure",
   pretty_tab()
 ```
 
-<br><br>
+<br>
 
 Observations inside/outside closures by year and fleet. 
 ```{r}
@@ -473,12 +480,12 @@ agg_helper(scallopMainDataTable, value = "in_closure",
   pretty_tab_sb(width = "60%") 
 ```
 
-<br><br><br>
+<br>
 
 ## Zone Summary
 
 FishSET's `zone_summary' function can summarize the data by zone (Ten Minute 
-Square) a few different ways to make exploratory data analysis easier.
+Square) using interactive maps to make exploratory data analysis easier.
 
 ### Frequency
 
@@ -499,7 +506,7 @@ zone_out$table %>%
   pretty_tab_sb(width = "40%")
 ```
 
-<br><br>
+<br>
 
 Percent of observations by zone can be produced by using ``fun="percent"``.
 ```{r}
@@ -520,7 +527,7 @@ zone_out$table %>%
   pretty_tab_sb(width = "40%")
 ```
 
-<br><br>
+<br>
 
 ``Zone_summary`` can be used in conjunction with ``dplyr::filter`` to produce 
 summaries for just one fleet (Access Area fleet).
@@ -544,7 +551,7 @@ zone_out$table %>%
 ```
 
 
-<br><br><br>
+<br>
 
 Zone frequency (Days at Sea fleet).
 ```{r}
@@ -566,7 +573,7 @@ zone_out$table %>%
   pretty_tab_sb(width = "40%")
 ```
 
-<br><br>
+<br>
 
 ### Catch
 FishSET's `zone_summary' function be used to aggregate total landings in each 
@@ -590,7 +597,7 @@ zone_out$table %>%
   pretty_tab_sb(width = "40%")
 ```
 
-<br><br>
+<br>
 
 FishSET's `zone_summary' function be used to construct average landings for 
 trips in each zone.
@@ -612,7 +619,7 @@ zone_out$table %>%
   pretty_tab_sb(width = "40%")
 ```
 
-<br><br>
+<br>
 
 Using the ``fun="percent"`` option computes the percent of total landings. 
 ```{r}
@@ -633,7 +640,7 @@ zone_out$table %>%
   pretty_tab_sb(width = "60%")
 ```
 
-<br><br>
+<br>
 
 ### Trip Length
 
@@ -655,7 +662,7 @@ zone_out$table %>%
   pretty_tab_sb(width = "40%")
 ```
 
-<br><br>
+<br>
 
 ### CPUE
 
@@ -677,7 +684,7 @@ zone_out$table %>%
   pretty_tab_sb(width = "50%")
 ```
 
-<br><br>
+<br>
 
 ### VPUE
 
@@ -701,7 +708,7 @@ zone_out$table %>%
   pretty_tab_sb(width = "50%")
 ```
 
-<br><br><br>
+<br>
 
 ## Other Spatial Units 
 
@@ -725,8 +732,7 @@ zone_out$table %>%
 zone_out$plot
 ```
 
-
-<br><br><br>
+<br>
 
 Percent of observations in Wind areas.
 ```{r}
@@ -747,7 +753,7 @@ zone_out$table %>%
 zone_out$plot
 ```
 
-<br><br><br>
+<br>
 
 Percent of total revenue by Wind area. 
 ```{r}
@@ -769,8 +775,7 @@ zone_out$table %>%
 zone_out$plot
 ```
 
-
-<br><br><br>
+<br>
 
 Percent of total revenue by fleet can be constructed using the ``group="fleet"``
 argument. 
@@ -792,7 +797,7 @@ zone_out$table %>%
 zone_out$plot
 ```
 
-<br><br><br>
+<br>
 
 Average meat catch per closure area.
 ```{r}
@@ -814,7 +819,7 @@ zone_out$table %>%
 zone_out$plot
 ```
 
-<br><br><br>
+<br>
 
 Average meat catch by fleet.
 ```{r}
@@ -836,11 +841,11 @@ zone_out$table %>%
 zone_out$plot
 ```
 
-<br><br><br>
+<br>
 
 ## Outliers
 
-FishSET has some functionality to detect outliers.
+FishSET has some functionality to detect outliers, and remove if necessary.
 
 ### POUNDS
 ```{r}
@@ -866,7 +871,7 @@ outlier_plot(scallopMainDataTable, proj,
              output.screen = TRUE)
 ```
 
-<br><br><br>
+<br>
 
 ## Temporal Plots
 
@@ -883,7 +888,7 @@ temp_plot(scallopMainDataTable, proj,
 
 This plot reveals some seasonality in the Landed pounds. 
 
-<br><br><br>
+<br>
 
 ```{r}
 temp_plot(scallopMainDataTable, proj,
@@ -894,7 +899,7 @@ temp_plot(scallopMainDataTable, proj,
           pages = "multi")
 ```
 
-<br><br><br>
+<br>
 
 ```{r}
 temp_plot(scallopMainDataTable, proj,
@@ -905,7 +910,7 @@ temp_plot(scallopMainDataTable, proj,
           pages = "multi")
 ```
 
-<br><br><br>
+<br>
 
 ## Scatter Plots
 
@@ -916,8 +921,7 @@ xy_plot(scallopMainDataTable, proj,
         regress = FALSE, alpha = .3)
 ```
 
-
-<br><br><br>
+<br>
 
 Trip length by revenue. 
 ```{r}
@@ -926,8 +930,7 @@ xy_plot(scallopMainDataTable, proj,
         regress = FALSE, alpha = .3)
 ```
 
-
-<br><br><br>
+<br>
 
 Trip length by trip cost (Winsor).
 ```{r}
@@ -936,7 +939,8 @@ xy_plot(scallopMainDataTable, proj,
         regress = FALSE, alpha = .3)
 ```
 The winsorization of trip costs is apparent in the horizontal line of points just over $30,000.
-<br><br><br>
+
+<br>
 
 ## Correlation Matrix
 
@@ -954,11 +958,11 @@ corr_outs$table %>%
 ```
 Note the strong correlation between ``TRIP_LENGTH`` and the ``TRIP_COST_WINSOR`` variables. This is because Trip costs are predicted from a statistical relationship between Trip length and costs on a subset of observed trips. There also is a moderate correlation between ``port_lat`` and ``previous_port_lat.`` This occurs because trips usually use 1 port. 
 
-<br><br><br>
+<br>
 
 ## Active Vessels
 
-vessel count by year. 
+Vessel count by year. 
 ```{r}
 ves_out <- 
   vessel_count(scallopMainDataTable, proj,
@@ -970,9 +974,9 @@ ves_out$table %>% pretty_tab()
 ves_out$plot 
 ```
 
-<br><br><br>
+<br>
 
-vessel count by fleet. 
+Vessel count by fleet. 
 ```{r}
 ves_out <- 
   vessel_count(scallopMainDataTable, proj,
@@ -984,9 +988,9 @@ ves_out$table %>% pretty_tab()
 ves_out$plot 
 ```
 
-<br><br><br>
+<br>
 
-vessel count by year and fleet. 
+Vessel count by year and fleet. 
 ```{r}
 ves_out <- 
   vessel_count(scallopMainDataTable, proj,
@@ -1002,7 +1006,7 @@ ves_out$table %>%
 ves_out$plot 
 ```
 
-<br><br><br>
+<br>
 
 vessel count by gearcode. 
 ```{r}
@@ -1018,7 +1022,7 @@ ves_out$table %>%
 ves_out$plot
 ```
 
-<br><br><br>
+<br>
 
 ## Catch
 
@@ -1039,7 +1043,7 @@ catch_out$table %>%
 catch_out$plot
 ```
 
-<br><br><br>
+<br>
 
 Total meat catch by fleet. 
 ```{r}
@@ -1057,7 +1061,7 @@ catch_out$table %>%
 catch_out$plot
 ```
 
-<br><br><br>
+<br>
 
 Total meat catch by year and fleet. 
 ```{r}
@@ -1077,7 +1081,7 @@ catch_out$table %>%
 catch_out$plot
 ```
 
-<br><br><br>
+<br>
 
 ## CPUE 
 
@@ -1097,7 +1101,7 @@ cpue_out$table %>%
 cpue_out$plot
 ```
 
-<br><br><br>
+<br>
 
 Average CPUE by year and fleet.
 ```{r}
@@ -1116,7 +1120,7 @@ cpue_out$table %>%
 cpue_out$plot
 ```
 
-<br><br><br>
+<br>
 
 ## VPUE
 
@@ -1136,7 +1140,7 @@ vpue_out$table %>%
 vpue_out$plot
 ```
 
-<br><br><br>
+<br>
 
 Average VPUE by year and fleet.
 ```{r}
@@ -1155,8 +1159,7 @@ vpue_out$table %>%
 vpue_out$plot
 ```
 
-
-<br><br><br>
+<br>
 
 Average VPUE by gearcode.
 ```{r}
@@ -1173,7 +1176,7 @@ pretty_lab() %>%
 vpue_out$plot + angled_theme()
 ```
 
-<br><br><br>
+<br>
 
 ## Distributions
 
@@ -1199,7 +1202,7 @@ density_plot(scallopMainDataTable, proj,
              type = "all", tran = "log", pages = "multi")
 ```
 
-<br><br>
+<br>
 
 KDE of meat catch by year.
 ```{r}
