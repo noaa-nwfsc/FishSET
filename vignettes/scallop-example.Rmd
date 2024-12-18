@@ -1177,9 +1177,11 @@ vpue_out$plot + angled_theme()
 
 ## Distributions
 
+FishSET can make various distributional plots
 
 ### LANDED_OBSCURED
-KDE, ECDF, and CDF of meat catch. 
+KDE, ECDF, and CDF of meat catch, note the ``tran= "log"`` option to do a log 
+transformation of ``LANDED_OBSCURED.`` 
 ```{r}
 density_plot(scallopMainDataTable, proj,
              var = "LANDED_OBSCURED", 
@@ -1188,7 +1190,8 @@ density_plot(scallopMainDataTable, proj,
 
 <br><br>
 
-KDE, ECDF, and CDF of meat catch by fleet. 
+KDE, ECDF, and CDF of meat catch by fleet can be easily produced using the 
+``group="fleet"`` option. 
 ```{r}
 density_plot(scallopMainDataTable, proj,
              var = "LANDED_OBSCURED",
