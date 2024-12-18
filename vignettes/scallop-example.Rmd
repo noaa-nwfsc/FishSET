@@ -65,9 +65,9 @@ TRIPID and PERMIT variables with identifiers that cannot be linked to originals.
 
 |Column Name        | Type           | Description  |
 |:------------- |:-------| :---------------------------------|
-|TRIPID |integer | An identifier variable for the a trip (**O**) | 
-|DATE_TRIP |Date |  The date of landing  **O** | 
-PERMIT.y|int |  An identifier variable for a vessel. Rows with the same value indicate repeated observations of trips by the same |vessel **O**| 
+|TRIPID |integer | An identifier variable for a trip (**O**) | 
+|DATE_TRIP |Date |  The date of landing  (**O**) | 
+PERMIT.y|int |  An identifier variable for a vessel. Rows with the same value indicate repeated observations of trips by the same vessel (**O**) | 
 |TRIP_LENGTH| num | length of the trip, in days| 
 |GEARCODE |chr | the type of gear used | 
 |port_lat |num | latitude of the landing port, decimal degrees|
@@ -77,13 +77,13 @@ PERMIT.y|int |  An identifier variable for a vessel. Rows with the same value in
 |Plan Code |chr |=SES, indicating these trips are in the Scallop Fishery |
 |Program Code |chr |=SAA indicates a trip to a scallop access area; =SCA indicates a Limited Access DAYS-at-Sea Trip | 
 |TRIP_COST_WINSOR_2020_DOL   | num|Predicted trip costs,in 2020 dollars, winsorized to remove outliers  | 
-|DDLAT |num| latitude of fishing location, decimal degrees **O** |
-|DDLON |num| longitude of fishing location, decimal degrees **O** |
-|ZoneID|num | the *TEN_ID* of the tenMNSQR table corresponding to the DDLAT and DDLON columns of the row |
-|LANDED_OBSCURED|num |Landed meat weights of scallops, in pounds **O** |            
-|DOLLAR_OBSCURED|num |Value of landed scallops, nominal dollars  **O** |    
-|DOLLAR_2020_OBSCURED|num |Value of landed scallops, 2020 dollars  **O** |
-|DOLLAR_ALL_SP_2020_OBSCURED|num |Value of all species landed on a trip, 2020 dollars  **O** |
+|DDLAT |num| latitude of fishing location, decimal degrees (**O**) |
+|DDLON |num| longitude of fishing location, decimal degrees (**O**) |
+|ZoneID|num | Fishing zone ID that corresponds to the *TEN_ID* variable of the tenMNSQR spatial table |
+|LANDED_OBSCURED|num |Landed meat weights of scallops, in pounds (**O**) |            
+|DOLLAR_OBSCURED|num |Value of landed scallops, nominal dollars (**O**) |    
+|DOLLAR_2020_OBSCURED|num |Value of landed scallops, 2020 dollars (**O**) |
+|DOLLAR_ALL_SP_2020_OBSCURED|num |Value of all species landed on a trip, 2020 dollars (**O**) |
 (**O**) indicates the values in the columns have been obscured.
 
 
