@@ -79,7 +79,7 @@ ui = function(request){
                                 position: fixed;
                                 bottom: 350px;
                                 right: 250px;
-                                font-size: 30px;
+                                font-size: 25px;
                               }
                               .shiny-notification {
                                 position:relative;
