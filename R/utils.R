@@ -2399,8 +2399,7 @@ quietly_test <- function(.f, show_msg = FALSE) {
 
     if (!is.null(res$error)) { # safely output
       
-      # showNotification(res$error$message, duration = 10, type = "error")
-      showNotification(conditionMessage(res$error), duration = 10, type = "error")
+      showNotification(conditionMessage(res$error), duration = 60, type = "error")
       return(res$result)
     }
     
@@ -2408,14 +2407,14 @@ quietly_test <- function(.f, show_msg = FALSE) {
     
     if (!is.null(res$warnings) && length(res$warnings) > 0) {
       
-      lapply(unique(res$warnings), showNotification, duration = 10, type = "warning")
+      lapply(unique(res$warnings), showNotification, duration = 60, type = "warning")
     }
     
     if (show_msg) {
       
       if (!is.null(res$messages) && length(res$message) > 0) {
         
-        lapply(unique(res$messages), showNotification, duration = 10, type = "message")
+        lapply(unique(res$messages), showNotification, duration = 60, type = "default")
       }
     }
     

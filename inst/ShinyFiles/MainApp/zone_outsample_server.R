@@ -112,7 +112,7 @@ zone_outsample_saveServer <- function(id, outsample_table, filename, zone.dat, p
         
         saveRDS(dat, filename$name)
         
-        showNotification("Filtered out-of-sample data saved. Zone selection window can be closed now.", type = "message", duration = 20)
+        showNotification("Filtered out-of-sample data saved. Zone selection window can be closed now.", type = "message", duration = 60)
       })
     }
   )

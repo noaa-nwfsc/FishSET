@@ -6563,7 +6563,8 @@ server = function(input, output, session) {
       tryCatch(
         space_val <- as.numeric(space_val),
         warning = function(w){
-          showNotification("One or more 'space' values invalid and coerced to NULL - model is running with default space = 10", type = "warning", duration = 45)
+          showNotification("One or more 'space' values invalid and coerced to NULL - model is running with default space = 10", 
+                           type = "warning", duration = 60)
         }
       )
     } else { # if it is empty then set = NULL
@@ -6575,7 +6576,8 @@ server = function(input, output, session) {
       tryCatch(
         dev_val <- as.numeric(dev_val),
         warning = function(w){
-          showNotification("One or more 'dev' values invalid and coerced to NULL - model is running with default dev = 5", type = "warning", duration = 45)
+          showNotification("One or more 'dev' values invalid and coerced to NULL - model is running with default dev = 5", 
+                           type = "warning", duration = 60)
         }
       )
     } else { # if it is empty then set = NULL
@@ -6608,8 +6610,9 @@ server = function(input, output, session) {
                     Check R console for progress.'
     )
     
-    showNotification('Model run is complete. Check the `Compare Models` subtab to view output', 
-                     type='message', duration=30)
+    showNotification('Model run is complete', type = 'message', duration = 60)
+    showNotification('Check the `Compare Models` subtab to view outputs', 
+                     type = 'default', duration = 60)
     
     toggle_inputs(input_list, TRUE)
   })
@@ -6884,7 +6887,7 @@ server = function(input, output, session) {
     # Submit the update query and disconnect
     DBI::dbExecute(fishset_db, query)
     
-    showNotification("Table saved to database")
+    showNotification("Table saved to database", type = "message", duration = 60)
     DBI::dbDisconnect(fishset_db)
   })
   
@@ -6923,7 +6926,7 @@ server = function(input, output, session) {
   
   observeEvent(input$cv_k, {
     if(!is.na(input$cv_k)){
-      if(input$cv_k > 10) showNotification("Values of k > 10 can results in long runtimes", type = 'warning', duration = 15)
+      if(input$cv_k > 10) showNotification("Values of k > 10 can result in inordinately long runtimes", type = 'warning', duration = 60)
     }
   })
   
@@ -6933,22 +6936,22 @@ server = function(input, output, session) {
     crossVal_timeVar <- if(input$cv_group != "Years") NULL else input$cv_time_var
     
     if((is.na(crossVal_k) || is.null(crossVal_k)) && input$cv_group == "Observations"){
-      showNotification("k is required if grouping by observations", type = 'error', duration = 10)
+      showNotification("k is required if grouping by observations", type = 'error', duration = 60)
       
     } else if (is_empty(crossVal_timeVar) && input$cv_group == "Years") {
-      showNotification("A date variable is required if grouping data annually", type = 'error', duration = 10)
+      showNotification("A date variable is required if grouping data annually", type = 'error', duration = 60)
       
     } else {
-      if(!is.na(crossVal_k) && !is.null(crossVal_k) && crossVal_k > 10) showNotification("Values of k > 10 can results in long runtimes", type = 'warning', duration = 15)
+      if(!is.na(crossVal_k) && !is.null(crossVal_k) && crossVal_k > 10) showNotification("Values of k > 10 can result in inordinately long runtimes", type = 'warning', duration = 15)
       
-      showNotification('The cross validation function can take several minutes (up to 15 minutes for 10 groups) to run. A 
-                         message will appear when complete. View progress in the R console window.',
-                       type = 'message', duration = 30)
+      showNotification('The cross validation function can take several minutes to run. A 
+                        message will appear when complete. View progress in the R console window.',
+                       type = 'default', duration = 60)
       
       cross_validation(project$name, input$cv_model, input$cv_zoneID, input$cv_group, crossVal_k,
                        crossVal_timeVar, use.scalers = FALSE, scaler.func = NULL)
       
-      showNotification('Cross validation complete', type = 'message', duration = 30)
+      showNotification('Cross validation complete', type = 'message', duration = 60)
     }
   })
   
@@ -7030,20 +7033,19 @@ server = function(input, output, session) {
       
       if (qc_pass) {
         
-        showNotification("Out-of-sample data saved to database.", type = "message", 
-                         duration = 10)
+        showNotification("Out-of-sample data saved to database", type = "message", duration = 60)
         
       } else {
         
-        showNotification('Selected file not loaded. Check file type and load_outsample()
-                           documentation.', type = 'error', duration = 15)
+        showNotification('Selected file not loaded. Check file type and load_outsample() documentation', 
+                         type = 'error', duration = 60)
         
       }
       
     } else {
       
-      showNotification('Selected file not loaded. Check file type and load_outsample()
-                           documentation.', type = 'error', duration = 15)
+      showNotification('Selected file not loaded. Check file type and load_outsample() documentation', 
+                       type = 'error', duration = 60)
       
     }
     
@@ -7093,7 +7095,7 @@ server = function(input, output, session) {
   
   observeEvent(input$run_outsample_filter, {
     
-    showNotification("Starting filtering process.", type = "message")
+    showNotification("Starting filtering process...", type = "default", duration = 60)
     
     load_err <- FALSE
     dat <- NULL
@@ -7112,7 +7114,7 @@ server = function(input, output, session) {
       dat <- nan_filter(dat, project = project$name, x=qaqc_helper(dat, "NA", "names"),
                         replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)
       
-      if(input$spat_outsample) showNotification("Loading map for selecting out-of-sample locations.", type = "message", duration = 20)    
+      if(input$spat_outsample) showNotification("Loading map for selecting out-of-sample locations", type = "default", duration = 60)    
       
       filter_out <- filter_outsample(dat = dat, project = project$name, mod.name = input$mod_name_outsample,
                                      spatial_outsample = input$spat_outsample, zone.dat = input$filter_outsample_datzone,
@@ -7120,7 +7122,7 @@ server = function(input, output, session) {
       
       # Not out-of-sample spatially
       if(length(filter_out) == 1){
-        showNotification("Out-of-sample data filtering complete", type = "message")  
+        showNotification("Out-of-sample data filtering complete", type = "message", duration = 60)  
         
         # Out-of-sample spatially
       } else {
@@ -7152,7 +7154,7 @@ server = function(input, output, session) {
       
     } else {
       
-      showNotification("Out-of-sample table not found in data base.", type = "error", duration = 15)
+      showNotification("Out-of-sample table not found in database", type = "error", duration = 60)
       
     }
   })
@@ -7193,13 +7195,13 @@ server = function(input, output, session) {
     }
     
     if(tmp_name %in% mod_names){
-      showNotification(paste0("'", tmp_name, "'", " already exists. Enter a new model name followed by '_outsample'."), type = "error", duration = 10)  
+      showNotification(paste0("'", tmp_name, "'", " already exists. Enter a new model name followed by '_outsample'"), type = "error", duration = 60)  
       
     } else if(!grepl("_outsample", tmp_name)) {
-      showNotification("Error: must include '_outsample' at the end of the model name.", type = "error", duration = 10)  
+      showNotification("Error: must include '_outsample' as suffix for the model name", type = "error", duration = 60)  
       
     } else {
-      showNotification("Generating out-of-sample model design. See R console for progress.", type = "message", duration = 10)
+      showNotification("Generating out-of-sample model design. See R console for progress.", type = "default", duration = 60)
       
       model_design_outsample(project = project$name, mod.name = input$mod_name_outsample, 
                              outsample.mod.name = input$outsample_mod_name, CV = FALSE, CV_dat = NULL, 
@@ -7207,7 +7209,7 @@ server = function(input, output, session) {
       
       outsample_names$names <- model_names(project$name)[grep("_outsample", model_names(project$name))]
       
-      showNotification("Out-of-sample model design added to FishSET database.", type = "message")
+      showNotification("Out-of-sample model design added to FishSET database", type = "message", duration = 60)
       
     }
   })
@@ -7265,8 +7267,8 @@ server = function(input, output, session) {
                                   outsample = TRUE, outsample_pred = outsample_predouts$pred_probs)
     
     if(length(outsample_plot) == 1){
-      showNotification("Unable to create map of predicted fishing probabilities. Check settings in all steps and rerun prediction.",
-                       type = "error", duration = 10)
+      showNotification("Unable to create a map of predicted fishing probabilities. Check settings and rerun prediction.",
+                       type = "error", duration = 60)
       output$map_outsample <- renderPlot({
         plot.new()
         text(.3, 1, labels = "Error: unable to generate map - check settings in left side panel", col = 'red', cex = 1.5)
@@ -7321,11 +7323,11 @@ server = function(input, output, session) {
     
     if (is.logical(saved) && saved) {
       
-      showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+      showNotification('Data saved to FishSET database', type = 'message', duration = 60)
       
     } else {
       
-      showNotification("Table was not saved.", type = "warning", duration = 10)
+      showNotification("Table was not saved", type = "error", duration = 60)
     }
   })
   
@@ -7338,11 +7340,11 @@ server = function(input, output, session) {
     
     if (is.logical(saved) && saved) {
       
-      showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+      showNotification('Data saved to FishSET database', type = 'message', duration = 60)
       
     } else {
       
-      showNotification("Table was not saved.", type = "warning", duration = 10)
+      showNotification("Table was not saved", type = "error", duration = 60)
     }
   })
   
@@ -7355,11 +7357,11 @@ server = function(input, output, session) {
     
     if (is.logical(saved) && saved) {
       
-      showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+      showNotification('Data saved to FishSET database', type = 'message', duration = 60)
       
     } else {
       
-      showNotification("Table was not saved.", type = "warning", duration = 10)
+      showNotification("Table was not saved", type = "error", duration = 60)
     }
   })
   
@@ -7458,7 +7460,7 @@ server = function(input, output, session) {
                    
                    if (!isTruthy(project$name)) {
                      
-                     showNotification("Enter a project name. Note not saved.", type = 'message', duration = 5)
+                     showNotification("Note was not saved - enter a project name", type = 'error', duration = 60)
                      
                    } else {
                      
@@ -7486,7 +7488,7 @@ server = function(input, output, session) {
                                      placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                      updateTextInput(session, 'notesBook', "Notes", value = "", placeholder = 'Paste bookmarked URL here.')
                      
-                     showNotification("Note saved.", type = 'message', duration = 5)
+                     showNotification("Note saved", type = 'message', duration = 60)
                    }
                  }, ignoreInit = TRUE)
   
@@ -7838,7 +7840,7 @@ server = function(input, output, session) {
               aux = input$new_aux, gridfile = input$new_grid, spat = input$new_spat,
               ind = input$log_table_rows_selected, run = TRUE)
     
-    showNotification("Log has been successfully rerun.", type = "message", duration = 10)
+    showNotification("Log has been successfully rerun", type = "message", duration = 60)
   })
   
   ###---
