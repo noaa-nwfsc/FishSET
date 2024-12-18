@@ -73,7 +73,7 @@ PERMIT.y|int |  An identifier variable for a vessel. Rows with the same value in
 |port_lat |num | latitude of the landing port, decimal degrees|
 |port_lon |num | longitude of the landing port, decimal degrees|
 |previous_port_lat|num | latitude of the previous landing port, decimal degrees|
-|previous_port_lon |num | longitude of the previouslanding port, decimal degrees|
+|previous_port_lon |num | longitude of the previous landing port, decimal degrees|
 |Plan Code |chr |=SES, indicating these trips are in the Scallop Fishery |
 |Program Code |chr |=SAA indicates a trip to a scallop access area; =SCA indicates a Limited Access DAYS-at-Sea Trip | 
 |TRIP_COST_WINSOR_2020_DOL   | num|Predicted trip costs,in 2020 dollars, winsorized to remove outliers  | 
