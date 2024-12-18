@@ -28,8 +28,9 @@ If the above does not work try using "pak":
 
 ```
 install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))
-
+options(pkg.build_vignettes = TRUE) # This will build the FishSET vignettes, which takes a little while.
 pak::pak("noaa-nwfsc/FishSET")
+options(pkg.build_vignettes = FALSE)
 ```
 
 ## Local Install
