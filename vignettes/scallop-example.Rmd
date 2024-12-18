@@ -301,7 +301,10 @@ scallopMainDataTable <-
 
 <br>
 
-### Scale LANDED_OBSCURED to Thousands of Pounds
+### Scale LANDED_OBSCURED to thousands of pounds
+
+Scaling catch data to 'smaller' numbers can often improve model fit and computing efficiency for discrete choice models.
+
 ```{r}
 scallopMainDataTable$LANDED_OBSCURED <- scallopMainDataTable$LANDED_OBSCURED / 1000
 ```
