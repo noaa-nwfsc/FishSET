@@ -302,7 +302,9 @@ scallopMainDataTable$LANDED_OBSCURED <- scallopMainDataTable$LANDED_OBSCURED / 1
 
 <br><br>
 
-### CPUE
+### Catch per Unit Effort (CPUE)
+
+FishSET can create Catch per Unit Effort variables.  
 Create `CPUE` variable using `TRIP_LENGTH` and `LANDED_OBSCURED`. Filter out any 
 infinite values. 
 ```{r}
@@ -333,8 +335,10 @@ scallopMainDataTable <-
 
 <br><br>
 
-### VPUE
-Same as above but with revenue instead of meat pounds. 
+### Value Per Unit Effort
+Similar to catch per unit effort, FishSET can create Value (or Revenue) per Unit
+Effort.  Here, we used revenue (`DOLLAR_OBSCURED`) instead of `Landed`
+
 ```{r}
 scallopMainDataTable <- 
   cpue(scallopMainDataTable, proj,
@@ -378,7 +382,7 @@ scallopMainDataTable %>%
 
 ### Zone Assignment
 
-Assign each observation to a regulatory zone. 
+Assign each observation to a ten minute square. 
 ```{r}
 scallopMainDataTable <- 
   assignment_column(scallopMainDataTable, project = proj,
@@ -473,6 +477,9 @@ agg_helper(scallopMainDataTable, value = "in_closure",
 
 ## Zone Summary
 
+FishSET's `zone_summary' function can summarize the data by zone (Ten Minute 
+Square) a few different ways to make exploratory data analysis easier.
+
 ### Frequency
 
 The number of observations by zone.
@@ -494,7 +501,7 @@ zone_out$table %>%
 
 <br><br>
 
-Percent of observations by zone.
+Percent of observations by zone can be produced by using ``fun="percent"``.
 ```{r}
 zone_out <- 
   zone_summary(scallopMainDataTable,
@@ -515,11 +522,12 @@ zone_out$table %>%
 
 <br><br>
 
-Zone frequency (Access Area fleet).
+``Zone_summary`` can be used in conjunction with ``dplyr::filter`` to produce 
+summaries for just one fleet (Access Area fleet).
 ```{r}
 zone_out <- 
   scallopMainDataTable %>% 
-    filter(fleet == "Access Area") %>% 
+    dplyr::filter(fleet == "Access Area") %>% 
     zone_summary(project = proj,
                  spat = scallopTenMNSQRSpatTable, 
                  zone.dat = "ZONE_ID",
@@ -542,7 +550,7 @@ Zone frequency (Days at Sea fleet).
 ```{r}
 zone_out <- 
   scallopMainDataTable %>% 
-    filter(fleet == "Days at Sea") %>% 
+    dplyr::filter(fleet == "Days at Sea") %>% 
     zone_summary(project = proj,
                  spat = scallopTenMNSQRSpatTable,
                  zone.dat = "ZONE_ID",
@@ -561,8 +569,9 @@ zone_out$table %>%
 <br><br>
 
 ### Catch
+FishSET's `zone_summary' function be used to aggregate total landings in each 
+zone.
 
-Total catch (meats). 
 ```{r}
 zone_out <- 
   zone_summary(scallopMainDataTable, 
@@ -583,7 +592,8 @@ zone_out$table %>%
 
 <br><br>
 
-Average catch (meats). 
+FishSET's `zone_summary' function be used to construct average landings for 
+trips in each zone.
 ```{r}
 zone_out <- 
   zone_summary(scallopMainDataTable,
@@ -604,7 +614,7 @@ zone_out$table %>%
 
 <br><br>
 
-Percent of total catch (meat). 
+Using the ``fun="percent"`` option computes the percent of total landings. 
 ```{r}
 zone_out <- 
   zone_summary(scallopMainDataTable, project = proj,
@@ -627,7 +637,7 @@ zone_out$table %>%
 
 ### Trip Length
 
-Average trip length for Access Area and Days at Sea fleet.
+Average trip length for Access Area and Days at Sea fleets combined
 ```{r}
 zone_out <- 
   zone_summary(scallopMainDataTable, project = proj,
@@ -649,7 +659,7 @@ zone_out$table %>%
 
 ### CPUE
 
-Average CPUE for Access Area and Days at Sea fleets.
+Average CPUE for Access Area and Days at Sea fleets combined
 ```{r}
 zone_out <- 
   scallopMainDataTable %>% 
@@ -672,7 +682,7 @@ zone_out$table %>%
 ### VPUE
 
 
-Average VPUE for Access Area and Days at Sea fleets.
+Average VPUE for Access Area and Days at Sea fleets combined
 ```{r}
 zone_out <- 
 scallopMainDataTable %>% 
@@ -693,10 +703,11 @@ zone_out$table %>%
 
 <br><br><br>
 
-## Closure Summary
+## Other Spatial Units 
 
+The ``zone_summary`` function can be used on any spatial unit (``spat``) . By setting ``spat = scallopWindCloseSpatTable,`` the exploratory data analysis of trips inside the Wind polygons can be performed. 
 
-Number of observations in closure areas.
+Number of observations in the Wind areas.
 ```{r}
 zone_out <- 
   zone_summary(scallopMainDataTable, project = proj,
@@ -717,7 +728,7 @@ zone_out$plot
 
 <br><br><br>
 
-Percent of observations in closure areas.
+Percent of observations in Wind areas.
 ```{r}
 zone_out <- 
   zone_summary(scallopMainDataTable, project = proj,
@@ -738,7 +749,7 @@ zone_out$plot
 
 <br><br><br>
 
-Percent of total revenue by closure area. 
+Percent of total revenue by Wind area. 
 ```{r}
 zone_out <- 
   zone_summary(scallopMainDataTable, project = proj,
@@ -761,7 +772,8 @@ zone_out$plot
 
 <br><br><br>
 
-Percent of total revenue by fleet. 
+Percent of total revenue by fleet can be constructed using the ``group="fleet"``
+argument. 
 ```{r}
 zone_out <- 
   zone_summary(scallopMainDataTable, project = proj,
@@ -828,6 +840,8 @@ zone_out$plot
 
 ## Outliers
 
+FishSET has some functionality to detect outliers.
+
 ### POUNDS
 ```{r}
 outlier_table(scallopMainDataTable, proj,
@@ -856,6 +870,7 @@ outlier_plot(scallopMainDataTable, proj,
 
 ## Temporal Plots
 
+FishSET can plot variables over time.
 
 ```{r}
 temp_plot(scallopMainDataTable, proj,
@@ -865,6 +880,8 @@ temp_plot(scallopMainDataTable, proj,
           date.var = "DATE_TRIP",
           pages = "multi")
 ```
+
+This plot reveals some seasonality in the Landed pounds. 
 
 <br><br><br>
 
@@ -918,11 +935,12 @@ xy_plot(scallopMainDataTable, proj,
         var1 = "TRIP_LENGTH", var2 = "TRIP_COST_WINSOR_2020_DOL",
         regress = FALSE, alpha = .3)
 ```
-
+The winsorization of trip costs is apparent in the horizontal line of points just over $30,000.
 <br><br><br>
 
 ## Correlation Matrix
 
+A simple table of two-way correlations can be illuminative.
 ```{r fig.width=8.5, fig.height=6.5}
 corr_outs <-
   corr_out(scallopMainDataTable, proj,
@@ -934,6 +952,7 @@ corr_outs$plot
 corr_outs$table %>% 
   pretty_tab_sb(width = "100%")
 ```
+Note the strong correlation between ``TRIP_LENGTH`` and the ``TRIP_COST_WINSOR`` variables. This is because Trip costs are predicted from a statistical relationship between Trip length and costs on a subset of observed trips. There also is a moderate correlation between ``port_lat`` and ``previous_port_lat.`` This occurs because trips usually use 1 port. 
 
 <br><br><br>
 
