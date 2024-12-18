@@ -53,11 +53,15 @@ proj <- "scallop"
 
 ## Data Import
 
-Upload the northeast scallop data from the FishSET package.
+Upload the northeast scallop data that is included with the FishSET package.
 ```{r}
 load_maindata(dat = FishSET::scallop, project = proj)
 ```
-The northeast scallop dataset uses an obscured version of trip-level data from the scallop fishery. These data are provided for illustrative purposes.
+The northeast scallop dataset is an obscured version of trip-level data from the
+scallop fishery from 2008-2015. We have retained 10,000 observations from the
+Limited Access Fishery that were landed at "large" ports. We have added random
+noise to the point locations, landings, and value. We have also replaced the
+TRIPID and PERMIT variables with identifiers that cannot be linked to originals.
 
 |Column Name        | Type           | Description  |
 |:------------- |:-------| :---------------------------------|
@@ -88,24 +92,32 @@ PERMIT.y|int |  An identifier variable for a vessel. Rows with the same value in
 This data contains `r nrow(scallopMainDataTable)` rows and `r ncol(scallopMainDataTable)` variables.
 
 <br><br>
+A commonly used grid in the Northeast United States is the 10 minute grid.  Each
+grid cell is 10' latitude by 10' longitude.  This may or may not be the 
+appropriate grid for your research question.  
 
-View and upload the ten minute squares map and wind turbine closure areas from the FishSET
-package. 
-```{r}
-plot_spat(FishSET::tenMNSQR)
-plot_spat(FishSET::windLease)
-```
-
-
-```{r}
+Upload and view the ten minute squares map from the FishSET package. 
+```{r load_and_plot_tens}
 load_spatial(spat = FishSET::tenMNSQR, project = proj, name = "TenMNSQR")
+plot_spat(tenMNSQR)
+```
+We have included the locations of prospective Wind Lease areas in the Northeast
+United States as of early 2023. These are intended to illustrate FishSET
+capabilities.  
+
+Upload and view the WindClose areas from the FishSET package. 
+
+```{r load_and_plot_windclose}
 
 load_spatial(spat = FishSET::windLease, project = proj, name = "WindClose")
+plot_spat(windLease)
+
 ```
 
 <br><br>
 
-Assign the regulatory zones (`scallopTenMNSQRSpatTable`) and closure areas (`scallopWindCloseSpatTable`) to the working environment.
+Assign the the 10 minute squares cells (`scallopTenMNSQRSpatTable`) and Wind
+areas (`scallopWindCloseSpatTable`) to the working environment.
 
 ```{r}
 scallopTenMNSQRSpatTable <- table_view("scallopTenMNSQRSpatTable", proj)
@@ -115,6 +127,10 @@ scallopWindCloseSpatTable <- table_view("scallopWindCloseSpatTable", proj)
 <br><br>
 
 ### Fleet assignment
+
+FishSET can operate on distinct fleets.   To do so, create a fleet table and use
+FishSET's ``fleet_assign'' function.
+
 Assign all observations to either "Access Area" or "Days at Sea" fleets. 
 ```{r create_fleet_tabs}
 fleet_tab <- 
@@ -156,7 +172,7 @@ scallopMainDataTable$GEARCODE[!(scallopMainDataTable$GEARCODE %in% c('DREDGE','T
 ```
 
 ### Operating Profit
-Calculate operating profit by subtracting 2020 trip costs from aggregated revenues in 2020 dollars.
+Calculate operating profit of a trip by subtracting trip costs from revenues. 
 ```{r calculate operating profit}
 scallopMainDataTable <- 
   scallopMainDataTable %>% 
@@ -166,6 +182,9 @@ scallopMainDataTable <-
 <br><br>
 
 ### Summary Table
+FishSET can construct a table of summary statistics.   To do so, use FishSET's 
+``summary_stats'' function.
+
 ```{r}
 summary_stats(scallopMainDataTable, proj) %>% 
   pretty_tab_sb()
@@ -175,13 +194,20 @@ summary_stats(scallopMainDataTable, proj) %>%
 
 ## QAQC
 
+FishSET can do Quality Assurance checks on your data for NA, NaN, duplicates, 
+and formatting. 
+
 ### NA Check
+
 ```{r}
 na_filter(scallopMainDataTable, 
           project = proj, 
           replace = FALSE, remove = FALSE, 
           rep.value = NA, over_write = FALSE)
 ```
+The ``na_filter()`` shows that some columns have missing values.  By setting 
+``remove=TRUE,`` these can be dropped, although other methods of handling
+missing data may be better.
 
 <br><br>
 
@@ -192,7 +218,7 @@ nan_filter(scallopMainDataTable,
            replace = FALSE, remove = FALSE, 
            rep.value = NA, over_write = FALSE)
 ```
-
+The ``nan_filter()`` shows the data does not have any NaNs
 <br><br>
 
 ### Unique Rows
@@ -200,6 +226,8 @@ nan_filter(scallopMainDataTable,
 ```{r}
 unique_filter(scallopMainDataTable, project = proj, remove = FALSE)
 ```
+
+The ``unique_filter()`` shows that all rows are unique.  
 <br><br>
 
 ### Empty Variables
@@ -207,6 +235,8 @@ unique_filter(scallopMainDataTable, project = proj, remove = FALSE)
 ```{r}
 empty_vars_filter(scallopMainDataTable, project = proj, remove = FALSE)
 ```
+The ``empty_vars_filter()`` shows that none of the columns are exclusively 
+filled with NAs.   
 
 <br><br>
 
@@ -223,6 +253,11 @@ degree(scallopMainDataTable, project = proj,
 
 ### Spatial QAQC 
 
+FishSET can perform some spatial QAQC.  The object ``scallopTenMNSQRSpatTable``
+defines areas of the ocean. The ``spatial_qaqc`` function is used to check for 
+rows of data that are on land (not in ``scallopTenMNSQRSpatTable``) and on the 
+boundary between cells.  
+
 ```{r}
 spat_qaqc_out <- spatial_qaqc(dat = scallopMainDataTable, 
                               project = proj,
@@ -238,6 +273,13 @@ spat_qaqc_out$spatial_summary %>%
 
 spat_qaqc_out[2:4]
 ```
+There are a few rows where the reported fishing location is on land.
+
+There are also a few rows where the fishing location is exactly on the boundary
+between 10 minute squares. The regular spacing suggests that these points are 
+located on vertices of cells (not the lines connecting the vertices). This is 
+not particularly surprising.  Each of the points on a vertex could reasonably 
+be assigned to one of the four cells that share that vertex.  
 
 <br><br><br>
 
