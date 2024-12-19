@@ -189,7 +189,7 @@ plotSaveServ <- function(id, proj, plots = NULL) {
         
       } else {
         
-        showNotification("No plots found.", type = "message")
+        showNotification("No plots found", type = "default", duration = 60)
       }
     })
     
@@ -214,7 +214,7 @@ plotSaveServ <- function(id, proj, plots = NULL) {
                           "').attr('href'))}, 100);")
       session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
       
-      showNotification('Plot saved.', type = 'message', duration = 10)
+      showNotification('Plot saved', type = 'message', duration = 60)
       
     }, ignoreInit = TRUE, ignoreNULL = TRUE)
     
@@ -276,7 +276,7 @@ tableSaveServ <- function(id, proj, tabs = NULL) {
         show_save_modal()
         
       } else {
-        showNotification("No tables found.", type = "message")
+        showNotification("No tables found", type = "default", duration = 60)
 
       }
     })
@@ -300,7 +300,7 @@ tableSaveServ <- function(id, proj, tabs = NULL) {
                             "').attr('href'))}, 100);")
         session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
         
-        showNotification('Table saved.', type = 'message', duration = 10)
+        showNotification('Table saved', type = 'message', duration = 60)
       # }
       
     }, ignoreInit = TRUE, ignoreNULL = TRUE)
@@ -379,7 +379,7 @@ modSaveServ <- function(id, proj, outs = NULL) {
         
       } else {
         
-        showNotification("No tables found.", type = "message")
+        showNotification("No tables found", type = "default", duration = 60)
       }
     })
     
@@ -403,7 +403,7 @@ modSaveServ <- function(id, proj, outs = NULL) {
       jsinject <-  paste0("setTimeout(function(){window.open($('#", ns("-downloadModHIDE"),
                           "').attr('href'))}, 100);")
       session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
-      showNotification('Model summary saved.', type = 'message', duration = 10)
+      showNotification('Model summary saved', type = 'message', duration = 60)
 
     }, ignoreInit = TRUE, ignoreNULL = TRUE)
 
@@ -419,7 +419,7 @@ saveDataTableServ <- function(id, values, project) {
       suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project())))
       DBI::dbWriteTable(fishset_db, paste0(project(), 'MainDataTable'), values$dataset, overwrite = TRUE)
       DBI::dbDisconnect(fishset_db)
-      showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+      showNotification('Data saved to FishSET database', type = 'message', duration = 60)
     })
   })
 }
@@ -481,7 +481,7 @@ mergeServer <- function(id, main, other, project, merge_type, dat_type, show = N
       req(input$main_key, input$other_key)
       if (length(input$main_key) != length(input$other_key)) {
         
-        showNotification("Key lengths must match.", type = "error")
+        showNotification("Key lengths must match", type = "error", duration = 60)
         return()
       } else {
         
@@ -500,8 +500,8 @@ mergeServer <- function(id, main, other, project, merge_type, dat_type, show = N
           show$save <- TRUE
         }
         
-        showNotification(paste(dat_type_lab, "table merged to primary table."), 
-                         type = "message")
+        showNotification(paste(dat_type_lab, "table merged to primary table"), 
+                         type = "message", duration = 60)
       }
     }, ignoreInit = TRUE, ignoreNULL = TRUE)
     
@@ -2769,7 +2769,7 @@ fleet_table_serv <- function(id, values, project) {
       
       if (validate_expr()) {
         
-        showNotification("Please complete the expression. Expression not inserted.", type = "warning")
+        showNotification("Please complete the expression. Expression not inserted.", type = "error", duration = 60)
       
         } else {
         
@@ -2784,7 +2784,7 @@ fleet_table_serv <- function(id, values, project) {
             if (nrow(rv$cond_ind) == 0) {
               
               showNotification("No empty condition cells available. Use 'select cell' to overwrite an expression.", 
-                               type = "warning")
+                               type = "warning", duration = 60)
             } else {
               
               if (nrow(rv$cond_ind) > 1) rv$cond_ind <- rv$cond_ind[order(rv$cond_ind[, 1]), ] # order by row 
@@ -2826,7 +2826,7 @@ fleet_table_serv <- function(id, values, project) {
       
       # TODO: return invisible(TRUE) if saved, invisible(FALSE) if not
       q_test(values$dataset, project = project(), table = f_r$f_DT, save = TRUE)
-      showNotification("Table saved.", type = 'message', duration = 10)
+      showNotification("Table saved", type = 'message', duration = 60)
     })
   })
 }
@@ -2873,15 +2873,6 @@ fleet_assign_serv <- function(id, values, project) {
     })
     
     observeEvent(input$fun_run, {
-      
-      # if (is.null(fa_out())) {
-      #   
-      #   showNotification("Overlap detected, no fleets assigned.", type = "warning")
-      # 
-      # } else {
-      #   
-      #   values$dataset <- fa_out()
-      # }
       
       if (!is_value_empty(fa_out())) {
         

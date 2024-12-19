@@ -914,7 +914,7 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
         
         removeModal()
         
-        showNotification(paste(nr, "points removed"), type = "message")
+        showNotification(paste(nr, "points removed"), type = "message", duration = 60)
         
         filter_table(dataset, project, x = "NEAREST_ZONE_DIST_M",
                      exp = paste0("NEAREST_ZONE_DIST_M < ", input$dist_remove))
@@ -929,7 +929,7 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
                          input$spat_qaqc_lon)] <- spat_qaqc_r$c_tab[c(input$spat_qaqc_lat, 
                                                                       input$spat_qaqc_lon)]
         showNotification("Latitude and longitude values updated to main table",
-                         type = "message")
+                         type = "message", duration = 60)
       })
       
       # change Lat/Lon signs
@@ -949,7 +949,7 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
         DBI::dbWriteTable(fishset_db, paste0(project(), 'MainDataTable'), values$dataset, overwrite = TRUE)
         DBI::dbDisconnect(fishset_db)
-        showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+        showNotification('Data saved to FishSET database', type = 'message', duration = 60)
       })
       
       # close app

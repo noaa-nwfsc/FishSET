@@ -47,7 +47,7 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
 
 
         }else if(length(mod_zones$data) == 0){
-          showNotification("WARNING: no zones found in model output", type = "warning")
+          showNotification("WARNING: no zones found in model output", type = "warning", duration = 60)
           mod_zones$data <- NULL
         } else {
           # do nothing
@@ -83,8 +83,8 @@ output$zmap <- leaflet::renderLeaflet({
         req(input$select_zone_cat)
         req(zone_df())
 
-showNotification("Can take up to a few seconds to run.", duration = 10, type = "warning")
-      # Generate map
+        showNotification("Map rendering and may take a few moments", type = "default", duration = 60)
+        # Generate map
         if(any(!is_empty(mod_zones$data))) {
           
           ## set map size
@@ -205,14 +205,14 @@ showNotification("Can take up to a few seconds to run.", duration = 10, type = "
         
         if (!isTruthy(input$scenarioname)) { # check for unique scenario name
           
-          showNotification("Enter a scenario name", type = "message")
+          showNotification("Enter a scenario name", type = "error", duration = 60)
         }
         
         close_new <- vapply(closures$dList, function(x) x$scenario, character(1))
         
         if (input$scenarioname %in% c(close_new, close_names(project))) {
           
-          showNotification("Enter a unique scenario name", type = "message")
+          showNotification("Enter a unique scenario name", type = "error", duration = 60)
           pass <- FALSE
         }
         
@@ -253,7 +253,7 @@ showNotification("Can take up to a few seconds to run.", duration = 10, type = "
         
         if (!isTruthy(closures$dList)) {
           
-          showNotification("Add a scenario", type = "message")
+          showNotification("Add a scenario", type = "error", duration = 60)
         }
         
         req(closures$dList)
@@ -360,12 +360,12 @@ zone_closure_tblServer <-  function(id, project, spatdat, clicked_ids, V){
               V$data[tab_i, tab_j] <<- DT::coerceValue(tab_k, V$data[tab_i, tab_j])
               
               if(sum(V$data[,tab_j], na.rm = TRUE) > 100 || sum(V$data[,tab_j], na.rm = TRUE) < 0){
-                showNotification("% allowable catch is out of bounds. Sum of values must be between 0 and 100.", type = "error", duration = 6)
+                showNotification("% allowable catch is out of bounds. Sum of values must be between 0 and 100.", type = "error", duration = 60)
                 V$data[tab_i, tab_j] <- 0
               }
               
               if(any(V$data[, tab_j] < 0, na.rm = TRUE)){
-                showNotification("% allowable catch cannot be negative", type = "error", duration = 6)
+                showNotification("% allowable catch cannot be negative", type = "error", duration = 60)
                 V$data[tab_i, tab_j] <- 0
               }
               
