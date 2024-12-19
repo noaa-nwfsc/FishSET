@@ -454,7 +454,7 @@ discretefish_subroutine <- function(project,
         )
         
         if(isRunning()){
-          showNotification(paste0("Optimization error for ", mdf[[i]]$mod.name), type = "error")
+          showNotification(paste0("Optimization error for ", mdf[[i]]$mod.name), type = "error", duration = 60)
         }
         
         errorExplain <- res
@@ -826,7 +826,7 @@ discretefish_subroutine <- function(project,
           )
           # Submit the update query and disconnect
           DBI::dbGetQuery(fishset_db, query)
-          showNotification("Table saved to database")
+          showNotification("Table saved to database", type = "message", duration = 60)
           
           #Save 
         })

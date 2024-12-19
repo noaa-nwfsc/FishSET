@@ -313,9 +313,9 @@ server = function(input, output, session) {
       )
       
       if(ref_err){
-        showNotification("Error refreshing data", type='error', duration=10)
+        showNotification("Error refreshing data", type='error', duration=60)
       } else {
-        showNotification("Data refreshed", type='message', duration=10)  
+        showNotification("Data refreshed", type='message', duration=60)  
       }
     }
     
@@ -1140,7 +1140,7 @@ server = function(input, output, session) {
     
     if (is_value_empty(input$load_proj_cb)) {
       
-      showNotification('No projects selected')
+      showNotification('No projects selected', type = "error", duration = 60)
       
     } else {
       
@@ -1290,12 +1290,11 @@ server = function(input, output, session) {
       
       if (input$load_main_src == 'FishSET database') {
         
-        showNotification("No project found. Please upload a new file.", 
-                         type = 'message', duration = 10)
+        showNotification("No project found - please upload a new file", type = 'warning', duration = 60)
         
       } else if (input$load_main_src=='Upload new file') {
         
-        showNotification("Please enter a project name.", type='message', duration=10)
+        showNotification("Project name missing", type = 'error', duration = 60)
       }
     }
     
@@ -1306,8 +1305,8 @@ server = function(input, output, session) {
       
       if (table_exists(paste0(project$name, 'MainDataTable'), project$name)==FALSE) {
         
-        showNotification('Primary data table not found in FishSET database. Check project spelling.',
-                         type='message', duration=15)
+        showNotification('Primary data table not found in FishSET database - check project spelling',
+                         type='error', duration=60)
       } else {
         
         values$dataset <- table_view(input$main_db_table, project$name)
@@ -1349,8 +1348,7 @@ server = function(input, output, session) {
       
       if (qc_pass) {
         
-        showNotification("Primary data saved to database.", type = "message", 
-                         duration = 10)
+        showNotification("Primary data saved to database", type = "message", duration = 60)
         track_load$project <- project$name
         track_load$main$file <- input$maindat
         load_r$main <- load_r$main + 1
@@ -1372,13 +1370,11 @@ server = function(input, output, session) {
       }
       
     } else if (input$load_main_src=='Upload new file' & is.null(input$maindat)) {
-      
-      showNotification("Select a main file to upload.", type='message', 
-                       duration=10)
+      showNotification("Select a primary data file to upload", type='error', duration=60)
     }
     
     if (names(values$dataset)[1]!='var1') {
-      showNotification("Primary data loaded.", type='message', duration=10)
+      showNotification("Primary data loaded successfully", type='message', duration=60)
     }
     
   }, ignoreInit = TRUE, ignoreNULL = TRUE) 
@@ -1438,11 +1434,6 @@ server = function(input, output, session) {
   
   observeEvent(input$loadDat, { 
     
-    if (!isTruthy(project$name)) {
-      
-      showNotification("Please enter a project name.", type = 'message', duration = 10)
-    }
-    
     req(project$name)
     req(load_helper("port"))
     
@@ -1481,8 +1472,7 @@ server = function(input, output, session) {
         
         if (qc_pass) {
           
-          showNotification("Port data saved to database.", type = "message", 
-                           duration = 10)
+          showNotification("Port data saved to database", type = "message", duration = 60)
           track_load$port$file <- input$portdat
           load_r$port <- load_r$port + 1
           
@@ -1498,8 +1488,7 @@ server = function(input, output, session) {
     }
     
     if (names(portdat$dataset)[1] != 'var1') {
-      
-      showNotification("Port data loaded.", type = 'message', duration = 10)
+      showNotification("Port data loaded successfully", type = 'message', duration = 60)
       show$port_combine <- TRUE
     }
     
@@ -1587,11 +1576,6 @@ server = function(input, output, session) {
   
   observeEvent(input$loadDat, {
     
-    if (!isTruthy(project$name)) {
-      
-      showNotification("Please enter a project name.", type = 'message', duration = 10)
-    }
-    
     req(project$name)
     req(load_helper("spat"))
     
@@ -1610,15 +1594,13 @@ server = function(input, output, session) {
         edit_proj_settings(project$name, tab_name = input$spat_db_table,
                            tab_type = "spat")
         
-        showNotification("Spatial table loaded", type = "message")
+        showNotification("Spatial table loaded successfully", type = "message", duration = 60)
       }
       
     } else {
       
       if (!isTruthy(input$spatName)) {
-        
-        showNotification("Please enter a name for spatial table.", 
-                         type = 'message', duration = 10)
+        showNotification("Spatial table did not load properly - please enter a name for spatial table", type = 'error', duration = 60)
       }
       
       req(input$spatName)
@@ -1635,9 +1617,8 @@ server = function(input, output, session) {
                                          c(list(input$spatialdat$datapath, is.map=TRUE), 
                                            eval(parse(text=paste0("list(",input$spatadd, ")")))))
             } else {
-              
-              showNotification("Spatial file not loaded. Select `Upload shape files` to load shape files.",
-                               type='message', duration=10)
+              showNotification("Spatial table did not load properly - select `Upload shape files` to load shape files",
+                               type = 'error', duration = 60)
             }
             
             track_load$spat$file <- input$spatialdatshape[1,4] 
@@ -1650,8 +1631,8 @@ server = function(input, output, session) {
               
             } else {
               
-              showNotification("Spatial file not loaded. Select `Upload shape files` to load shape files.",
-                               type='message', duration=10)
+              showNotification("Spatial table did not load properly - select `Upload shape files` to load shape files",
+                               type = 'error', duration = 60)
             }
           }
           
@@ -1686,8 +1667,8 @@ server = function(input, output, session) {
             
           } else {
             
-            showNotification("Shapefiles require, at a minimum, .shp, .shx, and .dbf files.'", 
-                             type='message', duration=10)
+            showNotification("Shapefiles require, at a minimum, .shp, .shx, and .dbf files", 
+                             type = 'error', duration = 60)
           }
         }
         
@@ -1702,7 +1683,7 @@ server = function(input, output, session) {
         
         if (pass) {
           
-          showNotification("Spatial table loaded and saved to project data folder.", type = "message")
+          showNotification("Spatial table loaded and saved to project data folder", type = "message", duration = 60)
           load_r$spat <- load_r$spat + 1
           edit_proj_settings(project$name, 
                              tab_name = paste0(project$name, input$spatName, "SpatTable"),
@@ -1710,13 +1691,13 @@ server = function(input, output, session) {
           
         } else {
           
-          showNotification("Spatial table was not saved to project data folder.", type = "warning")
+          showNotification("Spatial table was not saved to project data folder", type = "error", duration = 60)
         }
       }
       
       if (names(spatdat$dataset)[1]!='var1') {
         
-        showNotification("Spatial data loaded.", type='message', duration=10)
+        showNotification("Spatial data loaded successfully", type = 'message', duration = 60)
       }
     } 
     
@@ -1789,8 +1770,7 @@ server = function(input, output, session) {
 
       if (!isTruthy(input$GridName)) {
 
-        showNotification("Please enter a name for Gridded table.",
-                         type = "warning", duration = 10)
+        showNotification("Please enter a name for gridded data table", type = "error", duration = 60)
       }
 
       req(input$GridName)
@@ -1811,7 +1791,7 @@ server = function(input, output, session) {
       qc_pass <- q_test(grid = grddat[[grid_name]], name = input$GridName, project = project$name, over_write = TRUE)
 
       if (qc_pass) {
-        showNotification('Gridded data saved to database.', type = 'message', duration = 10)
+        showNotification('Gridded data loaded successfully', type = 'message', duration = 60)
         track_load$grid$file <- input$griddat
         load_r$grid <- load_r$grid + 1
 
@@ -1821,13 +1801,13 @@ server = function(input, output, session) {
 
       } else {
         grddat[[grid_name]] <- NULL
-        showNotification('Gridded data was not saved to database.', type = 'warning', duration = 10)
+        showNotification('Gridded data was not saved to database - check data file for errors', type = 'error', duration = 60)
       }
     }
 
     if (length(names(grddat)) > 0) {
 
-      showNotification("Gridded data loaded.", type = 'message', duration = 10)
+      showNotification("Gridded data loaded successfully", type = 'message', duration = 60)
     }
     
   }, ignoreInit = TRUE, ignoreNULL = TRUE)
@@ -1926,7 +1906,7 @@ server = function(input, output, session) {
         
         if (qc_pass) {
           
-          showNotification('Auxiliary data saved to FishSET database.', type = 'message', duration = 10)
+          showNotification('Auxiliary data saved to FishSET database', type = 'message', duration = 60)
           track_load$aux$file <- input$auxdat
           load_r$aux <- load_r$aux + 1
           
@@ -1941,14 +1921,13 @@ server = function(input, output, session) {
         
       } else {
         
-        showNotification("Please enter name for Auxiliary table.", 
-                         type = "warning", duration = 10)
+        showNotification("Please enter name for Auxiliary table", type = "error", duration = 60)
       }
     } 
     
     if (names(aux$dataset)[1]!='var1') {
       
-      showNotification("Auxiliary data loaded.", type='message', duration=10)
+      showNotification("Auxiliary data loaded successfully", type = 'message', duration = 60)
     }
     
   }, ignoreInit = TRUE, ignoreNULL = TRUE) 
@@ -1984,7 +1963,7 @@ server = function(input, output, session) {
     
     if (length(suppressWarnings(projects())) == 0) {
       
-      showNotification("No project tables found.", type = "message")
+      showNotification("No project tables found", type = "warning", duration = 60)
       
     } else {
       
@@ -2057,7 +2036,7 @@ server = function(input, output, session) {
     })
     
     dbTab$tabs <- fishset_tables()
-    showNotification("Table(s) deleted.")
+    showNotification("Table(s) deleted", type = "message", duration = 60)
     show_delete_modal()
   })
   
@@ -2129,7 +2108,7 @@ server = function(input, output, session) {
     
     if (pass_check) {
       
-      showNotification("Confidentiality settings saved.", type = "message")
+      showNotification("Confidentiality settings saved", type = "message", duration = 60)
       confid_vals$check <- input$confid_check
       confid_vals$v_id <- input$confid_vid
       confid_vals$rule <- input$confid_rule
@@ -2137,7 +2116,7 @@ server = function(input, output, session) {
       
     } else {
       
-      showNotification("Confidentiality settings not saved. Invalid threshold value.", type = "warning")
+      showNotification("Confidentiality settings not saved - invalid threshold value", type = "error", duration = 60)
     }
     
     removeModal()
@@ -2188,8 +2167,7 @@ server = function(input, output, session) {
     
     if (log_reset_pass) {
       
-      showNotification(paste0("Log has been reset for project \"", project$name, "\""),
-                       type = "message")
+      showNotification(paste0("Log has been reset for project \"", project$name, "\""), type = "default", duration = 60)
       removeModal()
     }
   })
@@ -2321,7 +2299,7 @@ server = function(input, output, session) {
     if(isTruthy(project$name)){
       edit_proj_settings(project$name, 
                          plot_size = c(input$plot_set_w, input$plot_set_h))
-      showNotification("Plot size saved.", type = "message")
+      showNotification("Plot size saved", type = "message", duration = 60)
     }
   })
   
@@ -3179,7 +3157,7 @@ server = function(input, output, session) {
       
     } else {
       
-      showNotification('No missing values to remove', type = "message")
+      showNotification('No missing values to remove', type = "default", duration = 60)
     }
   })
   
@@ -3201,7 +3179,7 @@ server = function(input, output, session) {
       
     } else {
       
-      showNotification('No missing values to remove', type = "message")
+      showNotification('No missing values to remove', type = "default", duration = 60)
     }
   })
   
@@ -3222,7 +3200,7 @@ server = function(input, output, session) {
       
     } else {
       
-      showNotification('No non-numbers to remove.', type = "message")
+      showNotification('No non-numbers to remove', type = "default", duration = 60)
     }
   })
   
@@ -3243,16 +3221,17 @@ server = function(input, output, session) {
       
     } else {
       
-      showNotification('No non-numbers to remove.', type = "message")
+      showNotification('No non-numbers to remove', type = "default", duration = 60)
     }
   })
   
   observeEvent(input$removeVars,{
     if(!is_value_empty(input$varsToRemove != "")){
       values$dataset <- subset(values$dataset, select = -which(names(values$dataset) %in% input$varsToRemove))
-      showNotification(paste0("Variable(s) ", paste(input$varsToRemove, collapse = ", "), " removed from dataset."), type = "message")
+      showNotification(paste0("Variable(s) ", paste(input$varsToRemove, collapse = ", "), " removed from dataset"), 
+                       type = "message", duration = 60)
     } else {
-      showNotification("No variables selected.", type = "warning")
+      showNotification("No variables selected", type = "warning", duration = 60)
     }
     
   })
@@ -3622,7 +3601,7 @@ server = function(input, output, session) {
     
     removeModal()
     
-    showNotification(paste(nr, "points removed"), type = "message")
+    showNotification(paste(nr, "points removed"), type = "message", duration = 60)
     
     filter_table(values$dataset, project$name, x = "NEAREST_ZONE_DIST_M",
                  exp = paste0("NEAREST_ZONE_DIST_M < ", input$dist_remove))
@@ -3644,7 +3623,7 @@ server = function(input, output, session) {
       spat_qaqc$out_df <- spat_qaqc$out_df[-land_remove_i,] # need to update the reactive  
     }
     
-    showNotification(paste0(length(land_remove_i), " points removed"), type = "message")
+    showNotification(paste0(length(land_remove_i), " points removed"), type = "message", duration = 60)
   })
   
   # update Lat Lon
@@ -3664,7 +3643,7 @@ server = function(input, output, session) {
     }
     
     showNotification("Latitude and longitude values updated to main table",
-                     type = "message")
+                     type = "message", duration = 60)
   })
   
   # change Lat/Lon signs
@@ -3686,7 +3665,7 @@ server = function(input, output, session) {
                lonsign = input$spat_filter_lon, replace = TRUE)
     }
     
-    showNotification("Spatial corrections completed.", type = "message")
+    showNotification("Spatial corrections completed", type = "message", duration = 60)
   })
   
   
@@ -3740,7 +3719,7 @@ server = function(input, output, session) {
                                   merge_type = "left")
     
      
-    showNotification("port table merged to primary table")
+    showNotification("Port table merged with primary table successfully", type = "message", duration = 60)
   })
   
   explore_temp <- reactive({
@@ -3871,7 +3850,7 @@ server = function(input, output, session) {
           aux$dataset <- temp
         }
       }
-      showNotification('Filter table saved to FishSET database', type='message', duration=10)
+      showNotification('Filter table saved to FishSET database', type = 'message', duration = 60)
       
       filter_data_function <- list()
       filter_data_function$functionID <- 'filter_table'
@@ -5314,13 +5293,13 @@ server = function(input, output, session) {
     if (!is_value_empty(output)) {
       
       values$dataset <- output
-      showNotification(paste(notif, "was successfully created."), type = "message")
+      showNotification(paste(notif, "was successfully created"), type = "message", duration = 60)
       
     } else {
       
       if (!output_except) {
         
-        showNotification(paste(notif, "could not be created."), type = "error")
+        showNotification(paste(notif, "could not be created"), type = "error", duration = 60)
       }
     }
   })
@@ -5687,7 +5666,7 @@ server = function(input, output, session) {
   observeEvent(input$exp_submit, {
     
     showNotification('Generating expected catch/revenue matrices can take several minutes. A message will appear when complete.',
-                     type = 'message', duration = 20)
+                     type = 'default', duration = 60)
     
     q_test <- quietly_test(create_expectations)
     
@@ -5706,8 +5685,7 @@ server = function(input, output, session) {
            year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
            default.exp = defaults, replace.output = input$exp_replace_output, weight_avg = input$weight_avg)
     
-    showNotification('Expected catch/revenue matrix complete',
-                     type = 'message', duration = 10)
+    showNotification('Expected catch/revenue matrix complete', type = 'message', duration = 60)
   }) 
   
   
@@ -6383,16 +6361,6 @@ server = function(input, output, session) {
     
     req(project$name)
     
-    # TODO: check if this is necessary, otherwise remove (grid and ind can be NULL)
-    # if (is.null(input$mod_grid_vars)|is.null(input$mod_ind_vars)) {
-    #   
-    #   showNotification('Model not saved as at least one variable not defined.')
-    #   
-    # } else {
-    #   
-    #   showNotification("Selected model parameters saved.", type='message', duration=10)
-    # }
-    
     if (input$model=='logit_correction' & input$startlocdefined =='create') {
       # TODO: replace with previous_loc()
       # Also, consider moving to data creation tab
@@ -6595,7 +6563,8 @@ server = function(input, output, session) {
       tryCatch(
         space_val <- as.numeric(space_val),
         warning = function(w){
-          showNotification("One or more 'space' values invalid and coerced to NULL - model is running with default space = 10", type = "warning", duration = 45)
+          showNotification("One or more 'space' values invalid and coerced to NULL - model is running with default space = 10", 
+                           type = "warning", duration = 60)
         }
       )
     } else { # if it is empty then set = NULL
@@ -6607,7 +6576,8 @@ server = function(input, output, session) {
       tryCatch(
         dev_val <- as.numeric(dev_val),
         warning = function(w){
-          showNotification("One or more 'dev' values invalid and coerced to NULL - model is running with default dev = 5", type = "warning", duration = 45)
+          showNotification("One or more 'dev' values invalid and coerced to NULL - model is running with default dev = 5", 
+                           type = "warning", duration = 60)
         }
       )
     } else { # if it is empty then set = NULL
@@ -6640,8 +6610,9 @@ server = function(input, output, session) {
                     Check R console for progress.'
     )
     
-    showNotification('Model run is complete. Check the `Compare Models` subtab to view output', 
-                     type='message', duration=30)
+    showNotification('Model run is complete', type = 'message', duration = 60)
+    showNotification('Check the `Compare Models` subtab to view outputs', 
+                     type = 'default', duration = 60)
     
     toggle_inputs(input_list, TRUE)
   })
@@ -6916,7 +6887,7 @@ server = function(input, output, session) {
     # Submit the update query and disconnect
     DBI::dbExecute(fishset_db, query)
     
-    showNotification("Table saved to database")
+    showNotification("Table saved to database", type = "message", duration = 60)
     DBI::dbDisconnect(fishset_db)
   })
   
@@ -6955,7 +6926,7 @@ server = function(input, output, session) {
   
   observeEvent(input$cv_k, {
     if(!is.na(input$cv_k)){
-      if(input$cv_k > 10) showNotification("Values of k > 10 can results in long runtimes", type = 'warning', duration = 15)
+      if(input$cv_k > 10) showNotification("Values of k > 10 can result in inordinately long runtimes", type = 'warning', duration = 60)
     }
   })
   
@@ -6965,22 +6936,23 @@ server = function(input, output, session) {
     crossVal_timeVar <- if(input$cv_group != "Years") NULL else input$cv_time_var
     
     if((is.na(crossVal_k) || is.null(crossVal_k)) && input$cv_group == "Observations"){
-      showNotification("k is required if grouping by observations", type = 'error', duration = 10)
+      showNotification("k is required if grouping by observations", type = 'error', duration = 60)
       
     } else if (is_empty(crossVal_timeVar) && input$cv_group == "Years") {
-      showNotification("A date variable is required if grouping data annually", type = 'error', duration = 10)
+      showNotification("A date variable is required if grouping data annually", type = 'error', duration = 60)
       
     } else {
-      if(!is.na(crossVal_k) && !is.null(crossVal_k) && crossVal_k > 10) showNotification("Values of k > 10 can results in long runtimes", type = 'warning', duration = 15)
+      if(!is.na(crossVal_k) && !is.null(crossVal_k) && crossVal_k > 10) showNotification("Values of k > 10 can result in inordinately long runtimes", 
+                                                                                         type = 'warning', duration = 60)
       
-      showNotification('The cross validation function can take several minutes (up to 15 minutes for 10 groups) to run. A 
-                         message will appear when complete. View progress in the R console window.',
-                       type = 'message', duration = 30)
+      showNotification('The cross validation function can take several minutes to run. A 
+                        message will appear when complete. View progress in the R console window.',
+                       type = 'default', duration = 60)
       
       cross_validation(project$name, input$cv_model, input$cv_zoneID, input$cv_group, crossVal_k,
                        crossVal_timeVar, use.scalers = FALSE, scaler.func = NULL)
       
-      showNotification('Cross validation complete', type = 'message', duration = 30)
+      showNotification('Cross validation complete', type = 'message', duration = 60)
     }
   })
   
@@ -7062,20 +7034,19 @@ server = function(input, output, session) {
       
       if (qc_pass) {
         
-        showNotification("Out-of-sample data saved to database.", type = "message", 
-                         duration = 10)
+        showNotification("Out-of-sample data saved to database", type = "message", duration = 60)
         
       } else {
         
-        showNotification('Selected file not loaded. Check file type and load_outsample()
-                           documentation.', type = 'error', duration = 15)
+        showNotification('Selected file not loaded. Check file type and load_outsample() documentation', 
+                         type = 'error', duration = 60)
         
       }
       
     } else {
       
-      showNotification('Selected file not loaded. Check file type and load_outsample()
-                           documentation.', type = 'error', duration = 15)
+      showNotification('Selected file not loaded. Check file type and load_outsample() documentation', 
+                       type = 'error', duration = 60)
       
     }
     
@@ -7125,7 +7096,7 @@ server = function(input, output, session) {
   
   observeEvent(input$run_outsample_filter, {
     
-    showNotification("Starting filtering process.", type = "message")
+    showNotification("Starting filtering process...", type = "default", duration = 60)
     
     load_err <- FALSE
     dat <- NULL
@@ -7144,7 +7115,7 @@ server = function(input, output, session) {
       dat <- nan_filter(dat, project = project$name, x=qaqc_helper(dat, "NA", "names"),
                         replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)
       
-      if(input$spat_outsample) showNotification("Loading map for selecting out-of-sample locations.", type = "message", duration = 20)    
+      if(input$spat_outsample) showNotification("Loading map for selecting out-of-sample locations", type = "default", duration = 60)    
       
       filter_out <- filter_outsample(dat = dat, project = project$name, mod.name = input$mod_name_outsample,
                                      spatial_outsample = input$spat_outsample, zone.dat = input$filter_outsample_datzone,
@@ -7152,7 +7123,7 @@ server = function(input, output, session) {
       
       # Not out-of-sample spatially
       if(length(filter_out) == 1){
-        showNotification("Out-of-sample data filtering complete", type = "message")  
+        showNotification("Out-of-sample data filtering complete", type = "message", duration = 60)  
         
         # Out-of-sample spatially
       } else {
@@ -7184,7 +7155,7 @@ server = function(input, output, session) {
       
     } else {
       
-      showNotification("Out-of-sample table not found in data base.", type = "error", duration = 15)
+      showNotification("Out-of-sample table not found in database", type = "error", duration = 60)
       
     }
   })
@@ -7225,13 +7196,13 @@ server = function(input, output, session) {
     }
     
     if(tmp_name %in% mod_names){
-      showNotification(paste0("'", tmp_name, "'", " already exists. Enter a new model name followed by '_outsample'."), type = "error", duration = 10)  
+      showNotification(paste0("'", tmp_name, "'", " already exists. Enter a new model name followed by '_outsample'"), type = "error", duration = 60)  
       
     } else if(!grepl("_outsample", tmp_name)) {
-      showNotification("Error: must include '_outsample' at the end of the model name.", type = "error", duration = 10)  
+      showNotification("Error: must include '_outsample' as suffix for the model name", type = "error", duration = 60)  
       
     } else {
-      showNotification("Generating out-of-sample model design. See R console for progress.", type = "message", duration = 10)
+      showNotification("Generating out-of-sample model design. See R console for progress.", type = "default", duration = 60)
       
       model_design_outsample(project = project$name, mod.name = input$mod_name_outsample, 
                              outsample.mod.name = input$outsample_mod_name, CV = FALSE, CV_dat = NULL, 
@@ -7239,7 +7210,7 @@ server = function(input, output, session) {
       
       outsample_names$names <- model_names(project$name)[grep("_outsample", model_names(project$name))]
       
-      showNotification("Out-of-sample model design added to FishSET database.", type = "message")
+      showNotification("Out-of-sample model design added to FishSET database", type = "message", duration = 60)
       
     }
   })
@@ -7297,8 +7268,8 @@ server = function(input, output, session) {
                                   outsample = TRUE, outsample_pred = outsample_predouts$pred_probs)
     
     if(length(outsample_plot) == 1){
-      showNotification("Unable to create map of predicted fishing probabilities. Check settings in all steps and rerun prediction.",
-                       type = "error", duration = 10)
+      showNotification("Unable to create a map of predicted fishing probabilities. Check settings and rerun prediction.",
+                       type = "error", duration = 60)
       output$map_outsample <- renderPlot({
         plot.new()
         text(.3, 1, labels = "Error: unable to generate map - check settings in left side panel", col = 'red', cex = 1.5)
@@ -7353,11 +7324,11 @@ server = function(input, output, session) {
     
     if (is.logical(saved) && saved) {
       
-      showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+      showNotification('Data saved to FishSET database', type = 'message', duration = 60)
       
     } else {
       
-      showNotification("Table was not saved.", type = "warning", duration = 10)
+      showNotification("Table was not saved", type = "error", duration = 60)
     }
   })
   
@@ -7370,11 +7341,11 @@ server = function(input, output, session) {
     
     if (is.logical(saved) && saved) {
       
-      showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+      showNotification('Data saved to FishSET database', type = 'message', duration = 60)
       
     } else {
       
-      showNotification("Table was not saved.", type = "warning", duration = 10)
+      showNotification("Table was not saved", type = "error", duration = 60)
     }
   })
   
@@ -7387,11 +7358,11 @@ server = function(input, output, session) {
     
     if (is.logical(saved) && saved) {
       
-      showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+      showNotification('Data saved to FishSET database', type = 'message', duration = 60)
       
     } else {
       
-      showNotification("Table was not saved.", type = "warning", duration = 10)
+      showNotification("Table was not saved", type = "error", duration = 60)
     }
   })
   
@@ -7490,7 +7461,7 @@ server = function(input, output, session) {
                    
                    if (!isTruthy(project$name)) {
                      
-                     showNotification("Enter a project name. Note not saved.", type = 'message', duration = 5)
+                     showNotification("Note was not saved - enter a project name", type = 'error', duration = 60)
                      
                    } else {
                      
@@ -7518,7 +7489,7 @@ server = function(input, output, session) {
                                      placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                      updateTextInput(session, 'notesBook', "Notes", value = "", placeholder = 'Paste bookmarked URL here.')
                      
-                     showNotification("Note saved.", type = 'message', duration = 5)
+                     showNotification("Note saved", type = 'message', duration = 60)
                    }
                  }, ignoreInit = TRUE)
   
@@ -7870,7 +7841,7 @@ server = function(input, output, session) {
               aux = input$new_aux, gridfile = input$new_grid, spat = input$new_spat,
               ind = input$log_table_rows_selected, run = TRUE)
     
-    showNotification("Log has been successfully rerun.", type = "message", duration = 10)
+    showNotification("Log has been successfully rerun", type = "message", duration = 60)
   })
   
   ###---

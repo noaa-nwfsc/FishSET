@@ -57,7 +57,7 @@ log_rerun <- function(log_file, dat = NULL, portTable = NULL, aux = NULL,
       if (shiny::isRunning()) { # if app is running
         
         shiny::showNotification("Logged arguments do not match function formals for the following functions: ", 
-                                paste(fun_name, collapse = ", "), type = "warning", duration = 10)
+                                paste(fun_name, collapse = ", "), type = "warning", duration = 60)
       } 
       
       warning("Logged arguments do not match formals for the following functions: ", 
@@ -280,7 +280,7 @@ log_rerun_gui <- function() {
                   aux = input$new_aux, gridfile = input$new_grid, spat = input$new_spat,
                   ind = input$log_table_rows_selected, run = TRUE)
         
-        showNotification("Log has been successfully rerun.", type = "message", duration = 10)
+        showNotification("Log has been successfully rerun", type = "message", duration = 60)
       })
       
       observeEvent(input$close, stopApp())

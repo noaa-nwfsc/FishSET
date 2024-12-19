@@ -29,7 +29,7 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
     
     # Display file used in the gui
     if(isRunning()){
-      showNotification(paste0("Pulling from model output file '", tmpEq[[2]]), "'", type = 'message', duration = 10)
+      showNotification(paste0("Pulling from model output file '", tmpEq[[2]]), "'", type = 'default', duration = 60)
     }
     
   } else { # OUT-OF-SAMPLE
@@ -39,7 +39,7 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
     
     # Display file used in the gui
     if(isRunning()){
-      showNotification(paste0("Pulling from model output file '", tmpEq[[2]]), "'", type = 'message', duration = 10)
+      showNotification(paste0("Pulling from model output file '", tmpEq[[2]]), "'", type = 'default', duration = 60)
     }
     
     # Need to save original model in case the number of alternatives are different

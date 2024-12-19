@@ -155,7 +155,7 @@ select_model <- function(project, overwrite_table=FALSE) {
         # Submit the update query and disconnect
         DBI::dbGetQuery(fishset_db, query)
 
-        showNotification("Table saved to database")
+        showNotification("Table saved to database", type = "message", duration = 60)
       })
       DBI::dbDisconnect(fishset_db)
       # stop shiny

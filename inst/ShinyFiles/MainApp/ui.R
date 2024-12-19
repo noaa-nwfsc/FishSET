@@ -79,14 +79,39 @@ ui = function(request){
                                 position: fixed;
                                 bottom: 350px;
                                 right: 250px;
+                                font-size: 25px;
                               }
                               .shiny-notification {
                                 position:relative;
                                 top: calc(50% - 150px);
                                 left: calc(50% - 150px);
                                 width: 500px;
-                              }
-                               "))
+                              }"
+      )),
+      
+      tags$style(HTML(".shiny-notification {
+                      background-color:#AACDE5;
+                      color:#000000;
+                      }"
+      )),
+      
+      tags$style(HTML(".shiny-notification-message {
+                      background-color:#B5E26F;
+                      color:#000000;
+                      }"
+      )),
+      
+      tags$style(HTML(".shiny-notification-warning {
+                      background-color:#FCE205;
+                      color:#000000;
+                      }"
+      )),
+      
+      tags$style(HTML(".shiny-notification-error {
+                      background-color:#BA110C;
+                      color:#000000;
+                      }"
+      ))
     ),
     
     

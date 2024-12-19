@@ -847,7 +847,7 @@ remove_model_design <- function(project, names) {
   
   if(!table_exists(single_sql, project)){
     if(isRunning()){
-      showNotification(paste0(single_sql, " does not exist in database."), type = "error")
+      showNotification(paste0(single_sql, " does not exist in database"), type = "error", duration = 60)
     } else {
       stop(paste0(single_sql, " does not exist in database."))
     }
@@ -860,7 +860,7 @@ remove_model_design <- function(project, names) {
     
     if(length(del_mods) == 0){
       if(isRunning()){
-        showNotification("Model(s) do not exist in ModelInputData table.", type = "warning")
+        showNotification("Model(s) do not exist in ModelInputData table", type = "error", duration = 60)
       } else {
         stop("Model(s) do not exist in ModelInputData table.")
       }
