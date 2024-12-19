@@ -51,7 +51,7 @@ which the fishery season date encompasses the date variable in the primary datas
 `SeasonID` is defined by whether the target fishery is open on the date in the primary dataset or a different fishery. The
 vector is filled with 'target' or 'other'.\cr\cr
 `SeasonID*fishery` variables are a 1/0 seasonID vector for each fishery (labeled by seasonID and fishery) where 1
-indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
+indicates the dates for a given row in the primary data table fall within the fishery dates for that fishery.
 }
 \examples{
 \dontrun{

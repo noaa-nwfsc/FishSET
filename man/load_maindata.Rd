@@ -25,8 +25,8 @@ dataframe \code{y}. See \code{\link{fishset_compare}}.}
 be defined if \code{compare = TRUE}.}
 }
 \description{
-\code{load_maindata()} saves the main dataset to the FishSET Database (located
-in the FishSETFolder) and is a required step. The main data will also be loaded 
+\code{load_maindata()} saves the primary dataset to the FishSET Database (located
+in the FishSETFolder) and is a required step. The primary data will also be loaded 
 into the working environment as a dataframe named "projectMainDataTable". 
 Running \code{load_maindata()} creates a new project directory in the FishSETFolder.
 To see a list of existing projects run \code{projects()} or open the FishSETFolder.
@@ -37,7 +37,7 @@ The dataset is saved in the FishSET database as raw and working tables.
   The raw table is the original, unedited table. The working table contains 
   any changes made to the table after uploading. An eight digit date string 
   is included in the name of the raw table (e.g. "pollockMainDataTable20220210"). 
-  The main data is loaded into the working environment as ‘projectMainDataTable’.
+  The primary data is loaded into the working environment as ‘projectMainDataTable’.
   The \code{fishset_compare} argument compares \code{dat} to an existing FishSET 
   table in \code{y} and returns a message noting basic differences between the two.
   The column names are checked for case-insensitivity and uniqueness.
@@ -51,7 +51,7 @@ load_maindata(dat = "PATH/TO/DATA", project = "pollock")
 load_maindata(dat = Mydata, project = 'pollock', over_write = TRUE, 
               compare = TRUE, y = 'MainDataTable01012011')
               
-# upload from an exisitng FishSET main data table
+# upload from an exisitng FishSET primary data table
 looad_maindata(dat = "pollockMainDataTable", project = "pollock2020")
 }
 

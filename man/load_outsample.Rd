@@ -7,7 +7,7 @@
 load_outsample(dat, project, over_write = FALSE, compare = FALSE, y = NULL)
 }
 \arguments{
-\item{dat}{Out-of-sample data containing information on hauls or trips with same structure as the main data table. 
+\item{dat}{Out-of-sample data containing information on hauls or trips with same structure as the primary data table. 
 This can be the full path to the file, the name of a out-of-sample table in the FishSET database,
 or a dataframe object in the working environment. Out-of-sample tables in the FishSET 
 database contain the string 'OutSampleDataTable'. A complete list of FishSET
@@ -26,10 +26,10 @@ be defined if \code{compare = TRUE}.}
 }
 \description{
 \code{load_outsample()} saves out-of-sample dataset to the FishSET Database (located
-in the FishSETFolder) and the structure must match the main dataset. A project must exist before 
+in the FishSETFolder) and the structure must match the primary dataset. A project must exist before 
 running \code{load_outsample()}. See \code{\link{load_maindata}} to create a new project. Note: if the 
 data are out-of-sample temporally then upload a new datafile, if the data are only out-of-sample spatially
-then upload the main data file in this function.
+then upload the primary data file in this function.
 }
 \details{
 The out-of-sample dataset is saved in the FishSET database as raw and working tables. 

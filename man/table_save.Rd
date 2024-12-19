@@ -11,7 +11,7 @@ table_save(table, project, type, name = NULL)
 
 \item{project}{Name of project.}
 
-\item{type}{The table type. Options include, \code{"main"} for main data tables,
+\item{type}{The table type. Options include, \code{"main"} for primary data tables,
 \code{"port"} for port tables, \code{"grid"} for gridded tables, \code{"aux"}
 for auxiliary tables.}
 
