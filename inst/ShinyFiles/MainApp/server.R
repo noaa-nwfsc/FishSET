@@ -6942,7 +6942,8 @@ server = function(input, output, session) {
       showNotification("A date variable is required if grouping data annually", type = 'error', duration = 60)
       
     } else {
-      if(!is.na(crossVal_k) && !is.null(crossVal_k) && crossVal_k > 10) showNotification("Values of k > 10 can result in inordinately long runtimes", type = 'warning', duration = 15)
+      if(!is.na(crossVal_k) && !is.null(crossVal_k) && crossVal_k > 10) showNotification("Values of k > 10 can result in inordinately long runtimes", 
+                                                                                         type = 'warning', duration = 60)
       
       showNotification('The cross validation function can take several minutes to run. A 
                         message will appear when complete. View progress in the R console window.',
