@@ -82,7 +82,7 @@ explore_startparams_discrete <- function(space, dev, breakearly=TRUE, max.iterat
       if(k == max.iterations && is.infinite(saveLLstarts[[length(unlist(saveLLstarts))]])){
         if(isRunning()){
           showNotification("Not able to find valid starting parameters. Check model specification and/or update initial parameter values.",
-                           type = "error", duration = 10)
+                           type = "error", duration = 60)
         } else {
           cat("Initial function results bad (Nan, Inf, or undefined), check 'LDGlobalCheck'")  
         }
