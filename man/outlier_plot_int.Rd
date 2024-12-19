@@ -14,7 +14,7 @@ outlier_plot_int(
 )
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishet_db 
+\item{dat}{Primary data frame over which to apply function. Table in fishet_db 
 database should contain the string `MainDataTable`.}
 
 \item{x}{Column in dataframe to check for outliers.}

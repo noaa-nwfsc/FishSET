@@ -7,7 +7,7 @@
 change_class(dat, project, x = NULL, new_class = NULL, save = FALSE)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in FishSET 
+\item{dat}{Primary data frame over which to apply function. Table in FishSET 
 database should contain the string `MainDataTable`.}
 
 \item{project}{Name of project.}

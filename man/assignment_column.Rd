@@ -2,12 +2,11 @@
 % Please edit documentation in R/assignment_column.R
 \name{assignment_column}
 \alias{assignment_column}
-\title{Assign each observation in the primary dataset to a fishery management or 
- regulatory zone
+\title{Assign observations to fishing zones
  
- Assign each observation in the primary dataset to a fishery management or 
- regulatory zone. Function is primarily called by other functions that 
- require zone assignment but can also be used on its own.}
+Assign each observation in the primary dataset to a fishery management or 
+regulatory zone. This function is primarily called by other functions that 
+require zone assignment but can also be used on its own.}
 \usage{
 assignment_column(
   dat,
@@ -80,12 +79,11 @@ See \url{http://spatialreference.org/} to help identify optimal epsg number.}
 Returns primary dataset with new assignment column.
 }
 \description{
-Assign each observation in the primary dataset to a fishery management or 
- regulatory zone
+Assign observations to fishing zones
  
- Assign each observation in the primary dataset to a fishery management or 
- regulatory zone. Function is primarily called by other functions that 
- require zone assignment but can also be used on its own.
+Assign each observation in the primary dataset to a fishery management or 
+regulatory zone. This function is primarily called by other functions that 
+require zone assignment but can also be used on its own.
 }
 \details{
 Function uses the specified latitude and longitude from the primary 

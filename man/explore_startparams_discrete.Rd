@@ -8,6 +8,7 @@ explore_startparams_discrete(
   space,
   dev,
   breakearly = TRUE,
+  max.iterations = 500,
   startsr = NULL,
   fr,
   d,
@@ -29,6 +30,11 @@ the greater the \code{dev} argument should be.}
 
 \item{breakearly}{Logical, should the function return the first set of inits that do not return INF or search the entire space 
 and return the inits with the lowest LLoglikelihood.}
+
+\item{max.iterations}{If \code{explorestarts = TRUE}, max.iterations indicates the
+maximum number of iterations to run in search of valid starting parameter values.
+If the maximum is reached before valid parameter values are found (i.e., likelihood 
+= Inf) the loop will terminate and an error message will be reported for that model.}
 
 \item{startsr}{Optional. List, average starting value parameters for
 revenue/location-specific covariates then cost/distance. The best

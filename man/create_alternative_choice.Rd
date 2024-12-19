@@ -21,7 +21,7 @@ create_alternative_choice(
 )
 }
 \arguments{
-\item{dat}{Required, main data frame containing data on hauls or trips.
+\item{dat}{Required, Primary data frame containing data on hauls or trips.
 Table in FishSET database should contain the string \code{MainDataTable}.}
 
 \item{project}{Required, name of project.}
@@ -110,7 +110,7 @@ in the FishSET database.}
 \item{spatID}{Required when \code{alt_var = 'nearest point'}. Variable in \code{spat}
 that identifies the individual zones or areas.}
 
-\item{outsample}{Logical, indicating whether this is for main data or out-of
+\item{outsample}{Logical, indicating whether this is for primary data or out-of
 sample data.}
 }
 \value{
