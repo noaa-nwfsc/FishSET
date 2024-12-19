@@ -97,7 +97,7 @@ location vector.}
 \item{crs}{coordinate reference system to be assigned when creating the
 distance matrix. Passed on to \code{\link[=create_dist_matrix]{create_dist_matrix()}}.}
 
-\item{outsample}{Logical, indicates whether the model design is for main data (\code{FALSE})
+\item{outsample}{Logical, indicates whether the model design is for primary data (\code{FALSE})
 or out-of-sample data (\code{TRUE}). The default is \code{outsample = FALSE}.}
 
 \item{CV_dat}{Dataframe that contains training or testing data for k-fold cross validation. Defaults to

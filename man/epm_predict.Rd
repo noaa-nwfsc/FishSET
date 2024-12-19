@@ -26,7 +26,7 @@ numeric vector unless specified with \code{scaler.func}.}
 
 \item{scaler.func}{Input for \code{\link{create_model_input}}. Function to calculate rescaling factors.}
 
-\item{outsample}{Logical, \code{FALSE} if predicting probabilities for main data, and \code{TRUE} if predicting for out-of-sample data. \code{outsample = FALSE} 
+\item{outsample}{Logical, \code{FALSE} if predicting probabilities for primary data, and \code{TRUE} if predicting for out-of-sample data. \code{outsample = FALSE} 
 is the default setting.}
 }
 \value{

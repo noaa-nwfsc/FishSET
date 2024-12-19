@@ -39,7 +39,7 @@ Defaults to \code{FALSE}.}
 Returns the primary dataset with added fleet variable(s).
 }
 \description{
-Add a fleet ID column to the main data using a fleet table (see \code{\link{fleet_table}} 
+Add a fleet ID column to the primary data using a fleet table (see \code{\link{fleet_table}} 
 for details).
 }
 \examples{

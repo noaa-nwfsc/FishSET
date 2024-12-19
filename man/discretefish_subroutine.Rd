@@ -9,6 +9,7 @@ discretefish_subroutine(
   run = "new",
   select.model = FALSE,
   explorestarts = TRUE,
+  max.iterations = 500,
   breakearly = TRUE,
   space = NULL,
   dev = NULL,
@@ -34,6 +35,11 @@ select and save table of best models based on measures of fit.}
 Set to \code{TRUE} if unsure of the number of starting parameter values to 
 include or of reasonable starting parameters values. Better starting parameter 
 values can help with model convergence.}
+
+\item{max.iterations}{If \code{explorestarts = TRUE}, max.iterations indicates the
+maximum number of iterations to run in search of valid starting parameter values.
+If the maximum is reached before valid parameter values are found (i.e., likelihood 
+= Inf) the loop will terminate and an error message will be reported for that model.}
 
 \item{breakearly}{Logical, if \code{explorestarts = TRUE}, should the first set 
 of starting parameter values that returns a valid (numeric) loglikelihood 

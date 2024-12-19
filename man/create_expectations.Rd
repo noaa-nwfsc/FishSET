@@ -100,7 +100,7 @@ daily mean for a zone will be calculated prior to calculating the mean across th
 time window.}
 
 \item{outsample}{Logical, if \code{TRUE} then generate expected catch matrix for 
-out-of-sample data. If \code{FALSE} generate for main data table. Defaults to
+out-of-sample data. If \code{FALSE} generate for primary data table. Defaults to
 \code{outsample = FALSE}}
 }
 \value{

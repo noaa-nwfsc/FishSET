@@ -27,4 +27,3 @@ d: matrix of choice possibilities and distance. IMPORTANT NOTE: both choice prob
 Shifts choices so that the chosen zone will be automatically the first
     one for choice possibilities and distances.
 }
-\keyword{internal}
