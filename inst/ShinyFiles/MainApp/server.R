@@ -1961,19 +1961,23 @@ server = function(input, output, session) {
   
   observeEvent(input$delete_tabs_bttn, {
     
-    if (length(suppressWarnings(projects())) == 0) {
-      
-      showNotification("No project tables found", type = "warning", duration = 60)
+    # First check to make sure a project was selected
+    if(is.null(project$name) | is_empty(project$name)){
+      showNotification("Error: project name not specified", type = "error", duration = 60)
       
     } else {
-      
-      dbTab$tabs <- fishset_tables()
-      
-      show_delete_modal()
-      
-      output$dbTables <- DT::renderDT(dbTab$tabs,
-                                      filter = "top", style = 'bootstrap', 
-                                      class = 'table-bordered table-condensed table-hover table-striped')
+      if (length(suppressWarnings(projects())) == 0) {
+        showNotification("No project tables found", type = "warning", duration = 60)
+        
+      } else {
+        dbTab$tabs <- fishset_tables(project = project$name)
+        
+        show_delete_modal()
+        
+        output$dbTables <- DT::renderDT(dbTab$tabs,
+                                        filter = "top", style = 'bootstrap', 
+                                        class = 'table-bordered table-condensed table-hover table-striped')
+      }  
     }
   })
   
