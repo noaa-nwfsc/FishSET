@@ -19,7 +19,7 @@ log_rerun(
 \item{log_file}{String, name of the log file starting with the date (YYYY-MM-DD) and
 ending in ".json".}
 
-\item{dat}{String, new main data table to rerun log}
+\item{dat}{String, new primary data table to rerun log}
 
 \item{portTable}{String, name of port table. Defualts to NULL.}
 

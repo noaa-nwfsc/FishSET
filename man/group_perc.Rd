@@ -16,7 +16,7 @@ group_perc(
 )
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in FishSET 
+\item{dat}{Primary data frame over which to apply function. Table in FishSET 
 database should contain the string `MainDataTable`.}
 
 \item{project}{String, project name.}

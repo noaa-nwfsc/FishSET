@@ -20,7 +20,7 @@ medium_expectations(
 )
 }
 \arguments{
-\item{dat}{Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.}
+\item{dat}{Primary data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.}
 
 \item{project}{Name of project. Used to pull working alternative choice matrix from fishset_db database.}
 
