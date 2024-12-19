@@ -1,5 +1,6 @@
-#' Assign observations to fishing zones
-#'  
+#' @title Assign observations to fishing zones
+#' 
+#' @description
 #' Assign each observation in the primary dataset to a fishery management or 
 #' regulatory zone. This function is primarily called by other functions that 
 #' require zone assignment but can also be used on its own.
