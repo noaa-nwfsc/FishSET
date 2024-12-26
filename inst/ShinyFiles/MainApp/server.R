@@ -321,8 +321,27 @@ server = function(input, output, session) {
     
   }, ignoreInit = TRUE, ignoreNULL=TRUE) 
   
-  #Track Times tab selected
-  # vars<-reactiveValues()
+  # Track tabs selected and prompt user to save data, or not, when changing tabs
+  tab_tracker <- reactiveValues(
+    previous = "Background"
+  )
+  
+  observeEvent(input$tabs, {
+    if(!(tab_tracker$previous %in% c("Background", "Upload Data", "Map Viewer", "Bookmark Choices"))){
+      shinyWidgets::sendSweetAlert(
+        title = NULL,
+        text = paste0("Would you like to save changes to local FishSET database before moving on to the next tab?"),
+        type = "info",
+        btn_labels = c("Yes", "No"),
+        btn_colors = c("#274472","#AACDE5"),
+        closeOnClickOutside = FALSE,
+        width = "50%"
+      )
+    }
+    
+    tab_tracker$previous <- input$tabs
+  })
+  # vars <- reactiveValues()
   # vars = reactiveValues(counter = 0)
   # observe({
   #   input$tabs

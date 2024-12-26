@@ -98,7 +98,7 @@ pred_plotsServer <- function(id, project, spatdat, values){
                                        scaler.func = NULL) 
         
         
-        if(pol$outputs_welf[[2]] <0)
+        if(pol$outputs_welf[[2]] < 0)
           shinyWidgets::show_alert(
             title = NULL,
             text = paste0("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income."),
