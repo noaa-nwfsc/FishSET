@@ -1,9 +1,9 @@
-#'  Assign each observation in the primary dataset to a fishery management or 
-#'  regulatory zone
-#'  
-#'  Assign each observation in the primary dataset to a fishery management or 
-#'  regulatory zone. Function is primarily called by other functions that 
-#'  require zone assignment but can also be used on its own.
+#' @title Assign observations to fishing zones
+#' 
+#' @description
+#' Assign each observation in the primary dataset to a fishery management or 
+#' regulatory zone. This function is primarily called by other functions that 
+#' require zone assignment but can also be used on its own.
 #'  
 #' @param dat Primary data containing information on hauls or trips. Table in 
 #'   FishSET database contains the string 'MainDataTable'.

@@ -512,8 +512,8 @@ metaRawServ <- function(id, meta) {
     
       if (is.null(meta_out)) {
         
-        showNotification("Unable to load raw meta. Check reader parameters.", 
-                         type = "warning")
+        showNotification("Unable to load raw metadata. Check reader parameters.", 
+                         type = "error", duration = 60)
         
       } else {
         
@@ -559,8 +559,8 @@ metaRawServ <- function(id, meta) {
                       tab_name = input$project_tab, tab_type = "main", 
                       overwrite = input$overwrite, raw = TRUE)
         
-        if (raw) showNotification("Raw metadata saved.")
-        else showNotification("Raw metadata was not saved.")
+        if (raw) showNotification("Raw metadata saved", type = "message", duration = 60)
+        else showNotification("Raw metadata was not saved", type = "error", duration = 60)
         
       } 
     })
@@ -626,7 +626,7 @@ metaDeleteServ <- function(id, cols, meta) {
       q_test(input$project_name, tab.name = input$project_tab)
       removeModal()
       
-      showNotification("Metadata deleted.", type = "message")
+      showNotification("Metadata deleted", type = "message", duration = 60)
       
       meta$meta <- NULL
       meta$raw_html <- NULL
@@ -882,17 +882,17 @@ metaSaveServ <- function(id, cols) {
                    tab_name = input$project_tab, tab_type = type, 
                    overwrite = input$overwrite, raw = FALSE)
           
-          if (out) showNotification("Metadata saved.", type = "message")
-          else showNotification("Metadata not saved.", type = "warning")
+          if (out) showNotification("Metadata saved", type = "message", duration = 60)
+          else showNotification("Metadata not saved", type = "error", duration = 60)
           
         } else {
           
-          showNotification("All fields are empty. Metadata not saved", type = "warning")
+          showNotification("All fields are empty. Metadata not saved", type = "error", duration = 60)
         }
         
       } else {
         
-        showNotification("Select a table to load.")
+        showNotification("Select a table to load", type = "error", duration = 60)
       }
       
     })

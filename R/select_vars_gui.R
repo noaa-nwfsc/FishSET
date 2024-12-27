@@ -121,7 +121,8 @@ select_vars <- function(dat, project) {
         showNotification(paste0("Table saved to database as ", project, "MainDataTable.", ". 
                                 Enter", paste0('"', project, 'MainDataTable"'), "as the dat parameter in future function calls or
                                 load the updated data using", paste0('table_view("', project, 'MainDataTable",', project,')'), ". 
-                                The app window can be closed."))
+                                The app window can be closed."),
+                         type = "default", duration = 60)
         DBI::dbDisconnect(fishset_db)
       })
 
