@@ -341,19 +341,6 @@ server = function(input, output, session) {
     tab_tracker$previous <- input$tabs
   })
   
-  observeEvent(input$changeTabSave, {
-    if(input$changeTabSave){
-      # Save data and display message
-      showNotification("SAVED!", type = "message", duration = 15)
-      
-    } else {
-      # Notify user that changes were not saved and will be deleted from the session
-      showNotification("Changes not saved to project database and deleted from this session", 
-                       type = "warning",
-                       duration = 60)
-    }
-  })
-  
   # ---
   # INFORMATION ----
   # ---
