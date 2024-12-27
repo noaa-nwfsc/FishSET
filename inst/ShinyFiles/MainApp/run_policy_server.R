@@ -22,8 +22,14 @@ pred_plotsServer <- function(id, project, spatdat, values){
         
         req(project)
         
-        selectInput(ns("select_pol_mod"), 'Select a model', 
-                    choices = c(lapply(model_out_view(project=project), "[[", "name")))
+        checkboxGroupInput(
+          ns("select_pol_mod"), 'Select a model', 
+          choices = c(lapply(model_out_view(project=project), "[[", "name"))
+         # inline = TRUE
+        )
+        
+        # selectInput(ns("select_pol_mod"), 'Select a model', 
+        #             choices = c(lapply(model_out_view(project=project), "[[", "name")))
         
       })
       
@@ -52,11 +58,11 @@ pred_plotsServer <- function(id, project, spatdat, values){
         req(input$select_pol_mod)
         
         if((model_design_list(project)[[which(lapply(model_design_list(project=project), "[[", "mod.name")
-                                              == input$select_pol_mod)]]$likelihood %in% c("logit_c", "logit_zonal"))){
+                                              %in% input$select_pol_mod)]]$likelihood %in% c("logit_c", "logit_zonal"))){
           tagList(
           selectInput(ns("select_marg_inc"),'Marginal utility of income coefficient', 
                      choices = row.names(model_out_view(project)[[which(lapply(model_out_view(project), "[[", "name")
-                                                                          == input$select_pol_mod)]]$OutLogit)),
+                                                                          %in% input$select_pol_mod)]]$OutLogit)),
      
           add_prompter(
             selectInput(ns("income_cost_pol"), "Income Cost",
@@ -85,7 +91,7 @@ pred_plotsServer <- function(id, project, spatdat, values){
         req(input$pol_prim_sel_cat)
 
         pol$outputs_welf <- run_policy(project, 
-                                       mod.name = isolate(input$select_pol_mod),
+                                       mod.name = isolate(c(input$select_pol_mod)),
                                        policy.name = c(input$run_pol_chk_scen), 
                                        betadraws = input$pol_betadraws, 
                                        marg_util_income = input$select_marg_inc, 
