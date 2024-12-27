@@ -7343,7 +7343,34 @@ server = function(input, output, session) {
     }
   })
   
-  observeEvent(input$saveData, {
+  track_save <- reactiveValues(
+    saveData = 0,
+    changeTabSave = NULL
+  )
+  
+  observeEvent(c(input$saveData, input$changeTabSave), {
+    
+    cat(file = stderr(), paste("\n saveData:", input$saveData))
+    cat(file = stderr(), paste("\n changeTabSave:", input$changeTabSave, "\n"))
+    
+    if(is.null(input$changeTabSave) && input$saveData == track_save$saveData){
+      # Don't save because user did not actually trigger the event
+      showNotification("Not triggered by user", type = "default", duration = 15)
+      
+    } else if(input$saveData == track_save$saveData && !(input$changeTabSave)){
+      # Notify user that changes were not saved and will be deleted from the session
+      showNotification("Changes not saved to project database and deleted from this session",
+                       type = "warning",
+                       duration = 60)
+      
+    } else if((input$saveData > track_save$saveData) || input$changeTabSave){
+      # Save data
+      showNotification("SAVED!", type = "message", duration = 15)
+    }
+    
+    track_save$saveData <- input$saveData
+    
+    
     
     req(project$name)
     
