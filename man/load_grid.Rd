@@ -4,20 +4,17 @@
 \alias{load_grid}
 \title{Import, parse, and save gridded data to FishSET database}
 \usage{
-load_grid(dat, grid, name, over_write = TRUE, project = NULL)
+load_grid(grid, name, project, over_write = TRUE)
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips. 
-Table in FishSET database contains the string 'MainDataTable'.}
-
 \item{grid}{File name, including path, of gridded data.}
 
 \item{name}{Name gridded data should be saved as in FishSET database.}
 
+\item{project}{String, name of project.}
+
 \item{over_write}{Logical, If TRUE, saves dat over previously saved data table 
 in the FishSET database.}
-
-\item{project}{String, name of project.}
 }
 \description{
 Gridded data is data that varies by two dimensions. Column names must be zone 
@@ -32,7 +29,7 @@ Grid data is an optional data frame that contains a variable that
   gridded data file need to be variables included in the primary data set.
   The grid locations (zones) must define the columns and the optional second 
   dimension defines the rows. The row variable must have the exact name as the 
-  variable in the main data frame that it will be linked to. The function DOES 
+  variable in the primary data frame that it will be linked to. The function DOES 
   NOT check that column and row variables match a variable in the primary data set.
   The function checks that each row is unique, that no variables are empty, 
   and that column names are case-insensitive unique. These data issues are 
