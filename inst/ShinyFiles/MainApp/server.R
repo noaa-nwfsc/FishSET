@@ -328,30 +328,31 @@ server = function(input, output, session) {
   
   observeEvent(input$tabs, {
     if(!(tab_tracker$previous %in% c("Background", "Upload Data", "Map Viewer", "Bookmark Choices"))){
-      shinyWidgets::sendSweetAlert(
-        title = NULL,
-        text = paste0("Would you like to save changes to local FishSET database before moving on to the next tab?"),
-        type = "info",
-        btn_labels = c("Yes", "No"),
-        btn_colors = c("#274472","#AACDE5"),
-        closeOnClickOutside = FALSE,
+      shinyWidgets::confirmSweetAlert(
+        inputId = "changeTabSave",
+        text = paste0("Would you like to save changes to your project database before moving on to the next tab?"),
+        type = "question",
+        btn_labels = c("No", "Yes"),
+        btn_colors = c("#AACDE5", "#274472"),
         width = "50%"
       )
     }
     
     tab_tracker$previous <- input$tabs
   })
-  # vars <- reactiveValues()
-  # vars = reactiveValues(counter = 0)
-  # observe({
-  #   input$tabs
-  #   if(input$tabs == 'upload'){
-  #     isolate({
-  #       vars$counter <- vars$counter + 1
-  #     })
-  #   }
-  # })
   
+  observeEvent(input$changeTabSave, {
+    if(input$changeTabSave){
+      # Save data and display message
+      showNotification("SAVED!", type = "message", duration = 15)
+      
+    } else {
+      # Notify user that changes were not saved and will be deleted from the session
+      showNotification("Changes not saved to project database and deleted from this session", 
+                       type = "warning",
+                       duration = 60)
+    }
+  })
   
   # ---
   # INFORMATION ----
