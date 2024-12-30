@@ -7349,17 +7349,13 @@ server = function(input, output, session) {
   )
   
   observeEvent(c(input$saveData, input$changeTabSave), {
-    
-    cat(file = stderr(), paste("\n saveData:", input$saveData))
-    cat(file = stderr(), paste("\n changeTabSave:", input$changeTabSave, "\n"))
-    
     if(is.null(input$changeTabSave) && input$saveData == track_save$saveData){
       # Don't save because user did not actually trigger the event.
       # DO NOT DELETE IF STATEMENT: This if statement is needed to catch null values for input$changeTabSave
       
     } else if(input$saveData == track_save$saveData && !(input$changeTabSave)){
       # Notify user that changes were not saved and will be deleted from the session
-      showNotification("Changes not saved to project database and deleted from this session",
+      showNotification("Changes not saved to the project database will be deleted after closing this session of FishSET",
                        type = "warning",
                        duration = 60)
       
@@ -7371,11 +7367,9 @@ server = function(input, output, session) {
       saved <- q_test(values$dataset, project = project$name, type = "main")
       
       if (is.logical(saved) && saved) {
-        
         showNotification('Data saved to FishSET database', type = 'message', duration = 60)
         
       } else {
-        
         showNotification("Table was not saved", type = "error", duration = 60)
       }
     }
