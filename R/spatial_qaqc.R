@@ -231,8 +231,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   }
 
   # points on land ----
-
-  sf_use_s2(FALSE)
+  sf_use_s2(FALSE) 
   land_pts <- sf::st_intersects(dat_sf, base_map)
 
   obs_on_land <- lengths(land_pts) > 0
@@ -264,7 +263,6 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   }
 
   # points outside zone ----
-
   pts_int <- sf::st_intersects(dat_sf, spatdat)
 
   obs_outside <- lengths(pts_int) == 0
@@ -356,7 +354,6 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     fishset_theme()
 
   # Spatial summary table ----
-
   if (any(!is.null(out_col), !is.null(land_col), !is.null(bound_col))) {
 
     spat_tab <- agg_helper(dataset, value = c(expected_col, out_col, land_col, bound_col),
@@ -428,7 +425,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
 
   if (sum(obs_on_bound, obs_outside) == 0) {
 
-    cat(c("All observations occur on land and within regulatory zones.",
+    cat(c("All observations occur within regulatory zones.",
           "No observations fall on zone boundaries."), file = tmp)
   }
 
