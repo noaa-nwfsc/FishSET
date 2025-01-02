@@ -6,10 +6,10 @@ saveFleetUI <- function(id) {
   
   tagList(
     downloadLink(ns('downloadplotHIDE'), label = ''),
-    actionButton(ns('downloadplot'), label = 'Save plot to folder',
+    actionButton(ns('downloadplot'), label = HTML('Save plot to<br> folder'),
                  class = "btn-primary"),
     downloadLink(ns('downloadTableHIDE'), label = ''),
-    actionButton(ns('downloadTable'), label = 'Save table to folder as csv',
+    actionButton(ns('downloadTable'), label = HTML("Save table to folder<br> as csv"),
                  class = "btn-primary")
   )
 }
@@ -19,9 +19,10 @@ plotSaveUI <- function(id) {
   
   tagList(
     downloadLink(ns('downloadPlotHIDE'), label = ''),
-    actionButton(ns('save_plot'), label = 'Save plot to folder',
+    actionButton(ns('save_plot'), label = HTML('Save plot to<br> folder'),
                  class = "btn-primary",
-                 width = "49%"))
+                width = "49%"
+               ))
 }
 
 tableSaveUI <- function(id) {
@@ -29,9 +30,10 @@ tableSaveUI <- function(id) {
   
   tagList(
     downloadLink(ns('downloadTableHIDE'), label = ''),
-    actionButton(ns('save_table'), label = 'Save table to folder as csv',
+    actionButton(ns('save_table'), label = HTML("Save table to <br>folder as csv"),
                  class = "btn-primary",
-                 width = "50%")
+                 width = "49%"
+               )
   )
 }
 

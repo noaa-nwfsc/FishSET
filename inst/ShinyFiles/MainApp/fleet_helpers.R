@@ -1,3 +1,12 @@
+### themes for different screen size -- only adjusting the font_scale
+small_theme <- bslib::bs_theme(primary = "#41729F", secondary = "#AACDE5", 
+                               info = "#274472",
+                               font_scale = 0.9,
+                               preset = "cerulean")
+big_theme <- bslib::bs_theme(primary = "#41729F", secondary = "#AACDE5", 
+                             info = "#274472",
+                             font_scale = 1.1,
+                             preset = "cerulean")
 
 date_select <- function(dat) {
   
