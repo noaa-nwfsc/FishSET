@@ -232,6 +232,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
 
   # points on land ----
 
+  sf_use_s2(FALSE)
   land_pts <- sf::st_intersects(dat_sf, base_map)
 
   obs_on_land <- lengths(land_pts) > 0
