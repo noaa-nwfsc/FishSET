@@ -354,20 +354,17 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     fishset_theme()
 
   # Spatial summary table ----
-  if (any(!is.null(out_col), !is.null(land_col), !is.null(bound_col))) {
-
-    spat_tab <- agg_helper(dataset, value = c(expected_col, out_col, land_col, bound_col),
-                           group = c("YEAR", group), fun = sum)
-
-    year_tab <- agg_helper(dataset, value = "YEAR", group = group, count = TRUE, fun = "percent")
-
-    spat_tab <- dplyr::left_join(spat_tab, year_tab, by = "YEAR")
-
-    last_cols <- names(spat_tab)[!names(spat_tab) %in% c("YEAR", "n", group)]
-
-    spat_tab <- spat_tab[order(spat_tab$YEAR),
-                         c("YEAR", "n", group, last_cols)]
-  }
+  spat_tab <- agg_helper(dataset, value = c(expected_col, out_col, land_col, bound_col),
+                         group = c("YEAR", group), fun = sum)
+  
+  year_tab <- agg_helper(dataset, value = "YEAR", group = group, count = TRUE, fun = "percent")
+  
+  spat_tab <- dplyr::left_join(spat_tab, year_tab, by = "YEAR")
+  
+  last_cols <- names(spat_tab)[!names(spat_tab) %in% c("YEAR", "n", group)]
+  
+  spat_tab <- spat_tab[order(spat_tab$YEAR),
+                       c("YEAR", "n", group, last_cols)]
 
   # distance from nearest zone (meters) ----
   if (sum(obs_outside) > 0) {
