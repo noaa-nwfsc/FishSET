@@ -52,13 +52,13 @@ If you have a spatial data table loaded as a dataframe, use the [st_as_sf()](htt
 
 ### Add zone ID variable to the spatial object
 
-The zone ID variable in the primary data table can be reassigned to match the zone IDs in the spatial grid object based on the lat/lon of fishing location in the primary data table.
-
 ```{r zoneID, echo=TRUE}
 # Assign zone ID variable
-# Here the ID is just a sequence from 1 to the number of grids in the spatial object
+# Here the ID is just a sequence from 1 to the total number of grids in the spatial object
 grid_sf$zoneID <- seq(1:length(grid_sf$geometry))
 ```
+
+**IMPORTANT NOTE: if a zone ID variable already exists in the primary data table, this will need to be reassigned based on the zone ID assigned here for the spatial object. See last section of this vignette on reassigning the zone ID in the primary data table.** 
 
 ### Plot
 ```{r plot_grid, echo=TRUE}
@@ -88,3 +88,10 @@ ggplot() +
 
 # saveRDS(grid_sf, "fiveByFiveGrid.rds")
 ```
+
+### Reassign zone ID in primary data
+The zone ID variable in the primary data table can be reassigned to match the zone IDs in the spatial grid object based on the lat/lon of fishing location in the primary data table.  
+
+Use the [`assignment_column()`](https://noaa-nwfsc.github.io/FishSET/reference/assignment_column.html) function in FishSET to reassign zone IDs in the primary data table. 
+
+If using the FishSET GUI, navigate to *Compute New Variables*, select *Spatial functions* and *Assign observations to zones* in the side panel, then complete the inputs and click *Run function* to reassign zone IDs in the primary data table.
