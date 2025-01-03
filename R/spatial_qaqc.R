@@ -367,7 +367,12 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                        c("YEAR", "n", group, last_cols)]
 
   # distance from nearest zone (meters) ----
-  if (sum(obs_outside) > 0) {
+  if(p_expected < 50) {
+    showNotification("Over 50% of the observations are outside of the study location and/or on land. Check for erros in latitude and longitude values in the primary data table.",
+                     type = "error",
+                     duration = 60)
+    
+  } else if(sum(obs_outside) > 0) {
 
     nearest <- sf::st_nearest_feature(dat_sf[obs_outside, ], spatdat)
     dist.rec <- sf::st_distance(dat_sf[obs_outside, ], spatdat[nearest, ],
