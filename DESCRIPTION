@@ -73,6 +73,7 @@ Imports:
     servr,
     sf (>= 1.0-0),
     shiny (>= 1.7.4),
+    shinybrowser,
     shinycssloaders,
     shinyjs,
     shinyWidgets,
