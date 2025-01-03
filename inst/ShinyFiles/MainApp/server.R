@@ -3580,7 +3580,6 @@ server = function(input, output, session) {
   observeEvent(input$dist_remove_bttn, {
     
     # add pop-up confirming removal 
-    
     showModal(
       modalDialog(title = paste("Remove", sum(dist_filter()), "rows?"),
                   
@@ -3660,6 +3659,9 @@ server = function(input, output, session) {
       q_test(values$dataset, project = project$name, lat = input$spat_qaqc_lat, 
              lon = input$spat_qaqc_lon, latsign = input$spat_filter_lat,
              lonsign = input$spat_filter_lon, replace = TRUE)
+    
+    # Reassign reactive to update table
+    spat_qaqc$out_df[,c(input$spat_qaqc_lat,lon = input$spat_qaqc_lon)] <- values$dataset[,c(input$spat_qaqc_lat,lon = input$spat_qaqc_lon)]
     
     showNotification("Spatial corrections completed", type = "message", duration = 60)
   })
