@@ -231,7 +231,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   }
 
   # points on land ----
-  sf_use_s2(FALSE) 
+  sf_use_s2(FALSE) # by default 'sf' package enables 's2' but this sometimes generates errors with st_intersects
   land_pts <- sf::st_intersects(dat_sf, base_map)
 
   obs_on_land <- lengths(land_pts) > 0
