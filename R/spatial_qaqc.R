@@ -231,7 +231,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   }
 
   # points on land ----
-
+  sf_use_s2(FALSE) # by default 'sf' package enables 's2' but this sometimes generates errors with st_intersects
   land_pts <- sf::st_intersects(dat_sf, base_map)
 
   obs_on_land <- lengths(land_pts) > 0
@@ -263,7 +263,6 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   }
 
   # points outside zone ----
-
   pts_int <- sf::st_intersects(dat_sf, spatdat)
 
   obs_outside <- lengths(pts_int) == 0
@@ -355,24 +354,25 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     fishset_theme()
 
   # Spatial summary table ----
-
-  if (any(!is.null(out_col), !is.null(land_col), !is.null(bound_col))) {
-
-    spat_tab <- agg_helper(dataset, value = c(expected_col, out_col, land_col, bound_col),
-                           group = c("YEAR", group), fun = sum)
-
-    year_tab <- agg_helper(dataset, value = "YEAR", group = group, count = TRUE, fun = "percent")
-
-    spat_tab <- dplyr::left_join(spat_tab, year_tab, by = "YEAR")
-
-    last_cols <- names(spat_tab)[!names(spat_tab) %in% c("YEAR", "n", group)]
-
-    spat_tab <- spat_tab[order(spat_tab$YEAR),
-                         c("YEAR", "n", group, last_cols)]
-  }
+  spat_tab <- agg_helper(dataset, value = c(expected_col, out_col, land_col, bound_col),
+                         group = c("YEAR", group), fun = sum)
+  
+  year_tab <- agg_helper(dataset, value = "YEAR", group = group, count = TRUE, fun = "percent")
+  
+  spat_tab <- dplyr::left_join(spat_tab, year_tab, by = "YEAR")
+  
+  last_cols <- names(spat_tab)[!names(spat_tab) %in% c("YEAR", "n", group)]
+  
+  spat_tab <- spat_tab[order(spat_tab$YEAR),
+                       c("YEAR", "n", group, last_cols)]
 
   # distance from nearest zone (meters) ----
-  if (sum(obs_outside) > 0) {
+  if(p_expected < 50) {
+    showNotification("Over 50% of the observations are outside of the study location and/or on land. Check for erros in latitude and longitude values in the primary data table.",
+                     type = "error",
+                     duration = 60)
+    
+  } else if(sum(obs_outside) > 0) {
 
     nearest <- sf::st_nearest_feature(dat_sf[obs_outside, ], spatdat)
     dist.rec <- sf::st_distance(dat_sf[obs_outside, ], spatdat[nearest, ],
@@ -427,7 +427,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
 
   if (sum(obs_on_bound, obs_outside) == 0) {
 
-    cat(c("All observations occur on land and within regulatory zones.",
+    cat(c("All observations occur within regulatory zones.",
           "No observations fall on zone boundaries."), file = tmp)
   }
 
