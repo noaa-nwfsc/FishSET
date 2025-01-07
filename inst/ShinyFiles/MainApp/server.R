@@ -336,6 +336,7 @@ server = function(input, output, session) {
         btn_colors = c("#AACDE5", "#274472"),
         width = "50%"
       )
+      
     }
     
     tab_tracker$previous <- input$tabs
