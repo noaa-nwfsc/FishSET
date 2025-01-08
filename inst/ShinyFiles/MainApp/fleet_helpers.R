@@ -1,4 +1,3 @@
-
 date_select <- function(dat) {
   
   if (any(grepl("date", colnames(dat), ignore.case = TRUE))) {

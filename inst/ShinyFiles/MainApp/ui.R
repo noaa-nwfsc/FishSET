@@ -8,16 +8,20 @@ source("run_policy_UI.R", local = TRUE)
 source("run_policy_server.R", local = TRUE)
 
 
+
+
 ## USER INTERFACE    
 ui = function(request){
   bslib::page_navbar(
     theme = bslib::bs_theme(primary = "#41729F", secondary = "#AACDE5", 
-                            info = "#274472", font_scale = NULL, preset = "cerulean"),
+                            info = "#274472",
+                            font_scale = 0.9,
+                            preset = "cerulean"),
     id = "tabs",
+    
     
     # Pop up information icons
     header= tags$head(
-      
       shinyjs::useShinyjs(),
       use_prompter(),
       tags$style(".fa-info-circle {color:#0066FF}"),
@@ -235,10 +239,10 @@ ui = function(request){
     # Upload data tabset panel ---- 
     #---
     bslib::nav_panel(title = "Upload Data", id = "upload", 
-                     bslib::page_sidebar(fillable = TRUE,
+                     bslib::page_fillable(
                        #tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
-                       
-                       sidebar = bslib::sidebar( width = 550,
+                       bslib::layout_sidebar(fillable = TRUE, fill = TRUE,
+                       sidebar = bslib::sidebar( fillable = TRUE, fill = TRUE, width = 400,
                                                  h5(strong("Steps for uploading data:")),
                                                  
                                                  p("1. Select folder that contains 'FishSETFolder'."),
@@ -248,35 +252,41 @@ ui = function(request){
                                                  p("2. Enter name of project. If uploading from FishSET database, projects will appear after 'FishSET database' is selected."),
                                                  p("3. Select files to upload."),
                                                  p("4. Click on 'Load data' to create FishSET database and upload files into tables."),
-                                                 splitLayout(
-                                                 actionButton(inputId = 'loadDat',label ="Load data", class = "btn-primary",width = "100%"),
+                                                # splitLayout(
+                                                 actionButton(inputId = 'loadDat',label ="Load data", class = "btn-primary"#,width = "100%"
+                                                              ),
                                                  actionButton("refresh", "Refresh data",
                                                               class = "btn-primary",
                                                               icon = icon('sync', verify_fa = FALSE),
-                                                              width = "100%")
-                                                  ),
+                                                              #width = "100%"
+                                                              ) ,
 
                                                  tags$br(), 
                                                 
-                                                splitLayout(
+                                               # splitLayout(
                                                  actionButton(inputId ="meta_modal", label ="Metadata",  class = "btn-secondary", 
-                                                              style = "padding-left: 40px; padding-right: 42px;"),
+                                                              #style = "padding-left: 40px; padding-right: 42px;"
+                                                              ),
                                                  actionButton(inputId ="delete_tabs_bttn", label ="Manage Tables", class = "btn-secondary", 
-                                                              style = "padding-left: 27px; padding-right: 25px;"),
-                                                 uiOutput('load_manage_proj_ui')
-                                                 ),
+                                                            #  style = "padding-left: 27px; padding-right: 25px;"
+                                                            ),
+                                                 uiOutput('load_manage_proj_ui'),
                                                  
                                                 conditionalPanel("input.loadDat > 0", # TODO: update to a more reliable method
-                                                                 splitLayout(
+                                                                # splitLayout(
                                                                    actionButton("confid_modal", "Confidentiality",
                                                                                 class = "btn-secondary", 
-                                                                                style = "padding-left: 25px; padding-right: 25px;"),
+                                                                               # style = "padding-left: 25px; padding-right: 25px;"
+                                                                               ),
                                                                    actionButton("reset_modal", "Reset log",
                                                                                 class = "btn-secondary", 
-                                                                                style = "padding-left: 45px; padding-right: 45px;"),
+                                                                               # style = "padding-left: 45px; padding-right: 45px;"
+                                                                               ),
                                                                    actionButton("plot_set", "Plot settings", 
                                                                                 class = "btn-secondary", 
-                                                                                style = "padding-left: 35px; padding-right: 35px;"))),
+                                                                                #style = "padding-left: 35px; padding-right: 35px;"
+                                                                               # )
+                                                                )),
                                                 
                                                 
                                                
@@ -297,34 +307,38 @@ ui = function(request){
                                                  ),
                                                  tags$br(),
                                                  actionButton("closeUp", "Close app", icon = icon("circle-xmark"),
-                                                              width = "50%",                                                           
+                                                              width = "100%",                                                           
                                                               class = "btn-danger", 
                                                               onclick = "setTimeout(function(){window.close();},500);")
                                                 )
                                                  
+                       
                        ),
                        
                        
                        tags$br(),
-                         bslib::card(
-                           height = 200,
-                         uiOutput('fish_folder_path'), 
-                      
-                         uiOutput("projects")), # define project name
+                         bslib::card(fill = FALSE,
+                          # height = 200,
+                          bslib::card_body( 
+                                   uiOutput('fish_folder_path'), 
+                                   uiOutput("projects"))
+                         ), # define project name
                          
-                       bslib::layout_column_wrap(
+                       bslib::layout_column_wrap( fill = FALSE,
                          width = 1/3,
                          bslib::card(
-                           height = 400,
+                          # height = 400,
+                           bslib::card_body( 
                            radioButtons('load_main_src', tags$strong("Source primary data from:"),
                                              choices=c('Upload new file','FishSET database'), 
                                              selected='Upload new file', inline=TRUE),
                            uiOutput('main_upload'),
 
-                         uiOutput('ui.action2')),
+                         uiOutput('ui.action2'))
+                         ),
 
                      bslib::card(
-                       height = 400,
+                     #  height = 400,
                             radioButtons('load_port_src', tags$strong("Source port data from:"), 
                                                 choices=c('Upload new file','FishSET database'), 
                                                 inline=TRUE),
@@ -335,7 +349,7 @@ ui = function(request){
                          uiOutput("PortAddtableMerge")),
                        
                      bslib::card(
-                       height = 400,
+                      # height = 400,
                                 radioButtons('load_spat_src', tags$strong("Source spatial data from:"), 
                                                 choices=c('Upload new file', 'FishSET database'), 
                                                 selected='Upload new file', inline=TRUE),
@@ -345,10 +359,10 @@ ui = function(request){
                          uiOutput('spatial_upload2'))
                      ),
 
-                     bslib::layout_column_wrap(
+                     bslib::layout_column_wrap( fill = FALSE,
                        width = 1/2,
                      bslib::card(
-                       height = 300,
+                      # height = 300,
                                 radioButtons('load_grid_src', tags$strong("Source gridded data from:"), 
                                                 choices=c('Upload new file','FishSET database'), 
                                                 selected='Upload new file', inline=TRUE),
@@ -357,7 +371,7 @@ ui = function(request){
                          uiOutput('gridded_uploaded')),
 
                      bslib::card(
-                       height = 300,
+                      # height = 300,
                                 radioButtons('load_aux_src', tags$strong("Source auxiliary data from:"), 
                                                 choices=c('Upload new file','FishSET database'), 
                                                 selected='Upload new file', inline=TRUE),
@@ -367,7 +381,7 @@ ui = function(request){
                        
                      )
                      )
-                     
+                     )
                    ),
     
     
@@ -375,13 +389,15 @@ ui = function(request){
     # Data quality evaluation tabset panel ----
     #---
     bslib::nav_panel("Data Quality Evaluation", value = "qaqc",
-                     bslib::page_sidebar(
-                       sidebar = bslib::sidebar( width = 550,
+                     bslib::page_fillable(
+                       bslib::layout_sidebar(fillable = TRUE, fill = TRUE,
+                                      sidebar = bslib::sidebar( fillable = TRUE, fill = TRUE, width = 400,
                                                  actionButton('saveData','Save data to FishSET database',
                                                               width = "100%",
                                                               class = "btn-primary"),
-                                                 splitLayout(
-                                                 tabPlotUI("qaqc", type = "tab_plot")),
+                                                splitLayout(
+                                                 tabPlotUI("qaqc", type = "tab_plot")
+                                                ),
                                                  
                                                  radioButtons("checks", "Select data quality check function to run:", 
                                                               choices = c('Variable class', 'Summary table', 'Outliers', 
@@ -518,6 +534,7 @@ ui = function(request){
                                                                                     style = "font-size: 75%; width: 100%")
                                                           )))
                      )
+                     )
     ),
     
     #---
@@ -525,14 +542,15 @@ ui = function(request){
     #---
     bslib::nav_menu(title = "Explore the Data",header = NULL, footer = NULL,
                     bslib::nav_panel(title = "Data Exploration", id = "explore",
-                                     bslib::page_sidebar(
-                                       sidebar = bslib::sidebar( width = 550,
+                                     bslib::page_fillable(
+                                       bslib::layout_sidebar(fillable = TRUE, fill = TRUE,
+                                                      sidebar = bslib::sidebar( fillable = TRUE, fill = TRUE, width = 400,
                                                                  actionButton('saveDataExplore','Save data to FishSET database',
                                                                               width = "100%",
                                                                               class = "btn-primary"),
 
                                                                  conditionalPanel("input.plot_table=='Plots'",
-                                                                                  tabPlotUI("explore")
+                                                                                  splitLayout(tabPlotUI("explore"))
                                                                  
                                                                  ),
                                                                  conditionalPanel("input.SelectDatasetExplore=='main' || input.SelectDatasetExplore=='grid'",
@@ -654,15 +672,17 @@ ui = function(request){
                                          "input.SelectDatasetExplore == 'grid' && input.plot_table == 'Plots'",
                                          shinycssloaders::withSpinner(plotOutput("grid_plot"), type = 6)
                                        )
-                                     )),
+                                     ))
+                                     ),
                     
                     
                     #---
                     ## Basic analyses tabset panel ----
                     #---
                     bslib::nav_panel(title = "Simple Analyses", id = "analysis",#value
-                                     bslib::page_sidebar(
-                                       sidebar = bslib::sidebar( width = 550,
+                                     bslib::page_fillable(
+                                       bslib::layout_sidebar(fillable = TRUE, fill = TRUE,
+                                                      sidebar = bslib::sidebar( fillable = TRUE, fill = TRUE, width = 400,
                                                                  splitLayout(
                                                                  tabPlotUI("anal")),
                                                                  
@@ -721,8 +741,8 @@ ui = function(request){
                                                         shinycssloaders::withSpinner(plotOutput("output_plot_reg", width='100%', height = "600px"), type = 6)
                                        ))
                     )
-                    
-    ),
+                     
+    )),
     
     
     #---
@@ -739,7 +759,7 @@ ui = function(request){
     #---
     bslib::nav_panel(title = 'Compute New Variables', id='new',#value
                      bslib::page_sidebar(
-                       sidebar = bslib::sidebar( width = 550,
+                       sidebar = bslib::sidebar(  width = 400,
                                                    actionButton('saveDataNewVars','Save data to FishSET database',
                                                                 width = "100%",
                                                                 class = "btn-primary"),
@@ -992,11 +1012,9 @@ ui = function(request){
                      bslib::navset_tab(id = 'select_fleet',
                                        bslib::nav_panel(title = "Fleet Assignment", value = "fleet_assignment",
                                                         bslib::page_sidebar(
-                                                          sidebar = bslib::sidebar(width = 550,
+                                                          sidebar = bslib::sidebar( width = 400,
                                                                                    saveDataTableUI("fleet"), # "Save data to FishSET database"
-                                                                                   tags$br(),
-                                                                                   
-                                                                                   uiOutput("fleetSaveOutput1"), # "Save table..." and "Save plot..."
+                                                                                   splitLayout(uiOutput("fleetSaveOutput1")), # "Save table..." and "Save plot..."
                                                                                    tags$br(), tags$br(),
                                                                                    
                                                                                    selectInput("assign_fun", label = "Select task",
@@ -1044,11 +1062,9 @@ ui = function(request){
                                        
                                        bslib::nav_panel(title = "Fleet Summary", id = "fleet_summary",
                                                         bslib::page_sidebar(
-                                                          sidebar = bslib::sidebar(width = 550,
+                                                          sidebar = bslib::sidebar( width = 400,
                                                                                    saveDataTableUI("fleet_summary"), # "Save data to FishSET database"
-                                                                                   tags$br(),
-                                                                                   
-                                                                                   uiOutput("fleetSaveOutput2"), # "Save table..." and "Save plot..."
+                                                                                   splitLayout(uiOutput("fleetSaveOutput2")), # "Save table..." and "Save plot..."
                                                                                    tags$br(),
                                                                                    
                                                                                    tags$br(),
@@ -1143,7 +1159,7 @@ ui = function(request){
     #---
     bslib::nav_panel(title = 'Define Alternative Fishing Choices', id = "altc",
                      bslib::page_sidebar(
-                       sidebar = bslib::sidebar( width = 550,
+                       sidebar = bslib::sidebar(  width = 400,
                                                  uiOutput("disableMsg1"),
                                                  
                                                  actionButton("save_final_modal", "Save final table to FishSET database",
@@ -1201,7 +1217,7 @@ ui = function(request){
                      bslib::navset_tab(id = 'exp_tab', 
                                        bslib::nav_panel(title = 'Create expected catch', id = 'exp_create', 
                                                         bslib::page_sidebar(
-                                                          sidebar = bslib::sidebar(width = 550,
+                                                          sidebar = bslib::sidebar( width = 400,
                                                                                    
                                                                                    tags$br(),
                                                                                    
@@ -1351,7 +1367,7 @@ ui = function(request){
                                                                               
                                   bslib::nav_panel(title ='Merge expected catch', id = 'exp_merge',
                                                    bslib::page_sidebar(
-                                                     sidebar = bslib::sidebar(width = 550,
+                                                     sidebar = bslib::sidebar( width = 400,
                                                                                actionButton('exp_merge_reload', 'Refresh expected catch list', 
                                                                                             class = "btn-primary"),
                                                                                
@@ -1382,7 +1398,7 @@ ui = function(request){
                      bslib::navset_tab(id = 'mod_sub',
                                        bslib::nav_panel(title="Run model(s)", id = 'model_run',
                                                         bslib::page_sidebar(
-                                                          sidebar = bslib::sidebar(width = 550,
+                                                          sidebar = bslib::sidebar( width = 400,
                                                                                    # Models can't be run if final dataset not detected
                                                                                    uiOutput("disableMsg"),
 
@@ -1542,7 +1558,7 @@ ui = function(request){
                                      
                                      bslib::nav_panel(title = "Compare models", id = 'model_compare',
                                                       bslib::page_sidebar(
-                                                        sidebar = bslib::sidebar( width = 550,
+                                                        sidebar = bslib::sidebar(  width = 400,
                                                                                   actionButton("mod_reload", "Reload model output",  class = "btn-primary"),
                                                                                   actionButton("mod_compare_delete", "Delete row", class = "btn-primary"),
                                                                                 #  h3(''),
@@ -1577,7 +1593,7 @@ ui = function(request){
                                      
                                      bslib::nav_panel(title = 'Manage models', id = 'model_man',
                                                       bslib::page_sidebar(
-                                                        sidebar = bslib::sidebar( width = 550,
+                                                        sidebar = bslib::sidebar(  width = 400,
                                                                                   actionButton("mod_reload", "Reload model output",
                                                                                                class = "btn-primary"),
                                                                                   
@@ -1605,7 +1621,7 @@ ui = function(request){
                                      ),
                                      bslib::nav_panel(title = 'View model list', id = 'model_list',
                                                       bslib::page_sidebar(
-                                                        sidebar = bslib::sidebar( width = 550,
+                                                        sidebar = bslib::sidebar(  width = 400,
                                                                                   actionButton('mod_list_reload', 'Reload model list',
                                                                                                class = "btn-primary"),
                                                                                   
@@ -1617,7 +1633,7 @@ ui = function(request){
                                      ),
                                      bslib::nav_panel(title='Cross-validation', id = 'cross_validation',
                                                       bslib::page_sidebar(
-                                                        sidebar = bslib::sidebar( width = 550,
+                                                        sidebar = bslib::sidebar(  width = 400,
                                                                                   actionButton('run_cv', "Run cross-validation",
                                                                                                class = "btn-primary"),
                                                                 
@@ -1648,7 +1664,7 @@ ui = function(request){
                                      ),
                                      bslib::nav_panel(title = 'Out-of-sample prediction', id = 'outsample_predict',
                                                       bslib::page_sidebar(
-                                                        sidebar = bslib::sidebar( width = 550,
+                                                        sidebar = bslib::sidebar(  width = 400,
                                                                                   h5(strong('Step 1: Upload out-of-sample data')),
                                                                                   uiOutput("load_outsample"),
                                                                                   
@@ -1691,7 +1707,7 @@ ui = function(request){
     bslib::nav_menu(title ='Policy', 
                     bslib::nav_panel(title = "Zone Closure", id = "zone_closures",
                                      bslib::page_sidebar(
-                                       sidebar = bslib::sidebar(  width = 550,
+                                       sidebar = bslib::sidebar(   width = 400,
                                          "Click on one or more zones to select closed zones.",
                                          "\nPress the 'Add closure' button to record choices.",
                                          "Repeat to add another closure.",
@@ -1706,7 +1722,7 @@ ui = function(request){
     ),
                     bslib::nav_panel(title = "Run Policy", id = "run_policy",
                                      bslib::page_sidebar(
-                                       sidebar = bslib::sidebar( width = 550,
+                                       sidebar = bslib::sidebar(  width = 400,
                                        bslib::accordion(
                                             bslib::accordion_panel(
                                               "To run policy scenarios", icon = bsicons::bs_icon("sliders"),
@@ -1795,7 +1811,7 @@ ui = function(request){
                                        ),
                                        bslib::nav_panel(title = "Rerun logged function calls", id = "log_rerun",
                                                         bslib::page_sidebar(
-                                                          sidebar = bslib::sidebar( width = 550,
+                                                          sidebar = bslib::sidebar(  width = 400,
                                                                                     
                                                                                     actionButton("run_log", "Rerun log",
                                                                                                  class = "btn-secondary"),
