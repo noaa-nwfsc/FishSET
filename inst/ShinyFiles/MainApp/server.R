@@ -3347,8 +3347,8 @@ server = function(input, output, session) {
       
       if (!is_value_empty(out)) {
         
-        flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY")
-        spat_qaqc_r$flag <- vapply(flag_nms, function(x) x %in% names(out$dataset), logical(1))
+        flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
+        spat_qaqc_r$flag <- flag_nms %in% names(out$dataset)
         
         spat_qaqc$out_df <- subset(out$dataset, select=-c(YEAR)) # remove 'YEAR' from table
         out$dataset <- NULL
@@ -3526,19 +3526,20 @@ server = function(input, output, session) {
       
       if (input$select_spat_tab == "out_zone") {
         
-        if (sum(dist_filter()) > 0) spat_qaqc$out_df[dist_filter(), c(input$spat_qaqc_ID, input$spat_qaqc_date, input$spat_qaqc_lat,
-                                                                    input$spat_qaqc_lon, "ON_LAND", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")]
-      } else { # "all"
+        if (sum(dist_filter()) > 0){
+          spat_qaqc$out_df[dist_filter(), c(input$spat_qaqc_ID, input$spat_qaqc_date, input$spat_qaqc_lat,
+                                            input$spat_qaqc_lon, "ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")]
+        } 
         
-        new_cols <- c("ON_LAND", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
+      } else { # "all"
+        new_cols <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
         new_cols <- new_cols[which(spat_qaqc_r$flag)]
         
         spat_qaqc$out_df[,c(input$spat_qaqc_ID, input$spat_qaqc_lat,
-                          input$spat_qaqc_lon, new_cols)]
+                            input$spat_qaqc_lon, new_cols)]
       }
     }
   })
-  
   
   observe({
     spat_qaqc_r$c_tab <- c_tab()
@@ -3590,7 +3591,6 @@ server = function(input, output, session) {
   observeEvent(input$dist_remove_bttn, {
     
     # add pop-up confirming removal 
-    
     showModal(
       modalDialog(title = paste("Remove", sum(dist_filter()), "rows?"),
                   
@@ -3666,19 +3666,13 @@ server = function(input, output, session) {
     
     q_test <- quietly_test(degree)
     
-    if (input$select_spat_tab == "out_zone") {
-      
-      values$dataset[dist_filter(), ] <-
-        q_test(c_tab(), project = project$name, lat = input$spat_qaqc_lat, 
-               lon = input$spat_qaqc_lon, latsign = input$spat_filter_lat,
-               lonsign = input$spat_filter_lon, replace = TRUE)
-    } else {
+    values$dataset <-
+      q_test(values$dataset, project = project$name, lat = input$spat_qaqc_lat, 
+             lon = input$spat_qaqc_lon, latsign = input$spat_filter_lat,
+             lonsign = input$spat_filter_lon, replace = TRUE)
     
-      values$dataset <-
-        q_test(c_tab(), project = project$name, lat = input$spat_qaqc_lat, 
-               lon = input$spat_qaqc_lon, latsign = input$spat_filter_lat,
-               lonsign = input$spat_filter_lon, replace = TRUE)
-    }
+    # Reassign reactive to update table
+    spat_qaqc$out_df[,c(input$spat_qaqc_lat,lon = input$spat_qaqc_lon)] <- values$dataset[,c(input$spat_qaqc_lat,lon = input$spat_qaqc_lon)]
     
     showNotification("Spatial corrections completed", type = "message", duration = 60)
   })
