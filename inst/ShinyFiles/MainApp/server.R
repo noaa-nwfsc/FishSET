@@ -327,7 +327,9 @@ server = function(input, output, session) {
   )
   
   observeEvent(input$tabs, {
-    if(!(tab_tracker$previous %in% c("Background", "Upload Data", "Map Viewer", "Bookmark Choices", "Define Alternative Fishing Choices"))){
+    if(!(tab_tracker$previous %in% c("Background", "Upload Data", "Map Viewer", "Bookmark Choices", 
+                                     "Define Alternative Fishing Choices", "Expected Catch/Revenue",
+                                     "Models", "Zone Closure", "Run Policy"))){
       shinyWidgets::confirmSweetAlert(
         inputId = "changeTabSave",
         text = paste0("Would you like to save changes to your project database before moving on to the next tab?"),
