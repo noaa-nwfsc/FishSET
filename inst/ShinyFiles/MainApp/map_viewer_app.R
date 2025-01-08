@@ -18,7 +18,7 @@ map_viewer_serv <- function(id, dat, spatdat, project) {
   
     output$var_select <- renderUI({
       bslib::page_sidebar(
-        sidebar = bslib::sidebar( width = 350,
+        sidebar = bslib::sidebar( width = 400,
           
           selectInput(ns("avd"), "Area ID variable (primary data)",
                       choices = colnames(dat$dataset), selected = "ZoneID"),
