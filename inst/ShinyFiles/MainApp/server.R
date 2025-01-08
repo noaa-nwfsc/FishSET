@@ -9,6 +9,8 @@ source("zone_closure_Server.R", local = TRUE)
 source("run_policy_UI.R", local = TRUE)
 source("run_policy_server.R", local = TRUE)
 
+
+
 # default global search value
 if(!exists("default_search")) {default_search <- ""}
 
@@ -20,8 +22,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
 
 ### SERVER SIDE    
 server = function(input, output, session) {
-  options(shiny.maxRequestSize = 8000*1024^2)
-  
+   options(shiny.maxRequestSize = 8000*1024^2)
+   
+
   #Disable buttons
   toggle_inputs <- function(input_list, enable_inputs = TRUE){
     # Toggle elements
@@ -1108,7 +1111,8 @@ server = function(input, output, session) {
   
   output$load_manage_proj_ui <- renderUI({
       actionButton('load_manage_proj', 'Manage Projects', class = "btn-secondary", 
-                   style = "padding-left:20px; padding-right: 20px;")
+                   #style = "padding-left:20px; padding-right: 20px;"
+                   )
   })
   
   # Manage Projects
@@ -5859,9 +5863,9 @@ server = function(input, output, session) {
           tags$br(),
           
           actionButton("mod_add", "Save model and add new model", 
-                       style="color: #fff; background-color: #337ab7; border-color: #800000;"),
+                       class = "btn-primary"),
           
-          tags$br(), tags$br(),
+          tags$br(), 
           
           uiOutput('mod_run_bttn')
         )
@@ -5925,7 +5929,7 @@ server = function(input, output, session) {
           uiOutput('mod_run_custom_ui'),
           
           actionButton("mod_submit", "Run model(s)",
-                       style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+                       class = "btn-primary")
         )
       }
     })
