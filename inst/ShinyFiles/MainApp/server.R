@@ -22,16 +22,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
 
 ### SERVER SIDE    
 server = function(input, output, session) {
-  options(shiny.maxRequestSize = 8000*1024^2)
-  
-  observe(session$setCurrentTheme(
-    if (isTRUE(shinybrowser::get_width() > 1500)) big_theme else small_theme
-  ))
-  
- #  observe({
- # as.numeric(str(shinybrowser::get_width()))
- #  })
-  # 
+   options(shiny.maxRequestSize = 8000*1024^2)
+   
+
   #Disable buttons
   toggle_inputs <- function(input_list, enable_inputs = TRUE){
     # Toggle elements
