@@ -321,18 +321,26 @@ server = function(input, output, session) {
     
   }, ignoreInit = TRUE, ignoreNULL=TRUE) 
   
-  #Track Times tab selected
-  # vars<-reactiveValues()
-  # vars = reactiveValues(counter = 0)
-  # observe({
-  #   input$tabs
-  #   if(input$tabs == 'upload'){
-  #     isolate({
-  #       vars$counter <- vars$counter + 1
-  #     })
-  #   }
-  # })
+  # Track tabs selected and prompt user to save data, or not, when changing tabs
+  tab_tracker <- reactiveValues(
+    previous = "Background"
+  )
   
+  observeEvent(input$tabs, {
+    if(!(tab_tracker$previous %in% c("Background", "Upload Data", "Map Viewer", "Bookmark Choices", 
+                                     "Define Alternative Fishing Choices", "Expected Catch/Revenue",
+                                     "Models", "Zone Closure", "Run Policy"))){
+      shinyWidgets::confirmSweetAlert(
+        inputId = "changeTabSave",
+        text = paste0("Would you like to save changes to your project database before moving on to the next tab?"),
+        type = "question",
+        btn_labels = c("No", "Yes"),
+        btn_colors = c("#AACDE5", "#274472"),
+        width = "50%"
+      )}
+    
+    tab_tracker$previous <- input$tabs
+  })
   
   # ---
   # INFORMATION ----
@@ -7330,21 +7338,39 @@ server = function(input, output, session) {
     }
   })
   
-  observeEvent(input$saveData, {
-    
-    req(project$name)
-    
-    q_test <- quietly_test(table_save)
-    saved <- q_test(values$dataset, project = project$name, type = "main")
-    
-    if (is.logical(saved) && saved) {
+  track_save <- reactiveValues(
+    saveData = 0,
+    changeTabSave = NULL
+  )
+  
+  observeEvent(c(input$saveData, input$changeTabSave), {
+    if(is.null(input$changeTabSave) && input$saveData == track_save$saveData){
+      # Don't save because user did not actually trigger the event.
+      # DO NOT DELETE IF STATEMENT: This if statement is needed to catch null values for input$changeTabSave
       
-      showNotification('Data saved to FishSET database', type = 'message', duration = 60)
+    } else if(input$saveData == track_save$saveData && !(input$changeTabSave)){
+      # Notify user that changes were not saved and will be deleted from the session
+      showNotification("Changes not saved to the project database will be deleted after closing this session of FishSET",
+                       type = "warning",
+                       duration = 60)
       
-    } else {
+    } else if((input$saveData > track_save$saveData) || input$changeTabSave){
+      # Save data
+      req(project$name)
       
-      showNotification("Table was not saved", type = "error", duration = 60)
+      q_test <- quietly_test(table_save)
+      saved <- q_test(values$dataset, project = project$name, type = "main")
+      
+      if (is.logical(saved) && saved) {
+        showNotification('Data saved to FishSET database', type = 'message', duration = 60)
+        
+      } else {
+        showNotification("Table was not saved", type = "error", duration = 60)
+      }
     }
+    
+    # Update input value
+    track_save$saveData <- input$saveData
   })
   
   observeEvent(input$saveDataNewVars, {
