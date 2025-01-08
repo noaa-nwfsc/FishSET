@@ -9,6 +9,8 @@ source("zone_closure_Server.R", local = TRUE)
 source("run_policy_UI.R", local = TRUE)
 source("run_policy_server.R", local = TRUE)
 
+
+
 # default global search value
 if(!exists("default_search")) {default_search <- ""}
 
@@ -20,8 +22,9 @@ fs_exist <- exists("folderpath", where = ".GlobalEnv")
 
 ### SERVER SIDE    
 server = function(input, output, session) {
-  options(shiny.maxRequestSize = 8000*1024^2)
-  
+   options(shiny.maxRequestSize = 8000*1024^2)
+   
+
   #Disable buttons
   toggle_inputs <- function(input_list, enable_inputs = TRUE){
     # Toggle elements
@@ -321,18 +324,26 @@ server = function(input, output, session) {
     
   }, ignoreInit = TRUE, ignoreNULL=TRUE) 
   
-  #Track Times tab selected
-  # vars<-reactiveValues()
-  # vars = reactiveValues(counter = 0)
-  # observe({
-  #   input$tabs
-  #   if(input$tabs == 'upload'){
-  #     isolate({
-  #       vars$counter <- vars$counter + 1
-  #     })
-  #   }
-  # })
+  # Track tabs selected and prompt user to save data, or not, when changing tabs
+  tab_tracker <- reactiveValues(
+    previous = "Background"
+  )
   
+  observeEvent(input$tabs, {
+    if(!(tab_tracker$previous %in% c("Background", "Upload Data", "Map Viewer", "Bookmark Choices", 
+                                     "Define Alternative Fishing Choices", "Expected Catch/Revenue",
+                                     "Models", "Zone Closure", "Run Policy"))){
+      shinyWidgets::confirmSweetAlert(
+        inputId = "changeTabSave",
+        text = paste0("Would you like to save changes to your project database before moving on to the next tab?"),
+        type = "question",
+        btn_labels = c("No", "Yes"),
+        btn_colors = c("#AACDE5", "#274472"),
+        width = "50%"
+      )}
+    
+    tab_tracker$previous <- input$tabs
+  })
   
   # ---
   # INFORMATION ----
@@ -1100,7 +1111,8 @@ server = function(input, output, session) {
   
   output$load_manage_proj_ui <- renderUI({
       actionButton('load_manage_proj', 'Manage Projects', class = "btn-secondary", 
-                   style = "padding-left:20px; padding-right: 20px;")
+                   #style = "padding-left:20px; padding-right: 20px;"
+                   )
   })
   
   # Manage Projects
@@ -3336,8 +3348,8 @@ server = function(input, output, session) {
       
       if (!is_value_empty(out)) {
         
-        flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY")
-        spat_qaqc_r$flag <- vapply(flag_nms, function(x) x %in% names(out$dataset), logical(1))
+        flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
+        spat_qaqc_r$flag <- flag_nms %in% names(out$dataset)
         
         spat_qaqc$out_df <- subset(out$dataset, select=-c(YEAR)) # remove 'YEAR' from table
         out$dataset <- NULL
@@ -3515,19 +3527,20 @@ server = function(input, output, session) {
       
       if (input$select_spat_tab == "out_zone") {
         
-        if (sum(dist_filter()) > 0) spat_qaqc$out_df[dist_filter(), c(input$spat_qaqc_ID, input$spat_qaqc_date, input$spat_qaqc_lat,
-                                                                    input$spat_qaqc_lon, "ON_LAND", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")]
-      } else { # "all"
+        if (sum(dist_filter()) > 0){
+          spat_qaqc$out_df[dist_filter(), c(input$spat_qaqc_ID, input$spat_qaqc_date, input$spat_qaqc_lat,
+                                            input$spat_qaqc_lon, "ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")]
+        } 
         
-        new_cols <- c("ON_LAND", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
+      } else { # "all"
+        new_cols <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
         new_cols <- new_cols[which(spat_qaqc_r$flag)]
         
         spat_qaqc$out_df[,c(input$spat_qaqc_ID, input$spat_qaqc_lat,
-                          input$spat_qaqc_lon, new_cols)]
+                            input$spat_qaqc_lon, new_cols)]
       }
     }
   })
-  
   
   observe({
     spat_qaqc_r$c_tab <- c_tab()
@@ -3579,7 +3592,6 @@ server = function(input, output, session) {
   observeEvent(input$dist_remove_bttn, {
     
     # add pop-up confirming removal 
-    
     showModal(
       modalDialog(title = paste("Remove", sum(dist_filter()), "rows?"),
                   
@@ -3655,19 +3667,13 @@ server = function(input, output, session) {
     
     q_test <- quietly_test(degree)
     
-    if (input$select_spat_tab == "out_zone") {
-      
-      values$dataset[dist_filter(), ] <-
-        q_test(c_tab(), project = project$name, lat = input$spat_qaqc_lat, 
-               lon = input$spat_qaqc_lon, latsign = input$spat_filter_lat,
-               lonsign = input$spat_filter_lon, replace = TRUE)
-    } else {
+    values$dataset <-
+      q_test(values$dataset, project = project$name, lat = input$spat_qaqc_lat, 
+             lon = input$spat_qaqc_lon, latsign = input$spat_filter_lat,
+             lonsign = input$spat_filter_lon, replace = TRUE)
     
-      values$dataset <-
-        q_test(c_tab(), project = project$name, lat = input$spat_qaqc_lat, 
-               lon = input$spat_qaqc_lon, latsign = input$spat_filter_lat,
-               lonsign = input$spat_filter_lon, replace = TRUE)
-    }
+    # Reassign reactive to update table
+    spat_qaqc$out_df[,c(input$spat_qaqc_lat,lon = input$spat_qaqc_lon)] <- values$dataset[,c(input$spat_qaqc_lat,lon = input$spat_qaqc_lon)]
     
     showNotification("Spatial corrections completed", type = "message", duration = 60)
   })
@@ -5857,9 +5863,9 @@ server = function(input, output, session) {
           tags$br(),
           
           actionButton("mod_add", "Save model and add new model", 
-                       style="color: #fff; background-color: #337ab7; border-color: #800000;"),
+                       class = "btn-primary"),
           
-          tags$br(), tags$br(),
+          tags$br(), 
           
           uiOutput('mod_run_bttn')
         )
@@ -5923,7 +5929,7 @@ server = function(input, output, session) {
           uiOutput('mod_run_custom_ui'),
           
           actionButton("mod_submit", "Run model(s)",
-                       style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+                       class = "btn-primary")
         )
       }
     })
@@ -7336,21 +7342,39 @@ server = function(input, output, session) {
     }
   })
   
-  observeEvent(input$saveData, {
-    
-    req(project$name)
-    
-    q_test <- quietly_test(table_save)
-    saved <- q_test(values$dataset, project = project$name, type = "main")
-    
-    if (is.logical(saved) && saved) {
+  track_save <- reactiveValues(
+    saveData = 0,
+    changeTabSave = NULL
+  )
+  
+  observeEvent(c(input$saveData, input$changeTabSave), {
+    if(is.null(input$changeTabSave) && input$saveData == track_save$saveData){
+      # Don't save because user did not actually trigger the event.
+      # DO NOT DELETE IF STATEMENT: This if statement is needed to catch null values for input$changeTabSave
       
-      showNotification('Data saved to FishSET database', type = 'message', duration = 60)
+    } else if(input$saveData == track_save$saveData && !(input$changeTabSave)){
+      # Notify user that changes were not saved and will be deleted from the session
+      showNotification("Changes not saved to the project database will be deleted after closing this session of FishSET",
+                       type = "warning",
+                       duration = 60)
       
-    } else {
+    } else if((input$saveData > track_save$saveData) || input$changeTabSave){
+      # Save data
+      req(project$name)
       
-      showNotification("Table was not saved", type = "error", duration = 60)
+      q_test <- quietly_test(table_save)
+      saved <- q_test(values$dataset, project = project$name, type = "main")
+      
+      if (is.logical(saved) && saved) {
+        showNotification('Data saved to FishSET database', type = 'message', duration = 60)
+        
+      } else {
+        showNotification("Table was not saved", type = "error", duration = 60)
+      }
     }
+    
+    # Update input value
+    track_save$saveData <- input$saveData
   })
   
   observeEvent(input$saveDataNewVars, {
