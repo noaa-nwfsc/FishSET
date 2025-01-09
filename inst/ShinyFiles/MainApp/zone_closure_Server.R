@@ -14,9 +14,6 @@ zone_closure_sideServer <- function(id, project, spatdat){
                     choices = unique(names(spatdat)))
         
       })
-      
-      
-      
     }
   )
 }
@@ -31,20 +28,15 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
       
       mod_zones <- reactiveValues(data = NULL)
       
-      
-      
       observeEvent(input$select_zone_cat, {
-        
 
         req(project)
-
 
         if(!is.null(model_out_view(project))){
           mod_output <- unserialize_table(paste0(project,"ModelOut"), project)
           mod_zones$data <- list()
           mod_zones$data <- lapply(1:length(mod_output), function(x){rbind(mod_zones$data,unique(mod_output[[x]]$choice.table$choice))})
           mod_zones$data <- unique(unlist(mod_zones$data))
-
 
         }else if(length(mod_zones$data) == 0){
           showNotification("WARNING: no zones found in model output", type = "warning", duration = 60)
@@ -54,9 +46,6 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
           mod_zones$data <- NULL
         }
         return(mod_zones$data)
-          
-       
-
       })
 
       zone_df <- reactive({
@@ -70,9 +59,6 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
         
       })
      
-      
-      
-      
 output$zmap <- leaflet::renderLeaflet({
   
   leaflet::leaflet() %>%
@@ -122,37 +108,19 @@ output$zmap <- leaflet::renderLeaflet({
           
           leaflet::leafletProxy(mapId = "zmap") %>%
             leaflet::addProviderTiles("OpenStreetMap") 
-          # leaflet::addPolygons(data = zone_df(),
-            #                      fillColor = "white",
-            #                      fillOpacity = 0.5,
-            #                      color = "black",
-            #                      stroke = TRUE,
-            #                      weight = 1,
-            #                      layerId = ~secondLocationID,
-            #                      group = "regions",
-            #                      label = ~secondLocationID)
         }
-        
-        
-        
       })
       
-   # })
-      
       observeEvent(input$zmap_shape_click, {
-        
-
+    
         # create object for clicked polygon
         click <- input$zmap_shape_click
         
         req(click$id)
         
-        
-        
         temp_dat <- zone_df()
         z_id <- "zone"
         sec_id <- "secondLocationID"
-        #  }
         
         #define leaflet proxy for second regional level map
         proxy <- leaflet::leafletProxy("zmap")
