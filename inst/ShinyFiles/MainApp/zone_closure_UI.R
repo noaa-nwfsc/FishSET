@@ -1,6 +1,5 @@
 # zone closure module UI code - sidebar, map, and table
 
-
 ### sidebar zone closure UI
 zone_closure_sidebarUI <- function(id){
   ns <- NS(id)
@@ -11,7 +10,6 @@ zone_closure_sidebarUI <- function(id){
     textInput(ns('scenarioname'), 'Scenario Name', value=''),
     actionButton(ns('addClose'), 'Add closure',
                  class = "btn-primary")
-    
   )
 }
 

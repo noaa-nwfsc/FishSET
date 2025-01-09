@@ -29,25 +29,30 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
       
       observeEvent(input$select_zone_cat, {
         
-        
-        
         req(project)
-
-        if(!is.null(model_out_view(project))){
-          mod_output <- unserialize_table(paste0(project,"ModelOut"), project)
-          mod_zones$data <- list()
-          mod_zones$data <- lapply(1:length(mod_output), function(x){rbind(mod_zones$data,unique(mod_output[[x]]$choice.table$choice))})
-          mod_zones$data <- unique(unlist(mod_zones$data))
-
-        } else if(length(mod_zones$data) == 0){
-          showNotification("WARNING: no zones found in model output", type = "warning", duration = 60)
-          mod_zones$data <- NULL
-          
-        } else {
-          # do nothing
-          mod_zones$data <- NULL
-          
-        }
+        
+        tryCatch({
+          if(!is.null(model_out_view(project))){
+            mod_output <- unserialize_table(paste0(project,"ModelOut"), project)
+            mod_zones$data <- list()
+            mod_zones$data <- lapply(1:length(mod_output), function(x){rbind(mod_zones$data,unique(mod_output[[x]]$choice.table$choice))})
+            mod_zones$data <- unique(unlist(mod_zones$data))
+            
+          } else if(length(mod_zones$data) == 0){
+            showNotification("WARNING: no zones found in model output", type = "warning", duration = 60)
+            mod_zones$data <- NULL
+            
+          } else {
+            # do nothing
+            mod_zones$data <- NULL
+            
+          }
+        }, error = function(e){
+          showNotification(paste0("Model output table not found for project ", project), 
+                           type = "error", duration = 60)
+        })
+        
+        
         
         return(mod_zones$data)
       })
