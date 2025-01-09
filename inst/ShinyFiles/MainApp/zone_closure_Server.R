@@ -8,7 +8,6 @@ zone_closure_sideServer <- function(id, project, spatdat){
       
       ns <- session$ns
       
-      
       output$zone_closure_cat <- renderUI({
         selectInput(ns("select_zone_cat"), "Select zone ID from spatial data",
                     choices = unique(names(spatdat)))
@@ -29,7 +28,9 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
       mod_zones <- reactiveValues(data = NULL)
       
       observeEvent(input$select_zone_cat, {
-
+        
+        
+        
         req(project)
 
         if(!is.null(model_out_view(project))){
@@ -38,16 +39,19 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
           mod_zones$data <- lapply(1:length(mod_output), function(x){rbind(mod_zones$data,unique(mod_output[[x]]$choice.table$choice))})
           mod_zones$data <- unique(unlist(mod_zones$data))
 
-        }else if(length(mod_zones$data) == 0){
+        } else if(length(mod_zones$data) == 0){
           showNotification("WARNING: no zones found in model output", type = "warning", duration = 60)
           mod_zones$data <- NULL
+          
         } else {
           # do nothing
           mod_zones$data <- NULL
+          
         }
+        
         return(mod_zones$data)
       })
-
+      
       zone_df <- reactive({
         req(input$select_zone_cat)
         req(input$zoneplot)
