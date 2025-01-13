@@ -52,8 +52,6 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
                            type = "error", duration = 60)
         })
         
-        
-        
         return(mod_zones$data)
       })
       
@@ -61,67 +59,74 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
         req(input$select_zone_cat)
         req(input$zoneplot)
         
-          spatdat %>%
-            sf::st_transform(., "+proj=longlat +datum=WGS84") %>%
-            mutate(secondLocationID = paste0("Zone_", as.character(spatdat[[input$select_zone_cat]]))) %>%
-            mutate(zone = as.character(spatdat[[input$select_zone_cat]])) 
-        
+        spatdat %>%
+          sf::st_transform(., "+proj=longlat +datum=WGS84") %>%
+          mutate(secondLocationID = paste0("Zone_", as.character(spatdat[[input$select_zone_cat]]))) %>%
+          mutate(zone = as.character(spatdat[[input$select_zone_cat]])) 
       })
-     
-output$zmap <- leaflet::renderLeaflet({
-  
-  leaflet::leaflet() %>%
-   leaflet::addProviderTiles("OpenStreetMap") 
-  })
       
-  observeEvent(input$zoneplot, {
+      output$zmap <- leaflet::renderLeaflet({
+        leaflet::leaflet() %>%
+          leaflet::addProviderTiles("OpenStreetMap") 
+      })
+      
+      observeEvent(input$zoneplot, {
         req(input$select_zone_cat)
         req(zone_df())
-
-        showNotification("Map rendering and may take a few moments", type = "default", duration = 60)
-        # Generate map
-        if(any(!is_empty(mod_zones$data))) {
+        
+        # Check that zone ID selected is valid
+        if(!(all(mod_zones$data %in% spatdat[[input$select_zone_cat]]))){
+          showNotification("Invalid zone ID input. Could not find model output zones in selected variable.", 
+                           type = "error", duration = 60)
           
-          ## set map size
-          coords <- sf::st_coordinates(zone_df()$geometry)
-          lng <- mean(coords[,1])
-          lat <- mean(coords[,2])
+        } else {
+          showNotification("Map rendering and may take a few moments", type = "default", duration = 60)
           
-          tmp_spat_mod <- zone_df() %>%
-            mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
+          # Generate map
+          if(any(!is_empty(mod_zones$data))) {
+            
+            ## set map size
+            coords <- sf::st_coordinates(zone_df()$geometry)
+            lng <- mean(coords[,1])
+            lat <- mean(coords[,2])
+            
+            tmp_spat_mod <- zone_df() %>%
+              mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
+            
+            leaflet::leafletProxy(mapId = "zmap") %>%
+              leaflet::addTiles() %>%
+              leaflet::setView(lng, lat, zoom = 3) %>% 
+              leaflet::addPolygons(data =  tmp_spat_mod,
+                                   fillColor = "white",
+                                   fillOpacity = 0.5,
+                                   color = "black",
+                                   stroke = TRUE,
+                                   weight = 1,
+                                   layerId = ~secondLocationID,
+                                   group = "regions",
+                                   label = ~secondLocationID) %>% 
+              leaflet::addPolygons(data = (tmp_spat_mod %>% filter(display == 1)),
+                                   fillColor = "#FFC107",
+                                   fillOpacity = 0.5,
+                                   color = "#FFC107",
+                                   stroke = TRUE,
+                                   weight = 1,
+                                   layerId = ~secondLocationID,
+                                   group = "regions",
+                                   label = ~secondLocationID)
+            
+            #  else plot without model zones
+          } else if(any(is_empty(mod_zones$data))){
+            
+            leaflet::leafletProxy(mapId = "zmap") %>%
+              leaflet::addProviderTiles("OpenStreetMap") 
+          }
           
-          leaflet::leafletProxy(mapId = "zmap") %>%
-            leaflet::addTiles() %>%
-            leaflet::setView(lng, lat, zoom = 3) %>% 
-            leaflet::addPolygons(data =  tmp_spat_mod,
-                                 fillColor = "white",
-                                 fillOpacity = 0.5,
-                                 color = "black",
-                                 stroke = TRUE,
-                                 weight = 1,
-                                 layerId = ~secondLocationID,
-                                 group = "regions",
-                                 label = ~secondLocationID) %>% 
-            leaflet::addPolygons(data = (tmp_spat_mod %>% filter(display == 1)),
-                                 fillColor = "#FFC107",
-                                 fillOpacity = 0.5,
-                                 color = "#FFC107",
-                                 stroke = TRUE,
-                                 weight = 1,
-                                 layerId = ~secondLocationID,
-                                 group = "regions",
-                                 label = ~secondLocationID)
-          
-          #  else plot without model zones
-        } else if(any(is_empty(mod_zones$data))){
-          
-          leaflet::leafletProxy(mapId = "zmap") %>%
-            leaflet::addProviderTiles("OpenStreetMap") 
         }
       })
       
       observeEvent(input$zmap_shape_click, {
-    
+        
         # create object for clicked polygon
         click <- input$zmap_shape_click
         
@@ -165,7 +170,7 @@ output$zmap <- leaflet::renderLeaflet({
                                          layerId = clicked_polys[[z_id]])
           
         }
-
+        
         
       })
       
@@ -220,7 +225,7 @@ output$zmap <- leaflet::renderLeaflet({
       output$closureVTO2 <- renderPrint({
         rv$saved <- get_closure_scenario(project)
         rev(rv$saved)
-        })
+      })
       
       # save ----
       observeEvent(input$saveClose, {
@@ -268,7 +273,7 @@ output$zmap <- leaflet::renderLeaflet({
       # edit closure ----
       
       observeEvent(input$editClose, {
-
+        
         showModal(
           modalDialog(title = "Edit or delete closure scenario",
                       
