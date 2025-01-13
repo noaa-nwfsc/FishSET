@@ -121,8 +121,10 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
             leaflet::leafletProxy(mapId = "zmap") %>%
               leaflet::addProviderTiles("OpenStreetMap") 
           }
-          
         }
+        
+        # Updating the input helps by refreshing map if users click the plot zones button before running models
+        shiny::updateSelectInput(session, "select_zone_cat", selected = unique(names(spatdat))[1])
       })
       
       observeEvent(input$zmap_shape_click, {
