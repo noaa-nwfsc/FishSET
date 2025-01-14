@@ -26,7 +26,7 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
       ns <- session$ns
       
       mod_zones <- reactiveValues(data = NULL)
-
+      
       zone_df <- reactive({
         req(input$select_zone_cat)
         req(input$zoneplot)
@@ -66,12 +66,12 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
           showNotification(paste0("Model output table not found for project ", project),
                            type = "error", duration = 60)
         })
-    
+        
         # Check that mode_zones$data is not null
         if(is.null(mod_zones$data)){
           # I think do nothing here because this will be captured by the tryCatch above
           
-        # Check that zone ID selected is valid
+          # Check that zone ID selected is valid
         } else if(!(all(mod_zones$data %in% spatdat[[input$select_zone_cat]]))){ 
           showNotification("Invalid zone ID input. Could not find model output zones in selected variable.", 
                            type = "error", duration = 60)
@@ -194,16 +194,12 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
         req(input$scenarioname)
         req(pass)
         
-        #  close_nm <- if (input$mode == "normal") NULL else close_nm
-        
         closures$dList <- c(closures$dList,
                             list(c(list(scenario = input$scenarioname),
                                    list(date = as.character(Sys.Date())),
                                    list(zone = clicked_ids$ids),
                                    list(tac = V$data$`% allowable TAC`),
                                    list(grid_name = grid_nm)
-                                   # list(closure_name = add_close(NULL, input$mode)),
-                                   #  list(combined_areas = rv$combined_areas)
                             )))
       })
       
@@ -222,14 +218,14 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
       
       # save ----
       observeEvent(input$saveClose, {
-
+        
         if (!isTruthy(closures$dList)) {
           
           showNotification("Add a scenario", type = "error", duration = 60)
         }
         
         req(closures$dList)
- 
+        
         # update closure list w/ new grid names
         g_info <- get_grid_log(project)
         
