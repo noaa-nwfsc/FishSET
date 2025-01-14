@@ -18,49 +18,15 @@ zone_closure_sideServer <- function(id, project, spatdat){
 }
 
 ### map and selected points zone closure server
-zone_closure_mapServer <- function(id, project, spatdat, mod_zones, clicked_ids, V, closures, rv){
+zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closures, rv){
   moduleServer(
     id,
     function(input, output, session){
       
       ns <- session$ns
       
-      test <- reactive({
-        cat(file = stderr(), "\n", str(mod_zones()), "\n")
-        
-        mod_zones()
-      })
-      
-      # mod_zones <- reactiveValues(data = NULL)
-      # 
-      # observeEvent(input$select_zone_cat, {
-      #   
-      #   req(project)
-      #   
-      #   tryCatch({
-      #     if(!is.null(model_out_view(project))){
-      #       mod_output <- unserialize_table(paste0(project,"ModelOut"), project)
-      #       mod_zones$data <- list()
-      #       mod_zones$data <- lapply(1:length(mod_output), function(x){rbind(mod_zones$data,unique(mod_output[[x]]$choice.table$choice))})
-      #       mod_zones$data <- unique(unlist(mod_zones$data))
-      #       
-      #     } else if(length(mod_zones$data) == 0){
-      #       showNotification("WARNING: no zones found in model output", type = "warning", duration = 60)
-      #       mod_zones$data <- NULL
-      #       
-      #     } else {
-      #       # do nothing
-      #       mod_zones$data <- NULL
-      #       
-      #     }
-      #   }, error = function(e){
-      #     showNotification(paste0("Model output table not found for project ", project), 
-      #                      type = "error", duration = 60)
-      #   })
-      #   
-      #   return(mod_zones$data)
-      # })
-      
+      mod_zones <- reactiveValues(data = NULL)
+
       zone_df <- reactive({
         req(input$select_zone_cat)
         req(input$zoneplot)
@@ -77,16 +43,36 @@ zone_closure_mapServer <- function(id, project, spatdat, mod_zones, clicked_ids,
       })
       
       observeEvent(input$zoneplot, {
-        req(input$select_zone_cat)
-        req(zone_df())
+        
+        req(project)
+        
+        tryCatch({
+          if(!is.null(model_out_view(project))){
+            mod_output <- unserialize_table(paste0(project,"ModelOut"), project)
+            mod_zones$data <- list()
+            mod_zones$data <- lapply(1:length(mod_output), function(x){rbind(mod_zones$data,unique(mod_output[[x]]$choice.table$choice))})
+            mod_zones$data <- unique(unlist(mod_zones$data))
+            
+          } else if(length(mod_zones$data) == 0){
+            showNotification("WARNING: no zones found in model output", type = "warning", duration = 60)
+            mod_zones$data <- NULL
+            
+          } else {
+            # do nothing
+            mod_zones$data <- NULL
+            
+          }
+        }, error = function(e){
+          showNotification(paste0("Model output table not found for project ", project),
+                           type = "error", duration = 60)
+        })
     
         # Check that mode_zones$data is not null
-        if(is.null(mod_zones)){
-          showNotification(paste0("Model output not found for project ", project), 
-                           type = "error", duration = 60)
+        if(is.null(mod_zones$data)){
+          # I think do nothing here because this will be captured by the tryCatch above
           
         # Check that zone ID selected is valid
-        } else if(!(all(mod_zones %in% spatdat[[input$select_zone_cat]]))){ 
+        } else if(!(all(mod_zones$data %in% spatdat[[input$select_zone_cat]]))){ 
           showNotification("Invalid zone ID input. Could not find model output zones in selected variable.", 
                            type = "error", duration = 60)
           
@@ -94,7 +80,7 @@ zone_closure_mapServer <- function(id, project, spatdat, mod_zones, clicked_ids,
           showNotification("Map rendering and may take a few moments", type = "default", duration = 60)
           
           # Generate map
-          if(any(!is_empty(mod_zones))) {
+          if(any(!is_empty(mod_zones$data))) {
             
             ## set map size
             coords <- sf::st_coordinates(zone_df()$geometry)
@@ -102,7 +88,7 @@ zone_closure_mapServer <- function(id, project, spatdat, mod_zones, clicked_ids,
             lat <- mean(coords[,2])
             
             tmp_spat_mod <- zone_df() %>%
-              mutate(display = ifelse(zone %in% mod_zones, 1, 0))
+              mutate(display = ifelse(zone %in% mod_zones$data, 1, 0))
             
             leaflet::leafletProxy(mapId = "zmap") %>%
               leaflet::addTiles() %>%
@@ -127,15 +113,12 @@ zone_closure_mapServer <- function(id, project, spatdat, mod_zones, clicked_ids,
                                    label = ~secondLocationID)
             
             #  else plot without model zones
-          } else if(any(is_empty(mod_zones))){
+          } else if(any(is_empty(mod_zones$data))){
             
             leaflet::leafletProxy(mapId = "zmap") %>%
               leaflet::addProviderTiles("OpenStreetMap") 
           }
         }
-        
-        # Updating the input helps by refreshing map if users click the plot zones button before running models
-        shiny::updateSelectInput(session, "select_zone_cat", selected = unique(names(spatdat))[1])
       })
       
       observeEvent(input$zmap_shape_click, {
@@ -181,10 +164,7 @@ zone_closure_mapServer <- function(id, project, spatdat, mod_zones, clicked_ids,
                                          color = "black",
                                          stroke = TRUE,
                                          layerId = clicked_polys[[z_id]])
-          
         }
-        
-        
       })
       
       # add closure ----
@@ -242,20 +222,14 @@ zone_closure_mapServer <- function(id, project, spatdat, mod_zones, clicked_ids,
       
       # save ----
       observeEvent(input$saveClose, {
-        
-        
-        
-        
+
         if (!isTruthy(closures$dList)) {
           
           showNotification("Add a scenario", type = "error", duration = 60)
         }
         
         req(closures$dList)
-        
-        
-        
-        
+ 
         # update closure list w/ new grid names
         g_info <- get_grid_log(project)
         
@@ -322,8 +296,6 @@ zone_closure_mapServer <- function(id, project, spatdat, mod_zones, clicked_ids,
         yaml::write_yaml(rv$edit, filename)
         
         rv$saved <- get_closure_scenario(project)
-        
-        
       })
     }
   )
