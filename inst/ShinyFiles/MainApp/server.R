@@ -6594,7 +6594,6 @@ server = function(input, output, session) {
       dev_val <- NULL
     }
     
-    
     removeModal()
     
     input_list <- reactiveValuesToList(input)
@@ -7888,21 +7887,44 @@ server = function(input, output, session) {
   clicked_ids <- reactiveValues(ids = vector())
   closures <- reactiveValues()
   rv <- reactiveValues(edit = NULL)
+  mod_zones <- reactiveValues(data = NULL)
+  
+  observeEvent(req(input$tabs == "Zone Closure"), {
+    tryCatch({
+      if(!is.null(model_out_view(project$name))){
+        mod_output <- unserialize_table(paste0(project$name,"ModelOut"), project$name)
+        mod_zones$data <- list()
+        mod_zones$data <- lapply(1:length(mod_output), function(x){rbind(mod_zones$data,unique(mod_output[[x]]$choice.table$choice))})
+        mod_zones$data <- unique(unlist(mod_zones$data))
+        
+      } else if(length(mod_zones$data) == 0){
+        showNotification("WARNING: no zones found in model output", type = "warning", duration = 60)
+        mod_zones$data <- NULL
+        
+      } else {
+        # do nothing
+        mod_zones$data <- NULL
+        
+      }
+    }, error = function(e){
+      showNotification(paste0("Model output table not found for project ", project$name), 
+                       type = "error", duration = 60)
+    })
+  })
+  
+  mod_reactive <- reactive({
+    mod_zones()
+  })
   
   zone_closure_sideServer("policy", project = project$name, spatdat = spatdat$dataset)
 
-  zone_closure_mapServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V, closures, rv)
+  zone_closure_mapServer("policy", project = project$name, spatdat = spatdat$dataset, mod_zones = mod_reactive, clicked_ids, V, closures, rv)
   
-  zone_closure_tblServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V)
+  zone_closure_tblServer("policy", project = project$name, spatdat = spatdat$dataset, clicked_ids, V)
   
-
-
-
-
 # run_policy ------
 
   pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset)
   pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
 
-  
 }
