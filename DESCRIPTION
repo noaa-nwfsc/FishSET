@@ -75,7 +75,6 @@ Imports:
     shiny (>= 1.7.4),
     shinycssloaders,
     shinyjs,
-    shinyWidgets,
     spdep,
     stats,
     stringi,
