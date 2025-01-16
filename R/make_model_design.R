@@ -281,12 +281,16 @@ make_model_design <-
     port <- pt$dataset # used in create_distance_matrix()
   }, error = function(cond){
     message("Port table not used.")
-  }
-  )
+  })
   
   # check args ----
   
-  if (likelihood == "logit_c") {
+  # Expected catch input != NULL will generate errors when running models
+  if(likelihood == "logit_zonal" && !is.null(expectcatchmodels)){
+    stop("Expected catch input must be NULL for zonal logit models")
+  }
+  
+  if(likelihood == "logit_c") {
     
     column_check(dataset, c(catchID, vars1, priceCol, startloc))
     
@@ -300,7 +304,6 @@ make_model_design <-
     
     column_check(dataset, c(catchID, vars1, vars2, priceCol, startloc))
   }
-  
   
   ll_funs <- c("logit_c", "logit_zonal", "logit_correction", "epm_normal", 
                "epm_lognormal", "epm_weibull")
