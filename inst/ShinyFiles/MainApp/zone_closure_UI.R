@@ -1,35 +1,32 @@
 # zone closure module UI code - sidebar, map, and table
 
-
 ### sidebar zone closure UI
 zone_closure_sidebarUI <- function(id){
-     ns <- NS(id)
+  ns <- NS(id)
   tagList(
-       uiOutput(ns("zone_closure_cat")),
-      actionButton(ns('zoneplot'), "Plot zones",
+    uiOutput(ns("zone_closure_cat")),
+    actionButton(ns('zoneplot'), "Plot zones",
                  class = "btn-primary"),
-       textInput(ns('scenarioname'), 'Scenario Name', value=''),
-       actionButton(ns('addClose'), 'Add closure',
-                    class = "btn-primary")
-
-)
+    textInput(ns('scenarioname'), 'Scenario Name', value=''),
+    actionButton(ns('addClose'), 'Add closure',
+                 class = "btn-primary")
+  )
 }
 
 ### map and selected points zone closure UI
 
 zone_closure_mapUI <- function(id){
   ns <- NS(id)
-
+  
   tagList(
-       bslib::card(
-       height = 650,
-       full_screen = TRUE,
-       shinycssloaders::withSpinner(
-     leaflet::leafletOutput(ns("zmap"), height = 600), 
-                                    type = 6)
-        )
- )
-     
+    bslib::card(
+      height = 650,
+      full_screen = TRUE,
+      shinycssloaders::withSpinner(
+        leaflet::leafletOutput(ns("zmap"), height = 600), 
+        type = 6)
+    )
+  )
 }
 
 ### table and closure viewer boxes zone closure UI
