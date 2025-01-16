@@ -6599,7 +6599,6 @@ server = function(input, output, session) {
       dev_val <- NULL
     }
     
-    
     removeModal()
     
     input_list <- reactiveValuesToList(input)
@@ -7887,7 +7886,6 @@ server = function(input, output, session) {
     servr::daemon_stop()
   }) 
   
-  
   # policy -----
   
   ### create reactive data frame 
@@ -7895,21 +7893,17 @@ server = function(input, output, session) {
   clicked_ids <- reactiveValues(ids = vector())
   closures <- reactiveValues()
   rv <- reactiveValues(edit = NULL)
+
+  zone_closure_mapServer("policy", project = project$name, spatdat = spatdat$dataset, clicked_ids, V, closures, rv)
   
   zone_closure_sideServer("policy", project = project$name, spatdat = spatdat$dataset)
 
-  zone_closure_mapServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V, closures, rv)
+  zone_closure_tblServer("policy", project = project$name, spatdat = spatdat$dataset, clicked_ids, V)
   
-  zone_closure_tblServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V)
-  
-
-
-
-
-# run_policy ------
+  # run_policy ------
 
   pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset)
-  pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
-
   
+  pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset)
+
 }
