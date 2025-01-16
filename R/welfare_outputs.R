@@ -38,12 +38,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   ##
   # Load, filter, format primary data ----
   ##
-  if (shiny::isRunning()) {
-    dat <- table_view(paste0(project,"MainDataTable_final"), project)
-    
-    } else {
-   dat <- get(paste0(project,"MainDataTable"))
-  }
+ 
 
   # Creat connection to database
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
@@ -57,10 +52,22 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
     stop("Model design file was not found for", mod.name)
   }
 
-  x_new <- x_temp[[which(sapply(x_temp , "[[" , "mod.name") == mod.name)]]
-
+  outputs_welf <- list()
+  
+  for (ii in seq_along(mod.name)) { 
+    
+    if (shiny::isRunning()) {
+      dat <- table_view(paste0(project,"MainDataTable_final"), project)
+      
+    } else {
+      dat <- get(paste0(project,"MainDataTable"))
+    }
+    
+    x_new <- x_temp[[which(sapply(x_temp, function(x) x[["mod.name"]]) == mod.name[ii])]]
+    
   # Save zones in the model
   zones <- unique(x_new$choice)$choice
+  
 
   if(!is.null(group_var)){
     # Filter primary data table for zones in the model and grouping variables
@@ -107,11 +114,13 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   # Gather data into long format
   welfare_long <- welfare %>%
     dplyr::rename_with(~scenario_names, (names(welfare)[1:length(closures)])) %>% #rename scenarios
-    tidyr::pivot_longer(cols = 1:length(closures), names_to = c("Scenario"), values_to = "welfare_change")
+    tidyr::pivot_longer(cols = 1:length(closures), names_to = c("Scenario"), values_to = "welfare_change") %>% 
+    mutate(mod.name = mod.name[[ii]])
 
   prc_welfare_long <- prc_welfare %>%
     dplyr::rename_with(~scenario_names, (names(prc_welfare)[1:length(closures)])) %>% #rename scenarios
-    tidyr::pivot_longer(cols = 1:length(closures), names_to = c("Scenario"), values_to = "welfare_change")
+    tidyr::pivot_longer(cols = 1:length(closures), names_to = c("Scenario"), values_to = "welfare_change")%>% 
+    mutate(mod.name = mod.name[[ii]])
 
   
   ##
@@ -119,14 +128,14 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   ##
   if(is.null(group_var)){ # summarize across closure scenarios
     welfare_summ <- welfare_long %>%
-      dplyr::group_by(Scenario) %>%
+      dplyr::group_by(Scenario, mod.name) %>%
       dplyr::summarise(mean = round(mean(welfare_change),2),
                 q = list(round(quantile(welfare_change, probs = c(0.025,0.05,0.5,0.95,0.975), na.rm = TRUE),2))) %>%
       tidyr::unnest_wider(q) %>%
       dplyr::ungroup()
 
     prc_welfare_summ <- prc_welfare_long %>%
-      dplyr::group_by(Scenario) %>%
+      dplyr::group_by(Scenario, mod.name) %>%
       dplyr::summarise(mean = round(mean(welfare_change),2),
                        q = list(round(quantile(welfare_change, probs = c(0.025,0.05,0.5,0.95,0.975), na.rm = TRUE),2))) %>%
       tidyr::unnest_wider(q) %>%
@@ -135,14 +144,14 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
 
   } else { # summarize across scenarios and grouping variable
     welfare_summ <- welfare_long %>%
-      dplyr::group_by(Scenario, !!sym(group_var)) %>%
+      dplyr::group_by(Scenario, !!sym(group_var), mod.name) %>%
       dplyr::summarise(mean =round(mean(welfare_change),2),
                        q = list(round(quantile(welfare_change, probs = c(0.025,0.05,0.5,0.95,0.975), na.rm = TRUE),2))) %>%
       tidyr::unnest_wider(q) %>%
       dplyr::ungroup()
 
     prc_welfare_summ <- prc_welfare_long %>%
-      dplyr::group_by(Scenario, !!sym(group_var)) %>%
+      dplyr::group_by(Scenario, !!sym(group_var), mod.name) %>%
       dplyr::summarise(mean = round(mean(welfare_change),2),
                        q = list(round(quantile(welfare_change, probs = c(0.025,0.05,0.5,0.95,0.975), na.rm = TRUE),2))) %>%
       tidyr::unnest_wider(q) %>%
@@ -151,7 +160,8 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
 
   # 
   # Create a supplementary info table
-  welfare_details <- data.frame(Scenarios = scenario_names,
+  welfare_details <- data.frame(mod.name = mod.name[[ii]],
+                                Scenarios = scenario_names,
                                 num_trips = nrow(welfare)/betadraws,
                                 mean_loss_per_trip = as.vector(welfare_long %>%
                                                                  dplyr::group_by(Scenario) %>%
@@ -174,6 +184,8 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
       geom_bar(data = welfare_summ, aes(x = Scenario, y = mean, fill = Scenario), stat = "identity") +
       geom_point(data = welfare_summ, aes(x = Scenario, y = `50%`), size = 2) +
       geom_errorbar(data = welfare_summ, aes(x = Scenario, ymin = `97.5%`, ymax = `2.5%`), width = 1) +
+      facet_wrap(~mod.name)+
+      
       labs(x = "Policy scanarios", y = "Welfare loss[-]/gain[+] ($)") +
       theme_classic() +
       scale_fill_viridis_d() +
@@ -186,6 +198,8 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
       geom_bar(stat = "identity", position = "dodge") +
       geom_point(aes(y = `50%`), size = 2, position = position_dodge(width=0.9)) +
       geom_errorbar(width = nrow(welfare_summ)/15, position = position_dodge(width=0.9)) +
+      facet_wrap(~mod.name)+
+      
       labs(x = "Policy scanarios", y = "Welfare loss[-]/gain[+] ($)") +
       theme_classic() +
       geom_hline(yintercept = 0) +
@@ -215,6 +229,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
       geom_bar(data = prc_welfare_summ, aes(x = Scenario, y = mean, fill = Scenario), stat = "identity") +
       geom_point(data = prc_welfare_summ, aes(x = Scenario, y = `50%`)) +
       geom_errorbar(data = prc_welfare_summ, aes(x = Scenario, ymin = `97.5%`, ymax = `2.5%`), width = 1) +
+      facet_wrap(~mod.name)+
       labs(x = "Policy scanarios", y = "Welfare loss[-]/gain[+] (%)") +
       theme_classic() +
       scale_fill_viridis_d() +
@@ -228,6 +243,8 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
       geom_point(aes(y = `50%`), size = 2, position = position_dodge(width=0.9)) +
       geom_errorbar(width = nrow(prc_welfare_summ)/15, position = position_dodge(width=0.9)) +
       labs(x = "Policy scanarios", y = "Welfare loss[-]/gain[+] (%)") +
+      facet_wrap(~mod.name)+
+      
       theme_classic() +
       geom_hline(yintercept = 0) +
       scale_fill_viridis_d()
@@ -247,8 +264,10 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   }
 
   # Return list of plots and tables (dataframes)
-  return(list(p1, p2, welfare_summ, prc_welfare_summ, welfare_details))
+  outputs_welf[[ii]] <- list(mod.name[[ii]], p1, p2, welfare_summ, prc_welfare_summ, welfare_details)
+  }
   
+  return(outputs_welf)
 }
 
 

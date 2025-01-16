@@ -5,6 +5,8 @@ run_policyUI <- function(id){
   
   tagList(
       uiOutput(ns("policy_select_mod")),
+      uiOutput(ns("dynamic_selects")),  # Placeholder for dynamic selectInputs
+      
       uiOutput(ns("run_pol_sel_scen")),
   add_prompter(
     numericInput(ns("pol_betadraws"), "Betadraws", value = 1000),
@@ -96,26 +98,27 @@ welfare_outputsUI <- function(id){
                            bslib::card(
                              full_screen = TRUE,
                              bslib::card_header(strong("Welfare loss/gain for all scenarios as dollars"), class = "bg-info"), 
-                             bslib::card_body(shinycssloaders::withSpinner(plotly::plotlyOutput(ns('welfare_plot_dol'))
-                                                                           ,type = 6), 
-                                               shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_dol"))
-                                                                            ,type = 6)
+                             bslib::card_body(#shinycssloaders::withSpinner(plotly::plotlyOutput(
+                               verbatimTextOutput( ns('welfare_plot_dol'))
+                                                                           #,type = 6), 
+                                               #shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_dol"))
+                                                                           # ,type = 6)
                                               )
                            ),
-                           bslib::card(
-                             full_screen = TRUE,
-                             bslib::card_header(strong("Welfare loss/gain for all scenarios as percentage"), class = "bg-info"),
-                             bslib::card_body(shinycssloaders::withSpinner(plotly::plotlyOutput(ns('welfare_plot_prc'))
-                                                                           ,type = 6),
-                                              shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_prc"))
-                                                                           ,type = 6))
-                           )),
-                           bslib::card(
-                             full_screen = TRUE,
-                             bslib::card_header(strong("Supplementary information table"), class = "bg-info"),
-                             bslib::card_body(shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_details"))
-                                                                           ,type = 6))
-                            )
+                           # bslib::card(
+                           #   full_screen = TRUE,
+                           #   bslib::card_header(strong("Welfare loss/gain for all scenarios as percentage"), class = "bg-info"),
+                           #   bslib::card_body(shinycssloaders::withSpinner(plotly::plotlyOutput(ns('welfare_plot_prc'))
+                           #                                                 ,type = 6),
+                           #                    shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_prc"))
+                           #                                                 ,type = 6))
+                           # )),
+                           # bslib::card(
+                           #   full_screen = TRUE,
+                           #   bslib::card_header(strong("Supplementary information table"), class = "bg-info"),
+                           #   bslib::card_body(shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_details"))
+                           #                                                 ,type = 6))
+                             )
 
                          
   )

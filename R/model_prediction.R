@@ -35,12 +35,21 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL, u
     stop("Model design file was not found for", mod.name)
   }
   
-  x_new <- x_temp[[which(sapply(x_temp , "[[" , "mod.name") == mod.name)]]
+
+  
+  for (ii in seq_along(mod.name)) { 
+    
+  x_new <- x_temp[[which(sapply(x_temp, function(x) x[["mod.name"]]) == mod.name[ii])]]
+  
+  
+
   
   # 2. Create data matrix ----
   choice_raw <- x_new[["choice"]]
   zoneID <- sort(unique(choice_raw)[,1])
   alts <- length(zoneID)
+  
+  
   
   # Extra code for EPM models later on...
   # dataCompile <- mod.dat$dataCompile
@@ -96,7 +105,7 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL, u
       InOutLogit <- matrix(0,length(tacAllowedAllTime), 2) # sum of probabilities in and out of closures
       
       # Run logit model prediction
-      temp <- logit_predict(project = project, mod.name = mod.name, use.scalers = use.scalers, scaler.func = scaler.func) 
+      temp <- logit_predict(project = project, mod.name = mod.name[ii], use.scalers = use.scalers, scaler.func = scaler.func) 
       probLogit <- temp[[1]] # Predicted probabilities of selecting each zone
       modelDat <- temp[[2]] # Model data
       
@@ -130,7 +139,7 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL, u
         }
       }
       
-      predict[[length(predict)+1]] <- list(scenario.name = paste(mod.name, scenarioname), InOut=InOutLogit, prob=ProbL, 
+      predict[[length(predict)+1]] <- list(scenario.name = paste(mod.name[ii], scenarioname), InOut=InOutLogit, prob=ProbL, 
                                            time='nameAllTime', type='Logit', tac=tac, 
                                            zoneID=zoneID, zoneIdIn=zoneIdIn, zoneIdOut=zoneIdOut,
                                            modelDat=modelDat)
@@ -160,7 +169,7 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL, u
       InOutepm_base <- matrix(0,length(tacAllowedAllTime), 2) # sum of probabilities in and out of closures
       
       # Run logit model prediction
-      temp <- epm_predict(project = project, mod.name = mod.name, mod.type = x_new$likelihood, use.scalers = use.scalers, scaler.func = scaler.func) 
+      temp <- epm_predict(project = project, mod.name = mod.name[ii], mod.type = x_new$likelihood, use.scalers = use.scalers, scaler.func = scaler.func) 
       probepm <- temp[[1]] # Predicted probabilities of selecting each zone
       modelDat <- temp[[2]] # Model data
       
@@ -232,13 +241,14 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL, u
       #   
       # } #end t loop
       
-      predict[[length(predict)+1]] <- list(scenario.name = paste(mod.name, scenarioname), InOut=InOutepm, prob=ProbE, 
+      predict[[length(predict)+1]] <- list(scenario.name = paste(mod.name[ii], scenarioname), InOut=InOutepm, prob=ProbE, 
                                            time='nameAllTime', type=x_new$likelihood, tac=tac, 
                                            zoneID=zoneID, zoneIdIn=zoneIdIn, zoneIdOut=zoneIdOut,
                                            modelDat=modelDat)
       
     } #end epm loop
   } #end closure loop
+  
   
   # Write to FishSET database
   predOut_nm <- paste0(project, "predictOutput")
@@ -283,4 +293,5 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL, u
   # DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:PredictOutput)"),
   #                params = list(PredictOutput = list(serialize(pOutput, NULL))))
   
+  }
 }

@@ -275,11 +275,20 @@ make_model_design(project = "scallopMod",
                   initparams = c(0, 0),
                   vars1 = NULL,
                   vars2 = NULL,
-                  mod.name = 'lz', 
+                  mod.name = 'mod1', 
                   expectcatchmodels = list('individual')
                   )
 ```
+```{r}
+make_model_design(project = "scallopMod",
+                  catchID = "LANDED_thousands",
+                  likelihood = "logit_c",
+                  vars1=NULL, vars2=NULL, initparams=c(-0.5,0.5),
 
+                  mod.name = 'mod2',
+                  expectcatchmodels = list('individual')
+                  )
+```
 <br>
 <br>
 
@@ -289,7 +298,7 @@ Use `discretefish_subroutine()` to run all models in the model design
 file.
 
 ```{r}
-discretefish_subroutine(project = "scallopMod", explorestarts = FALSE)
+discretefish_subroutine(project = "scallopMod", run = "all", explorestarts = FALSE)
 ```
 
 <br>
@@ -312,6 +321,8 @@ Compare model fit.
 ```{r}
 model_fit_summary("scallopMod")
 ```
+
+
 
 ```{r eval=TRUE, echo=FALSE}
 # for vignette version only

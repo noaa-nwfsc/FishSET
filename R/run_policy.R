@@ -76,69 +76,53 @@ run_policy <- function(project, mod.name = NULL, policy.name=NULL, betadraws = 1
     })
 
     closures_output <- closures[which(unlist(get_closures_out) == 1)]
-    # 
+    
   } else {
     stop('No policy scenario tables found. Run the zone_closure function.')
     
   }
-  
-  
-  ##
   # 2. Check that the model can be found ----
-  ##
-  # Get model name
-  if (is.null(mod.name) || is.numeric(mod.name)) {
-    # check that the model chosen table exists
-    if (table_exists('modelChosen', project)) {
-      modtemp <- table_view('modelChosen', project)$model
-      if (length(modtemp) > 1) {
-        if (!is.numeric(mod.name))
-          stop(
-            'More than one model exists in the modelChosen table. See table_view("modelChosen", project) and rerun function with either the model name or the numeric indicator of the model.'
-          )
-        if (is.numeric(mod.name))
-          modname <- modtemp[mod.name]
-      } else
-        modname <- modtemp[1]
-    } else {
-      stop(
-        'modelChosen table does not exist. Specify model name or select the model using select_model(project).'
-      )
-    }
-  } else {
-    exists <- grep(mod.name, project_files(project))
+  # Check if mod.name from input exists in the model output list
+  # If the model does not exist, stop function and return error message
+  if (table_exists(paste0(project, "ModelInputData"), project)) {
+
+    mod.out <- model_out_view(project)
+    for (i in seq_along(mod.name)) { # loop through each model
+    result <- tryCatch(
+      {
+        index <- grep(mod.name[i], lapply(mod.out, "[[", "name"))
+        if (length(index) == 0) stop(paste("Model output for", mod.name[i], " does not exist."))
+        mod.out[[index]]
+      },
+      error = function(e) {
+        message("Error: ", e$message)
+        NULL
+      }
+    )
     
-    if (length(exists) > 0){
-      modname <- mod.name  
-      
-    } else {
-      stop('modelChosen table does not exist. Specify model name or select the model using select_model(project).')
+  
+    } 
+  } else {
+      stop('Model table(s) does not exist. Run model functions.')
+    
     }
-  }
-  
-  
-  ##
+
   # 3. Run model_prediction function ----
-  ##
-  model_prediction(project = project, mod.name = modname,
+  model_prediction(project = project, mod.name = mod.name,
                    closures = closures_output, enteredPrice = enteredPrice,
                    use.scalers = use.scalers, scaler.func = scaler.func)
-  
-  
-  ##
+
   # 4. Run welfare predict ----
-  ##
-  theta_output <- welfare_predict(project = project, mod.name = modname, closures = closures_output, betadraws = betadraws,
+  theta_output <-  welfare_predict(project = project, mod.name = mod.name, closures = closures_output, betadraws = betadraws,
                   marg_util_income = marg_util_income, income_cost = income_cost,
                   expected.catch = expected.catch, enteredPrice = enteredPrice)
   
   # 6. Generate tables and plots
-  ## 
-   outputs_welf <- welfare_outputs(project = project, mod.name = mod.name, closures = closures_output, 
+   outputs_welf <-  welfare_outputs(project = project, mod.name = mod.name, closures = closures_output,
                              betadraws = betadraws, zone.dat = zone.dat, group_var = group_var)
-   
+
    return(list(outputs_welf, theta_output))
-  
+   
   ##
   # 7. log run_policy function call ----
   ##
@@ -148,3 +132,4 @@ run_policy <- function(project, mod.name = NULL, policy.name=NULL, betadraws = 1
   run_policy_function$kwargs <- list()
   log_call(project, run_policy_function)
 }
+ 

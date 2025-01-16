@@ -7900,6 +7900,7 @@ server = function(input, output, session) {
 
 
 # run_policy ------
+  pol <- reactiveValues(outputs_welf = NULL)
 
   pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset)
   pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )

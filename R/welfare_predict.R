@@ -53,20 +53,48 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
   
   # Check if mod.name from input exists in the model output list
   # If the model does not exist, stop function and return error message
-  flag <- 0
-  tryCatch(
-    {mod.out <- mod.out[[grep(mod.name, lapply(mod.out , "[[" , "name"))]]},
-    error = function(err){flag <<- 1}
-  )
-  if(flag == 1){
-    stop(paste0('Model output for "', mod.name,'" does not exist.'), call. = FALSE)
+  # flag <- 0
+  # tryCatch(
+  #   {mod.out <- mod.out[[grep(mod.name, lapply(mod.out , "[[" , "name"))]]},
+  #   error = function(err){flag <<- 1}
+  # )
+  # if(flag == 1){
+  #   stop(paste0('Model output for "', mod.name,'" does not exist.'), call. = FALSE)
+  # }
+  
+  if (table_exists(paste0(project, "ModelInputData"), project)) {
+    
+    mod.out <- model_out_view(project)
+    for (i in seq_along(mod.name)) { # loop through each model
+      result <- tryCatch(
+        {
+          index <- grep(mod.name[i], lapply(mod.out, "[[", "name"))
+          if (length(index) == 0) stop(paste("Model output for", mod.name[i], " does not exist."))
+          mod.out[[index]]
+        },
+        error = function(e) {
+          message("Error: ", e$message)
+          NULL
+        }
+      )
+      
+      
+    } 
+  } else {
+    stop('Model table(s) does not exist. Run model functions.')
+    
   }
   
+  theta_list <- list()
+  
+  for (k in seq_along(mod.name)) { 
+    
+  
   # Get model likelihood
-  mod.ll <- model_design_list(project=project)[[which(lapply(model_design_list(project=project), "[[", "mod.name") == mod.name)]]$likelihood
+  mod.ll <- model_design_list(project=project)[[which(lapply(model_design_list(project=project), "[[", "mod.name") == mod.name[[k]])]]$likelihood
   
   # Get parameter estimates
-  Eq <- mod.out$OutLogit[,1]
+  Eq <- mod.out[[k]]$OutLogit[,1]
   
   
   #---
@@ -74,7 +102,9 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
   #---
   # If the inverse Hessian is positive definite then the function is a minimum
   # Get inverse hessian for selected model
-  invHess <- mod.out$H1 
+  invHess <- mod.out[[k]]$H1 
+  
+  flag <- 0
   
   # Try Cholesky factorization, if successful the matrix should be positive definite
   tryCatch(
@@ -91,7 +121,7 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
   #---
   # Get predicted output table
   predict_temp <- unserialize_table(paste0(project, "predictOutput"), project)
-  predict_temp <- predict_temp[which(unlist(lapply(predict_temp, function(x) grepl(mod.name, x$scenario.name))))]
+  predict_temp <- predict_temp[which(unlist(lapply(predict_temp, function(x) grepl(mod.name[[k]], x$scenario.name))))]
   
   
   #---
@@ -288,7 +318,8 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
       } else if (grepl('logit', predict_temp[[1]]$type, ignore.case=TRUE)) {
         ## LOGIT WELFARE ----
         # Get marginal utility of income
-        theta <- mu_rand_new[which(rownames(mod.out$OutLogit) == marg_util_income)]
+        for(q in seq_along(marg_util_income)){
+        theta <- mu_rand_new[which(rownames(mod.out[[k]]$OutLogit) == marg_util_income[[q]])]
         if(income_cost) theta <- -theta # take negative value if theta estimated using cost variable
         # Check if theta is negative value
         if(!isRunning()){
@@ -338,7 +369,10 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
         # Welfare loss/gain
         tmp_welfare <- (1/theta) * (Wa - Wb)
         tmp_prc_welfare <- ((1/theta) * (Wa - Wb)) / ((1/theta) * Wb)
+        
       }
+      }
+      
 
       # Save output for each betadraw of parameters
       welfare_betadraws[,l] <- tmp_welfare
@@ -351,12 +385,13 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
     prcwelfare_output[[j]] <- prc_welfare_betadraws
     
   } # close n_scenario
-  
+  theta_list[[k]] <- theta
+  }
   # Write data to csv files - files are overwritten each time welfare_predict() is called
   fwrite(welfare_output, file = paste0(locoutput(project), "welfare_output.csv"), col.names = FALSE, row.names = FALSE)
   fwrite(prcwelfare_output, file = paste0(locoutput(project), "prcwelfare_output.csv"), col.names = FALSE, row.names = FALSE)
   
-  return(theta)
+  return(theta_list)
 }
 
 
