@@ -6799,6 +6799,8 @@ server = function(input, output, session) {
   
   observeEvent(c(input$mod_sub == 'model_compare', input$mod_reload), {
     
+    req(project$name)
+     
     fit_tab <- paste0(project$name, 'ModelFit')
     
     if (table_exists(fit_tab, project$name)) {
