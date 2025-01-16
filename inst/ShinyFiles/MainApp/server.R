@@ -5703,11 +5703,16 @@ server = function(input, output, session) {
   exp_r <- reactiveValues(ec_names = NULL)
   
   observeEvent(c(input$exp_tab == 'exp_merge', input$exp_merge_reload), {
-    
-    req(project$name)
-    
-    exp_r$ec_names <- exp_catch_names(project$name)
-    
+     req(project$name)
+     
+     tryCatch({
+        exp_r$ec_names <- exp_catch_names(project$name)
+        
+     }, error = function(e){
+        showNotification(paste0("Expected catch matrix does not exist for project ", project$name),
+                         type = "error", duration = 60)
+     }) 
+     
   }, ignoreNULL = TRUE, ignoreInit = TRUE)
   
   output$exp_merge_ui <- renderUI({
