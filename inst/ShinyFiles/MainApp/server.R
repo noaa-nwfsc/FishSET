@@ -5703,11 +5703,16 @@ server = function(input, output, session) {
   exp_r <- reactiveValues(ec_names = NULL)
   
   observeEvent(c(input$exp_tab == 'exp_merge', input$exp_merge_reload), {
-    
-    req(project$name)
-    
-    exp_r$ec_names <- exp_catch_names(project$name)
-    
+     req(project$name)
+     
+     tryCatch({
+        exp_r$ec_names <- exp_catch_names(project$name)
+        
+     }, error = function(e){
+        showNotification(paste0("Expected catch matrix does not exist for project ", project$name),
+                         type = "error", duration = 60)
+     }) 
+     
   }, ignoreNULL = TRUE, ignoreInit = TRUE)
   
   output$exp_merge_ui <- renderUI({
@@ -6593,7 +6598,6 @@ server = function(input, output, session) {
     } else { # if it is empty then set = NULL
       dev_val <- NULL
     }
-    
     
     removeModal()
     
@@ -7880,7 +7884,6 @@ server = function(input, output, session) {
     servr::daemon_stop()
   }) 
   
-  
   # policy -----
   
   ### create reactive data frame 
@@ -7888,21 +7891,17 @@ server = function(input, output, session) {
   clicked_ids <- reactiveValues(ids = vector())
   closures <- reactiveValues()
   rv <- reactiveValues(edit = NULL)
+
+  zone_closure_mapServer("policy", project = project$name, spatdat = spatdat$dataset, clicked_ids, V, closures, rv)
   
   zone_closure_sideServer("policy", project = project$name, spatdat = spatdat$dataset)
 
-  zone_closure_mapServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V, closures, rv)
+  zone_closure_tblServer("policy", project = project$name, spatdat = spatdat$dataset, clicked_ids, V)
   
-  zone_closure_tblServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V)
-  
-
-
-
-
-# run_policy ------
+  # run_policy ------
 
   pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset)
-  pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
-
   
+  pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset)
+
 }
