@@ -5675,29 +5675,33 @@ server = function(input, output, session) {
   # Run expected catch
   observeEvent(input$exp_submit, {
     
-    showNotification('Generating expected catch/revenue matrices can take several minutes. A message will appear when complete.',
-                     type = 'default', duration = 60)
-    
-    q_test <- quietly_test(create_expectations)
-    
-    defineGroup <- if (input$exp_group == 'No group') NULL else input$exp_group
-    defaults <- if (is_value_empty(input$exp_default)) FALSE else input$exp_default
-    price <- if (input$exp_price == 'none') NULL else input$exp_price
-    empty_catch <- switch(input$empty_expectation, 'NA' = NA, '0' = 0, 
-                          allCatch = 'allCatch', groupCatch = 'groupCatch')
-    empty_exp <- switch(input$empty_expectation, 'NA' = NA, '1e-04' = 1e-04, '0' = 0)
-    
-    q_test(values$dataset, project$name, input$exp_catch_var, price=price, 
-           defineGroup=defineGroup, temp.var=input$exp_temp_var, temporal = input$exp_temporal, 
-           calc.method = input$exp_calc_method, lag.method = input$exp_lag_method, 
-           empty.catch = empty_catch,  empty.expectation = empty_exp, 
-           temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
-           year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
-           default.exp = defaults, replace.output = input$exp_replace_output, weight_avg = input$weight_avg)
-    
-    showNotification('Expected catch/revenue matrix complete', type = 'message', duration = 60)
+    if(!table_exists(paste0(project$name, "AltMatrix"), project$name)){
+       showNotification(paste0("Table ", project$name, "AltMatrix", " does not exist. Define alternative locations before creating expected catch matrices."),
+                        type = "error", duration = 60)
+    } else {
+       showNotification('Generating expected catch/revenue matrices can take several minutes. A message will appear when complete.',
+                        type = 'default', duration = 60)
+       
+       q_test <- quietly_test(create_expectations)
+       
+       defineGroup <- if (input$exp_group == 'No group') NULL else input$exp_group
+       defaults <- if (is_value_empty(input$exp_default)) FALSE else input$exp_default
+       price <- if (input$exp_price == 'none') NULL else input$exp_price
+       empty_catch <- switch(input$empty_expectation, 'NA' = NA, '0' = 0, 
+                             allCatch = 'allCatch', groupCatch = 'groupCatch')
+       empty_exp <- switch(input$empty_expectation, 'NA' = NA, '1e-04' = 1e-04, '0' = 0)
+       
+       q_test(values$dataset, project$name, input$exp_catch_var, price=price, 
+              defineGroup=defineGroup, temp.var=input$exp_temp_var, temporal = input$exp_temporal, 
+              calc.method = input$exp_calc_method, lag.method = input$exp_lag_method, 
+              empty.catch = empty_catch,  empty.expectation = empty_exp, 
+              temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
+              year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
+              default.exp = defaults, replace.output = input$exp_replace_output, weight_avg = input$weight_avg)
+       
+       showNotification('Expected catch/revenue matrix complete', type = 'message', duration = 60)   
+    }
   }) 
-  
   
   ## Merge exp ----
   exp_r <- reactiveValues(ec_names = NULL)
