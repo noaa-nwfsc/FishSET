@@ -5394,11 +5394,7 @@ server = function(input, output, session) {
                                                  'Lon-Lat Coordinates' = 'lon-lat')),
                         
                         conditionalPanel("input.altc_occasion == 'zone'||input.altc_occasion == 'fish'",
-                                         h6(tags$em('A centroid table must be saved to the FishSET database to be used as trip/haul occurances'))),
-                        
-                        selectizeInput('altc_zoneID', 'Column containing zone identifier', 
-                                       choices = colnames(values$dataset), options = list(maxItems = 1), 
-                                       multiple = TRUE)
+                                         h6(tags$em('A centroid table must be saved to the FishSET database to be used as trip/haul occurances')))
                       ),
                       
                       tags$br(),
@@ -5429,6 +5425,10 @@ server = function(input, output, session) {
                       conditionalPanel("input.altc_alt_var == 'near'",
                                        selectInput('mod_spatID', 'Select spatial ID column',
                                                    choices = colnames(spatdat$dataset))),
+                      
+                      selectizeInput('altc_zoneID', 'Column containing zone identifier', 
+                                     choices = colnames(values$dataset), options = list(maxItems = 1), 
+                                     multiple = TRUE),
                       
                       selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
                                      selected = 'miles'),
