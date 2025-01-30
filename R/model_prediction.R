@@ -60,12 +60,13 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL, u
   #   price <- NULL
   #   dataCompileEPM <- NULL
   # }
+  n_scenarios <- length(closures)
   
   # Create an empty list to save predictions from policy scenarios
   predict <- list()
   
   # 3. Set up closure scenarios ----
-  for(i in 1:length(closures)){
+  for(i in seq_len(n_scenarios)){
     # Closed zones 
     scenarioname <- closures[[i]]$scenario
     zone.closure <- gsub("Zone_", "", closures[[i]]$zone)
@@ -139,7 +140,7 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL, u
         }
       }
       
-      predict[[length(predict)+1]] <- list(scenario.name = paste(mod.name[ii], scenarioname), InOut=InOutLogit, prob=ProbL, 
+      predict[[length(predict)+1]] <- list(scenario.name = paste(mod.name[ii], closures[[i]]$scenario), InOut=InOutLogit, prob=ProbL, 
                                            time='nameAllTime', type='Logit', tac=tac, 
                                            zoneID=zoneID, zoneIdIn=zoneIdIn, zoneIdOut=zoneIdOut,
                                            modelDat=modelDat)
@@ -241,7 +242,7 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL, u
       #   
       # } #end t loop
       
-      predict[[length(predict)+1]] <- list(scenario.name = paste(mod.name[ii], scenarioname), InOut=InOutepm, prob=ProbE, 
+      predict[[length(predict)+1]] <- list(scenario.name = paste(mod.name[ii], closures[[i]]$scenario), InOut=InOutepm, prob=ProbE, 
                                            time='nameAllTime', type=x_new$likelihood, tac=tac, 
                                            zoneID=zoneID, zoneIdIn=zoneIdIn, zoneIdOut=zoneIdOut,
                                            modelDat=modelDat)

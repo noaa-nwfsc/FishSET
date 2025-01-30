@@ -7894,6 +7894,8 @@ server = function(input, output, session) {
   closures <- reactiveValues()
   rv <- reactiveValues(edit = NULL)
   
+  
+  
   zone_closure_sideServer("policy", project = project$name, spatdat = spatdat$dataset)
 
   zone_closure_mapServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V, closures, rv)
@@ -7905,10 +7907,31 @@ server = function(input, output, session) {
 
 
 # run_policy ------
-  pol <- reactiveValues(outputs_welf = NULL)
-
-  pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset)
-  pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
+ # pol <- reactiveVal(NULL)
+  dynamicCheckboxData <- reactive({c(model_names(project = project$name))})
+  
+  #selectedCheckboxes <-
+  selected_choices <- checkboxModuleServer("run_policy", project = project$name,
+                                            spatdat = spatdat$dataset , values = values$dataset, dynamicCheckboxData)
+  
+  marg_selections <- selectInputModuleServer("run_policy", project = project$name,
+                                        spatdat = spatdat$dataset , values = values$dataset,
+                                          selected_choices)
+  
+  plotGenerationModuleServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset,
+                             selected_choices, marg_selections)
+  # 
+  
+  # observeEvent(input$plot_button, {
+  #    req(project$name)
+  #   output$welfare_plot_dol <- renderText({
+  #    #  pol$outputs_welf[[1]]
+  #    print("test:" , input$run_pol_chk_scen)
+  # })
+  # })
+  
+#  pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset, selectedCheckboxes, selections)
+ # pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
 
   
 }
