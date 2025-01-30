@@ -392,11 +392,14 @@ ui = function(request){
                      bslib::page_fillable(
                        bslib::layout_sidebar(fillable = TRUE, fill = TRUE,
                                       sidebar = bslib::sidebar( fillable = TRUE, fill = TRUE, width = 400,
-                                                 actionButton('saveData','Save data to FishSET database',
-                                                              width = "100%",
-                                                              class = "btn-primary"),
-                                                splitLayout(
-                                                 tabPlotUI("qaqc", type = "tab_plot")
+                                                                actionButton("mod_check", "FishSET checklist",
+                                                                             class = "btn-primary"), 
+                                                                
+                                                                actionButton('saveData','Save data to FishSET database',
+                                                                             width = "100%",
+                                                                             class = "btn-primary"),
+                                                                splitLayout(
+                                                                   tabPlotUI("qaqc", type = "tab_plot")
                                                 ),
                                                  
                                                  radioButtons("checks", "Select data quality check function to run:", 

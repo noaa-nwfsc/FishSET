@@ -5824,8 +5824,6 @@ server = function(input, output, session) {
     # check for existing model design files/tables
     mod_rv$mod_design <- table_exists(paste0(project$name, "ModelInputData"), project$name)
     
-    
-    shinyjs::toggleState("mod_check", condition = mod_rv$final) 
   }, ignoreNULL = TRUE, ignoreInit = TRUE)
   
   
@@ -5999,7 +5997,10 @@ server = function(input, output, session) {
     output$checklistMsg <- renderUI({
       tags$div(
         
-        tags$h1("Model Checklist"),
+        tags$h1("FishSET Model Checklist"),
+        
+        tags$p("Each item in this checklist must be completed and pass successfully to run discrete choice models"),
+        
         tags$ul(
           
           tags$li(pass_icon("qaqc"), tags$strong("Data quality checks")),
