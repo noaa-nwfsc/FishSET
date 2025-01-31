@@ -1763,7 +1763,7 @@ ui = function(request){
                                          bslib::accordion(
                                            pred_plotsUI("run_policy"),
                                            predict_map_mainUI("run_policy"),
-                                           plotGenerationModuleUI("run_policy")
+                                           plot_welfareModuleUI("run_policy")
 
                                      )
                              )

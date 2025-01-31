@@ -16,13 +16,13 @@ run_policyUI <- function(id){
     uiOutput(ns("pol_likelihood")),
         position = "top", type='info', size='medium',
         message = "For conditional and zonal logit models. Name of the coefficient to use as marginal utility of income."),
-  actionButton(ns("plot_button"), "Generate Plots"),
+  actionButton(ns("run_policy_button"), "Run Policy Function"),
 
   )
 
 }
 
-plotGenerationModuleUI <- function(id) {
+plot_welfareModuleUI <- function(id) {
    ns <- NS(id)
    bslib::accordion_panel("Welfare figures",
                           bslib::layout_column_wrap(
@@ -57,6 +57,7 @@ predict_map_sidebarUI <- function(id){
   ns <- NS(id)
   
   tagList(
+    uiOutput(ns('pred_map_sel_mod')),
     uiOutput(ns("policy_select_scenario")),
     uiOutput(ns("pred_map_cat")),
     actionButton(ns("run_pred_map"), "Run Predict Map",
@@ -72,7 +73,7 @@ pred_plotsUI <- function(id){
                          bslib::card(
                            full_screen = TRUE,
                            bslib::card_header(strong("Table"), class = "bg-info"), 
-                           bslib::card_body(shinycssloaders::withSpinner(DT::DTOutput(ns("pred_prob_tbl"))
+                           bslib::card_body(shinycssloaders::withSpinner(tableOutput(ns("pred_prob_tbl"))
                                                         ,type = 6))
                          ),
                          bslib::layout_column_wrap(
@@ -116,42 +117,3 @@ predict_map_mainUI <- function(id){
   )
 }
 
-# welfare_outputsUI <- function(id){
-#   ns <- NS(id)
-#   
-#   bslib::accordion_panel("Welfare figures",
-#                          bslib::layout_column_wrap(
-#                            width = 1/2,
-#                            bslib::card(
-#                              full_screen = TRUE,
-#                              bslib::card_header(strong("Welfare loss/gain for all scenarios as dollars"), class = "bg-info"), 
-#                              bslib::card_body(
-#                                     #  actionButton(ns("plot_button"), "Generate Plots"),
-#                                       textOutput(ns("welfare_plot_dol"))
-#                                 
-#                                 #shinycssloaders::withSpinner(plotly::plotlyOutput(
-#                                #verbatimTextOutput( ns('welfare_plot_dol'))
-#                                                                            #,type = 6), 
-#                                                #shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_dol"))
-#                                                                            # ,type = 6)
-#                                               )
-#                            ),
-#                            # bslib::card(
-#                            #   full_screen = TRUE,
-#                            #   bslib::card_header(strong("Welfare loss/gain for all scenarios as percentage"), class = "bg-info"),
-#                            #   bslib::card_body(shinycssloaders::withSpinner(plotly::plotlyOutput(ns('welfare_plot_prc'))
-#                            #                                                 ,type = 6),
-#                            #                    shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_prc"))
-#                            #                                                 ,type = 6))
-#                            # )),
-#                            # bslib::card(
-#                            #   full_screen = TRUE,
-#                            #   bslib::card_header(strong("Supplementary information table"), class = "bg-info"),
-#                            #   bslib::card_body(shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_details"))
-#                            #                                                 ,type = 6))
-#                              )
-# 
-#                          
-#   )
-#   
-# }

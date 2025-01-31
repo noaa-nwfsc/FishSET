@@ -7907,31 +7907,21 @@ server = function(input, output, session) {
 
 
 # run_policy ------
- # pol <- reactiveVal(NULL)
   dynamicCheckboxData <- reactive({c(model_names(project = project$name))})
   
-  #selectedCheckboxes <-
-  selected_choices <- checkboxModuleServer("run_policy", project = project$name,
+  selected_choices <- rp_checkboxModuleServer("run_policy", project = project$name,
                                             spatdat = spatdat$dataset , values = values$dataset, dynamicCheckboxData)
   
-  marg_selections <- selectInputModuleServer("run_policy", project = project$name,
+  marg_selections <- rp_selectInputModuleServer("run_policy", project = project$name,
                                         spatdat = spatdat$dataset , values = values$dataset,
                                           selected_choices)
   
-  plotGenerationModuleServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset,
+  rp_welf_predModuleServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset,
                              selected_choices, marg_selections)
-  # 
+
   
-  # observeEvent(input$plot_button, {
-  #    req(project$name)
-  #   output$welfare_plot_dol <- renderText({
-  #    #  pol$outputs_welf[[1]]
-  #    print("test:" , input$run_pol_chk_scen)
-  # })
-  # })
-  
-#  pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset, selectedCheckboxes, selections)
- # pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
+ #pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset, selectedCheckboxes, selections)
+pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
 
   
 }

@@ -80,18 +80,7 @@ pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.
      
     pred_out <- unserialize_table(paste0(project, "predictOutput"), project)
     model_output <- model_design_list(project=project)[[which(lapply(model_design_list(project=project), "[[", "mod.name") == mod.name[[k]])]]
-    
-    
-    # get_mod_pred_out <- lapply(pred_out, function(x){
-    #   mod_name <- x$modelDat$mod.name
-    # 
-    #   if(mod_name %in% mod.name){
-    #     return(1)
-    #   } else {
-    #     return(0)
-    #   }
-    # })
-    # 
+
     pred_output <-  pred_out[which(unlist(lapply(pred_out, function(x) grepl(mod.name[[k]], x$scenario.name))))]
                             
     
@@ -103,21 +92,11 @@ pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.
   #  
   
   # Calculate percent observations per zone
- # prop_obs <- table(as.factor(model_output[[1]]$choice.table$choice)) / sum(table(as.factor(model_output[[1]]$choice.table$choice)))
   prop_obs <- table(as.factor(model_output$choice$choice)) / sum(table(as.factor(model_output$choice$choice)))
 
   
   prop_obs <- data.frame(ZoneID = names(prop_obs), Proportion.Observations = as.vector(prop_obs))
-  
-  
-  
-  # Get a list of model names from prediction output scenario names
-#  predict_n <- unlist(lapply(pred_output, function(x) x$scenario.name))
-  #mod_n <- unique(sapply(strsplit(predict_n, split = " "), "[", 1))
-  
-  # Get the index for the first prediction output for each model name
-  #predOut_ind <- unlist(lapply(mod_n, function(x) grep(x, predict_n)[2]))
-  
+
 
   # Get predicted probabilities by zone for each model
   predProbs<- lapply(pred_output[k], function(x) x$prob[,1]/100)
@@ -128,7 +107,7 @@ pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.
   # Combine proportion of observation, predicted probabilities and squared error
   
   tmp_df<-as.data.frame(cbind(predProbs[[1]], predSE[[1]]))
-  names(tmp_df) <- c("predprob", "se")#c(mod.name[[k]], paste0(mod.name[[k]],"_SE"))
+  names(tmp_df) <- c("predprob", "se")
   out_tab <- cbind(prop_obs, tmp_df)
   
   predProbs_list[[k]] <- predProbs
@@ -142,33 +121,37 @@ pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.
   # Return table without running code below ---------------------------------------------------------------------------------
   if(output_option == "table"){
     
-     out_tab__wider <- pivot_wider(out_tab_df, names_from = "model", values_from = c("predprob", "se"))
-       return(out_tab__wider)
+     out_tab_wider <- pivot_wider(out_tab_df, names_from = "model", values_from = c("predprob", "se"))
+     
+     finaltbl <- kbl(out_tab_wider,"html", align = "c", booktabs = T, escape=FALSE) %>% 
+        kable_styling(bootstrap_options = c("hover", "responsive", "bordered", "striped"),  full_width = T)
+     
+     if(!isRunning()){
+        return(finaltbl)
+     }
+       return(finaltbl)
      
     
   # Format data for figures -------------------------------------------------------------------------------------------------
   } else if(output_option %in% c("model_fig", "policy_fig", "diff_table")){
-    # Save model predicted probabilities for each zone
-    # tmp_df <- data.frame(ZoneID = prop_obs$ZoneID)
-    # for(i in 1:length(predProbs)){
-    #   tmp_df1 <- as.data.frame(cbind(predProbs[[i]]))
-    #   names(tmp_df1) <- c(mod_n[i])
-    #   tmp_df <- cbind(tmp_df, tmp_df1)
-    # }
+
     
     # Return bargraph with model pred probabilities ------------------------------------------------------------------------
     if(output_option == "model_fig"){
       # Add prop observation and convert to long format dataframe
-      fig_df <- out_tab_df#tmp_df %>%
-        #mutate(Proportion.Observations = prop_obs$Proportion.Observations) %>%
-       # gather(key = "Model", value = "Probability", -ZoneID)
+      fig_df <- out_tab_df %>% 
+         select(-se) %>% 
+         pivot_wider(., names_from = "model", values_from = c("predprob")) %>% 
+         pivot_longer(., -c("ZoneID"))
       
       out_fig <- ggplot() +
-        geom_col(aes(x = fig_df$ZoneID, y = fig_df$predprob, fill = fig_df$model), width = 0.6, position = position_dodge(0.6)) +
+        geom_col(data = fig_df, aes(x = ZoneID, y = value, fill = name), 
+                 width = 0.6, position = position_dodge(0.6)) +
         labs(x = "Zone ID", y = "Probability", fill = "Model") +
-        scale_y_continuous(expand = c(0,0), limits = c(0, max(fig_df$predprob) + 0.05)) +
+        scale_y_continuous(expand = c(0,0), limits = c(0, max(fig_df$value) + 0.001)) +
         scale_fill_viridis_d() +
         theme_classic() +
+        # facet_wrap(~model)+
         theme(text = element_text(size= 16),
               axis.text.x = element_text(angle = 90, vjust = 1, hjust = 0.95))
       
@@ -278,18 +261,27 @@ pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.
           
        }
        
-       policy_out <- bind_rows(model_list)
-       diff_df <- cbind(tmp_df, policy_out)
+       policy_out <- model_list %>% 
+          purrr::imap(~ rlang::set_names(.x, paste(.y, names(.x), sep = "_"))) %>%
+          bind_cols()
+
+       diff_df <- pivot_wider(out_tab_df, names_from = "model", values_from = c("predprob", "se"),
+                              names_glue = "{model}_{.value}") %>% 
+          cbind(., policy_out)
       
       tm <- diff_df %>% 
-        pivot_longer(., -c(any_of("ZoneID"), any_of(mod_n)))# %>% 
-        group_by(across(any_of("ZoneID")), name) %>% 
-        mutate(difference = value- !!rlang::sym(mod_n)) %>% 
+         select(-ends_with("se")) %>% 
+         group_by(across(any_of("ZoneID"))) %>% 
+         mutate(
+            purrr::map(policy.name, function(p) {
+               across(all_of(paste0( mod.name, "_predprob")), 
+                      ~ .x - get(paste0(stringr::str_replace(cur_column(), "_predprob", ""), "_", p)), 
+                      .names = paste0("{.col}_diff_", p))
+            }) %>% purrr::reduce(bind_cols)  
+        ) %>% 
         mutate(across(where(is.numeric), ~ round(., 3))) %>%
-        filter(name %in% c(paste0(mod_n, " ", policy.name))) %>% 
-        pivot_wider(., names_from = c("name"), values_from = c("difference", "value")) %>%
-        select(any_of("ZoneID"), any_of(mod.name), starts_with("value"), everything()) %>% 
-        mutate(across(c(starts_with("difference")), ~ kableExtra::cell_spec(., color = case_when(. < 0 ~"red",
+        select(any_of("ZoneID"), Proportion.Observations,  starts_with(mod.name),contains(paste0("diff_", mod.name)),  everything()) %>% 
+        mutate(across(c(contains("diff")), ~ kableExtra::cell_spec(., color = case_when(. < 0 ~"red",
                                                                                                  . >= 0 ~ "green"))))
       
       diff_output <-  kbl(tm,"html", align = "c", booktabs = T, escape=FALSE) %>% 

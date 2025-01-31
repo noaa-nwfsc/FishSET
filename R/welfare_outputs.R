@@ -112,18 +112,18 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
 
   # combine simulation and primary data if grouping by a variable
  # # tryCatch() stop and check for NAs
- #  flag <- 0
- #  tryCatch(
-   #  {## view these and see the differing lengths --
+  flag <- 0
+  tryCatch(
+  {## view these and see the differing lengths --
       welfare <- data.frame(cbind(welfare1, dat))
       prc_welfare <- data.frame(cbind(prc_welfare1, dat))
-  #   },
-  #   warning=function(w) {
-  #     stop(paste0('Data frames are differing length, please check for NAs in the ', project,'MainDataTable'), call. = FALSE)
-  # 
-  #   }
-  # )
-  #     
+    },
+    warning=function(w) {
+      stop(paste0('Data frames are differing length, please check for NAs in the ', project,'MainDataTable'), call. = FALSE)
+
+    }
+  )
+
 
   # closure scenario names for dataframe variable names
   #scenario_names <- unlist(lapply(closures[[c]]$scenario, function(x){x$scenario}))

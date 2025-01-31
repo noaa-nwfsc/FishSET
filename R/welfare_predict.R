@@ -51,62 +51,22 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
   # Get list with all model outputs
   mod.out <- model_out_view(project)
   
-  policy.name <- unlist(lapply(closures, function(x){x$scenario}))  
-
-  
   # Check if mod.name from input exists in the model output list
   # If the model does not exist, stop function and return error message
-  # flag <- 0
-  # tryCatch(
-  #   {mod.out <- mod.out[[grep(mod.name, lapply(mod.out , "[[" , "name"))]]},
-  #   error = function(err){flag <<- 1}
-  # )
-  # if(flag == 1){
-  #   stop(paste0('Model output for "', mod.name,'" does not exist.'), call. = FALSE)
-  # }
-  
-  if (table_exists(paste0(project, "ModelInputData"), project)) {
-    
-    mod.out <- model_out_view(project)
-    for (i in seq_along(mod.name)) { # loop through each model
-      result <- tryCatch(
-        {
-          index <- grep(mod.name[i], lapply(mod.out, "[[", "name"))
-          if (length(index) == 0) stop(paste("Model output for", mod.name[i], " does not exist."))
-          mod.out[[index]]
-        },
-        error = function(e) {
-          message("Error: ", e$message)
-          NULL
-        }
-      )
-      
-      
-    } 
-  } else {
-    stop('Model table(s) does not exist. Run model functions.')
-    
+  flag <- 0
+  tryCatch(
+    {mod.out <- mod.out[[grep(mod.name, lapply(mod.out , "[[" , "name"))]]},
+    error = function(err){flag <<- 1}
+  )
+  if(flag == 1){
+    stop(paste0('Model output for "', mod.name,'" does not exist.'), call. = FALSE)
   }
   
-  theta_list <- list()
-  
-  welfare_output <- vector("list", length(mod.name))          # Stores final welfare results
-  prcwelfare_output <- vector("list", length(mod.name)) 
-  
-  names(welfare_output) <- mod.name                           # Assign model names to the outer list
-  names(prcwelfare_output) <- mod.name
-  
-
-  scenario_names <- unlist(lapply(closures, function(x){x$scenario}))  
-  
-  
-  for (k in seq_along(mod.name)) { 
-    
   # Get model likelihood
-  mod.ll <- model_design_list(project=project)[[which(lapply(model_design_list(project=project), "[[", "mod.name") == mod.name[[k]])]]$likelihood
+  mod.ll <- model_design_list(project=project)[[which(lapply(model_design_list(project=project), "[[", "mod.name") == mod.name)]]$likelihood
   
   # Get parameter estimates
-  Eq <- mod.out[[k]]$OutLogit[,1]
+  Eq <- mod.out$OutLogit[,1]
   
   
   #---
@@ -114,9 +74,7 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
   #---
   # If the inverse Hessian is positive definite then the function is a minimum
   # Get inverse hessian for selected model
-  invHess <- mod.out[[k]]$H1 
-  
-  flag <- 0
+  invHess <- mod.out$H1 
   
   # Try Cholesky factorization, if successful the matrix should be positive definite
   tryCatch(
@@ -127,30 +85,20 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
     stop(paste0('Inverse Hessian matrix not positive definite and Cholesky factorization failed'), call. = FALSE)
   }
   
-  # Number of closure scenarios
-  n_scenarios <- length(closures)
-  # Create empty matrices
-  # welfare_output <- prcwelfare_output <- list()
-  welfare_output_k <- vector("list", n_scenarios)          # Temporary storage for this model
-  prcwelfare_output_k <- vector("list", n_scenarios) 
   
-  
-  names(welfare_output_k) <- policy.name                   # Assign policy names to the inner list
-  names(prcwelfare_output_k) <- policy.name
-  
-
   #---
   # Pull data from predicted output table generated in model_prediction() ----
   #---
   # Get predicted output table
   predict_temp <- unserialize_table(paste0(project, "predictOutput"), project)
-  predict_temp <- predict_temp[which(unlist(lapply(predict_temp, function(x) grepl(mod.name[[k]], x$scenario.name))))]
+  predict_temp <- predict_temp[which(unlist(lapply(predict_temp, function(x) grepl(mod.name, x$scenario.name))))]
   
   
   #---
   # Settings for welfare predictions ----
   #---
-  
+  # Number of closure scenarios
+  n_scenarios <- length(closures)
   
   # Draw simulation parameter values from multivariate random number generator
   mu_rand <- t(mvgrnd(Eq, invHess, betadraws))  # flipped so that rows are output and columns are draws
@@ -201,8 +149,11 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
   #---
   # Loop through welfare scenarios ----
   #---
-    # Loop through closure scenarios
-  for(j in 1:length(scenario_names)){
+  # Create empty matrices
+  welfare_output <- prcwelfare_output <- list()
+  
+  # Loop through closure scenarios
+  for(j in 1:n_scenarios){
     tmp_close <- predict_temp[[j]]$zoneIdIn
     closeID <- which(zoneIDs %in% tmp_close)
     zones <- which(!(zoneIDs %in% tmp_close))
@@ -337,27 +288,18 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
       } else if (grepl('logit', predict_temp[[1]]$type, ignore.case=TRUE)) {
         ## LOGIT WELFARE ----
         # Get marginal utility of income
-         marg_list <- income_list <- list()
-        for(q in seq_along(marg_util_income)){
-           
-          theta1 <- mu_rand_new[which(rownames(mod.out[[k]]$OutLogit) == marg_util_income[[q]])]
-          
-            for(b in c(income_cost)){
-
-            if(b) theta <- -theta1 # take negative value if theta estimated using cost variable
+        theta <- mu_rand_new[which(rownames(mod.out$OutLogit) == marg_util_income)]
+        if(income_cost) theta <- -theta # take negative value if theta estimated using cost variable
         # Check if theta is negative value
-        
-              if(!isRunning()){
-                if(theta < 0) stop("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income.")
-              } 
-            
-            
+        if(!isRunning()){
+          if(theta < 0) stop("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income.")
+        } 
+
         # set up distance matrix
         distance <- as.matrix(distance, nrow = dim(distance)[1], ncol = dim(distance)[2])
 
         # Get coefficients
         gridcoef <- mu_rand_new[1:gridnum]
-        
         intcoef <- mu_rand_new[(gridnum + 1):(gridnum + intnum)]
 
         ## logit_c ----
@@ -396,64 +338,25 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
         # Welfare loss/gain
         tmp_welfare <- (1/theta) * (Wa - Wb)
         tmp_prc_welfare <- ((1/theta) * (Wa - Wb)) / ((1/theta) * Wb)
-        
-        }
-     
-        
-          }
       }
 
-     
       # Save output for each betadraw of parameters
       welfare_betadraws[,l] <- tmp_welfare
       prc_welfare_betadraws[,l] <- tmp_prc_welfare
 
     } # close betadraws
-    print(paste("Model:", k, "Scenario:", j))
-    # Save all data from each simulation and each closure scenario
-    welfare_output_k[[j]] <- welfare_betadraws
-    prcwelfare_output_k[[j]] <- prc_welfare_betadraws
-    
-  
-    
-  }# close n_scenario
-  
-  welfare_output[[k]] <- welfare_output_k
-  prcwelfare_output[[k]] <- prcwelfare_output_k
-  
-  theta_list[[k]] <- theta
-  }
 
-  flatten_list <- function(df, parent_names = NULL) {
-     data.table::rbindlist(
-        lapply(names(df), function(name) {
-           element <- df[[name]]
-           if (is.list(element) && !is.data.frame(element)) {
-              flatten_list(element, c(parent_names, name))
-           } else {
-              data.table::data.table(
-                 setNames(as.list(element), names(element)),
-                 model_name = parent_names[1],
-                # level2 = parent_names[2],
-                 policy_name = name
-              )
-           }
-        }),
-        fill = TRUE
-     )
-  }
-  
-  # Flatten the nested list
-  welfare_output_df <- flatten_list(welfare_output)
-  prcwelfare_output_df <- flatten_list(prcwelfare_output)
-  
-  
+    # Save all data from each simulation and each closure scenario
+    welfare_output[[j]] <- welfare_betadraws
+    prcwelfare_output[[j]] <- prc_welfare_betadraws
+    
+  } # close n_scenario
   
   # Write data to csv files - files are overwritten each time welfare_predict() is called
-  data.table::fwrite(welfare_output_df, file = paste0(locoutput(project), "welfare_output_df.csv"), col.names = TRUE, row.names = FALSE)
-  data.table::fwrite(prcwelfare_output_df, file = paste0(locoutput(project), "prcwelfare_output_df.csv"), col.names = TRUE, row.names = FALSE)
+  fwrite(welfare_output, file = paste0(locoutput(project), "welfare_output.csv"), col.names = FALSE, row.names = FALSE)
+  fwrite(prcwelfare_output, file = paste0(locoutput(project), "prcwelfare_output.csv"), col.names = FALSE, row.names = FALSE)
   
-  return(theta_list)
+  return(theta)
 }
 
 
