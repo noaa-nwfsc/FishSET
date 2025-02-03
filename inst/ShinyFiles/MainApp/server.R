@@ -5394,11 +5394,7 @@ server = function(input, output, session) {
                                                  'Lon-Lat Coordinates' = 'lon-lat')),
                         
                         conditionalPanel("input.altc_occasion == 'zone'||input.altc_occasion == 'fish'",
-                                         h6(tags$em('A centroid table must be saved to the FishSET database to be used as trip/haul occurances'))),
-                        
-                        selectizeInput('altc_zoneID', 'Column containing zone identifier', 
-                                       choices = colnames(values$dataset), options = list(maxItems = 1), 
-                                       multiple = TRUE)
+                                         h6(tags$em('A centroid table must be saved to the FishSET database to be used as trip/haul occurances')))
                       ),
                       
                       tags$br(),
@@ -5429,6 +5425,10 @@ server = function(input, output, session) {
                       conditionalPanel("input.altc_alt_var == 'near'",
                                        selectInput('mod_spatID', 'Select spatial ID column',
                                                    choices = colnames(spatdat$dataset))),
+                      
+                      selectizeInput('altc_zoneID', 'Column containing zone identifier', 
+                                     choices = colnames(values$dataset), options = list(maxItems = 1), 
+                                     multiple = TRUE),
                       
                       selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
                                      selected = 'miles'),
@@ -5675,29 +5675,33 @@ server = function(input, output, session) {
   # Run expected catch
   observeEvent(input$exp_submit, {
     
-    showNotification('Generating expected catch/revenue matrices can take several minutes. A message will appear when complete.',
-                     type = 'default', duration = 60)
-    
-    q_test <- quietly_test(create_expectations)
-    
-    defineGroup <- if (input$exp_group == 'No group') NULL else input$exp_group
-    defaults <- if (is_value_empty(input$exp_default)) FALSE else input$exp_default
-    price <- if (input$exp_price == 'none') NULL else input$exp_price
-    empty_catch <- switch(input$empty_expectation, 'NA' = NA, '0' = 0, 
-                          allCatch = 'allCatch', groupCatch = 'groupCatch')
-    empty_exp <- switch(input$empty_expectation, 'NA' = NA, '1e-04' = 1e-04, '0' = 0)
-    
-    q_test(values$dataset, project$name, input$exp_catch_var, price=price, 
-           defineGroup=defineGroup, temp.var=input$exp_temp_var, temporal = input$exp_temporal, 
-           calc.method = input$exp_calc_method, lag.method = input$exp_lag_method, 
-           empty.catch = empty_catch,  empty.expectation = empty_exp, 
-           temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
-           year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
-           default.exp = defaults, replace.output = input$exp_replace_output, weight_avg = input$weight_avg)
-    
-    showNotification('Expected catch/revenue matrix complete', type = 'message', duration = 60)
+    if(!table_exists(paste0(project$name, "AltMatrix"), project$name)){
+       showNotification(paste0("Table ", project$name, "AltMatrix", " does not exist. Define alternative locations before creating expected catch matrices."),
+                        type = "error", duration = 60)
+    } else {
+       showNotification('Generating expected catch/revenue matrices can take several minutes. A message will appear when complete.',
+                        type = 'default', duration = 60)
+       
+       q_test <- quietly_test(create_expectations)
+       
+       defineGroup <- if (input$exp_group == 'No group') NULL else input$exp_group
+       defaults <- if (is_value_empty(input$exp_default)) FALSE else input$exp_default
+       price <- if (input$exp_price == 'none') NULL else input$exp_price
+       empty_catch <- switch(input$empty_expectation, 'NA' = NA, '0' = 0, 
+                             allCatch = 'allCatch', groupCatch = 'groupCatch')
+       empty_exp <- switch(input$empty_expectation, 'NA' = NA, '1e-04' = 1e-04, '0' = 0)
+       
+       q_test(values$dataset, project$name, input$exp_catch_var, price=price, 
+              defineGroup=defineGroup, temp.var=input$exp_temp_var, temporal = input$exp_temporal, 
+              calc.method = input$exp_calc_method, lag.method = input$exp_lag_method, 
+              empty.catch = empty_catch,  empty.expectation = empty_exp, 
+              temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
+              year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
+              default.exp = defaults, replace.output = input$exp_replace_output, weight_avg = input$weight_avg)
+       
+       showNotification('Expected catch/revenue matrix complete', type = 'message', duration = 60)   
+    }
   }) 
-  
   
   ## Merge exp ----
   exp_r <- reactiveValues(ec_names = NULL)
@@ -6599,7 +6603,6 @@ server = function(input, output, session) {
       dev_val <- NULL
     }
     
-    
     removeModal()
     
     input_list <- reactiveValuesToList(input)
@@ -6800,6 +6803,8 @@ server = function(input, output, session) {
   
   observeEvent(c(input$mod_sub == 'model_compare', input$mod_reload), {
     
+    req(project$name)
+     
     fit_tab <- paste0(project$name, 'ModelFit')
     
     if (table_exists(fit_tab, project$name)) {
@@ -7885,7 +7890,6 @@ server = function(input, output, session) {
     servr::daemon_stop()
   }) 
   
-  
   # policy -----
   
   ### create reactive data frame 
@@ -7893,12 +7897,14 @@ server = function(input, output, session) {
   clicked_ids <- reactiveValues(ids = vector())
   closures <- reactiveValues()
   rv <- reactiveValues(edit = NULL)
+
+  zone_closure_mapServer("policy", project = project$name, spatdat = spatdat$dataset, clicked_ids, V, closures, rv)
   
   
   
   zone_closure_sideServer("policy", project = project$name, spatdat = spatdat$dataset)
 
-  zone_closure_mapServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V, closures, rv)
+  zone_closure_tblServer("policy", project = project$name, spatdat = spatdat$dataset, clicked_ids, V)
   
   zone_closure_tblServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V)
   
@@ -7923,5 +7929,8 @@ server = function(input, output, session) {
  #pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset, selectedCheckboxes, selections)
 pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
 
-  
+  # run_policy ------
+
+  pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset)
+
 }
