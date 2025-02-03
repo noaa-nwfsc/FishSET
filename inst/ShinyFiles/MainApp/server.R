@@ -7931,6 +7931,6 @@ pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
 
   # run_policy ------
 
-  pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset)
+ # pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset)
 
 }
