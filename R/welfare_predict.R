@@ -344,12 +344,22 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
                   
                   for(b in c(income_cost)){
                      
-                     if(b) theta <- -theta1 # take negative value if theta estimated using cost variable
+                     if(b == TRUE) 
+                        theta <- -theta1 # take negative value if theta estimated using cost variable
                      # Check if theta is negative value
-                     
-                     if(!isRunning()){
-                        if(theta < 0) stop("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income.")
-                     } 
+                        
+                    if(!isRunning() & theta < 0){
+                       stop("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income.")
+                     } else if(isRunning() & theta < 0){
+                          shinyWidgets::show_alert(
+                            title = NULL,
+                            text = paste0("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income."),
+                            type = "error",
+                            btn_colors = "#2A90A1",
+                            closeOnClickOutside = TRUE,
+                            width = "50%"
+                          )
+                     }
                      
                      
                      # set up distance matrix

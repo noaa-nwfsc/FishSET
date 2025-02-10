@@ -72,7 +72,7 @@ rp_selectInputModuleServer <- function(id, project, spatdat, values, selected_ch
                   tagList(
                        selectInput(
                          inputId = ns(paste0("select_marg_inc_", opt)),
-                         label = paste("Select for", opt),
+                         label = paste("Select marginal utility of income for", opt),
                          choices = dynamic_choices,
                          selected = selected_value
                        ),
