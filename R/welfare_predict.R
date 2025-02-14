@@ -340,26 +340,22 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
                marg_list <- income_list <- list()
                for(q in seq_along(marg_util_income)){
                   
-                  theta1 <- mu_rand_new[which(rownames(mod.out[[k]]$OutLogit) == marg_util_income[[q]])]
+                  theta <- mu_rand_new[which(rownames(mod.out[[k]]$OutLogit) == marg_util_income[[q]])]
                   
                   for(b in c(income_cost)){
                      
-                     if(b == TRUE) 
-                        theta <- -theta1 # take negative value if theta estimated using cost variable
+                     if(b == TRUE) {
+                        theta <- -theta 
+                        }# take negative value if theta estimated using cost variable
                      # Check if theta is negative value
                         
                     if(!isRunning() & theta < 0){
+                       
                        stop("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income.")
-                     } else if(isRunning() & theta < 0){
-                          shinyWidgets::show_alert(
-                            title = NULL,
-                            text = paste0("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income."),
-                            type = "error",
-                            btn_colors = "#2A90A1",
-                            closeOnClickOutside = TRUE,
-                            width = "50%"
-                          )
-                     }
+                     }# else if(isRunning() & theta < 0){
+                     #   stop("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income.")
+                         
+                    # }
                      
                      
                      # set up distance matrix

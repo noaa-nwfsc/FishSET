@@ -170,6 +170,16 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
                                    use.scalers = FALSE,
                                    scaler.func = NULL)
          
+         if(fdf$outputs_welf[[2]] < 0)
+         shinyWidgets::show_alert(
+            title = NULL,
+            text = paste0("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income."),
+            type = "error",
+            btn_colors = "#2A90A1",
+            closeOnClickOutside = TRUE,
+            width = "50%"
+         )
+         
 
       })
       
