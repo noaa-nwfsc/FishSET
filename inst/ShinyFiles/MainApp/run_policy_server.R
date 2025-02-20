@@ -170,52 +170,81 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
                                    use.scalers = FALSE,
                                    scaler.func = NULL)
          
-         if(fdf$outputs_welf[[2]] < 0)
-         shinyWidgets::show_alert(
-            title = NULL,
-            text = paste0("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income."),
-            type = "error",
-            btn_colors = "#2A90A1",
-            closeOnClickOutside = TRUE,
-            width = "50%"
-         )
+         if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
+            
+               shinyWidgets::show_alert(
+                  title = NULL,
+                  text = paste0("Marginal utility of income is negative for ", names(fdf$outputs_welf[[2]])[sapply(fdf$outputs_welf[[2]], function(x) x < 0)],
+ 
+                  ". Check model coefficient (estimate and standard error) and select appropriate marginal utility of income."),
+                  type = "error",
+                  btn_colors = "#2A90A1",
+                  closeOnClickOutside = TRUE,
+                  width = "50%"
+               )
+         }
          
-
+            
+         
       })
-      
+
       output$welfare_plot_dol <-  plotly::renderPlotly({
    
          req(input$run_policy_button)
-
-         fdf$outputs_welf[[1]][[4]]
-       
+         req(isTruthy(fdf$outputs_welf))
+         
+         if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
+            return(NULL)
+          }else {
+             fdf$outputs_welf[[1]][[4]]
+          }
       })
       
       output$welfare_tbl_dol <- DT::renderDataTable({
          req(input$run_policy_button)
          
-         fdf$outputs_welf[[1]][[1]]
+         req(isTruthy(fdf$outputs_welf))
          
+         if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
+            return(NULL)
+         }else {
+         fdf$outputs_welf[[1]][[1]]
+         }
       })
       
       output$welfare_plot_prc <- plotly::renderPlotly({
           req(input$run_policy_button)
-
-          fdf$outputs_welf[[1]][[5]]
+         req(isTruthy(fdf$outputs_welf))
          
+         if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
+            return(NULL)
+         }else {
+          fdf$outputs_welf[[1]][[5]]
+         }
          })
 
      
        output$welfare_tbl_prc <- DT::renderDataTable({
            req(input$run_policy_button)
-
+          req(isTruthy(fdf$outputs_welf))
+          
+          if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
+             return(NULL)
+          }else {
            fdf$outputs_welf[[1]][[2]]
+          }
       })
 
       output$welfare_tbl_details <- DT::renderDataTable({
         req(input$run_policy_button)
-
+         req(isTruthy(fdf$outputs_welf))
+         
+         if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
+            return(NULL)
+         }else {
+         
         fdf$outputs_welf[[1]][[3]]
+         }
       })
       
       output$pred_prob_tbl <-function() {
@@ -227,8 +256,11 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
         pol(selections)
         welfare <- pol()
 
-      #  if(is.null(fdf$outputs_welf) | fdf$outputs_welf[[2]] <0) return()
+        if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
+           return(NULL)
+        }else {
         pred_prob_outputs(project, mod.name = isolate(c(welfare$models)), output_option = "table")
+        }
       }
 
       output$pred_prod_mod_fig <- plotly::renderPlotly({
@@ -239,8 +271,13 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
         selections <- selected_choices()
         pol(selections)
         welfare <- pol()
-       # if(is.null(fdf$outputs_welf) | fdf$outputs_welf[[2]] <0) return()
+        
+        
+        if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
+           return(NULL)
+        }else {
         pred_prob_outputs(project, mod.name = isolate(c(welfare$models)), output_option = "model_fig")
+        }
 
       })
 
@@ -254,10 +291,14 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
         pol(selections)
         welfare <- pol()
 
-       # if(is.null(fdf$outputs_welf) | fdf$outputs_welf[[2]] <0) return()
+
+        if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
+           return(NULL)
+        }else {
         pred_prob_outputs(project, mod.name = isolate(c(welfare$models)),
                           policy.name = c(welfare$sel_closures),
                           output_option = "policy_fig")
+        }
 
       })
 
@@ -270,11 +311,13 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
         pol(selections)
         welfare <- pol()
 
-      #  if(is.null(fdf$outputs_welf) | fdf$outputs_welf[[2]] <0) return()
+        if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
+           return(NULL)
+        }else {
         pred_prob_outputs(project, mod.name = isolate(c(welfare$models)),
                           policy.name = c(welfare$sel_closures),
                           output_option = "diff_table")
-
+}
 
 }
     }

@@ -49,7 +49,7 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
    # Pull output data from model optimization ----
    #---
    # Get list with all model outputs
-   mod.out <- model_out_view(project)
+   #mod.out <- model_out_view(project)
    
    policy.name <- unlist(lapply(closures, function(x){x$scenario}))  
    
@@ -65,30 +65,34 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
    #   stop(paste0('Model output for "', mod.name,'" does not exist.'), call. = FALSE)
    # }
    
-   if (table_exists(paste0(project, "ModelInputData"), project)) {
-      
-      mod.out <- model_out_view(project)
-      for (i in seq_along(mod.name)) { # loop through each model
-         result <- tryCatch(
-            {
-               index <- grep(mod.name[i], lapply(mod.out, "[[", "name"))
-               if (length(index) == 0) stop(paste("Model output for", mod.name[i], " does not exist."))
-               mod.out[[index]]
-            },
-            error = function(e) {
-               message("Error: ", e$message)
-               NULL
-            }
-         )
-         
-         
-      } 
-   } else {
-      stop('Model table(s) does not exist. Run model functions.')
-      
-   }
+   # if (table_exists(paste0(project, "ModelInputData"), project)) {
+   #    
+   #    mod.out <- model_out_view(project)
+   #    for (i in seq_along(mod.name)) { # loop through each model
+   #       result <- tryCatch(
+   #          {
+   #             index <- grep(mod.name[i], lapply(mod.out, "[[", "name"))
+   #             if (length(index) == 0) stop(paste("Model output for", mod.name[i], " does not exist."))
+   #             mod.out[[index]]
+   #          },
+   #          error = function(e) {
+   #             message("Error: ", e$message)
+   #             NULL
+   #          }
+   #       )
+   #       
+   #       
+   #    } 
+   # } else {
+   #    stop('Model table(s) does not exist. Run model functions.')
+   #    
+   # }
    
-   theta_list <- list()
+   
+   
+   theta_list <- vector("list", length(mod.name)) 
+   names(theta_list) <- mod.name                   # Assign policy names to the inner list
+   
    
    welfare_output <- vector("list", length(mod.name))          # Stores final welfare results
    prcwelfare_output <- vector("list", length(mod.name)) 
@@ -105,8 +109,10 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
       # Get model likelihood
       mod.ll <- model_design_list(project=project)[[which(lapply(model_design_list(project=project), "[[", "mod.name") == mod.name[[k]])]]$likelihood
       
+      selected_mod <- model_out_view(project=project)[[which(lapply(model_design_list(project=project), "[[", "mod.name") == mod.name[[k]])]]
+      
       # Get parameter estimates
-      Eq <- mod.out[[k]]$OutLogit[,1]
+      Eq <- selected_mod$OutLogit[,1]
       
       
       #---
@@ -114,7 +120,7 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
       #---
       # If the inverse Hessian is positive definite then the function is a minimum
       # Get inverse hessian for selected model
-      invHess <- mod.out[[k]]$H1 
+      invHess <- selected_mod$H1 
       
       flag <- 0
       
@@ -340,25 +346,22 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
                marg_list <- income_list <- list()
                for(q in seq_along(marg_util_income)){
                   
-                  theta <- mu_rand_new[which(rownames(mod.out[[k]]$OutLogit) == marg_util_income[[q]])]
+                  theta <- mu_rand_new[which(rownames(selected_mod$OutLogit) == marg_util_income[[q]])]
                   
-                  for(b in c(income_cost)){
-                     
-                     if(b == TRUE) {
-                        theta <- -theta 
-                        }# take negative value if theta estimated using cost variable
-                     # Check if theta is negative value
+                   #for(b in seq_along(income_cost)){
+                     if(income_cost[[k]]){
+                       # print(paste("Index", k, "is TRUE"))
                         
-                    if(!isRunning() & theta < 0){
-                       
-                       stop("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income.")
-                     }# else if(isRunning() & theta < 0){
-                     #   stop("Marginal utility of income is negative. Check model coefficient (estimate and standard error) and select appropriate marginal utility of income.")
-                         
-                    # }
-                     
-                     
-                     # set up distance matrix
+                        theta <- -theta
+                     } else if(!shiny::isRunning()){
+                        stop(paste0("Marginal utility of income is negative , ", mod.name[[k]], ". Check model coefficient (estimate and standard error) and select appropriate marginal utility of income."))
+                     } else if(shiny::isRunning()){
+                      # } else{
+                        #  print(paste("Index", b, "is FALSE"))
+                          
+                          theta <- theta
+                        }
+                                      # set up distance matrix
                      distance <- as.matrix(distance, nrow = dim(distance)[1], ncol = dim(distance)[2])
                      
                      # Get coefficients
@@ -403,13 +406,15 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
                      tmp_welfare <- (1/theta) * (Wa - Wb)
                      tmp_prc_welfare <- ((1/theta) * (Wa - Wb)) / ((1/theta) * Wb)
                      
-                  }
+                     
+                   #}
+                 
                   
                   
                }
             }
             
-            
+            #income_list[[b]] <- theta
             # Save output for each betadraw of parameters
             welfare_betadraws[,l] <- tmp_welfare
             prc_welfare_betadraws[,l] <- tmp_prc_welfare
