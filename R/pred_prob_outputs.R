@@ -275,7 +275,7 @@ pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.
          mutate(
             purrr::map(policy.name, function(p) {
                across(all_of(paste0( mod.name, "_predprob")), 
-                      ~ .x - get(paste0(stringr::str_replace(cur_column(), "_predprob", ""), "_", p)), 
+                      ~ get(paste0(stringr::str_replace(cur_column(), "_predprob", ""), "_", p)) - .x, 
                       .names = paste0("{.col}_diff_", p))
             }) %>% purrr::reduce(bind_cols)  
         ) %>% 
