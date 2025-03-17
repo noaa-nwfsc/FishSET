@@ -8,7 +8,8 @@ source("zone_closure_UI.R", local = TRUE)
 source("zone_closure_Server.R", local = TRUE)
 source("run_policy_UI.R", local = TRUE)
 source("run_policy_server.R", local = TRUE)
-
+source("select_variables_UI.R", local = TRUE)
+source("select_variables_server.R", local = TRUE)
 
 
 # default global search value
@@ -2319,6 +2320,7 @@ server = function(input, output, session) {
     }
   })
   
+  sel_variablesServer("variables_sel", project = project$name, spatdat = spatdat$dataset, values = values$dataset )
   
   # ---
   # DATA QUALITY ----
@@ -3310,13 +3312,13 @@ server = function(input, output, session) {
         selectInput("spat_qaqc_ID", "Select zone ID from primary data",
                     choices = colnames(values$dataset), multiple = FALSE),
         selectizeInput("spat_qaqc_lon", "Select Longitude from primary data",
-                       choices = find_lon(values$dataset), multiple = FALSE, 
+                       choices = find_lon(values$dataset), multiple = FALSE,
                        options = list(create = TRUE)),
         selectizeInput("spat_qaqc_lat", "Select Latitude from primary data",
-                       choices = find_lat(values$dataset), multiple = FALSE, 
+                       choices = find_lat(values$dataset), multiple = FALSE,
                        options = list(create = TRUE)),
-        selectizeInput("spat_qaqc_date", "Select date variable", 
-                       choices = colnames(values$dataset), multiple = FALSE, 
+        selectizeInput("spat_qaqc_date", "Select date variable",
+                       choices = colnames(values$dataset), multiple = FALSE,
                        options = list(create = TRUE)),
         add_prompter(textInput("spat_qaqc_epsg", "(Optional) enter spatial reference EPSG code",
                                value = NULL),
@@ -3343,8 +3345,8 @@ server = function(input, output, session) {
       q_test <- quietly_test(spatial_qaqc)
       
       out <- q_test(dat = values$dataset, project = project$name, spat = spatdat$dataset, 
-                    lon.dat = input$spat_qaqc_lon, lat.dat = input$spat_qaqc_lat,
-                    date = input$spat_qaqc_date, group = input$spat_qaqc_grp, epsg = input$spat_qaqc_epsg)
+                    lon.dat = input$primary_zone_lon, lat.dat = input$primary_zone_lat,
+                    date = input$primary_zone_date, group = input$spat_qaqc_grp, epsg = input$spat_qaqc_epsg)
       
       if (!is_value_empty(out)) {
         

@@ -238,7 +238,10 @@ ui = function(request){
     #---
     # Upload data tabset panel ---- 
     #---
-    bslib::nav_panel(title = "Upload Data", id = "upload", 
+    bslib::nav_menu(title = "Data",
+                    bslib::nav_panel(
+                       title = "Upload Data", id = "upload", 
+                       
                      bslib::page_fillable(
                        #tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
                        bslib::layout_sidebar(fillable = TRUE, fill = TRUE,
@@ -382,6 +385,20 @@ ui = function(request){
                      )
                      )
                      )
+                   ),
+                   bslib::nav_panel( title = "Select variables", id = "variables", 
+                        bslib::page_fillable(
+                            #tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
+                            bslib::layout_sidebar(fillable = TRUE, fill = TRUE,
+                                sidebar = bslib::sidebar( fillable = TRUE, fill = TRUE, width = 400,
+                                                          h5(strong("Selecting variables"))
+                                                          
+                                     ),
+                                sel_variablesUI("variables_sel")
+                                
+                            )
+                        )
+                   )
                    ),
     
     
