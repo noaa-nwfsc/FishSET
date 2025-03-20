@@ -193,7 +193,7 @@ change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE)
     # character to date
     if (length(cn_d) > 0) {
 
-      dataset[cn_d] <- lapply(dataset[cn_d], date_parser)
+      dataset[cn_d] <- lapply(dataset[cn_d], date_parser) 
       change_flag <- TRUE
     }
  
