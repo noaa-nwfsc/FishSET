@@ -193,7 +193,7 @@ change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE)
     # character to date
     if (length(cn_d) > 0) {
 
-      dataset[cn_d] <- lapply(dataset[cn_d], lubridate::as_date)
+      dataset[cn_d] <- lapply(dataset[cn_d], date_parser) 
       change_flag <- TRUE
     }
  
@@ -207,7 +207,7 @@ change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE)
         lubridate::as_date(out)
       }
       
-      qs_test <- quiet_safe_test(lubridate::as_date)
+      qs_test <- quiet_safe_test(date_parser)
    
       # results of attempting as_date
       res_char <- lapply(dataset[f_d], qs_test)
