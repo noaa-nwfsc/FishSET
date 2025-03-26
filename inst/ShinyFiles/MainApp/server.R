@@ -6000,9 +6000,20 @@ server = function(input, output, session) {
         tags$h1("FishSET Model Checklist"),
         
         tags$p("Each item in this checklist must be completed and pass successfully to run discrete choice models"),
+
+        fluidRow(
+           column(1, icon(name="file-arrow-up", lib="font-awesome", style="color: green; font-size: 30px;")),
+           column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
+           column(1, icon(name="magnifying-glass-chart", lib="font-awesome", style="color: black; font-size: 30px;")),
+           column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
+           column(1, icon(name="file-lines", lib="font-awesome", style="color: black; font-size: 30px;")),
+           column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
+           column(1, icon(name="gears", lib="font-awesome", style="color: black; font-size: 30px;")),
+           column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
+           column(1, icon(name="fish-fins", lib="font-awesome", style="color: black; font-size: 30px;"))
+        ),
         
         tags$ul(
-          
           tags$li(pass_icon("qaqc"), tags$strong("Data quality checks")),
           show_msg("qaqc"),
           qaqc_msg(),
