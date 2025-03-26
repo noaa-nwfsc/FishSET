@@ -6004,9 +6004,9 @@ server = function(input, output, session) {
         fluidRow(
            column(1, icon(name="file-arrow-up", lib="font-awesome", style="color: green; font-size: 30px;")),
            column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
-           column(1, icon(name="magnifying-glass-chart", lib="font-awesome", style="color: black; font-size: 30px;")),
+           column(1, icon(name="magnifying-glass-chart", lib="font-awesome", style="color: green; font-size: 30px;")),
            column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
-           column(1, icon(name="file-lines", lib="font-awesome", style="color: black; font-size: 30px;")),
+           column(1, icon(name="file-lines", class="fa-solid", lib="font-awesome", style="color: #FFBF00; font-size: 30px;")),
            column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
            column(1, icon(name="gears", lib="font-awesome", style="color: black; font-size: 30px;")),
            column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
