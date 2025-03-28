@@ -6,8 +6,7 @@ source("zone_outsample_server.R", local = TRUE)
 source("zone_closure_UI.R", local = TRUE)
 source("run_policy_UI.R", local = TRUE)
 source("run_policy_server.R", local = TRUE)
-
-
+source("checklist_module.R", local = TRUE)
 
 
 ## USER INTERFACE    
@@ -392,6 +391,8 @@ ui = function(request){
                      bslib::page_fillable(
                        bslib::layout_sidebar(fillable = TRUE, fill = TRUE,
                                       sidebar = bslib::sidebar( fillable = TRUE, fill = TRUE, width = 400,
+                                                                checklist_ui("checklist_1"),
+                                                                
                                                                 actionButton("mod_check", "FishSET checklist",
                                                                              class = "btn-primary"), 
                                                                 

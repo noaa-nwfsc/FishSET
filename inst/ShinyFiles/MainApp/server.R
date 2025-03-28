@@ -8,7 +8,7 @@ source("zone_closure_UI.R", local = TRUE)
 source("zone_closure_Server.R", local = TRUE)
 source("run_policy_UI.R", local = TRUE)
 source("run_policy_server.R", local = TRUE)
-
+source("checklist_module.R", local = TRUE)
 
 
 # default global search value
@@ -2323,6 +2323,7 @@ server = function(input, output, session) {
   # ---
   # DATA QUALITY ----
   # ---  
+  
   # change variable class ----
   output$change_var_inputs <- renderUI({
     tagList(
@@ -5841,9 +5842,12 @@ server = function(input, output, session) {
     )
   })
   
+  # checklist module
+  checklist_server("checklist_1", project_name = reactive(project$name))
+  
   # model checklist reactives
   cList <- reactiveValues(out = NULL, pass = NULL)
-  
+ 
   # checklist modal
   observeEvent(input$mod_check, {
     
