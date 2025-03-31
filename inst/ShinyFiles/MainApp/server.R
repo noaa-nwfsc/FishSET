@@ -5843,7 +5843,7 @@ server = function(input, output, session) {
   })
   
   # checklist module
-  checklist_server("checklist_1", project_name = reactive(project$name))
+  checklist_server("checklist_1", project_name = reactive(project$name), project_data = reactive(rv$data))
   
   # model checklist reactives
   cList <- reactiveValues(out = NULL, pass = NULL)
@@ -6005,18 +6005,6 @@ server = function(input, output, session) {
         
         tags$p("Each item in this checklist must be completed and pass successfully to run discrete choice models"),
 
-        fluidRow(
-           column(1, icon(name="file-arrow-up", lib="font-awesome", style="color: green; font-size: 30px;")),
-           column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
-           column(1, icon(name="magnifying-glass-chart", lib="font-awesome", style="color: green; font-size: 30px;")),
-           column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
-           column(1, icon(name="file-lines", class="fa-solid", lib="font-awesome", style="color: #FFBF00; font-size: 30px;")),
-           column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
-           column(1, icon(name="gears", lib="font-awesome", style="color: black; font-size: 30px;")),
-           column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
-           column(1, icon(name="fish-fins", lib="font-awesome", style="color: black; font-size: 30px;"))
-        ),
-        
         tags$ul(
           tags$li(pass_icon("qaqc"), tags$strong("Data quality checks")),
           show_msg("qaqc"),
@@ -6371,6 +6359,7 @@ server = function(input, output, session) {
   
   
   counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
+  
   rv <- reactiveValues(
     data = data.frame('mod_name' = NULL, 'likelihood' = NULL, 'optimOpt' = NULL, 
                       'inits'= NULL, 'methodname' = NULL, 'vars1' = NULL,
