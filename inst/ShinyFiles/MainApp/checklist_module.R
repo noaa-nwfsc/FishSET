@@ -54,9 +54,14 @@ checklist_server <- function(id, project_name, project_data){
       }
 
       
-      # Dynamically render the progress checlist/diagram
+      # Dynamically render the progress checklist/diagram
       output$checklist_diagram <- renderUI({
          tags$div(
+            tags$strong("THIS FEATURE IS UNDER DEVELOPMENT AND DOES NOT REFLECT CURRENT PROJECT STATUS"),
+            
+            tags$br(),
+            tags$br(),
+            
             fluidRow(
                column(1, icon(name="file-arrow-up", lib="font-awesome", style="color: green; font-size: 30px;")),
                column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),

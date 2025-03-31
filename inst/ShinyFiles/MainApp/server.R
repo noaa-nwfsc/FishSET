@@ -5843,7 +5843,7 @@ server = function(input, output, session) {
   })
   
   # checklist module
-  checklist_server("checklist_1", project_name = reactive(project$name), project_data = reactive(rv$data))
+  checklist_server("checklist", project_name = reactive(project$name), project_data = reactive(rv$data))
   
   # model checklist reactives
   cList <- reactiveValues(out = NULL, pass = NULL)
