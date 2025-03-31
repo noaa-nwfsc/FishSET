@@ -10,7 +10,6 @@ checklist_ui <- function(id){
 }
 
 
-
 # Server function for the module ----
 # This function renders the popup window
 checklist_server <- function(id, project_name, project_data){
@@ -58,8 +57,6 @@ checklist_server <- function(id, project_name, project_data){
       # Dynamically render the progress checlist/diagram
       output$checklist_diagram <- renderUI({
          tags$div(
-            tags$p(), # TESTING CODE - REMOVE OR COMMENT WHEN DEPLOYED ###########################################################
-            
             fluidRow(
                column(1, icon(name="file-arrow-up", lib="font-awesome", style="color: green; font-size: 30px;")),
                column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
@@ -75,19 +72,6 @@ checklist_server <- function(id, project_name, project_data){
                
                column(1, icon(name="fish-fins", lib="font-awesome", style="color: black; font-size: 30px;"))
             ),
-            
-            # tags$ul(
-            #    tags$li(pass_icon("qaqc"), tags$strong("Data quality checks")),
-            #    show_msg("qaqc"),
-            #    qaqc_msg(),
-            #    tags$li(pass_icon("occur_pnts"), tags$strong("Valid occurrence points")),
-            #    show_msg("occur_pnts"),
-            #    tags$li(pass_icon("alt_choice"), tags$strong("Alternative choice matrix created")),
-            #    show_msg("alt_choice"),
-            #    tags$li(pass_icon("expect_catch"), tags$strong("Expected catch/revenue matrix created")),
-            #    show_msg("expect_catch"),
-            #    ec_msg()
-            # )
          )
       })
    })
