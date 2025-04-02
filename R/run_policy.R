@@ -109,7 +109,7 @@ run_policy <- function(project, mod.name = NULL, policy.name=NULL, betadraws = 1
    model_prediction(project = project, mod.name = mod.name,
                     closures = closures_output, enteredPrice = enteredPrice,
                     use.scalers = use.scalers, scaler.func = scaler.func)
-   
+
    # 4. Run welfare predict ----
    theta_output <-  welfare_predict(project = project, mod.name = mod.name, closures = closures_output, betadraws = betadraws,
                                     marg_util_income = marg_util_income, income_cost = income_cost,
@@ -118,7 +118,7 @@ run_policy <- function(project, mod.name = NULL, policy.name=NULL, betadraws = 1
    # 6. Generate tables and plots
    outputs_welf <-  welfare_outputs(project = project, mod.name = mod.name, closures = closures_output,
                                     betadraws = betadraws, zone.dat = zone.dat, group_var = group_var)
-   
+
    return(list(outputs_welf, theta_output))
    
    ##

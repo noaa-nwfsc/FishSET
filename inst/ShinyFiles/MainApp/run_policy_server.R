@@ -150,6 +150,7 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
       observeEvent(input$run_policy_button, {
          req(input$pol_betadraws)
          selections <- selected_choices()
+         req(selections$sel_closures)
          pol(selections)
          marg <- marg_selections()  
          more_pol(marg)
@@ -171,7 +172,6 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
                                    scaler.func = NULL)
          
          if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
-            
                shinyWidgets::show_alert(
                   title = NULL,
                   text = paste0("Marginal utility of income is negative for ", names(fdf$outputs_welf[[2]])[sapply(fdf$outputs_welf[[2]], function(x) x < 0)],
@@ -183,9 +183,6 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
                   width = "50%"
                )
          }
-         
-            
-         
       })
 
       output$welfare_plot_dol <-  plotly::renderPlotly({

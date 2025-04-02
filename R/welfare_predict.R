@@ -363,29 +363,24 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
                      # Welfare loss/gain
                      tmp_welfare <- (1/theta) * (Wa - Wb)
                      tmp_prc_welfare <- ((1/theta) * (Wa - Wb)) / ((1/theta) * Wb)
-                     
-                     
-                   #}
-                 
-                  
-                  
                }
             }
             
             #income_list[[b]] <- theta
             # Save output for each betadraw of parameters
+
             welfare_betadraws[,l] <- tmp_welfare
             prc_welfare_betadraws[,l] <- tmp_prc_welfare
             
          } # close betadraws
+         
          print(paste("Model:", k, "Scenario:", j))
          # Save all data from each simulation and each closure scenario
          welfare_output_k[[j]] <- welfare_betadraws
          prcwelfare_output_k[[j]] <- prc_welfare_betadraws
+
          
-         
-         
-      }# close n_scenario
+      } # close n_scenario
       
       welfare_output[[k]] <- welfare_output_k
       prcwelfare_output[[k]] <- prcwelfare_output_k
@@ -415,8 +410,6 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
    # Flatten the nested list
    welfare_output_df <- flatten_list(welfare_output)
    prcwelfare_output_df <- flatten_list(prcwelfare_output)
-   
-   
    
    # Write data to csv files - files are overwritten each time welfare_predict() is called
    data.table::fwrite(welfare_output_df, file = paste0(locoutput(project), "welfare_output_df.csv"), col.names = TRUE, row.names = FALSE)
