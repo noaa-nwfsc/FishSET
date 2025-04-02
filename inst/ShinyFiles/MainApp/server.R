@@ -7916,21 +7916,15 @@ server = function(input, output, session) {
   dynamicCheckboxData <- reactive({c(model_names(project = project$name))})
   
   selected_choices <- rp_checkboxModuleServer("run_policy", project = project$name,
-                                            spatdat = spatdat$dataset , values = values$dataset, dynamicCheckboxData)
+                                              spatdat = spatdat$dataset , values = values$dataset, dynamicCheckboxData)
   
   marg_selections <- rp_selectInputModuleServer("run_policy", project = project$name,
-                                        spatdat = spatdat$dataset , values = values$dataset,
-                                          selected_choices)
+                                                spatdat = spatdat$dataset , values = values$dataset,
+                                                selected_choices)
   
   rp_welf_predModuleServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset,
-                             selected_choices, marg_selections)
-
+                           selected_choices, marg_selections)
   
- #pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset, selectedCheckboxes, selections)
-pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
-
-  # run_policy ------
-
- # pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset)
+  pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
 
 }
