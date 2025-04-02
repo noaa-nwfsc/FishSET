@@ -7900,17 +7900,11 @@ server = function(input, output, session) {
 
   zone_closure_mapServer("policy", project = project$name, spatdat = spatdat$dataset, clicked_ids, V, closures, rv)
   
-  
-  
   zone_closure_sideServer("policy", project = project$name, spatdat = spatdat$dataset)
 
   zone_closure_tblServer("policy", project = project$name, spatdat = spatdat$dataset, clicked_ids, V)
   
   zone_closure_tblServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V)
-  
-
-
-
 
 # run_policy ------
   dynamicCheckboxData <- reactive({c(model_names(project = project$name))})
@@ -7925,6 +7919,5 @@ server = function(input, output, session) {
   rp_welf_predModuleServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset,
                            selected_choices, marg_selections)
   
-  pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset )
-
+  pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset)
 }

@@ -35,7 +35,7 @@ rp_checkboxModuleServer <- function(id, project, spatdat, values, dynamicCheckbo
             sel_closures = input$run_pol_chk_scen,
             zone_id = input$pol_prim_sel_cat
          )
-   })
+      })
    })
 }
 
@@ -131,8 +131,6 @@ rp_selectInputModuleServer <- function(id, project, spatdat, values, selected_ch
              select_marg_inc = setNames(select_marg_list, select_marg_keys)
            )
          })
-         
-      
     })
 }
 
@@ -150,8 +148,8 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
       observeEvent(input$run_policy_button, {
          req(input$pol_betadraws)
          selections <- selected_choices()
-         req(selections$sel_closures)
          pol(selections)
+         req(selections$sel_closures)
          marg <- marg_selections()  
          more_pol(marg)
          
