@@ -40,98 +40,93 @@ rp_checkboxModuleServer <- function(id, project, spatdat, values, dynamicCheckbo
 }
 
 rp_selectInputModuleServer <- function(id, project, spatdat, values, selected_choices){
-  moduleServer(
-    id,
-    function(input, output, session){
-
-      ns <- session$ns
-
-     # selections 
-      marg_income_selections <- reactiveValues()
-
-      output$pol_likelihood <- renderUI({
-        req(project)
-
-        selected_options <- selected_choices()
-
-        if (is.null(selected_options)){
-           return(NULL)}  # No selections made
+   moduleServer(id, function(input, output, session){
+         ns <- session$ns
          
-         tagList(
-            lapply(selected_options$models, function(opt) {
-               if(!(model_design_list(project)[[which(lapply(model_design_list(project=project), "[[", "mod.name")
-                                                      %in% opt)]]$likelihood %in% c("logit_c", "logit_zonal"))) {
-                  return(NULL)  # No selections made
-               } else{
-
-                  dynamic_choices <- row.names(model_out_view(project)[[which(lapply(model_out_view(project), "[[", "name") == opt)]]$OutLogit)
-                  selected_value <- marg_income_selections[[opt]]
-                  
+         # selections 
+         marg_income_selections <- reactiveValues()
+         
+         output$pol_likelihood <- renderUI({
+            req(project)
+            
+            selected_options <- selected_choices()
+            
+            if (is.null(selected_options)){
+               return(NULL)}  # No selections made
+            
+            tagList(
+               lapply(selected_options$models, function(opt) {
+                  if(!(model_design_list(project)[[which(lapply(model_design_list(project=project), "[[", "mod.name")
+                                                         %in% opt)]]$likelihood %in% c("logit_c", "logit_zonal"))) {
+                     return(NULL)  # No selections made
+                     
+                  } else {
+                     
+                     dynamic_choices <- row.names(model_out_view(project)[[which(lapply(model_out_view(project), "[[", "name") == opt)]]$OutLogit)
+                     selected_value <- marg_income_selections[[opt]]
+                     
                      if (is.null(selected_value)) {
-                          selected_value <- NULL}
-                  tagList(
-                       selectInput(
-                         inputId = ns(paste0("select_marg_inc_", opt)),
-                         label = paste("Select marginal utility of income for", opt),
-                         choices = dynamic_choices,
-                         selected = selected_value
-                       ),
-                         add_prompter(
+                        selected_value <- NULL}
+                     tagList(
+                        selectInput(
+                           inputId = ns(paste0("select_marg_inc_", opt)),
+                           label = paste("Select marginal utility of income for", opt),
+                           choices = dynamic_choices,
+                           selected = selected_value
+                        ),
+                        add_prompter(
                            selectInput(ns(paste0("income_cost_pol_", opt)), 
-                           label = paste("Income Cost for ", opt),
+                                       label = paste("Income Cost for ", opt),
                                        choices = c("TRUE", "FALSE")),
                            position = "bottom", type='info', size='medium',
                            message = "For conditional and zonal logit models. Logical indicating whether the coefficient
                                        for the marginal utility of income relates to cost (TRUE) or revenue (FALSE).")
-                       )
-               }
-            })
-
-          )
-
-
-      })
-
-      # Observe selectInputs to store their values in reactiveValues
-      observe({
-         selected_options <- selected_choices()
-         
-         lapply(selected_options$models, function(opt) {
-            
-            
-            observeEvent(input[[paste0("income_cost_pol_", opt)]], {
-               marg_income_selections[[paste0("income_cost_pol_", opt)]] <- input[[paste0("income_cost_pol_", opt)]]
-            }, ignoreInit = TRUE)
-            
-            observeEvent(input[[paste0("select_marg_inc_", opt)]], {
-               marg_income_selections[[paste0("select_marg_inc_", opt)]] <- input[[paste0("select_marg_inc_", opt)]]
-            }, ignoreInit = TRUE)
-           
+                     )
+                  }
+               })
+               
+            )
          })
-      })
-
-      # Return the reactive values
-      reactive({
+         
+         # Observe selectInputs to store their values in reactiveValues
+         observe({
+            selected_options <- selected_choices()
+            
+            lapply(selected_options$models, function(opt) {
+               
+               observeEvent(input[[paste0("income_cost_pol_", opt)]], {
+                  marg_income_selections[[paste0("income_cost_pol_", opt)]] <- input[[paste0("income_cost_pol_", opt)]]
+               }, ignoreInit = TRUE)
+               
+               observeEvent(input[[paste0("select_marg_inc_", opt)]], {
+                  marg_income_selections[[paste0("select_marg_inc_", opt)]] <- input[[paste0("select_marg_inc_", opt)]]
+               }, ignoreInit = TRUE)
+               
+            })
+         })
+         
+         # Return the reactive values
+         reactive({
             # Get all keys from marg_income_selections
             all_keys <- names(marg_income_selections)
-           
-           # Filter keys for income_cost_pol and select_marg_inc
-           income_cost_keys <- grep("^income_cost_pol", all_keys, value = TRUE)
-           select_marg_keys <- grep("^select_marg_inc", all_keys, value = TRUE)
-           
-           # Extract the values for income_cost_pol
-           income_cost_list <- lapply(income_cost_keys, function(key) marg_income_selections[[key]])
-           
-           # Extract the values for select_marg_inc
-           select_marg_list <- lapply(select_marg_keys, function(key) marg_income_selections[[key]])
-           
-           # Return the separated lists
-           list(
-             income_cost_pol = setNames(income_cost_list, income_cost_keys),
-             select_marg_inc = setNames(select_marg_list, select_marg_keys)
-           )
+            
+            # Filter keys for income_cost_pol and select_marg_inc
+            income_cost_keys <- grep("^income_cost_pol", all_keys, value = TRUE)
+            select_marg_keys <- grep("^select_marg_inc", all_keys, value = TRUE)
+            
+            # Extract the values for income_cost_pol
+            income_cost_list <- lapply(income_cost_keys, function(key) marg_income_selections[[key]])
+            
+            # Extract the values for select_marg_inc
+            select_marg_list <- lapply(select_marg_keys, function(key) marg_income_selections[[key]])
+            
+            # Return the separated lists
+            list(
+               income_cost_pol = setNames(income_cost_list, income_cost_keys),
+               select_marg_inc = setNames(select_marg_list, select_marg_keys)
+            )
          })
-    })
+      })
 }
 
 rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choices, marg_selections){
