@@ -1,40 +1,40 @@
 # zone closure module server code - sidebar, map, and table
 
 ### sidebar zone closure server
-zone_closure_sideServer <- function(id, project, spatdat){
-  moduleServer(
-    id,
-    function(input, output, session){
-      
-      ns <- session$ns
-      
-      output$zone_closure_cat <- renderUI({
-        selectInput(ns("select_zone_cat"), "Select zone ID from spatial data",
-                    choices = unique(names(spatdat)))
-        
-      })
-    }
-  )
-}
+# zone_closure_sideServer <- function(id, project, spatdat){
+#   moduleServer(
+#     id,
+#     function(input, output, session){
+#       
+#       ns <- session$ns
+#       
+#       output$zone_closure_cat <- renderUI({
+#         selectInput(ns("select_zone_cat"), "Select zone ID from spatial data",
+#                     choices = unique(names(spatdat)))
+#         
+#       })
+#     }
+#   )
+# }
 
 ### map and selected points zone closure server
-zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closures, rv){
+zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closures, rv, all_variables){
   moduleServer(
     id,
     function(input, output, session){
       
       ns <- session$ns
-      
       mod_zones <- reactiveValues(data = NULL)
       
       zone_df <- reactive({
-        req(input$select_zone_cat)
         req(input$zoneplot)
+        req(all_variables()$sz_id)
         
-        spatdat %>%
-          sf::st_transform(., "+proj=longlat +datum=WGS84") %>%
-          mutate(secondLocationID = paste0("Zone_", as.character(spatdat[[input$select_zone_cat]]))) %>%
-          mutate(zone = as.character(spatdat[[input$select_zone_cat]])) 
+          spatdat %>%
+            sf::st_transform(., "+proj=longlat +datum=WGS84") %>%
+            mutate(secondLocationID = paste0("Zone_", as.character(spatdat[[all_variables()$sz_id]]))) %>%
+            mutate(zone = as.character(spatdat[[all_variables()$sz_id]]))
+         
       })
       
       output$zmap <- leaflet::renderLeaflet({
@@ -45,13 +45,17 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
       observeEvent(input$zoneplot, {
         
         req(project)
+      #  req(all_variables()$sz_id)
         
+
         tryCatch({
           if(!is.null(model_out_view(project))){
             mod_output <- unserialize_table(paste0(project,"ModelOut"), project)
             mod_zones$data <- list()
             mod_zones$data <- lapply(1:length(mod_output), function(x){rbind(mod_zones$data,unique(mod_output[[x]]$choice.table$choice))})
             mod_zones$data <- unique(unlist(mod_zones$data))
+            
+            quietly_test(mod_zones$data)
             
           } else if(length(mod_zones$data) == 0){
             showNotification("WARNING: no zones found in model output", type = "warning", duration = 60)
@@ -72,10 +76,10 @@ zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closure
           # I think do nothing here because this will be captured by the tryCatch above
           
           # Check that zone ID selected is valid
-        } else if(!(all(mod_zones$data %in% spatdat[[input$select_zone_cat]]))){ 
-          showNotification("Invalid zone ID input. Could not find model output zones in selected variable.", 
+         } else if(is.null(all_variables()$sz_id)){
+          showNotification("Invalid zone ID input. Could not find model output zones in selected variable.",
                            type = "error", duration = 60)
-          
+
         } else {
           showNotification("Map rendering and may take a few moments", type = "default", duration = 60)
           

@@ -1,5 +1,5 @@
 
-pred_plotsServer <- function(id, project, spatdat, values){
+pred_plotsServer <- function(id, project, spatdat, values, all_variables){
   moduleServer(
     id,
     function(input, output, session){
@@ -40,12 +40,12 @@ pred_plotsServer <- function(id, project, spatdat, values){
         
       })
       
-      output$pol_prim_cat <- renderUI({
-        selectInput(ns("pol_prim_sel_cat"), 
-                    "Select zone ID from primary data",
-                    choices = unique(names(values)))
-        
-      })
+      # output$pol_prim_cat <- renderUI({
+      #   selectInput(ns("pol_prim_sel_cat"), 
+      #               "Select zone ID from primary data",
+      #               choices = unique(names(values)))
+      #   
+      # })
       
       output$pol_likelihood <- renderUI({
         req(project)
@@ -82,7 +82,7 @@ pred_plotsServer <- function(id, project, spatdat, values){
         req(input$pol_betadraws)
         req(input$select_marg_inc)
         req(input$income_cost_pol)
-        req(input$pol_prim_sel_cat)
+        req(all_variables())
         
         pol$outputs_welf <- run_policy(project, 
                                        mod.name = isolate(input$select_pol_mod),
@@ -90,7 +90,7 @@ pred_plotsServer <- function(id, project, spatdat, values){
                                        betadraws = input$pol_betadraws, 
                                        marg_util_income = input$select_marg_inc, 
                                        income_cost = isolate(input$income_cost_pol),
-                                       zone.dat = input$pol_prim_sel_cat, 
+                                       zone.dat = all_variables()$pz_id, 
                                        group_var = NULL,
                                        enteredPrice = NULL,
                                        expected.catch = NULL, 
@@ -176,7 +176,7 @@ pred_plotsServer <- function(id, project, spatdat, values){
       
       output$pred_prod_pol_fig <- plotly::renderPlotly({
         req(project)
-        req(input$pol_prim_sel_cat)
+        req(all_variables())
         req(input$run_policy_button)
         req(isTruthy(pol$outputs_welf))
         
@@ -192,7 +192,7 @@ pred_plotsServer <- function(id, project, spatdat, values){
       output$pol_mod_diff_tbl <- function() {
         req(project)
         req(input$run_policy_button)
-        req(input$pol_prim_sel_cat)
+        req(all_variables())
         req(input$run_pol_chk_scen)
         req(isTruthy(pol$outputs_welf))
         
@@ -200,7 +200,7 @@ pred_plotsServer <- function(id, project, spatdat, values){
         
         if(is.null(pol$outputs_welf) | pol$outputs_welf[[2]] <0) return()
         pred_prob_outputs(project, mod.name = isolate(input$select_pol_mod),
-                          zone.dat = input$pol_prim_sel_cat,
+                          zone.dat = all_variables()$pz_id,
                           policy.name = c(input$run_pol_chk_scen),
                           output_option = "diff_table")
         
@@ -212,7 +212,7 @@ pred_plotsServer <- function(id, project, spatdat, values){
 
 
 
-pred_mapServer <- function(id, project, spatdat){
+pred_mapServer <- function(id, project, spatdat, all_variables){
   moduleServer(
     id,
     function(input, output, session){
@@ -223,11 +223,11 @@ pred_mapServer <- function(id, project, spatdat){
                           text = NULL)
       
       
-      output$pred_map_cat <- renderUI({
-        selectInput(ns("pred_map_sel_cat"), "Select zone ID from spatial data",
-                    choices = unique(names(spatdat)))
-        
-      })
+      # output$pred_map_cat <- renderUI({
+      #   selectInput(ns("pred_map_sel_cat"), "Select zone ID from spatial data",
+      #               choices = unique(names(spatdat)))
+      #   
+      # })
       
       output$policy_select_scenario <- renderUI({
         
@@ -243,18 +243,18 @@ pred_mapServer <- function(id, project, spatdat){
         
         req(project)
         req(input$pred_pol_name)
-        req(input$pred_map_sel_cat)
+        req(all_variables())
         
         if(input$pred_pol_name == "no closure"){
           v$plot <-  predict_map(project, mod.name = isolate(input$select_pol_mod),
                                  policy.name = isolate(input$select_pol_mod), 
-                                 spat = spatdat, zone.spat = input$pred_map_sel_cat)
+                                 spat = spatdat, zone.spat = all_variables()$sz_id)
           
         } else {
           
           v$plot <-  predict_map(project, mod.name = isolate(input$select_pol_mod),
                                  policy.name = paste0(isolate(input$select_pol_mod), " ",input$pred_pol_name), 
-                                 spat = spatdat, zone.spat = input$pred_map_sel_cat)
+                                 spat = spatdat, zone.spat = all_variables()$sz_id)
         }
       })
       

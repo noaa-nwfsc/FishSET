@@ -4,7 +4,7 @@
 zone_closure_sidebarUI <- function(id){
   ns <- NS(id)
   tagList(
-    uiOutput(ns("zone_closure_cat")),
+   # uiOutput(ns("zone_closure_cat")),
     actionButton(ns('zoneplot'), "Plot zones",
                  class = "btn-primary"),
     textInput(ns('scenarioname'), 'Scenario Name', value=''),

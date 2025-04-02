@@ -6,6 +6,8 @@ source("zone_outsample_server.R", local = TRUE)
 source("zone_closure_UI.R", local = TRUE)
 source("run_policy_UI.R", local = TRUE)
 source("run_policy_server.R", local = TRUE)
+source("select_variables_UI.R", local = TRUE)
+source("select_variables_server.R", local = TRUE)
 
 
 
@@ -970,7 +972,8 @@ ui = function(request){
                                                                 selectInput('fun_time','Numeric function to transform temporal data',
                                                                             choices = c('min','mean','max','median'), 
                                                                             selected = 'mean'),
-                                                                uiOutput('input_IDVAR')),
+                                                                uiOutput('input_IDVAR')
+                                                                ),
                                                
                                                conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_distance'" ,
                                                                 style = "margin-left:19px;",

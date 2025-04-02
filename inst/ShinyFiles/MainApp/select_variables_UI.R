@@ -2,6 +2,8 @@
 
 sel_variablesUI <- function(id){
    ns <- NS(id)
-   
-   uiOutput(ns("select_variables"))
+   tagList(
+   uiOutput(ns("select_variables")),
+   )
 }
+
