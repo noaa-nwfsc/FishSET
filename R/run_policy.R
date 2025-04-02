@@ -54,58 +54,57 @@ run_policy <- function(project, mod.name = NULL, policy.name=NULL, betadraws = 1
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  ##
   # 1. Check closure file exists ----
-  ##
   # Read in zone closure information
   if (utils::file_test("-f", paste0(locoutput(project), pull_output(project, type = 'zone', fun = 'closures')))) {
-    closures <- yaml::read_yaml(paste0(locoutput(project), pull_output(project, type = 'zone', fun = 'closures')))
-    
-    
-
-    get_closures_out <-lapply(closures, function(x){
-    #  closures[[x]]$scenario == policy.name
-
-     pol_nm <-  x$scenario
-
-      if(pol_nm %in% policy.name){
-        return(1)
-      } else {
-        return(0)
-      }
-    })
-
-    closures_output <- closures[which(unlist(get_closures_out) == 1)]
-    
+     
+     closures <- yaml::read_yaml(paste0(locoutput(project), pull_output(project, type = 'zone', fun = 'closures')))
+     
+     get_closures_out <-lapply(closures, function(x){
+        #  closures[[x]]$scenario == policy.name
+        
+        pol_nm <-  x$scenario
+        
+        if(pol_nm %in% policy.name){
+           return(1)
+        } else {
+           return(0)
+        }
+     })
+     
+     closures_output <- closures[which(unlist(get_closures_out) == 1)]
+     
   } else {
-    stop('No policy scenario tables found. Run the zone_closure function.')
-    
+     stop('No policy scenario tables found. Run the zone_closure function.')
   }
+  
+  
   # 2. Check that the model can be found ----
   # Check if mod.name from input exists in the model output list
   # If the model does not exist, stop function and return error message
   if (table_exists(paste0(project, "ModelInputData"), project)) {
-
-    mod.out <- model_out_view(project)
-    for (i in seq_along(mod.name)) { # loop through each model
-    result <- tryCatch(
-      {
-        index <- grep(mod.name[i], lapply(mod.out, "[[", "name"))
-        if (length(index) == 0) stop(paste("Model output for", mod.name[i], " does not exist."))
-        mod.out[[index]]
-      },
-      error = function(e) {
-        message("Error: ", e$message)
-        NULL
-      }
-    )
-    
-  
-    } 
+     
+     mod.out <- model_out_view(project)
+     
+     for (i in seq_along(mod.name)) { # loop through each model
+        result <- tryCatch(
+           {
+              index <- grep(mod.name[i], lapply(mod.out, "[[", "name"))
+              if (length(index) == 0) stop(paste("Model output for", mod.name[i], " does not exist."))
+              mod.out[[index]]
+           },
+           error = function(e) {
+              message("Error: ", e$message)
+              NULL
+           }
+        )
+        
+        
+     } 
   } else {
-      stop('Model table(s) does not exist. Run model functions.')
-    
-    }
+     stop('Model table(s) does not exist. Run model functions.')
+     
+  }
 
   # 3. Run model_prediction function ----
   model_prediction(project = project, mod.name = mod.name,
