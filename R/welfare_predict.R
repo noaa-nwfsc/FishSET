@@ -53,53 +53,14 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
    
    policy.name <- unlist(lapply(closures, function(x){x$scenario}))  
    
-   
-   # Check if mod.name from input exists in the model output list
-   # If the model does not exist, stop function and return error message
-   # flag <- 0
-   # tryCatch(
-   #   {mod.out <- mod.out[[grep(mod.name, lapply(mod.out , "[[" , "name"))]]},
-   #   error = function(err){flag <<- 1}
-   # )
-   # if(flag == 1){
-   #   stop(paste0('Model output for "', mod.name,'" does not exist.'), call. = FALSE)
-   # }
-   
-   # if (table_exists(paste0(project, "ModelInputData"), project)) {
-   #    
-   #    mod.out <- model_out_view(project)
-   #    for (i in seq_along(mod.name)) { # loop through each model
-   #       result <- tryCatch(
-   #          {
-   #             index <- grep(mod.name[i], lapply(mod.out, "[[", "name"))
-   #             if (length(index) == 0) stop(paste("Model output for", mod.name[i], " does not exist."))
-   #             mod.out[[index]]
-   #          },
-   #          error = function(e) {
-   #             message("Error: ", e$message)
-   #             NULL
-   #          }
-   #       )
-   #       
-   #       
-   #    } 
-   # } else {
-   #    stop('Model table(s) does not exist. Run model functions.')
-   #    
-   # }
-   
-   
-   
    theta_list <- vector("list", length(mod.name)) 
-   names(theta_list) <- mod.name                   # Assign policy names to the inner list
+   names(theta_list) <- mod.name # Assign policy names to the inner list
    
-   
-   welfare_output <- vector("list", length(mod.name))          # Stores final welfare results
+   welfare_output <- vector("list", length(mod.name)) # Stores final welfare results
    prcwelfare_output <- vector("list", length(mod.name)) 
    
-   names(welfare_output) <- mod.name                           # Assign model names to the outer list
+   names(welfare_output) <- mod.name # Assign model names to the outer list
    names(prcwelfare_output) <- mod.name
-   
    
    scenario_names <- unlist(lapply(closures, function(x){x$scenario}))  
    
@@ -156,8 +117,6 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
       #---
       # Settings for welfare predictions ----
       #---
-      
-      
       # Draw simulation parameter values from multivariate random number generator
       mu_rand <- t(mvgrnd(Eq, invHess, betadraws))  # flipped so that rows are output and columns are draws
       
@@ -207,7 +166,6 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
       #---
       # Loop through welfare scenarios ----
       #---
-      # Loop through closure scenarios
       for(j in 1:length(scenario_names)){
          tmp_close <- predict_temp[[j]]$zoneIdIn
          closeID <- which(zoneIDs %in% tmp_close)
