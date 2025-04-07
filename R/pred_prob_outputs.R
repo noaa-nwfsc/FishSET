@@ -7,7 +7,6 @@
 #'
 #' @param project Name of project
 #' @param mod.name Name of model
-#' @param zone.dat Variable in primary data table that contains unique zone ID.
 #' @param policy.name List of policy scenario names created in zone_closure function
 #' @param output_option "table" to return summary table (default); "model_fig" for predicted probabilities; or "policy_fig" 
 #' to return predicted probabilities for each model/policy scenario ; "diff_table" to return difference between predicted probabilities between 
@@ -25,7 +24,7 @@
 #'pred_prob_outputs(project = "scallop")
 #'
 #'}
-pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.name = NULL, output_option = "table"){
+pred_prob_outputs <- function(project, mod.name = NULL, policy.name = NULL, output_option = "table"){
   
   # Create connection to database and remove connection on exit of this function
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
@@ -99,7 +98,7 @@ pred_prob_outputs <- function(project, mod.name = NULL, zone.dat = NULL, policy.
 
 
   # Get predicted probabilities by zone for each model
-  predProbs<- lapply(pred_output[k], function(x) x$prob[,1]/100)
+  predProbs<- lapply(pred_output, function(x) x$prob[,1]/100)
   # Calculate squared error between percent observations and predicted probabilities
   predSE<-lapply(predProbs, function(x) (x - prop_obs$Proportion.Observations)^2)
   

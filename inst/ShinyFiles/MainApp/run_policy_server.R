@@ -47,8 +47,10 @@ rp_selectInputModuleServer <- function(id, project, spatdat, values, selected_ch
          marg_income_selections <- reactiveValues()
          
          output$pol_likelihood <- renderUI({
-            req(project)
-            
+           req(project)
+           req(selected_choices())
+           req(input$select_pol_mod)
+
             selected_options <- selected_choices()
             
             if (is.null(selected_options)){
@@ -88,6 +90,7 @@ rp_selectInputModuleServer <- function(id, project, spatdat, values, selected_ch
             )
          })
          
+         
          # Observe selectInputs to store their values in reactiveValues
          observe({
             selected_options <- selected_choices()
@@ -95,36 +98,40 @@ rp_selectInputModuleServer <- function(id, project, spatdat, values, selected_ch
             lapply(selected_options$models, function(opt) {
                
                observeEvent(input[[paste0("income_cost_pol_", opt)]], {
-                  marg_income_selections[[paste0("income_cost_pol_", opt)]] <- input[[paste0("income_cost_pol_", opt)]]
+                 marg_income_selections[[paste0("income_cost_pol_", opt)]] <- input[[paste0("income_cost_pol_", opt)]]
                }, ignoreInit = TRUE)
                
                observeEvent(input[[paste0("select_marg_inc_", opt)]], {
-                  marg_income_selections[[paste0("select_marg_inc_", opt)]] <- input[[paste0("select_marg_inc_", opt)]]
+                 marg_income_selections[[paste0("select_marg_inc_", opt)]] <- input[[paste0("select_marg_inc_", opt)]]
                }, ignoreInit = TRUE)
                
             })
+            
+            
+           
+           
          })
          
          # Return the reactive values
          reactive({
-            # Get all keys from marg_income_selections
-            all_keys <- names(marg_income_selections)
-            
-            # Filter keys for income_cost_pol and select_marg_inc
-            income_cost_keys <- grep("^income_cost_pol", all_keys, value = TRUE)
-            select_marg_keys <- grep("^select_marg_inc", all_keys, value = TRUE)
-            
-            # Extract the values for income_cost_pol
-            income_cost_list <- lapply(income_cost_keys, function(key) marg_income_selections[[key]])
-            
-            # Extract the values for select_marg_inc
-            select_marg_list <- lapply(select_marg_keys, function(key) marg_income_selections[[key]])
-            
-            # Return the separated lists
-            list(
-               income_cost_pol = setNames(income_cost_list, income_cost_keys),
-               select_marg_inc = setNames(select_marg_list, select_marg_keys)
-            )
+           # # Get all keys from marg_income_selections
+           all_keys <- selected_choices()$models
+
+           # Filter keys for income_cost_pol and select_marg_inc
+           income_cost_keys <- paste0("income_cost_pol_", all_keys)
+           select_marg_keys <- paste0("select_marg_inc_", all_keys)
+           # 
+           # Extract the values for income_cost_pol
+           income_cost_list <- lapply(income_cost_keys, function(key) marg_income_selections[[key]])
+
+           # Extract the values for select_marg_inc
+           select_marg_list <- lapply(select_marg_keys, function(key) marg_income_selections[[key]])
+          
+           # Return the separated lists
+           list(
+            income_cost_pol = income_cost_list,
+            select_marg_inc = select_marg_list
+           )
          })
       })
 }
@@ -141,28 +148,27 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
       more_pol <- reactiveVal(NULL)
       
       observeEvent(input$run_policy_button, {
+        req(input$run_pol_chk_scen)
          req(input$pol_betadraws)
          selections <- selected_choices()
-         pol(selections)
-         req(selections$sel_closures)
          marg <- marg_selections()  
-         more_pol(marg)
-         
+         pol(selections)
          welfare <- pol()
-         welfare_more <- more_pol()
          
          fdf$outputs_welf <- run_policy(project,
-                                   mod.name =c(welfare$models),
+                                   mod.name =isolate(c(welfare$models)),
                                    policy.name = c(welfare$sel_closures),
                                    betadraws = input$pol_betadraws,
-                                   marg_util_income = c(welfare_more$select_marg_inc),
-                                   income_cost = c(welfare_more$income_cost_pol),#
+                                   marg_util_income = c(marg$select_marg_inc),
+                                   income_cost = c(marg$income_cost_pol),#
                                    zone.dat =  welfare$zone_id,#
                                    group_var = NULL,
                                    enteredPrice = NULL,
                                    expected.catch = NULL,
                                    use.scalers = FALSE,
                                    scaler.func = NULL)
+         
+      
          
          if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
                shinyWidgets::show_alert(
@@ -179,7 +185,6 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
       })
 
       output$welfare_plot_dol <-  plotly::renderPlotly({
-   
          req(input$run_policy_button)
          req(isTruthy(fdf$outputs_welf))
          
@@ -192,7 +197,6 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
       
       output$welfare_tbl_dol <- DT::renderDataTable({
          req(input$run_policy_button)
-         
          req(isTruthy(fdf$outputs_welf))
          
          if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
@@ -214,7 +218,7 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
          })
 
      
-       output$welfare_tbl_prc <- DT::renderDataTable({
+      output$welfare_tbl_prc <- DT::renderDataTable({
            req(input$run_policy_button)
           req(isTruthy(fdf$outputs_welf))
           
@@ -240,53 +244,35 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
       output$pred_prob_tbl <-function() {
         req(project)
         req(input$run_policy_button)
-        req(isTruthy(fdf$outputs_welf))
-        
-        selections <- selected_choices()
-        pol(selections)
-        welfare <- pol()
 
         if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
            return(NULL)
         }else {
-        pred_prob_outputs(project, mod.name = isolate(c(welfare$models)), output_option = "table")
+        pred_prob_outputs(project, mod.name = isolate(c(selected_choices()$model)), output_option = "table")
         }
       }
 
       output$pred_prod_mod_fig <- plotly::renderPlotly({
         req(project)
         req(input$run_policy_button)
-        req(isTruthy(fdf$outputs_welf))
-
-        selections <- selected_choices()
-        pol(selections)
-        welfare <- pol()
-        
         
         if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
            return(NULL)
         }else {
-        pred_prob_outputs(project, mod.name = isolate(c(welfare$models)), output_option = "model_fig")
+        pred_prob_outputs(project, mod.name = isolate(c(selected_choices()$model)), output_option = "model_fig")
         }
 
       })
 
       output$pred_prod_pol_fig <- plotly::renderPlotly({
         req(project)
-       # req(input$pol_prim_sel_cat)
         req(input$run_policy_button)
-        req(isTruthy(fdf$outputs_welf))
-
-        selections <- selected_choices()
-        pol(selections)
-        welfare <- pol()
-
 
         if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
            return(NULL)
         }else {
-        pred_prob_outputs(project, mod.name = isolate(c(welfare$models)),
-                          policy.name = c(welfare$sel_closures),
+        pred_prob_outputs(project, mod.name = isolate(c(selected_choices()$model)),
+                          policy.name = isolate(c(selected_choices()$sel_closures)),
                           output_option = "policy_fig")
         }
 
@@ -295,17 +281,12 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
       output$pol_mod_diff_tbl <- function() {
         req(project)
         req(input$run_policy_button)
-        req(isTruthy(fdf$outputs_welf))
-
-        selections <- selected_choices()
-        pol(selections)
-        welfare <- pol()
 
         if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
            return(NULL)
         }else {
-        pred_prob_outputs(project, mod.name = isolate(c(welfare$models)),
-                          policy.name = c(welfare$sel_closures),
+        pred_prob_outputs(project,  mod.name = isolate(c(selected_choices()$model)),
+                          policy.name = isolate(c(selected_choices()$sel_closures)),
                           output_option = "diff_table")
 }
 

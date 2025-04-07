@@ -301,24 +301,21 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
             } else if (grepl('logit', predict_temp[[1]]$type, ignore.case=TRUE)) {
                ## LOGIT WELFARE ----
                # Get marginal utility of income
-               marg_list <- income_list <- list()
-               for(q in seq_along(marg_util_income)){
-                  
-                  theta <- mu_rand_new[which(rownames(selected_mod$OutLogit) == marg_util_income[[q]])]
-                  
-                   #for(b in seq_along(income_cost)){
-                     if(income_cost[[k]]){
-                       # print(paste("Index", k, "is TRUE"))
-                        
-                        theta <- -theta
-                     } else if(!shiny::isRunning()){
-                        stop(paste0("Marginal utility of income is negative , ", mod.name[[k]], ". Check model coefficient (estimate and standard error) and select appropriate marginal utility of income."))
-                     } else if(shiny::isRunning()){
-                      # } else{
-                        #  print(paste("Index", b, "is FALSE"))
-                          
-                          theta <- theta
+                  theta <- mu_rand_new[which(rownames(selected_mod$OutLogit) == marg_util_income[[k]])]
+
+                  if(income_cost[[k]]){ ## if income cost variable == TRUE
+                     theta <- -theta
+                  } 
+                  if(theta < 0){
+                     if(!shiny::isRunning()){
+                     stop(paste0("Marginal utility of income is negative , ", mod.name[[k]], ". Check model coefficient (estimate and standard error) and select appropriate marginal utility of income."))
                         }
+                     if(shiny::isRunning()){
+                        theta <- theta
+                        }
+                     }
+                        
+                    
                                       # set up distance matrix
                      distance <- as.matrix(distance, nrow = dim(distance)[1], ncol = dim(distance)[2])
                      
@@ -363,7 +360,7 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
                      # Welfare loss/gain
                      tmp_welfare <- (1/theta) * (Wa - Wb)
                      tmp_prc_welfare <- ((1/theta) * (Wa - Wb)) / ((1/theta) * Wb)
-               }
+               
             }
             
             #income_list[[b]] <- theta

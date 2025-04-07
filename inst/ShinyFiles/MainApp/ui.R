@@ -1727,7 +1727,7 @@ ui = function(request){
                                        bslib::accordion(
                                             bslib::accordion_panel(
                                               "To run policy scenarios", icon = bsicons::bs_icon("sliders"),
-                                              run_policyUI("run_policy"), # Plot button in the main UI
+                                              run_policyUI("run_policy"),
                                             ),
   
                                             bslib::accordion_panel(
@@ -1760,6 +1760,7 @@ ui = function(request){
                                        
                                        ),
                                        bslib::page_fillable(
+                                         uiOutput("selected_values"),
                                          bslib::accordion(
                                            pred_plotsUI("run_policy"),
                                            predict_map_mainUI("run_policy"),
