@@ -7904,10 +7904,20 @@ server = function(input, output, session) {
 
   zone_closure_tblServer("policy", project = project$name, spatdat = spatdat$dataset, clicked_ids, V)
   
-  # run_policy ------
+  zone_closure_tblServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V)
 
-  pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset)
+# run_policy ------
+  dynamicCheckboxData <- reactive({c(model_names(project = project$name))})
+  
+  selected_choices <- rp_checkboxModuleServer("run_policy", project = project$name,
+                                              spatdat = spatdat$dataset , values = values$dataset, dynamicCheckboxData)
+  
+  marg_selections <- rp_selectInputModuleServer("run_policy", project = project$name,
+                                                spatdat = spatdat$dataset , values = values$dataset,
+                                                selected_choices)
+  
+  rp_welf_predModuleServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset,
+                           selected_choices, marg_selections)
   
   pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset)
-
 }
