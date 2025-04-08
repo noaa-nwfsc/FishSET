@@ -18,14 +18,13 @@ rp_checkboxModuleServer <- function(id, project, spatdat, values, dynamicCheckbo
             choices = c(close_names(project)),
             inline = TRUE
          )
-
       })
      
       output$pol_prim_cat <- renderUI({
          selectInput(ns("pol_prim_sel_cat"),
                      "Select zone ID from primary data",
                      choices = unique(names(values)))
-
+         
       })
       
       # Return the reactive selected checkboxes
@@ -358,10 +357,7 @@ pred_mapServer <- function(id, project, spatdat){
           need(input$run_policy_button, 'To view map, run policy function above.'),
         )
 
-       # if (is.null(v$plot)) return()
         v$plot
-
-
       })
     }
   )
