@@ -50,12 +50,6 @@ run_policy <- function(project, mod.name = NULL, policy.name=NULL, betadraws = 1
                        income_cost = NULL, zone.dat = NULL, group_var = NULL,
                        enteredPrice = NULL, expected.catch = NULL, use.scalers = FALSE, scaler.func = NULL) {
    
-   cat(file=stderr(), "\n\n",
-       "Inside run policy function: \n",
-       (unlist(c(marg_util_income))), "\n",
-       (unlist(c(income_cost))), "\n",
-       "\n\n")
-   
    # Connect to SQL database
    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
