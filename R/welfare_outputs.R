@@ -51,7 +51,7 @@ welfare_outputs <- function(project, mod.name, closures, betadraws = 1000, zone.
   
     
   if (!(shiny::isRunning())) {
-     dat1 <- get(paste0(project,"MainDataTable"))
+     dat1 <- table_view(paste0(project,"MainDataTable"), project)
      
   } else {
      dat1 <- table_view(paste0(project,"MainDataTable_final"), project)
