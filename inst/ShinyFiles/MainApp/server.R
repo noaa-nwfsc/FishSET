@@ -7916,16 +7916,6 @@ server = function(input, output, session) {
                                                 spatdat = spatdat$dataset , values = values$dataset,
                                                 selected_choices)
   
-  output$selected_values <- renderUI({
-     tagList(
-        tags$p("Selected models: ", paste(selected_choices()$models, collapse=" ")),
-        tags$p("Selected policy: ", paste(selected_choices()$sel_closures, collapse=" ")),
-        tags$p("Marginal utility of income: ", paste(marg_selections()$select_marg_inc, collapse=" ")),
-        tags$p("Marginal utility of income: ", paste(marg_selections()$income_cost_pol, collapse=" "))
-
-     )
-  })
-  
   rp_welf_predModuleServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset,
                            selected_choices, marg_selections)
   

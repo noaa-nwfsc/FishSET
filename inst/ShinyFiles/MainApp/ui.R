@@ -1760,7 +1760,6 @@ ui = function(request){
                                        
                                        ),
                                        bslib::page_fillable(
-                                         uiOutput("selected_values"),
                                          bslib::accordion(
                                            pred_plotsUI("run_policy"),
                                            predict_map_mainUI("run_policy"),
