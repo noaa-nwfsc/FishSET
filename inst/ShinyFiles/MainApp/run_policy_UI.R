@@ -1,25 +1,26 @@
 
 
 run_policyUI <- function(id){
-  ns <- NS(id)
-  
-  tagList(
+   ns <- NS(id)
+   
+   tagList(
       uiOutput(ns("policy_select_mod")),
-       uiOutput(ns("run_pol_sel_scen")),
-  add_prompter(
-    numericInput(ns("pol_betadraws"), "Betadraws", value = 1000),
-        position = "top", type='info', size='medium',
-        message = "Integer indicating the number of times to run the welfare simulation."),
-  uiOutput(ns("pol_prim_cat")),
-
-  add_prompter(
-    uiOutput(ns("pol_likelihood")),
-        position = "top", type='info', size='medium',
-        message = "For conditional and zonal logit models. Name of the coefficient to use as marginal utility of income."),
-  actionButton(ns("run_policy_button"), "Run Policy Function"),
-
-  )
-
+      
+      uiOutput(ns("run_pol_sel_scen")),
+      
+      add_prompter(
+         numericInput(ns("pol_betadraws"), "Betadraws", value = 1000),
+         position = "top", type='info', size='medium',
+         message = "Integer indicating the number of times to run the welfare simulation."),
+      uiOutput(ns("pol_prim_cat")),
+      
+      add_prompter(
+         uiOutput(ns("pol_likelihood")),
+         position = "top", type='info', size='medium',
+         message = "For conditional and zonal logit models. Name of the coefficient to use as marginal utility of income."),
+      
+      actionButton(ns("run_policy_button"), "Run Policy Function"),
+   )
 }
 
 plot_welfareModuleUI <- function(id) {
@@ -31,25 +32,20 @@ plot_welfareModuleUI <- function(id) {
                                 full_screen = TRUE,
                                 bslib::card_header(strong("Welfare loss/gain for all scenarios as dollars"), class = "bg-info"),
                                 bslib::card_body(fill = FALSE,
-                                   shinycssloaders::withSpinner(plotly::plotlyOutput(ns("welfare_plot_dol")),type = 6),
-                                   shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_dol")) ,type = 6)
-                                )
-                             ),
-                                bslib::card(fill = FALSE,
-                                   full_screen = TRUE,
-                                   bslib::card_header(strong("Welfare loss/gain for all scenarios as percentage"), class = "bg-info"),
-                                   bslib::card_body(shinycssloaders::withSpinner(plotly::plotlyOutput(ns('welfare_plot_prc'))
-                                                                                 ,type = 6),
-                                                    shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_prc"))
-                                                                                 ,type = 6))
-                                )),
+                                                 shinycssloaders::withSpinner(plotly::plotlyOutput(ns("welfare_plot_dol")),type = 6),
+                                                 shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_dol")) ,type = 6))),
                              bslib::card(fill = FALSE,
-                                full_screen = TRUE,
-                                bslib::card_header(strong("Supplementary information table"), class = "bg-info"),
-                                bslib::card_body(shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_details"))
-                                                                              ,type = 6))
-                             )
-   )
+                                         full_screen = TRUE,
+                                         bslib::card_header(strong("Welfare loss/gain for all scenarios as percentage"), class = "bg-info"),
+                                         bslib::card_body(shinycssloaders::withSpinner(plotly::plotlyOutput(ns('welfare_plot_prc'))
+                                                                                       ,type = 6),
+                                                          shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_prc"))
+                                                                                       ,type = 6)))),
+                          bslib::card(fill = FALSE,
+                                      full_screen = TRUE,
+                                      bslib::card_header(strong("Supplementary information table"), class = "bg-info"),
+                                      bslib::card_body(shinycssloaders::withSpinner(DT::DTOutput(ns("welfare_tbl_details"))
+                                                                                    ,type = 6))))
 }
 
 predict_map_sidebarUI <- function(id){
