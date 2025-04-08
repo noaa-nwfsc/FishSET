@@ -49,8 +49,6 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
    # Pull output data from model optimization ----
    #---
    # Get list with all model outputs
-   #mod.out <- model_out_view(project)
-   
    policy.name <- unlist(lapply(closures, function(x){x$scenario}))  
    
    theta_list <- vector("list", length(mod.name)) 
@@ -63,7 +61,6 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
    names(prcwelfare_output) <- mod.name
    
    scenario_names <- unlist(lapply(closures, function(x){x$scenario}))  
-   
    
    for (k in seq_along(mod.name)) { 
       
@@ -97,7 +94,6 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
       # Number of closure scenarios
       n_scenarios <- length(closures)
       # Create empty matrices
-      # welfare_output <- prcwelfare_output <- list()
       welfare_output_k <- vector("list", n_scenarios)          # Temporary storage for this model
       prcwelfare_output_k <- vector("list", n_scenarios) 
       
