@@ -1683,7 +1683,8 @@ ui = function(request){
                                                                                   tags$br(),
                                                                                   
                                                                                   h5(strong('Step 4: Out-of-sample prediction')),
-                                                                                  p("Important: check settings in previous steps before running prediction."),
+                        
+                                                                                                                                            p("Important: check settings in previous steps before running prediction."),
                                                                                   uiOutput("run_outsample_prediction"),   
                                                         ),
                                                         
@@ -1729,7 +1730,8 @@ ui = function(request){
                                        bslib::accordion(
                                             bslib::accordion_panel(
                                               "To run policy scenarios", icon = bsicons::bs_icon("sliders"),
-                                              run_policyUI("run_policy")),
+                                              run_policyUI("run_policy"),
+                                            ),
   
                                             bslib::accordion_panel(
                                               "To create predicted probabilities map", icon = bsicons::bs_icon("map"),
@@ -1764,7 +1766,8 @@ ui = function(request){
                                          bslib::accordion(
                                            pred_plotsUI("run_policy"),
                                            predict_map_mainUI("run_policy"),
-                                           welfare_outputsUI("run_policy")
+                                           plot_welfareModuleUI("run_policy")
+
                                      )
                              )
                          )
