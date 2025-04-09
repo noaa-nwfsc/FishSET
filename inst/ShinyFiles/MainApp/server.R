@@ -10,6 +10,7 @@ source("run_policy_UI.R", local = TRUE)
 source("run_policy_server.R", local = TRUE)
 source("select_variables_UI.R", local = TRUE)
 source("select_variables_server.R", local = TRUE)
+source("checklist_module.R", local = TRUE)
 
 
 # default global search value
@@ -2331,6 +2332,7 @@ server = function(input, output, session) {
       # ---
   # DATA QUALITY ----
   # ---  
+  
   # change variable class ----
   output$change_var_inputs <- renderUI({
     tagList(
@@ -5852,8 +5854,6 @@ server = function(input, output, session) {
     # check for existing model design files/tables
     mod_rv$mod_design <- table_exists(paste0(project$name, "ModelInputData"), project$name)
     
-    
-    shinyjs::toggleState("mod_check", condition = mod_rv$final) 
   }, ignoreNULL = TRUE, ignoreInit = TRUE)
   
   
@@ -5871,9 +5871,12 @@ server = function(input, output, session) {
     )
   })
   
+  # checklist module
+  checklist_server("checklist", project_name = reactive(project$name), project_data = reactive(rv$data))
+  
   # model checklist reactives
   cList <- reactiveValues(out = NULL, pass = NULL)
-  
+ 
   # checklist modal
   observeEvent(input$mod_check, {
     
@@ -6027,9 +6030,11 @@ server = function(input, output, session) {
     output$checklistMsg <- renderUI({
       tags$div(
         
-        tags$h1("Model Checklist"),
+        tags$h1("FishSET Model Checklist"),
+        
+        tags$p("Each item in this checklist must be completed and pass successfully to run discrete choice models"),
+
         tags$ul(
-          
           tags$li(pass_icon("qaqc"), tags$strong("Data quality checks")),
           show_msg("qaqc"),
           qaqc_msg(),
@@ -6383,6 +6388,7 @@ server = function(input, output, session) {
   
   
   counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
+  
   rv <- reactiveValues(
     data = data.frame('mod_name' = NULL, 'likelihood' = NULL, 'optimOpt' = NULL, 
                       'inits'= NULL, 'methodname' = NULL, 'vars1' = NULL,
@@ -7935,10 +7941,21 @@ server = function(input, output, session) {
 
   zone_closure_tblServer("policy", project = project$name, spatdat = spatdat$dataset, clicked_ids, V)
   
-  # run_policy ------
+  zone_closure_tblServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V)
 
-  pred_plotsServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset, all_variables)
+
+# run_policy ------
+  dynamicCheckboxData <- reactive({c(model_names(project = project$name))})
   
-  pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset, all_variables)
-
+  selected_choices <- rp_checkboxModuleServer("run_policy", project = project$name,
+                                              spatdat = spatdat$dataset , values = values$dataset, dynamicCheckboxData)
+  
+  marg_selections <- rp_selectInputModuleServer("run_policy", project = project$name,
+                                                spatdat = spatdat$dataset , values = values$dataset,
+                                                selected_choices)
+  
+  rp_welf_predModuleServer("run_policy", project = project$name, spatdat = spatdat$dataset , values = values$dataset,
+                           selected_choices, marg_selections, all_variables)
+  
+  pred_mapServer("run_policy", project = project$name, spatdat = spatdat$dataset,selected_choices, all_variables)
 }

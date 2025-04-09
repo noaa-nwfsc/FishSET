@@ -25,9 +25,9 @@ checklist <- function(project, modDesignTab = NULL) {
     
   } else {
     
-    check$qaqc$msg <- paste("No final data set for project \"", project,"\" has been",
+    check$qaqc$msg <- paste("No final dataset for project \"", project,"\" has been",
     "saved to FishSET Database. Run check_model_data() in the console or click",
-    "\"Save final table to FishSET DB\" on the \"Compute New Variables\" tab before",
+    "\"Save final table to FishSET DB\" on the \"Define Alternative Fishing Choices\" tab before",
     "running model.")
   }
   # TODO: all these require lat and lon, which isn't always available

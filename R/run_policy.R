@@ -49,102 +49,83 @@
 run_policy <- function(project, mod.name = NULL, policy.name=NULL, betadraws = 1000, marg_util_income = NULL, 
                        income_cost = NULL, zone.dat = NULL, group_var = NULL,
                        enteredPrice = NULL, expected.catch = NULL, use.scalers = FALSE, scaler.func = NULL) {
-  
-  # Connect to SQL database
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-  
-  ##
-  # 1. Check closure file exists ----
-  ##
-  # Read in zone closure information
-  if (utils::file_test("-f", paste0(locoutput(project), pull_output(project, type = 'zone', fun = 'closures')))) {
-    closures <- yaml::read_yaml(paste0(locoutput(project), pull_output(project, type = 'zone', fun = 'closures')))
-    
-    
-
-    get_closures_out <-lapply(closures, function(x){
-    #  closures[[x]]$scenario == policy.name
-
-     pol_nm <-  x$scenario
-
-      if(pol_nm %in% policy.name){
-        return(1)
-      } else {
-        return(0)
-      }
-    })
-
-    closures_output <- closures[which(unlist(get_closures_out) == 1)]
-    # 
-  } else {
-    stop('No policy scenario tables found. Run the zone_closure function.')
-    
-  }
-  
-  
-  ##
-  # 2. Check that the model can be found ----
-  ##
-  # Get model name
-  if (is.null(mod.name) || is.numeric(mod.name)) {
-    # check that the model chosen table exists
-    if (table_exists('modelChosen', project)) {
-      modtemp <- table_view('modelChosen', project)$model
-      if (length(modtemp) > 1) {
-        if (!is.numeric(mod.name))
-          stop(
-            'More than one model exists in the modelChosen table. See table_view("modelChosen", project) and rerun function with either the model name or the numeric indicator of the model.'
-          )
-        if (is.numeric(mod.name))
-          modname <- modtemp[mod.name]
-      } else
-        modname <- modtemp[1]
-    } else {
-      stop(
-        'modelChosen table does not exist. Specify model name or select the model using select_model(project).'
-      )
-    }
-  } else {
-    exists <- grep(mod.name, project_files(project))
-    
-    if (length(exists) > 0){
-      modname <- mod.name  
-      
-    } else {
-      stop('modelChosen table does not exist. Specify model name or select the model using select_model(project).')
-    }
-  }
-  
-  
-  ##
-  # 3. Run model_prediction function ----
-  ##
-  model_prediction(project = project, mod.name = modname,
-                   closures = closures_output, enteredPrice = enteredPrice,
-                   use.scalers = use.scalers, scaler.func = scaler.func)
-  
-  
-  ##
-  # 4. Run welfare predict ----
-  ##
-  theta_output <- welfare_predict(project = project, mod.name = modname, closures = closures_output, betadraws = betadraws,
-                  marg_util_income = marg_util_income, income_cost = income_cost,
-                  expected.catch = expected.catch, enteredPrice = enteredPrice)
-  
-  # 6. Generate tables and plots
-  ## 
-   outputs_welf <- welfare_outputs(project = project, mod.name = mod.name, closures = closures_output, 
-                             betadraws = betadraws, zone.dat = zone.dat, group_var = group_var)
    
+   # Connect to SQL database
+   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+   
+   # 1. Check closure file exists ----
+   # Read in zone closure information
+   if (utils::file_test("-f", paste0(locoutput(project), pull_output(project, type = 'zone', fun = 'closures')))) {
+      
+      closures <- yaml::read_yaml(paste0(locoutput(project), pull_output(project, type = 'zone', fun = 'closures')))
+      
+      get_closures_out <-lapply(closures, function(x){
+         #  closures[[x]]$scenario == policy.name
+         pol_nm <-  x$scenario
+         
+         if(pol_nm %in% policy.name){
+            return(1)
+         } else {
+            return(0)
+         }
+      })
+      
+      closures_output <- closures[which(unlist(get_closures_out) == 1)]
+      
+   } else {
+      stop('No policy scenario tables found. Run the zone_closure function.')
+   }
+   
+   
+   # 2. Check that the model can be found ----
+   # Check if mod.name from input exists in the model output list
+   # If the model does not exist, stop function and return error message
+   if (table_exists(paste0(project, "ModelInputData"), project)) {
+      
+      mod.out <- model_out_view(project)
+      
+      for (i in seq_along(mod.name)) { # loop through each model
+         result <- tryCatch(
+            {
+               index <- grep(mod.name[i], lapply(mod.out, "[[", "name"))
+               if (length(index) == 0) stop(paste("Model output for", mod.name[i], " does not exist."))
+               mod.out[[index]]
+            },
+            error = function(e) {
+               message("Error: ", e$message)
+               NULL
+            }
+         )
+      } 
+      
+   } else {
+      stop('Model table(s) does not exist. Run model functions.')
+      
+   }
+   
+   # 3. Run model_prediction function ----
+   model_prediction(project = project, mod.name = mod.name,
+                    closures = closures_output, enteredPrice = enteredPrice,
+                    use.scalers = use.scalers, scaler.func = scaler.func)
+
+   # 4. Run welfare predict ----
+   theta_output <-  welfare_predict(project = project, mod.name = mod.name, closures = closures_output, betadraws = betadraws,
+                                    marg_util_income = marg_util_income, income_cost = income_cost,
+                                    expected.catch = expected.catch, enteredPrice = enteredPrice)
+   
+   # 6. Generate tables and plots
+   outputs_welf <-  welfare_outputs(project = project, mod.name = mod.name, closures = closures_output,
+                                    betadraws = betadraws, zone.dat = zone.dat, group_var = group_var)
+
    return(list(outputs_welf, theta_output))
-  
-  ##
-  # 7. log run_policy function call ----
-  ##
-  run_policy_function <- list()
-  run_policy_function$functionID <- "run_policy"
-  run_policy_function$args <- list(project, mod.name, enteredPrice, expected.catch, use.scalers, scaler.func)
-  run_policy_function$kwargs <- list()
-  log_call(project, run_policy_function)
+   
+   ##
+   # 7. log run_policy function call ----
+   ##
+   run_policy_function <- list()
+   run_policy_function$functionID <- "run_policy"
+   run_policy_function$args <- list(project, mod.name, enteredPrice, expected.catch, use.scalers, scaler.func)
+   run_policy_function$kwargs <- list()
+   log_call(project, run_policy_function)
 }
