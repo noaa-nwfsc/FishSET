@@ -8,7 +8,7 @@ source("zone_closure_UI.R", local = TRUE)
 source("zone_closure_Server.R", local = TRUE)
 source("run_policy_UI.R", local = TRUE)
 source("run_policy_server.R", local = TRUE)
-
+source("checklist_module.R", local = TRUE)
 
 
 # default global search value
@@ -2323,6 +2323,7 @@ server = function(input, output, session) {
   # ---
   # DATA QUALITY ----
   # ---  
+  
   # change variable class ----
   output$change_var_inputs <- renderUI({
     tagList(
@@ -5824,8 +5825,6 @@ server = function(input, output, session) {
     # check for existing model design files/tables
     mod_rv$mod_design <- table_exists(paste0(project$name, "ModelInputData"), project$name)
     
-    
-    shinyjs::toggleState("mod_check", condition = mod_rv$final) 
   }, ignoreNULL = TRUE, ignoreInit = TRUE)
   
   
@@ -5843,9 +5842,12 @@ server = function(input, output, session) {
     )
   })
   
+  # checklist module
+  checklist_server("checklist", project_name = reactive(project$name), project_data = reactive(rv$data))
+  
   # model checklist reactives
   cList <- reactiveValues(out = NULL, pass = NULL)
-  
+ 
   # checklist modal
   observeEvent(input$mod_check, {
     
@@ -5999,9 +6001,11 @@ server = function(input, output, session) {
     output$checklistMsg <- renderUI({
       tags$div(
         
-        tags$h1("Model Checklist"),
+        tags$h1("FishSET Model Checklist"),
+        
+        tags$p("Each item in this checklist must be completed and pass successfully to run discrete choice models"),
+
         tags$ul(
-          
           tags$li(pass_icon("qaqc"), tags$strong("Data quality checks")),
           show_msg("qaqc"),
           qaqc_msg(),
@@ -6355,6 +6359,7 @@ server = function(input, output, session) {
   
   
   counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
+  
   rv <- reactiveValues(
     data = data.frame('mod_name' = NULL, 'likelihood' = NULL, 'optimOpt' = NULL, 
                       'inits'= NULL, 'methodname' = NULL, 'vars1' = NULL,
