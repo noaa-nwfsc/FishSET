@@ -5469,32 +5469,32 @@ server = function(input, output, session) {
   altc <- reactiveValues(zone_cent = NULL, fish_cent = NULL)
   
   
-  # output$altc_occ_var_ui <- renderUI({
-  #   
-  #   if (input$altc_occasion == 'lon-lat') {
-  #     
-  #     tagList(
-  #       h5(tags$em('Longitude must be specified before latitude.')),
-  #       
-  #       selectizeInput('altc_occ_var', 'Choose longitude and latitude occasion columns', 
-  #                      choices = find_lonlat(values$dataset), 
-  #                      options = list(maxItems = 2, create = TRUE, 
-  #                                     placeholder = 'Select or type variable name'),
-  #                      multiple = TRUE)
-  #     )
-  #     
-  #   } else {
-  #     
-  #     # 
-  #     # add_prompter(tags$div(selectInput('altc_occ_var', 'Choose starting zone ID variable',
-  #     #                                   choices = colnames(values$dataset))),
-  #     #              position = 'right', type = 'info', size = 'medium',
-  #     #              message = 'The starting zone ID variable can be created in the Compute New Variables tab in the
-  #     #                         spatial functions'
-  #     # )
-  #   }
-  #   
-  # })
+  output$altc_occ_var_ui <- renderUI({
+
+    if (input$altc_occasion == 'lon-lat') {
+
+      tagList(
+        h5(tags$em('Longitude must be specified before latitude.')),
+
+        selectizeInput('altc_occ_var', 'Choose longitude and latitude occasion columns',
+                       choices = find_lonlat(values$dataset),
+                       options = list(maxItems = 2, create = TRUE,
+                                      placeholder = 'Select or type variable name'),
+                       multiple = TRUE)
+      )
+
+    } else {
+
+      #
+      # add_prompter(tags$div(selectInput('altc_occ_var', 'Choose starting zone ID variable',
+      #                                   choices = colnames(values$dataset))),
+      #              position = 'right', type = 'info', size = 'medium',
+      #              message = 'The starting zone ID variable can be created in the Compute New Variables tab in the
+      #                         spatial functions'
+      # )
+    }
+
+  })
   
   output$altc_zone_cent_ui <- renderUI({
     
@@ -5615,7 +5615,7 @@ server = function(input, output, session) {
     } else {
 
     q_test(dat=values$dataset, project=project$name, occasion=occ_type,
-           occasion_var=c(all_variables()$pz_lon, all_variables()$pz_lat), alt_var=alt_type, 
+           occasion_var=input$altc_occ_var, alt_var=alt_type, 
            dist.unit=input$altc_dist, min.haul=input$altc_min_haul, 
            spatname=spatdat$tablename, zoneID=all_variables()$pz_id, spatID=all_variables()$sz_id,
            zone.cent.name=input$altc_zone_cent, fish.cent.name=input$altc_fish_cent)

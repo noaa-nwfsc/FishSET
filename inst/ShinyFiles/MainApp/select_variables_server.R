@@ -15,10 +15,10 @@ sel_variablesServer <- function(id, project, spatdat, values, portdat){
                                                 bslib::card_body( 
                                                    selectizeInput(ns("primary_zone_id"), "Select zone ID from primary data",
                                                                choices = colnames(values), multiple = FALSE),
-                                                   selectizeInput(ns("primary_zone_lon"), "Select Longitude from primary data",
+                                                   selectizeInput(ns("primary_zone_lon"), "Select fishing location longitude from primary data",
                                                                   choices = find_lon(values), multiple = FALSE, 
                                                                   options = list(create = TRUE)),
-                                                   selectizeInput(ns("primary_zone_lat"), "Select Latitude from primary data",
+                                                   selectizeInput(ns("primary_zone_lat"), "Select fishing location latitude from primary data",
                                                                   choices = find_lat(values), multiple = FALSE, 
                                                                   options = list(create = TRUE)),
                                                    selectizeInput(ns("primary_zone_date"), "Select date variable", 
