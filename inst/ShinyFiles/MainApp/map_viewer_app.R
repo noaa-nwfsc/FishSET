@@ -20,18 +20,9 @@ map_viewer_serv <- function(id, dat, spatdat, project, all_variables) {
       bslib::page_sidebar(
         sidebar = bslib::sidebar( width = 400,
           
-          # selectInput(ns("avd"), "Area ID variable (primary data)",
-          #             choices = colnames(dat$dataset), selected = "ZoneID"),
-          # 
-          # selectInput(ns("avm"), "Area ID variable (spatial data)",
-          #             choices = colnames(spatdat$dataset)),
-          
           selectizeInput(ns("num"), "Numeric variables",
                          choices = numeric_cols(dat$dataset), multiple = TRUE),
           
-          # selectizeInput(ns("temp"), "Temporal variable",
-          #                choices = date_cols(dat$dataset), multiple = TRUE),
-          # 
           selectizeInput(ns("id_vars"), "Categorical variables to display for each zone",
                          choices = category_cols(dat$dataset), multiple = TRUE, 
                          options = list(placeholder = "Select or type value name",
@@ -87,6 +78,7 @@ map_viewer_serv <- function(id, dat, spatdat, project, all_variables) {
                           temp_vars = all_variables()$pz_date, id_vars = input$id_vars,
                           lon_start = input$lon_start, lat_start =  input$lat_start,
                           lon_end = input$lon_end, lat_end = input$lat_end))
+         
       } else {
         return(map_viewer(dat$dataset, project = project(), spat = spatdat$dataset, 
                           avm =  all_variables()$sz_id, avd = all_variables()$pz_id, num_vars = input$num,

@@ -1,5 +1,4 @@
 
-
 rp_checkboxModuleServer <- function(id, project, spatdat, values, dynamicCheckboxData) {
    moduleServer(id, function(input, output, session) {
       ns <- session$ns
@@ -20,14 +19,6 @@ rp_checkboxModuleServer <- function(id, project, spatdat, values, dynamicCheckbo
             inline = TRUE
          )
       })
-
-      # output$pol_prim_cat <- renderUI({
-      #   selectInput(ns("pol_prim_sel_cat"), 
-      #               "Select zone ID from primary data",
-      #               choices = unique(names(values)))
-      #   
-      # })
-
       
       # Return the reactive selected checkboxes
       reactive({
@@ -149,28 +140,29 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
       more_pol <- reactiveVal(NULL)
       
       observeEvent(input$run_policy_button, {
-        req(input$run_pol_chk_scen)
+         # Check for required values 
+         req(input$run_pol_chk_scen)
          req(input$pol_betadraws)
+         req(all_variables())
+         
+         # Set up reactives
          selections <- selected_choices()
          marg <- marg_selections()  
          pol(selections)
          welfare <- pol()
-         req(all_variables())
-         
          
          fdf$outputs_welf <- run_policy(project,
                                    mod.name =isolate(c(welfare$models)),
                                    policy.name = c(welfare$sel_closures),
                                    betadraws = input$pol_betadraws,
                                    marg_util_income = c(marg$select_marg_inc),
-                                   income_cost = c(marg$income_cost_pol),#
+                                   income_cost = c(marg$income_cost_pol),
                                    zone.dat =  all_variables()$pz_id,
                                    group_var = NULL,
                                    enteredPrice = NULL,
                                    expected.catch = NULL,
                                    use.scalers = FALSE,
                                    scaler.func = NULL)
-         
 
          if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
                shinyWidgets::show_alert(
@@ -299,7 +291,7 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
 
 
 
-pred_mapServer <- function(id, project, spatdat,selected_choices, all_variables){
+pred_mapServer <- function(id, project, spatdat, selected_choices, all_variables){
   moduleServer(
     id,
     function(input, output, session){
@@ -309,20 +301,15 @@ pred_mapServer <- function(id, project, spatdat,selected_choices, all_variables)
       v <- reactiveValues(plot = NULL)
 
       output$pred_map_sel_mod <- renderUI({
+         # Check for required values
          req(project)
          req(input$run_policy_button)
+         
          selectInput(
             ns("select_pred_pol_mod"), 'Select a model', 
             choices = c(isolate(selected_choices()$models)))
       })
       
-      # output$pred_map_cat <- renderUI({
-      #   selectInput(ns("pred_map_sel_cat"), "Select zone ID from spatial data",
-      #               choices = unique(names(spatdat)))
-      #   
-      # })
-      
-
       output$policy_select_scenario <- renderUI({
 
         req(project)
@@ -334,25 +321,24 @@ pred_mapServer <- function(id, project, spatdat,selected_choices, all_variables)
 
       })
 
-
       observeEvent(input$run_pred_map, {
-
-        req(project)
-        req(input$select_pred_pol_mod)
-        req(input$pred_pol_name)
-        req(all_variables())
-        
-        if(input$pred_pol_name == "no closure"){
-          v$plot <-  predict_map(project, mod.name = isolate(input$select_pred_pol_mod),
-                                 policy.name = isolate(input$select_pred_pol_mod), 
-                                 spat = spatdat, zone.spat = all_variables()$sz_id)
-          
-        } else {
-          
-          v$plot <-  predict_map(project, mod.name = isolate(input$select_pred_pol_mod),
-                                 policy.name = paste0(isolate(input$select_pred_pol_mod), " ",isolate(input$pred_pol_name)), 
-                                 spat = spatdat, zone.spat = all_variables()$sz_id)
-        }
+         # Check for required values
+         req(project)
+         req(input$select_pred_pol_mod)
+         req(input$pred_pol_name)
+         req(all_variables())
+         
+         if(input$pred_pol_name == "no closure"){
+            v$plot <-  predict_map(project, mod.name = isolate(input$select_pred_pol_mod),
+                                   policy.name = isolate(input$select_pred_pol_mod), 
+                                   spat = spatdat, zone.spat = all_variables()$sz_id)
+            
+         } else {
+            
+            v$plot <-  predict_map(project, mod.name = isolate(input$select_pred_pol_mod),
+                                   policy.name = paste0(isolate(input$select_pred_pol_mod), " ",isolate(input$pred_pol_name)), 
+                                   spat = spatdat, zone.spat = all_variables()$sz_id)
+         }
       })
 
       output$predict_map <- leaflet::renderLeaflet({
