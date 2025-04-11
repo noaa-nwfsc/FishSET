@@ -4,7 +4,6 @@
 zone_closure_sidebarUI <- function(id){
   ns <- NS(id)
   tagList(
-   # uiOutput(ns("zone_closure_cat")),
     actionButton(ns('zoneplot'), "Plot zones",
                  class = "btn-primary"),
     textInput(ns('scenarioname'), 'Scenario Name', value=''),
@@ -14,7 +13,6 @@ zone_closure_sidebarUI <- function(id){
 }
 
 ### map and selected points zone closure UI
-
 zone_closure_mapUI <- function(id){
   ns <- NS(id)
   
