@@ -6,6 +6,9 @@ source("zone_outsample_server.R", local = TRUE)
 source("zone_closure_UI.R", local = TRUE)
 source("run_policy_UI.R", local = TRUE)
 source("run_policy_server.R", local = TRUE)
+source("select_variables_UI.R", local = TRUE)
+source("select_variables_server.R", local = TRUE)
+
 source("checklist_module.R", local = TRUE)
 
 
@@ -237,7 +240,10 @@ ui = function(request){
     #---
     # Upload data tabset panel ---- 
     #---
-    bslib::nav_panel(title = "Upload Data", id = "upload", 
+    bslib::nav_menu(title = "Data",
+                    bslib::nav_panel(
+                       title = "Upload Data", id = "upload", 
+                       
                      bslib::page_fillable(
                        #tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
                        bslib::layout_sidebar(fillable = TRUE, fill = TRUE,
@@ -381,6 +387,13 @@ ui = function(request){
                      )
                      )
                      )
+                   ),
+                   bslib::nav_panel(title = "Select variables", id = "variables", 
+                                    bslib::page_fillable(
+                                       h5(strong("Selecting variables")),
+                                       sel_variablesUI("variables_sel")
+                                    )
+                   )
                    ),
     
     
@@ -956,7 +969,8 @@ ui = function(request){
                                                                 selectInput('fun_time','Numeric function to transform temporal data',
                                                                             choices = c('min','mean','max','median'), 
                                                                             selected = 'mean'),
-                                                                uiOutput('input_IDVAR')),
+                                                                uiOutput('input_IDVAR')
+                                                                ),
                                                
                                                conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_distance'" ,
                                                                 style = "margin-left:19px;",
