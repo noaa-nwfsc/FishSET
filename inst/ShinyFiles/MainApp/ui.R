@@ -388,18 +388,11 @@ ui = function(request){
                      )
                      )
                    ),
-                   bslib::nav_panel( title = "Select variables", id = "variables", 
-                        bslib::page_fillable(
-                            # bslib::layout_sidebar(fillable = TRUE, fill = TRUE,
-                            #     sidebar = bslib::sidebar( fillable = TRUE, fill = TRUE, width = 400,
-                            #                               h5(strong("Selecting variables"))
-                            #                               
-                            #          ),
-                          h5(strong("Selecting variables")),
-                                sel_variablesUI("variables_sel")
-                                
-                        #     )
-                        )
+                   bslib::nav_panel(title = "Select variables", id = "variables", 
+                                    bslib::page_fillable(
+                                       h5(strong("Selecting variables")),
+                                       sel_variablesUI("variables_sel")
+                                    )
                    )
                    ),
     
