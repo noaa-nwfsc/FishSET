@@ -2314,22 +2314,22 @@ server = function(input, output, session) {
   
   
   observeEvent(input$plot_set_save, {
-    if(isTruthy(project$name)){
-      edit_proj_settings(project$name, 
-                         plot_size = c(input$plot_set_w, input$plot_set_h))
-      showNotification("Plot size saved", type = "message", duration = 60)
-    }
+     if(isTruthy(project$name)){
+        edit_proj_settings(project$name, 
+                           plot_size = c(input$plot_set_w, input$plot_set_h))
+        showNotification("Plot size saved", type = "message", duration = 60)
+     }
   })
   
-      all_variables <- sel_variablesServer("variables_sel", project = project$name, spatdat = spatdat$dataset, 
-                                                            values = values$dataset, portdat = portdat$dataset )
+  all_variables <- sel_variablesServer("variables_sel", project = project$name, spatdat = spatdat$dataset, 
+                                       values = values$dataset, portdat = portdat$dataset)
   
-      observeEvent(input$nexttab, {
-         nav_show(id = "tabnew",
-                    target = nav_panel("Dynamic", "Dynamically added content"))
-      })
+  observeEvent(input$nexttab, {
+     nav_show(id = "tabnew",
+              target = nav_panel("Dynamic", "Dynamically added content"))
+  })
       
-      # ---
+  # ---
   # DATA QUALITY ----
   # ---  
   
@@ -2378,7 +2378,6 @@ server = function(input, output, session) {
   
   
   observeEvent(input$rchclass, {
-    
     q_test <- quietly_test(change_class, show_msg = TRUE)
 
     values$dataset <- q_test(dat = values$dataset, project = project$name,
@@ -2489,52 +2488,56 @@ server = function(input, output, session) {
   
   ##Output to main panel
   output$Case <- renderPrint({
-    
-    if(input$checks == 'Variable class'){
-      
-      h4("Check and change variable data classes")
-      
-    }else if(input$checks=='Summary table') {
-      
-      h4("Summary table of NUMERIC variables in data table.")
-      
-    } else if (input$checks=='Outliers'){
-      
-      if (input$dat.remove=='none'){
+     
+     if(input$checks == 'Variable class'){
         
-        h4("Table to assess outliers.", strong(input$column_check), " shown.")
+        h4("Check and change variable data classes")
         
-      } else {
+     } else if(input$checks=='Summary table') {
         
-        rm_txt <- switch(input$dat.remove, '5_95_quant' = '5th and 95th quantiles',  '25_75_quant' = '25th and 75th quantiles', 
-                         'mean_2SD' = 'mean +/- 2SD', 'mean_3SD' = 'mean +/- 3SD', 
-                         'median_2SD' = 'median +/- 2SD', 'median_3SD' = 'median +/- 3SD')
-        out_tab <- tableInputOutlier()[[1]]
-        rm_num <- nrow(values$dataset) - out_tab[rownames(out_tab) == input$dat.remove, 1]
+        h4("Summary table of NUMERIC variables in data table.")
         
-        h4("Table to assess outliers.", strong(input$column_check), " shown.", 
-           h4("Excluding points that fall outside the", strong(rm_txt), "results in removing", strong(rm_num), "points from the data table."))
-      }
-    } else if(input$checks=='NAs'){
-      #na(values$dataset)
-      na_filter(values$dataset, project = project$name, x=qaqc_helper(values$dataset, "NA", "names"), 
-                       replace = FALSE, remove = FALSE, rep.value=NA, over_write=FALSE)
-    } else if(input$checks=='NaNs'){
-      nan_filter(values$dataset, project = project$name, x=qaqc_helper(values$dataset, "NaN", "names"), 
-                 replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
-    } else if (input$checks=='Remove variables'){ 
-      h4("Select variables to remove from the dataset")
-    } else if(input$checks=='Unique observations'){
-      unique_filter(values$dataset, project = project$name, remove=FALSE)
-    } else if(input$checks=='Empty variables'){
-      empty_vars_filter(values$dataset, project = project$name, remove=FALSE)
-    } else if(input$checks=='Lat_Lon units'){
-      degree(values$dataset, project = project$name, lat=NULL, lon=NULL, latsign=NULL, lonsign=NULL, replace=FALSE)
-    } else {
-      
-      h4("Spatial data checks and corrections")
-
-    } 
+     } else if (input$checks=='Outliers'){
+        
+        if (input$dat.remove=='none'){
+           
+           h4("Table to assess outliers.", strong(input$column_check), " shown.")
+           
+        } else {
+           
+           rm_txt <- switch(input$dat.remove, '5_95_quant' = '5th and 95th quantiles',  '25_75_quant' = '25th and 75th quantiles', 
+                            'mean_2SD' = 'mean +/- 2SD', 'mean_3SD' = 'mean +/- 3SD', 
+                            'median_2SD' = 'median +/- 2SD', 'median_3SD' = 'median +/- 3SD')
+           out_tab <- tableInputOutlier()[[1]]
+           rm_num <- nrow(values$dataset) - out_tab[rownames(out_tab) == input$dat.remove, 1]
+           
+           h4("Table to assess outliers.", strong(input$column_check), " shown.", 
+              h4("Excluding points that fall outside the", strong(rm_txt), "results in removing", strong(rm_num), "points from the data table."))
+        }
+        
+     } else if(input$checks=='NAs'){
+        na_filter(values$dataset, project = project$name, x=qaqc_helper(values$dataset, "NA", "names"), 
+                  replace = FALSE, remove = FALSE, rep.value=NA, over_write=FALSE)
+        
+     } else if(input$checks=='NaNs'){
+        nan_filter(values$dataset, project = project$name, x=qaqc_helper(values$dataset, "NaN", "names"), 
+                   replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
+        
+     } else if (input$checks=='Remove variables'){ 
+        h4("Select variables to remove from the dataset")
+        
+     } else if(input$checks=='Unique observations'){
+        unique_filter(values$dataset, project = project$name, remove=FALSE)
+        
+     } else if(input$checks=='Empty variables'){
+        empty_vars_filter(values$dataset, project = project$name, remove=FALSE)
+        
+     } else if(input$checks=='Lat_Lon units'){
+        degree(values$dataset, project = project$name, lat=NULL, lon=NULL, latsign=NULL, lonsign=NULL, replace=FALSE)
+        
+     } else {
+        h4("Spatial data checks and corrections")
+     } 
   })
   
   case_to_print <- reactiveValues(dataQuality = logical(0),
@@ -3315,33 +3318,22 @@ server = function(input, output, session) {
   
   ## Spatial QAQC ----
   output$spatQAQC_checkUI <- renderUI({
-    if (names(spatdat$dataset)[1] != "var1") {
-      tagList(
-        # selectInput("spat_qaqc_ID", "Select zone ID from primary data",
-        #             choices = colnames(values$dataset), multiple = FALSE),
-        # selectizeInput("spat_qaqc_lon", "Select Longitude from primary data",
-        #                choices = find_lon(values$dataset), multiple = FALSE,
-        #                options = list(create = TRUE)),
-        # selectizeInput("spat_qaqc_lat", "Select Latitude from primary data",
-        #                choices = find_lat(values$dataset), multiple = FALSE,
-        #                options = list(create = TRUE)),
-        # selectizeInput("spat_qaqc_date", "Select date variable",
-        #                choices = colnames(values$dataset), multiple = FALSE,
-        #                options = list(create = TRUE)),
-        add_prompter(textInput("spat_qaqc_epsg", "(Optional) enter spatial reference EPSG code",
-                               value = NULL),
-                     message = "Option to manually set the spatial reference EPSG code for
+     if (names(spatdat$dataset)[1] != "var1") {
+        tagList(
+           add_prompter(textInput("spat_qaqc_epsg", "(Optional) enter spatial reference EPSG code",
+                                  value = NULL),
+                        message = "Option to manually set the spatial reference EPSG code for
                                 spatial and primary datasets. If EPSG is specified in the spatial data and 
                                 this box is left empty, then the EPSG of the spatial data will be 
                                 automatically applied to primary data.",
-                     type = "info", size = "medium", position = "top"),
-        selectizeInput("spat_qaqc_grp", "(Optional) select grouping variable",
-                       choices = category_cols(values$dataset),
-                       multiple = TRUE, options = list(maxItems = 1, create = TRUE)),
-        actionButton("runSpatQAQC", "Run spatial check",
-                     class = "btn-secondary")
-      )
-    }
+                        type = "info", size = "medium", position = "top"),
+           selectizeInput("spat_qaqc_grp", "(Optional) select grouping variable",
+                          choices = category_cols(values$dataset),
+                          multiple = TRUE, options = list(maxItems = 1, create = TRUE)),
+           actionButton("runSpatQAQC", "Run spatial check",
+                        class = "btn-secondary")
+        )
+     }
   })
   
   spat_qaqc_r <- reactiveValues(flag = FALSE, c_tab = NULL)
@@ -3350,28 +3342,28 @@ server = function(input, output, session) {
   # run spatial checks 
   observeEvent(input$runSpatQAQC, {
      req(all_variables())
-    withProgress({
-      q_test <- quietly_test(spatial_qaqc)
-      
-      out <- q_test(dat = values$dataset, project = project$name, spat = spatdat$dataset, 
-                    lon.dat = all_variables()$pz_lon, lat.dat = all_variables()$pz_lat,
-                    date = all_variables()$pz_date, group = input$spat_qaqc_grp, epsg = input$spat_qaqc_epsg)
-      
-      if (!is_value_empty(out)) {
+     withProgress({
+        q_test <- quietly_test(spatial_qaqc)
         
-        flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
-        spat_qaqc_r$flag <- flag_nms %in% names(out$dataset)
+        out <- q_test(dat = values$dataset, project = project$name, spat = spatdat$dataset, 
+                      lon.dat = all_variables()$pz_lon, lat.dat = all_variables()$pz_lat,
+                      date = all_variables()$pz_date, group = input$spat_qaqc_grp, epsg = input$spat_qaqc_epsg)
         
-        spat_qaqc$out_df <- subset(out$dataset, select=-c(YEAR)) # remove 'YEAR' from table
-        out$dataset <- NULL
-        
-        qaqc_out_proj$spat <- project$name
-        
-        spat_qaqc$out <- out
-      }
-    },
-    message = "Running checks: ",
-    detail = 'Can take up to a few seconds to run.')
+        if (!is_value_empty(out)) {
+           
+           flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
+           spat_qaqc_r$flag <- flag_nms %in% names(out$dataset)
+           
+           spat_qaqc$out_df <- subset(out$dataset, select=-c(YEAR)) # remove 'YEAR' from table
+           out$dataset <- NULL
+           
+           qaqc_out_proj$spat <- project$name
+           
+           spat_qaqc$out <- out
+        }
+     },
+     message = "Running checks: ",
+     detail = 'Can take up to a few seconds to run.')
   }, ignoreInit = TRUE, ignoreNULL = TRUE)
   
   # Spatial checks output
@@ -3534,23 +3526,24 @@ server = function(input, output, session) {
   # correction table
   c_tab <- reactive({
      req(all_variables())
-    if (any(spat_qaqc_r$flag)) {
-      
-      if (input$select_spat_tab == "out_zone") {
+     
+     if (any(spat_qaqc_r$flag)) {
         
-        if (sum(dist_filter()) > 0){
-          spat_qaqc$out_df[dist_filter(), c(all_variables()$pz_id, all_variables()$pz_date, iall_variables()$pz_at,
-                                            all_variables()$pz_lon, "ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")]
-        } 
-        
-      } else { # "all"
-        new_cols <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
-        new_cols <- new_cols[which(spat_qaqc_r$flag)]
-        
-        spat_qaqc$out_df[,c(all_variables()$pz_id, all_variables()$pz_lat,
-                            all_variables()$pz_lon, new_cols)]
-      }
-    }
+        if (input$select_spat_tab == "out_zone") {
+           
+           if (sum(dist_filter()) > 0){
+              spat_qaqc$out_df[dist_filter(), c(all_variables()$pz_id, all_variables()$pz_date, iall_variables()$pz_at,
+                                                all_variables()$pz_lon, "ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")]
+           } 
+           
+        } else { # "all"
+           new_cols <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
+           new_cols <- new_cols[which(spat_qaqc_r$flag)]
+           
+           spat_qaqc$out_df[,c(all_variables()$pz_id, all_variables()$pz_lat,
+                               all_variables()$pz_lon, new_cols)]
+        }
+     }
   })
   
   observe({
@@ -3905,13 +3898,10 @@ server = function(input, output, session) {
   })
   
   output$column_select <- renderUI({
-    #  tags$div(align = 'left', class = 'multicol', 
     tagList(
       selectInput("col_select", "Select column name", choices = names(values$dataset), 
                   selected = numeric_cols(values$dataset)[1], 
-                  multiple=FALSE, selectize = TRUE), #)
-      
-      #selectInput("date_select", "Select date column", choices = date_cols(values$dataset))
+                  multiple=FALSE, selectize = TRUE),
     )
   })
   
@@ -4175,14 +4165,6 @@ server = function(input, output, session) {
 
         tags$div(h5('Spatial data file not loaded. Please load on Upload Data tab', class = "text-danger"))
       },
-
-      # tags$div(style = "margin-left:19px;",
-      #          selectInput('zone_summ_dat', 'Select column containing zone ID in primary data table',
-      #                      choices = colnames(values$dataset))),
-
-      # tags$div(style = "margin-left:19px;",
-      #          selectInput('zone_summ_spat', 'Select column containing zone ID in spatial data table',
-      #                      choices = colnames(spatdat$dataset))),
 
       tags$div(style = "margin-left:19px;",
                selectInput('zone_summ_varPlot', 'Select a variable to plot',
@@ -4566,8 +4548,6 @@ server = function(input, output, session) {
   
   output$unique_col_id <- renderUI({
     tagList(
-      # selectInput('unique_identifier','Variables that identify unique observations',
-      #             choices=colnames(values$dataset), multiple=TRUE, selectize=TRUE),
       selectInput('ID_type', "Select ID column class type",
                   choices = c("string", "integer")))
   })
@@ -4804,14 +4784,7 @@ server = function(input, output, session) {
         
         tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', class = "text-danger"))
       },
-      
-      # selectizeInput('lat_dat_zone', 'Latitude from data', choices = find_lat(values$dataset),
-      #                options = list(create = TRUE, placeholder = 'Select or type LATITUDE variable name')),
-      # selectizeInput('lon_dat_zone', 'Longitude from data', choices = find_lon(values$dataset),
-      #                options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name')),
-      # 
-      # selectInput('cat_zone', 'Individual areas/zones from the spatial data file', 
-      #             choices = names(as.data.frame(spatdat$dataset))),
+
       checkboxInput('hull_polygon_zone', 'Use convex hull method to create polygon?', value = FALSE),
       checkboxInput('closest_pt_zone', 'Use closest polygon to point?', value = FALSE) 
     ) 
@@ -4836,34 +4809,22 @@ server = function(input, output, session) {
   
   # Zonal Centroid UI
   output$zone_cent_ui <- renderUI({
-    tagList(
-      
-      if (names(spatdat$dataset)[1]=='var1') {
+     tagList(
+        if (names(spatdat$dataset)[1]=='var1') {
+           return(
+              tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab',class = "text-danger"))
+           )
+        },
         
-        return(
-          tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab',class = "text-danger"))
-        )
+        textInput('zone_cent_name', 'Name for new centroid table', 
+                  placeholder = 'Ex: NMFSAreas'),
         
-      },
-      
-      # selectInput('zone_cent_spatID', 'Select zone ID from spatial data',
-      #             choices = names(spatdat$dataset)),
-      # 
-      textInput('zone_cent_name', 'Name for new centroid table', 
-                placeholder = 'Ex: NMFSAreas'),
-      
-      checkboxInput('zone_cent_join', 'Join zonal centroids to primary data',
-                    value = FALSE),
-      
-      conditionalPanel(condition = 'input.zone_cent_join',
-                       
-                       # selectInput('zone_cent_zoneID', 'Select zonal ID from primary data',
-                       #             choices = names(values$dataset))
-                       
-      ) 
-      
-    )
-    
+        checkboxInput('zone_cent_join', 'Join zonal centroids to primary data',
+                      value = FALSE),
+        
+        conditionalPanel(condition = 'input.zone_cent_join',
+        ) 
+     )
   })
   
   
@@ -4871,17 +4832,8 @@ server = function(input, output, session) {
   output$fish_weight_cent <- renderUI({
     
     tagList(
-      # textInput('cat_cent', 'Zone identifier in primary data file or spatial data file', 
-      #           value='ZoneID'),
       selectInput('weight_var_cent', 'Weighting variable', 
                   choices=c('none'="", colnames(values$dataset))),
-      # tags$b('Select latitude then longitude from primary data frame for assigning observations to zones'),
-      # div(style="display: inline-block;vertical-align:top; width: 200px;",
-      #     selectizeInput('lat_dat_cent', '', choices = find_lat(values$dataset),
-      #                    options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
-      # div(style="display: inline-block;vertical-align:top; width: 200px;",
-      #     selectizeInput('lon_dat_cent', '', choices = find_lon(values$dataset),
-      #                    options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name')))
     )
   })
   
@@ -4955,26 +4907,16 @@ server = function(input, output, session) {
   
   output$dist_betwn_opts <- renderUI({
     
-    conditionalPanel("input.start=='Zonal centroid'||input.end=='Zonal centroid'",
-                     style = "margin-left:19px;",  
-                     
-                     #selectInput('zone_dist', 'Zone/area assignment variable (if exists in data)', choices=c('', 'ZoneID', colnames(values$dataset))),
-                     
-                     # selectizeInput('lon_dat', 'Select lat then lon columns from dataframe to assign observations to zone', 
-                     #                choices = find_lonlat(values$dataset),
-                     #                multiple=TRUE, options = list(maxItems = 2, create = TRUE, 
-                     #                                              placeholder='Select or type variable name')),
-                     # 
-                     # selectInput('cat', 'Individual areas/zones from the spatial data drame', 
-                     #             choices=names(as.data.frame(spatdat$dataset))),
-                     
-                     if (!inherits(spatdat$dataset, "sf")) {
-                       selectizeInput('long_grid', 'Select vector containing latitude then longitude from spatial data file',
-                                      choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE, 
-                                      options = list(maxItems = 2,create = TRUE, 
-                                                     placeholder='Select or type variable name'))
-                     }
-    )
+     conditionalPanel("input.start=='Zonal centroid'||input.end=='Zonal centroid'",
+                      style = "margin-left:19px;",  
+                      
+                      if (!inherits(spatdat$dataset, "sf")) {
+                         selectizeInput('long_grid', 'Select vector containing latitude then longitude from spatial data file',
+                                        choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE, 
+                                        options = list(maxItems = 2,create = TRUE, 
+                                                       placeholder='Select or type variable name'))
+                      }
+     )
   })
   
   output$mid_haul_input <- renderUI({
@@ -4991,44 +4933,26 @@ server = function(input, output, session) {
   
   # Starting loc
   output$input_startingloc <- renderUI({
-    tagList(
-      
-      if (names(spatdat$dataset)[1]=='var1') {
-        tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', 
-                    class = "text-danger"))
-      },
-      
-      tags$div(style = "margin-left:19px;",
-               
-               selectInput('trip_id_SL', 'Variable that identifies unique trips',
-                           choices=c('', names(values$dataset)), selectize=TRUE),
-               
-               selectInput('haul_order_SL', 'Variable defining haul order within a trip. Can be time, coded variable, etc.',
-                           choices=c('', names(values$dataset)), selectize=TRUE),
-               
-               selectizeInput('starting_port_SL',  "Variable in the primary data table that identifies port at start of trip", 
-                              choices = colnames(values$dataset), 
-                              options = list(create = TRUE, placeholder='Select or type variable name')),
-               
-               # selectInput('zone_dat_SL', 'Zone ID variable from the PRIMARY data table', 
-               #             choices=colnames(values$dataset), selected=''),
-               # 
-               # selectInput('zone_spat_SL', 'Zone ID variable from the SPATIAL data table', 
-               #             choices=colnames(spatdat$dataset), selected=''),
-               
-               # selectInput("port_name_SL", "Select variable from port table with port names",
-               #             choices = colnames(portdat$dataset), 
-               #             multiple = FALSE),
-               # 
-               # selectInput("port_lon_SL", "Select variable from port table with port longitude",
-               #             choices = colnames(portdat$dataset), 
-               #             multiple = FALSE),
-               # 
-               # selectInput("port_lat_SL", "Select variable from port table with port latitude",
-               #             choices = colnames(portdat$dataset), 
-               #             multiple = FALSE)
-      )
-    )
+     tagList(
+        
+        if (names(spatdat$dataset)[1]=='var1') {
+           tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', 
+                       class = "text-danger"))
+        },
+        
+        tags$div(style = "margin-left:19px;",
+                 
+                 selectInput('trip_id_SL', 'Variable that identifies unique trips',
+                             choices=c('', names(values$dataset)), selectize=TRUE),
+                 
+                 selectInput('haul_order_SL', 'Variable defining haul order within a trip. Can be time, coded variable, etc.',
+                             choices=c('', names(values$dataset)), selectize=TRUE),
+                 
+                 selectizeInput('starting_port_SL',  "Variable in the primary data table that identifies port at start of trip", 
+                                choices = colnames(values$dataset), 
+                                options = list(create = TRUE, placeholder='Select or type variable name')),
+        )
+     )
   })
   
   
@@ -5074,14 +4998,6 @@ server = function(input, output, session) {
   # Trip centroid
   output$input_tri_cent <-  renderUI({
     tagList(
-      # selectizeInput('trip_cent_lon','Column name containing longitudinal data', 
-      #                choices = find_lon(values$dataset), multiple = FALSE,  
-      #                options = list(create = TRUE, placeholder='Select or type variable name')),
-      # 
-      # selectizeInput('trip_cent_lat', 'Column name containing latitudinal data', 
-      #                choices =find_lat(values$dataset), multiple = FALSE,  
-      #                options = list(create = TRUE, placeholder='Select or type variable name')),
-      
       selectInput('trip_cent_weight','Variable for weighted average', multiple = FALSE, 
                   choices=c('', names(values$dataset)), selected='', selectize=TRUE),
       
@@ -5245,24 +5161,23 @@ server = function(input, output, session) {
       
     } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'create_dist_between') {
       
-      if (input$start == 'Lat/Lon coordinates') startdist <-input$start_latlon
-      else if (input$start == 'Port')           startdist <- input$port_start
-      else                                      startdist <- 'centroid'
-      
-      if (input$end=='Lat/Lon coordinates') enddist <-input$end_latlon
-      else if (input$end=='Port') enddist <- input$port_end
-      else enddist <- 'centroid'
-      
-      q_test <- quietly_test(create_dist_between_for_gui)
-      output <-  q_test(values$dataset, project = project$name, start = startdist, 
-                        end = enddist, units = input$units, name = input$varname, 
-                        portTable = input$filePort, spat = spatdat$dataset,
-                        zoneid = all_variables()$pz_id, 
-                       # lon.dat = input$lon_dat[2],  at.dat = input$lon_dat[1]
-                       lon.dat = all_variables()$pz_lon,  at.dat = all_variables()$pz_lat,
-                        cat = all_variables()$sz_id, lon.spat = input$long_grid[2], 
-                        lat.spat = input$long_grid[1])
-      notif <- "Point distance"
+       if (input$start == 'Lat/Lon coordinates') startdist <-input$start_latlon
+       else if (input$start == 'Port')           startdist <- input$port_start
+       else                                      startdist <- 'centroid'
+       
+       if (input$end=='Lat/Lon coordinates') enddist <-input$end_latlon
+       else if (input$end=='Port') enddist <- input$port_end
+       else enddist <- 'centroid'
+       
+       q_test <- quietly_test(create_dist_between_for_gui)
+       output <-  q_test(values$dataset, project = project$name, start = startdist, 
+                         end = enddist, units = input$units, name = input$varname, 
+                         portTable = input$filePort, spat = spatdat$dataset,
+                         zoneid = all_variables()$pz_id, 
+                         lon.dat = all_variables()$pz_lon,  at.dat = all_variables()$pz_lat,
+                         cat = all_variables()$sz_id, lon.spat = input$long_grid[2], 
+                         lat.spat = input$long_grid[1])
+       notif <- "Point distance"
       
     } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'create_mid_haul') {
       
@@ -5423,44 +5338,35 @@ server = function(input, output, session) {
         
         bslib::card(bslib::card_header("Alternative locations"), 
                     bslib::card_body(
-                      fillable = TRUE, 
-                      bslib::layout_column_wrap(
-                        width = 1/2,
-                        fillable = FALSE,
-                        selectizeInput('altc_alt_var', '', 
-                                       
-                                       choices=c('Centroid of zonal assignment' = 'zone',
-                                                 'Fishing centroid' = 'fish', 
-                                                 'Nearest Point' = 'near')),
-                        
-                        conditionalPanel("input.altc_alt_var == 'zone'||input.altc_alt_var == 'fish'",
-                                         h6(tags$em('A centroid table must be saved to the FishSET database to be used as trip/haul occurances')))
-                      ),
-                      
-                      conditionalPanel("input.altc_occasion=='zone'||input.altc_alt_var=='zone'",
-                                       uiOutput('altc_zone_cent_ui')),
-                      
-                      # conditionalPanel("input.altc_alt_var == 'near'",
-                      #                  selectInput('mod_spatID', 'Select spatial ID column',
-                      #                              choices = colnames(spatdat$dataset))),
-                      
-                      # selectizeInput('altc_zoneID', 'Column containing zone identifier', 
-                      #                choices = colnames(values$dataset), options = list(maxItems = 1), 
-                      #                multiple = TRUE),
-                      
-                      selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
-                                     selected = 'miles'),
-                      
-                      numericInput('altc_min_haul', 'Include zones with more observations than', 
-                                   min = 1, max = 1000, value = 1),
-                      
-                      
-                      conditionalPanel("input.altc_occasion=='fish'||input.altc_alt_var=='fish'",
-                                       
-                                       uiOutput('altc_fish_cent_ui'))
+                       fillable = TRUE, 
+                       bslib::layout_column_wrap(
+                          width = 1/2,
+                          fillable = FALSE,
+                          selectizeInput('altc_alt_var', '', 
+                                         
+                                         choices=c('Centroid of zonal assignment' = 'zone',
+                                                   'Fishing centroid' = 'fish', 
+                                                   'Nearest Point' = 'near')),
+                          
+                          conditionalPanel("input.altc_alt_var == 'zone'||input.altc_alt_var == 'fish'",
+                                           h6(tags$em('A centroid table must be saved to the FishSET database to be used as trip/haul occurances')))
+                       ),
+                       
+                       conditionalPanel("input.altc_occasion=='zone'||input.altc_alt_var=='zone'",
+                                        uiOutput('altc_zone_cent_ui')),
+                       
+                       selectizeInput('altc_dist','Distance units', choices = c('miles','kilometers','meters'), 
+                                      selected = 'miles'),
+                       
+                       numericInput('altc_min_haul', 'Include zones with more observations than', 
+                                    min = 1, max = 1000, value = 1),
+                       
+                       
+                       conditionalPanel("input.altc_occasion=='fish'||input.altc_alt_var=='fish'",
+                                        
+                                        uiOutput('altc_fish_cent_ui'))
                     )
         )
-        
       )
     )
   })
@@ -5470,30 +5376,18 @@ server = function(input, output, session) {
   
   
   output$altc_occ_var_ui <- renderUI({
-
-    if (input$altc_occasion == 'lon-lat') {
-
-      tagList(
-        h5(tags$em('Longitude must be specified before latitude.')),
-
-        selectizeInput('altc_occ_var', 'Choose longitude and latitude occasion columns',
-                       choices = find_lonlat(values$dataset),
-                       options = list(maxItems = 2, create = TRUE,
-                                      placeholder = 'Select or type variable name'),
-                       multiple = TRUE)
-      )
-
-    } else {
-
-      #
-      # add_prompter(tags$div(selectInput('altc_occ_var', 'Choose starting zone ID variable',
-      #                                   choices = colnames(values$dataset))),
-      #              position = 'right', type = 'info', size = 'medium',
-      #              message = 'The starting zone ID variable can be created in the Compute New Variables tab in the
-      #                         spatial functions'
-      # )
-    }
-
+     if (input$altc_occasion == 'lon-lat') {
+        
+        tagList(
+           h5(tags$em('Longitude must be specified before latitude.')),
+           
+           selectizeInput('altc_occ_var', 'Choose longitude and latitude occasion columns',
+                          choices = find_lonlat(values$dataset),
+                          options = list(maxItems = 2, create = TRUE,
+                                         placeholder = 'Select or type variable name'),
+                          multiple = TRUE)
+        )
+     } 
   })
   
   output$altc_zone_cent_ui <- renderUI({
@@ -6951,10 +6845,7 @@ server = function(input, output, session) {
     tagList(
       selectInput('cv_model','Select model for cross-validation:',
                   choices = mod_rv$mod_names),
-      
-      # selectizeInput('cv_zoneID', 'Column containing zone identifier:', choices = colnames(values$dataset),
-      #                options = list(maxItems = 1)),
-      
+
       add_prompter(
         selectizeInput('cv_group', label = list('Group data into folds by:', icon('info-circle', verify_fa = FALSE)), 
                        choices = c('Observations', 'Years', colnames(values$dataset)), selected = 'Observations',
@@ -7121,13 +7012,6 @@ server = function(input, output, session) {
         position = "top", type='info', size='medium', 
       ),
       
-     # tags$div(style = "margin-top: -10px;",
-      #          selectizeInput('filter_outsample_datzone', 'Select primary data column containing zone identifier:', 
-      #                         choices = colnames(values$dataset), options = list(maxItems = 1))),
-      # 
-      # selectizeInput('filter_outsample_spatzone', 'Select spatial data column containing zone identifier:', 
-      #                choices = colnames(spatdat$dataset), options = list(maxItems = 1)),
-      # 
       checkboxInput("spat_outsample", "Are data out-of-sample spatially?"),
       
       add_prompter(
@@ -7136,7 +7020,6 @@ server = function(input, output, session) {
         message = 'QAQC filters are automatically applied and remove rows containing NA and NAN values',
         position = "top", type='info', size='medium', 
       )
-      
     )
   })
   
@@ -7845,7 +7728,6 @@ server = function(input, output, session) {
       updateCheckboxInput(session, "use_geartype", value = bookmarkedstate()$use_geartype )
       updateSelectInput(session, "units", selected = bookmarkedstate()$units)
       updateCheckboxInput(session, "Unique_Filter", value = bookmarkedstate()$Unique_Filter)
-     # updateSelectInput(session, "unique_identifier", selected = bookmarkedstate()$unique_identifier)
       updateCheckboxInput(session, "use_location", value = bookmarkedstate()$use_location)
       updateSelectInput(session, "var_x", selected = bookmarkedstate()$var_x)
       updateSelectInput(session, "var_y", selected = bookmarkedstate()$var_y)
@@ -7937,8 +7819,6 @@ server = function(input, output, session) {
 
   zone_closure_mapServer("policy", project = project$name, spatdat = spatdat$dataset, clicked_ids, V, closures, rv, all_variables)
   
- # zone_closure_sideServer("policy", project = project$name, spatdat = spatdat$dataset)
-
   zone_closure_tblServer("policy", project = project$name, spatdat = spatdat$dataset, clicked_ids, V)
   
   zone_closure_tblServer("policy", project =project$name, spatdat = spatdat$dataset, clicked_ids, V)
