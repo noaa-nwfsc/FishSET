@@ -5553,9 +5553,6 @@ server = function(input, output, session) {
       
       selectizeInput('exp_group','Choose column name containing data that defines groups',
                      choices=c('No group', category_cols(values$dataset))),
-      # zoneID used for sparsity plots
-      selectizeInput('exp_zoneID', 'Column containing zone identifier', choices = colnames(values$dataset),
-                     options = list(maxItems = 1), multiple = TRUE)
     )
   })
   
@@ -5571,29 +5568,28 @@ server = function(input, output, session) {
   
   # Sparsity table
   sparstable_dat <- reactive({
-    
-    req(input$exp_temp_var)
-    req(input$exp_zoneID)
-    
-    if (!is_value_empty(input$exp_catch_var) & input$exp_temp_var!='none') {
-      
-      sparsetable(values$dataset, project=project$name, timevar=input$exp_temp_var, 
-                  zonevar=input$exp_zoneID, var=input$exp_catch_var)
-    }
+     
+     req(input$exp_temp_var)
+     req(all_variables())
+     
+     if (!is_value_empty(input$exp_catch_var) & input$exp_temp_var!='none') {
+        sparsetable(values$dataset, project=project$name, timevar=input$exp_temp_var, 
+                    zonevar=all_variables()$pz_id, var=input$exp_catch_var)
+     }
   })
   
   output$spars_table <- DT::renderDT(sparstable_dat(), server=TRUE)
   
   # sparsity plot
   output$spars_plot <- renderPlot({
-    
-    req(input$exp_temp_var)
-    req(input$exp_zoneID)
-    
-    if (!is_value_empty(input$exp_catch_var) & input$exp_temp_var!='none') {
-      
-      sparsplot(project = project$name, x = sparstable_dat())
-    }
+     
+     req(input$exp_temp_var)
+     req(all_variables())
+     
+     if (!is_value_empty(input$exp_catch_var) & input$exp_temp_var!='none') {
+        
+        sparsplot(project = project$name, x = sparstable_dat())
+     }
   })
   
   # Run expected catch
