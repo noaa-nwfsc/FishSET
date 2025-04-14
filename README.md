@@ -19,18 +19,18 @@ IMPORTANT NOTE - when asked to update packages in the R console, enter an empty 
 
 ```
 # Install the package (see troubleshooting section below if this doesn't work)
+install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))
+options(pkg.build_vignettes = FALSE) # This prevents the vignettes from installing (set to TRUE to install vignettes). Vignettes can take a while to install, and are already included in the FishSET website (https://noaa-nwfsc.github.io/FishSET/). 
+pak::pak("noaa-nwfsc/FishSET")
+```
+
+If the "pak" method fails to install FishSET, try using the "devtools" method below. 
+
+```
+# Install the package (see troubleshooting section below if this doesn't work)
 install.packages("devtools")
 options(download.file.method = "wininet")
 devtools::install_github("noaa-nwfsc/FishSET")
-```
-
-If the above does not work try using "pak":
-
-```
-install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))
-options(pkg.build_vignettes = TRUE) # This will build the FishSET vignettes, which takes a little while.
-pak::pak("noaa-nwfsc/FishSET")
-options(pkg.build_vignettes = FALSE)
 ```
 
 ## Local Install
@@ -62,7 +62,7 @@ Add issues in GitHub [https://github.com/noaa-nwfsc/FishSET/issues](https://gith
 
 If you use FishSET results in publications, please cite the the package:
 
-Alan Haynie, Melanie Harsch, Bryce McManus, Allen Chen, Min-Yang Lee, Anna Abelman, Paul Carvalho, Lisa Pfeiffer (2024). FishSET: Spatial Economics Toolbox for Fisheries. R package version 1.0.1.
+Lisa Pfeiffer, Paul Carvalho, Anna Abelman, Min-Yang Lee, Bryce McManus, Allen Chen, Melanie Harsch, Alan Haynie. (2024). FishSET: Spatial Economics Toolbox for Fisheries. R package version 1.1.0.
 
 ## Troubleshooting
 <details><summary>Error in utils::download.file(url, path, method = method, quiet = quiet...</summary>
