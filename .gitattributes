@@ -1,0 +1,13 @@
+# Set default behavior to automatically normalize line endings
+* test=auto
+
+# R source files
+*.R text eol=lf
+*.Rmd text eol=lf
+*.Rnw text eol=lf
+*.r text eol=lf
+
+# R data files
+*.rda binary
+*.RData binary
+*.rds binary
