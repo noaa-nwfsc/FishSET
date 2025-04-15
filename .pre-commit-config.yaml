@@ -1,0 +1,24 @@
+repos:
+  - repo: https://github.com/lorenzwalthert/precommit
+    rev: v0.3.2
+    hooks:
+    - id: style-files
+      args: [--style_pkg=styler, --style_fun=tidyverse_style, --indent_by=2]
+    - id: lintr
+    - id: parsable-R
+    - id: no-browser-statement
+    - id: readme-rmd-rendered
+    - id: roxygenize
+    - id: use-tidy-description
+    - id: deps-in-desc
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    - id: check-added-large-files
+      args: ['--maxkb=200']
+    - id: end-of-file-fixer
+    - id: trailing-whitespace
+    - id: check-yaml
+    - id: no-commit-to-branch
+      args: [--branch, main]
