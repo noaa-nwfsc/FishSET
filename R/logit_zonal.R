@@ -80,7 +80,6 @@ logit_zonal <- function(starts3, dat, otherdat, alts, project, expname, mod.name
   #' }
   #'
 
-  
   # Format data
   griddat <- as.matrix(do.call(cbind, otherdat$griddat))
   intdat <- as.matrix(do.call(cbind, otherdat$intdat))
