@@ -1,11 +1,11 @@
-^Meta$
+LICENSE.md
 ^.*\.Rproj$
+^Meta$
 ^\.Rproj\.user$
+^\.github$
+^_pkgdown\.yml$
 ^data/ExpData\.RData$
 ^data/PollockData\.RData$
 ^doc$
-^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
-^\.github$
-LICENSE.md

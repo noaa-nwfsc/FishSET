@@ -1,0 +1,36 @@
+# Set default behavior to automatically normalize line endings
+* test=auto
+
+# R source files
+*.R text eol=lf
+*.Rmd text eol=lf
+*.Rnw text eol=lf
+*.r text eol=lf
+
+# R data files
+*.rda binary
+*.RData binary
+*.rds binary
+
+# Documentation
+*.Rd text
+DESCRIPTION text
+NAMESPACE text
+NEWS text
+LICENSE text
+README text
+README.md text
+
+# C++ and other source files
+*.c text eol=lf
+*.h text eol=lf
+*.cpp text eol=lf
+*.hpp text eol=lf
+
+# Configuration files
+.gitignore text
+.Rbuildignore text
+.gitattributes text
+
+# Set style checking
+*.R linguist-language=R
