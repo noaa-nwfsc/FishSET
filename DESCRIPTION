@@ -37,9 +37,9 @@ Description: The Spatial Economics Toolbox for Fisheries (FishSET) is a
 License: MIT + file LICENSE
 URL: https://github.com/noaa-nwfsc/FishSET
 BugReports: https://pkgname.bugtracker.url
-Depends: 
+Depends:
     R (>= 3.5.0)
-Imports: 
+Imports:
     bsicons (>= 0.1.2),
     bslib (>= 0.5.1),
     data.table,
@@ -86,7 +86,7 @@ Imports:
     xml2,
     yaml,
     zoo
-Suggests: 
+Suggests:
     foreign,
     googlesheets4,
     graphics,
@@ -97,13 +97,13 @@ Suggests:
     readODS,
     rmarkdown,
     testthat (>= 3.0.0)
-VignetteBuilder: 
+VignetteBuilder:
     knitr
 BuildVignettes: yes
 ByteCompile: TRUE
 devtools: :use_data(MainDataTable)
 Encoding: UTF-8
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 LazyData: true
 Config/testthat/edition: 3
 GithubSHA1: d65b9a34f1ca5d334fbb9b749da6acc382df8f61
