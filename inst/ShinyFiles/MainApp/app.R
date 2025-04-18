@@ -11,6 +11,7 @@
 #               - ui.R and server.R in the same directory or proper paths
 # Usage: Run this file to launch the Shiny application
 #        > shiny::runApp()
+#
 # =============================================================================
 
 # Create and run the Shiny app

@@ -8,7 +8,6 @@ source("run_policy_UI.R", local = TRUE)
 source("run_policy_server.R", local = TRUE)
 source("select_variables_UI.R", local = TRUE)
 source("select_variables_server.R", local = TRUE)
-
 source("checklist_module.R", local = TRUE)
 
 ## USER INTERFACE    
