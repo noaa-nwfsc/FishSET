@@ -1,0 +1,1 @@
+shinyApp(heavy_ui, heavy_server, session, enableBookmarking = "server")
