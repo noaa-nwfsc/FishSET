@@ -27,9 +27,7 @@ run_fishset_gui <- function() {
         stop("Could not find example directory. Try re-installing `mypackage`.", call. = FALSE)
   }
 
-  shiny::runApp(appDir, display.mode = "normal")
-
-
   # shiny app call
+  shiny::runApp(appDir, display.mode = "normal")
 
 }

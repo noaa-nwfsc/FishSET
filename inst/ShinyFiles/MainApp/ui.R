@@ -15,15 +15,26 @@
 
 # Source module scripts ---------------------------------------------------------------------------
 
+
 # UI function definition
 ui <- function(request){
   bslib::page_navbar(
-    theme = bslib::bs_theme(primary = "#41729F", 
-                            secondary = "#AACDE5", 
-                            info = "#274472",
-                            font_scale = 0.9,
-                            preset = "cerulean"),
-    id = "tabs"
+    theme = bslib::bs_theme(
+      primary = "#41729F", 
+      secondary = "#AACDE5", 
+      info = "#274472",
+      font_scale = 0.9,
+      preset = "cerulean"),
+    id = "tabs",
+    
+    
+    bslib::nav_menu(
+      title = "Upload Data",
+      bslib::nav_panel(
+        title = "Upload Data", 
+        id = "upload"
+      )
+    )
   )
 }
   
