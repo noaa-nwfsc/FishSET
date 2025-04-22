@@ -27,15 +27,22 @@ ui <- function(request){
       preset = "cerulean"),
     id = "tabs",
     
-    
+    # UPLOAD DATA ---------------------------------------------------------------------------------
     bslib::nav_menu(
       title = "Upload Data",
+      
+      ## Upload data subtab -----------------------------------------------------------------------
       bslib::nav_panel(
         title = "Upload Data", 
         id = "upload"
+      ),
+      
+      ## Select variables subtab ------------------------------------------------------------------
+      bslib::nav_panel(
+        title = "Select variables", 
+        id = "variables"
       )
     )
   )
 }
-  
-  
+
