@@ -31,16 +31,28 @@ ui <- function(request){
     bslib::nav_menu(
       title = "Upload Data",
       
-      ## Upload data subtab -----------------------------------------------------------------------
+      ## Load files subtab ------------------------------------------------------------------------
       bslib::nav_panel(
-        title = "Upload Data", 
-        id = "upload"
+        title = "Load files", 
+        id = "load_files",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE, 
+            fill = TRUE,
+            sidebar = bslib::sidebar( # SIDE BAR
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400
+              
+            )
+          )
+        )
       ),
       
       ## Select variables subtab ------------------------------------------------------------------
       bslib::nav_panel(
         title = "Select variables", 
-        id = "variables"
+        id = "select_variables"
       )
     )
   )
