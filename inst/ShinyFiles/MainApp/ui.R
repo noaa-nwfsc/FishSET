@@ -14,7 +14,7 @@
 # =================================================================================================
 
 # Source module scripts ---------------------------------------------------------------------------
-
+source("load_files_ui.R", local = TRUE) # Upload data - load files subtab
 
 # UI function definition
 ui <- function(request){
@@ -46,12 +46,13 @@ ui <- function(request){
               fill = TRUE, 
               width = 400
               
-              # FILL IN WITH SIDE BAR UI ####
+              ### FILL IN WITH SIDE BAR UI ####
             ),
             
-            # MAIN PANEL - folder path
+            ### Change folder path ----
             bslib::card(fill = FALSE,
-                        bslib::card_body( 
+                        bslib::card_body(
+                          folder_path_ui("folderpath")
                         )
             ) 
           )

@@ -20,6 +20,10 @@
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
 
+# Initialize global values ------------------------------------------------------------------------
+# check for FishSET folder 
+fs_exist <- exists("folderpath", where = ".GlobalEnv")
+
 # Server function definition
 server <- function(input, output, session) {
   
