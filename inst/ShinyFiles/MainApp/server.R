@@ -16,17 +16,27 @@
 # =================================================================================================
 
 # Source module scripts ---------------------------------------------------------------------------
+source("load_files_server.R", local = TRUE)
 
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
 
 # Initialize global values ------------------------------------------------------------------------
-# check for FishSET folder 
-fs_exist <- exists("folderpath", where = ".GlobalEnv")
+fs_folder_exist <- exists("folderpath", where = ".GlobalEnv") # Check for FishSET folder 
 
 # Server function definition
 server <- function(input, output, session) {
   
+  # Define reactives ------------------------------------------------------------------------------
+  # Allow users to change FishSET folders easily.
+  folderpath <- reactiveVal({
+    if (fs_folder_exist) get("folderpath", 
+                             envir = as.environment(1L))
+  })
   
+  # UPLOAD DATA -----------------------------------------------------------------------------------
+  
+  ## Load files subtab ----------------------------------------------------------------------------
+  folderpath <- folder_path_server("folderpath")
   
 }

@@ -13,22 +13,25 @@
 #
 # =================================================================================================
 
-# UI for sidebar
+# UI for sidebar ----------------------------------------------------------------------------------
 load_files_sidebar_ui <- function(id){
   
 }
 
 # UI for main panel -------------------------------------------------------------------------------
-
 ## Change folder path -----------------------------------------------------------------------------
 folder_path_ui <- function(id){
+  ns <- NS(id)
   tagList(
+    fluidRow(h4("1. Change folder path")
+    ),
+    
     fluidRow(
-      column(3, actionButton(inputId = NS(id, "change_fs_folder"), 
+      column(3, actionButton(inputId = NS(id, "change_fs_folder_btn"), 
                              label = 'Change FishSET Folder',
                              width = '100%',
                              class = "btn-primary")),
-      column(9, p("TEST"))
+      column(9, verbatimTextOutput(ns("display_folderpath")))
     )
   )
 }
