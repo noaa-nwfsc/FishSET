@@ -39,12 +39,21 @@ ui <- function(request){
           bslib::layout_sidebar(
             fillable = TRUE, 
             fill = TRUE,
-            sidebar = bslib::sidebar( # SIDE BAR
+            
+            # SIDE BAR
+            sidebar = bslib::sidebar( 
               fillable = TRUE, 
               fill = TRUE, 
               width = 400
               
-            )
+              # FILL IN WITH SIDE BAR UI ####
+            ),
+            
+            # MAIN PANEL - folder path
+            bslib::card(fill = FALSE,
+                        bslib::card_body( 
+                        )
+            ) 
           )
         )
       ),
