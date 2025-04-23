@@ -40,16 +40,16 @@ ui <- function(request){
             fillable = TRUE, 
             fill = TRUE,
             
-            # SIDE BAR
+            ### Sidebar
             sidebar = bslib::sidebar( 
               fillable = TRUE, 
               fill = TRUE, 
               width = 400
               
-              ### FILL IN WITH SIDE BAR UI ####
+              
             ),
             
-            ### Change folder path ----
+            ### Change folder path
             bslib::card(fill = FALSE,
                         bslib::card_body(
                           folder_path_ui("folderpath")

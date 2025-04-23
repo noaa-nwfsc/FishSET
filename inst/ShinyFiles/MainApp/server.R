@@ -16,7 +16,7 @@
 # =================================================================================================
 
 # Source module scripts ---------------------------------------------------------------------------
-source("load_files_server.R", local = TRUE)
+source("load_files_server.R", local = TRUE) # Upload data - load files subtab
 
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
@@ -35,8 +35,7 @@ server <- function(input, output, session) {
   })
   
   # UPLOAD DATA -----------------------------------------------------------------------------------
-  
   ## Load files subtab ----------------------------------------------------------------------------
-  folderpath <- folder_path_server("folderpath")
+  folderpath <- folder_path_server("folderpath") ### Change folderpath
   
 }

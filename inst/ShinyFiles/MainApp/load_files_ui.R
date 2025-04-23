@@ -14,12 +14,12 @@
 # =================================================================================================
 
 # UI for sidebar ----------------------------------------------------------------------------------
-load_files_sidebar_ui <- function(id){
-  
-}
+
 
 # UI for main panel -------------------------------------------------------------------------------
 ## Change folder path -----------------------------------------------------------------------------
+## Description: returns a button for changing folder path and displays the selected folder path
+##              in the same bslib card
 folder_path_ui <- function(id){
   ns <- NS(id)
   tagList(
