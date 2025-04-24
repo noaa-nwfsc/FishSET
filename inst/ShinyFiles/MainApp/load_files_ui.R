@@ -17,13 +17,15 @@
 
 
 # UI for main panel -------------------------------------------------------------------------------
+
 ## Change folder path -----------------------------------------------------------------------------
 ## Description: returns a button for changing folder path and displays the selected folder path
 ##              in the same bslib card
 folder_path_ui <- function(id){
   ns <- NS(id)
   tagList(
-    fluidRow(h4("1. Change folder path")
+    fluidRow(
+      h4("1. Change folder path")
     ),
     
     fluidRow(
@@ -32,6 +34,18 @@ folder_path_ui <- function(id){
                              width = '100%',
                              class = "btn-primary")),
       column(9, verbatimTextOutput(ns("display_folderpath")))
+    )
+  )
+}
+
+## Select project ---------------------------------------------------------------------------------
+## Description:
+##
+select_project_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    fluidRow(
+      h4("2. Select project")
     )
   )
 }

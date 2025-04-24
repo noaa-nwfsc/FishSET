@@ -27,7 +27,7 @@ ui <- function(request){
       preset = "cerulean"),
     id = "tabs",
     
-    # UPLOAD DATA ---------------------------------------------------------------------------------
+    # Upload data ---------------------------------------------------------------------------------
     bslib::nav_menu(
       title = "Upload Data",
       
@@ -54,7 +54,14 @@ ui <- function(request){
                         bslib::card_body(
                           folder_path_ui("folderpath")
                         )
-            ) 
+            ),
+            
+            ### Select project
+            bslib::card(fill = FALSE,
+                        bslib::card_body(
+                          select_project_ui("select_project")
+                        )
+            )
           )
         )
       ),

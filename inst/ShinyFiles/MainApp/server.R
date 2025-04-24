@@ -29,13 +29,13 @@ server <- function(input, output, session) {
   
   # Define reactives ------------------------------------------------------------------------------
   # Allow users to change FishSET folders easily.
-  folderpath <- reactiveVal({
+  rv_folderpath <- reactiveVal({
     if (fs_folder_exist) get("folderpath", 
                              envir = as.environment(1L))
   })
   
-  # UPLOAD DATA -----------------------------------------------------------------------------------
+  # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
-  folderpath <- folder_path_server("folderpath") ### Change folderpath
+  rv_folderpath <- folder_path_server("folderpath") ### Change folderpath
   
 }

@@ -16,19 +16,20 @@
 # Server for sidebar ------------------------------------------------------------------------------
 
 # Server for main panel ---------------------------------------------------------------------------
+
 ## Change folder path -----------------------------------------------------------------------------
 folder_path_server <- function(id){
   moduleServer(id, function(input, output, session){
     # Create a reactive for folderpath
     rv_folderpath <- reactiveVal(NULL)
     
-    # update FS folder path
+    # Update FS folder path
     observeEvent(input$change_fs_folder_btn, {
       fs_path <- update_folderpath()
       rv_folderpath(fs_path)
     })
     
-    # output to display the folder path
+    # Output to display the folder path
     output$display_folderpath <- renderText({
       req(rv_folderpath())
       paste("Selected folder:", rv_folderpath())
