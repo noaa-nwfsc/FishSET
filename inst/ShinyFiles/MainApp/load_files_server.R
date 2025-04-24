@@ -27,8 +27,14 @@ folder_path_server <- function(id){
     
     # Update FS folder path
     observeEvent(input$change_fs_folder_btn, {
-      fs_path <- update_folderpath()
-      rv_folderpath(fs_path)
+      if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - use test_path()
+        fs_path <- testthat::test_path("data")
+        rv_folderpath(fs_path)
+        
+      } else {
+        fs_path <- update_folderpath()
+        rv_folderpath(fs_path)  
+      }
     })
     
     # Output to display the folder path
