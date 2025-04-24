@@ -14,7 +14,7 @@
 # =================================================================================================
 
 # Source module scripts ---------------------------------------------------------------------------
-source("load_files_ui.R", local = TRUE) # Upload data - load files subtab
+source("modules/load_files_ui.R", local = TRUE) # Upload data - load files subtab
 
 # UI function definition
 ui <- function(request){
