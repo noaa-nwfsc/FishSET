@@ -18,6 +18,8 @@
 # Server for main panel ---------------------------------------------------------------------------
 
 ## Change folder path -----------------------------------------------------------------------------
+## Description: Update a reactive value for the FishSET folder path, create an output to display
+##              the selected path, and return the folder path to make if available in the main app.
 folder_path_server <- function(id){
   moduleServer(id, function(input, output, session){
     # Create a reactive for folderpath
