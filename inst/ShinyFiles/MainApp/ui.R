@@ -14,7 +14,7 @@
 # =================================================================================================
 
 # Source module scripts ---------------------------------------------------------------------------
-
+source("modules/load_files_ui.R", local = TRUE) # Upload data - load files subtab
 
 # UI function definition
 ui <- function(request){
@@ -27,20 +27,49 @@ ui <- function(request){
       preset = "cerulean"),
     id = "tabs",
     
-    # UPLOAD DATA ---------------------------------------------------------------------------------
+    # Upload data ---------------------------------------------------------------------------------
     bslib::nav_menu(
       title = "Upload Data",
       
-      ## Upload data subtab -----------------------------------------------------------------------
+      ## Load files subtab ------------------------------------------------------------------------
       bslib::nav_panel(
-        title = "Upload Data", 
-        id = "upload"
+        title = "Load files", 
+        id = "load_files",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE, 
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400
+              
+              
+            ),
+            
+            ### Change folder path
+            bslib::card(fill = FALSE,
+                        bslib::card_body(
+                          folder_path_ui("folderpath")
+                        )
+            ),
+            
+            ### Select project
+            bslib::card(fill = FALSE,
+                        bslib::card_body(
+                          select_project_ui("select_project")
+                        )
+            )
+          )
+        )
       ),
       
       ## Select variables subtab ------------------------------------------------------------------
       bslib::nav_panel(
         title = "Select variables", 
-        id = "variables"
+        id = "select_variables"
       )
     )
   )
