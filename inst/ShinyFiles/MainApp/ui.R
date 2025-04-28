@@ -18,6 +18,7 @@ source("modules/load_files_ui.R", local = TRUE) # Upload data - load files subta
 
 # UI function definition
 ui <- function(request){
+
   bslib::page_navbar(
     theme = bslib::bs_theme(
       primary = "#41729F", 
@@ -59,6 +60,7 @@ ui <- function(request){
             ### Select project
             bslib::card(fill = FALSE,
                         bslib::card_body(
+                          shinyjs::useShinyjs(),
                           select_project_ui("select_project")
                         )
             )

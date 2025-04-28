@@ -19,7 +19,7 @@
 # UI for main panel -------------------------------------------------------------------------------
 
 ## Change folder path -----------------------------------------------------------------------------
-## Description: returns a button for changing folder path and displays the selected folder path
+## Description: returns a button for changing folder path and displays the selected folderpath
 ##              in the same bslib card
 folder_path_ui <- function(id){
   ns <- NS(id)
@@ -39,13 +39,30 @@ folder_path_ui <- function(id){
 }
 
 ## Select project ---------------------------------------------------------------------------------
-## Description:
-##
+## Description: displays a checkbox, if FALSE (default) then the users inputs a new project name.
+##              If TRUE, the user gets a drop down menu of projects in the fishset folder 
+##              directory.
 select_project_ui <- function(id){
   ns <- NS(id)
   tagList(
     fluidRow(
-      h4("2. Select project")
+      h4("2. Add or select a project")
+    ),
+    
+    fluidRow(
+      column(3, checkboxInput(inputId = ns("load_existing_proj_input"),
+                              label = "Load existing project",
+                              value = FALSE)),
+      
+      column(9,
+             # select project container - initially hidden with CSS
+             div(id = ns("proj_select_container"), style = "display: none;",
+                 selectInput(ns("proj_select_input"), "Choose a project", choices = NULL)),
+             
+             # project name input container - initially visible
+             div(id = ns("proj_name_container"),
+                 textInput(ns("proj_name_input"), "Enter project name"))
+      )
     )
   )
 }
