@@ -47,7 +47,6 @@ ui <- function(request){
               fill = TRUE, 
               width = 400
               
-              
             ),
             
             ### Change folder path
@@ -63,6 +62,24 @@ ui <- function(request){
                           shinyjs::useShinyjs(),
                           select_project_ui("select_project")
                         )
+            ),
+            
+            bslib::layout_column_wrap(
+              width = 1/2,
+              
+              ### Load primary data
+              bslib::card(fill = FALSE,
+                          bslib::card_body(
+                            load_primary_ui("load_primary")
+                          )
+              ),
+              
+              ### Load spatial data
+              bslib::card(fill = FALSE,
+                          bslib::card_body(
+                            load_spatial_ui("load_spatial")
+                          )
+              )
             )
           )
         )

@@ -44,5 +44,4 @@ server <- function(input, output, session) {
   
   ### Select project name
   rv_project_name <- select_project_server("select_project", rv_folderpath = rv_folderpath)
-  
 }

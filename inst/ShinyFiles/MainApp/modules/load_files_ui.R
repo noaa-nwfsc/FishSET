@@ -66,3 +66,27 @@ select_project_ui <- function(id){
     )
   )
 }
+
+## Load primary data ------------------------------------------------------------------------------
+## Description: 
+##
+load_primary_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    fluidRow(
+      h4("3. Primary data")
+    )
+  )
+}
+
+## Load spatial data ------------------------------------------------------------------------------
+## Description: 
+##
+load_spatial_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    fluidRow(
+      h4("4. Spatial data")
+    )
+  )
+}
