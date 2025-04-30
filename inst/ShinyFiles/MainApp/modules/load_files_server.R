@@ -50,18 +50,18 @@ folder_path_server <- function(id){
 
 ## Select project ---------------------------------------------------------------------------------
 ## Description: Add a new project name, or select an existing project based on projects available
-##              in the FishSET folderpath
+##              in the FishSET folderpath. Folderpath is a reactive input to observe changes in
+##              the value and look for FishSET projects in the path.
 select_project_server <- function(id, rv_folderpath){
   moduleServer(id, function(input, output, session){
     # Update the list of project names when the folderpath changes
     observe({
-      tmp_folderpath <- rv_folderpath() # observe changes in folderpath
+      folderpath <- rv_folderpath() # observe changes in folderpath
       
-      if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - hardcode input values
+      if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - set checkbox to TRUE
         updateCheckboxInput(session, "load_existing_proj_input", value = TRUE)
-        updateTextInput(session, "proj_name_input", value = "scallop_shiny_test")
         
-      } else if (!is.null(tmp_folderpath) && !is.null(FishSET::projects())){
+      } else if (!is.null(folderpath) && !is.null(FishSET::projects())){
         proj_list <- FishSET::projects() # update project list
         updateSelectInput(session, "proj_select_input", choices = proj_list)
       }
@@ -69,7 +69,10 @@ select_project_server <- function(id, rv_folderpath){
     
     # Initialize with appropriate visibility based on checkbox value
     observeEvent(input$load_existing_proj_input, {
-      if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - do nothing here
+      if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - set existing project
+        shinyjs::show("proj_select_container")
+        shinyjs::hide("proj_name_container")
+        updateSelectInput(session, "proj_select_input", choices = "scallop_shiny_test")
         
       } else {
         if(input$load_existing_proj_input) { 
@@ -83,11 +86,10 @@ select_project_server <- function(id, rv_folderpath){
       }
     }, ignoreInit = FALSE) # Process this on initialization
     
-    
     # Return the current input value
     return(reactive({
       if(getOption("shiny.testmode", FALSE)){
-        list(type = "text", value = input$proj_name_input)
+        list(type = "select", value = input$proj_select_input)
       } else if(input$load_existing_proj_input){
         list(type = "select", value = input$proj_select_input)
       } else {
