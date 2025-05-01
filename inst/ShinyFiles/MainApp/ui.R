@@ -39,7 +39,7 @@ ui <- function(request){
           bslib::layout_sidebar(
             fillable = TRUE, 
             fill = TRUE,
-            includeCSS("styles.css"), # Line needs to be placed here to eliminate warning 
+            includeCSS("styles.css"), # Line needs to be placed on same level as bslib::card() 
             
             ### Sidebar
             sidebar = bslib::sidebar( 
