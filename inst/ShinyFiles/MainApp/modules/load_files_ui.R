@@ -25,10 +25,6 @@ folder_path_ui <- function(id){
   ns <- NS(id)
   tagList(
     fluidRow(
-      h4("1. Change folder path")
-    ),
-    
-    fluidRow(
       column(3, actionButton(inputId = NS(id, "change_fs_folder_btn"), 
                              label = 'Change FishSET Folder',
                              width = '100%',
@@ -45,10 +41,6 @@ folder_path_ui <- function(id){
 select_project_ui <- function(id){
   ns <- NS(id)
   tagList(
-    fluidRow(
-      h4("2. Add or select a project")
-    ),
-    
     fluidRow(
       column(3, checkboxInput(inputId = ns("load_existing_proj_input"),
                               label = "Load existing project",
@@ -74,7 +66,7 @@ load_primary_ui <- function(id){
   ns <- NS(id)
   tagList(
     fluidRow(
-      h4("3. Primary data")
+      
     )
   )
 }
@@ -86,7 +78,6 @@ load_spatial_ui <- function(id){
   ns <- NS(id)
   tagList(
     fluidRow(
-      h4("4. Spatial data")
     )
   )
 }

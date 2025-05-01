@@ -18,7 +18,6 @@ source("modules/load_files_ui.R", local = TRUE) # Upload data - load files subta
 
 # UI function definition
 ui <- function(request){
-
   bslib::page_navbar(
     theme = bslib::bs_theme(
       primary = "#41729F", 
@@ -40,6 +39,7 @@ ui <- function(request){
           bslib::layout_sidebar(
             fillable = TRUE, 
             fill = TRUE,
+            includeCSS("styles.css"), # Line needs to be placed here to eliminate warning 
             
             ### Sidebar
             sidebar = bslib::sidebar( 
@@ -51,6 +51,7 @@ ui <- function(request){
             
             ### Change folder path
             bslib::card(fill = FALSE,
+                        bslib::card_header("1. Change folder path"),
                         bslib::card_body(
                           folder_path_ui("folderpath")
                         )
@@ -58,6 +59,7 @@ ui <- function(request){
             
             ### Select project
             bslib::card(fill = FALSE,
+                        bslib::card_header("2. Add or select a project"),
                         bslib::card_body(
                           shinyjs::useShinyjs(),
                           select_project_ui("select_project")
@@ -69,6 +71,7 @@ ui <- function(request){
               
               ### Load primary data
               bslib::card(fill = FALSE,
+                          bslib::card_header("3. Primary data"),
                           bslib::card_body(
                             load_primary_ui("load_primary")
                           )
@@ -76,6 +79,7 @@ ui <- function(request){
               
               ### Load spatial data
               bslib::card(fill = FALSE,
+                          bslib::card_header("4. Spatial data"),
                           bslib::card_body(
                             load_spatial_ui("load_spatial")
                           )
