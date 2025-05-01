@@ -34,8 +34,14 @@ server <- function(input, output, session) {
                              envir = as.environment(1L))
   })
   
+  # Project name
+  rv_project_name <- reactiveVal()
+
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
-  rv_folderpath <- folder_path_server("folderpath") ### Change folderpath
+  ### Change folderpath
+  rv_folderpath <- folder_path_server("folderpath") 
   
+  ### Select project name
+  rv_project_name <- select_project_server("select_project", rv_folderpath = rv_folderpath)
 }
