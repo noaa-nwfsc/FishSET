@@ -28,7 +28,7 @@ folder_path_server <- function(id){
     # Update FS folderpath
     observeEvent(input$change_fs_folder_btn, {
       if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - use test_path()
-        fs_path <- testthat::test_path("data")
+        fs_path <- testthat::test_path("data/FishSETFolder/")
         rv_folderpath(fs_path)
         
       } else {
