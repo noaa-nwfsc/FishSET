@@ -46,12 +46,6 @@ ui <- function(request){
               fillable = TRUE, 
               fill = TRUE, 
               width = 400,
-              textInput("exprUp", label = "Enter an R expression",
-                        value = "values$dataset"),
-              actionButton("runUp", "Run", class = "btn-success"),
-              div(style = "margin-top: 2em;",
-                  uiOutput('resultUp')  )
-              
             ),
             
             ### Change folder path
@@ -82,11 +76,23 @@ ui <- function(request){
                           )
               ),
               
-              ### Load spatial data
+              ### Load spatial and optional gridded data
               bslib::card(fill = FALSE,
                           bslib::card_header("4. Spatial data"),
                           bslib::card_body(
-                            load_spatial_ui("load_spatial")
+                            bslib::card(fill = FALSE,
+                                        bslib::card_body(
+                                          h5("Spatial data:"),
+                                          load_spatial_ui("load_spatial")
+                                        )
+                            ), 
+                            
+                            bslib::card(fill = FALSE,
+                                        bslib::card_body(
+                                          h5(tags$i("Optional"), "gridded data:"),
+                                          load_grid_ui("load_grid")
+                                        )
+                            )
                           )
               )
             )

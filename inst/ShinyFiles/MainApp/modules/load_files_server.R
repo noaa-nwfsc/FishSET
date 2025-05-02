@@ -101,35 +101,101 @@ select_project_server <- function(id, rv_folderpath){
 
 
 ## Upload spatial data ----------------------------------------------------------------------------
-## Description: 
+## Description: Server module for handling spatial data uploads or selection. Relies on the project 
+##              name reactive variable.
 
 upload_spat_data_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     
-     
-   # observe({
+    # React to changes in the reactive project name input
     observeEvent(rv_project_name(), {
-      project_name <- rv_project_name()
+      project_name <- rv_project_name()  # Retrieve the current project name
+      req(project_name)  # Ensure project_name is not NULL
       
-      req(project_name)
+      # If the app is running in test mode, set up test-specific UI
+      if(getOption("shiny.testmode", FALSE)){ 
+        shinyjs::show("spat_select_container")  # Show the dropdown for selecting a spatial table
+        shinyjs::hide("spat_upload_container") 
+        updateSelectInput(session, "spat_select_input", 
+                          choices = "scallop_shiny_test")  # Use a test table
+        
+      } else {
+        # If the project was selected from existing projects list and has a valid value
+        if (project_name$type == "select" & !is.null(project_name$value)) {
+          project_value <- rv_project_name()$value  # Extract selected project value
+          
+          # Retrieve list of existing spatial tables fishset database
+          spat_list <- list_tables(project_value, "spat")
+          
+          shinyjs::show("spat_select_container")  # Show selection dropdown
+          shinyjs::hide("spat_upload_container")  
+          
+          updateSelectInput(session, "spat_select_input", 
+                            choices = c(spat_list))  # Populate with available tables
+          
+        } else if (project_name$type == "text"){
+          # If the user is entering a new project name (free text), show upload UI
+          shinyjs::hide("spat_select_container")
+          shinyjs::show("spat_upload_container")
+        }
+      }
+    })
+    
+    # Hide/Show spatial unload containers based on the radiobuttons the user selects
+    observeEvent(input$spat_upload_input, {
       
-      if (project_name$type == "select" &  !is.null(project_name$value)) {
-        project_value <- rv_project_name()$value
-        spat_list <- list_tables(project_value, "spat")
+      if (input$spat_upload_input == 'Upload single file') {
+        shinyjs::show("spat_file_container")  # Show single file upload
+        shinyjs::hide("spat_shp_container")  
         
-        shinyjs::show("spat_select_container")
-        shinyjs::hide("spat_upload_container")
-        
-        updateSelectInput(session, "spat_select_input", choices = c(spat_list))
-        
-      } else if (project_name$type == "type"){
-        shinyjs::hide("spat_select_container") 
-        shinyjs::show("spat_upload_container")
-        updateSelectInput(session, "spat_select_input", choices = NULL, selected = NULL)
-        
+      } else if (input$spat_upload_input == 'Upload shape files') {
+        shinyjs::show("spat_shp_container")   # Show shapefile uploader
+        shinyjs::hide("spat_file_container") 
       }
       
+    })
+    
+  })
+}
+
+
+## Upload gridded data ----------------------------------------------------------------------------
+## Description: Server module for handling grid (1D/2D data) upload or selection. Relies on the project 
+##              name reactive variable.
+
+upload_grid_data_server <- function(id, rv_project_name){
+  moduleServer(id, function(input, output, session){
+    
+    # React to changes in the reactive project name input
+    observeEvent(rv_project_name(), {
+      project_name <- rv_project_name()  # Retrieve current project info
+      req(project_name)  # Ensure project_name is not NULL
       
+      # If app is running in test mode (e.g., automated testing)
+      if(getOption("shiny.testmode", FALSE)){ 
+        shinyjs::show("grid_select_container")  # Show UI for selecting an existing grid table
+        shinyjs::hide("grid_upload_container")  # Hide file upload section
+        updateSelectInput(session, "grid_select_input", choices = "scallop_shiny_test")  # Set test choice
+        
+      } else {
+        # If the project was selected from existing projects list and has a valid value
+        if (project_name$type == "select" & !is.null(project_name$value)) {
+          project_value <- rv_project_name()$value  # Extract selected project value
+          
+          # Retrieve list of existing grid data tables for the project
+          spat_list <- list_tables(project_value, "grid")
+          
+          shinyjs::show("grid_select_container")   # Show grid selection UI
+          shinyjs::hide("grid_upload_container")   # Hide upload UI
+          
+          updateSelectInput(session, "grid_select_input", choices = c(spat_list))  # Populate choices
+          
+        } else if (project_name$type == "text") {
+          # If user is creating a new project, show upload UI
+          shinyjs::hide("grid_select_container")
+          shinyjs::show("grid_upload_container")
+        }
+      }
     })
   })
 }
