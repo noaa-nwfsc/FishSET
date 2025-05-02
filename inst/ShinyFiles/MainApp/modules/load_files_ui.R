@@ -77,7 +77,11 @@ load_primary_ui <- function(id){
 load_spatial_ui <- function(id){
   ns <- NS(id)
   tagList(
-    fluidRow(
-    )
+    div(id = ns("spat_select_container"),style = "display: none;",
+        selectInput(ns("spat_select_input"), "Choose spatial table:", choices = NULL)),
+    
+    div(id = ns("spat_upload_container"),
+        fileInput(ns("spat_upload_input"), "Choose spatial data file",
+                  multiple = FALSE, placeholder = 'Suggested data'))
   )
 }

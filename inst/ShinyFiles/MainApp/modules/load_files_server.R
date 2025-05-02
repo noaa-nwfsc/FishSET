@@ -98,3 +98,38 @@ select_project_server <- function(id, rv_folderpath){
     }))
   })
 }
+
+
+## Upload spatial data ----------------------------------------------------------------------------
+## Description: 
+
+upload_spat_data_server <- function(id, rv_project_name){
+  moduleServer(id, function(input, output, session){
+    
+     
+   # observe({
+    observeEvent(rv_project_name(), {
+      project_name <- rv_project_name()
+      
+      req(project_name)
+      
+      if (project_name$type == "select" &  !is.null(project_name$value)) {
+        project_value <- rv_project_name()$value
+        spat_list <- list_tables(project_value, "spat")
+        
+        shinyjs::show("spat_select_container")
+        shinyjs::hide("spat_upload_container")
+        
+        updateSelectInput(session, "spat_select_input", choices = c(spat_list))
+        
+      } else if (project_name$type == "type"){
+        shinyjs::hide("spat_select_container") 
+        shinyjs::show("spat_upload_container")
+        updateSelectInput(session, "spat_select_input", choices = NULL, selected = NULL)
+        
+      }
+      
+      
+    })
+  })
+}
