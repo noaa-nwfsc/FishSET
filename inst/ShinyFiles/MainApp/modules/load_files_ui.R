@@ -48,7 +48,8 @@ select_project_ui <- function(id){
       
       column(9,
              # select project container - initially hidden with CSS
-             div(id = ns("proj_select_container"), style = "display: none;",
+             div(id = ns("proj_select_container"), 
+                 style = "display: none;",
                  selectInput(ns("proj_select_input"), "Choose a project", choices = NULL)),
              
              # project name input container - initially visible
@@ -60,13 +61,23 @@ select_project_ui <- function(id){
 }
 
 ## Load primary data ------------------------------------------------------------------------------
-## Description: 
-##
+## Description: Provide user with a dropdown menu of primary tables if loading an existing 
+##              project, but if this is a new project have the user upload a new file.
 load_primary_ui <- function(id){
   ns <- NS(id)
   tagList(
     fluidRow(
+      # select existing primary data table - initially hidden with CSS
+      div(id = ns("primary_select_container"), 
+          style = "display: none;",
+          selectInput(ns("primary_select_input"), "Choose primary data table", choices = NULL)),
       
+      # load new primary data file - initially visible
+      div(id = ns("primary_upload_container"),
+          fileInput(ns("primary_upload_input"), 
+                    "Choose primary data file", 
+                    multiple= FALSE,
+                    placeholder = "No file selected"))
     )
   )
 }
