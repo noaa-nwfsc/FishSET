@@ -110,11 +110,19 @@ load_primary_server <- function(id, rv_project_name){
       req(rv_project_name())
       project_name <- rv_project_name()
       
-      # Select an existing table
-      if(project_name$type == "select" & !is.null(project_name$value)) {
-        primary_data_list <- list_tables(project_name$value, "main") # Get list of primary tables
+      # If running shiny tests - set existing project
+      if(getOption("shiny.testmode", FALSE)){ 
         shinyjs::show("primary_select_container") # Show dropdown menu of tables
         shinyjs::hide("primary_upload_container")
+        updateSelectInput(session, 
+                          "primary_select_input", 
+                          choices = "scallop_shiny_testMainDataTable")
+        
+        # Select an existing table
+      } else if(project_name$type == "select" & !is.null(project_name$value)) {
+        shinyjs::show("primary_select_container") # Show dropdown menu of tables
+        shinyjs::hide("primary_upload_container")
+        primary_data_list <- list_tables(project_name$value, "main") # Get list of primary tables
         updateSelectInput(session, "primary_select_input", choices = primary_data_list)
         
         # Upload a new file

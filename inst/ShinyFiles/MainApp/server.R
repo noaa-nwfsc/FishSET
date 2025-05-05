@@ -47,5 +47,4 @@ server <- function(input, output, session) {
   
   ### Load primary data
   rv_primary_data_name <- load_primary_server("load_primary", rv_project_name = rv_project_name)
-  
 }
