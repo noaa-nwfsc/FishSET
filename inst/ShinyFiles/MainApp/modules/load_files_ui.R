@@ -70,7 +70,8 @@ load_primary_ui <- function(id){
       # select existing primary data table - initially hidden with CSS
       div(id = ns("primary_select_container"), 
           style = "display: none;",
-          selectInput(ns("primary_select_input"), "Choose primary data table", choices = NULL)),
+          selectInput(ns("primary_select_input"), "Choose primary data table", 
+                      choices = NULL)),
       
       # load new primary data file - initially visible
       div(id = ns("primary_upload_container"),

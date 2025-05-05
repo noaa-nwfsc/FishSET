@@ -102,15 +102,15 @@ select_project_server <- function(id, rv_folderpath){
 ## Load primary data ------------------------------------------------------------------------------
 ## Description: Provide user with a drop-down menu of primary tables if loading an existing 
 ##              project, but if this is a new project have the user upload a new file. Return the
-##              table name.
+##              table name and type of input.
 load_primary_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     # Observe project name reactive
     observeEvent(rv_project_name(), {
-      req(rv_project_name())
       project_name <- rv_project_name()
+      req(project_name)
       
-      # If running shiny tests - set existing project
+      # If running shiny tests - set primary table name
       if(getOption("shiny.testmode", FALSE)){ 
         shinyjs::show("primary_select_container") # Set shiny test table name
         shinyjs::hide("primary_upload_container")
@@ -120,7 +120,7 @@ load_primary_server <- function(id, rv_project_name){
         
         # Select an existing table
       } else if(project_name$type == "select" & !is.null(project_name$value)) {
-        shinyjs::show("primary_select_container") # Show dropdown menu of tables
+        shinyjs::show("primary_select_container") # Show dropdown menu of existing tables
         shinyjs::hide("primary_upload_container")
         primary_data_list <- list_tables(project_name$value, "main") # Get list of primary tables
         updateSelectInput(session, 
@@ -130,17 +130,15 @@ load_primary_server <- function(id, rv_project_name){
         # Upload a new file
       } else if (project_name$type == "text") {
         shinyjs::hide("primary_select_container")
-        shinyjs::show("primary_upload_container") # Show input for new file upload
+        shinyjs::show("primary_upload_container") # Show file input for uploading a new file
 
       }
     })
     
-    # Return the primary data table name
+    # Return the primary data table type (select existing or upload new file) and file/table name
     return(reactive({
       req(rv_project_name())
-      if(getOption("shiny.testmode", FALSE)){
-        list(type = "select", value = input$primary_select_input)
-      } else if(rv_project_name()$type == "select"){
+      if(rv_project_name()$type == "select"){
         list(type = "select", value = input$primary_select_input)
       } else {
         list(type = "upload", value = input$primary_upload_input)
