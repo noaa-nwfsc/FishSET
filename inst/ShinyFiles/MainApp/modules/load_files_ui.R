@@ -76,7 +76,7 @@ load_primary_ui <- function(id){
       div(id = ns("primary_upload_container"),
           fileInput(ns("primary_upload_input"), 
                     "Choose primary data file", 
-                    multiple= FALSE,
+                    multiple = FALSE,
                     placeholder = "No file selected"))
     )
   )

@@ -30,10 +30,8 @@ server <- function(input, output, session) {
   # Define reactives ------------------------------------------------------------------------------
   # Allow users to change FishSET folders easily.
   rv_folderpath <- reactiveVal({
-    if (fs_folder_exist) get("folderpath", 
-                             envir = as.environment(1L))
+    if (fs_folder_exist) get("folderpath", envir = as.environment(1L))
   })
-  
   rv_project_name <- reactiveVal() # Project name
   rv_primary_data_name <- reactiveVal() # Primary data name
   

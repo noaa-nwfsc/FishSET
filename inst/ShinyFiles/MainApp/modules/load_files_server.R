@@ -112,7 +112,7 @@ load_primary_server <- function(id, rv_project_name){
       
       # If running shiny tests - set existing project
       if(getOption("shiny.testmode", FALSE)){ 
-        shinyjs::show("primary_select_container") # Show dropdown menu of tables
+        shinyjs::show("primary_select_container") # Set shiny test table name
         shinyjs::hide("primary_upload_container")
         updateSelectInput(session, 
                           "primary_select_input", 
@@ -123,7 +123,9 @@ load_primary_server <- function(id, rv_project_name){
         shinyjs::show("primary_select_container") # Show dropdown menu of tables
         shinyjs::hide("primary_upload_container")
         primary_data_list <- list_tables(project_name$value, "main") # Get list of primary tables
-        updateSelectInput(session, "primary_select_input", choices = primary_data_list)
+        updateSelectInput(session, 
+                          "primary_select_input", 
+                          choices = primary_data_list)
         
         # Upload a new file
       } else if (project_name$type == "text") {
@@ -136,7 +138,9 @@ load_primary_server <- function(id, rv_project_name){
     # Return the primary data table name
     return(reactive({
       req(rv_project_name())
-      if(rv_project_name()$type == "select"){
+      if(getOption("shiny.testmode", FALSE)){
+        list(type = "select", value = input$primary_select_input)
+      } else if(rv_project_name()$type == "select"){
         list(type = "select", value = input$primary_select_input)
       } else {
         list(type = "upload", value = input$primary_upload_input)
