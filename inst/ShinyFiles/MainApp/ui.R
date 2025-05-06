@@ -74,7 +74,9 @@ ui <- function(request){
               bslib::card(fill = FALSE,
                           bslib::card_header("3. Primary data"),
                           bslib::card_body(
-                            load_primary_ui("load_primary")
+                            bslib::card(
+                              load_primary_ui("load_primary")  
+                            )
                           )
               ),
               
