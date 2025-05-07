@@ -146,3 +146,49 @@ load_primary_server <- function(id, rv_project_name){
     }))
   })
 }
+
+## Load port data ---------------------------------------------------------------------------------
+## Description: 
+load_port_server <- function(id, rv_project_name){
+  moduleServer(id, function(input, output, session){
+    # Observe project name reactive
+    observeEvent(rv_project_name(), {
+      project_name <- rv_project_name()
+      req(project_name)
+      
+      # If running shiny tests - set port table name
+      if(getOption("shiny.testmode", FALSE)){ 
+        shinyjs::show("port_select_container") # Set shiny test table name
+        shinyjs::hide("port_upload_container")
+        updateSelectInput(session, 
+                          "port_select_input", 
+                          choices = "scallop_shiny_testPortTable")
+        
+        # Select an existing table
+      } else if(project_name$type == "select" & !is.null(project_name$value)) {
+        shinyjs::show("port_select_container") # Show dropdown menu of existing tables
+        shinyjs::hide("port_upload_container")
+        port_data_list <- list_tables(project_name$value, "port") # Get list of port tables
+        updateSelectInput(session, 
+                          "port_select_input", 
+                          choices = port_data_list)
+        
+        # Upload a new file
+      } else if (project_name$type == "text") {
+        shinyjs::hide("port_select_container")
+        shinyjs::show("port_upload_container") # Show file input for uploading a new file
+        
+      }
+    })
+    
+    # Return the port data table type (select existing or upload new file) and file/table name
+    return(reactive({
+      req(rv_project_name())
+      if(rv_project_name()$type == "select"){
+        list(type = "select", value = input$port_select_input)
+      } else {
+        list(type = "upload", value = input$port_upload_input)
+      }
+    }))
+  })
+}

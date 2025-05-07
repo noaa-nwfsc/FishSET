@@ -34,6 +34,7 @@ server <- function(input, output, session) {
   })
   rv_project_name <- reactiveVal() # Project name
   rv_primary_data_name <- reactiveVal() # Primary data name
+  rv_port_data_name <- reactiveVal() # Primary data name
   
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
@@ -45,4 +46,7 @@ server <- function(input, output, session) {
   
   ### Load primary data
   rv_primary_data_name <- load_primary_server("load_primary", rv_project_name = rv_project_name)
+  
+  ### Load port data
+  rv_port_data_name <- load_port_server("load_port", rv_project_name = rv_project_name)
 }

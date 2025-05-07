@@ -83,6 +83,28 @@ load_primary_ui <- function(id){
   )
 }
 
+## Load port data ---------------------------------------------------------------------------------
+## Description:
+load_port_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    fluidRow(
+      # select existing port data table - initially hidden with CSS
+      div(id = ns("port_select_container"), 
+          style = "display: none;",
+          selectInput(ns("port_select_input"), "Choose port data table", 
+                      choices = NULL)),
+      
+      # load new port data file - initially visible
+      div(id = ns("port_upload_container"),
+          fileInput(ns("port_upload_input"), 
+                    "Choose port data file", 
+                    multiple = FALSE,
+                    placeholder = "No file selected"))
+    )
+  )
+}
+
 ## Load spatial data ------------------------------------------------------------------------------
 ## Description: 
 ##

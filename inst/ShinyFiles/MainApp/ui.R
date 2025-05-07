@@ -75,7 +75,10 @@ ui <- function(request){
                           bslib::card_header("3. Primary data"),
                           bslib::card_body(
                             bslib::card(
-                              load_primary_ui("load_primary")  
+                              load_primary_ui("load_primary")
+                            ),
+                            bslib::card(
+                              load_port_ui("load_port")
                             )
                           )
               ),
