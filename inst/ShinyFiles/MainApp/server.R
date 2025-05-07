@@ -27,7 +27,7 @@ fs_folder_exist <- exists("folderpath", where = ".GlobalEnv") # Check for FishSE
 # Server function definition
 server <- function(input, output, session) {
   
-  # Define reactives ------------------------------------------------------------------------------
+   # Define reactives ------------------------------------------------------------------------------
   # Allow users to change FishSET folders easily.
   rv_folderpath <- reactiveVal({
     if (fs_folder_exist) get("folderpath", 
@@ -46,7 +46,7 @@ server <- function(input, output, session) {
   rv_project_name <- select_project_server("select_project", rv_folderpath = rv_folderpath)
   
   ### Loading spatial and optional gridded data (new or existing)
-  upload_spat_data_server("load_spatial", rv_project_name = rv_project_name)
-  upload_grid_data_server("load_grid", rv_project_name = rv_project_name)
+  rv_spatial_data_name <- upload_spat_data_server("load_spatial", rv_project_name = rv_project_name)
+  rv_gridded_data_name <-upload_grid_data_server("load_grid", rv_project_name = rv_project_name)
   
 }

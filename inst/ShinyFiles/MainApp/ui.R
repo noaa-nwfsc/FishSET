@@ -89,7 +89,7 @@ ui <- function(request){
                             
                             bslib::card(fill = FALSE,
                                         bslib::card_body(
-                                          h5(tags$i("Optional"), "gridded data:"),
+                                          h5(tags$strong(tags$i("Optional")), "gridded data:"),
                                           load_grid_ui("load_grid")
                                         )
                             )
