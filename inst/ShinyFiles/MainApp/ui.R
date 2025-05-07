@@ -47,7 +47,6 @@ ui <- function(request){
               fill = TRUE, 
               width = 400
               
-              
             ),
             
             ### Change folder path

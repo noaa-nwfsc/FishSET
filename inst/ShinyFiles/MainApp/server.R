@@ -33,8 +33,7 @@ server <- function(input, output, session) {
     if (fs_folder_exist) get("folderpath", envir = as.environment(1L))
   })
   rv_project_name <- reactiveVal() # Project name
-  rv_primary_data_name <- reactiveVal() # Primary data name
-  rv_port_data_name <- reactiveVal() # Primary data name
+  rv_upload_data_names <- reactiveValues() # Data file/table names for uploading
   
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
@@ -45,8 +44,10 @@ server <- function(input, output, session) {
   rv_project_name <- select_project_server("select_project", rv_folderpath = rv_folderpath)
   
   ### Load primary data
-  rv_primary_data_name <- load_primary_server("load_primary", rv_project_name = rv_project_name)
+  rv_upload_data_names$primary <- load_primary_server("load_primary", 
+                                                      rv_project_name = rv_project_name)
   
   ### Load port data
-  rv_port_data_name <- load_port_server("load_port", rv_project_name = rv_project_name)
+  rv_upload_data_names$port <- load_port_server("load_port", 
+                                                rv_project_name = rv_project_name)
 }
