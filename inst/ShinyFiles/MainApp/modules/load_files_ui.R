@@ -84,7 +84,8 @@ load_primary_ui <- function(id){
 }
 
 ## Load port data ---------------------------------------------------------------------------------
-## Description:
+## Description: Provide user with a dropdown menu of port tables if loading an existing 
+##              project, but if this is a new project have the user upload a new file.
 load_port_ui <- function(id){
   ns <- NS(id)
   tagList(

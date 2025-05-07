@@ -107,8 +107,8 @@ load_primary_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     # Observe project name reactive
     observeEvent(rv_project_name(), {
+      req(rv_project_name())
       project_name <- rv_project_name()
-      req(project_name)
       
       # If running shiny tests - set primary table name
       if(getOption("shiny.testmode", FALSE)){ 
@@ -148,13 +148,15 @@ load_primary_server <- function(id, rv_project_name){
 }
 
 ## Load port data ---------------------------------------------------------------------------------
-## Description: 
+## Description: Provide user with a drop-down menu of port tables if loading an existing 
+##              project, but if this is a new project have the user upload a new file. Return the
+##              table name and type of input.
 load_port_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     # Observe project name reactive
     observeEvent(rv_project_name(), {
+      req(rv_project_name())
       project_name <- rv_project_name()
-      req(project_name)
       
       # If running shiny tests - set port table name
       if(getOption("shiny.testmode", FALSE)){ 
