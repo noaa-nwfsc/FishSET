@@ -26,34 +26,8 @@ fs_folder_exist <- exists("folderpath", where = ".GlobalEnv") # Check for FishSE
 
 # Server function definition
 server <- function(input, output, session) {
-  r <- reactiveValues(done = 0, ok = TRUE, output = "")
   
-  
-  observeEvent(input$runUp, {
-    shinyjs::hide("error")
-    r$ok <- FALSE
-    tryCatch(
-      {
-        r$output <- isolate(
-          paste(utils::capture.output(eval(parse(text = input$exprUp))), collapse = '\n')
-        )
-        r$ok <- TRUE
-      },
-      error = function(err) {r$output <- err$message}
-    )
-    r$done <- r$done + 1
-  })
-  output$resultUp <- renderUI({
-    if(r$done > 0 ) {
-      content <- paste(paste(">", isolate(input$expr)), r$output, sep = '\n')
-      if(r$ok) {
-        pre(content)
-      } else {
-        pre( style = "color: red; font-weight: bold;", content)
-      }
-    }
-  })
-   # Define reactives ------------------------------------------------------------------------------
+  # Define reactives ------------------------------------------------------------------------------
   # Allow users to change FishSET folders easily.
   rv_folderpath <- reactiveVal({
     if (fs_folder_exist) get("folderpath", envir = as.environment(1L))
@@ -61,7 +35,7 @@ server <- function(input, output, session) {
   rv_project_name <- reactiveVal() # Project name
   rv_primary_data_name <- reactiveVal() # Primary data name
   
-
+  
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
   ### Change folderpath
@@ -74,7 +48,7 @@ server <- function(input, output, session) {
   rv_primary_data_name <- load_primary_server("load_primary", rv_project_name = rv_project_name)
   
   ### Loading spatial and optional gridded data (new or existing)
-  rv_spatial_data_name <- upload_spat_data_server("load_spatial", rv_project_name = rv_project_name)
-  rv_gridded_data_name <-upload_grid_data_server("load_grid", rv_project_name = rv_project_name)
-
+  rv_spatial_data_name <- load_spatial_server("load_spatial", rv_project_name = rv_project_name)
+  rv_gridded_data_name <-load_grid_server("load_grid", rv_project_name = rv_project_name)
+  
 }

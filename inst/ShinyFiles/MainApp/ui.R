@@ -46,12 +46,7 @@ ui <- function(request){
               fillable = TRUE, 
               fill = TRUE, 
               width = 400,
-              textInput("exprUp", label = "Enter an R expression",
-                        value = "values$dataset"),
-              actionButton("runUp", "Run", class = "btn-success"),
-              div(style = "margin-top: 2em;",
-                  uiOutput('resultUp')
-              )
+              
             ),
             
             ### Change folder path
