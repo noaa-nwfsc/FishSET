@@ -45,8 +45,7 @@ ui <- function(request){
             sidebar = bslib::sidebar( 
               fillable = TRUE, 
               fill = TRUE, 
-              width = 400
-              
+              width = 400,
               
             ),
             
@@ -80,11 +79,23 @@ ui <- function(request){
                           )
               ),
               
-              ### Load spatial data
+              ### Load spatial and optional gridded data
               bslib::card(fill = FALSE,
                           bslib::card_header("4. Spatial data"),
                           bslib::card_body(
-                            load_spatial_ui("load_spatial")
+                            bslib::card(fill = FALSE,
+                                        bslib::card_body(
+                                          h5("Spatial data:"),
+                                          load_spatial_ui("load_spatial")
+                                        )
+                            ), 
+                            
+                            bslib::card(fill = FALSE,
+                                        bslib::card_body(
+                                          h5(tags$strong(tags$i("Optional")), "gridded data:"),
+                                          load_grid_ui("load_grid")
+                                        )
+                            )
                           )
               )
             )
