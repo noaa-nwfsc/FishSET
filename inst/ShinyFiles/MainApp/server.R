@@ -43,11 +43,18 @@ server <- function(input, output, session) {
   ### Select project name
   rv_project_name <- select_project_server("select_project", rv_folderpath = rv_folderpath)
   
-  ### Load primary data
+  ### Select primary data
   rv_upload_data_names$primary <- load_primary_server("load_primary", 
                                                       rv_project_name = rv_project_name)
-  
   ### Load port data
   rv_upload_data_names$port <- load_port_server("load_port", 
                                                 rv_project_name = rv_project_name)
+
+  ### Select spatial data
+  rv_upload_data_names$spatial <- load_spatial_server("load_spatial", 
+                                                      rv_project_name = rv_project_name)
+  
+  ### Select gridded data (optional)
+  rv_upload_data_names$grid <-load_grid_server("load_grid", 
+                                               rv_project_name = rv_project_name)
 }
