@@ -168,12 +168,19 @@ load_port_server <- function(id, rv_project_name){
         
         # Select an existing table
       } else if(project_name$type == "select" & !is.null(project_name$value)) {
-        shinyjs::show("port_select_container") # Show dropdown menu of existing tables
-        shinyjs::hide("port_upload_container")
         port_data_list <- list_tables(project_name$value, "port") # Get list of port tables
-        updateSelectInput(session, 
-                          "port_select_input", 
-                          choices = port_data_list)
+        
+        # if there is no port table previously loaded, show the file input
+        if(all(is_empty(port_data_list))){
+          shinyjs::hide("port_select_container")
+          shinyjs::show("port_upload_container") # Show file input
+        } else {
+          shinyjs::show("port_select_container") # Show port table dropdown
+          shinyjs::hide("port_upload_container")
+          updateSelectInput(session, 
+                            "port_select_input",
+                            choices = port_data_list)  # Populate choices
+        }
         
         # Upload a new file
       } else if (project_name$type == "text") {

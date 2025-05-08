@@ -74,10 +74,14 @@ ui <- function(request){
                           bslib::card_header("3. Primary data"),
                           bslib::card_body(
                             bslib::card(
-                              load_primary_ui("load_primary")
+                              bslib::card_body(
+                                load_primary_ui("load_primary")  
+                              )
                             ),
                             bslib::card(
-                              load_port_ui("load_port")
+                              bslib::card_body(
+                                load_port_ui("load_port")  
+                              )
                             )
                           )
               ),
@@ -88,14 +92,12 @@ ui <- function(request){
                           bslib::card_body(
                             bslib::card(fill = FALSE,
                                         bslib::card_body(
-                                          h5("Spatial data:"),
                                           load_spatial_ui("load_spatial")
                                         )
                             ), 
                             
                             bslib::card(fill = FALSE,
                                         bslib::card_body(
-                                          h5(tags$strong(tags$i("Optional")), "gridded data:"),
                                           load_grid_ui("load_grid")
                                         )
                             )

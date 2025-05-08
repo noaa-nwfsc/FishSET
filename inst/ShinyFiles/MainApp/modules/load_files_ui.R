@@ -70,13 +70,14 @@ load_primary_ui <- function(id){
       # select existing primary data table - initially hidden with CSS
       div(id = ns("primary_select_container"), 
           style = "display: none;",
-          selectInput(ns("primary_select_input"), "Choose primary data table", 
+          selectInput(ns("primary_select_input"),
+                      label = HTML("Select primary data table <b>(required)</b>:"),
                       choices = NULL)),
       
       # load new primary data file - initially visible
       div(id = ns("primary_upload_container"),
           fileInput(ns("primary_upload_input"), 
-                    "Choose primary data file", 
+                    label = HTML("Select primary data file <b>(required)</b>:"),
                     multiple = FALSE,
                     placeholder = "No file selected"))
     )
@@ -93,12 +94,14 @@ load_port_ui <- function(id){
       # select existing port data table - initially hidden with CSS
       div(id = ns("port_select_container"), 
           style = "display: none;",
-          selectInput(ns("port_select_input"), "Choose port data table", 
+          selectInput(ns("port_select_input"), 
+                      label = HTML("Select port data table <b>(optional)</b>:"),
                       choices = NULL)),
       
       # load new port data file - initially visible
       div(id = ns("port_upload_container"),
           fileInput(ns("port_upload_input"), 
+                    label = HTML("Select port data file <b>(optional)</b>:"),
                     "Choose port data file", 
                     multiple = FALSE,
                     placeholder = "No file selected"))
@@ -115,7 +118,7 @@ load_spatial_ui <- function(id){
     # Hidden container for selecting an already uploaded spatial table
     div(id = ns("spat_select_container"), style = "display: none;",
         selectInput(ns("spat_select_input"), 
-                    "Choose spatial table:", 
+                    label = HTML("Select spatial table <b>(required)</b>:"),
                     choices = NULL)  # Choices will be populated dynamically
     ),
     
@@ -125,14 +128,14 @@ load_spatial_ui <- function(id){
           # File input for general spatial data files (e.g., CSV, GeoJSON)
           div(id = ns('spat_file_container'), 
               fileInput(ns("spat_file_input"), 
-                        "Choose spatial data file",
+                        label = HTML("Select spatial file <b>(required)</b>:"),
                         multiple = FALSE, 
                         placeholder = 'No file selected')
           ),
           # File input for shapefile components
           div(id = ns("spat_shp_container"),
               fileInput(ns("spat_shp_input"), 
-                        "Choose spatial shape data file",
+                        label = HTML("Select shape files <b>(required)</b>:"),
                         accept = c('.shp', '.dbf', '.sbn', '.sbx', '.shx', '.prj', '.cpg'),
                         multiple = TRUE, 
                         placeholder = 'No file selected')
@@ -155,7 +158,7 @@ load_grid_ui <- function(id){
     # Hidden container to select a previously uploaded gridded table
     div(id = ns("grid_select_container"), style = "display: none;",
         selectInput(ns("grid_select_input"), 
-                    "Choose gridded table:", 
+                    label = HTML("Select gridded table <b>(optional)</b>:"),
                     choices = NULL)  # Choices will be populated dynamically
     ),
     # Visible container for uploading gridded data
@@ -163,7 +166,7 @@ load_grid_ui <- function(id){
         fluidRow(
           # File input for uploading a single data file (e.g., CSV, TSV)
           fileInput(ns("grid_file_input"), 
-                    "Choose data file that varies over one or two dimensions (gridded)",
+                    label = HTML("Select gridded file <b>(optional)</b>:"),
                     multiple = FALSE, 
                     placeholder = 'No file selected')
         )
