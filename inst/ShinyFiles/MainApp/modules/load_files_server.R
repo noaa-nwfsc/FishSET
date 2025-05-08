@@ -268,7 +268,6 @@ load_spatial_server <- function(id, rv_project_name){
       }
     })
     )
-    
   })
 }
 
