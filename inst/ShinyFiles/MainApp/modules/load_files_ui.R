@@ -84,12 +84,67 @@ load_primary_ui <- function(id){
 }
 
 ## Load spatial data ------------------------------------------------------------------------------
-## Description: 
-##
+## Description: UI module function for spatial data upload and selection. Initially show file
+##              input, but if the user selects existing project show existing spatial tables.
 load_spatial_ui <- function(id){
-  ns <- NS(id)
+  ns <- NS(id)  
   tagList(
-    fluidRow(
+    # Hidden container for selecting an already uploaded spatial table
+    div(id = ns("spat_select_container"), style = "display: none;",
+        selectInput(ns("spat_select_input"), 
+                    "Choose spatial table:", 
+                    choices = NULL)  # Choices will be populated dynamically
+    ),
+    
+    # Visible container for uploading spatial data
+    div(id = ns("spat_upload_container"),
+        fluidRow(
+          # File input for general spatial data files (e.g., CSV, GeoJSON)
+          div(id = ns('spat_file_container'), 
+              fileInput(ns("spat_file_input"), 
+                        "Choose spatial data file",
+                        multiple = FALSE, 
+                        placeholder = 'No file selected')
+          ),
+          # File input for shapefile components
+          div(id = ns("spat_shp_container"),
+              fileInput(ns("spat_shp_input"), 
+                        "Choose spatial shape data file",
+                        accept = c('.shp', '.dbf', '.sbn', '.sbx', '.shx', '.prj', '.cpg'),
+                        multiple = TRUE, 
+                        placeholder = 'No file selected')
+              
+          ), 
+          #Checkbox to change file upload to shape files
+          checkboxInput(inputId = ns("spat_shp_chk_input"),
+                        label = "Uploading shape file instead?",
+                        value = FALSE)),
+    )
+  )
+}
+
+## Load gridded data ------------------------------------------------------------------------------
+## Description: UI module for uploading or selecting gridded (1D/2D) data. Initially show file
+##              input, but if user selects an existing project show existing gridded tables.
+load_grid_ui <- function(id){
+  ns <- NS(id)  
+  tagList(
+    # Hidden container to select a previously uploaded gridded table
+    div(id = ns("grid_select_container"), style = "display: none;",
+        selectInput(ns("grid_select_input"), 
+                    "Choose gridded table:", 
+                    choices = NULL)  # Choices will be populated dynamically
+    ),
+    # Visible container for uploading gridded data
+    div(id = ns("grid_upload_container"),
+        fluidRow(
+          # File input for uploading a single data file (e.g., CSV, TSV)
+          fileInput(ns("grid_file_input"), 
+                    "Choose data file that varies over one or two dimensions (gridded)",
+                    multiple = FALSE, 
+                    placeholder = 'No file selected')
+        )
+        
     )
   )
 }
