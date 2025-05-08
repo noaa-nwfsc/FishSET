@@ -151,28 +151,27 @@ load_primary_server <- function(id, rv_project_name){
 ## Description: Server module for handling spatial data uploads or selection. Relies on the project 
 ##              name reactive variable.
 
-upload_spat_data_server <- function(id, rv_project_name){
+load_spatial_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     
     # React to changes in the reactive project name input
     observeEvent(rv_project_name(), {
-      project_name <- rv_project_name()  # Retrieve the current project name
-      req(project_name)  # Ensure project_name is not NULL
+      req(rv_project_name())# Ensure rv_project_name is not NULL
+      project_name <- rv_project_name()  # Retrieve current project info
       
       # If the app is running in test mode, set up test-specific UI
       if(getOption("shiny.testmode", FALSE)){ 
         shinyjs::show("spat_select_container")  # Show the dropdown for selecting a spatial table
         shinyjs::hide("spat_upload_container") 
         updateSelectInput(session, "spat_select_input", 
-                          choices = "scallop_shiny_testSpatDataTable")  # Use a test table
+                          choices = "scallop_shiny_testSpatTable")  # Use a test table
         
       } else {
         # If the project was selected from existing projects list and has a valid value
         if (project_name$type == "select" & !is.null(project_name$value)) {
-          project_name <- rv_project_name()$value  # Extract selected project value
           
           # Retrieve list of existing spatial tables fishset database
-          spat_list <- list_tables(project_name, "spat")
+          spat_list <- list_tables(project_name$value, "spat")
           
           shinyjs::show("spat_select_container")  # Show selection dropdown
           shinyjs::hide("spat_upload_container")  
@@ -223,34 +222,33 @@ upload_spat_data_server <- function(id, rv_project_name){
 ## Description: Server module for handling grid (1D/2D data) upload or selection. Relies on the  
 ##              project name reactive variable.
 
-upload_grid_data_server <- function(id, rv_project_name){
+load_grid_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     
     # React to changes in the reactive project name input
     observeEvent(rv_project_name(), {
       req(rv_project_name())# Ensure rv_project_name is not NULL
       project_name <- rv_project_name()  # Retrieve current project info
-
+      
       # If app is running in test mode (e.g., automated testing)
       if(getOption("shiny.testmode", FALSE)){ 
         shinyjs::show("grid_select_container")  # Show UI for selecting an existing grid table
         shinyjs::hide("grid_upload_container")  # Hide file upload section
         updateSelectInput(session, "grid_select_input",
-                          choices = "scallop_shiny_testGridDataTable")  # Set test choice
+                          choices = "scallop_shiny_testGridTable")  # Set test choice
         
       } else {
         # If the project was selected from existing projects list and has a valid value
         if (project_name$type == "select" & !is.null(project_name$value)) {
-          project_name <- rv_project_name()$value  # Extract selected project value
           
           # Retrieve list of existing grid data tables for the project
-          grid_list <- list_tables(project_name, "grid")
+          grid_list <- list_tables(project_name$value, "grid")
           
           # if there is no grid tables previously loaded, show the upload grid input
-          if(is.null(grid_list)){
+          if(FishSET::is_empty(grid_list)){
             shinyjs::hide("grid_select_container")
             shinyjs::show("grid_upload_container")
-          } else{
+          } else {
             shinyjs::show("grid_select_container")   # Show grid selection UI
             shinyjs::hide("grid_upload_container")   # Hide upload UI
             
@@ -265,6 +263,7 @@ upload_grid_data_server <- function(id, rv_project_name){
       }
       
     })
+    
     
     # Return the gridded data table type (select existing or upload new file) and file/table name
     return(reactive({
