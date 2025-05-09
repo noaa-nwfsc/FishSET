@@ -99,15 +99,15 @@ select_project_server <- function(id, rv_folderpath){
   })
 }
 
-## Load primary data ------------------------------------------------------------------------------
+## Select primary data ----------------------------------------------------------------------------
 ## Description: Provide user with a drop-down menu of primary tables if loading an existing 
 ##              project, but if this is a new project have the user upload a new file. Return the
 ##              table name and type of input.
-load_primary_server <- function(id, rv_project_name){
+select_primary_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     # Observe project name reactive
     observeEvent(rv_project_name(), {
-      req(rv_project_name())
+      req(rv_project_name()) # Check to ensure reactive is available
       project_name <- rv_project_name()
       
       # If running shiny tests - set primary table name
@@ -147,15 +147,15 @@ load_primary_server <- function(id, rv_project_name){
   })
 }
 
-## Load port data ---------------------------------------------------------------------------------
+## Select port data -------------------------------------------------------------------------------
 ## Description: Provide user with a drop-down menu of port tables if loading an existing 
 ##              project, but if this is a new project have the user upload a new file. Return the
 ##              table name and type of input.
-load_port_server <- function(id, rv_project_name){
+select_port_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     # Observe project name reactive
     observeEvent(rv_project_name(), {
-      req(rv_project_name())
+      req(rv_project_name()) # Check to ensure reactive is available
       project_name <- rv_project_name()
       
       # If running shiny tests - set port table name
@@ -202,10 +202,10 @@ load_port_server <- function(id, rv_project_name){
   })
 }
 
-## Upload spatial data ----------------------------------------------------------------------------
+## Select spatial data ----------------------------------------------------------------------------
 ## Description: Server module for handling spatial data uploads or selection. Relies on the project 
 ##              name reactive variable.
-load_spatial_server <- function(id, rv_project_name){
+select_spatial_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     # React to changes in the reactive project name input
     observeEvent(rv_project_name(), {
@@ -271,10 +271,10 @@ load_spatial_server <- function(id, rv_project_name){
   })
 }
 
-## Upload gridded data ----------------------------------------------------------------------------
+## Select gridded data ----------------------------------------------------------------------------
 ## Description: Server module for handling grid (1D/2D data) upload or selection. Relies on the  
 ##              project name reactive variable.
-load_grid_server <- function(id, rv_project_name){
+select_grid_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     # React to changes in the reactive project name input
     observeEvent(rv_project_name(), {

@@ -60,10 +60,10 @@ select_project_ui <- function(id){
   )
 }
 
-## Load primary data ------------------------------------------------------------------------------
+## Select primary data ----------------------------------------------------------------------------
 ## Description: Provide user with a dropdown menu of primary tables if loading an existing 
 ##              project, but if this is a new project have the user upload a new file.
-load_primary_ui <- function(id){
+select_primary_ui <- function(id){
   ns <- NS(id)
   tagList(
     fluidRow(
@@ -74,7 +74,7 @@ load_primary_ui <- function(id){
                       label = HTML("Select primary data table <b>(required)</b>:"),
                       choices = NULL)),
       
-      # load new primary data file - initially visible
+      # select new primary data file - initially visible
       div(id = ns("primary_upload_container"),
           fileInput(ns("primary_upload_input"), 
                     label = HTML("Select primary data file <b>(required)</b>:"),
@@ -84,10 +84,10 @@ load_primary_ui <- function(id){
   )
 }
 
-## Load port data ---------------------------------------------------------------------------------
+## Select port data -------------------------------------------------------------------------------
 ## Description: Provide user with a dropdown menu of port tables if loading an existing 
 ##              project, but if this is a new project have the user upload a new file.
-load_port_ui <- function(id){
+select_port_ui <- function(id){
   ns <- NS(id)
   tagList(
     fluidRow(
@@ -102,17 +102,16 @@ load_port_ui <- function(id){
       div(id = ns("port_upload_container"),
           fileInput(ns("port_upload_input"), 
                     label = HTML("Select port data file <b>(optional)</b>:"),
-                    "Choose port data file", 
                     multiple = FALSE,
                     placeholder = "No file selected"))
     )
   )
 }
 
-## Load spatial data ------------------------------------------------------------------------------
+## Select spatial data ----------------------------------------------------------------------------
 ## Description: UI module function for spatial data upload and selection. Initially show file
 ##              input, but if the user selects existing project show existing spatial tables.
-load_spatial_ui <- function(id){
+select_spatial_ui <- function(id){
   ns <- NS(id)  
   tagList(
     # Hidden container for selecting an already uploaded spatial table
@@ -149,10 +148,10 @@ load_spatial_ui <- function(id){
   )
 }
 
-## Load gridded data ------------------------------------------------------------------------------
+## Select gridded data ----------------------------------------------------------------------------
 ## Description: UI module for uploading or selecting gridded (1D/2D) data. Initially show file
 ##              input, but if user selects an existing project show existing gridded tables.
-load_grid_ui <- function(id){
+select_grid_ui <- function(id){
   ns <- NS(id)  
   tagList(
     # Hidden container to select a previously uploaded gridded table
