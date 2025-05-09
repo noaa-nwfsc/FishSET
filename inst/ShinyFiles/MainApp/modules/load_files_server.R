@@ -99,15 +99,15 @@ select_project_server <- function(id, rv_folderpath){
   })
 }
 
-## Load primary data ------------------------------------------------------------------------------
+## Select primary data ----------------------------------------------------------------------------
 ## Description: Provide user with a drop-down menu of primary tables if loading an existing 
 ##              project, but if this is a new project have the user upload a new file. Return the
 ##              table name and type of input.
-load_primary_server <- function(id, rv_project_name){
+select_primary_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     # Observe project name reactive
     observeEvent(rv_project_name(), {
-      req(rv_project_name())
+      req(rv_project_name()) # Check to ensure reactive is available
       project_name <- rv_project_name()
       
       # If running shiny tests - set primary table name
@@ -147,10 +147,65 @@ load_primary_server <- function(id, rv_project_name){
   })
 }
 
-## Upload spatial data ----------------------------------------------------------------------------
+## Select port data -------------------------------------------------------------------------------
+## Description: Provide user with a drop-down menu of port tables if loading an existing 
+##              project, but if this is a new project have the user upload a new file. Return the
+##              table name and type of input.
+select_port_server <- function(id, rv_project_name){
+  moduleServer(id, function(input, output, session){
+    # Observe project name reactive
+    observeEvent(rv_project_name(), {
+      req(rv_project_name()) # Check to ensure reactive is available
+      project_name <- rv_project_name()
+      
+      # If running shiny tests - set port table name
+      if(getOption("shiny.testmode", FALSE)){ 
+        shinyjs::show("port_select_container") # Set shiny test table name
+        shinyjs::hide("port_upload_container")
+        updateSelectInput(session, 
+                          "port_select_input", 
+                          choices = "scallop_shiny_testPortTable")
+        
+        # Select an existing table
+      } else if(project_name$type == "select" & !is.null(project_name$value)) {
+        port_data_list <- list_tables(project_name$value, "port") # Get list of port tables
+        
+        # if there is no port table previously loaded, show the file input
+        if(all(is_empty(port_data_list))){
+          shinyjs::hide("port_select_container")
+          shinyjs::show("port_upload_container") # Show file input
+        } else {
+          shinyjs::show("port_select_container") # Show port table dropdown
+          shinyjs::hide("port_upload_container")
+          updateSelectInput(session, 
+                            "port_select_input",
+                            choices = port_data_list)  # Populate choices
+        }
+        
+        # Upload a new file
+      } else if (project_name$type == "text") {
+        shinyjs::hide("port_select_container")
+        shinyjs::show("port_upload_container") # Show file input for uploading a new file
+        
+      }
+    })
+    
+    # Return the port data table type (select existing or upload new file) and file/table name
+    return(reactive({
+      req(rv_project_name())
+      if(rv_project_name()$type == "select"){
+        list(type = "select", value = input$port_select_input)
+      } else {
+        list(type = "upload", value = input$port_upload_input)
+      }
+    }))
+  })
+}
+
+## Select spatial data ----------------------------------------------------------------------------
 ## Description: Server module for handling spatial data uploads or selection. Relies on the project 
 ##              name reactive variable.
-load_spatial_server <- function(id, rv_project_name){
+select_spatial_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     # React to changes in the reactive project name input
     observeEvent(rv_project_name(), {
@@ -213,14 +268,13 @@ load_spatial_server <- function(id, rv_project_name){
       }
     })
     )
-    
   })
 }
 
-## Upload gridded data ----------------------------------------------------------------------------
+## Select gridded data ----------------------------------------------------------------------------
 ## Description: Server module for handling grid (1D/2D data) upload or selection. Relies on the  
 ##              project name reactive variable.
-load_grid_server <- function(id, rv_project_name){
+select_grid_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     # React to changes in the reactive project name input
     observeEvent(rv_project_name(), {
@@ -271,4 +325,3 @@ load_grid_server <- function(id, rv_project_name){
     )
   })
 }
-
