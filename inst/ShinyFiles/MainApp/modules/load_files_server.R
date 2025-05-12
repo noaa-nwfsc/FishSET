@@ -20,31 +20,34 @@
 ## Change folder path -----------------------------------------------------------------------------
 ## Description: Update a reactive value for the FishSET folderpath, create an output to display
 ##              the selected path, and return the folderpath to make if available in the main app.
-folder_path_server <- function(id){
+folder_path_server <- function(id, fs_folder_exist){
   moduleServer(id, function(input, output, session){
     # Create a reactive for folderpath
-    rv_folderpath <- reactiveVal(NULL)
+    rv_out_folderpath <- reactiveVal({
+      # if path is in global env then use that path
+      if(fs_folder_exist) get("folderpath", envir = .GlobalEnv) else NULL
+    })  
     
     # Update FS folderpath
     observeEvent(input$change_fs_folder_btn, {
       if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - use test_path()
         fs_path <- testthat::test_path("data/FishSETFolder")
-        rv_folderpath(fs_path)
-        
+        rv_out_folderpath(fs_path)
+
       } else {
         fs_path <- update_folderpath()
-        rv_folderpath(fs_path)  
+        rv_out_folderpath(fs_path)
       }
     })
     
     # Output to display the folderpath
     output$display_folderpath <- renderText({
-      req(rv_folderpath())
-      paste("Selected folder:", rv_folderpath())
+      req(rv_out_folderpath())
+      paste("Selected folder:", rv_out_folderpath())
     })
     
     # Expose the path as a reactive
-    return(rv_folderpath)
+    return(rv_out_folderpath)
   })
 }
 
@@ -56,11 +59,12 @@ select_project_server <- function(id, rv_folderpath){
   moduleServer(id, function(input, output, session){
     # Update the list of project names when the folderpath changes
     observe({
+      req(rv_folderpath()) # ensure reactive is available
       folderpath <- rv_folderpath() # observe changes in folderpath
-      
+
       if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - set checkbox to TRUE
         updateCheckboxInput(session, "load_existing_proj_input", value = TRUE)
-        
+
       } else if (!is.null(folderpath) && !is.null(FishSET::projects())){
         proj_list <- FishSET::projects() # update project list
         updateSelectInput(session, "proj_select_input", choices = proj_list)
@@ -73,12 +77,12 @@ select_project_server <- function(id, rv_folderpath){
         shinyjs::show("proj_select_container")
         shinyjs::hide("proj_name_container")
         updateSelectInput(session, "proj_select_input", choices = "scallop_shiny_test")
-        
+
       } else {
-        if(input$load_existing_proj_input) { 
+        if(input$load_existing_proj_input) {
           shinyjs::show("proj_select_container") # Display existing projects
           shinyjs::hide("proj_name_container")
-          
+
         } else {
           shinyjs::hide("proj_select_container") # Get a new project name
           shinyjs::show("proj_name_container")
