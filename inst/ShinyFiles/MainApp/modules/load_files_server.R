@@ -110,7 +110,7 @@ select_project_server <- function(id, rv_folderpath){
 ##              and type of input.
 select_data_server <- function(id, data_type, rv_project_name){
   moduleServer(id, function(input, output, session){
-    rv_out_type <- reactiveVal() # indicate which value to output
+    rv_out_type <- reactiveVal() # indicates which input value to return
     
     # Observer project name reactive
     observeEvent(rv_project_name(), {

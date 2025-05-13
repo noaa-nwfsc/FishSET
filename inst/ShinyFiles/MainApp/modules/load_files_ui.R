@@ -122,7 +122,6 @@ select_data_ui <- function(id, data_type){
                             accept = c('.shp', '.dbf', '.sbn', '.sbx', '.shx', '.prj', '.cpg'),
                             multiple = TRUE, 
                             placeholder = 'No file selected')
-                  
               ),
               
               #Checkbox to change file upload to shape files
