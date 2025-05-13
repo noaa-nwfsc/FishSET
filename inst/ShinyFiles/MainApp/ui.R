@@ -74,17 +74,17 @@ ui <- function(request){
                           bslib::card_body(
                             bslib::card(
                               bslib::card_body(
-                                select_data_ui("select_main", "main")  
+                                select_data_ui("select_main", data_type = "main")
                               )
                             ),
                             bslib::card(
                               bslib::card_body(
-                                select_port_ui("select_port")  
+                                select_data_ui("select_port", data_type = "port")
                               )
                             ),
                             bslib::card(
                               bslib::card_body(
-                                select_aux_ui("select_aux")
+                                select_data_ui("select_aux", data_type = "aux")
                               )
                             )
                           )
@@ -96,12 +96,12 @@ ui <- function(request){
                           bslib::card_body(
                             bslib::card(fill = FALSE,
                                         bslib::card_body(
-                                          select_spatial_ui("select_spatial")
+                                          select_data_ui("select_spatial", data_type = "spat")
                                         )
                             ), 
                             bslib::card(fill = FALSE,
                                         bslib::card_body(
-                                          select_grid_ui("select_grid")
+                                          select_data_ui("select_grid", data_type = "grid")
                                         )
                             )
                           )

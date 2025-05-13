@@ -61,8 +61,9 @@ select_project_ui <- function(id){
 }
 
 ## Select data ------------------------------------------------------------------------------------
-## Description: Provide user with a dropdown menu of main (aka primary) tables if loading an 
-##              existing project, but if this is a new project have the user upload a new file.
+## Description: Provide user with a dropdown menu if loading an existing project AND the data 
+##              table exists in the project. Otherwise, give the user the file input option, and 
+##              include option to load shape files for spatial data.
 select_data_ui <- function(id, data_type){
   ns <- NS(id)
   tagList(
@@ -71,173 +72,62 @@ select_data_ui <- function(id, data_type){
       div(id = ns(paste0(data_type, "_select_container")), 
           style = "display: none;",
           selectInput(ns(paste0(data_type, "_select_input")),
-                      label = "main",
-                      # label = switch(data_type,
-                      #                "main" = HTML(paste0("Select main",
-                      #                                     " data table <b>(required)</b>:")),
-                      #                "port" = HTML(paste0("Select port",
-                      #                                     " data table <b>(optional)</b>:")),
-                      #                "aux" = HTML(paste0("Select auxiliary",  
-                      #                                    " data table <b>(optional)</b>:")),
-                      #                "grid" = HTML(paste0("Select gridded",  
-                      #                                     " data table <b>(optional)</b>:"))
-                      # ),
+                      label = switch(data_type,
+                                     "main" = HTML(paste0("Select main",
+                                                          " data table <b>(required)</b>:")),
+                                     "port" = HTML(paste0("Select port",
+                                                          " data table <b>(optional)</b>:")),
+                                     "aux" = HTML(paste0("Select auxiliary",
+                                                         " data table <b>(optional)</b>:")),
+                                     "spat" = HTML(paste0("Select spatial",
+                                                          " table <b>(optional)</b>:")),
+                                     "grid" = HTML(paste0("Select gridded",
+                                                          " data table <b>(optional)</b>:"))
+                      ),
                       choices = NULL)),
       
-      # select new data file - initially visible
-      div(id = ns(paste0(data_type, "_upload_container")),
-          fileInput(ns(paste0(data_type, "_upload_input")),
-                    label = "main",
-                    # label = switch(data_type,
-                    #                "main" = HTML(paste0("Select main", 
-                    #                                     " data file <b>(required)</b>:")),
-                    #                "port" = HTML(paste0("Select port", 
-                    #                                     " file <b>(optional)</b>:")),
-                    #                "aux" = HTML(paste0("Select auxiliary",  
-                    #                                    " data file <b>(optional)</b>:")),
-                    #                "grid" = HTML(paste0("Select gridded",  
-                    #                                     " data file <b>(optional)</b>:"))
-                    # ),
-                    multiple = FALSE,
-                    placeholder = "No file selected"))
-    )
-  )
-}
-
-## Select main data -------------------------------------------------------------------------------
-## Description: Provide user with a dropdown menu of main (aka primary) tables if loading an 
-##              existing project, but if this is a new project have the user upload a new file.
-select_main_ui <- function(id){
-  ns <- NS(id)
-  tagList(
-    fluidRow(
-      # select existing main data table - initially hidden with CSS
-      div(id = ns("main_select_container"), 
-          style = "display: none;",
-          selectInput(ns("main_select_input"),
-                      label = HTML("Select main data table <b>(required)</b>:"),
-                      choices = NULL)),
-      
-      # select new main data file - initially visible
-      div(id = ns("main_upload_container"),
-          fileInput(ns("main_upload_input"), 
-                    label = HTML("Select main data file <b>(required)</b>:"),
-                    multiple = FALSE,
-                    placeholder = "No file selected"))
-    )
-  )
-}
-
-## Select port data -------------------------------------------------------------------------------
-## Description: Provide user with a dropdown menu of port tables if loading an existing 
-##              project, but if this is a new project have the user upload a new file.
-select_port_ui <- function(id){
-  ns <- NS(id)
-  tagList(
-    fluidRow(
-      # select existing port data table - initially hidden with CSS
-      div(id = ns("port_select_container"), 
-          style = "display: none;",
-          selectInput(ns("port_select_input"), 
-                      label = HTML("Select port data table <b>(optional)</b>:"),
-                      choices = NULL)),
-      
-      # load new port data file - initially visible
-      div(id = ns("port_upload_container"),
-          fileInput(ns("port_upload_input"), 
-                    label = HTML("Select port data file <b>(optional)</b>:"),
-                    multiple = FALSE,
-                    placeholder = "No file selected"))
-    )
-  )
-}
-
-## Select aux data --------------------------------------------------------------------------------
-## Description: Provide user with a dropdown menu of aux tables if loading an existing project and
-##              table exists, but if this is a new project have the user upload a new file.
-select_aux_ui <- function(id){
-  ns <- NS(id)
-  tagList(
-    fluidRow(
-      # select existing aux data table - initially hidden with CSS
-      div(id = ns("aux_select_container"), 
-          style = "display: none;",
-          selectInput(ns("aux_select_input"), 
-                      label = HTML("Select auxiliary data table <b>(optional)</b>:"),
-                      choices = NULL)),
-      
-      # load new aux data file - initially visible
-      div(id = ns("aux_upload_container"),
-          fileInput(ns("aux_upload_input"), 
-                    label = HTML("Select auxiliary data file <b>(optional)</b>:"),
-                    multiple = FALSE,
-                    placeholder = "No file selected"))
-    )
-  )
-}
-
-## Select spatial data ----------------------------------------------------------------------------
-## Description: UI module function for spatial data upload and selection. Initially show file
-##              input, but if the user selects existing project show existing spatial tables.
-select_spatial_ui <- function(id){
-  ns <- NS(id)  
-  tagList(
-    # Hidden container for selecting an already uploaded spatial table
-    div(id = ns("spat_select_container"), style = "display: none;",
-        selectInput(ns("spat_select_input"), 
-                    label = HTML("Select spatial table <b>(required)</b>:"),
-                    choices = NULL)  # Choices will be populated dynamically
-    ),
-    
-    # Visible container for uploading spatial data
-    div(id = ns("spat_upload_container"),
-        fluidRow(
-          # File input for general spatial data files (e.g., CSV, GeoJSON)
-          div(id = ns('spat_file_container'), 
-              fileInput(ns("spat_file_input"), 
-                        label = HTML("Select spatial file <b>(required)</b>:"),
-                        multiple = FALSE, 
-                        placeholder = 'No file selected')
-          ),
-          # File input for shapefile components
-          div(id = ns("spat_shp_container"),
-              fileInput(ns("spat_shp_input"), 
-                        label = HTML("Select shape files <b>(required)</b>:"),
-                        accept = c('.shp', '.dbf', '.sbn', '.sbx', '.shx', '.prj', '.cpg'),
-                        multiple = TRUE, 
-                        placeholder = 'No file selected')
-              
-          ), 
-          #Checkbox to change file upload to shape files
-          checkboxInput(inputId = ns("spat_shp_chk_input"),
-                        label = "Uploading shape file instead?",
-                        value = FALSE)),
-    )
-  )
-}
-
-## Select gridded data ----------------------------------------------------------------------------
-## Description: UI module for uploading or selecting gridded (1D/2D) data. Initially show file
-##              input, but if user selects an existing project show existing gridded tables.
-select_grid_ui <- function(id){
-  ns <- NS(id)  
-  tagList(
-    # Hidden container to select a previously uploaded gridded table
-    div(id = ns("grid_select_container"), style = "display: none;",
-        selectInput(ns("grid_select_input"), 
-                    label = HTML("Select gridded table <b>(optional)</b>:"),
-                    choices = NULL)  # Choices will be populated dynamically
-    ),
-    # Visible container for uploading gridded data
-    div(id = ns("grid_upload_container"),
-        fluidRow(
-          # File input for uploading a single data file (e.g., CSV, TSV)
-          fileInput(ns("grid_file_input"), 
-                    label = HTML("Select gridded file <b>(optional)</b>:"),
-                    multiple = FALSE, 
-                    placeholder = 'No file selected')
+      if(data_type != "spat"){
+        # select new data file - initially visible
+        div(id = ns(paste0(data_type, "_upload_container")),
+            fileInput(ns(paste0(data_type, "_upload_input")),
+                      label = switch(data_type,
+                                     "main" = HTML(paste0("Select main",
+                                                          " data file <b>(required)</b>:")),
+                                     "port" = HTML(paste0("Select port",
+                                                          " file <b>(optional)</b>:")),
+                                     "aux" = HTML(paste0("Select auxiliary",
+                                                         " data file <b>(optional)</b>:")),
+                                     "grid" = HTML(paste0("Select gridded",
+                                                          " data file <b>(optional)</b>:"))
+                      ),
+                      multiple = FALSE,
+                      placeholder = "No file selected"))  
+      } else {
+        # Visible container for uploading spatial data
+        div(id = ns("spat_upload_container"),
+            fluidRow(
+              # File input for general spatial data files (e.g., CSV, GeoJSON)
+              div(id = ns('spat_upload_container'), 
+                  fileInput(ns("spat_upload_input"), 
+                            label = HTML("Select spatial file <b>(required)</b>:"),
+                            multiple = FALSE, 
+                            placeholder = 'No file selected')
+              ),
+              # File input for shapefile components
+              div(id = ns("spat_shp_container"),
+                  fileInput(ns("spat_shp_input"), 
+                            label = HTML("Select shape files <b>(required)</b>:"),
+                            accept = c('.shp', '.dbf', '.sbn', '.sbx', '.shx', '.prj', '.cpg'),
+                            multiple = TRUE, 
+                            placeholder = 'No file selected')
+                  
+              ), 
+              #Checkbox to change file upload to shape files
+              checkboxInput(inputId = ns("spat_shp_chk_input"),
+                            label = "Uploading shape file instead?",
+                            value = FALSE)),
         )
-        
+      }
     )
   )
 }
