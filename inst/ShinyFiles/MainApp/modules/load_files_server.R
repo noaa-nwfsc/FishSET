@@ -20,31 +20,34 @@
 ## Change folder path -----------------------------------------------------------------------------
 ## Description: Update a reactive value for the FishSET folderpath, create an output to display
 ##              the selected path, and return the folderpath to make if available in the main app.
-folder_path_server <- function(id){
+folder_path_server <- function(id, fs_folder_exist){
   moduleServer(id, function(input, output, session){
     # Create a reactive for folderpath
-    rv_folderpath <- reactiveVal(NULL)
+    rv_out_folderpath <- reactiveVal({
+      # if path is in global env then use that path
+      if(fs_folder_exist) get("folderpath", envir = .GlobalEnv) else NULL
+    })  
     
     # Update FS folderpath
     observeEvent(input$change_fs_folder_btn, {
       if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - use test_path()
         fs_path <- testthat::test_path("data/FishSETFolder")
-        rv_folderpath(fs_path)
-        
+        rv_out_folderpath(fs_path)
+
       } else {
         fs_path <- update_folderpath()
-        rv_folderpath(fs_path)  
+        rv_out_folderpath(fs_path)
       }
     })
     
     # Output to display the folderpath
     output$display_folderpath <- renderText({
-      req(rv_folderpath())
-      paste("Selected folder:", rv_folderpath())
+      req(rv_out_folderpath())
+      paste("Selected folder:", rv_out_folderpath())
     })
     
     # Expose the path as a reactive
-    return(rv_folderpath)
+    return(rv_out_folderpath)
   })
 }
 
@@ -56,11 +59,12 @@ select_project_server <- function(id, rv_folderpath){
   moduleServer(id, function(input, output, session){
     # Update the list of project names when the folderpath changes
     observe({
+      req(rv_folderpath()) # ensure reactive is available
       folderpath <- rv_folderpath() # observe changes in folderpath
-      
+
       if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - set checkbox to TRUE
         updateCheckboxInput(session, "load_existing_proj_input", value = TRUE)
-        
+
       } else if (!is.null(folderpath) && !is.null(FishSET::projects())){
         proj_list <- FishSET::projects() # update project list
         updateSelectInput(session, "proj_select_input", choices = proj_list)
@@ -73,12 +77,12 @@ select_project_server <- function(id, rv_folderpath){
         shinyjs::show("proj_select_container")
         shinyjs::hide("proj_name_container")
         updateSelectInput(session, "proj_select_input", choices = "scallop_shiny_test")
-        
+
       } else {
-        if(input$load_existing_proj_input) { 
+        if(input$load_existing_proj_input) {
           shinyjs::show("proj_select_container") # Display existing projects
           shinyjs::hide("proj_name_container")
-          
+
         } else {
           shinyjs::hide("proj_select_container") # Get a new project name
           shinyjs::show("proj_name_container")
@@ -99,15 +103,15 @@ select_project_server <- function(id, rv_folderpath){
   })
 }
 
-## Load primary data ------------------------------------------------------------------------------
+## Select primary data ----------------------------------------------------------------------------
 ## Description: Provide user with a drop-down menu of primary tables if loading an existing 
 ##              project, but if this is a new project have the user upload a new file. Return the
 ##              table name and type of input.
-load_primary_server <- function(id, rv_project_name){
+select_primary_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     # Observe project name reactive
     observeEvent(rv_project_name(), {
-      req(rv_project_name())
+      req(rv_project_name()) # Check to ensure reactive is available
       project_name <- rv_project_name()
       
       # If running shiny tests - set primary table name
@@ -147,10 +151,65 @@ load_primary_server <- function(id, rv_project_name){
   })
 }
 
-## Upload spatial data ----------------------------------------------------------------------------
+## Select port data -------------------------------------------------------------------------------
+## Description: Provide user with a drop-down menu of port tables if loading an existing 
+##              project, but if this is a new project have the user upload a new file. Return the
+##              table name and type of input.
+select_port_server <- function(id, rv_project_name){
+  moduleServer(id, function(input, output, session){
+    # Observe project name reactive
+    observeEvent(rv_project_name(), {
+      req(rv_project_name()) # Check to ensure reactive is available
+      project_name <- rv_project_name()
+      
+      # If running shiny tests - set port table name
+      if(getOption("shiny.testmode", FALSE)){ 
+        shinyjs::show("port_select_container") # Set shiny test table name
+        shinyjs::hide("port_upload_container")
+        updateSelectInput(session, 
+                          "port_select_input", 
+                          choices = "scallop_shiny_testPortTable")
+        
+        # Select an existing table
+      } else if(project_name$type == "select" & !is.null(project_name$value)) {
+        port_data_list <- list_tables(project_name$value, "port") # Get list of port tables
+        
+        # if there is no port table previously loaded, show the file input
+        if(all(is_empty(port_data_list))){
+          shinyjs::hide("port_select_container")
+          shinyjs::show("port_upload_container") # Show file input
+        } else {
+          shinyjs::show("port_select_container") # Show port table dropdown
+          shinyjs::hide("port_upload_container")
+          updateSelectInput(session, 
+                            "port_select_input",
+                            choices = port_data_list)  # Populate choices
+        }
+        
+        # Upload a new file
+      } else if (project_name$type == "text") {
+        shinyjs::hide("port_select_container")
+        shinyjs::show("port_upload_container") # Show file input for uploading a new file
+        
+      }
+    })
+    
+    # Return the port data table type (select existing or upload new file) and file/table name
+    return(reactive({
+      req(rv_project_name())
+      if(rv_project_name()$type == "select"){
+        list(type = "select", value = input$port_select_input)
+      } else {
+        list(type = "upload", value = input$port_upload_input)
+      }
+    }))
+  })
+}
+
+## Select spatial data ----------------------------------------------------------------------------
 ## Description: Server module for handling spatial data uploads or selection. Relies on the project 
 ##              name reactive variable.
-load_spatial_server <- function(id, rv_project_name){
+select_spatial_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     # React to changes in the reactive project name input
     observeEvent(rv_project_name(), {
@@ -213,14 +272,13 @@ load_spatial_server <- function(id, rv_project_name){
       }
     })
     )
-    
   })
 }
 
-## Upload gridded data ----------------------------------------------------------------------------
+## Select gridded data ----------------------------------------------------------------------------
 ## Description: Server module for handling grid (1D/2D data) upload or selection. Relies on the  
 ##              project name reactive variable.
-load_grid_server <- function(id, rv_project_name){
+select_grid_server <- function(id, rv_project_name){
   moduleServer(id, function(input, output, session){
     # React to changes in the reactive project name input
     observeEvent(rv_project_name(), {
@@ -271,4 +329,3 @@ load_grid_server <- function(id, rv_project_name){
     )
   })
 }
-
