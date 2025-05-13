@@ -29,27 +29,30 @@ server <- function(input, output, session) {
   
   # Define reactives ------------------------------------------------------------------------------
   # Allow users to change FishSET folders easily.
-  rv_folderpath <- reactiveVal({
-    if (fs_folder_exist) get("folderpath", envir = as.environment(1L))
-  })
+  rv_folderpath <- reactiveVal() # Folder path to FishSETFolder
   rv_project_name <- reactiveVal() # Project name
-  rv_primary_data_name <- reactiveVal() # Primary data name
+  rv_data_names <- reactiveValues() # Data file/table names for uploading
   
   # Upload data -----------------------------------------------------------------------------------
-  ## Load files subtab ----------------------------------------------------------------------------
+  ## Select files subtab --------------------------------------------------------------------------
   ### Change folderpath
-  rv_folderpath <- folder_path_server("folderpath") 
+  rv_folderpath <- folder_path_server("folderpath", fs_folder_exist = fs_folder_exist) 
   
   ### Select project name
   rv_project_name <- select_project_server("select_project", rv_folderpath = rv_folderpath)
   
   ### Select primary data
-  rv_primary_data_name <- load_primary_server("load_primary", rv_project_name = rv_project_name)
+  rv_data_names$primary <- select_primary_server("select_primary", 
+                                                 rv_project_name = rv_project_name)
+  ### Select port data
+  rv_data_names$port <- select_port_server("select_port", 
+                                           rv_project_name = rv_project_name)
   
   ### Select spatial data
-  rv_spatial_data_name <- load_spatial_server("load_spatial", rv_project_name = rv_project_name)
+  rv_data_names$spatial <- select_spatial_server("select_spatial", 
+                                                 rv_project_name = rv_project_name)
   
   ### Select gridded data (optional)
-  rv_gridded_data_name <-load_grid_server("load_grid", rv_project_name = rv_project_name)
-  
+  rv_data_names$grid <- select_grid_server("select_grid", 
+                                           rv_project_name = rv_project_name)
 }
