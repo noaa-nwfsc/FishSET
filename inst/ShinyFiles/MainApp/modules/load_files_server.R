@@ -104,9 +104,10 @@ select_project_server <- function(id, rv_folderpath){
 }
 
 ## Select data ------------------------------------------------------------------------------------
-## Description: Provide user with a drop-down menu of main tables if loading an existing 
-##              project, but if this is a new project have the user upload a new file. Return the
-##              table name and type of input.
+## Description: Provide user with a drop-down menu of tables if loading an existing project AND
+##              tables exist in the project folder. If this is a new project, or a data type
+##              is not present in an existing project, give a file input. Return the table name 
+##              and type of input.
 select_data_server <- function(id, data_type, rv_project_name){
   moduleServer(id, function(input, output, session){
     # Observer project name reactive
@@ -114,20 +115,19 @@ select_data_server <- function(id, data_type, rv_project_name){
       req(rv_project_name()) # Check to ensure reactive is available
       project_name <- rv_project_name()
       
-      # If running shiny tests - set main table name
+      # If running shiny tests - assign test table names
       if(getOption("shiny.testmode", FALSE)){
         shiny_test_table <- switch(data_type,
                                    "main" = "scallop_shiny_testMainDataTable",
                                    "port" = "scallop_shiny_testPortTable",
                                    "aux" = "scallop_shiny_testAuxTable",
                                    "spat" = "scallop_shiny_testSpatTable",
-                                   "grid" = "scallop_shiny_testGridTable"
-        )
-
-        shinyjs::show(paste0(data_type, "_select_container")) # Set shiny test table name
+                                   "grid" = "scallop_shiny_testGridTable")
+        
+        shinyjs::show(paste0(data_type, "_select_container")) # Show dropdown menu
         shinyjs::hide(paste0(data_type, "_upload_container"))
         
-        updateSelectInput(session, 
+        updateSelectInput(session, # Update option to the test table name 
                           paste0(data_type, "_select_input"), 
                           choices = shiny_test_table)
         
@@ -142,6 +142,7 @@ select_data_server <- function(id, data_type, rv_project_name){
         } else {
           shinyjs::show(paste0(data_type, "_select_container")) # Show dropdown menu
           shinyjs::hide(paste0(data_type, "_upload_container"))
+          
           updateSelectInput(session, 
                             paste0(data_type, "_select_input"),
                             choices = data_table_list)  # Populate choices
@@ -157,7 +158,8 @@ select_data_server <- function(id, data_type, rv_project_name){
     
     # Hide/Show spatial unload containers based on the checkbox input
     observeEvent(input$spat_shp_chk_input, {
-      if(data_type == "spat"){
+      # Only execute code for spatial data
+      if(data_type == "spat"){ 
         if (input$spat_shp_chk_input == FALSE) {
           shinyjs::show("spat_file_container")  # Show single file upload
           shinyjs::hide("spat_shp_container")
@@ -175,8 +177,12 @@ select_data_server <- function(id, data_type, rv_project_name){
       if(rv_project_name()$type == "select"){
         list(type = "select", value = input[[paste0(data_type, "_select_input")]])
         
-      } else if(rv_project_name()$type == "text" & input$spat_shp_chk_input == TRUE){
-        list(type = "upload", value = input$spat_shp_input)
+      } else if(rv_project_name()$type == "text" & data_type == "spat"){
+        if(input$spat_shp_chk_input == TRUE){
+          list(type = "upload", value = input$spat_shp_input)  
+        } else {
+          list(type = "upload", value = input$spat_file_input)  
+        }
         
       } else {
         list(type = "upload", value = input[[paste0(data_type, "_upload_input")]])
@@ -184,72 +190,3 @@ select_data_server <- function(id, data_type, rv_project_name){
     }))
   })
 }
-
-# ## Select spatial data ----------------------------------------------------------------------------
-# ## Description: Server module for handling spatial data uploads or selection. Relies on the project 
-# ##              name reactive variable.
-# select_spatial_server <- function(id, rv_project_name){
-#   moduleServer(id, function(input, output, session){
-#     # React to changes in the reactive project name input
-#     observeEvent(rv_project_name(), {
-#       # req(rv_project_name())# Ensure rv_project_name is not NULL
-#       # project_name <- rv_project_name()  # Retrieve current project info
-# 
-#       # If the app is running in test mode, set up test-specific UI
-#       if(getOption("shiny.testmode", FALSE)){
-#         # shinyjs::show("spat_select_container")  # Show the dropdown for selecting a spatial table
-#         # shinyjs::hide("spat_upload_container")
-#         # updateSelectInput(session, "spat_select_input",
-#         #                   choices = "scallop_shiny_testSpatTable")  # Use a test table
-#         
-#       } else {
-#         # If the project was selected from existing projects list and has a valid value
-#         if (project_name$type == "select" & !is.null(project_name$value)) {
-#           # Retrieve list of existing spatial tables fishset database
-#           # spat_list <- list_tables(project_name$value, "spat")
-#           
-#           # # if there is no spat tables previously loaded, show the file input
-#           # if(all(is_empty(spat_list))){
-#           #   shinyjs::hide("spat_select_container")
-#           #   shinyjs::show("spat_upload_container") # Show file input
-#           # } else {
-#           #   shinyjs::show("spat_select_container") # Show spat table dropdown
-#           #   shinyjs::hide("spat_upload_container")
-#           #   updateSelectInput(session, "spat_select_input",
-#           #                     choices = spat_list)  # Populate choices
-#           # }
-#           
-#         } else if (project_name$type == "text"){
-#           # # If the user is entering a new project name (free text), show upload UI
-#           # shinyjs::hide("spat_select_container")
-#           # shinyjs::show("spat_upload_container")
-#         }
-#       }
-#     })
-#     
-#     # Hide/Show spatial unload containers based on the checkbox input
-#     observeEvent(input$spat_shp_chk_input, {
-#       if (input$spat_shp_chk_input == FALSE) {
-#         shinyjs::show("spat_file_container")  # Show single file upload
-#         shinyjs::hide("spat_shp_container")
-#         
-#       } else if (input$spat_shp_chk_input == TRUE) {
-#         shinyjs::show("spat_shp_container")   # Show shapefile uploader
-#         shinyjs::hide("spat_file_container")
-#       }
-#     })
-#     
-#     # Return the spatial data table type (select existing or upload new file) and file/table name
-#     return(reactive({
-#       req(rv_project_name())
-#       if(rv_project_name()$type == "select"){
-#         list(type = "select", value = input$spat_select_input)
-#       } else if(rv_project_name()$type == "text" & input$spat_shp_chk_input == FALSE) {
-#         list(type = "upload", value = input$spat_file_input)
-#       } else if(rv_project_name()$type == "text" & input$spat_shp_chk_input == TRUE) {
-#         list(type = "upload", value = input$spat_shp_input)
-#       }
-#     })
-#     )
-#   })
-# }

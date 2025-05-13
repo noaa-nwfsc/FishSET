@@ -70,8 +70,8 @@ select_data_ui <- function(id, data_type){
     fluidRow(
       # select existing data table - initially hidden with CSS
       div(id = ns(paste0(data_type, "_select_container")), 
-          style = "display: none;",
-          selectInput(ns(paste0(data_type, "_select_input")),
+          style = "display: none;", # hide this input to start
+          selectInput(inputId = ns(paste0(data_type, "_select_input")),
                       label = switch(data_type,
                                      "main" = HTML(paste0("Select main",
                                                           " data table <b>(required)</b>:")),
@@ -80,14 +80,14 @@ select_data_ui <- function(id, data_type){
                                      "aux" = HTML(paste0("Select auxiliary",
                                                          " data table <b>(optional)</b>:")),
                                      "spat" = HTML(paste0("Select spatial",
-                                                          " table <b>(optional)</b>:")),
+                                                          " table <b>(required)</b>:")),
                                      "grid" = HTML(paste0("Select gridded",
-                                                          " data table <b>(optional)</b>:"))
-                      ),
-                      choices = NULL)),
+                                                          " data table <b>(optional)</b>:"))),
+                      choices = NULL)
+      ),
       
+      # select new data file - initially visible
       if(data_type != "spat"){
-        # select new data file - initially visible
         div(id = ns(paste0(data_type, "_upload_container")),
             fileInput(ns(paste0(data_type, "_upload_input")),
                       label = switch(data_type,
@@ -98,21 +98,23 @@ select_data_ui <- function(id, data_type){
                                      "aux" = HTML(paste0("Select auxiliary",
                                                          " data file <b>(optional)</b>:")),
                                      "grid" = HTML(paste0("Select gridded",
-                                                          " data file <b>(optional)</b>:"))
-                      ),
+                                                          " data file <b>(optional)</b>:"))),
                       multiple = FALSE,
-                      placeholder = "No file selected"))  
+                      placeholder = "No file selected")
+        )
+        
       } else {
-        # Visible container for uploading spatial data
+        # Visible container for selecting spatial file(s)
         div(id = ns("spat_upload_container"),
             fluidRow(
               # File input for general spatial data files (e.g., CSV, GeoJSON)
-              div(id = ns('spat_upload_container'), 
-                  fileInput(ns("spat_upload_input"), 
+              div(id = ns('spat_file_container'), 
+                  fileInput(ns("spat_file_input"), 
                             label = HTML("Select spatial file <b>(required)</b>:"),
                             multiple = FALSE, 
                             placeholder = 'No file selected')
               ),
+              
               # File input for shapefile components
               div(id = ns("spat_shp_container"),
                   fileInput(ns("spat_shp_input"), 
@@ -121,7 +123,8 @@ select_data_ui <- function(id, data_type){
                             multiple = TRUE, 
                             placeholder = 'No file selected')
                   
-              ), 
+              ),
+              
               #Checkbox to change file upload to shape files
               checkboxInput(inputId = ns("spat_shp_chk_input"),
                             label = "Uploading shape file instead?",
