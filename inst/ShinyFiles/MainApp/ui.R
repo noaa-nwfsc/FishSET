@@ -68,18 +68,23 @@ ui <- function(request){
             
             bslib::layout_column_wrap(
               width = 1/2,
-              ### Select primary data 
+              ### Select main data 
               bslib::card(fill = FALSE,
                           bslib::card_header("3. Primary data"),
                           bslib::card_body(
                             bslib::card(
                               bslib::card_body(
-                                select_primary_ui("select_primary")  
+                                select_data_ui("select_main", "main")  
                               )
                             ),
                             bslib::card(
                               bslib::card_body(
                                 select_port_ui("select_port")  
+                              )
+                            ),
+                            bslib::card(
+                              bslib::card_body(
+                                select_aux_ui("select_aux")
                               )
                             )
                           )

@@ -33,7 +33,7 @@ folder_path_server <- function(id, fs_folder_exist){
       if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - use test_path()
         fs_path <- testthat::test_path("data/FishSETFolder")
         rv_out_folderpath(fs_path)
-
+        
       } else {
         fs_path <- update_folderpath()
         rv_out_folderpath(fs_path)
@@ -61,10 +61,10 @@ select_project_server <- function(id, rv_folderpath){
     observe({
       req(rv_folderpath()) # ensure reactive is available
       folderpath <- rv_folderpath() # observe changes in folderpath
-
+      
       if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - set checkbox to TRUE
         updateCheckboxInput(session, "load_existing_proj_input", value = TRUE)
-
+        
       } else if (!is.null(folderpath) && !is.null(FishSET::projects())){
         proj_list <- FishSET::projects() # update project list
         updateSelectInput(session, "proj_select_input", choices = proj_list)
@@ -77,12 +77,12 @@ select_project_server <- function(id, rv_folderpath){
         shinyjs::show("proj_select_container")
         shinyjs::hide("proj_name_container")
         updateSelectInput(session, "proj_select_input", choices = "scallop_shiny_test")
-
+        
       } else {
         if(input$load_existing_proj_input) {
           shinyjs::show("proj_select_container") # Display existing projects
           shinyjs::hide("proj_name_container")
-
+          
         } else {
           shinyjs::hide("proj_select_container") # Get a new project name
           shinyjs::show("proj_name_container")
@@ -103,104 +103,65 @@ select_project_server <- function(id, rv_folderpath){
   })
 }
 
-## Select primary data ----------------------------------------------------------------------------
-## Description: Provide user with a drop-down menu of primary tables if loading an existing 
+## Select data ------------------------------------------------------------------------------------
+## Description: Provide user with a drop-down menu of main tables if loading an existing 
 ##              project, but if this is a new project have the user upload a new file. Return the
 ##              table name and type of input.
-select_primary_server <- function(id, rv_project_name){
+select_data_server <- function(id, data_type, rv_project_name){
   moduleServer(id, function(input, output, session){
-    # Observe project name reactive
+    # Observer project name reactive
     observeEvent(rv_project_name(), {
       req(rv_project_name()) # Check to ensure reactive is available
       project_name <- rv_project_name()
       
-      # If running shiny tests - set primary table name
-      if(getOption("shiny.testmode", FALSE)){ 
-        shinyjs::show("primary_select_container") # Set shiny test table name
-        shinyjs::hide("primary_upload_container")
+      # If running shiny tests - set main table name
+      if(getOption("shiny.testmode", FALSE)){
+        shiny_test_table <- switch(data_type,
+                                   "main" = "scallop_shiny_testMainDataTable",
+                                   "port" = "scallop_shiny_testPortTable",
+                                   "aux" = "scallop_shiny_testAuxTable",
+                                   "spat" = "scallop_shiny_testSpatTable",
+                                   "grid" = "scallop_shiny_testGridTable"
+        )
+        
+        shinyjs::show(paste0(data_type, "_select_container")) # Set shiny test table name
+        shinyjs::hide(paste0(data_type, "_upload_container"))
+        
         updateSelectInput(session, 
-                          "primary_select_input", 
-                          choices = "scallop_shiny_testMainDataTable")
+                          paste0(data_type, "_select_container"), 
+                          choices = shiny_test_table)
         
         # Select an existing table
       } else if(project_name$type == "select" & !is.null(project_name$value)) {
-        shinyjs::show("primary_select_container") # Show dropdown menu of existing tables
-        shinyjs::hide("primary_upload_container")
-        primary_data_list <- list_tables(project_name$value, "main") # Get list of primary tables
-        updateSelectInput(session, 
-                          "primary_select_input", 
-                          choices = primary_data_list)
+        data_table_list <- list_tables(project_name$value, data_type) # Get existing tables
         
-        # Upload a new file
-      } else if (project_name$type == "text") {
-        shinyjs::hide("primary_select_container")
-        shinyjs::show("primary_upload_container") # Show file input for uploading a new file
-        
-      }
-    })
-    
-    # Return the primary data table type (select existing or upload new file) and file/table name
-    return(reactive({
-      req(rv_project_name())
-      if(rv_project_name()$type == "select"){
-        list(type = "select", value = input$primary_select_input)
-      } else {
-        list(type = "upload", value = input$primary_upload_input)
-      }
-    }))
-  })
-}
-
-## Select port data -------------------------------------------------------------------------------
-## Description: Provide user with a drop-down menu of port tables if loading an existing 
-##              project, but if this is a new project have the user upload a new file. Return the
-##              table name and type of input.
-select_port_server <- function(id, rv_project_name){
-  moduleServer(id, function(input, output, session){
-    # Observe project name reactive
-    observeEvent(rv_project_name(), {
-      req(rv_project_name()) # Check to ensure reactive is available
-      project_name <- rv_project_name()
-      
-      # If running shiny tests - set port table name
-      if(getOption("shiny.testmode", FALSE)){ 
-        shinyjs::show("port_select_container") # Set shiny test table name
-        shinyjs::hide("port_upload_container")
-        updateSelectInput(session, 
-                          "port_select_input", 
-                          choices = "scallop_shiny_testPortTable")
-        
-        # Select an existing table
-      } else if(project_name$type == "select" & !is.null(project_name$value)) {
-        port_data_list <- list_tables(project_name$value, "port") # Get list of port tables
-        
-        # if there is no port table previously loaded, show the file input
-        if(all(is_empty(port_data_list))){
-          shinyjs::hide("port_select_container")
-          shinyjs::show("port_upload_container") # Show file input
+        # if no tables previously loaded, show the file input
+        if(all(is_empty(data_table_list))){
+          shinyjs::hide(paste0(data_type, "_select_container"))
+          shinyjs::show(paste0(data_type, "_upload_container")) # Show file input
         } else {
-          shinyjs::show("port_select_container") # Show port table dropdown
-          shinyjs::hide("port_upload_container")
+          shinyjs::show(paste0(data_type, "_select_container")) # Show dropdown menu
+          shinyjs::hide(paste0(data_type, "_upload_container"))
           updateSelectInput(session, 
-                            "port_select_input",
-                            choices = port_data_list)  # Populate choices
+                            paste0(data_type, "_select_input"),
+                            choices = data_table_list)  # Populate choices
         }
         
         # Upload a new file
       } else if (project_name$type == "text") {
-        shinyjs::hide("port_select_container")
-        shinyjs::show("port_upload_container") # Show file input for uploading a new file
+        shinyjs::hide(paste0(data_type, "_select_container"))
+        shinyjs::show(paste0(data_type, "port_upload_container")) # Show file input
         
       }
     })
     
-    # Return the port data table type (select existing or upload new file) and file/table name
+    # Return the data table type (select existing or upload new file) and file/table name
     return(reactive({
       req(rv_project_name())
       if(rv_project_name()$type == "select"){
-        list(type = "select", value = input$port_select_input)
+        list(type = "select", value = input[[paste0(data_type, "_select_input")]])
       } else {
-        list(type = "upload", value = input$port_upload_input)
+        list(type = "upload", value = input[[paste0(data_type, "_upload_input")]])
       }
     }))
   })
@@ -269,61 +230,6 @@ select_spatial_server <- function(id, rv_project_name){
         list(type = "upload", value = input$spat_file_input)
       } else if(rv_project_name()$type == "text" & input$spat_shp_chk_input == TRUE) {
         list(type = "upload", value = input$spat_shp_input)
-      }
-    })
-    )
-  })
-}
-
-## Select gridded data ----------------------------------------------------------------------------
-## Description: Server module for handling grid (1D/2D data) upload or selection. Relies on the  
-##              project name reactive variable.
-select_grid_server <- function(id, rv_project_name){
-  moduleServer(id, function(input, output, session){
-    # React to changes in the reactive project name input
-    observeEvent(rv_project_name(), {
-      req(rv_project_name())# Ensure rv_project_name is not NULL
-      project_name <- rv_project_name()  # Retrieve current project info
-      
-      # If app is running in test mode (e.g., automated testing)
-      if(getOption("shiny.testmode", FALSE)){
-        shinyjs::show("grid_select_container")  # Show UI for selecting an existing grid table
-        shinyjs::hide("grid_upload_container")  # Hide file upload section
-        updateSelectInput(session, "grid_select_input",
-                          choices = "scallop_shiny_testGridTable")  # Set test choice
-        
-      } else {
-        # If the project was selected from existing projects list and has a valid value
-        if (project_name$type == "select" & !is.null(project_name$value)) {
-          # Retrieve list of existing grid data tables for the project
-          grid_list <- list_tables(project_name$value, "grid")
-          
-          # if there is no grid tables previously loaded, show the upload grid input
-          if(all(is_empty(grid_list))){
-            shinyjs::hide("grid_select_container")
-            shinyjs::show("grid_upload_container") # Show file input
-          } else {
-            shinyjs::show("grid_select_container") # Show grid selection
-            shinyjs::hide("grid_upload_container")
-            updateSelectInput(session, "grid_select_input",
-                              choices = grid_list)  # Populate choices
-          }
-          
-        } else if (project_name$type == "text") {
-          # If user is creating a new project, show upload UI
-          shinyjs::hide("grid_select_container")
-          shinyjs::show("grid_upload_container")
-        }
-      }
-    })
-    
-    # Return the gridded data table type (select existing or upload new file) and file/table name
-    return(reactive({
-      req(rv_project_name())
-      if(rv_project_name()$type == "select"){
-        list(type = "select", value = input$grid_select_input)
-      } else if(rv_project_name()$type == "text") {
-        list(type = "upload", value = input$grid_file_input)
       }
     })
     )

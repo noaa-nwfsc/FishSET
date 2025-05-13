@@ -60,24 +60,68 @@ select_project_ui <- function(id){
   )
 }
 
-## Select primary data ----------------------------------------------------------------------------
-## Description: Provide user with a dropdown menu of primary tables if loading an existing 
-##              project, but if this is a new project have the user upload a new file.
-select_primary_ui <- function(id){
+## Select data ------------------------------------------------------------------------------------
+## Description: Provide user with a dropdown menu of main (aka primary) tables if loading an 
+##              existing project, but if this is a new project have the user upload a new file.
+select_data_ui <- function(id, data_type){
   ns <- NS(id)
   tagList(
     fluidRow(
-      # select existing primary data table - initially hidden with CSS
-      div(id = ns("primary_select_container"), 
+      # select existing data table - initially hidden with CSS
+      div(id = ns(paste0(data_type, "_select_container")), 
           style = "display: none;",
-          selectInput(ns("primary_select_input"),
-                      label = HTML("Select primary data table <b>(required)</b>:"),
+          selectInput(ns(paste0(data_type, "_select_input")),
+                      label = "main",
+                      # label = switch(data_type,
+                      #                "main" = HTML(paste0("Select main",
+                      #                                     " data table <b>(required)</b>:")),
+                      #                "port" = HTML(paste0("Select port",
+                      #                                     " data table <b>(optional)</b>:")),
+                      #                "aux" = HTML(paste0("Select auxiliary",  
+                      #                                    " data table <b>(optional)</b>:")),
+                      #                "grid" = HTML(paste0("Select gridded",  
+                      #                                     " data table <b>(optional)</b>:"))
+                      # ),
                       choices = NULL)),
       
-      # select new primary data file - initially visible
-      div(id = ns("primary_upload_container"),
-          fileInput(ns("primary_upload_input"), 
-                    label = HTML("Select primary data file <b>(required)</b>:"),
+      # select new data file - initially visible
+      div(id = ns(paste0(data_type, "_upload_container")),
+          fileInput(ns(paste0(data_type, "_upload_input")),
+                    label = "main",
+                    # label = switch(data_type,
+                    #                "main" = HTML(paste0("Select main", 
+                    #                                     " data file <b>(required)</b>:")),
+                    #                "port" = HTML(paste0("Select port", 
+                    #                                     " file <b>(optional)</b>:")),
+                    #                "aux" = HTML(paste0("Select auxiliary",  
+                    #                                    " data file <b>(optional)</b>:")),
+                    #                "grid" = HTML(paste0("Select gridded",  
+                    #                                     " data file <b>(optional)</b>:"))
+                    # ),
+                    multiple = FALSE,
+                    placeholder = "No file selected"))
+    )
+  )
+}
+
+## Select main data -------------------------------------------------------------------------------
+## Description: Provide user with a dropdown menu of main (aka primary) tables if loading an 
+##              existing project, but if this is a new project have the user upload a new file.
+select_main_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    fluidRow(
+      # select existing main data table - initially hidden with CSS
+      div(id = ns("main_select_container"), 
+          style = "display: none;",
+          selectInput(ns("main_select_input"),
+                      label = HTML("Select main data table <b>(required)</b>:"),
+                      choices = NULL)),
+      
+      # select new main data file - initially visible
+      div(id = ns("main_upload_container"),
+          fileInput(ns("main_upload_input"), 
+                    label = HTML("Select main data file <b>(required)</b>:"),
                     multiple = FALSE,
                     placeholder = "No file selected"))
     )
@@ -102,6 +146,30 @@ select_port_ui <- function(id){
       div(id = ns("port_upload_container"),
           fileInput(ns("port_upload_input"), 
                     label = HTML("Select port data file <b>(optional)</b>:"),
+                    multiple = FALSE,
+                    placeholder = "No file selected"))
+    )
+  )
+}
+
+## Select aux data --------------------------------------------------------------------------------
+## Description: Provide user with a dropdown menu of aux tables if loading an existing project and
+##              table exists, but if this is a new project have the user upload a new file.
+select_aux_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    fluidRow(
+      # select existing aux data table - initially hidden with CSS
+      div(id = ns("aux_select_container"), 
+          style = "display: none;",
+          selectInput(ns("aux_select_input"), 
+                      label = HTML("Select auxiliary data table <b>(optional)</b>:"),
+                      choices = NULL)),
+      
+      # load new aux data file - initially visible
+      div(id = ns("aux_upload_container"),
+          fileInput(ns("aux_upload_input"), 
+                    label = HTML("Select auxiliary data file <b>(optional)</b>:"),
                     multiple = FALSE,
                     placeholder = "No file selected"))
     )
