@@ -57,7 +57,7 @@ server <- function(input, output, session) {
                                           rv_project_name = rv_project_name)
   
   ### Select spatial data
-  rv_data_names$spatial <- select_data_server("select_spatial",
+  rv_data_names$spat <- select_data_server("select_spatial",
                                               data_type = "spat",
                                               rv_project_name = rv_project_name)
   
@@ -65,4 +65,34 @@ server <- function(input, output, session) {
   rv_data_names$grid <- select_data_server("select_grid",
                                            data_type = "grid",
                                            rv_project_name = rv_project_name)
+  
+  ##### TEST CODE #####
+  count <- reactiveVal(0)
+  
+  observeEvent(input$test_btn,{
+    new_count <- count() + 1
+    count(new_count)
+    cat(file=stderr(), "\n", new_count, "\n")
+    
+    output$display_main <- renderPrint(
+      str(rv_data_names$main())
+    )
+    
+    output$display_port <- renderPrint(
+      str(rv_data_names$port())
+    )
+    
+    output$display_aux <- renderPrint(
+      str(rv_data_names$aux())
+    )
+    
+    output$display_spat <- renderPrint(
+      str(rv_data_names$spat())
+    )
+    
+    output$display_grid <- renderPrint(
+      str(rv_data_names$grid())
+    )
+  })
+  #####################
 }

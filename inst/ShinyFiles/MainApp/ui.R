@@ -47,6 +47,18 @@ ui <- function(request){
               fill = TRUE, 
               width = 400,
               
+              actionButton("test_btn", "TEST"),
+              p("Main: "),
+              verbatimTextOutput("display_main"),
+              p("Port: "),
+              verbatimTextOutput("display_port"),
+              p("Auxiliary: "),
+              verbatimTextOutput("display_aux"),
+              p("Spatial: "),
+              verbatimTextOutput("display_spat"),
+              p("Grid: "),
+              verbatimTextOutput("display_grid")
+              
             ),
             
             ### Change folder path
