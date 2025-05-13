@@ -46,7 +46,7 @@ ui <- function(request){
               fillable = TRUE, 
               fill = TRUE, 
               width = 400,
-              
+              other_actions_ui("upload_data_actions")
             ),
             
             ### Change folder path

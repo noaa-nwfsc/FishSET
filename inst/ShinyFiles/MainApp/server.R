@@ -52,4 +52,9 @@ server <- function(input, output, session) {
   ### Select gridded data (optional)
   rv_gridded_data_name <-load_grid_server("load_grid", rv_project_name = rv_project_name)
   
+  rv_r_expr <- reactiveValues(done = 0, ok = TRUE, output = "")
+  
+  
+  other_actions_server("upload_data_actions", rv_r_expr = rv_r_expr,
+                       rv_project_name = rv_project_name)
 }
