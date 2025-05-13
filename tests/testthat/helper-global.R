@@ -1,2 +1,2 @@
 # Set global variables for unit tests
-folderpath <- "testdata/FishSETFolder"
+# folderpath <- "testdata/FishSETFolder"
