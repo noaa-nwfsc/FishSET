@@ -72,17 +72,13 @@ select_data_ui <- function(id, data_type){
       div(id = ns(paste0(data_type, "_select_container")), 
           style = "display: none;", # hide this input to start
           selectInput(inputId = ns(paste0(data_type, "_select_input")),
-                      label = switch(data_type,
-                                     "main" = HTML(paste0("Select main",
-                                                          " data table <b>(required)</b>:")),
-                                     "port" = HTML(paste0("Select port",
-                                                          " data table <b>(optional)</b>:")),
-                                     "aux" = HTML(paste0("Select auxiliary",
-                                                         " data table <b>(optional)</b>:")),
-                                     "spat" = HTML(paste0("Select spatial",
-                                                          " table <b>(required)</b>:")),
-                                     "grid" = HTML(paste0("Select gridded",
-                                                          " data table <b>(optional)</b>:"))),
+                      label = 
+                        switch(data_type,
+                               "main" = HTML("Select main data table <b>(required)</b>:"),
+                               "port" = HTML("Select port data table <b>(optional)</b>:"),
+                               "aux" = HTML("Select auxiliary data table <b>(optional)</b>:"),
+                               "spat" = HTML("Select spatial table <b>(required)</b>:"),
+                               "grid" = HTML("Select gridded data table <b>(optional)</b>:")),
                       choices = NULL)
       ),
       
@@ -90,15 +86,12 @@ select_data_ui <- function(id, data_type){
       if(data_type != "spat"){
         div(id = ns(paste0(data_type, "_upload_container")),
             fileInput(ns(paste0(data_type, "_upload_input")),
-                      label = switch(data_type,
-                                     "main" = HTML(paste0("Select main",
-                                                          " data file <b>(required)</b>:")),
-                                     "port" = HTML(paste0("Select port",
-                                                          " file <b>(optional)</b>:")),
-                                     "aux" = HTML(paste0("Select auxiliary",
-                                                         " data file <b>(optional)</b>:")),
-                                     "grid" = HTML(paste0("Select gridded",
-                                                          " data file <b>(optional)</b>:"))),
+                      label = 
+                        switch(data_type,
+                               "main" = HTML("Select main data file <b>(required)</b>:"),
+                               "port" = HTML("Select port file <b>(optional)</b>:"),
+                               "aux" = HTML("Select auxiliary data file <b>(optional)</b>:"),
+                               "grid" = HTML("Select gridded data file <b>(optional)</b>:")),
                       multiple = FALSE,
                       placeholder = "No file selected")
         )
