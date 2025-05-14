@@ -110,7 +110,7 @@ select_project_server <- function(id, rv_folderpath){
 ##              and type of input.
 select_data_server <- function(id, data_type, rv_project_name){
   moduleServer(id, function(input, output, session){
-    rv_out_type <- reactiveVal() # indicates which input value to return
+    rv_input_type <- reactiveVal() # indicates which input value to return
     
     # Observer project name reactive
     observeEvent(rv_project_name(), {
@@ -132,7 +132,7 @@ select_data_server <- function(id, data_type, rv_project_name){
         updateSelectInput(session, # Update option to the test table name 
                           paste0(data_type, "_select_input"), 
                           choices = shiny_test_table)
-        rv_out_type("select")
+        rv_input_type("select")
         
         # Select an existing table
       } else if(project_name$type == "select" & !is.null(project_name$value)) {
@@ -142,7 +142,7 @@ select_data_server <- function(id, data_type, rv_project_name){
         if(all(is_empty(data_table_list))){
           shinyjs::hide(paste0(data_type, "_select_container"))
           shinyjs::show(paste0(data_type, "_upload_container")) # Show file input
-          rv_out_type("upload")
+          rv_input_type("upload")
           
         } else {
           shinyjs::show(paste0(data_type, "_select_container")) # Show dropdown menu
@@ -151,14 +151,14 @@ select_data_server <- function(id, data_type, rv_project_name){
           updateSelectInput(session, 
                             paste0(data_type, "_select_input"),
                             choices = data_table_list)  # Populate choices
-          rv_out_type("select")
+          rv_input_type("select")
         }
         
         # Upload a new file
       } else if (project_name$type == "text") {
         shinyjs::hide(paste0(data_type, "_select_container"))
         shinyjs::show(paste0(data_type, "_upload_container")) # Show file input
-        rv_out_type("upload")
+        rv_input_type("upload")
       }
     })
     
@@ -169,12 +169,12 @@ select_data_server <- function(id, data_type, rv_project_name){
         if (input$spat_shp_chk_input == FALSE) {
           shinyjs::show("spat_file_container")  # Show single file upload
           shinyjs::hide("spat_shp_container")
-          rv_out_type("spat_file")
+          rv_input_type("spat_file")
           
         } else if (input$spat_shp_chk_input == TRUE) {
           shinyjs::show("spat_shp_container")   # Show shapefile uploader
           shinyjs::hide("spat_file_container")
-          rv_out_type("spat_shp")
+          rv_input_type("spat_shp")
           
         }  
       }
@@ -183,16 +183,16 @@ select_data_server <- function(id, data_type, rv_project_name){
     # Return the data table type (select existing or upload new file) and file/table name
     return(reactive({
       req(rv_project_name())
-      if(rv_out_type() == "select"){
+      if(rv_input_type() == "select"){
         list(type = "select", value = input[[paste0(data_type, "_select_input")]])
         
-      } else if(rv_out_type() == "upload"){
+      } else if(rv_input_type() == "upload"){
         list(type = "upload", value = input[[paste0(data_type, "_upload_input")]])
         
-      } else if(rv_out_type() == "spat_file"){
+      } else if(rv_input_type() == "spat_file"){
         list(type = "upload", value = input$spat_file_input)
         
-      } else if(rv_out_type() == "spat_shp"){
+      } else if(rv_input_type() == "spat_shp"){
         list(type = "upload", value = input$spat_shp_input)  
       }
     }))
