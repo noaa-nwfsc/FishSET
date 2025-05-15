@@ -132,11 +132,11 @@ select_data_ui <- function(id, data_type){
 load_data_ui <- function(id){
   ns <- NS(id)
   
-  actionButton(inputId = "load_data_btn",
+  actionButton(inputId = ns("load_data_btn"),
                label = "Load data",
+               width = "100%",
                icon = icon(name="upload", 
-                           lib="font-awesome"),
-               width = "100%"
+                           lib="font-awesome")
   )
 }
   

@@ -198,3 +198,36 @@ select_data_server <- function(id, data_type, rv_project_name){
     }))
   })
 }
+
+## Load data --------------------------------------------------------------------------------------
+## Description: Load selected data
+load_data_server <- function(id, data_type, rv_project_name, rv_data_info){
+  moduleServer(id, function(input, output, session){
+   
+    observeEvent(input$load_data_btn, {
+      # Ensure that reactives are available
+      req(rv_project_name())
+      req(rv_data_info())
+      
+      # Assign static values from the reactives
+      project_name <- rv_project_name()
+      data_info <- rv_data_info()
+      
+      # TEST CODE TO DELETE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      cat(file=stderr(), "\n", "loading...") 
+      cat(file=stderr(), "\n", project_name$value) 
+      if(data_info$type == "select"){
+        cat(file=stderr(), "\n", data_info$value, "\n") 
+      } else {
+        cat(file=stderr(), "\n", data_info$value$name, "\n") 
+      }
+      # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      
+      
+      
+      
+    }, ignoreNULL = TRUE, ignoreInit = TRUE)
+  })
+}
+
+    

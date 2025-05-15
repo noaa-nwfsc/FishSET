@@ -65,4 +65,11 @@ server <- function(input, output, session) {
   rv_data_names$grid <- select_data_server("select_grid",
                                            data_type = "grid",
                                            rv_project_name = rv_project_name)
+  
+  ### Load data
+  load_data_server("load_data",
+                   data_type = "main",
+                   rv_project_name = rv_project_name,
+                   rv_data_info = rv_data_names$main)
+                   
 }
