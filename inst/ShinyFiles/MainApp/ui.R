@@ -106,7 +106,13 @@ ui <- function(request){
                             )
                           )
               )
+            ),
+            
+            fluidRow(
+              ### Load data
+              column(width = 3, load_data_ui("load_data"))
             )
+            
           )
         )
       ),

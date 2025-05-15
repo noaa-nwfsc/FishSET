@@ -126,3 +126,17 @@ select_data_ui <- function(id, data_type){
     )
   )
 }
+
+## Load data --------------------------------------------------------------------------------------
+## Description: Action button to load all of the selected data
+load_data_ui <- function(id){
+  ns <- NS(id)
+  
+  actionButton(inputId = "load_data_btn",
+               label = "Load data",
+               icon = icon(name="upload", 
+                           lib="font-awesome"),
+               width = "100%"
+  )
+}
+  
