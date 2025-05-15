@@ -68,18 +68,23 @@ ui <- function(request){
             
             bslib::layout_column_wrap(
               width = 1/2,
-              ### Select primary data 
+              ### Select main data 
               bslib::card(fill = FALSE,
                           bslib::card_header("3. Primary data"),
                           bslib::card_body(
                             bslib::card(
                               bslib::card_body(
-                                select_primary_ui("select_primary")  
+                                select_data_ui("select_main", data_type = "main")
                               )
                             ),
                             bslib::card(
                               bslib::card_body(
-                                select_port_ui("select_port")  
+                                select_data_ui("select_port", data_type = "port")
+                              )
+                            ),
+                            bslib::card(
+                              bslib::card_body(
+                                select_data_ui("select_aux", data_type = "aux")
                               )
                             )
                           )
@@ -91,12 +96,12 @@ ui <- function(request){
                           bslib::card_body(
                             bslib::card(fill = FALSE,
                                         bslib::card_body(
-                                          select_spatial_ui("select_spatial")
+                                          select_data_ui("select_spatial", data_type = "spat")
                                         )
                             ), 
                             bslib::card(fill = FALSE,
                                         bslib::card_body(
-                                          select_grid_ui("select_grid")
+                                          select_data_ui("select_grid", data_type = "grid")
                                         )
                             )
                           )
