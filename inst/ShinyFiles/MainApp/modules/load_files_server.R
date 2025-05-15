@@ -216,18 +216,16 @@ load_data_server <- function(id, data_type, rv_project_name, rv_data_info){
       # TEST CODE TO DELETE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       cat(file=stderr(), "\n", "loading...") 
       cat(file=stderr(), "\n", project_name$value) 
-      if(data_info$type == "select"){
-        cat(file=stderr(), "\n", data_info$value, "\n") 
-      } else {
-        cat(file=stderr(), "\n", data_info$value$name, "\n") 
-      }
+      cat(file=stderr(), "\n", str(data_info$value), "\n")
       # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       
-      
+      # if()
       
       
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
   })
+  
+
 }
 
     
