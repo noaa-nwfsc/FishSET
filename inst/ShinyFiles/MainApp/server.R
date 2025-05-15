@@ -41,18 +41,28 @@ server <- function(input, output, session) {
   ### Select project name
   rv_project_name <- select_project_server("select_project", rv_folderpath = rv_folderpath)
   
-  ### Select primary data
-  rv_data_names$primary <- select_primary_server("select_primary", 
-                                                 rv_project_name = rv_project_name)
-  ### Select port data
-  rv_data_names$port <- select_port_server("select_port", 
+  ### Select main data
+  rv_data_names$main <- select_data_server("select_main",
+                                           data_type = "main",
                                            rv_project_name = rv_project_name)
   
+  ### Select port data (optional)
+  rv_data_names$port <- select_data_server("select_port",
+                                           data_type = "port",
+                                           rv_project_name = rv_project_name)
+  
+  ### Select aux data (optional)
+  rv_data_names$aux <- select_data_server("select_aux",
+                                          data_type = "aux",
+                                          rv_project_name = rv_project_name)
+  
   ### Select spatial data
-  rv_data_names$spatial <- select_spatial_server("select_spatial", 
-                                                 rv_project_name = rv_project_name)
+  rv_data_names$spat <- select_data_server("select_spatial",
+                                           data_type = "spat",
+                                           rv_project_name = rv_project_name)
   
   ### Select gridded data (optional)
-  rv_data_names$grid <- select_grid_server("select_grid", 
+  rv_data_names$grid <- select_data_server("select_grid",
+                                           data_type = "grid",
                                            rv_project_name = rv_project_name)
 }
