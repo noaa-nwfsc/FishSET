@@ -29,29 +29,43 @@ server <- function(input, output, session) {
   
   # Define reactives ------------------------------------------------------------------------------
   # Allow users to change FishSET folders easily.
-  rv_folderpath <- reactiveVal({
-    if (fs_folder_exist) get("folderpath", envir = as.environment(1L))
-  })
+  rv_folderpath <- reactiveVal() # Folder path to FishSETFolder
   rv_project_name <- reactiveVal() # Project name
-  rv_primary_data_name <- reactiveVal() # Primary data name
+  rv_data_names <- reactiveValues() # Data file/table names for uploading
   
   # Upload data -----------------------------------------------------------------------------------
-  ## Load files subtab ----------------------------------------------------------------------------
+  ## Select files subtab --------------------------------------------------------------------------
   ### Change folderpath
-  rv_folderpath <- folder_path_server("folderpath") 
+  rv_folderpath <- folder_path_server("folderpath", fs_folder_exist = fs_folder_exist) 
   
   ### Select project name
   rv_project_name <- select_project_server("select_project", rv_folderpath = rv_folderpath)
   
-  ### Select primary data
-  rv_primary_data_name <- load_primary_server("load_primary", rv_project_name = rv_project_name)
+  ### Select main data
+  rv_data_names$main <- select_data_server("select_main",
+                                           data_type = "main",
+                                           rv_project_name = rv_project_name)
+  
+  ### Select port data (optional)
+  rv_data_names$port <- select_data_server("select_port",
+                                           data_type = "port",
+                                           rv_project_name = rv_project_name)
+  
+  ### Select aux data (optional)
+  rv_data_names$aux <- select_data_server("select_aux",
+                                          data_type = "aux",
+                                          rv_project_name = rv_project_name)
   
   ### Select spatial data
-  rv_spatial_data_name <- load_spatial_server("load_spatial", rv_project_name = rv_project_name)
+  rv_data_names$spat <- select_data_server("select_spatial",
+                                           data_type = "spat",
+                                           rv_project_name = rv_project_name)
   
   ### Select gridded data (optional)
-  rv_gridded_data_name <-load_grid_server("load_grid", rv_project_name = rv_project_name)
-  
+  rv_data_names$grid <- select_data_server("select_grid",
+                                           data_type = "grid",
+                                           rv_project_name = rv_project_name)
+
   rv_r_expr <- reactiveValues(done = 0, ok = TRUE, output = "")
   
   load_sidebar_server("data_sidebar", rv_project_name = rv_project_name)

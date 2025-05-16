@@ -69,32 +69,40 @@ ui <- function(request){
             
             bslib::layout_column_wrap(
               width = 1/2,
-              
-              ### Load primary data
+              ### Select main data 
               bslib::card(fill = FALSE,
                           bslib::card_header("3. Primary data"),
                           bslib::card_body(
                             bslib::card(
-                              load_primary_ui("load_primary")  
+                              bslib::card_body(
+                                select_data_ui("select_main", data_type = "main")
+                              )
+                            ),
+                            bslib::card(
+                              bslib::card_body(
+                                select_data_ui("select_port", data_type = "port")
+                              )
+                            ),
+                            bslib::card(
+                              bslib::card_body(
+                                select_data_ui("select_aux", data_type = "aux")
+                              )
                             )
                           )
               ),
               
-              ### Load spatial and optional gridded data
+              ### Select spatial data
               bslib::card(fill = FALSE,
                           bslib::card_header("4. Spatial data"),
                           bslib::card_body(
                             bslib::card(fill = FALSE,
                                         bslib::card_body(
-                                          h5("Spatial data:"),
-                                          load_spatial_ui("load_spatial")
+                                          select_data_ui("select_spatial", data_type = "spat")
                                         )
                             ), 
-                            
                             bslib::card(fill = FALSE,
                                         bslib::card_body(
-                                          h5(tags$strong(tags$i("Optional")), "gridded data:"),
-                                          load_grid_ui("load_grid")
+                                          select_data_ui("select_grid", data_type = "grid")
                                         )
                             )
                           )
