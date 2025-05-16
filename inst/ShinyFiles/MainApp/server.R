@@ -68,8 +68,7 @@ server <- function(input, output, session) {
   
   ### Load data
   load_data_server("load_data",
-                   data_type = "main",
                    rv_project_name = rv_project_name,
-                   rv_data_info = rv_data_names$main)
+                   rv_data_names = rv_data_names)
                    
 }

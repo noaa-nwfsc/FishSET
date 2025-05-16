@@ -163,6 +163,7 @@ select_data_server <- function(id, data_type, rv_project_name){
         } else {
           shinyjs::hide(paste0(data_type, "_select_container")) # Hide select
           shinyjs::show("spat_upload_container")  # Show spat upload
+          updateCheckboxInput(session, "spat_shp_chk_input", value = FALSE) # reset check box
           rv_data_input_type("spat_file")    
         }
       }  
@@ -219,6 +220,23 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       rv_load_error_message()
     })
     
+    ### Loading helper functions 
+    # Check validity of project name
+    check_project_name <- function(name){
+      if(!is.character(name)) return(FALSE)
+      
+      if(!grepl("^[A-Za-z0-9_]+$", name)) return(FALSE) 
+      
+      if(grepl("^\\d+$", name)) return(FALSE)
+      
+      return(TRUE)
+    }
+    
+    # Load all of the selected data
+    load_project_data <- function(){
+      
+    }
+    
     # Handle load button click
     observeEvent(input$load_data_btn, {
       # Ensure that reactives are available
@@ -238,8 +256,8 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       shinyjs::hide("load_error_message")
       
       # TEST CODE TO DELETE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      cat(file=stderr(), "\n", "loading...", "\n")
-      cat(file=stderr(), "\n", str(spat_data_info), "\n")
+      # cat(file=stderr(), "\n", "loading...", "\n")
+      # cat(file=stderr(), "\n", str(spat_data_info), "\n")
       # cat(file=stderr(), "\n", "Project name: ", project_name$value, "\n") 
       # cat(file=stderr(), "\n", is_empty(project_name$value), "\n")
       # cat(file=stderr(), "\n", is.null(project_name$value), "\n")
@@ -248,6 +266,15 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       # Check to make sure the reactive inputs are valid
       if(is_empty(project_name$value)){
         rv_load_error_message("⚠️ Project name is required")
+        shinyjs::show("load_error_message")
+        return()
+      }
+      
+      # Check for invalid project names
+      if(!check_project_name(project_name$value)){
+        rv_load_error_message("⚠️ Project name is invalid. 
+                              Must contain only letters, underscores, or numbers.
+                              Spaces are invalid.")
         shinyjs::show("load_error_message")
         return()
       }
@@ -266,11 +293,8 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         return()
       }
       
-      
-      
-      
-      
-      # Load function
+      # Load function - load all selected data
+      load_project_data()
       
       shinyjs::show("load_success_message")
       

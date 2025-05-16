@@ -35,7 +35,7 @@ ui <- function(request){
       bslib::nav_panel(
         title = "Load files", 
         id = "load_files",
-        bslib::page_fillable(
+        bslib::page_fluid(
           bslib::layout_sidebar(
             fillable = TRUE, 
             fill = TRUE,
@@ -109,10 +109,8 @@ ui <- function(request){
             ),
             
             fluidRow(
-              ### Load data
-              column(width = 3, load_data_ui("load_data"))
+              column(7, load_data_ui("load_data"))
             )
-            
           )
         )
       ),
