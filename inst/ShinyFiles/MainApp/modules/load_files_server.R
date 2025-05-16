@@ -118,7 +118,7 @@ select_data_server <- function(id, data_type, rv_project_name){
       project_name <- rv_project_name()
       
       # If running shiny tests - assign test table names
-      if(getOption("shiny.testmode", FALSE)){
+      if (getOption("shiny.testmode", FALSE)) {
         shiny_test_table <- switch(data_type,
                                    "main" = "scallop_shiny_testMainDataTable",
                                    "port" = "scallop_shiny_testPortTable",
@@ -135,31 +135,37 @@ select_data_server <- function(id, data_type, rv_project_name){
         rv_data_input_type("select")
         
         # Select an existing table
-      } else if(project_name$type == "select" & !is.null(project_name$value)) {
+      } else if (project_name$type == "select" & !is.null(project_name$value)) {
         data_table_list <- list_tables(project_name$value, data_type) # Get existing tables
         
         # if no tables previously loaded, show the file input
-        if(all(is_empty(data_table_list))){
+        if (all(is_empty(data_table_list))){
           shinyjs::hide(paste0(data_type, "_select_container"))
           shinyjs::show(paste0(data_type, "_upload_container")) # Show file input
-          rv_data_input_type("upload")
+          rv_data_input_type("upload")  
           
         } else {
           shinyjs::show(paste0(data_type, "_select_container")) # Show dropdown menu
           shinyjs::hide(paste0(data_type, "_upload_container"))
-          
           updateSelectInput(session, 
                             paste0(data_type, "_select_input"),
                             choices = data_table_list)  # Populate choices
           rv_data_input_type("select")
         }
         
-        # Upload a new file
+        # Upload a new file - handle spatial data input separately
       } else if (project_name$type == "text") {
-        shinyjs::hide(paste0(data_type, "_select_container"))
-        shinyjs::show(paste0(data_type, "_upload_container")) # Show file input
-        rv_data_input_type("upload")
-      }
+        if(data_type != "spat"){
+          shinyjs::hide(paste0(data_type, "_select_container"))
+          shinyjs::show(paste0(data_type, "_upload_container")) # Show file input
+          rv_data_input_type("upload")    
+          
+        } else {
+          shinyjs::hide(paste0(data_type, "_select_container")) # Hide select
+          shinyjs::show("spat_upload_container")  # Show spat upload
+          rv_data_input_type("spat_file")    
+        }
+      }  
     })
     
     # Hide/Show spatial unload containers based on the checkbox input
@@ -201,31 +207,77 @@ select_data_server <- function(id, data_type, rv_project_name){
 
 ## Load data --------------------------------------------------------------------------------------
 ## Description: Load selected data
-load_data_server <- function(id, data_type, rv_project_name, rv_data_info){
+load_data_server <- function(id, rv_project_name, rv_data_names){
   moduleServer(id, function(input, output, session){
-   
+    ns <- session$ns
+    
+    # Initialize reactives
+    rv_load_error_message <- reactiveVal("") # Store error messages
+    
+    # Output for error message
+    output$load_error_message_out <- renderText({
+      rv_load_error_message()
+    })
+    
+    # Handle load button click
     observeEvent(input$load_data_btn, {
       # Ensure that reactives are available
       req(rv_project_name())
-      req(rv_data_info())
+      req(rv_data_names)
       
       # Assign static values from the reactives
       project_name <- rv_project_name()
-      data_info <- rv_data_info()
+      main_data_info <- rv_data_names$main()
+      port_data_info <- rv_data_names$port()
+      aux_data_info <- rv_data_names$aux()
+      spat_data_info <- rv_data_names$spat()
+      grid_data_info <- rv_data_names$grid()
+      
+      # Hide success and error messages initially
+      shinyjs::hide("load_success_message")
+      shinyjs::hide("load_error_message")
       
       # TEST CODE TO DELETE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      cat(file=stderr(), "\n", "loading...") 
-      cat(file=stderr(), "\n", project_name$value) 
-      cat(file=stderr(), "\n", str(data_info$value), "\n")
+      cat(file=stderr(), "\n", "loading...", "\n")
+      cat(file=stderr(), "\n", str(spat_data_info), "\n")
+      # cat(file=stderr(), "\n", "Project name: ", project_name$value, "\n") 
+      # cat(file=stderr(), "\n", is_empty(project_name$value), "\n")
+      # cat(file=stderr(), "\n", is.null(project_name$value), "\n")
       # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       
-      # if()
+      # Check to make sure the reactive inputs are valid
+      if(is_empty(project_name$value)){
+        rv_load_error_message("⚠️ Project name is required")
+        shinyjs::show("load_error_message")
+        return()
+      }
       
+      # Check for main data input
+      if(is.null(main_data_info$value)){
+        rv_load_error_message("⚠️ Main data file/table is required")
+        shinyjs::show("load_error_message")
+        return()
+      }
+      
+      # Check for spat data input
+      if(is.null(spat_data_info$value)){
+        rv_load_error_message("⚠️ Spatial file/table is required")
+        shinyjs::show("load_error_message")
+        return()
+      }
+      
+      
+      
+      
+      
+      # Load function
+      
+      shinyjs::show("load_success_message")
       
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
   })
   
-
+  
 }
 
-    
+
