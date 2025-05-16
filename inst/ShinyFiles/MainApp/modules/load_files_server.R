@@ -14,7 +14,43 @@
 # =================================================================================================
 
 # Server for sidebar ------------------------------------------------------------------------------
-
+load_sidebar_server <- function(id, rv_project_name){
+  moduleServer(id, function(input, output, session){
+   
+    
+    # refresh data   
+    observeEvent(input$refresh_data_btn, {
+      
+      
+      req(rv_project_name())# Ensure rv_project_name is not NULL
+      project_name <- rv_project_name()  # Retrieve current project info
+      
+      if(!is.null(project_name$value)){
+        tmp_tabs <- tables_database(project_name$value)[grep(paste0(project_name$value,
+                                                                    'MainDataTable\\d+'),
+                                                       tables_database(project_name$value))]
+        # all dates following MainDataTable
+        tab_dates1 <- unlist(stringi::stri_extract_all_regex(tmp_tabs, "\\d{6,}"))
+        tab_dates2 <- max(tab_dates1) # max date
+        tmp_tabs <- tmp_tabs[which(tab_dates1 == tab_dates2)] # get the latest table
+        
+        ref_err <- FALSE
+        tryCatch(
+          values$dataset <- table_view(tmp_tabs, project_name$value),
+          error = function(e) {ref_err <<- TRUE}
+        )
+        
+        if(ref_err){
+          showNotification("Error refreshing data", type='error', duration=60)
+        } else {
+          showNotification("Data refreshed", type='message', duration=60)  
+        }
+      }
+      
+    }, ignoreInit = TRUE, ignoreNULL=TRUE) 
+    
+  })
+}
 # Server for main panel ---------------------------------------------------------------------------
 
 ## Change folder path -----------------------------------------------------------------------------

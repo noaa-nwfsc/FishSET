@@ -54,6 +54,7 @@ server <- function(input, output, session) {
   
   rv_r_expr <- reactiveValues(done = 0, ok = TRUE, output = "")
   
+  load_sidebar_server("data_sidebar", rv_project_name = rv_project_name)
   
   other_actions_server("upload_data_actions", rv_r_expr = rv_r_expr,
                        rv_project_name = rv_project_name)

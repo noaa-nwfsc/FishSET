@@ -46,6 +46,7 @@ ui <- function(request){
               fillable = TRUE, 
               fill = TRUE, 
               width = 400,
+              load_sidebar_ui("data_sidebar"),
               other_actions_ui("upload_data_actions")
             ),
             

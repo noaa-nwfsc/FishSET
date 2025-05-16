@@ -14,7 +14,21 @@
 # =================================================================================================
 
 # UI for sidebar ----------------------------------------------------------------------------------
-
+load_sidebar_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    actionButton("refresh_data_btn", "Complete refresh of data",
+                 class = "btn-primary",
+                 icon = icon('sync', verify_fa = FALSE),
+    ) ,
+    actionButton("confid_modal", "Confidentiality",
+                 class = "btn-secondary", 
+    ),
+    actionButton("reset_modal", "Reset log",
+                 class = "btn-secondary", 
+    ),
+  )
+}
 
 # UI for main panel -------------------------------------------------------------------------------
 
