@@ -232,7 +232,18 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
     }
     
     # Load all of the selected data
-    load_project_data <- function(){
+    load_project_data <- function(data_type, load_data_input){
+      
+      # Skip the function if optional data input is empty
+      if((data_type %in% c("port", "aux", "grid")) && 
+         is.null(load_data_input$value)) {
+        return()
+      }
+      
+      # TEST CODE TO BE DELETED >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      cat(file = stderr(), "\n", data_type, "\n")
+      cat(file = stderr(), "\n", str(load_data_input), "\n")
+      # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
     }
     
@@ -284,8 +295,12 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         return()
       }
       
-      # Load function - load all selected data
-      load_project_data()
+      # Load each data type
+      load_project_data(data_type = "main", load_data_input = main_data_info)
+      load_project_data(data_type = "port", load_data_input = port_data_info)
+      load_project_data(data_type = "aux", load_data_input = aux_data_info)
+      load_project_data(data_type = "spat", load_data_input = spat_data_info)
+      load_project_data(data_type = "grid", load_data_input = grid_data_info)
       
       # Show success message
       shinyjs::show("load_success_message")
