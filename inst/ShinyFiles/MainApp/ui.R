@@ -35,7 +35,7 @@ ui <- function(request){
       bslib::nav_panel(
         title = "Load files", 
         id = "load_files",
-        bslib::page_fluid(
+        bslib::page_fillable(
           bslib::layout_sidebar(
             fillable = TRUE, 
             fill = TRUE,
@@ -67,6 +67,7 @@ ui <- function(request){
             ),
             
             bslib::layout_column_wrap(
+              fill = FALSE,
               width = 1/2,
               ### Select main data 
               bslib::card(fill = FALSE,
