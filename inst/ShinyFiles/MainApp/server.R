@@ -70,5 +70,5 @@ server <- function(input, output, session) {
   load_data_server("load_data",
                    rv_project_name = rv_project_name,
                    rv_data_names = rv_data_names)
-                   
+  
 }
