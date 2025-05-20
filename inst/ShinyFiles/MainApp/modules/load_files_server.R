@@ -244,7 +244,6 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       cat(file = stderr(), "\n", data_type, "\n")
       cat(file = stderr(), "\n", str(load_data_input), "\n")
       # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      
     }
     
     # Handle load button click
@@ -301,7 +300,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       load_project_data(data_type = "aux", load_data_input = aux_data_info)
       load_project_data(data_type = "spat", load_data_input = spat_data_info)
       load_project_data(data_type = "grid", load_data_input = grid_data_info)
-      
+
       # Show success message
       shinyjs::show("load_success_message")
       
