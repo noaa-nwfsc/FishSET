@@ -67,6 +67,7 @@ ui <- function(request){
             ),
             
             bslib::layout_column_wrap(
+              fill = FALSE,
               width = 1/2,
               ### Select main data 
               bslib::card(fill = FALSE,
@@ -106,6 +107,10 @@ ui <- function(request){
                             )
                           )
               )
+            ),
+            
+            fluidRow(
+              column(7, load_data_ui("load_data"))
             )
           )
         )
