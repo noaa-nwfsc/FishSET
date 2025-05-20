@@ -17,14 +17,14 @@
 load_sidebar_ui <- function(id){
   ns <- NS(id)
   tagList(
-    actionButton("refresh_data_btn", "Complete refresh of data",
+    actionButton(ns("refresh_data_btn"), "Complete refresh of data",
                  class = "btn-primary",
                  icon = icon('sync', verify_fa = FALSE),
     ) ,
-    actionButton("confid_modal", "Confidentiality",
+    actionButton(ns("confid_modal_btn"), "Confidentiality",
                  class = "btn-secondary", 
     ),
-    actionButton("reset_modal", "Reset log",
+    actionButton(ns("reset_log_modal_btn"), "Reset log",
                  class = "btn-secondary", 
     ),
   )
