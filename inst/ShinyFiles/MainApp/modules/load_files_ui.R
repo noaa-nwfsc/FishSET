@@ -128,10 +128,10 @@ select_data_ui <- function(id, data_type){
 }
 
 ## Load data --------------------------------------------------------------------------------------
-## Description: Action button to load all of the selected data
+## Description: Action button to load all of the selected data. Users are also notified if data
+##              loaded successfully, or if an error occured (with a specific error message).
 load_data_ui <- function(id){
   ns <- NS(id)
-  
   tagList(
     actionButton(inputId = ns("load_data_btn"),
                  label = "Load data",
@@ -140,7 +140,7 @@ load_data_ui <- function(id){
                              lib="font-awesome")
     ),
     
-    # Error message (hidden by default)
+    # Error message (hidden by default) - see specific error messages in load_data_server()
     div(id = ns("load_error_message"), 
         style = "color: red; display: none; font-size: 20px;", 
         span(textOutput(ns("load_error_message_out")))
@@ -153,6 +153,5 @@ load_data_ui <- function(id){
         span("Data loaded successfully! 😁")
     ),
   )
-  
 }
   

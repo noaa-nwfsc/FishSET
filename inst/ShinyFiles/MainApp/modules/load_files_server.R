@@ -207,7 +207,9 @@ select_data_server <- function(id, data_type, rv_project_name){
 }
 
 ## Load data --------------------------------------------------------------------------------------
-## Description: Load selected data
+## Description: Run input checks to make sure required data (main and spatial) have been selected
+##              and that the project name is valid. If all checks pass, then load all selected 
+##              data.
 load_data_server <- function(id, rv_project_name, rv_data_names){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
@@ -224,11 +226,8 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
     # Check validity of project name
     check_project_name <- function(name){
       if(!is.character(name)) return(FALSE)
-      
       if(!grepl("^[A-Za-z0-9_]+$", name)) return(FALSE) 
-      
       if(grepl("^\\d+$", name)) return(FALSE)
-      
       return(TRUE)
     }
     
@@ -254,14 +253,6 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       # Hide success and error messages initially
       shinyjs::hide("load_success_message")
       shinyjs::hide("load_error_message")
-      
-      # TEST CODE TO DELETE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      # cat(file=stderr(), "\n", "loading...", "\n")
-      # cat(file=stderr(), "\n", str(spat_data_info), "\n")
-      # cat(file=stderr(), "\n", "Project name: ", project_name$value, "\n") 
-      # cat(file=stderr(), "\n", is_empty(project_name$value), "\n")
-      # cat(file=stderr(), "\n", is.null(project_name$value), "\n")
-      # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       
       # Check to make sure the reactive inputs are valid
       if(is_empty(project_name$value)){
@@ -296,6 +287,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       # Load function - load all selected data
       load_project_data()
       
+      # Show success message
       shinyjs::show("load_success_message")
       
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
