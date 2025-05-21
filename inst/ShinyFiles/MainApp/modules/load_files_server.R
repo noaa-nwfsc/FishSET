@@ -223,7 +223,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       rv_load_error_message()
     })
     
-    ### Loading helper functions 
+    ### Loading helper functions ------------------------------------------------------------------
     # Check validity of project name
     check_project_name <- function(name){
       if(!is.character(name)) return(FALSE)
@@ -239,41 +239,46 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
          is.null(load_data_input$value)) {
         return()
       }
-      
-      table_name <- switch(data_type,
-                           "main" = paste0(project_name, "MainDataTable"),
-                           "port" = paste0(project_name, "PortTable"),
-                           "aux" = paste0(project_name, "AuxTable"),
-                           "spat" = paste0(project_name, "SpatTable"),
-                           "grid" = paste0(project_name, "GridTable"))
-      
+
       # Load from FishSET database
+      load_warning_error <- FALSE
+    
       if (load_data_input$type == "select"){
+        table_name <- load_data_input$value # Save table name
+        
         tryCatch(
           {
-            rv_all_data_output[[data_type]] <- table_view(table_name, project_name)
+            data_out <- table_view(table_name, project_name)    
           },
-          error = function(e){
+          warning = function(w) {
+            load_warning_error <<- TRUE
             rv_load_error_message(
-              paste0("⚠️ ", table_name, " not available in the project database", e$message)
+              paste0("⚠️ ", table_name, " not found in the ", project_name, " database.")
             )
-            
+            shinyjs::show("load_error_message")
           },
-          warning = function(w){
+          error = function(e) {
+            load_warning_error <<- TRUE
             rv_load_error_message(
-              paste0("⚠️ ", table_name, " not available in the project database", w$message)
+              paste0("⚠️ ERROR: ", table_name, " not able to load.")
             )
-            cat(file=stderr(), "\n", "TEST \n")
+            shinyjs::show("load_error_message")
           }
         )
       }
+
+      # Only proceed if data loaded without warning or error
+      if (!load_warning_error){
+        # Edit project settings in the output folder
+        edit_proj_settings(project = project_name,
+                           tab_name = table_name,
+                           tab_type = data_type)
+      }
       
-      # TEST CODE TO BE DELETED >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      # cat(file = stderr(), "\n", data_type, "\n")
-      # cat(file = stderr(), "\n", str(load_data_input), "\n")
-      # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      return(data_out)
     }
     
+    ### Observe load button -----------------------------------------------------------------------
     # Handle load button click
     observeEvent(input$load_data_btn, {
       # Ensure that reactives are available
@@ -323,29 +328,38 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       }
       
       # Load each data type
-      load_project_data(data_type = "main", 
-                        load_data_input = main_data_info,
-                        project_name = project_name$value)
-      load_project_data(data_type = "port", 
-                        load_data_input = port_data_info,
-                        project_name = project_name$value)
-      load_project_data(data_type = "aux", 
-                        load_data_input = aux_data_info,
-                        project_name = project_name$value)
-      load_project_data(data_type = "spat", 
-                        load_data_input = spat_data_info,
-                        project_name = project_name$value)
-      load_project_data(data_type = "grid", 
-                        load_data_input = grid_data_info,
-                        project_name = project_name$value)
-
+      rv_all_data_output$main <- load_project_data(data_type = "main", 
+                                                   load_data_input = main_data_info,
+                                                   project_name = project_name$value)
+      
+      rv_all_data_output$port <- load_project_data(data_type = "port", 
+                                                   load_data_input = port_data_info,
+                                                   project_name = project_name$value)
+      
+      rv_all_data_output$aux <- load_project_data(data_type = "aux", 
+                                                  load_data_input = aux_data_info,
+                                                  project_name = project_name$value)
+      
+      rv_all_data_output$spat <- load_project_data(data_type = "spat",
+                                                   load_data_input = spat_data_info,
+                                                   project_name = project_name$value)
+      
+      rv_all_data_output$grid <- load_project_data(data_type = "grid", 
+                                                   load_data_input = grid_data_info,
+                                                   project_name = project_name$value)
+      
+      # if(rv_all_data_output$spat == "warning"){
+      #   return()
+      # }
+          
       # Show success message
       shinyjs::show("load_success_message")
       
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
+    
+    # Return to main server
+    # return(rv_all_data_output)
   })
-  
-  
 }
 
 
