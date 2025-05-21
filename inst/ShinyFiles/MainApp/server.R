@@ -36,12 +36,11 @@ server <- function(input, output, session) {
     dataset = data.frame('var1'=c(0,2,4), 'var2'=c(1,3,5))
   )
   confid_vals <- reactiveValues(check = FALSE,
-                                v_id = NULL,
-                                rule = "n",
-                                value = 3)
-  confid_final_vals <- reactiveValues()
- # conf_rval <- reactiveValues()
-  
+                               v_id = NULL,
+                               rule = "n",
+                              value = 3)
+ # confid_final_vals <- reactiveValues()
+
   # Upload data -----------------------------------------------------------------------------------
   ## Select files subtab --------------------------------------------------------------------------
   ### Change folderpath
@@ -75,36 +74,8 @@ server <- function(input, output, session) {
                                            data_type = "grid",
                                            rv_project_name = rv_project_name)
 
-  rv_r_expr <- reactiveValues(done = 0, ok = TRUE, output = "")
-  
-  observeEvent(input$run_r_btn, {
-    shinyjs::hide("error")
-    rv_r_expr$ok <- FALSE
-    tryCatch(
-      {
-        rv_r_expr$output <- isolate(
-          paste(utils::capture.output(eval(parse(text = input$r_expr_input))), collapse = '\n')
-        )
-        rv_r_expr$ok <- TRUE
-      },
-      error = function(err) {rv_r_expr$output <- err$message}
-    )
-    rv_r_expr$done <- rv_r_expr$done + 1
-  })
-  output$r_expr_result <- renderUI({
-    if(rv_r_expr$done > 0 ) {
-      content <- paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n')
-      if(rv_r_expr$ok) {
-        pre(content)
-      } else {
-        pre( style = "color: red; font-weight: bold;", content)
-      }
-    }
-  })
-  
-
-  
-  confid_final_vals <-  load_sidebar_server("data_sidebar", rv_project_name = rv_project_name, values = values,
+ 
+  confid_vals <-  load_sidebar_server("data_sidebar", rv_project_name = rv_project_name, values = values,
                                             confid_vals = confid_vals)
   
   other_actions_server("upload_data_actions", rv_r_expr = rv_r_expr,
