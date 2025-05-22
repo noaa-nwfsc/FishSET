@@ -5,7 +5,7 @@
 #              reactive functions with output, and close app button
 #
 # Package: FishSET
-# Authors: Paul Carvalho, Anna Abelman
+# Authors: Anna Abelman, Paul Carvalho
 # Date created: 4/23/2025
 # Dependencies: - Input/output bindings defined in load_files_ui.RQ
 #               - Additional input/output bindings defined in modules.

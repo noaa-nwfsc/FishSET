@@ -5,7 +5,7 @@
 #              functions with output, and close app button
 #
 # Package: FishSET
-# Authors: Paul Carvalho, Anna Abelman
+# Authors: Anna Abelman, Paul Carvalho
 # Date created: 4/23/2025
 #
 # Notes: - Keep UI layout and input definitions modular and clean.
