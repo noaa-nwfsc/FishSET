@@ -216,11 +216,15 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
     
     # Initialize reactives
     rv_load_error_message <- reactiveVal("") # Store error messages
+    rv_load_success_message <- reactiveVal("") # Store success message
     rv_all_data_output <- reactiveValues() # Store all of the loaded data - return to main server
     
-    # Output for error message
+    # Outputs for messages
     output$load_error_message_out <- renderText({
       rv_load_error_message()
+    })
+    output$load_success_message_out <- renderText({
+      rv_load_success_message()
     })
     
     ### Loading helper functions ------------------------------------------------------------------
@@ -240,9 +244,9 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         return()
       }
 
+      load_warning_error <- FALSE # flag in case an error or warning occurs when loading data
+      
       # Load from FishSET database
-      load_warning_error <- FALSE
-    
       if (load_data_input$type == "select"){
         table_name <- load_data_input$value # Save table name
         
@@ -273,6 +277,13 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         edit_proj_settings(project = project_name,
                            tab_name = table_name,
                            tab_type = data_type)
+        
+        # Save package version and recent git commit to the output folder
+        fishset_commit <- packageDescription("FishSET")$GithubSHA1
+        fishset_version <- packageDescription("FishSET")$Version
+        fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
+        version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
+        cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"), file = version_file, append = TRUE)
       }
       
       return(data_out)
@@ -348,17 +359,20 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
                                                    load_data_input = grid_data_info,
                                                    project_name = project_name$value)
       
-      # if(rv_all_data_output$spat == "warning"){
-      #   return()
-      # }
-          
+      # If any items in list is a character, then it contains a warning or error message
+      # return empty value
+      if(any(sapply(reactiveValuesToList(rv_all_data_output), is.character))){
+        return()
+      }
+      
       # Show success message
+      rv_load_success_message("Data loaded successfully! 😁")
       shinyjs::show("load_success_message")
       
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
     
     # Return to main server
-    # return(rv_all_data_output)
+    return(rv_all_data_output)
   })
 }
 

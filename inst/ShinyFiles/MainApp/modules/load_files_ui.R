@@ -15,7 +15,6 @@
 
 # UI for sidebar ----------------------------------------------------------------------------------
 
-
 # UI for main panel -------------------------------------------------------------------------------
 
 ## Change folder path -----------------------------------------------------------------------------
@@ -140,18 +139,16 @@ load_data_ui <- function(id){
                              lib="font-awesome")
     ),
     
-    # Error message (hidden by default) - see specific error messages in load_data_server()
+    # Error message - see specific error messages in load_data_server()
     div(id = ns("load_error_message"), 
-        style = "color: red; display: none; font-size: 20px;", 
-        span(textOutput(ns("load_error_message_out")))
+        style = "color: red; font-size: 20px;", 
+        withSpinner(textOutput(ns("load_error_message_out")), type = 6)
     ),
     
-    # Success message (hidden by default)
+    # Success message
     div(id = ns("load_success_message"), 
-        style = "color: green; display: none; font-size: 20px;",
-        icon("check-circle"), 
-        span("Data loaded successfully! 😁")
+        style = "color: green; font-size: 20px;",
+        withSpinner(textOutput(ns("load_success_message_out")), type= 6)
     ),
   )
 }
-  

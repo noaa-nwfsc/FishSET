@@ -32,6 +32,7 @@ server <- function(input, output, session) {
   rv_folderpath <- reactiveVal() # Folder path to FishSETFolder
   rv_project_name <- reactiveVal() # Project name
   rv_data_names <- reactiveValues() # Data file/table names for uploading
+  rv_data <- reactiveValues() # All data loaded in load_data_server
   
   # Upload data -----------------------------------------------------------------------------------
   ## Select files subtab --------------------------------------------------------------------------
@@ -67,8 +68,8 @@ server <- function(input, output, session) {
                                            rv_project_name = rv_project_name)
   
   ### Load data
-  load_data_server("load_data",
-                   rv_project_name = rv_project_name,
-                   rv_data_names = rv_data_names)
+  rv_data <- load_data_server("load_data",
+                              rv_project_name = rv_project_name,
+                              rv_data_names = rv_data_names)
   
 }
