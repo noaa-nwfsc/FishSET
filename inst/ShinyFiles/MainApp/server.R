@@ -17,6 +17,8 @@
 
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/load_files_server.R", local = TRUE) # Upload data - load files subtab
+source("modules/other_actions_server.R", local = TRUE) # Other actions in sidebar 
+
 
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
@@ -32,52 +34,55 @@ server <- function(input, output, session) {
   rv_folderpath <- reactiveVal() # Folder path to FishSETFolder
   rv_project_name <- reactiveVal() # Project name
   rv_data_names <- reactiveValues() # Data file/table names for uploading
-  values <- reactiveValues(
-    dataset = data.frame('var1'=c(0,2,4), 'var2'=c(1,3,5))
-  )
-  confid_vals <- reactiveValues(check = FALSE,
-                               v_id = NULL,
-                               rule = "n",
-                              value = 3)
- # confid_final_vals <- reactiveValues()
+  rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, rule = "n", value = 3)
 
   # Upload data -----------------------------------------------------------------------------------
   ## Select files subtab --------------------------------------------------------------------------
-  ### Change folderpath
+  ### Sidebar
+  #### Set confidentiality rules (popup)
+  rv_confid_vals <-  load_sidebar_server("data_sidebar",
+                                         rv_project_name = rv_project_name, 
+                                         rv_confid_vals = rv_confid_vals,
+                                         rv_load_toggle_btns = rv_load_toggle_btns)
+  
+  #### Other actions (notes, close app)
+  other_actions_server("upload_data_actions")
+  
+  ### Main panel 
+  #### Change folderpath
   rv_folderpath <- folder_path_server("folderpath", fs_folder_exist = fs_folder_exist) 
   
-  ### Select project name
+  #### Select project name
   rv_project_name <- select_project_server("select_project", rv_folderpath = rv_folderpath)
   
-  ### Select main data
+  #### Select main data
   rv_data_names$main <- select_data_server("select_main",
                                            data_type = "main",
                                            rv_project_name = rv_project_name)
   
-  ### Select port data (optional)
+  #### Select port data (optional)
   rv_data_names$port <- select_data_server("select_port",
                                            data_type = "port",
                                            rv_project_name = rv_project_name)
   
-  ### Select aux data (optional)
+  ### #Select aux data (optional)
   rv_data_names$aux <- select_data_server("select_aux",
                                           data_type = "aux",
                                           rv_project_name = rv_project_name)
   
-  ### Select spatial data
+  #### Select spatial data
   rv_data_names$spat <- select_data_server("select_spatial",
                                            data_type = "spat",
                                            rv_project_name = rv_project_name)
   
-  ### Select gridded data (optional)
+  #### Select gridded data (optional)
   rv_data_names$grid <- select_data_server("select_grid",
                                            data_type = "grid",
                                            rv_project_name = rv_project_name)
-
- 
-  confid_vals <-  load_sidebar_server("data_sidebar", rv_project_name = rv_project_name, values = values,
-                                            confid_vals = confid_vals)
   
-  other_actions_server("upload_data_actions", rv_r_expr = rv_r_expr,
-                       rv_project_name = rv_project_name)
+  #### Load data
+  rv_load_toggle_btns <- load_data_server("load_data",
+                   rv_project_name = rv_project_name,
+                   rv_data_names = rv_data_names)
+                   
 }

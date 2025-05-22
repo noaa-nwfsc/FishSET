@@ -15,6 +15,8 @@
 
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/load_files_ui.R", local = TRUE) # Upload data - load files subtab
+source("modules/other_actions_ui.R", local = TRUE) # Other actions in sidebar 
+
 
 # UI function definition
 ui <- function(request){
@@ -47,14 +49,7 @@ ui <- function(request){
               fill = TRUE, 
               width = 400,
               load_sidebar_ui("data_sidebar"),
-              other_actions_ui("upload_data_actions"),
-              textInput("r_expr_input", 
-                        label = "Enter an R expression",
-                        value = "values$dataset"),
-              actionButton("run_r_btn", "Run", class = "btn-success"),
-              div(style = "margin-top: 2em;",
-                  uiOutput('r_expr_result')
-              )
+              other_actions_ui("upload_data_actions")
             ),
             
             ### Change folder path
@@ -75,6 +70,7 @@ ui <- function(request){
             ),
             
             bslib::layout_column_wrap(
+              fill = FALSE,
               width = 1/2,
               ### Select main data 
               bslib::card(fill = FALSE,
@@ -114,6 +110,10 @@ ui <- function(request){
                             )
                           )
               )
+            ),
+            
+            fluidRow(
+              column(7, load_data_ui("load_data"))
             )
           )
         )

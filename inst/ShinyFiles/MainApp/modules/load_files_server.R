@@ -14,36 +14,36 @@
 # =================================================================================================
 
 # Server for sidebar ------------------------------------------------------------------------------
-load_sidebar_server <- function(id, rv_project_name, values, confid_vals){
+load_sidebar_server <- function(id, rv_project_name, rv_confid_vals, rv_load_toggle_btns){
   moduleServer(id, function(input, output, session){
-   
+    
     ns <- session$ns
     
-    # see if confidential rules already exist and save them
-    observeEvent(rv_project_name(), {
-      
-      req(rv_project_name())
-      req(confid_vals())
-      project_name <- rv_project_name()  # Retrieve current project info
-      
-      # return confidentiality settings from project settings file
-      conf <- get_confid_check(project_name$value)
-      
-      # save to reactive data frame
-      confid_vals()$check <- conf$check
-      confid_vals()$v_id <- conf$v_id
-      confid_vals()$rule <- conf$rule
-      confid_vals()$value <- conf$value
-      
-    }, ignoreNULL = TRUE, ignoreInit = TRUE)
+    # enable/disable confidentiality and reset log button unless load data button is clicked without
+    # any errors
+    observe({
+      shinyjs::toggleState("confid_modal_btn", condition = (rv_load_toggle_btns() >0))
+      shinyjs::toggleState("reset_log_modal_btn", condition = (rv_load_toggle_btns() >0))
+    })
     
     # create a modal for creating confidentiality rules
     observeEvent(input$confid_modal_btn, {
       
-      req(confid_vals())
       req(rv_project_name())# Ensure rv_project_name is not NULL
       project_name <- rv_project_name()  # Retrieve current project info
+      req(rv_confid_vals()) # Ensure rv_confid_vals is not NULL
+      confid_val_info <- rv_confid_vals() # Retrieve confidential values
       
+      # return confidentiality settings from project settings file if exists
+      existing_conf <- get_confid_check(project_name$value)
+      
+      # Assign static values from the reactives
+      confid_val_info$check <- existing_conf$check
+      confid_val_info$v_id <- existing_conf$v_id
+      confid_val_info$rule <- existing_conf$rule
+      confid_val_info$value <- existing_conf$value
+      
+      # modal 
       showModal(
         modalDialog(title = "Check Confidentiality",
                     checkboxInput(ns("confid_chk_input"), "Do you have data that is confidential?",
@@ -53,8 +53,8 @@ load_sidebar_server <- function(id, rv_project_name, values, confid_vals){
                         style = "display: none;",
                         selectInput(ns("confid_vid_input"),
                                     h6("Select vessel identifier variable"),
-                                    choices = c('var1', 'var2'), # list variables from primary data
-                                    selected = confid_vals()$v_id),
+                                    choices = c('var1', 'var2'), # TODO: list variables from primary data
+                                    selected = confid_val_info$v_id),
                         selectInput(ns("confid_rule_input"), 
                                     label=list(h6('Select rule',
                                                   bslib::tooltip( 
@@ -69,10 +69,10 @@ load_sidebar_server <- function(id, rv_project_name, values, confid_vals){
                                                     id = "tip", 
                                                     placement = "right"))), 
                                     choices = c("n", "k"),
-                                    selected = confid_vals()$rule),
+                                    selected = confid_val_info$rule),
                         numericInput(ns("confid_value_input"),
                                      h6("Threshold"), 
-                                     value = confid_vals()$value,
+                                     value = confid_val_info$value,
                                      min = 0, max = 100),
                     ),
                     footer = tagList(
@@ -115,10 +115,6 @@ load_sidebar_server <- function(id, rv_project_name, values, confid_vals){
       # save to reactive value if passes
       if (pass_check) {
         showNotification("Confidentiality settings saved", type = "message", duration = 60)
-        # confid_vals$check <- input$confid_chk_input
-        # confid_vals$v_id <- input$confid_vid_input
-        # confid_vals$rule <- input$confid_rule_input
-        # confid_vals$value <- input$confid_value_input
       } else {
         showNotification("Confidentiality settings not saved - invalid threshold value",
                          type = "error", duration = 60)
@@ -130,10 +126,6 @@ load_sidebar_server <- function(id, rv_project_name, values, confid_vals){
     # Return the project name
     return(reactive({
       list(
-        # check = confid_vals$check,
-        # v_id = confid_vals$v_id,
-        # rule = confid_vals$rule,
-        # value = confid_vals$value
         check = input$confid_chk_input,
         v_id = input$confid_vid_input,
         rule = input$confid_rule_input,
@@ -212,12 +204,13 @@ select_project_server <- function(id, rv_folderpath){
         if(input$load_existing_proj_input) {
           shinyjs::show("proj_select_container") # Display existing projects
           shinyjs::hide("proj_name_container")
-          
         } else {
           shinyjs::hide("proj_select_container") # Get a new project name
           shinyjs::show("proj_name_container")
         }
       }
+      
+      
     }, ignoreInit = FALSE) # Process this on initialization
     
     # Return the project name
@@ -248,7 +241,7 @@ select_data_server <- function(id, data_type, rv_project_name){
       project_name <- rv_project_name()
       
       # If running shiny tests - assign test table names
-      if(getOption("shiny.testmode", FALSE)){
+      if (getOption("shiny.testmode", FALSE)) {
         shiny_test_table <- switch(data_type,
                                    "main" = "scallop_shiny_testMainDataTable",
                                    "port" = "scallop_shiny_testPortTable",
@@ -265,31 +258,38 @@ select_data_server <- function(id, data_type, rv_project_name){
         rv_data_input_type("select")
         
         # Select an existing table
-      } else if(project_name$type == "select" & !is.null(project_name$value)) {
+      } else if (project_name$type == "select" & !is.null(project_name$value)) {
         data_table_list <- list_tables(project_name$value, data_type) # Get existing tables
         
         # if no tables previously loaded, show the file input
-        if(all(is_empty(data_table_list))){
+        if (all(is_empty(data_table_list))){
           shinyjs::hide(paste0(data_type, "_select_container"))
           shinyjs::show(paste0(data_type, "_upload_container")) # Show file input
-          rv_data_input_type("upload")
+          rv_data_input_type("upload")  
           
         } else {
           shinyjs::show(paste0(data_type, "_select_container")) # Show dropdown menu
           shinyjs::hide(paste0(data_type, "_upload_container"))
-          
           updateSelectInput(session, 
                             paste0(data_type, "_select_input"),
                             choices = data_table_list)  # Populate choices
           rv_data_input_type("select")
         }
         
-        # Upload a new file
+        # Upload a new file - handle spatial data input separately
       } else if (project_name$type == "text") {
-        shinyjs::hide(paste0(data_type, "_select_container"))
-        shinyjs::show(paste0(data_type, "_upload_container")) # Show file input
-        rv_data_input_type("upload")
-      }
+        if(data_type != "spat"){
+          shinyjs::hide(paste0(data_type, "_select_container"))
+          shinyjs::show(paste0(data_type, "_upload_container")) # Show file input
+          rv_data_input_type("upload")    
+          
+        } else {
+          shinyjs::hide(paste0(data_type, "_select_container")) # Hide select
+          shinyjs::show("spat_upload_container")  # Show spat upload
+          updateCheckboxInput(session, "spat_shp_chk_input", value = FALSE) # reset check box
+          rv_data_input_type("spat_file")    
+        }
+      }  
     })
     
     # Hide/Show spatial unload containers based on the checkbox input
@@ -328,3 +328,110 @@ select_data_server <- function(id, data_type, rv_project_name){
     }))
   })
 }
+
+## Load data --------------------------------------------------------------------------------------
+## Description: Run input checks to make sure required data (main and spatial) have been selected
+##              and that the project name is valid. If all checks pass, then load all selected 
+##              data.
+load_data_server <- function(id, rv_project_name, rv_data_names){
+  moduleServer(id, function(input, output, session){
+    ns <- session$ns
+    
+    
+    # Initialize reactives
+    rv_load_error_message <- reactiveVal("") # Store error messages
+    rv_load_toggle_btns <- reactiveVal(0) # store value if load_data_btn is clicked for toggleState
+    
+    
+    # Output for error message
+    output$load_error_message_out <- renderText({
+      rv_load_error_message()
+    })
+    
+    ### Loading helper functions 
+    # Check validity of project name
+    check_project_name <- function(name){
+      if(!is.character(name)) return(FALSE)
+      if(!grepl("^[A-Za-z0-9_]+$", name)) return(FALSE) 
+      if(grepl("^\\d+$", name)) return(FALSE)
+      return(TRUE)
+    }
+    
+    # Load all of the selected data
+    load_project_data <- function(){
+      
+    }
+    
+    # Handle load button click
+    observeEvent(input$load_data_btn, {
+      # Ensure that reactives are available
+      req(rv_project_name())
+      req(rv_data_names)
+      
+      # Assign static values from the reactives
+      project_name <- rv_project_name()
+      main_data_info <- rv_data_names$main()
+      port_data_info <- rv_data_names$port()
+      aux_data_info <- rv_data_names$aux()
+      spat_data_info <- rv_data_names$spat()
+      grid_data_info <- rv_data_names$grid()
+      
+      # Hide success and error messages initially
+      shinyjs::hide("load_success_message")
+      shinyjs::hide("load_error_message")
+      
+      # Check to make sure the reactive inputs are valid
+      if(is_empty(project_name$value)){
+        rv_load_error_message("⚠️ Project name is required")
+        shinyjs::show("load_error_message")
+        return()
+      }
+      
+      # Check for invalid project names
+      if(!check_project_name(project_name$value)){
+        rv_load_error_message("⚠️ Project name is invalid. 
+                              Must contain only letters, underscores, or numbers.
+                              Spaces are invalid.")
+        shinyjs::show("load_error_message")
+        return()
+      }
+      
+      # Check for main data input
+      if(is.null(main_data_info$value)){
+        rv_load_error_message("⚠️ Main data file/table is required")
+        shinyjs::show("load_error_message")
+        return()
+      }
+      
+      # Check for spat data input
+      if(is.null(spat_data_info$value)){
+        rv_load_error_message("⚠️ Spatial file/table is required")
+        shinyjs::show("load_error_message")
+        return()
+      }
+      
+      # Load function - load all selected data
+      load_project_data()
+      
+      # Show success message
+      shinyjs::show("load_success_message")
+      
+      # Update rv_load_toggle_btns once load_data_btn is clicked and no errors occur
+      if (!is_empty(project_name$value) &&
+          !check_project_name(project_name$value) &&
+          is.null(main_data_info$value) &&
+          is.null(spat_data_info$value)
+      ) {
+        rv_load_toggle_btns(0)
+      } else {
+        rv_load_toggle_btns(rv_load_toggle_btns() + 1)
+      }
+      
+    }, ignoreNULL = TRUE, ignoreInit = TRUE)
+    
+    #return value for toggleState
+    return(rv_load_toggle_btns)
+  })
+}
+
+
