@@ -1,11 +1,19 @@
-library(shiny)
-library(shinyjs)
+# =================================================================================================
+# File: spinner.R
+# Description: Reusable loading spinner module. This file contains css settings and the ui module
+#              for the spinner. To use, create a spinner container the show/hide the ui.
+#
+# Package: FishSET
+# Authors: Paul Carvalho, Anna Abelman
+# Date created: 5/27/2025
+# Dependencies: - shiny and shinyjs packages
+#
+# =================================================================================================
 
-# =============================================================================
-# REUSABLE SPINNER MODULE
-# =============================================================================
-
-# CSS for all spinner types (defined here so it's self-contained)
+# CSS settings ------------------------------------------------------------------------------------
+# Description: CSS code that defines styling for different types of spinners in the spinner shiny 
+#              module. This supports both inline and full-screen (overlay) spinners. Types of 
+#              spinners include circle, dots, pulse, and bars.
 spinner_css <- "
   /* Base spinner container styles */
   .spinner-inline {
@@ -125,8 +133,11 @@ spinner_css <- "
   }
 "
 
-# Spinner Module UI
-spinnerUI <- function(id, 
+# Spinner module ui -------------------------------------------------------------------------------
+# Description: This ui module defines a customizable loading spinner UI. It supports circle, dots,
+#              pulse, and bar spinners, various colors/sizes, optional loading messages, and
+#              a overlay and inline display modes. 
+spinner_ui <- function(id, 
                       spinner_type = "circle",
                       size = "medium", 
                       color = "#3498db",
@@ -136,23 +147,24 @@ spinnerUI <- function(id,
   ns <- NS(id)
   
   # Define spinner types
-  spinner_html <- switch(spinner_type,
-                         "circle" = tags$div(class = paste("spinner-circle", paste0("spinner-", size)), 
-                                             style = paste0("border-top-color: ", color, ";")),
-                         
-                         "dots" = tags$div(class = paste("spinner-dots", paste0("spinner-", size)),
-                                           tags$div(style = paste0("background-color: ", color, ";")),
-                                           tags$div(style = paste0("background-color: ", color, ";")),
-                                           tags$div(style = paste0("background-color: ", color, ";"))),
-                         
-                         "pulse" = tags$div(class = paste("spinner-pulse", paste0("spinner-", size)), 
-                                            style = paste0("background-color: ", color, ";")),
-                         
-                         "bars" = tags$div(class = paste("spinner-bars", paste0("spinner-", size)),
-                                           tags$div(style = paste0("background-color: ", color, ";")),
-                                           tags$div(style = paste0("background-color: ", color, ";")),
-                                           tags$div(style = paste0("background-color: ", color, ";")),
-                                           tags$div(style = paste0("background-color: ", color, ";")))
+  spinner_html <- switch(
+    spinner_type,
+    "circle" = tags$div(class = paste("spinner-circle", paste0("spinner-", size)), 
+                        style = paste0("border-top-color: ", color, ";")),
+    
+    "dots" = tags$div(class = paste("spinner-dots", paste0("spinner-", size)),
+                      tags$div(style = paste0("background-color: ", color, ";")),
+                      tags$div(style = paste0("background-color: ", color, ";")),
+                      tags$div(style = paste0("background-color: ", color, ";"))),
+    
+    "pulse" = tags$div(class = paste("spinner-pulse", paste0("spinner-", size)), 
+                       style = paste0("background-color: ", color, ";")),
+    
+    "bars" = tags$div(class = paste("spinner-bars", paste0("spinner-", size)),
+                      tags$div(style = paste0("background-color: ", color, ";")),
+                      tags$div(style = paste0("background-color: ", color, ";")),
+                      tags$div(style = paste0("background-color: ", color, ";")),
+                      tags$div(style = paste0("background-color: ", color, ";")))
   )
   
   # Container class based on overlay option
@@ -163,8 +175,7 @@ spinnerUI <- function(id,
     singleton(tags$head(tags$style(HTML(spinner_css)))),
     
     # The actual spinner UI
-    
-    tags$div(
+    div(
       id = ns("spinner_container"),
       class = container_class,
       tags$div(class = "spinner-content",
@@ -174,258 +185,5 @@ spinnerUI <- function(id,
                }
       )
     )
-    
   )
 }
-
-# Spinner Module Server
-spinnerServer <- function(id) {
-  moduleServer(id, function(input, output, session) {
-    ns <- session$ns
-    
-    # Return functions to control the spinner
-    list(
-      show = function() {
-        shinyjs::show("spinner_container")
-      },
-      
-      hide = function() {
-        shinyjs::hide("spinner_container")
-      },
-      
-      toggle = function() {
-        shinyjs::toggle("spinner_container")
-      },
-      
-      update_message = function(new_message) {
-        # Update the message text
-        shinyjs::html(id = "spinner_container .spinner-message", html = new_message)
-      }
-    )
-  })
-}
-
-# # CSS for all spinner types (removed from here - now in module)
-# 
-# # =============================================================================
-# # DEMO APP USING THE SPINNER MODULE
-# # =============================================================================
-# 
-# # Demo Module 1: Data Loader
-# dataLoaderUI <- function(id) {
-#   ns <- NS(id)
-#   
-#   tagList(
-#     h4("Data Loader Demo"),
-#     actionButton(ns("load_data"), "Load Data", class = "btn-primary"),
-#     br(), br(),
-#     
-#     # Inline spinner for this section
-#     spinnerUI(ns("data_spinner"), 
-#               spinner_type = "circle", 
-#               size = "medium", 
-#               message = "Loading data..."),
-#     
-#     br(),
-#     
-#     # Results area
-#     div(id = ns("results"),
-#         hidden(
-#           div(id = ns("success_result"), class = "alert alert-success",
-#               strong("Success! "), "Data loaded successfully.",
-#               br(), br(),
-#               tableOutput(ns("data_table"))
-#           )
-#         ),
-#         hidden(
-#           div(id = ns("error_result"), class = "alert alert-danger",
-#               strong("Error! "), span(id = ns("error_text"), "")
-#           )
-#         )
-#     )
-#   )
-# }
-# 
-# dataLoaderServer <- function(id, global_spinner) {
-#   moduleServer(id, function(input, output, session) {
-#     ns <- session$ns
-#     
-#     # Initialize local spinner
-#     local_spinner <- spinnerServer("data_spinner")
-#     loaded_data <- reactiveVal(NULL)
-#     
-#     observeEvent(input$load_data, {
-#       # Hide previous results
-#       shinyjs::hide("success_result")
-#       shinyjs::hide("error_result")
-#       
-#       # Show local spinner
-#       local_spinner$show()
-#       
-#       # Simulate data loading
-#       invalidateLater(sample(2000:4000, 1), session)
-#       
-#       observe({
-#         if (input$load_data > 0) {
-#           # Simulate success/failure
-#           if (runif(1) > 0.3) {
-#             # Success
-#             data <- data.frame(
-#               ID = 1:5,
-#               Product = paste("Product", 1:5),
-#               Price = round(runif(5, 10, 100), 2),
-#               Stock = sample(1:50, 5)
-#             )
-#             loaded_data(data)
-#             shinyjs::show("success_result")
-#           } else {
-#             # Error
-#             shinyjs::html("error_text", "Failed to connect to database")
-#             shinyjs::show("error_result")
-#           }
-#           
-#           # Hide local spinner
-#           local_spinner$hide()
-#         }
-#       }, once = TRUE)
-#     })
-#     
-#     output$data_table <- renderTable({
-#       req(loaded_data())
-#       loaded_data()
-#     })
-#   })
-# }
-# 
-# # Demo Module 2: File Processor
-# fileProcessorUI <- function(id) {
-#   ns <- NS(id)
-#   
-#   tagList(
-#     h4("File Processor Demo"),
-#     actionButton(ns("process_file"), "Process Files", class = "btn-success"),
-#     actionButton(ns("show_global"), "Show Global Overlay", class = "btn-warning"),
-#     br(), br(),
-#     
-#     # Different spinner type
-#     spinnerUI(ns("file_spinner"), 
-#               spinner_type = "bars", 
-#               size = "large", 
-#               color = "#e74c3c",
-#               message = "Processing files..."),
-#     
-#     br(),
-#     textOutput(ns("process_result"))
-#   )
-# }
-# 
-# fileProcessorServer <- function(id, global_spinner) {
-#   moduleServer(id, function(input, output, session) {
-#     ns <- session$ns
-#     
-#     # Initialize local spinner
-#     local_spinner <- spinnerServer("file_spinner")
-#     
-#     observeEvent(input$process_file, {
-#       local_spinner$show()
-#       
-#       # Update message during processing
-#       local_spinner$update_message("Step 1: Validating files...")
-#       
-#       invalidateLater(1500, session)
-#       observe({
-#         local_spinner$update_message("Step 2: Processing data...")
-#         
-#         invalidateLater(1500, session)
-#         observe({
-#           local_spinner$update_message("Step 3: Saving results...")
-#           
-#           invalidateLater(1000, session)
-#           observe({
-#             local_spinner$hide()
-#             output$process_result <- renderText({
-#               paste("Processing completed at", Sys.time())
-#             })
-#           }, once = TRUE)
-#         }, once = TRUE)
-#       }, once = TRUE)
-#     })
-#     
-#     # Demo global overlay spinner
-#     observeEvent(input$show_global, {
-#       global_spinner$show()
-#       
-#       invalidateLater(3000, session)
-#       observe({
-#         global_spinner$hide()
-#       }, once = TRUE)
-#     })
-#   })
-# }
-# 
-# # Main App UI
-# ui <- fluidPage(
-#   useShinyjs(),
-#   
-#   # No need to manually add spinner CSS - it's included in the module!
-#   tags$head(
-#     tags$style(HTML("
-#       .alert {
-#         border-radius: 5px;
-#         padding: 15px;
-#         margin: 15px 0;
-#         border: 1px solid transparent;
-#       }
-#       .alert-success {
-#         color: #3c763d;
-#         background-color: #dff0d8;
-#         border-color: #d6e9c6;
-#       }
-#       .alert-danger {
-#         color: #a94442;
-#         background-color: #f2dede;
-#         border-color: #ebccd1;
-#       }
-#       .btn { margin: 5px; padding: 8px 16px; }
-#     "))
-#   ),
-#   
-#   titlePanel("Reusable Spinner Module Demo"),
-#   
-#   # Global overlay spinner
-#   spinnerUI("global_spinner", 
-#             spinner_type = "pulse", 
-#             size = "large", 
-#             overlay = TRUE,
-#             message = "Processing your request..."),
-#   
-#   fluidRow(
-#     column(6, dataLoaderUI("data_loader")),
-#     column(6, fileProcessorUI("file_processor"))
-#   ),
-#   
-#   br(),
-#   div(class = "alert alert-info",
-#       strong("Demo Features:"),
-#       tags$ul(
-#         tags$li("Local inline spinners for each module"),
-#         tags$li("Global overlay spinner that covers the entire page"),
-#         tags$li("Different spinner types: circle, bars, pulse"),
-#         tags$li("Dynamic message updates"),
-#         tags$li("Configurable sizes and colors")
-#       )
-#   )
-# )
-# 
-# # Main App Server
-# server <- function(input, output, session) {
-#   # Initialize global spinner
-#   global_spinner <- spinnerServer("global_spinner")
-#   
-#   # Initialize modules
-#   dataLoaderServer("data_loader", global_spinner)
-#   fileProcessorServer("file_processor", global_spinner)
-# }
-# 
-# # Run the app
-# shinyApp(ui = ui, server = server)

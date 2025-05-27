@@ -219,7 +219,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
     rv_load_success_message <- reactiveVal("") # Store success message
     rv_all_data_output <- reactiveValues() # Store all of the loaded data - return to main server
     
-    # Outputs for messages
+    # Outputs for error and success messages
     output$load_error_message_out <- renderText({
       rv_load_error_message()
     })
@@ -283,7 +283,8 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         fishset_version <- packageDescription("FishSET")$Version
         fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
         version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
-        cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"), file = version_file, append = TRUE)
+        cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"), 
+            file = version_file, append = TRUE)
       }
       
       return(data_out)
@@ -295,9 +296,6 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       # Ensure that reactives are available
       req(rv_project_name())
       req(rv_data_names)
-      
-      # Show local spinner
-      shinyjs::show("load_data_spin_container")
       
       # Assign static values from the reactives
       project_name <- rv_project_name()
@@ -341,7 +339,8 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         return()
       }
       
-      Sys.sleep(2)
+      # Show local spinner
+      shinyjs::show("load_data_spinner_container")
       
       # Load each data type
       rv_all_data_output$main <- load_project_data(data_type = "main", 
@@ -367,11 +366,12 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       # If any items in list is a character, then it contains a warning or error message
       # return empty value
       if(any(sapply(reactiveValuesToList(rv_all_data_output), is.character))){
+        shinyjs::hide("load_data_spinner_container") # hide spinner then return empty value
         return()
       }
       
       # Hide local spinner
-      shinyjs::hide("load_data_spin_container")
+      shinyjs::hide("load_data_spinner_container")
       
       # Show success message
       rv_load_success_message("Data loaded successfully! 😁")

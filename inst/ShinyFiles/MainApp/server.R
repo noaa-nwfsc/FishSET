@@ -36,7 +36,7 @@ server <- function(input, output, session) {
   rv_data <- reactiveValues() # All data loaded in load_data_server
   
   # Upload data -----------------------------------------------------------------------------------
-  ## Select files subtab --------------------------------------------------------------------------
+  ## Load files subtab ----------------------------------------------------------------------------
   ### Change folderpath
   rv_folderpath <- folder_path_server("folderpath", fs_folder_exist = fs_folder_exist) 
   
@@ -72,5 +72,4 @@ server <- function(input, output, session) {
   rv_data <- load_data_server("load_data",
                               rv_project_name = rv_project_name,
                               rv_data_names = rv_data_names)
-  
 }
