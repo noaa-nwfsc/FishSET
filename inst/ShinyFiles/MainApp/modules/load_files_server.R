@@ -14,7 +14,7 @@
 # =================================================================================================
 
 # Server for sidebar ------------------------------------------------------------------------------
-load_sidebar_server <- function(id, rv_project_name, rv_confid_vals, rv_load_toggle_btns){
+load_sidebar_server <- function(id, rv_project_name, rv_load_toggle_btns){
   moduleServer(id, function(input, output, session){
     
     ns <- session$ns
@@ -31,22 +31,15 @@ load_sidebar_server <- function(id, rv_project_name, rv_confid_vals, rv_load_tog
       
       req(rv_project_name())# Ensure rv_project_name is not NULL
       project_name <- rv_project_name()  # Retrieve current project info
-      req(rv_confid_vals()) # Ensure rv_confid_vals is not NULL
-      confid_val_info <- rv_confid_vals() # Retrieve confidential values
-      
-      # return confidentiality settings from project settings file if exists
+   
+      # return confidentiality settings from project settings file if exists (created in 
+      # set_confid_check() function below when user saves)
       existing_conf <- get_confid_check(project_name$value)
       
-      # Assign static values from the reactives
-      confid_val_info$check <- existing_conf$check
-      confid_val_info$v_id <- existing_conf$v_id
-      confid_val_info$rule <- existing_conf$rule
-      confid_val_info$value <- existing_conf$value
-      
-      # modal 
+     # modal 
       showModal(
         modalDialog(title = "Check Confidentiality",
-                    checkboxInput(ns("confid_chk_input"), "Do you have data that is confidential?",
+                    checkboxInput(ns("confid_chk_input"), "Is your data confidential?",
                                   value = FALSE),
                     # inputs if user has confidential data and needs to set rules
                     div(id = ns("confid_container"),
@@ -54,7 +47,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_confid_vals, rv_load_tog
                         selectInput(ns("confid_vid_input"),
                                     h6("Select vessel identifier variable"),
                                     choices = c('var1', 'var2'), # TODO: list variables from primary data
-                                    selected = confid_val_info$v_id),
+                                    selected = existing_conf$v_id),
                         selectInput(ns("confid_rule_input"), 
                                     label=list(h6('Select rule',
                                                   bslib::tooltip( 
@@ -69,10 +62,10 @@ load_sidebar_server <- function(id, rv_project_name, rv_confid_vals, rv_load_tog
                                                     id = "tip", 
                                                     placement = "right"))), 
                                     choices = c("n", "k"),
-                                    selected = confid_val_info$rule),
+                                    selected = existing_conf$rule),
                         numericInput(ns("confid_value_input"),
                                      h6("Threshold"), 
-                                     value = confid_val_info$value,
+                                     value = existing_conf$value,
                                      min = 0, max = 100),
                     ),
                     footer = tagList(
@@ -114,6 +107,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_confid_vals, rv_load_tog
                                     value = input$confid_value_input)
       # save to reactive value if passes
       if (pass_check) {
+        
         showNotification("Confidentiality settings saved", type = "message", duration = 60)
       } else {
         showNotification("Confidentiality settings not saved - invalid threshold value",

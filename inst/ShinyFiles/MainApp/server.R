@@ -34,7 +34,7 @@ server <- function(input, output, session) {
   rv_folderpath <- reactiveVal() # Folder path to FishSETFolder
   rv_project_name <- reactiveVal() # Project name
   rv_data_names <- reactiveValues() # Data file/table names for uploading
-  rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, rule = "n", value = 3)
+  rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, rule = "n", value = 3) # basic default
 
   # Upload data -----------------------------------------------------------------------------------
   ## Select files subtab --------------------------------------------------------------------------
@@ -42,7 +42,6 @@ server <- function(input, output, session) {
   #### Set confidentiality rules (popup)
   rv_confid_vals <-  load_sidebar_server("data_sidebar",
                                          rv_project_name = rv_project_name, 
-                                         rv_confid_vals = rv_confid_vals,
                                          rv_load_toggle_btns = rv_load_toggle_btns)
   
   #### Other actions (notes, close app)
@@ -84,5 +83,34 @@ server <- function(input, output, session) {
   rv_load_toggle_btns <- load_data_server("load_data",
                    rv_project_name = rv_project_name,
                    rv_data_names = rv_data_names)
+  
+  rv_r_expr<- reactiveValues(done = 0, ok = TRUE, output = "")
+  
+  
+  observeEvent(input$run_r_btn, {
+    shinyjs::hide("error")
+    rv_r_expr$ok <- FALSE
+    tryCatch(
+      {
+        rv_r_expr$output <- isolate(
+          paste(utils::capture.output(eval(parse(text = input$r_expr_input))), collapse = '\n')
+        )
+        rv_r_expr$ok <- TRUE
+      },
+      error = function(err) {rv_r_expr$output <- err$message}
+    )
+    rv_r_expr$done <- rv_r_expr$done + 1
+  })
+  output$r_expr_result <- renderUI({
+    if(rv_r_expr$done > 0 ) {
+      content <- paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n')
+      if(rv_r_expr$ok) {
+        pre(content)
+      } else {
+        pre( style = "color: red; font-weight: bold;", content)
+      }
+    }
+  })
+  
                    
 }
