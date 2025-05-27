@@ -296,6 +296,9 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       req(rv_project_name())
       req(rv_data_names)
       
+      # Show local spinner
+      shinyjs::show("load_data_spin_container")
+      
       # Assign static values from the reactives
       project_name <- rv_project_name()
       main_data_info <- rv_data_names$main()
@@ -338,6 +341,8 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         return()
       }
       
+      Sys.sleep(2)
+      
       # Load each data type
       rv_all_data_output$main <- load_project_data(data_type = "main", 
                                                    load_data_input = main_data_info,
@@ -365,6 +370,9 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         return()
       }
       
+      # Hide local spinner
+      shinyjs::hide("load_data_spin_container")
+      
       # Show success message
       rv_load_success_message("Data loaded successfully! 😁")
       shinyjs::show("load_success_message")
@@ -375,5 +383,3 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
     return(rv_all_data_output)
   })
 }
-
-

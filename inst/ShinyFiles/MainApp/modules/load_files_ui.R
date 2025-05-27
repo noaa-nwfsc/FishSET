@@ -139,16 +139,27 @@ load_data_ui <- function(id){
                              lib="font-awesome")
     ),
     
+    # Inline spinner for this section
+    div(id = ns("load_data_spin_container"),
+        style = "display: none;",
+        spinnerUI(ns("data_spinner"),
+                  spinner_type = "circle",
+                  size = "medium",
+                  message = "Loading data...",
+                  overlay = TRUE)    
+    ),
+    
     # Error message - see specific error messages in load_data_server()
     div(id = ns("load_error_message"), 
-        style = "color: red; font-size: 20px;", 
+        style = "color: red; display: none; font-size: 20px;", 
         withSpinner(textOutput(ns("load_error_message_out")), type = 6)
     ),
     
     # Success message
     div(id = ns("load_success_message"), 
-        style = "color: green; font-size: 20px;",
+        style = "color: green; display: none; font-size: 20px;",
         withSpinner(textOutput(ns("load_success_message_out")), type= 6)
     ),
   )
 }
+

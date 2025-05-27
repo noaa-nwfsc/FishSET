@@ -16,6 +16,7 @@
 # =================================================================================================
 
 # Source module scripts ---------------------------------------------------------------------------
+source("modules/spinner.R", local = TRUE) # Upload data - load files subtab
 source("modules/load_files_server.R", local = TRUE) # Upload data - load files subtab
 
 # Server settings ---------------------------------------------------------------------------------
