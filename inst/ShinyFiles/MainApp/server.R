@@ -34,6 +34,7 @@ server <- function(input, output, session) {
   rv_project_name <- reactiveVal() # Project name
   rv_data_names <- reactiveValues() # Data file/table names for uploading
   rv_data <- reactiveValues() # All data loaded in load_data_server
+  rv_data_load_error <- reactiveVal(TRUE) # Track errors with loading data for sidebar
   rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, 
                                    rule = "n", value = 3) # basic default
   
@@ -43,7 +44,7 @@ server <- function(input, output, session) {
   #### Set confidentiality rules (popup)
   rv_confid_vals <-  load_sidebar_server("data_sidebar",
                                          rv_project_name = rv_project_name, 
-                                         rv_load_toggle_btns = rv_load_toggle_btns)
+                                         rv_data_load_error = rv_data_load_error)
   
   #### Other actions (notes, close app)
   other_actions_server("upload_data_actions")
@@ -84,6 +85,11 @@ server <- function(input, output, session) {
   rv_data <- load_data_server("load_data",
                               rv_project_name = rv_project_name,
                               rv_data_names = rv_data_names)
+  
+  observe({
+    rv_data_load_error(rv_data$error)
+    cat(file = stderr(), "\n TEST server...  ", rv_data_load_error(), "\n")
+  })
   
   rv_r_expr<- reactiveValues(done = 0, ok = TRUE, output = "")
   
