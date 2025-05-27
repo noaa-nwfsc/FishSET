@@ -14,6 +14,122 @@
 # =================================================================================================
 
 # Server for sidebar ------------------------------------------------------------------------------
+load_sidebar_server <- function(id, rv_project_name, rv_load_toggle_btns){
+  moduleServer(id, function(input, output, session){
+    
+    ns <- session$ns
+    
+    # enable/disable confidentiality and reset log button unless load data button is clicked without
+    # any errors
+    observe({
+      shinyjs::toggleState("confid_modal_btn", condition = (rv_load_toggle_btns() >0))
+      shinyjs::toggleState("reset_log_modal_btn", condition = (rv_load_toggle_btns() >0))
+    })
+    
+    # create a modal for creating confidentiality rules
+    observeEvent(input$confid_modal_btn, {
+      
+      req(rv_project_name())# Ensure rv_project_name is not NULL
+      project_name <- rv_project_name()  # Retrieve current project info
+   
+      # return confidentiality settings from project settings file if exists (created in 
+      # set_confid_check() function below when user saves)
+      existing_conf <- get_confid_check(project_name$value)
+      
+     # modal 
+      showModal(
+        modalDialog(title = "Check Confidentiality",
+                    checkboxInput(ns("confid_chk_input"), "Is your data confidential?",
+                                  value = FALSE),
+                    # inputs if user has confidential data and needs to set rules
+                    div(id = ns("confid_container"),
+                        style = "display: none;",
+                        selectInput(ns("confid_vid_input"),
+                                    h6("Select vessel identifier variable"),
+                                    choices = c('var1', 'var2'), # TODO: list variables from primary data
+                                    selected = existing_conf$v_id),
+                        selectInput(ns("confid_rule_input"), 
+                                    label=list(h6('Select rule',
+                                                  bslib::tooltip( 
+                                                    bsicons::bs_icon("info-circle"),
+                                                    "The n rule (“rule of n”) 
+                                                              defaults to 3, at least three unique
+                                                              observational units (e.g., vessels).
+                                                              The k rule (“identification of majority 
+                                                              allocation”) defaults to 90; no single
+                                                              observationalunit can account for 90%
+                                                              or more of the value.", 
+                                                    id = "tip", 
+                                                    placement = "right"))), 
+                                    choices = c("n", "k"),
+                                    selected = existing_conf$rule),
+                        numericInput(ns("confid_value_input"),
+                                     h6("Threshold"), 
+                                     value = existing_conf$value,
+                                     min = 0, max = 100),
+                    ),
+                    footer = tagList(
+                      modalButton("Close"),
+                      actionButton(ns("save_confid_btn"), "Save",
+                                   class = "btn-secondary")
+                    ),
+                    easyClose = TRUE
+        )
+      )
+    }, ignoreInit = TRUE)
+    
+    # hide/show confidential inputs when user clicks checkbox
+    observeEvent(input$confid_chk_input,{
+      if(input$confid_chk_input) {
+        shinyjs::show("confid_container") 
+      } else{
+        shinyjs::hide("confid_container")
+      }
+    })
+    
+    # save the confidentiality rules
+    observeEvent(input$save_confid_btn, {
+      
+      # required inputs
+      req(input$confid_chk_input)
+      req(input$confid_rule_input)
+      req(input$confid_vid_input)
+      req(input$confid_value_input)
+      req(rv_project_name())
+      
+      project_name <- rv_project_name() # Retrieve current project info
+      
+      # check the confidentiality rules and save
+      pass_check <-set_confid_check(project_name$value,
+                                    check = input$confid_chk_input,
+                                    v_id = input$confid_vid_input,
+                                    rule = input$confid_rule_input,
+                                    value = input$confid_value_input)
+      # save to reactive value if passes
+      if (pass_check) {
+        
+        showNotification("Confidentiality settings saved", type = "message", duration = 60)
+      } else {
+        showNotification("Confidentiality settings not saved - invalid threshold value",
+                         type = "error", duration = 60)
+      }
+      
+      removeModal()
+    }, ignoreInit=FALSE)
+    
+    # Return the project name
+    return(reactive({
+      list(
+        check = input$confid_chk_input,
+        v_id = input$confid_vid_input,
+        rule = input$confid_rule_input,
+        value = input$confid_value_input
+      )
+      
+    }))
+    
+  })
+}
 
 # Server for main panel ---------------------------------------------------------------------------
 
@@ -82,12 +198,13 @@ select_project_server <- function(id, rv_folderpath){
         if(input$load_existing_proj_input) {
           shinyjs::show("proj_select_container") # Display existing projects
           shinyjs::hide("proj_name_container")
-          
         } else {
           shinyjs::hide("proj_select_container") # Get a new project name
           shinyjs::show("proj_name_container")
         }
       }
+      
+      
     }, ignoreInit = FALSE) # Process this on initialization
     
     # Return the project name
@@ -214,8 +331,11 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
+    
     # Initialize reactives
     rv_load_error_message <- reactiveVal("") # Store error messages
+    rv_load_toggle_btns <- reactiveVal(0) # store value if load_data_btn is clicked for toggleState
+    
     
     # Output for error message
     output$load_error_message_out <- renderText({
@@ -290,10 +410,22 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       # Show success message
       shinyjs::show("load_success_message")
       
+      # Update rv_load_toggle_btns once load_data_btn is clicked and no errors occur
+      if (!is_empty(project_name$value) &&
+          !check_project_name(project_name$value) &&
+          is.null(main_data_info$value) &&
+          is.null(spat_data_info$value)
+      ) {
+        rv_load_toggle_btns(0)
+      } else {
+        rv_load_toggle_btns(rv_load_toggle_btns() + 1)
+      }
+      
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
+    
+    #return value for toggleState
+    return(rv_load_toggle_btns)
   })
-  
-  
 }
 
 
