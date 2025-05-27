@@ -13,10 +13,27 @@
 #
 # =================================================================================================
 
-# UI for sidebar ----------------------------------------------------------------------------------
+## UI for sidebar ---------------------------------------------------------------------------------
+## Description: various action buttons for users to explore as popups including refreshing data, 
+##              setting confidentiality rules, resetting the log, saving notes as txt output, and
+##              closing app
+load_sidebar_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    actionButton(ns("refresh_data_btn"), "Complete refresh of data",
+                 class = "btn-primary",
+                 icon = icon('sync', verify_fa = FALSE),
+    ) ,
+    actionButton(ns("confid_modal_btn"), "Confidentiality",
+                 class = "btn-secondary", disable = TRUE
+    ),
+    actionButton(ns("reset_log_modal_btn"), "Reset log",
+                 class = "btn-secondary",  disable = TRUE
+    ),
+  )
+}
 
 # UI for main panel -------------------------------------------------------------------------------
-
 ## Change folder path -----------------------------------------------------------------------------
 ## Description: returns a button for changing folder path and displays the selected folderpath
 ##              in the same bslib card

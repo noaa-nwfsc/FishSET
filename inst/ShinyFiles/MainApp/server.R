@@ -16,8 +16,8 @@
 # =================================================================================================
 
 # Source module scripts ---------------------------------------------------------------------------
-source("modules/spinner.R", local = TRUE) # Upload data - load files subtab
 source("modules/load_files_server.R", local = TRUE) # Upload data - load files subtab
+source("modules/other_actions_server.R", local = TRUE) # Other actions in sidebar 
 
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
@@ -34,36 +34,48 @@ server <- function(input, output, session) {
   rv_project_name <- reactiveVal() # Project name
   rv_data_names <- reactiveValues() # Data file/table names for uploading
   rv_data <- reactiveValues() # All data loaded in load_data_server
+  rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, 
+                                   rule = "n", value = 3) # basic default
   
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
-  ### Change folderpath
+  ### Sidebar
+  #### Set confidentiality rules (popup)
+  rv_confid_vals <-  load_sidebar_server("data_sidebar",
+                                         rv_project_name = rv_project_name, 
+                                         rv_load_toggle_btns = rv_load_toggle_btns)
+  
+  #### Other actions (notes, close app)
+  other_actions_server("upload_data_actions")
+  
+  ### Main panel 
+  #### Change folderpath
   rv_folderpath <- folder_path_server("folderpath", fs_folder_exist = fs_folder_exist) 
   
-  ### Select project name
+  #### Select project name
   rv_project_name <- select_project_server("select_project", rv_folderpath = rv_folderpath)
   
-  ### Select main data
+  #### Select main data
   rv_data_names$main <- select_data_server("select_main",
                                            data_type = "main",
                                            rv_project_name = rv_project_name)
   
-  ### Select port data (optional)
+  #### Select port data (optional)
   rv_data_names$port <- select_data_server("select_port",
                                            data_type = "port",
                                            rv_project_name = rv_project_name)
   
-  ### Select aux data (optional)
+  ### #Select aux data (optional)
   rv_data_names$aux <- select_data_server("select_aux",
                                           data_type = "aux",
                                           rv_project_name = rv_project_name)
   
-  ### Select spatial data
+  #### Select spatial data
   rv_data_names$spat <- select_data_server("select_spatial",
                                            data_type = "spat",
                                            rv_project_name = rv_project_name)
   
-  ### Select gridded data (optional)
+  #### Select gridded data (optional)
   rv_data_names$grid <- select_data_server("select_grid",
                                            data_type = "grid",
                                            rv_project_name = rv_project_name)
@@ -72,4 +84,31 @@ server <- function(input, output, session) {
   rv_data <- load_data_server("load_data",
                               rv_project_name = rv_project_name,
                               rv_data_names = rv_data_names)
+  
+  rv_r_expr<- reactiveValues(done = 0, ok = TRUE, output = "")
+  
+  observeEvent(input$run_r_btn, {
+    shinyjs::hide("error")
+    rv_r_expr$ok <- FALSE
+    tryCatch(
+      {
+        rv_r_expr$output <- isolate(
+          paste(utils::capture.output(eval(parse(text = input$r_expr_input))), collapse = '\n')
+        )
+        rv_r_expr$ok <- TRUE
+      },
+      error = function(err) {rv_r_expr$output <- err$message}
+    )
+    rv_r_expr$done <- rv_r_expr$done + 1
+  })
+  output$r_expr_result <- renderUI({
+    if(rv_r_expr$done > 0 ) {
+      content <- paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n')
+      if(rv_r_expr$ok) {
+        pre(content)
+      } else {
+        pre( style = "color: red; font-weight: bold;", content)
+      }
+    }
+  })
 }
