@@ -46,8 +46,10 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
       # Confidentiality modal 
       showModal(
         modalDialog(
-          title = "Check Confidentiality",
-          checkboxInput(ns("confid_chk_input"), "Is your data confidential?", value = FALSE),
+          title = "Confidentiality settings",
+          checkboxInput(ns("confid_chk_input"), 
+                        "Do you want to suppress confidential data in project
+                        outputs (tables and figures)?", value = FALSE),
           # inputs if user has confidential data and needs to set rules
           div(id = ns("confid_container"),
               style = "display: none;",
