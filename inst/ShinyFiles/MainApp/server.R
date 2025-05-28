@@ -29,7 +29,6 @@ fs_folder_exist <- exists("folderpath", where = ".GlobalEnv") # Check for FishSE
 server <- function(input, output, session) {
   
   # Define reactives ------------------------------------------------------------------------------
-  # Allow users to change FishSET folders easily.
   rv_folderpath <- reactiveVal() # Folder path to FishSETFolder
   rv_project_name <- reactiveVal() # Project name
   rv_data_names <- reactiveValues() # Data file/table names for uploading
@@ -42,9 +41,10 @@ server <- function(input, output, session) {
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
   #### Set confidentiality rules (popup)
-  rv_confid_vals <- load_sidebar_server("data_sidebar",
+  rv_confid_vals <- load_sidebar_server("upload_data_sidebar",
                                         rv_project_name = rv_project_name, 
-                                        rv_data_load_error = reactive(rv_data_load_error()))
+                                        rv_data_load_error = reactive(rv_data_load_error()),
+                                        rv_data = rv_data)
   
   #### Other actions (notes, close app)
   other_actions_server("upload_data_actions")

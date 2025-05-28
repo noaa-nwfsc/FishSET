@@ -48,7 +48,7 @@ ui <- function(request){
               fillable = TRUE, 
               fill = TRUE, 
               width = 400,
-              load_sidebar_ui("data_sidebar"),
+              load_sidebar_ui("upload_data_sidebar"),
               other_actions_ui("upload_data_actions"),
               
               textInput("r_expr_input", 
@@ -58,11 +58,6 @@ ui <- function(request){
               div(style = "margin-top: 2em;",
                   uiOutput('r_expr_result')
               ),
-
-              # TEST CODE TO BE DELETED >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>              
-              actionButton("test_btn", "TEST")
-              # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-              
             ),
             
             ### Change folder path

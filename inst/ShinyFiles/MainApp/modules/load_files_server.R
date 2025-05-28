@@ -14,13 +14,13 @@
 # =================================================================================================
 
 # Server for sidebar ------------------------------------------------------------------------------
-load_sidebar_server <- function(id, rv_project_name, rv_data_load_error){
+# Description: Server logic for side bar buttons in the upload data tab. Buttons are enabled/
+#              disabled based on output from load_data_server.
+load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data){
   moduleServer(id, function(input, output, session){
-    
     ns <- session$ns
     
-    # enable/disable confidentiality and reset log button unless load data button is clicked 
-    # without any errors
+    # enable/disable confidentiality and reset log buttons based on data loading status
     observeEvent(rv_data_load_error(), {
       # Save reactive value in a static variable
       data_load_error <- rv_data_load_error()
@@ -34,26 +34,26 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error){
     
     # create a modal for creating confidentiality rules
     observeEvent(input$confid_modal_btn, {
-      
-      req(rv_project_name())# Ensure rv_project_name is not NULL
-      project_name <- rv_project_name()  # Retrieve current project info
+      req(rv_project_name()) # Ensure rv_project_name is not NULL
+      req(rv_data) # Ensure data is not null
+      project_name <- rv_project_name() # Retrieve current project info
+      main_data <- rv_data$main # Save static copy of main data from reactive input
       
       # return confidentiality settings from project settings file if exists (created in 
       # set_confid_check() function below when user saves)
       existing_conf <- get_confid_check(project_name$value)
       
-      # modal 
+      # Confidentiality modal 
       showModal(
         modalDialog(
           title = "Check Confidentiality",
-          checkboxInput(ns("confid_chk_input"), "Is your data confidential?",
-                        value = FALSE),
+          checkboxInput(ns("confid_chk_input"), "Is your data confidential?", value = FALSE),
           # inputs if user has confidential data and needs to set rules
           div(id = ns("confid_container"),
               style = "display: none;",
               selectInput(ns("confid_vid_input"),
                           h6("Select vessel identifier variable"),
-                          choices = c('var1', 'var2'), # TODO: list variables from primary data
+                          choices = names(main_data), # list variables from primary data
                           selected = existing_conf$v_id),
               selectInput(ns("confid_rule_input"), 
                           label=list(h6('Select rule',
@@ -94,9 +94,8 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error){
       }
     })
     
-    # save the confidentiality rules
+    # Save the confidentiality rules
     observeEvent(input$save_confid_btn, {
-      
       # required inputs
       req(input$confid_chk_input)
       req(input$confid_rule_input)
@@ -107,24 +106,27 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error){
       project_name <- rv_project_name() # Retrieve current project info
       
       # check the confidentiality rules and save
-      pass_check <-set_confid_check(project_name$value,
-                                    check = input$confid_chk_input,
-                                    v_id = input$confid_vid_input,
-                                    rule = input$confid_rule_input,
-                                    value = input$confid_value_input)
-      # save to reactive value if passes
+      pass_check <- set_confid_check(project_name$value,
+                                     check = input$confid_chk_input,
+                                     v_id = input$confid_vid_input,
+                                     rule = input$confid_rule_input,
+                                     value = input$confid_value_input)
+      
+      # Show status of confidentiality settings
       if (pass_check) {
-        
-        showNotification("Confidentiality settings saved", type = "message", duration = 60)
+        showNotification("Confidentiality settings saved", 
+                         type = "message", 
+                         duration = 60)
       } else {
         showNotification("Confidentiality settings not saved - invalid threshold value",
-                         type = "error", duration = 60)
+                         type = "error", 
+                         duration = 60)
       }
       
       removeModal()
     }, ignoreInit=FALSE)
     
-    # Return the project name
+    # Return the confidentiality settings
     return(reactive({
       list(
         check = input$confid_chk_input,
@@ -132,9 +134,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error){
         rule = input$confid_rule_input,
         value = input$confid_value_input
       )
-      
     }))
-    
   })
 }
 
@@ -511,7 +511,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       rv_load_success_message("Data loaded successfully! 😁")
       shinyjs::show("load_success_message")
       
-      rv_all_data_output$error <- FALSE
+      rv_all_data_output$error <- FALSE # loaded successfully
       
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
     
