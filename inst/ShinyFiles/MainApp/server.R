@@ -19,7 +19,6 @@
 source("modules/load_files_server.R", local = TRUE) # Upload data - load files subtab
 source("modules/other_actions_server.R", local = TRUE) # Other actions in sidebar 
 
-
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
 
@@ -30,19 +29,22 @@ fs_folder_exist <- exists("folderpath", where = ".GlobalEnv") # Check for FishSE
 server <- function(input, output, session) {
   
   # Define reactives ------------------------------------------------------------------------------
-  # Allow users to change FishSET folders easily.
   rv_folderpath <- reactiveVal() # Folder path to FishSETFolder
   rv_project_name <- reactiveVal() # Project name
   rv_data_names <- reactiveValues() # Data file/table names for uploading
-  rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, rule = "n", value = 3) # basic default
-
+  rv_data <- reactiveValues() # All data loaded in load_data_server
+  rv_data_load_error <- reactiveVal(TRUE) # Track errors with loading data for sidebar
+  rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, 
+                                   rule = "n", value = 3) # basic default
+  
   # Upload data -----------------------------------------------------------------------------------
-  ## Select files subtab --------------------------------------------------------------------------
+  ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
   #### Set confidentiality rules (popup)
-  rv_confid_vals <-  load_sidebar_server("data_sidebar",
-                                         rv_project_name = rv_project_name, 
-                                         rv_load_toggle_btns = rv_load_toggle_btns)
+  rv_confid_vals <- load_sidebar_server("upload_data_sidebar",
+                                        rv_project_name = rv_project_name, 
+                                        rv_data_load_error = reactive(rv_data_load_error()),
+                                        rv_data = rv_data)
   
   #### Other actions (notes, close app)
   other_actions_server("upload_data_actions")
@@ -79,13 +81,17 @@ server <- function(input, output, session) {
                                            data_type = "grid",
                                            rv_project_name = rv_project_name)
   
-  #### Load data
-  rv_load_toggle_btns <- load_data_server("load_data",
-                   rv_project_name = rv_project_name,
-                   rv_data_names = rv_data_names)
+  ### Load data
+  rv_data <- load_data_server("load_data",
+                              rv_project_name = rv_project_name,
+                              rv_data_names = rv_data_names)
+  
+  observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update sidebar
+  
+  
+  
   
   rv_r_expr<- reactiveValues(done = 0, ok = TRUE, output = "")
-  
   
   observeEvent(input$run_r_btn, {
     shinyjs::hide("error")
@@ -111,6 +117,4 @@ server <- function(input, output, session) {
       }
     }
   })
-  
-                   
 }
