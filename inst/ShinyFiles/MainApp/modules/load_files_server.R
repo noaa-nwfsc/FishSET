@@ -14,66 +14,75 @@
 # =================================================================================================
 
 # Server for sidebar ------------------------------------------------------------------------------
-load_sidebar_server <- function(id, rv_project_name, rv_load_toggle_btns){
+# Description: Server logic for side bar buttons in the upload data tab. Buttons are enabled/
+#              disabled based on output from load_data_server.
+load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data){
   moduleServer(id, function(input, output, session){
-    
     ns <- session$ns
     
-    # enable/disable confidentiality and reset log button unless load data button is clicked without
-    # any errors
-    observe({
-      shinyjs::toggleState("confid_modal_btn", condition = (rv_load_toggle_btns() >0))
-      shinyjs::toggleState("reset_log_modal_btn", condition = (rv_load_toggle_btns() >0))
+    # enable/disable confidentiality and reset log buttons based on data loading status
+    observeEvent(rv_data_load_error(), {
+      # Save reactive value in a static variable
+      data_load_error <- rv_data_load_error()
+      
+      # Enable buttons if no load data errors
+      shinyjs::toggleState("confid_modal_btn", 
+                           condition = !data_load_error)
+      shinyjs::toggleState("reset_log_modal_btn", 
+                           condition = !data_load_error)
     })
     
     # create a modal for creating confidentiality rules
     observeEvent(input$confid_modal_btn, {
+      req(rv_project_name()) # Ensure rv_project_name is not NULL
+      req(rv_data) # Ensure data is not null
+      project_name <- rv_project_name() # Retrieve current project info
+      main_data <- rv_data$main # Save static copy of main data from reactive input
       
-      req(rv_project_name())# Ensure rv_project_name is not NULL
-      project_name <- rv_project_name()  # Retrieve current project info
-   
       # return confidentiality settings from project settings file if exists (created in 
       # set_confid_check() function below when user saves)
       existing_conf <- get_confid_check(project_name$value)
       
-     # modal 
+      # Confidentiality modal 
       showModal(
-        modalDialog(title = "Check Confidentiality",
-                    checkboxInput(ns("confid_chk_input"), "Is your data confidential?",
-                                  value = FALSE),
-                    # inputs if user has confidential data and needs to set rules
-                    div(id = ns("confid_container"),
-                        style = "display: none;",
-                        selectInput(ns("confid_vid_input"),
-                                    h6("Select vessel identifier variable"),
-                                    choices = c('var1', 'var2'), # TODO: list variables from primary data
-                                    selected = existing_conf$v_id),
-                        selectInput(ns("confid_rule_input"), 
-                                    label=list(h6('Select rule',
-                                                  bslib::tooltip( 
-                                                    bsicons::bs_icon("info-circle"),
-                                                    "The n rule (“rule of n”) 
-                                                              defaults to 3, at least three unique
-                                                              observational units (e.g., vessels).
-                                                              The k rule (“identification of majority 
-                                                              allocation”) defaults to 90; no single
-                                                              observationalunit can account for 90%
-                                                              or more of the value.", 
-                                                    id = "tip", 
-                                                    placement = "right"))), 
-                                    choices = c("n", "k"),
-                                    selected = existing_conf$rule),
-                        numericInput(ns("confid_value_input"),
-                                     h6("Threshold"), 
-                                     value = existing_conf$value,
-                                     min = 0, max = 100),
-                    ),
-                    footer = tagList(
-                      modalButton("Close"),
-                      actionButton(ns("save_confid_btn"), "Save",
-                                   class = "btn-secondary")
-                    ),
-                    easyClose = TRUE
+        modalDialog(
+          title = "Confidentiality settings",
+          checkboxInput(ns("confid_chk_input"), 
+                        "Do you want to suppress confidential data in project
+                        outputs (tables and figures)?", value = FALSE),
+          # inputs if user has confidential data and needs to set rules
+          div(id = ns("confid_container"),
+              style = "display: none;",
+              selectInput(ns("confid_vid_input"),
+                          h6("Select vessel identifier variable"),
+                          choices = names(main_data), # list variables from primary data
+                          selected = existing_conf$v_id),
+              selectInput(ns("confid_rule_input"), 
+                          label=list(h6('Select rule',
+                                        bslib::tooltip( 
+                                          bsicons::bs_icon("info-circle"),
+                                          "The n rule (“rule of n”) 
+                                           defaults to 3, at least three unique
+                                           observational units (e.g., vessels).
+                                           The k rule (“identification of majority 
+                                           allocation”) defaults to 90; no single
+                                           observationalunit can account for 90%
+                                           or more of the value.", 
+                                          id = "tip", 
+                                          placement = "right"))), 
+                          choices = c("n", "k"),
+                          selected = existing_conf$rule),
+              numericInput(ns("confid_value_input"),
+                           h6("Threshold"), 
+                           value = existing_conf$value,
+                           min = 0, max = 100),
+          ),
+          footer = tagList(
+            modalButton("Close"),
+            actionButton(ns("save_confid_btn"), "Save",
+                         class = "btn-secondary")
+          ),
+          easyClose = TRUE
         )
       )
     }, ignoreInit = TRUE)
@@ -87,9 +96,8 @@ load_sidebar_server <- function(id, rv_project_name, rv_load_toggle_btns){
       }
     })
     
-    # save the confidentiality rules
+    # Save the confidentiality rules
     observeEvent(input$save_confid_btn, {
-      
       # required inputs
       req(input$confid_chk_input)
       req(input$confid_rule_input)
@@ -100,24 +108,27 @@ load_sidebar_server <- function(id, rv_project_name, rv_load_toggle_btns){
       project_name <- rv_project_name() # Retrieve current project info
       
       # check the confidentiality rules and save
-      pass_check <-set_confid_check(project_name$value,
-                                    check = input$confid_chk_input,
-                                    v_id = input$confid_vid_input,
-                                    rule = input$confid_rule_input,
-                                    value = input$confid_value_input)
-      # save to reactive value if passes
+      pass_check <- set_confid_check(project_name$value,
+                                     check = input$confid_chk_input,
+                                     v_id = input$confid_vid_input,
+                                     rule = input$confid_rule_input,
+                                     value = input$confid_value_input)
+      
+      # Show status of confidentiality settings
       if (pass_check) {
-        
-        showNotification("Confidentiality settings saved", type = "message", duration = 60)
+        showNotification("Confidentiality settings saved", 
+                         type = "message", 
+                         duration = 60)
       } else {
         showNotification("Confidentiality settings not saved - invalid threshold value",
-                         type = "error", duration = 60)
+                         type = "error", 
+                         duration = 60)
       }
       
       removeModal()
     }, ignoreInit=FALSE)
     
-    # Return the project name
+    # Return the confidentiality settings
     return(reactive({
       list(
         check = input$confid_chk_input,
@@ -125,14 +136,11 @@ load_sidebar_server <- function(id, rv_project_name, rv_load_toggle_btns){
         rule = input$confid_rule_input,
         value = input$confid_value_input
       )
-      
     }))
-    
   })
 }
 
 # Server for main panel ---------------------------------------------------------------------------
-
 ## Change folder path -----------------------------------------------------------------------------
 ## Description: Update a reactive value for the FishSET folderpath, create an output to display
 ##              the selected path, and return the folderpath to make if available in the main app.
@@ -331,18 +339,20 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    
     # Initialize reactives
     rv_load_error_message <- reactiveVal("") # Store error messages
-    rv_load_toggle_btns <- reactiveVal(0) # store value if load_data_btn is clicked for toggleState
+    rv_load_success_message <- reactiveVal("") # Store success message
+    rv_all_data_output <- reactiveValues() # Store all of the loaded data - return to main server
     
-    
-    # Output for error message
+    # Outputs for error and success messages
     output$load_error_message_out <- renderText({
       rv_load_error_message()
     })
+    output$load_success_message_out <- renderText({
+      rv_load_success_message()
+    })
     
-    ### Loading helper functions 
+    ### Loading helper functions ------------------------------------------------------------------
     # Check validity of project name
     check_project_name <- function(name){
       if(!is.character(name)) return(FALSE)
@@ -352,10 +362,60 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
     }
     
     # Load all of the selected data
-    load_project_data <- function(){
+    load_project_data <- function(data_type, load_data_input, project_name){
+      # Skip the function if optional data input is empty
+      if ((data_type %in% c("port", "aux", "grid")) && 
+          is.null(load_data_input$value)) {
+        return()
+      }
       
+      load_warning_error <- FALSE # flag in case an error or warning occurs when loading data
+      
+      # Load from FishSET database
+      if (load_data_input$type == "select"){
+        table_name <- load_data_input$value # Save table name
+        
+        tryCatch(
+          {
+            data_out <- table_view(table_name, project_name)    
+          },
+          warning = function(w) {
+            load_warning_error <<- TRUE
+            rv_load_error_message(
+              paste0("⚠️ ", table_name, " not found in the ", project_name, " database.")
+            )
+            shinyjs::show("load_error_message")
+          },
+          error = function(e) {
+            load_warning_error <<- TRUE
+            rv_load_error_message(
+              paste0("⚠️ ERROR: ", table_name, " not able to load.")
+            )
+            shinyjs::show("load_error_message")
+          }
+        )
+      }
+      
+      # Only proceed if data loaded without warning or error
+      if (!load_warning_error){
+        # Edit project settings in the output folder
+        edit_proj_settings(project = project_name,
+                           tab_name = table_name,
+                           tab_type = data_type)
+        
+        # Save package version and recent git commit to the output folder
+        fishset_commit <- packageDescription("FishSET")$GithubSHA1
+        fishset_version <- packageDescription("FishSET")$Version
+        fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
+        version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
+        cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"), 
+            file = version_file, append = TRUE)
+      }
+      
+      return(data_out)
     }
     
+    ### Observe load button -----------------------------------------------------------------------
     # Handle load button click
     observeEvent(input$load_data_btn, {
       # Ensure that reactives are available
@@ -378,7 +438,10 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       if(is_empty(project_name$value)){
         rv_load_error_message("⚠️ Project name is required")
         shinyjs::show("load_error_message")
-        return()
+        # Reset reactiveValues to NULL
+        invisible(lapply(names(rv_all_data_output),function(x) rv_all_data_output[[x]] <<- NULL))
+        return(rv_all_data_output$error <- TRUE)
+        
       }
       
       # Check for invalid project names
@@ -387,45 +450,74 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
                               Must contain only letters, underscores, or numbers.
                               Spaces are invalid.")
         shinyjs::show("load_error_message")
-        return()
+        # Reset reactiveValues to NULL
+        invisible(lapply(names(rv_all_data_output),function(x) rv_all_data_output[[x]] <<- NULL))
+        return(rv_all_data_output$error <- TRUE)
       }
       
       # Check for main data input
       if(is.null(main_data_info$value)){
         rv_load_error_message("⚠️ Main data file/table is required")
         shinyjs::show("load_error_message")
-        return()
+        # Reset reactiveValues to NULL
+        invisible(lapply(names(rv_all_data_output),function(x) rv_all_data_output[[x]] <<- NULL))
+        return(rv_all_data_output$error <- TRUE)
       }
       
       # Check for spat data input
       if(is.null(spat_data_info$value)){
         rv_load_error_message("⚠️ Spatial file/table is required")
         shinyjs::show("load_error_message")
-        return()
+        # Reset reactiveValues to NULL
+        invisible(lapply(names(rv_all_data_output),function(x) rv_all_data_output[[x]] <<- NULL))
+        return(rv_all_data_output$error <- TRUE)
       }
       
-      # Load function - load all selected data
-      load_project_data()
+      # Show local spinner
+      shinyjs::show("load_data_spinner_container")
+      
+      # Load each data type
+      rv_all_data_output$main <- load_project_data(data_type = "main", 
+                                                   load_data_input = main_data_info,
+                                                   project_name = project_name$value)
+      
+      rv_all_data_output$port <- load_project_data(data_type = "port", 
+                                                   load_data_input = port_data_info,
+                                                   project_name = project_name$value)
+      
+      rv_all_data_output$aux <- load_project_data(data_type = "aux", 
+                                                  load_data_input = aux_data_info,
+                                                  project_name = project_name$value)
+      
+      rv_all_data_output$spat <- load_project_data(data_type = "spat",
+                                                   load_data_input = spat_data_info,
+                                                   project_name = project_name$value)
+      
+      rv_all_data_output$grid <- load_project_data(data_type = "grid", 
+                                                   load_data_input = grid_data_info,
+                                                   project_name = project_name$value)
+      
+      # If any items in list is a character, then it contains a warning or error message
+      # return empty value
+      if(any(sapply(reactiveValuesToList(rv_all_data_output), is.character))){
+        shinyjs::hide("load_data_spinner_container") # hide spinner then return empty value
+        # Reset reactiveValues to NULL
+        invisible(lapply(names(rv_all_data_output),function(x) rv_all_data_output[[x]] <<- NULL))
+        return(rv_all_data_output$error <- TRUE)
+      }
+      
+      # Hide local spinner
+      shinyjs::hide("load_data_spinner_container")
       
       # Show success message
+      rv_load_success_message("Data loaded successfully! 😁")
       shinyjs::show("load_success_message")
       
-      # Update rv_load_toggle_btns once load_data_btn is clicked and no errors occur
-      if (!is_empty(project_name$value) &&
-          !check_project_name(project_name$value) &&
-          is.null(main_data_info$value) &&
-          is.null(spat_data_info$value)
-      ) {
-        rv_load_toggle_btns(0)
-      } else {
-        rv_load_toggle_btns(rv_load_toggle_btns() + 1)
-      }
+      rv_all_data_output$error <- FALSE # loaded successfully
       
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
     
-    #return value for toggleState
-    return(rv_load_toggle_btns)
+    # Return to main server
+    return(rv_all_data_output)
   })
 }
-
-

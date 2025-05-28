@@ -34,7 +34,6 @@ load_sidebar_ui <- function(id){
 }
 
 # UI for main panel -------------------------------------------------------------------------------
-
 ## Change folder path -----------------------------------------------------------------------------
 ## Description: returns a button for changing folder path and displays the selected folderpath
 ##              in the same bslib card
@@ -157,18 +156,27 @@ load_data_ui <- function(id){
                              lib="font-awesome")
     ),
     
-    # Error message (hidden by default) - see specific error messages in load_data_server()
-    div(id = ns("load_error_message"), 
-        style = "color: red; display: none; font-size: 20px;", 
-        span(textOutput(ns("load_error_message_out")))
+    # Overlay spinner for this section
+    div(id = ns("load_data_spinner_container"),
+        style = "display: none;",
+        spinner_ui(ns("load_data_spinner"),
+                   spinner_type = "circle",
+                   size = "large",
+                   message = "Loading data...",
+                   overlay = TRUE)
     ),
     
-    # Success message (hidden by default)
+    # Error message - see specific error messages in load_data_server()
+    div(id = ns("load_error_message"), 
+        style = "color: red; display: none; font-size: 20px;", 
+        textOutput(ns("load_error_message_out"))
+    ),
+    
+    # Success message
     div(id = ns("load_success_message"), 
         style = "color: green; display: none; font-size: 20px;",
-        icon("check-circle"), 
-        span("Data loaded successfully! 😁")
+        textOutput(ns("load_success_message_out"))
     ),
   )
 }
-  
+

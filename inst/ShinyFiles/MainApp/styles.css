@@ -3,3 +3,10 @@
   font-weight: bold;
   color: #41729F;
 }
+
+.shiny-notification {
+  position:fixed;
+  top: calc(80%);
+  left: calc(0%);
+  font-size: 25px;
+}
