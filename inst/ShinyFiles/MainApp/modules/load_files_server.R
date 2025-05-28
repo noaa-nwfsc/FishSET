@@ -21,11 +21,11 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error){
     
     # enable/disable confidentiality and reset log button unless load data button is clicked 
     # without any errors
-    observe({
-      req(rv_data_load_error())
+    observeEvent(rv_data_load_error(), {
+      # Save reactive value in a static variable
       data_load_error <- rv_data_load_error()
-      cat(file=stderr(), "\n", "TEST module...  ", data_load_error, "\n")
       
+      # Enable buttons if no load data errors
       shinyjs::toggleState("confid_modal_btn", 
                            condition = !data_load_error)
       shinyjs::toggleState("reset_log_modal_btn", 
@@ -436,7 +436,10 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       if(is_empty(project_name$value)){
         rv_load_error_message("⚠️ Project name is required")
         shinyjs::show("load_error_message")
+        # Reset reactiveValues to NULL
+        invisible(lapply(names(rv_all_data_output),function(x) rv_all_data_output[[x]] <<- NULL))
         return(rv_all_data_output$error <- TRUE)
+        
       }
       
       # Check for invalid project names
@@ -445,6 +448,8 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
                               Must contain only letters, underscores, or numbers.
                               Spaces are invalid.")
         shinyjs::show("load_error_message")
+        # Reset reactiveValues to NULL
+        invisible(lapply(names(rv_all_data_output),function(x) rv_all_data_output[[x]] <<- NULL))
         return(rv_all_data_output$error <- TRUE)
       }
       
@@ -452,6 +457,8 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       if(is.null(main_data_info$value)){
         rv_load_error_message("⚠️ Main data file/table is required")
         shinyjs::show("load_error_message")
+        # Reset reactiveValues to NULL
+        invisible(lapply(names(rv_all_data_output),function(x) rv_all_data_output[[x]] <<- NULL))
         return(rv_all_data_output$error <- TRUE)
       }
       
@@ -459,6 +466,8 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       if(is.null(spat_data_info$value)){
         rv_load_error_message("⚠️ Spatial file/table is required")
         shinyjs::show("load_error_message")
+        # Reset reactiveValues to NULL
+        invisible(lapply(names(rv_all_data_output),function(x) rv_all_data_output[[x]] <<- NULL))
         return(rv_all_data_output$error <- TRUE)
       }
       
@@ -490,18 +499,19 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       # return empty value
       if(any(sapply(reactiveValuesToList(rv_all_data_output), is.character))){
         shinyjs::hide("load_data_spinner_container") # hide spinner then return empty value
+        # Reset reactiveValues to NULL
+        invisible(lapply(names(rv_all_data_output),function(x) rv_all_data_output[[x]] <<- NULL))
         return(rv_all_data_output$error <- TRUE)
       }
       
       # Hide local spinner
       shinyjs::hide("load_data_spinner_container")
       
-      rv_all_data_output$error <- FALSE
-      
       # Show success message
       rv_load_success_message("Data loaded successfully! 😁")
       shinyjs::show("load_success_message")
       
+      rv_all_data_output$error <- FALSE
       
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
     

@@ -42,9 +42,9 @@ server <- function(input, output, session) {
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
   #### Set confidentiality rules (popup)
-  rv_confid_vals <-  load_sidebar_server("data_sidebar",
-                                         rv_project_name = rv_project_name, 
-                                         rv_data_load_error = rv_data_load_error)
+  rv_confid_vals <- load_sidebar_server("data_sidebar",
+                                        rv_project_name = rv_project_name, 
+                                        rv_data_load_error = reactive(rv_data_load_error()))
   
   #### Other actions (notes, close app)
   other_actions_server("upload_data_actions")
@@ -86,10 +86,10 @@ server <- function(input, output, session) {
                               rv_project_name = rv_project_name,
                               rv_data_names = rv_data_names)
   
-  observe({
-    rv_data_load_error(rv_data$error)
-    cat(file = stderr(), "\n TEST server...  ", rv_data_load_error(), "\n")
-  })
+  observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update sidebar
+  
+  
+  
   
   rv_r_expr<- reactiveValues(done = 0, ok = TRUE, output = "")
   
