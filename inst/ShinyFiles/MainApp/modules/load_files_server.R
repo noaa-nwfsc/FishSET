@@ -48,8 +48,8 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
         modalDialog(
           title = "Confidentiality settings",
           checkboxInput(ns("confid_chk_input"), 
-                        "Do you want to suppress confidential data in project
-                        outputs (tables and figures)?", value = FALSE),
+                        "Do you want to suppress confidential data in project outputs (tables and
+                         figures)?", value = FALSE),
           # inputs if user has confidential data and needs to set rules
           div(id = ns("confid_container"),
               style = "display: none;",
@@ -127,6 +127,70 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
       
       removeModal()
     }, ignoreInit=FALSE)
+    
+    # Reactive value for resetting log (T/F for overwriting existing log)
+    rv_log_overwrite <- reactiveVal(NULL)
+    
+    # Resetting log or overwriting existing modal
+    observeEvent(input$reset_log_modal_btn, {
+      req(rv_project_name()) # Ensure rv_project_name is not NULL
+      project_name <- rv_project_name() # Retrieve current project info
+      
+      last_log <- current_log(project_name$value) # names of the most recent log file
+      today_log <- paste0(project_name$value, "_", Sys.Date(), ".json") # creates current log name
+      # return T/F if most recent and current log name match
+      rv_log_overwrite(last_log == today_log) 
+      
+      # Reset log modal
+      showModal(
+        modalDialog(title = "Reset Log",
+                    div(id = ns("log_overwrite_container"),
+                        style = "display: none;",
+                        checkboxInput(ns("log_overwrite_chk"), 
+                                      paste("Overwrite", last_log), value = FALSE)
+                    ),
+                    DT::DTOutput(ns("logreset_table")),
+                    footer = tagList(
+                      modalButton("Close"),
+                      actionButton(ns("reset_log_btn"), "Reset log", 
+                                   class = "btn-secondary")),
+                    easyClose = TRUE)
+      )
+      # hide/show log overwrite checkbox based on the last log in the project
+        if(rv_log_overwrite() == TRUE) {
+          shinyjs::show("log_overwrite_container") 
+        } else{
+          shinyjs::hide("log_overwrite_container")
+        }
+      
+      # Retrieve all logs in project
+      log_tab <- project_logs(project_name$value, modified = TRUE)
+      # Display table with all logs listed
+      output$logreset_table <- DT::renderDT(log_tab)
+    })
+    
+    # Resetting log action button
+    observeEvent(input$reset_log_btn, {
+      
+      req(rv_project_name()) # Ensure rv_project_name is not NULL
+      project_name <- rv_project_name() # Retrieve current project info
+      
+      # if user checks overwrite checkbox, then user input in log_reset function
+      if (rv_log_overwrite()== TRUE) overwrite <- input$log_overwrite_chk
+      else overwrite <- FALSE
+      
+      # check for errors and reset log
+      q_test <- quietly_test(log_reset)
+      log_reset_pass <- q_test(project_name$value, over_write = overwrite)
+      
+      if (log_reset_pass) {
+        showNotification(paste0("Log has been reset for project \"",
+                                project_name$value, "\""),
+                         type = "default", duration = 60)
+        removeModal()
+      }
+    })
+    
     
     # Return the confidentiality settings
     return(reactive({

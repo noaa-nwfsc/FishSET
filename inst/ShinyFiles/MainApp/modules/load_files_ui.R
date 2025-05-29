@@ -24,7 +24,7 @@ load_sidebar_ui <- function(id){
                  class = "btn-primary",
                  icon = icon('sync', verify_fa = FALSE),
     ) ,
-    actionButton(ns("confid_modal_btn"), "Confidentiality",
+    actionButton(ns("confid_modal_btn"), "Confidentiality settings",
                  class = "btn-secondary", disable = TRUE
     ),
     actionButton(ns("reset_log_modal_btn"), "Reset log",
