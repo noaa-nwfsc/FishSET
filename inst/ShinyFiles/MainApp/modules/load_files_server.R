@@ -377,7 +377,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         
         tryCatch(
           {
-            data_out <- table_view(table_name, project_name)    
+            data_out <- table_view(table_name, project_name)
           },
           warning = function(w) {
             load_warning_error <<- TRUE
@@ -424,6 +424,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
           
         # Read spatial data
         } else if (data_type == "spat") {
+          
           # Load non shp file
           if (load_data_input$spat_type == "spat_file"){
             # check for shape files added to regular spatial file loading
@@ -457,15 +458,12 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
               )
             }
             
-            cat(file = stderr(), "\n", str(data_out), "\n")
-              
           } else if (load_data_input$spat_type == "spat_shp") {
             cat(file = stderr(), "\n", "TEST spat_shp ", "\n")
             
             
           }
         }
-        
         
         q_test <- switch(data_type,
                          "main" = quietly_test(load_maindata),
@@ -477,8 +475,11 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         
       }
       
+      if(load_warning_error) return("error") # return if error/warning occured
+        
+       
+      
       # Only proceed if data loaded without warning or error
-      if (!load_warning_error){
         # # Edit project settings in the output folder
         # edit_proj_settings(project = project_name,
         #                    tab_name = table_name,
@@ -491,7 +492,6 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         # version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
         # cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"), 
         #     file = version_file, append = TRUE)
-      }
       
       return(data_out)
     }
