@@ -19,17 +19,36 @@
 ##              closing app
 load_sidebar_ui <- function(id){
   ns <- NS(id)
-  tagList(
-    actionButton(ns("refresh_data_btn"), "Complete refresh of data",
-                 class = "btn-primary",
+  
+  refresh_btn_container <- tagList(
+    actionButton(ns("refresh_data_btn"), HTML("Complete refresh <br> of data"),
+                 class = "btn-secondary",
+                 style = "width: 100%;",
                  icon = icon('sync', verify_fa = FALSE),
     ) ,
+    # Overlay spinner for refreshing data
+    div(id = ns("refresh_data_spinner_container"),
+        style = "display: none;",
+        spinner_ui(ns("refresh_data_spinner"),
+                   spinner_type = "circle",
+                   size = "large",
+                   message = "Refreshing data...",
+                   overlay = TRUE)
+    )
+  )
+  
+  tagList(
     actionButton(ns("confid_modal_btn"), "Confidentiality settings",
                  class = "btn-secondary", disable = TRUE
     ),
-    actionButton(ns("reset_log_modal_btn"), "Reset log",
-                 class = "btn-secondary",  disable = TRUE
-    ),
+    splitLayout(cellWidths = c("50%", "50%"),
+                refresh_btn_container,
+                actionButton(ns("reset_log_modal_btn"), "Reset log",
+                             style = "width: 100%; height: 58px",
+                             icon = icon('file-lines', verify_fa = FALSE),
+                             class = "btn-secondary",  disable = TRUE
+                )
+    )
   )
 }
 

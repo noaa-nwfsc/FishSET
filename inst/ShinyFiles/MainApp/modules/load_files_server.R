@@ -30,6 +30,8 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
                            condition = !data_load_error)
       shinyjs::toggleState("reset_log_modal_btn", 
                            condition = !data_load_error)
+      shinyjs::toggleState("refresh_data_btn", 
+                           condition = !data_load_error)
     })
     
     # create a modal for creating confidentiality rules
@@ -48,8 +50,8 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
         modalDialog(
           title = "Confidentiality settings",
           checkboxInput(ns("confid_chk_input"), 
-                        "Do you want to suppress confidential data in project outputs (tables and
-                         figures)?", value = FALSE),
+                        "Do you want to suppress confidential data in project
+                        outputs (tables and figures)?", value = FALSE),
           # inputs if user has confidential data and needs to set rules
           div(id = ns("confid_container"),
               style = "display: none;",
@@ -190,6 +192,48 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
         removeModal()
       }
     })
+    
+    # refresh data actions
+    observeEvent(input$refresh_data_btn, {
+      
+      req(rv_project_name()) # Ensure rv_project_name is not NULL
+      req(rv_data) # Ensure data is not null
+      project_name <- rv_project_name() # Retrieve current project info
+      main_data <- rv_data$main # Save static copy of main data from reactive input
+      
+      # Ensure project name exists
+      if(!is.null(project_name$value)){
+        
+        # Start spinner while it loads
+        shinyjs::show("refresh_data_spinner_container")
+        
+        # get MainDataTable with date loaded
+        tmp_tabs <- tables_database(project_name$value)[grep(paste0(project_name$value, 
+                                                                    'MainDataTable\\d+'),
+                                                             tables_database(project_name$value))]
+        # all dates following MainDataTable
+        tab_dates1 <- unlist(stringi::stri_extract_all_regex(tmp_tabs, "\\d{6,}"))
+        tab_dates2 <- max(tab_dates1) # max date
+        tmp_tabs <- tmp_tabs[which(tab_dates1 == tab_dates2)] # get the latest table
+        
+        # reset main data table with initial data
+        ref_err <- FALSE
+        tryCatch(
+          main_data <- table_view(tmp_tabs, project_name$value),
+          error = function(e) {ref_err <<- TRUE}
+        )
+        
+        # once finished refreshing hide the spinner
+        shinyjs::hide("refresh_data_spinner_container")
+        
+        if(ref_err){
+          showNotification("Error refreshing data", type='error', duration=60)
+        } else {
+          showNotification("Data refreshed", type='message', duration=60)  
+        }
+      }
+    }, ignoreInit = TRUE, ignoreNULL=TRUE) 
+    
     
     
     # Return the confidentiality settings
