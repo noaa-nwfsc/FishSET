@@ -322,10 +322,10 @@ select_data_server <- function(id, data_type, rv_project_name){
         list(type = "upload", value = input[[paste0(data_type, "_upload_input")]])
         
       } else if(rv_data_input_type() == "spat_file"){
-        list(type = "upload", value = input$spat_file_input)
+        list(type = "upload", value = input$spat_file_input, spat_type = "spat_file")
         
       } else if(rv_data_input_type() == "spat_shp"){
-        list(type = "upload", value = input$spat_shp_input)  
+        list(type = "upload", value = input$spat_shp_input, spat_type = "spat_shp")  
       }
     }))
   })
@@ -394,22 +394,103 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
             shinyjs::show("load_error_message")
           }
         )
+        
+        # Load new dataset
+      } else if (load_data_input$type == "upload") {
+        
+        # Read data - excluding spatial data
+        if (data_type != "spat"){
+          tryCatch(
+            {
+              data_out <- read_dat(load_data_input$value$datapath)
+            },
+            warning = function(w) {
+              load_warning_error <<- TRUE
+              rv_load_error_message(
+                paste0("⚠️ ", load_data_input$value$name, 
+                       " failed to load. Check data file for compatibility with FishSET.")
+              )
+              shinyjs::show("load_error_message")
+            },
+            error = function(e) {
+              load_warning_error <<- TRUE
+              rv_load_error_message(
+                paste0("⚠️ ", load_data_input$value$name, 
+                       " failed to load. Check data file for compatibility with FishSET.")
+              )
+              shinyjs::show("load_error_message")
+            }
+          )  
+          
+        # Read spatial data
+        } else if (data_type == "spat") {
+          # Load non shp file
+          if (load_data_input$spat_type == "spat_file"){
+            # check for shape files added to regular spatial file loading
+            if (sub('.*\\.', '', load_data_input$value$datapath) %in% 
+                c('shp', 'dbf', 'sbn', 'sbx', 'shx', 'prj', 'cpg')) {
+              rv_load_error_message(paste0("⚠️ Select checkbox for uploading shape files."))
+              shinyjs::show("load_error_message")
+              return("error")
+              
+            } else {
+              tryCatch(
+                {
+                  data_out <- read_dat(load_data_input$value$datapath, is.map = TRUE)
+                },
+                warning = function(w) {
+                  load_warning_error <<- TRUE
+                  rv_load_error_message(
+                    paste0("⚠️ ", load_data_input$value$name, 
+                           " failed to load. Check data file for compatibility with FishSET.")
+                  )
+                  shinyjs::show("load_error_message")
+                },
+                error = function(e) {
+                  load_warning_error <<- TRUE
+                  rv_load_error_message(
+                    paste0("⚠️ ", load_data_input$value$name, 
+                           " failed to load. Check data file for compatibility with FishSET.")
+                  )
+                  shinyjs::show("load_error_message")
+                }
+              )
+            }
+            
+            cat(file = stderr(), "\n", str(data_out), "\n")
+              
+          } else if (load_data_input$spat_type == "spat_shp") {
+            cat(file = stderr(), "\n", "TEST spat_shp ", "\n")
+            
+            
+          }
+        }
+        
+        
+        q_test <- switch(data_type,
+                         "main" = quietly_test(load_maindata),
+                         "port" = quietly_test(load_port),
+                         "aux" = quietly_test(load_aux),
+                         "spat" = quietly_test(load_spatial),
+                         "grid" = quietly_test(load_grid))
+        
+        
       }
       
       # Only proceed if data loaded without warning or error
       if (!load_warning_error){
-        # Edit project settings in the output folder
-        edit_proj_settings(project = project_name,
-                           tab_name = table_name,
-                           tab_type = data_type)
-        
-        # Save package version and recent git commit to the output folder
-        fishset_commit <- packageDescription("FishSET")$GithubSHA1
-        fishset_version <- packageDescription("FishSET")$Version
-        fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
-        version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
-        cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"), 
-            file = version_file, append = TRUE)
+        # # Edit project settings in the output folder
+        # edit_proj_settings(project = project_name,
+        #                    tab_name = table_name,
+        #                    tab_type = data_type)
+        # 
+        # # Save package version and recent git commit to the output folder
+        # fishset_commit <- packageDescription("FishSET")$GithubSHA1
+        # fishset_version <- packageDescription("FishSET")$Version
+        # fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
+        # version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
+        # cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"), 
+        #     file = version_file, append = TRUE)
       }
       
       return(data_out)
