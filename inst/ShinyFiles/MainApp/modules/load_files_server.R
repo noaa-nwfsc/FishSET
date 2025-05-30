@@ -459,9 +459,68 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
             }
             
           } else if (load_data_input$spat_type == "spat_shp") {
-            cat(file = stderr(), "\n", "TEST spat_shp ", "\n")
             
+            cat(file = stderr(), "\n", str(load_data_input), "\n")
             
+            # Return an error if user doesn't provide minimum shapefile requirements
+            required_exts <- c("shp", "shx", "dbf")
+            
+            # Get uploaded files
+            uploaded_files <- load_data_input$value$name
+            upload_exts <- sub('.*\\.', '', load_data_input$value$name)
+            
+            # Check for missing required components
+            missing_exts <- !(all(required_exts %in% upload_exts))
+            
+            if (missing_exts) {
+              load_warning_error <<- TRUE
+              rv_load_error_message(
+                paste0("⚠️ ", " Missing shapefile components (shp, shx, dbf). 
+                       Select all required files at the same time in the folder browser.")
+              )
+              shinyjs::show("load_error_message")
+              return("error")
+            }
+            
+            # Create a temporary directory to extract uploaded files
+            temp_dir <- tempdir()
+
+            # Save uploaded files
+            for(i in 1:length(load_data_input$value$name)){
+              file.copy(
+                from = load_data_input$value$datapath[i],
+                to = file.path(temp_dir, load_data_input$value$name[i]),
+                overwrite = TRUE
+              )
+            }
+
+            # Identify the shapefile
+            shp_file <- uploaded_files[grep("\\.shp$", uploaded_files, ignore.case = TRUE)][1]
+            shp_path <- file.path(temp_dir, shp_file)
+            
+            # Read shapefile
+            tryCatch(
+              {
+                data_out <- sf::st_read(shp_path, quiet = TRUE, as_tibble = TRUE)
+                data_out <- sf::st_transform(data_out, crs = 4326) #WG84    
+              },
+              warning = function(w) {
+                load_warning_error <<- TRUE
+                rv_load_error_message(
+                  paste0("⚠️ Warning while reading shape file. Check for incomplete or corrupted
+                         shapefiles, projection issues, or unsupported file formats.")
+                )
+                shinyjs::show("load_error_message")
+              },
+              error = function(e) {
+                load_warning_error <<- TRUE
+                rv_load_error_message(
+                  paste0("⚠️ Error while reading shape file. Check for incomplete or corrupted
+                         shapefiles, projection issues, or unsupported file formats.")
+                )
+                shinyjs::show("load_error_message")
+              }
+            )
           }
         }
         
@@ -477,8 +536,6 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       
       if(load_warning_error) return("error") # return if error/warning occured
         
-       
-      
       # Only proceed if data loaded without warning or error
         # # Edit project settings in the output folder
         # edit_proj_settings(project = project_name,
