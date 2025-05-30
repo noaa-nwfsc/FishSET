@@ -99,7 +99,7 @@ select_data_ui <- function(id, data_type){
       ),
       
       # select new data file - initially visible
-      if(data_type != "spat"){
+      if (data_type != "spat") {
         div(id = ns(paste0(data_type, "_upload_container")),
             fileInput(ns(paste0(data_type, "_upload_input")),
                       label = 
