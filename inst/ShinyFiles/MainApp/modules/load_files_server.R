@@ -235,7 +235,9 @@ select_project_server <- function(id, rv_folderpath){
 ##              and type of input.
 select_data_server <- function(id, data_type, rv_project_name){
   moduleServer(id, function(input, output, session){
+    ns <- session$ns
     rv_data_input_type <- reactiveVal() # indicates which input value to return
+    rv_port_name <- reactiveVal() # indicates port name in port tables
     
     # Observer project name reactive
     observeEvent(rv_project_name(), {
@@ -283,7 +285,7 @@ select_data_server <- function(id, data_type, rv_project_name){
         if(data_type != "spat"){
           shinyjs::hide(paste0(data_type, "_select_container"))
           shinyjs::show(paste0(data_type, "_upload_container")) # Show file input
-          rv_data_input_type("upload")    
+          rv_data_input_type("upload")
           
         } else {
           shinyjs::hide(paste0(data_type, "_select_container")) # Hide select
@@ -312,6 +314,28 @@ select_data_server <- function(id, data_type, rv_project_name){
       }
     })
     
+    # Prompt user for port name when a port data file is selected
+    observeEvent(input$port_upload_input,{
+      showModal(
+        modalDialog(
+          title = "Port data table",
+          selectInput(inputId = ns("port_name_input"), 
+                      label = "Select column that identifies port name:",
+                      choices = names(read_dat(input$port_upload_input$datapath))),
+          footer = tagList(
+            modalButton("Cancel"),
+            actionButton(ns("confirm_port_btn"), "Next")),
+          easyClose = TRUE
+        )
+      )
+    })
+    
+    # Observe port name selection and assign to reactive for output
+    observeEvent(input$confirm_port_btn, {
+      rv_port_name(input$port_name_input)
+      removeModal()
+    })
+    
     # Return the data table type (select existing or upload new file) and file/table name
     return(reactive({
       req(rv_project_name())
@@ -319,8 +343,15 @@ select_data_server <- function(id, data_type, rv_project_name){
         list(type = "select", value = input[[paste0(data_type, "_select_input")]])
         
       } else if(rv_data_input_type() == "upload"){
-        list(type = "upload", value = input[[paste0(data_type, "_upload_input")]])
-        
+        if(data_type != "port"){
+          list(type = "upload", value = input[[paste0(data_type, "_upload_input")]]) 
+          
+          # Need to include port name for load_port() function
+        } else {
+          list(type = "upload", value = input[[paste0(data_type, "_upload_input")]],
+               port_name = rv_port_name)  
+        }
+      
       } else if(rv_data_input_type() == "spat_file"){
         list(type = "upload", value = input$spat_file_input, spat_type = "spat_file")
         
@@ -530,6 +561,23 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
                          "aux" = quietly_test(load_aux),
                          "spat" = quietly_test(load_spatial),
                          "grid" = quietly_test(load_grid))
+        
+        if (data_type == "main") {
+          pass <- q_test(dat = data_out, 
+                         project = project_name,
+                         over_write = TRUE,
+                         compare = FALSE,
+                         y = NULL)  
+        } else if (data_type == "port") {
+          pass <- q_test(dat = data_out,
+                         port_name = load_data_input$port_name(),
+                         project = project_name,
+                         over_write = TRUE,
+                         compare = FALSE,
+                         y = NULL)
+        }
+        
+        
         
         
       }

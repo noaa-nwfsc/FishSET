@@ -91,6 +91,9 @@ server <- function(input, output, session) {
   
   
   
+  
+  
+  
   rv_r_expr<- reactiveValues(done = 0, ok = TRUE, output = "")
   
   observeEvent(input$run_r_btn, {
