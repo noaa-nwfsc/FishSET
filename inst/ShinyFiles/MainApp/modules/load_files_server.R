@@ -490,9 +490,6 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
             }
             
           } else if (load_data_input$spat_type == "spat_shp") {
-            
-            cat(file = stderr(), "\n", str(load_data_input), "\n")
-            
             # Return an error if user doesn't provide minimum shapefile requirements
             required_exts <- c("shp", "shx", "dbf")
             
@@ -567,7 +564,17 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
                          project = project_name,
                          over_write = TRUE,
                          compare = FALSE,
-                         y = NULL)  
+                         y = NULL)
+          table_name <- paste0(project_name, "MainDataTable")
+          
+          # Save package version and recent git commit to the output folder
+          fishset_commit <- packageDescription("FishSET")$GithubSHA1
+          fishset_version <- packageDescription("FishSET")$Version
+          fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
+          version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
+          cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"),
+              file = version_file, append = TRUE)
+          
         } else if (data_type == "port") {
           pass <- q_test(dat = data_out,
                          port_name = load_data_input$port_name(),
@@ -575,30 +582,57 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
                          over_write = TRUE,
                          compare = FALSE,
                          y = NULL)
+          table_name <- paste0(project_name, "PortTable")
+          
+        } else if (data_type == "aux") {
+          pass <- q_test(dat = data_out,
+                         aux = load_data_input$value$datapath,
+                         name = sub("\\..*$", "", load_data_input$value$name),
+                         over_write = TRUE,
+                         project = project_name)
+          table_name <- paste0(project_name, 
+                               sub("\\..*$", "", load_data_input$value$name),
+                               "AuxTable")
+          
+        } else if (data_type == "spat") {
+          
+          # Shapefiles have multiple components - only get the name of the .shp file
+          if(load_data_input$spat_type == "spat_shp") {
+            spat_name <- sub("\\..*$", "", shp_file)
+          } else {
+            spat_name <- sub("\\..*$", "", load_data_input$value$name)
+          }
+          
+          pass <- q_test(spat = data_out,
+                         name = spat_name,
+                         over_write = TRUE,
+                         project = project_name)
+          
+          table_name <- paste0(project_name, 
+                               spat_name,
+                               "SpatTable")
+          
+        } else {
+          pass <- q_test(grid = load_data_input$value$datapath,
+                         name = sub("\\..*$", "", load_data_input$value$name),
+                         project = project_name,
+                         over_write = TRUE)
+          table_name <- paste0(project_name, 
+                               sub("\\..*$", "", load_data_input$value$name),
+                               "GridTable")
         }
-        
-        
-        
-        
       }
       
       if(load_warning_error) return("error") # return if error/warning occured
-        
-      # Only proceed if data loaded without warning or error
-        # # Edit project settings in the output folder
-        # edit_proj_settings(project = project_name,
-        #                    tab_name = table_name,
-        #                    tab_type = data_type)
-        # 
-        # # Save package version and recent git commit to the output folder
-        # fishset_commit <- packageDescription("FishSET")$GithubSHA1
-        # fishset_version <- packageDescription("FishSET")$Version
-        # fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
-        # version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
-        # cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"), 
-        #     file = version_file, append = TRUE)
       
-      return(data_out)
+      # Only proceed if data loading passed
+      if (pass) {
+        # Edit project settings in the output folder
+        edit_proj_settings(project = project_name,
+                           tab_name = table_name,
+                           tab_type = data_type)
+        return(data_out)  
+      }
     }
     
     ### Observe load button -----------------------------------------------------------------------
