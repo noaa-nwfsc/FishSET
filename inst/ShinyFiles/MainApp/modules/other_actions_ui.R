@@ -20,9 +20,24 @@ other_actions_ui <- function(id){
   tagList(
     bslib::accordion(open = FALSE,
                      bslib::accordion_panel(
-                        "Other actions", icon = bsicons::bs_icon("menu-app") 
+                       "Other actions", icon = bsicons::bs_icon("menu-app") ,
+                       actionButton(inputId =ns("manage_tables_btn"),
+                                    label ="Manage Tables", 
+                                    class = "btn-secondary", ),
+                       textInput(ns('add_notes_input'), "Notes", value=NULL,
+                                 placeholder = 'Write notes to store in text output file.'),
+                       actionButton(ns('download_notes_btn'),
+                                    'Save notes',
+                                    class = "btn-success"),
+                       tags$br(),
+                       actionButton(ns("close_app_btn"), "Close app",
+                                    icon = icon("circle-xmark"),
+                                    width = "100%",
+                                    class = "btn-danger", 
+                                    onclick = "setTimeout(function(){window.close();},500);")
+                     )
                      
     )
   )
-  )
+  
 }
