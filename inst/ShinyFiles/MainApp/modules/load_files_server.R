@@ -371,11 +371,11 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
     ns <- session$ns
     
     # Initialize reactives
-    rv_load_error_message <- reactiveVal("") # Store error messages
+    rv_load_error_message <- reactiveVal("") # Store error message
     rv_load_success_message <- reactiveVal("") # Store success message
     rv_all_data_output <- reactiveValues() # Store all of the loaded data - return to main server
     
-    # Outputs for error and success messages
+    # Outputs for error and success messages - initially hidden
     output$load_error_message_out <- renderText({
       rv_load_error_message()
     })
@@ -400,10 +400,11 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         return()
       }
       
+      # Initialize error/warning flags
       load_warning_error <- FALSE # flag in case an error or warning occurs when loading data
-      pass <- TRUE # flag for loading new data functions (FALSE when error occured)
+      pass <- TRUE # flag for q_test loading functions
       
-      # Load from FishSET database
+      # Load data from FishSET database
       if (load_data_input$type == "select"){
         table_name <- load_data_input$value # Save table name
         
@@ -427,7 +428,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
           }
         )
         
-        # Load new dataset
+        # Load new data files
       } else if (load_data_input$type == "upload") {
         
         # Read data - excluding spatial data
@@ -457,9 +458,9 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         # Read spatial data
         } else if (data_type == "spat") {
           
-          # Load non shp file
+          # Load non-shapefile data (e.g., .rds)
           if (load_data_input$spat_type == "spat_file"){
-            # check for shape files added to regular spatial file loading
+            # check for shapefiles added to regular spatial file loading
             if (sub('.*\\.', '', load_data_input$value$datapath) %in% 
                 c('shp', 'dbf', 'sbn', 'sbx', 'shx', 'prj', 'cpg')) {
               rv_load_error_message(paste0("⚠️ Select checkbox for uploading shape files."))
@@ -498,7 +499,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
             uploaded_files <- load_data_input$value$name
             upload_exts <- sub('.*\\.', '', load_data_input$value$name)
             
-            # Check for missing required components
+            # Check for required components - TRUE if something is missing
             missing_exts <- !(all(required_exts %in% upload_exts))
             
             if (missing_exts) {
@@ -553,6 +554,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
           }
         }
         
+        # Quiet test loading the new data to the FishSET database
         q_test <- switch(data_type,
                          "main" = quietly_test(load_maindata),
                          "port" = quietly_test(load_port),
@@ -560,6 +562,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
                          "spat" = quietly_test(load_spatial),
                          "grid" = quietly_test(load_grid))
         
+        # Handle each data type separately because they have different inputs
         if (data_type == "main") {
           pass <- q_test(dat = data_out, 
                          project = project_name,
@@ -613,7 +616,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
                                spat_name,
                                "SpatTable")
           
-        } else {
+        } else if (data_type == "grid") { 
           pass <- q_test(grid = load_data_input$value$datapath,
                          name = sub("\\..*$", "", load_data_input$value$name),
                          project = project_name,
@@ -631,7 +634,6 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
                          tab_name = table_name,
                          tab_type = data_type)
       return(data_out)  
-      
     }
     
     ### Observe load button -----------------------------------------------------------------------
