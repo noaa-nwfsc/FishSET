@@ -34,16 +34,20 @@
 #' @export
 #' @return Returns a yaml file to the project output folder.
 
-
-
 zone_closure <- function(project, spatdat, cat,
                          lon.spat = NULL, lat.spat = NULL,
                          epsg = NULL) {
   
-   zone_closure_sidebarUI <- zone_closure_mapUI <- zone_closure_tableUI <- 
-   zone_closure_sideServer <- zone_closure_mapServer <- zone_closure_tblServer <- NULL
-  source("inst/ShinyFiles/MainApp/zone_closure_UI.R", local = TRUE)
-  source("inst/ShinyFiles/MainApp/zone_closure_Server.R", local = TRUE)
+  zone_closure_sidebarUI <- zone_closure_mapUI <- zone_closure_tableUI <- NULL
+  zone_closure_sideServer <- zone_closure_mapServer <- zone_closure_tblServer <- NULL
+  
+  zone_closure_dir <- system.file("ShinyFiles", "MainApp", package = "FishSET")
+  if (zone_closure_dir == "") {
+    stop("Could not find example directory. Try re-installing `FishSET`.", call. = FALSE)
+  }
+  
+  source(file.path(zone_closure_dir, "zone_closure_UI.R"), local = TRUE)
+  source(file.path(zone_closure_dir, "zone_closure_Server.R"), local = TRUE)
   
   # Null these variables to appease RMD check
   zone <- display <- NULL
@@ -54,18 +58,18 @@ zone_closure <- function(project, spatdat, cat,
   secondLocationID <- NULL
   
   grid_nm <- deparse(substitute(spatdat)) # won't work in main app
-
+  
   # leaflet requires WGS84
   spatdat <- sf::st_transform(spatdat, "+proj=longlat +datum=WGS84")
   
- 
+  
   spatdat <- check_spatdat(spatdat, id = cat, lon = lon.spat, lat = lat.spat)
   
- 
-
+  
+  
   if (pass) {
     # UI ----
- 
+    
     
     shinyApp(
       ui = fluidPage(
@@ -95,7 +99,7 @@ zone_closure <- function(project, spatdat, cat,
         closures <- reactiveValues()
         rv <- reactiveValues(edit = NULL)
         
-
+        
         zone_closure_sideServer("policy", project, spatdat)
         
         zone_closure_mapServer("policy", project, 
