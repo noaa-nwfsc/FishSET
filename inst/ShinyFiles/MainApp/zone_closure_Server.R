@@ -2,8 +2,7 @@
 
 ### map and selected points zone closure server
 zone_closure_mapServer <- function(id, project, spatdat, clicked_ids, V, closures, rv, all_variables){
-  moduleServer(
-    id,
+  moduleServer(id,
     function(input, output, session){
       
       ns <- session$ns
