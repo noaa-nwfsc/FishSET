@@ -401,6 +401,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       }
       
       load_warning_error <- FALSE # flag in case an error or warning occurs when loading data
+      pass <- TRUE # flag for loading new data functions (FALSE when error occured)
       
       # Load from FishSET database
       if (load_data_input$type == "select"){
@@ -623,16 +624,14 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         }
       }
       
-      if(load_warning_error) return("error") # return if error/warning occured
+      if(load_warning_error || !pass) return("error") # return if error/warning occured
       
-      # Only proceed if data loading passed
-      if (pass) {
-        # Edit project settings in the output folder
-        edit_proj_settings(project = project_name,
-                           tab_name = table_name,
-                           tab_type = data_type)
-        return(data_out)  
-      }
+      # Edit project settings in the output folder
+      edit_proj_settings(project = project_name,
+                         tab_name = table_name,
+                         tab_type = data_type)
+      return(data_out)  
+      
     }
     
     ### Observe load button -----------------------------------------------------------------------
