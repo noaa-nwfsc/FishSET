@@ -3,8 +3,8 @@
 #' Create a map showing predicted probabilities by zone
 #'
 #' @param project Name of project
-#' @param policy.name Name of policy scenario
 #' @param mod.name Name of model
+#' @param policy.name Name of policy scenario
 #' @param spat A spatial data file containing information on fishery management 
 #'  or regulatory zones boundaries. `sf` objects are recommended, but `sp` objects 
 #'  can be used as well. See [dat_to_sf()] to convert a spatial table read from 
@@ -25,12 +25,13 @@
 #' @examples 
 #' \dontrun{
 #'
-#' predict_map(project = "scallop", policy.name = "logit_c_mod1 closure_1", 
+#' predict_map(project = "scallop", mod.name = "logit_c_mod1", policy.name = "closure_1", 
 #'             spat = spat, zone.spat = "TEN_ID")
 #'
 #' }
 
-predict_map <- function(project,mod.name = NULL, policy.name = NULL, spat, zone.spat, outsample = FALSE, outsample_pred = NULL){
+predict_map <- function(project, mod.name = NULL, policy.name = NULL, spat, 
+                        zone.spat, outsample = FALSE, outsample_pred = NULL){
   
   # Policy map ----------------------------------------------------------------------------------------------------------------
   if(!outsample){
@@ -42,15 +43,13 @@ predict_map <- function(project,mod.name = NULL, policy.name = NULL, spat, zone.
     # make sure prediction table exist in the database
     # TODO: If this is running in the Shiny and one or more of the tables above do not exist then show error message and stop running function here
     tryCatch({
-      model_output <- model_design_list(project)[[which(lapply(model_design_list(project), "[[", "mod.name") == mod.name)]]},
+      model_idx <- which(lapply(model_design_list(project), "[[", "mod.name") == mod.name)
+      model_output <- model_design_list(project)[[model_idx]]},
       
       error = function(err){message(paste0("Model output table not found in ", project))}
     )
     tryCatch({
       pred_out <- unserialize_table(paste0(project, "predictOutput"), project)
-      
-      # test_name <- "lz"
-      
       
       get_mod_pred_out <- lapply(pred_out, function(x){
         mod_name <- x$modelDat$mod.name
@@ -63,14 +62,15 @@ predict_map <- function(project,mod.name = NULL, policy.name = NULL, spat, zone.
       
       pred_output <- pred_out[which(unlist(get_mod_pred_out) == 1)]
     },      
-      error = function(err){message(paste0("Prediction output table not found in ", project))}  
+    error = function(err){message(paste0("Prediction output table not found in ", project))}  
     )
     
     # Get a list of model names from prediction output scenario names
     predict_n <- unlist(lapply(pred_output, function(x) x$scenario.name))
     mod_n <- unique(sapply(strsplit(predict_n, split = " "), "[", 1))
+    model_policy_name <- paste0(mod_n, " ", policy.name)
     
-    if(policy.name %in% mod_n){
+    if (policy.name == mod_n) {
       # Get the index for the first prediction output for the model
       ind <- grep(policy.name, predict_n)[1]
       
@@ -79,9 +79,9 @@ predict_map <- function(project,mod.name = NULL, policy.name = NULL, spat, zone.
       probs_df <- data.frame(ZoneID = as.character(pred_output[[ind]]$zoneID), 
                              Probability = predProbs)
       
-    } else if (policy.name %in% predict_n) {
+    } else if (model_policy_name %in% predict_n) {
       # Get index for the prediction output for the policy
-      ind <- which(predict_n %in% policy.name)
+      ind <- which(predict_n %in% model_policy_name)
       
       # Get predicted probabilities by zone for the policy
       predProbs <- pred_output[[ind]]$prob[, 2]/100
@@ -91,9 +91,10 @@ predict_map <- function(project,mod.name = NULL, policy.name = NULL, spat, zone.
       # Get zone ID for closured zones
       closure <- pred_output[[ind]]$zoneIdIn
     }
+    
   } else {
     
-  # Out-of-sample prediction map --------------------------------------------------------------------------------------------
+    # Out-of-sample prediction map --------------------------------------------------------------------------------------------
     probs_df <- outsample_pred
   }
   
@@ -115,7 +116,7 @@ predict_map <- function(project,mod.name = NULL, policy.name = NULL, spat, zone.
   
   
   spat_join <-  sf::st_transform(spat_join, "+proj=longlat +datum=WGS84")
-
+  
   
   var_sym <- function() rlang::sym("Probability")
   
@@ -124,7 +125,7 @@ predict_map <- function(project,mod.name = NULL, policy.name = NULL, spat, zone.
   brks <- pretty(probs_df$Probability, n = 8)
   bin_colors <- fishset_viridis(length(brks))
   
-
+  
   pal <- colorBin(
     bin_colors,
     bins = brks,
@@ -154,11 +155,9 @@ predict_map <- function(project,mod.name = NULL, policy.name = NULL, spat, zone.
                          layerId = ~var_sym(),
                          label = ~paste0("Probability: ", round(Probability,2))) %>% 
     leaflet::addLegend(pal = pal, 
-              values = spat_join$Probability, 
-              position = "bottomright", 
-              title = "Probability")
-  
-  
+                       values = spat_join$Probability, 
+                       position = "bottomright", 
+                       title = "Probability")
   
   return(out)
 }

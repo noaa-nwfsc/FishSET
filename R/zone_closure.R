@@ -24,8 +24,6 @@
 #' @import dplyr
 #' @import bslib
 #' @import bsicons
-
-
 #' @details Define zone closure scenarios. Function opens an interactive map. 
 #'   Define zone closures by clicking on one or more zones and clicking the 
 #'   'Close zones' button. To define another closure scenario, unclick zones and 
@@ -34,13 +32,14 @@
 #' @export
 #' @return Returns a yaml file to the project output folder.
 
-zone_closure <- function(project, spatdat, cat,
-                         lon.spat = NULL, lat.spat = NULL,
-                         epsg = NULL) {
+zone_closure <- function(project, spatdat, cat, lon.spat = NULL, lat.spat = NULL, epsg = NULL) {
   
+  # Set these values to NULL to appease RCMD checks
   zone_closure_sidebarUI <- zone_closure_mapUI <- zone_closure_tableUI <- NULL
-  zone_closure_sideServer <- zone_closure_mapServer <- zone_closure_tblServer <- NULL
+  zone_closure_mapServer <- zone_closure_tblServer <- NULL
+  zone <- display <- NULL
   
+  # Source module ui and server files for selecting closure areas
   zone_closure_dir <- system.file("ShinyFiles", "MainApp", package = "FishSET")
   if (zone_closure_dir == "") {
     stop("Could not find example directory. Try re-installing `FishSET`.", call. = FALSE)
@@ -49,67 +48,65 @@ zone_closure <- function(project, spatdat, cat,
   source(file.path(zone_closure_dir, "zone_closure_UI.R"), local = TRUE)
   source(file.path(zone_closure_dir, "zone_closure_Server.R"), local = TRUE)
   
-  # Null these variables to appease RMD check
-  zone <- display <- NULL
-  
-  # Set initial variables
-  pass <- TRUE
+  # Initialize variables
   x <- 0
   secondLocationID <- NULL
-  
-  grid_nm <- deparse(substitute(spatdat)) # won't work in main app
   
   # leaflet requires WGS84
   spatdat <- sf::st_transform(spatdat, "+proj=longlat +datum=WGS84")
   
-  
+  # Run checks on spatial data
   spatdat <- check_spatdat(spatdat, id = cat, lon = lon.spat, lat = lat.spat)
   
-  
-  
-  if (pass) {
-    # UI ----
-    
-    
-    shinyApp(
-      ui = fluidPage(
-        shinyjs::useShinyjs(),
-        bslib::page_sidebar(
-          sidebar = bslib::sidebar( 
-            "Click on one or more zones to select closed zones.",
-            "\nPress the 'Add closure' button to record choices.",
-            "Repeat to add another closure.",
-            "When done, press the 'Save closures' button.",
-            zone_closure_sidebarUI("policy")),
-          bslib::page_fluid(
-            zone_closure_mapUI("policy"),
-            zone_closure_tableUI("policy")
-          )
-        )
+  # Zone closure ui -------------------------------------------------------------------------------
+  ui <- fluidPage(
+    shinyjs::useShinyjs(),
+    bslib::page_sidebar(
+      sidebar = bslib::sidebar( 
+        "Click on one or more zones to select closed zones.",
+        "\nPress the 'Add closure' button to record choices.",
+        "Repeat to add another closure.",
+        "When done, press the 'Save closures' button.",
+        zone_closure_sidebarUI("policy")
       ),
       
-      server <- function(input, output, session) {
-        
-        session$onSessionEnded(function() {
-          stopApp()
-        })
-        
-        V <- reactiveValues(data = NULL)
-        clicked_ids <- reactiveValues(ids = vector())
-        closures <- reactiveValues()
-        rv <- reactiveValues(edit = NULL)
-        
-        
-        zone_closure_sideServer("policy", project, spatdat)
-        
-        zone_closure_mapServer("policy", project, 
-                               spatdat, clicked_ids, V, closures, rv)
-        
-        zone_closure_tblServer("policy", project, spatdat, clicked_ids, V)
-        
-        
-      }) #END SHINYAPP
+      bslib::page_fluid(
+        zone_closure_mapUI("policy"),
+        zone_closure_tableUI("policy")
+      )
+    )
+  )
+  
+  server <- function(input, output, session){
+    session$onSessionEnded(function() {
+      stopApp()
+    })
     
+    # Initialize reactive values
+    V <- reactiveValues(data = NULL)
+    clicked_ids <- reactiveValues(ids = vector())
+    closures <- reactiveValues()
+    rv <- reactiveValues(edit = NULL)
+    all_variables <- reactive({list(sz_id = cat)}) # identify zone ID in spatial data
+    
+    # zone_closure_sideServer("policy", project, spatdat)
+    zone_closure_mapServer("policy", 
+                           project, 
+                           spatdat, 
+                           clicked_ids, 
+                           V, 
+                           closures, 
+                           rv, 
+                           all_variables)
+    
+    zone_closure_tblServer("policy", 
+                           project, 
+                           spatdat, 
+                           clicked_ids, 
+                           V)
   }
+  
+  # Run the shiny app
+  shinyApp(ui = ui, server = server)
 }
 
