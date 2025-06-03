@@ -351,7 +351,7 @@ select_data_server <- function(id, data_type, rv_project_name){
           list(type = "upload", value = input[[paste0(data_type, "_upload_input")]],
                port_name = rv_port_name)  
         }
-      
+        
       } else if(rv_data_input_type() == "spat_file"){
         list(type = "upload", value = input$spat_file_input, spat_type = "spat_file")
         
@@ -455,7 +455,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
             }
           )  
           
-        # Read spatial data
+          # Read spatial data
         } else if (data_type == "spat") {
           
           # Load non-shapefile data (e.g., .rds)
@@ -514,7 +514,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
             
             # Create a temporary directory to extract uploaded files
             temp_dir <- tempdir()
-
+            
             # Save uploaded files
             for(i in 1:length(load_data_input$value$name)){
               file.copy(
@@ -523,7 +523,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
                 overwrite = TRUE
               )
             }
-
+            
             # Identify the shapefile
             shp_file <- uploaded_files[grep("\\.shp$", uploaded_files, ignore.case = TRUE)][1]
             shp_path <- file.path(temp_dir, shp_file)
@@ -616,6 +616,14 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
                                spat_name,
                                "SpatTable")
           
+          if (is.null(pass)) {
+            rv_load_error_message(
+              paste0("⚠️ Error while reading spatial file. Check for incomplete or corrupted
+                         spatial data file.")
+            )
+            shinyjs::show("load_error_message")
+          }
+          
         } else if (data_type == "grid") { 
           pass <- q_test(grid = load_data_input$value$datapath,
                          name = sub("\\..*$", "", load_data_input$value$name),
@@ -627,12 +635,16 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
         }
       }
       
-      if(load_warning_error || !pass) return("error") # return if error/warning occured
+      cat(file = stderr(), "\n", "TESTING... ", "\n")
+      cat(file = stderr(), "\n", str(pass), "\n")
+      
+      if(load_warning_error || is.null(pass) || !pass) return("error") # return if error/warning occured
       
       # Edit project settings in the output folder
       edit_proj_settings(project = project_name,
                          tab_name = table_name,
                          tab_type = data_type)
+      
       return(data_out)  
     }
     
