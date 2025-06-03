@@ -52,8 +52,6 @@ zone_closure <- function(project, spatdat, cat, lon.spat = NULL, lat.spat = NULL
   x <- 0
   secondLocationID <- NULL
   
-  # grid_nm <- deparse(substitute(spatdat))
-  
   # leaflet requires WGS84
   spatdat <- sf::st_transform(spatdat, "+proj=longlat +datum=WGS84")
   
@@ -71,6 +69,7 @@ zone_closure <- function(project, spatdat, cat, lon.spat = NULL, lat.spat = NULL
         "When done, press the 'Save closures' button.",
         zone_closure_sidebarUI("policy")
       ),
+      
       bslib::page_fluid(
         zone_closure_mapUI("policy"),
         zone_closure_tableUI("policy")
@@ -88,16 +87,23 @@ zone_closure <- function(project, spatdat, cat, lon.spat = NULL, lat.spat = NULL
     clicked_ids <- reactiveValues(ids = vector())
     closures <- reactiveValues()
     rv <- reactiveValues(edit = NULL)
-    all_variables <- reactive({
-      list(sz_id = cat)
-    })
+    all_variables <- reactive({list(sz_id = cat)}) # identify zone ID in spatial data
     
     # zone_closure_sideServer("policy", project, spatdat)
-    zone_closure_mapServer("policy", project, 
-                           spatdat, clicked_ids, V, closures, rv, 
+    zone_closure_mapServer("policy", 
+                           project, 
+                           spatdat, 
+                           clicked_ids, 
+                           V, 
+                           closures, 
+                           rv, 
                            all_variables)
     
-    zone_closure_tblServer("policy", project, spatdat, clicked_ids, V)
+    zone_closure_tblServer("policy", 
+                           project, 
+                           spatdat, 
+                           clicked_ids, 
+                           V)
   }
   
   # Run the shiny app
