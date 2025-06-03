@@ -579,6 +579,14 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
           cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"),
               file = version_file, append = TRUE)
           
+          if (is.null(pass)) {
+            rv_load_error_message(
+              paste0("⚠️ Error while loading main data file. Check user manual for file format
+                     compatibility.")
+            )
+            shinyjs::show("load_error_message")
+          }
+          
         } else if (data_type == "port") {
           pass <- q_test(dat = data_out,
                          port_name = load_data_input$port_name(),
@@ -587,6 +595,14 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
                          compare = FALSE,
                          y = NULL)
           table_name <- paste0(project_name, "PortTable")
+          
+          if (is.null(pass)) {
+            rv_load_error_message(
+              paste0("⚠️ Error while loading port data. Select port file again and select a 
+                     valid port name, or check for corrupt file.")
+            )
+            shinyjs::show("load_error_message")
+          }
           
         } else if (data_type == "aux") {
           pass <- q_test(dat = data_out,
@@ -597,6 +613,14 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
           table_name <- paste0(project_name, 
                                sub("\\..*$", "", load_data_input$value$name),
                                "AuxTable")
+          
+          if (is.null(pass)) {
+            rv_load_error_message(
+              paste0("⚠️ Error while loading aux data file. Check user manual for file format
+                     compatibility.")
+            )
+            shinyjs::show("load_error_message")
+          }
           
         } else if (data_type == "spat") {
           
@@ -632,11 +656,16 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
           table_name <- paste0(project_name, 
                                sub("\\..*$", "", load_data_input$value$name),
                                "GridTable")
+          
+          if (is.null(pass)) {
+            rv_load_error_message(
+              paste0("⚠️ Error while loading grid data file. Check user manual for file format
+                     compatibility.")
+            )
+            shinyjs::show("load_error_message")
+          }
         }
       }
-      
-      cat(file = stderr(), "\n", "TESTING... ", "\n")
-      cat(file = stderr(), "\n", str(pass), "\n")
       
       if(load_warning_error || is.null(pass) || !pass) return("error") # return if error/warning occured
       
