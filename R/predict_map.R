@@ -11,13 +11,17 @@
 #'  a csv file to an `sf` object. To upload your spatial data to the FishSETFolder 
 #'  see [load_spatial()].
 #' @param zone.spat Name of zone ID column in `spat`.
-#' @param outsample Logical, indicating if \code{predict_map()} is being used for creating map of out-of-sample
-#' predicted fishing probabilities \code{outsample = TRUE} or policy scenario \code{outsample = FALSE}.
-#' @param outsample_pred A dataframe with fishing location and predicted probabilities for out-of-sample data.
+#' @param plot_type Character, \code{"dynamic"} for interactive leaflet plots and \code{"static"}
+#'  for ggplot.
+#' @param outsample Logical, indicating if \code{predict_map()} is being used for creating map of 
+#'  out-of-sample predicted fishing probabilities \code{outsample = TRUE} or policy scenario 
+#'  \code{outsample = FALSE}.
+#' @param outsample_pred A dataframe with fishing location and predicted probabilities for 
+#'  out-of-sample data.
 #' \code{outsample_pred = NULL} by default and when plotting policy scenarios.
 #' @return A map showing predicted probabilities
-#' @details This function requires that model and prediction output tables exist in the FishSET database when 
-#' plotting policy scenario maps.
+#' @details This function requires that model and prediction output tables exist in the FishSET 
+#' database when plotting policy scenario maps.
 #' @import ggplot2
 #' @import dplyr
 #' @import sf
@@ -31,7 +35,8 @@
 #' }
 
 predict_map <- function(project, mod.name = NULL, policy.name = NULL, spat, 
-                        zone.spat, outsample = FALSE, outsample_pred = NULL){
+                        zone.spat, plot_type = "dynamic",
+                        outsample = FALSE, outsample_pred = NULL){
   
   # Policy map ----------------------------------------------------------------------------------------------------------------
   if(!outsample){
@@ -125,14 +130,12 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL, spat,
   brks <- pretty(probs_df$Probability, n = 8)
   bin_colors <- fishset_viridis(length(brks))
   
-  
   pal <- colorBin(
     bin_colors,
     bins = brks,
     # colors depend on the count variable
     domain = spat_join$Probability,
   )
-  
   
   # Plot
   out <- leaflet::leaflet() %>%
