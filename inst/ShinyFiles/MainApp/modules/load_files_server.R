@@ -625,6 +625,8 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
     
+  
+    
     # Return to main server
     return(rv_all_data_output)
   })

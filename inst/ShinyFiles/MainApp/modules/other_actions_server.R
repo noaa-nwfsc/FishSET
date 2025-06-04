@@ -15,7 +15,7 @@
 # =================================================================================================
 
 
-other_actions_server <- function(id, rv_project_name){
+other_actions_server <- function(id, rv_project_name, rv_data_load_error){
   moduleServer(id, function(input, output, session){
     
     ns <- session$ns
@@ -65,6 +65,16 @@ other_actions_server <- function(id, rv_project_name){
     
     # Managing saved database tables ---------------------------------------------------------------
     rv_manage_db <- reactiveValues(tbl = NULL) # creating reactive dataframe for existing db tables
+    
+    # enable/disable manage tables button based on data loading status
+    observeEvent(rv_data_load_error(), {
+      # Save reactive value in a static variable
+      data_load_error <- rv_data_load_error()
+      
+      # Enable buttons if no load data errors
+      shinyjs::toggleState("manage_tables_btn", 
+                           condition = !data_load_error)
+    })
     
     # creating modal function so it can be reused
     db_tbl_modal <- function() {

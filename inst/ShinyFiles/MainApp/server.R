@@ -47,7 +47,8 @@ server <- function(input, output, session) {
                                         rv_data = rv_data)
   
   #### Other actions (notes, close app)
-  other_actions_server("upload_data_actions", rv_project_name = rv_project_name)
+  other_actions_server("upload_data_actions", rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()))
   
   ### Main panel 
   #### Change folderpath
@@ -88,6 +89,19 @@ server <- function(input, output, session) {
   
   observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update sidebar
   
+  observeEvent(input$load_data_next_btn, {
+    nav_show(
+      "tabs", target = "Select variables", select = TRUE,
+    )
+  })
+  
+  observeEvent(input$sel_var_next_btn, {
+    nav_show(
+      "tabs", target = "QA/QC", select = TRUE,
+    )
+  })
+
+ 
   
   rv_r_expr<- reactiveValues(done = 0, ok = TRUE, output = "")
   
