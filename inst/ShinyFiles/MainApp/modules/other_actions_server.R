@@ -15,7 +15,7 @@
 # =================================================================================================
 
 
-other_actions_server <- function(id){
+other_actions_server <- function(id, rv_rexpr_data = NULL){
   moduleServer(id, function(input, output, session){
     
     # Initialize reactive
@@ -24,6 +24,8 @@ other_actions_server <- function(id){
     # Observer run R expression
     observeEvent(input$run_r_expr_btn, {
       req(input$r_expr_input) # ensure access to code input
+      
+      cat(file = stderr(), "\n", str(rv_rexpr_data), "\n")
       
       tryCatch(
         {
@@ -34,19 +36,22 @@ other_actions_server <- function(id){
         },
         error = function(e) {rv_r_expr$output <- e$message}
       )
+      
+      cat(file = stderr(), "\n", 
+          paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n'), "\n")
     })
     
     # Generate output for R expression
-    output$r_expr_result <- renderUI({
-      if(rv_r_expr$done > 0 ) {
-        content <- paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n')
-        if(rv_r_expr$ok) {
-          pre(content)
-        } else {
-          pre( style = "color: red; font-weight: bold;", content)
-        }
-      }
-    })
+    # output$r_expr_result <- renderUI({
+    #   if(rv_r_expr$done > 0 ) {
+    #     content <- paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n')
+    #     if(rv_r_expr$ok) {
+    #       pre(content)
+    #     } else {
+    #       pre( style = "color: red; font-weight: bold;", content)
+    #     }
+    #   }
+    # })
     
 
     

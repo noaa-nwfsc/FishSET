@@ -26,10 +26,10 @@ other_actions_ui <- function(id){
                         textInput(ns("r_expr_input"), 
                                   label = "Enter an R expression",
                                   value = "test$dataset"),
-                        actionButton(ns("run_r_expr_btn"), "Run", class = "btn-success"),
-                        div(style = "margin-top: 2em;",
-                            uiOutput("r_expr_result")
-                        )
+                        actionButton(ns("run_r_expr_btn"), "Run", class = "btn-success")
+                        # div(style = "margin-top: 2em;",
+                        #     uiOutput("r_expr_result")
+                        # )
                      
     )
   )

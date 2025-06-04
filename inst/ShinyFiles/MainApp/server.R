@@ -47,7 +47,10 @@ server <- function(input, output, session) {
                                         rv_data = rv_data)
   
   #### Other actions (notes, close app)
-  other_actions_server("upload_data_actions")
+  other_actions_server("upload_data_actions", 
+                       rv_rexpr_data = list(
+                         project_name = rv_project_name
+                       ))
   
   ### Main panel 
   #### Change folderpath
