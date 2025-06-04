@@ -22,14 +22,15 @@ other_actions_ui <- function(id){
                      bslib::accordion_panel(
                         "Other actions", icon = bsicons::bs_icon("menu-app"),
                         
-                        # Run R expression from the shiny app
+                        # Run R expressions from the shiny app
                         textInput(ns("r_expr_input"), 
                                   label = "Enter an R expression",
-                                  value = "test$dataset"),
-                        actionButton(ns("run_r_expr_btn"), "Run", class = "btn-success")
-                        # div(style = "margin-top: 2em;",
-                        #     uiOutput("r_expr_result")
-                        # )
+                                  value = "values$data$main"),
+                        actionButton(ns("run_r_expr_btn"), "Run", class = "btn-success"),
+                        div(id = ns("r_expr_container"), 
+                            style = "margin-top: 2em; display: none;", 
+                            verbatimTextOutput(ns("r_expr_result"))
+                        )
                      
     )
   )

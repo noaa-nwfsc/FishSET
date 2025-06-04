@@ -15,45 +15,39 @@
 # =================================================================================================
 
 
-other_actions_server <- function(id, rv_rexpr_data = NULL){
+other_actions_server <- function(id, values = NULL){
   moduleServer(id, function(input, output, session){
     
-    # Initialize reactive
+    # Initialize reactives
     rv_r_expr <- reactiveValues(output = "")
+    rv_r_expr_output <- reactiveVal("")
+    
+    # Output for results from running R expression - initially hidden
+    output$r_expr_result <- renderText({
+      rv_r_expr_output()
+    })
     
     # Observer run R expression
     observeEvent(input$run_r_expr_btn, {
       req(input$r_expr_input) # ensure access to code input
-      
-      cat(file = stderr(), "\n", str(rv_rexpr_data), "\n")
       
       tryCatch(
         {
           rv_r_expr$output <- isolate(
             paste(utils::capture.output(eval(parse(text = input$r_expr_input))), collapse = '\n')
           )
-          # rv_r_expr$ok <- TRUE
         },
         error = function(e) {rv_r_expr$output <- e$message}
       )
-      
-      cat(file = stderr(), "\n", 
-          paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n'), "\n")
     })
     
     # Generate output for R expression
-    # output$r_expr_result <- renderUI({
-    #   if(rv_r_expr$done > 0 ) {
-    #     content <- paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n')
-    #     if(rv_r_expr$ok) {
-    #       pre(content)
-    #     } else {
-    #       pre( style = "color: red; font-weight: bold;", content)
-    #     }
-    #   }
-    # })
-    
-
-    
+    observe({
+      req(rv_r_expr$output)
+      rv_r_expr_output(
+        paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n')
+      )
+      shinyjs::show("r_expr_container")
+    })
   })
 }

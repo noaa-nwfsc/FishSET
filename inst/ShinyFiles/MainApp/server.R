@@ -48,8 +48,8 @@ server <- function(input, output, session) {
   
   #### Other actions (notes, close app)
   other_actions_server("upload_data_actions", 
-                       rv_rexpr_data = list(
-                         project_name = rv_project_name
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data
                        ))
   
   ### Main panel 
