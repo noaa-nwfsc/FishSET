@@ -649,7 +649,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
           }
           
         } else if (data_type == "grid") { 
-          pass <- q_test(grid = load_data_input$value$datapath,
+          pass <- q_test(grid = data_out,
                          name = sub("\\..*$", "", load_data_input$value$name),
                          project = project_name,
                          over_write = TRUE)
