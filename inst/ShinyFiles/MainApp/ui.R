@@ -121,10 +121,8 @@ ui <- function(request){
             ),
             
             fluidRow(
-              column(7, load_data_ui("load_data")),
+              column(12, load_data_ui("load_data")),
 
-              actionButton("load_data_next_btn",
-                           label = "Next"),
             )
           )
         )
@@ -134,14 +132,7 @@ ui <- function(request){
       bslib::nav_panel(
         title = "Select variables", 
         id = "select_variables",
-        actionButton("sel_var_next_btn",
-                     label = "Next"),
       )
-      
-    ),
-    bslib::nav_panel(
-      title = "QA/QC",
-      id = "qaqc"
     )
   )
 }

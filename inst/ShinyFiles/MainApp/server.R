@@ -36,7 +36,6 @@ server <- function(input, output, session) {
   rv_data_load_error <- reactiveVal(TRUE) # Track errors with loading data for sidebar
   rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, 
                                    rule = "n", value = 3) # basic default
-  
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
@@ -85,23 +84,11 @@ server <- function(input, output, session) {
   ### Load data
   rv_data <- load_data_server("load_data",
                               rv_project_name = rv_project_name,
-                              rv_data_names = rv_data_names)
+                              rv_data_names = rv_data_names,
+                              session)
   
   observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update sidebar
   
-  observeEvent(input$load_data_next_btn, {
-    nav_show(
-      "tabs", target = "Select variables", select = TRUE,
-    )
-  })
-  
-  observeEvent(input$sel_var_next_btn, {
-    nav_show(
-      "tabs", target = "QA/QC", select = TRUE,
-    )
-  })
-
- 
   
   rv_r_expr<- reactiveValues(done = 0, ok = TRUE, output = "")
   

@@ -443,7 +443,7 @@ select_data_server <- function(id, data_type, rv_project_name){
 ## Description: Run input checks to make sure required data (main and spatial) have been selected
 ##              and that the project name is valid. If all checks pass, then load all selected 
 ##              data.
-load_data_server <- function(id, rv_project_name, rv_data_names){
+load_data_server <- function(id, rv_project_name, rv_data_names, parent_session){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -625,9 +625,20 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
     
-  
+    # Next button to move user to Select variables sub-tab
+    observeEvent(input$load_data_next_btn, {
+      bslib::nav_show(
+        id = "tabs", target = "Select variables", select = TRUE,
+        session = parent_session
+      )
+    })
+    
     
     # Return to main server
     return(rv_all_data_output)
+    
+    
   })
+  
+  
 }
