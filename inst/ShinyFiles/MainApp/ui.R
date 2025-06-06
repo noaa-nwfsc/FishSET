@@ -62,7 +62,7 @@ ui <- function(request){
             
             ### Change folder path
             bslib::card(fill = FALSE,
-                        bslib::card_header("1. Change folder path"),
+                        bslib::card_header("1. Set folder path"),
                         bslib::card_body(
                           folder_path_ui("folderpath")
                         )
