@@ -86,8 +86,7 @@ server <- function(input, output, session) {
                               rv_project_name = rv_project_name,
                               rv_data_names = rv_data_names)
   
-  observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update sidebar
-  
+  observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update the sidebar
   
   
   
