@@ -46,7 +46,7 @@
 #  welfare_predict
 #  sim_welfare
 
-run_policy <- function(project, mod.name = NULL, policy.name=NULL, betadraws = 1000, marg_util_income = NULL, 
+run_policy <- function(project, mod.name = NULL, policy.name = NULL, betadraws = 1000, marg_util_income = NULL, 
                        income_cost = NULL, zone.dat = NULL, group_var = NULL,
                        enteredPrice = NULL, expected.catch = NULL, use.scalers = FALSE, scaler.func = NULL) {
    

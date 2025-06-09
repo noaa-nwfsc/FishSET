@@ -343,7 +343,9 @@ select_project_server <- function(id, rv_folderpath){
 ##              and type of input.
 select_data_server <- function(id, data_type, rv_project_name){
   moduleServer(id, function(input, output, session){
+    ns <- session$ns
     rv_data_input_type <- reactiveVal() # indicates which input value to return
+    rv_port_name <- reactiveVal() # indicates port name in port tables
     
     # Observer project name reactive
     observeEvent(rv_project_name(), {
@@ -391,7 +393,7 @@ select_data_server <- function(id, data_type, rv_project_name){
         if(data_type != "spat"){
           shinyjs::hide(paste0(data_type, "_select_container"))
           shinyjs::show(paste0(data_type, "_upload_container")) # Show file input
-          rv_data_input_type("upload")    
+          rv_data_input_type("upload")
           
         } else {
           shinyjs::hide(paste0(data_type, "_select_container")) # Hide select
@@ -420,6 +422,28 @@ select_data_server <- function(id, data_type, rv_project_name){
       }
     })
     
+    # Prompt user for port name when a port data file is selected
+    observeEvent(input$port_upload_input,{
+      showModal(
+        modalDialog(
+          title = "Port data table",
+          selectInput(inputId = ns("port_name_input"), 
+                      label = "Select column that identifies port name:",
+                      choices = names(read_dat(input$port_upload_input$datapath))),
+          footer = tagList(
+            modalButton("Cancel"),
+            actionButton(ns("confirm_port_btn"), "Next")),
+          easyClose = TRUE
+        )
+      )
+    })
+    
+    # Observe port name selection and assign to reactive for output
+    observeEvent(input$confirm_port_btn, {
+      rv_port_name(input$port_name_input)
+      removeModal()
+    })
+    
     # Return the data table type (select existing or upload new file) and file/table name
     return(reactive({
       req(rv_project_name())
@@ -427,13 +451,20 @@ select_data_server <- function(id, data_type, rv_project_name){
         list(type = "select", value = input[[paste0(data_type, "_select_input")]])
         
       } else if(rv_data_input_type() == "upload"){
-        list(type = "upload", value = input[[paste0(data_type, "_upload_input")]])
+        if(data_type != "port"){
+          list(type = "upload", value = input[[paste0(data_type, "_upload_input")]]) 
+          
+          # Need to include port name for load_port() function
+        } else {
+          list(type = "upload", value = input[[paste0(data_type, "_upload_input")]],
+               port_name = rv_port_name)  
+        }
         
       } else if(rv_data_input_type() == "spat_file"){
-        list(type = "upload", value = input$spat_file_input)
+        list(type = "upload", value = input$spat_file_input, spat_type = "spat_file")
         
       } else if(rv_data_input_type() == "spat_shp"){
-        list(type = "upload", value = input$spat_shp_input)  
+        list(type = "upload", value = input$spat_shp_input, spat_type = "spat_shp")  
       }
     }))
   })
@@ -448,11 +479,11 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
     ns <- session$ns
     
     # Initialize reactives
-    rv_load_error_message <- reactiveVal("") # Store error messages
+    rv_load_error_message <- reactiveVal("") # Store error message
     rv_load_success_message <- reactiveVal("") # Store success message
     rv_all_data_output <- reactiveValues() # Store all of the loaded data - return to main server
     
-    # Outputs for error and success messages
+    # Outputs for error and success messages - initially hidden
     output$load_error_message_out <- renderText({
       rv_load_error_message()
     })
@@ -477,15 +508,17 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
         return()
       }
       
+      # Initialize error/warning flags
       load_warning_error <- FALSE # flag in case an error or warning occurs when loading data
+      pass <- TRUE # flag for q_test loading functions
       
-      # Load from FishSET database
+      # Load data from FishSET database
       if (load_data_input$type == "select"){
         table_name <- load_data_input$value # Save table name
         
         tryCatch(
           {
-            data_out <- table_view(table_name, project_name)    
+            data_out <- table_view(table_name, project_name)
           },
           warning = function(w) {
             load_warning_error <<- TRUE
@@ -502,25 +535,254 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
             shinyjs::show("load_error_message")
           }
         )
-      }
-      
-      # Only proceed if data loaded without warning or error
-      if (!load_warning_error){
-        # Edit project settings in the output folder
-        edit_proj_settings(project = project_name,
-                           tab_name = table_name,
-                           tab_type = data_type)
         
-        # Save package version and recent git commit to the output folder
-        fishset_commit <- packageDescription("FishSET")$GithubSHA1
-        fishset_version <- packageDescription("FishSET")$Version
-        fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
-        version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
-        cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"), 
-            file = version_file, append = TRUE)
+        # Load new data files
+      } else if (load_data_input$type == "upload") {
+        
+        # Read data - excluding spatial data
+        if (data_type != "spat"){
+          tryCatch(
+            {
+              data_out <- read_dat(load_data_input$value$datapath)
+            },
+            warning = function(w) {
+              load_warning_error <<- TRUE
+              rv_load_error_message(
+                paste0("⚠️ ", load_data_input$value$name, 
+                       " failed to load. Check data file for compatibility with FishSET.")
+              )
+              shinyjs::show("load_error_message")
+            },
+            error = function(e) {
+              load_warning_error <<- TRUE
+              rv_load_error_message(
+                paste0("⚠️ ", load_data_input$value$name, 
+                       " failed to load. Check data file for compatibility with FishSET.")
+              )
+              shinyjs::show("load_error_message")
+            }
+          )  
+          
+          # Read spatial data
+        } else if (data_type == "spat") {
+          
+          # Load non-shapefile data (e.g., .rds)
+          if (load_data_input$spat_type == "spat_file"){
+            # check for shapefiles added to regular spatial file loading
+            if (sub('.*\\.', '', load_data_input$value$datapath) %in% 
+                c('shp', 'dbf', 'sbn', 'sbx', 'shx', 'prj', 'cpg')) {
+              rv_load_error_message(paste0("⚠️ Select checkbox for uploading shape files."))
+              shinyjs::show("load_error_message")
+              return("error")
+              
+            } else {
+              tryCatch(
+                {
+                  data_out <- read_dat(load_data_input$value$datapath, is.map = TRUE)
+                },
+                warning = function(w) {
+                  load_warning_error <<- TRUE
+                  rv_load_error_message(
+                    paste0("⚠️ ", load_data_input$value$name, 
+                           " failed to load. Check data file for compatibility with FishSET.")
+                  )
+                  shinyjs::show("load_error_message")
+                },
+                error = function(e) {
+                  load_warning_error <<- TRUE
+                  rv_load_error_message(
+                    paste0("⚠️ ", load_data_input$value$name, 
+                           " failed to load. Check data file for compatibility with FishSET.")
+                  )
+                  shinyjs::show("load_error_message")
+                }
+              )
+            }
+            
+          } else if (load_data_input$spat_type == "spat_shp") {
+            # Return an error if user doesn't provide minimum shapefile requirements
+            required_exts <- c("shp", "shx", "dbf")
+            
+            # Get uploaded files
+            uploaded_files <- load_data_input$value$name
+            upload_exts <- sub('.*\\.', '', load_data_input$value$name)
+            
+            # Check for required components - TRUE if something is missing
+            missing_exts <- !(all(required_exts %in% upload_exts))
+            
+            if (missing_exts) {
+              load_warning_error <<- TRUE
+              rv_load_error_message(
+                paste0("⚠️ ", " Missing shapefile components (shp, shx, dbf). 
+                       Select all required files at the same time in the folder browser.")
+              )
+              shinyjs::show("load_error_message")
+              return("error")
+            }
+            
+            # Create a temporary directory to extract uploaded files
+            temp_dir <- tempdir()
+            
+            # Save uploaded files
+            for(i in 1:length(load_data_input$value$name)){
+              file.copy(
+                from = load_data_input$value$datapath[i],
+                to = file.path(temp_dir, load_data_input$value$name[i]),
+                overwrite = TRUE
+              )
+            }
+            
+            # Identify the shapefile
+            shp_file <- uploaded_files[grep("\\.shp$", uploaded_files, ignore.case = TRUE)][1]
+            shp_path <- file.path(temp_dir, shp_file)
+            
+            # Read shapefile
+            tryCatch(
+              {
+                data_out <- sf::st_read(shp_path, quiet = TRUE, as_tibble = TRUE)
+                data_out <- sf::st_transform(data_out, crs = 4326) #WG84    
+              },
+              warning = function(w) {
+                load_warning_error <<- TRUE
+                rv_load_error_message(
+                  paste0("⚠️ Warning while reading shape file. Check for incomplete or corrupted
+                         shapefiles, projection issues, or unsupported file formats.")
+                )
+                shinyjs::show("load_error_message")
+              },
+              error = function(e) {
+                load_warning_error <<- TRUE
+                rv_load_error_message(
+                  paste0("⚠️ Error while reading shape file. Check for incomplete or corrupted
+                         shapefiles, projection issues, or unsupported file formats.")
+                )
+                shinyjs::show("load_error_message")
+              }
+            )
+          }
+        }
+        
+        # Quiet test loading the new data to the FishSET database
+        q_test <- switch(data_type,
+                         "main" = quietly_test(load_maindata),
+                         "port" = quietly_test(load_port),
+                         "aux" = quietly_test(load_aux),
+                         "spat" = quietly_test(load_spatial),
+                         "grid" = quietly_test(load_grid))
+        
+        # Handle each data type separately because they have different inputs
+        if (data_type == "main") {
+          pass <- q_test(dat = data_out, 
+                         project = project_name,
+                         over_write = TRUE,
+                         compare = FALSE,
+                         y = NULL)
+          table_name <- paste0(project_name, "MainDataTable")
+          
+          # Save package version and recent git commit to the output folder
+          fishset_commit <- packageDescription("FishSET")$GithubSHA1
+          fishset_version <- packageDescription("FishSET")$Version
+          fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
+          version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
+          cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"),
+              file = version_file, append = TRUE)
+          
+          if (is.null(pass)) {
+            rv_load_error_message(
+              paste0("⚠️ Error while loading main data file. Check user manual for file format
+                     compatibility.")
+            )
+            shinyjs::show("load_error_message")
+          }
+          
+        } else if (data_type == "port") {
+          pass <- q_test(dat = data_out,
+                         port_name = load_data_input$port_name(),
+                         project = project_name,
+                         over_write = TRUE,
+                         compare = FALSE,
+                         y = NULL)
+          table_name <- paste0(project_name, "PortTable")
+          
+          if (is.null(pass)) {
+            rv_load_error_message(
+              paste0("⚠️ Error while loading port data. Select port file again and select a 
+                     valid port name, or check for corrupt file.")
+            )
+            shinyjs::show("load_error_message")
+          }
+          
+        } else if (data_type == "aux") {
+          pass <- q_test(dat = data_out,
+                         aux = load_data_input$value$datapath,
+                         name = sub("\\..*$", "", load_data_input$value$name),
+                         over_write = TRUE,
+                         project = project_name)
+          table_name <- paste0(project_name, 
+                               sub("\\..*$", "", load_data_input$value$name),
+                               "AuxTable")
+          
+          if (is.null(pass)) {
+            rv_load_error_message(
+              paste0("⚠️ Error while loading aux data file. Check user manual for file format
+                     compatibility.")
+            )
+            shinyjs::show("load_error_message")
+          }
+          
+        } else if (data_type == "spat") {
+          
+          # Shapefiles have multiple components - only get the name of the .shp file
+          if(load_data_input$spat_type == "spat_shp") {
+            spat_name <- sub("\\..*$", "", shp_file)
+          } else {
+            spat_name <- sub("\\..*$", "", load_data_input$value$name)
+          }
+          
+          pass <- q_test(spat = data_out,
+                         name = spat_name,
+                         over_write = TRUE,
+                         project = project_name)
+          
+          table_name <- paste0(project_name, 
+                               spat_name,
+                               "SpatTable")
+          
+          if (is.null(pass)) {
+            rv_load_error_message(
+              paste0("⚠️ Error while reading spatial file. Check for incomplete or corrupted
+                         spatial data file.")
+            )
+            shinyjs::show("load_error_message")
+          }
+          
+        } else if (data_type == "grid") { 
+          pass <- q_test(grid = data_out,
+                         name = sub("\\..*$", "", load_data_input$value$name),
+                         project = project_name,
+                         over_write = TRUE)
+          table_name <- paste0(project_name, 
+                               sub("\\..*$", "", load_data_input$value$name),
+                               "GridTable")
+          
+          if (is.null(pass)) {
+            rv_load_error_message(
+              paste0("⚠️ Error while loading grid data file. Check user manual for file format
+                     compatibility.")
+            )
+            shinyjs::show("load_error_message")
+          }
+        }
       }
       
-      return(data_out)
+      if(load_warning_error || is.null(pass) || !pass) return("error") # return if error/warning occured
+      
+      # Edit project settings in the output folder
+      edit_proj_settings(project = project_name,
+                         tab_name = table_name,
+                         tab_type = data_type)
+      
+      return(data_out)  
     }
     
     ### Observe load button -----------------------------------------------------------------------

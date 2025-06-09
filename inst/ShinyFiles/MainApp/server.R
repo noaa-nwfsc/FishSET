@@ -56,6 +56,7 @@ server <- function(input, output, session) {
   #### Select project name
   rv_project_name <- select_project_server("select_project", rv_folderpath = rv_folderpath)
   
+  
   #### Select main data
   rv_data_names$main <- select_data_server("select_main",
                                            data_type = "main",
@@ -87,8 +88,7 @@ server <- function(input, output, session) {
                               rv_data_names = rv_data_names,
                               session)
   
-  observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update sidebar
-  
+  observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update the sidebar
   
   rv_r_expr<- reactiveValues(done = 0, ok = TRUE, output = "")
   
