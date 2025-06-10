@@ -17,13 +17,18 @@ tables_database <- function(project) {
   #' }
   if (project_exists(project)) {
     
+
     fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    
+    
     db_tabs <- DBI::dbListTables(fishset_db)
     spat_tabs <- suppressWarnings(list_tables(project, type = "spat"))
     return(c(db_tabs, spat_tabs))
   }
-  else { cat('Project not found')}
+  else { 
+    cat('Project not found')
+  }
 }
 
 
@@ -252,8 +257,18 @@ unserialize_table <- function(table, project) {
   
   sql_qry <- paste0("SELECT ", tab_qry, " FROM ", table, " LIMIT 1")
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  # Need to change folderpath for unit testing
+  if (identical(Sys.getenv("TESTTHAT"), "true")) {
+    folderpath <- testthat::test_path("testdata/FishSETFolder/test_scallop_policy/fishset_db.sqlite")
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), folderpath)
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    
+    # Else use the global variable for folderpath
+  } else {
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    
+  }
 
   unserialize(DBI::dbGetQuery(fishset_db, sql_qry)[[tab_qry]][[1]])
 }

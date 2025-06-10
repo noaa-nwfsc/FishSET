@@ -62,6 +62,13 @@ locproject <- function() {
   #'@export
   #'@keywords internal
   # TODO: change folderpath to fsfolderpath, or FSFolderpath?
+  
+  # If running unit tests - return the unit test path
+  if (identical(Sys.getenv("TESTTHAT"), "true")) {
+     folderpath <- testthat::test_path("testdata\\FishSETFolder\\")
+     return(folderpath)
+  }
+  
   fp_exists <- exists("folderpath", where = ".GlobalEnv")
   
   if (fp_exists) {

@@ -40,27 +40,9 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL, spat,
   
   # Policy map ----------------------------------------------------------------------------------------------------------------
   if(!outsample){
-    
-    # if (identical(Sys.getenv("TESTTHAT"), "true")) {
-    #   folderpath <- testthat::test_path("testdata/FishSETFolder/test_scallop_policy/fishset_db.sqlite")
-    #   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), folderpath)
-    #   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-    #   
-    #   
-    #   
-    #   return(TRUE)
-    #   
-    # } else {
-    #   
-    #   return(FALSE)
-    #   
-    # }
-
     ## Load prediction outputs -------------------------------------------------------------------------------------------------
     # make sure prediction table exist in the database
     # TODO: If this is running in the Shiny and one or more of the tables above do not exist then show error message and stop running function here
-    cat(file = stderr(), "\n Running test \n")
-    
     tryCatch({
       model_idx <- which(lapply(model_design_list(project), "[[", "mod.name") == mod.name)
       model_output <- model_design_list(project)[[model_idx]]},
@@ -214,7 +196,8 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL, spat,
       scale_fill_viridis_c() +
       coord_sf(xlim = x_limits, ylim = y_limits, expand = FALSE) +
       theme_classic() +
-      theme(legend.position = c(0.85, 0.25))
+      theme(legend.position = "inside",
+            legend.position.inside = c(0.85, 0.25))
   }
 
   return(out)
