@@ -22,41 +22,41 @@
 
 # Test static map output (ggplot) -----------------------------------------------------------------
 test_that("predict_map ggplot output works", {
-  # test_fig <- predict_map(
-  #   project <- "scallop_testthat",
-  #   mod.name <- "logit_c_mod1",
-  #   policy.name <- "closure_1",
-  #   spat <- "scallop_testthatscallop_spatialSpatTable",
-  #   zone.spat <- "TEN_ID",
-  #   plot_type <- "static",
-  #   outsample <- FALSE,
-  #   outsample_pred <- NULL
-  # )
-  # 
-  # # Confirm the output is a ggplot
-  # expect_s3_class(test_fig, "ggplot")
-  # 
-  # # Check figure characteristics
-  # expect_equal(test_fig$labels$fill, "Probability")
+  test_fig <- predict_map(
+    project <- "scallop_testthat",
+    mod.name <- "logit_c_mod1",
+    policy.name <- "closure_1",
+    spat <- "scallop_testthatscallop_spatialSpatTable",
+    zone.spat <- "TEN_ID",
+    plot_type <- "static",
+    outsample <- FALSE,
+    outsample_pred <- NULL
+  )
+
+  # Confirm the output is a ggplot
+  expect_s3_class(test_fig, "ggplot")
+
+  # Check figure characteristics
+  expect_equal(test_fig$labels$fill, "Probability")
 })
 
 # Test dynamic map output (leaflet-----------------------------------------------------------------
 test_that("predict_map leaflet output works", {
-  # test_fig <- predict_map(
-  #   project <- "scallop_testthat",
-  #   mod.name <- "logit_c_mod1",
-  #   policy.name <- "closure_1",
-  #   spat <- "scallop_testthatscallop_spatialSpatTable",
-  #   zone.spat <- "TEN_ID",
-  #   plot_type <- "dynamic",
-  #   outsample <- FALSE,
-  #   outsample_pred <- NULL
-  # )
-  # 
-  # # Confirm the output is a ggplot
-  # expect_s3_class(test_fig, "leaflet")
-  # 
-  # # Check figure characteristics
-  # expect_equal(test_fig$x$calls[[1]]$args[[1]], "OpenStreetMap")
-  # expect_equal(as.character(test_fig$x$calls[[3]]$args[[2]]), "Probability")
+  test_fig <- predict_map(
+    project <- "scallop_testthat",
+    mod.name <- "logit_c_mod1",
+    policy.name <- "closure_1",
+    spat <- "scallop_testthatscallop_spatialSpatTable",
+    zone.spat <- "TEN_ID",
+    plot_type <- "dynamic",
+    outsample <- FALSE,
+    outsample_pred <- NULL
+  )
+
+  # Confirm the output is a ggplot
+  expect_s3_class(test_fig, "leaflet")
+
+  # Check figure characteristics
+  expect_equal(test_fig$x$calls[[1]]$args[[1]], "OpenStreetMap")
+  expect_equal(as.character(test_fig$x$calls[[3]]$args[[2]]), "Probability")
 })
