@@ -1,0 +1,23 @@
+{
+  "mapbox_token": "pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjbDI2b244ZmkwMHhjM2NvN3poNHZnajdkIn0.2yYSesDRvw4hSN5gQ1Ja-A",
+  "choosen_scatter": "LANDED_OBSCURED",
+  "numeric_vars": [
+    "LANDED_OBSCURED"
+  ],
+  "temporal_vars": [
+    "DATE_TRIP"
+  ],
+  "id_vars": [
+    "GEARCODE"
+  ],
+  "longitude_pt": "DDLON",
+  "latitude_pt": "DDLAT",
+  "uniqueID": "uniqueID",
+  "multi_grid": [
+    {
+      "mapfile": "spatdat.geojson",
+      "area_variable_map": "TEN_ID",
+      "area_variable_column": "ZoneID"
+    }
+  ]
+}
