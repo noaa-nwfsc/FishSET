@@ -38,6 +38,9 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
                         spat, zone.spat, plot_type = "dynamic", 
                         outsample = FALSE, outsample_pred = NULL){
 
+  # Declare variables to appease rcmd check
+  Probability <- NULL
+  
   # Load project data ----------------------------------------------------------------------------
   if(!outsample){
     # Attempt to load the model design for mod.name
