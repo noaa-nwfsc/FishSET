@@ -83,6 +83,7 @@ Imports:
     tibble,
     tidyr,
     vctrs,
+    withr,
     xml2,
     yaml,
     zoo

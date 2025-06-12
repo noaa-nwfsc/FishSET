@@ -18,27 +18,31 @@ pred_prob_outputs(
 
 \item{policy.name}{List of policy scenario names created in zone_closure function}
 
-\item{output_option}{"table" to return summary table (default); "model_fig" for predicted probabilities; or "policy_fig" 
-to return predicted probabilities for each model/policy scenario ; "diff_table" to return difference between predicted probabilities between 
-model and policy scenario for each zone.}
+\item{output_option}{"table" to return summary table (default); "model_fig" for predicted 
+probabilities; or "policy_fig" to return predicted probabilities for each model/policy 
+scenario; "diff_table" to return difference between predicted probabilities between model and 
+policy scenario for each zone.}
 }
 \value{
-A model prediction summary table (default), model prediction figure, or policy prediction figure. See \code{output_option} argument.
+A model prediction summary table (default), model prediction figure, or policy 
+ prediction figure. See \code{output_option} argument.
 }
 \description{
-Create summary table and figures for the predicted probabilities of fishing per zone for each model and policy scenario. 
-The table and figures include the base case scenario, which is the proportion of observations in each zone. The table also
-includes the squared error between the predicted probabilities and base case probabilities. The first figure option displays
-predicted probabilities for each model, and the second figure option shows predicted probabilities for each model and policy.
+Create summary table and figures for the predicted probabilities of fishing per zone for each 
+ model and policy scenario. The table and figures include the base case scenario, which is the 
+ proportion of observations in each zone. The table also includes the squared error between the
+ predicted probabilities and base case probabilities. The first figure option displays predicted 
+ probabilities for each model, and the second figure option shows predicted probabilities for 
+ each model and policy.
 }
 \details{
-This function requires that model and prediction output tables exist in the FishSET database. If these tables are not 
-present in the database to function with terminate and return an error message.
+This function requires that model and prediction output tables exist in the FishSET
+ database. If these tables are not present in the database to function with terminate and 
+ return an error message.
 }
 \examples{
 \dontrun{
-
 pred_prob_outputs(project = "scallop")
-
 }
+
 }

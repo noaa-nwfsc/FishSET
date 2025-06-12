@@ -49,22 +49,30 @@ test_that("predict_map ggplot output works", {
 })
 
 # Test dynamic map output (leaflet-----------------------------------------------------------------
-# test_that("predict_map leaflet output works", {
-#   test_fig <- predict_map(
-#     project <- "s1",
-#     mod.name <- "logit_c_mod1",
-#     policy.name <- "closure_1",
-#     spat <- "s1spatSpatTable",
-#     zone.spat <- "TEN_ID",
-#     plot_type <- "dynamic",
-#     outsample <- FALSE,
-#     outsample_pred <- NULL
-#   )
-# 
-#   # Confirm the output is a ggplot
-#   expect_s3_class(test_fig, "leaflet")
-# 
-#   # Check figure characteristics
-#   expect_equal(test_fig$x$calls[[1]]$args[[1]], "OpenStreetMap")
-#   expect_equal(as.character(test_fig$x$calls[[3]]$args[[2]]), "Probability")
-# })
+test_that("predict_map leaflet output works", {
+  # Define the base folder path to the test data directory
+  # This folder should contain the subfolder named "s1" to pass the test
+  test_folder <- testthat::test_path("testdata/FishSETFolder")
+  
+  # Override the folder path used by locproject() which is nested within predict_map()
+  # This isolates the test env from the default paths
+  withr::local_options(list(test_folder_path = test_folder))
+  
+  test_fig <- predict_map(
+    project <- "s1",
+    mod.name <- "logit_c_mod1",
+    policy.name <- "closure_1",
+    spat <- "s1spatSpatTable",
+    zone.spat <- "TEN_ID",
+    plot_type <- "dynamic",
+    outsample <- FALSE,
+    outsample_pred <- NULL
+  )
+
+  # Confirm the output is a ggplot
+  expect_s3_class(test_fig, "leaflet")
+
+  # Check figure characteristics
+  expect_equal(test_fig$x$calls[[1]]$args[[1]], "OpenStreetMap")
+  expect_equal(as.character(test_fig$x$calls[[3]]$args[[2]]), "Probability")
+})
