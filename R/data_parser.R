@@ -1231,7 +1231,7 @@ load_spatial <- function(spat, name = NULL, over_write = TRUE, project,
   tab_name <- paste0(project, name, "SpatTable")
   raw_name <- paste0(tab_name, format(Sys.Date(), format = "%Y%m%d"))
   
-  file_names <- paste0(loc_data(project), "spat/", c(tab_name, raw_name), ".geojson")
+  file_names <- file.path(loc_data(project), "spat", paste0(c(tab_name, raw_name), ".geojson"))
   
   spat_exists <- file.exists(file_names)
   

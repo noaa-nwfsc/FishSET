@@ -77,7 +77,7 @@ clean_spat <- function(spat) {
   if (any(sf::st_is_valid(spat) == FALSE)) {
     
     if (requireNamespace("lwgeom")) {
-      
+      invisible(lwgeom::lwgeom_extSoftVersion()) # this line removes rcmd check warnign for lwgeom
       spat <- sf::st_make_valid(spat)
       
     } else {
