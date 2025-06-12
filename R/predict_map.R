@@ -63,8 +63,6 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
     # Get a list of model names from prediction output scenario names
     predict_n <- unlist(lapply(pred_output, function(x) x$scenario.name))
     
-    return(TRUE)
-    
     # mod_n <- unique(sapply(strsplit(predict_n, split = " "), "[", 1))
     # model_policy_name <- paste0(mod_n, " ", policy.name)
     # 
@@ -73,7 +71,7 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
     #   predProbs <- pred_output[[ind]]$prob[, 1]/100 # Get predicted probabilities by zone
     #   probs_df <- data.frame(ZoneID = as.character(pred_output[[ind]]$zoneID),
     #                          Probability = predProbs)
-    #   
+    # 
     # } else if (model_policy_name %in% predict_n) {
     #   ind <- which(predict_n %in% model_policy_name) # Get index for the prediction output
     #   predProbs <- pred_output[[ind]]$prob[, 2]/100 # Get predicted probabilities by zone
@@ -81,6 +79,8 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
     #                          Probability = predProbs)
     #   closure <- pred_output[[ind]]$zoneIdIn # Get zone ID for closured zones
     # }
+    
+    return(TRUE)
     
   } else {
     # Out-of-sample prediction map ----------------------------------------------------------------
@@ -139,11 +139,11 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
   #                        values = spat_join$Probability,
   #                        position = "bottomright",
   #                        title = "Probability")
-  #   
+  # 
   #   # Static map (ggplot2) ------------------------------------------------------------------------
   # } else if (plot_type == "static") {
   #   spat_probability <- (spat_join %>% filter(!is.na(spat_join$Probability))) # Zones in model
-  #   
+  # 
   #   # Calculate the bounding box and buffer for map aesthetics
   #   bbox <- st_bbox(spat_probability)
   #   x_buffer_ratio <- 0.6
@@ -154,7 +154,7 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
   #   y_buffer <- y_range * y_buffer_ratio
   #   x_limits <- c(bbox$xmin - x_buffer, bbox$xmax + x_buffer) # Apply buffer to the bounding box
   #   y_limits <- c(bbox$ymin - y_buffer, bbox$ymax + y_buffer)
-  #   
+  # 
   #   # Get world map and convert to sf format
   #   base_map <- ggplot2::map_data(map = "world",
   #                                 xlim = c(bbox["xmin"], bbox["xmax"]),
@@ -164,7 +164,7 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
   #     dplyr::group_by(across(all_of("group"))) %>%
   #     dplyr::summarize(do_union = FALSE) %>%
   #     sf::st_cast("POLYGON")
-  #   
+  # 
   #   # Plot using ggplot2
   #   out <- ggplot() +
   #     geom_sf(data = base_map) +

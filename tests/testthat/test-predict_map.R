@@ -22,9 +22,13 @@
 
 # Test static map output (ggplot) -----------------------------------------------------------------
 test_that("predict_map ggplot output works", {
-  test_db_path <- testthat::test_path("testdata/FishSETFolder/s1/fishset_db.sqlite")
-  path_opts <- options(test_db_path = test_db_path)
-  on.exit(options(path_opts), add = TRUE)
+  # Define the base folder path to the test data directory
+  # This folder should contain the subfolder named "s1" to pass the test
+  test_folder <- testthat::test_path("testdata/FishSETFolder")
+  
+  # Override the folder path used by locproject() which is nested within predict_map()
+  # This isolates the test env from the default paths
+  withr::local_options(list(test_folder_path = test_folder))
 
   test_fig <- predict_map(
     project <- "s1",
@@ -37,7 +41,6 @@ test_that("predict_map ggplot output works", {
     outsample_pred <- NULL
   )
 
-  # # TEST CODE
   expect_equal(test_fig, TRUE)
   
   # # Confirm the output is a ggplot

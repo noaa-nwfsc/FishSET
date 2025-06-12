@@ -64,9 +64,10 @@ locproject <- function() {
   # TODO: change folderpath to fsfolderpath, or FSFolderpath?
   
   # If running unit tests - return the unit test path
-  if (identical(Sys.getenv("TESTTHAT"), "true")) {
-     folderpath <- testthat::test_path("testdata\\FishSETFolder\\")
-     return(folderpath)
+  test_folderpath <- getOption("test_folder_path")
+  if (!is.null(test_folderpath)) {
+    return(test_folderpath)
+    
   }
   
   fp_exists <- exists("folderpath", where = ".GlobalEnv")
@@ -134,7 +135,7 @@ project_exists <- function(project) {
   # Q: what if folderpath doesn't exist or is faulty?
   if (!is.null(project)) {
     
-    projdir <- paste0(locproject(), project)
+    projdir <- file.path(locproject(), project)
     dir.exists(projdir)
     
   } else FALSE
@@ -264,9 +265,9 @@ locdatabase <- function(project) {
   #' 
   
   if(!is.null(project)){
-      paste0(locproject(),  project, "/fishset_db.sqlite")
+    file.path(locproject(), project, "fishset_db.sqlite")  
   } else {
-    paste0(locproject(), "/fishset_db.sqlite")
+    file.path(locproject(), "fishset_db.sqlite")
   }
 }
 
@@ -337,7 +338,7 @@ loc_data <- function(project) {
   if(is.null(project)){
     warning('Project name must be supplied.')
   } else {
-      paste0(locproject(), project, "/data/")
+      file.path(locproject(), project, "data")
   }
 }
 

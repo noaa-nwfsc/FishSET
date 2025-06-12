@@ -656,7 +656,7 @@ list_tables <- function(project, type = "main") {
       
       if (type == "spat") {
         
-        tabs <- list.files(paste0(loc_data(project), "spat"))
+        tabs <- list.files(file.path(loc_data(project), "spat"))
         tabs <- grep("\\.geojson$", tabs, value = TRUE)
         tabs <- gsub("\\.geojson$", "", tabs)
         
