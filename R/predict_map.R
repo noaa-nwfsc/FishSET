@@ -62,25 +62,22 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
     
     # Get a list of model names from prediction output scenario names
     predict_n <- unlist(lapply(pred_output, function(x) x$scenario.name))
+    mod_n <- unique(sapply(strsplit(predict_n, split = " "), "[", 1))
+    model_policy_name <- paste0(mod_n, " ", policy.name)
     
-    # mod_n <- unique(sapply(strsplit(predict_n, split = " "), "[", 1))
-    # model_policy_name <- paste0(mod_n, " ", policy.name)
-    # 
-    # if (policy.name == mod_n) {
-    #   ind <- grep(policy.name, predict_n)[1] # Get the index for the first prediction output
-    #   predProbs <- pred_output[[ind]]$prob[, 1]/100 # Get predicted probabilities by zone
-    #   probs_df <- data.frame(ZoneID = as.character(pred_output[[ind]]$zoneID),
-    #                          Probability = predProbs)
-    # 
-    # } else if (model_policy_name %in% predict_n) {
-    #   ind <- which(predict_n %in% model_policy_name) # Get index for the prediction output
-    #   predProbs <- pred_output[[ind]]$prob[, 2]/100 # Get predicted probabilities by zone
-    #   probs_df <- data.frame(ZoneID = as.character(pred_output[[ind]]$zoneID),
-    #                          Probability = predProbs)
-    #   closure <- pred_output[[ind]]$zoneIdIn # Get zone ID for closured zones
-    # }
-    
-    return(TRUE)
+    if (policy.name == mod_n) {
+      ind <- grep(policy.name, predict_n)[1] # Get the index for the first prediction output
+      predProbs <- pred_output[[ind]]$prob[, 1]/100 # Get predicted probabilities by zone
+      probs_df <- data.frame(ZoneID = as.character(pred_output[[ind]]$zoneID),
+                             Probability = predProbs)
+
+    } else if (model_policy_name %in% predict_n) {
+      ind <- which(predict_n %in% model_policy_name) # Get index for the prediction output
+      predProbs <- pred_output[[ind]]$prob[, 2]/100 # Get predicted probabilities by zone
+      probs_df <- data.frame(ZoneID = as.character(pred_output[[ind]]$zoneID),
+                             Probability = predProbs)
+      closure <- pred_output[[ind]]$zoneIdIn # Get zone ID for closured zones
+    }
     
   } else {
     # Out-of-sample prediction map ----------------------------------------------------------------
@@ -88,93 +85,93 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
     probs_df <- outsample_pred
   }
   
-  # # Load and prepare spatial dataset --------------------------------------------------------------
-  # spatout <- data_pull(spat, project) # Parse spatial dataset
-  # spatdat <- spatout$dataset
-  # spat <- parse_data_name(spat, "spat", project)
-  # spatdat[[zone.spat]] <- as.character(spatdat[[zone.spat]])
-  # 
-  # # Prepare the probability data for joining with spatial data
-  # names(probs_df) <- c(zone.spat, "Probability")
-  # probs_df[,1] <- as.character(probs_df[,1])
-  # 
-  # # Merge spatial dataset with predicted probabilities
-  # spat_join <- dplyr::left_join(spatdat[zone.spat], probs_df, by = zone.spat)
-  # spat_join <-  sf::st_transform(spat_join, "+proj=longlat +datum=WGS84")
-  # 
-  # # Define variable for dynamic mapping
-  # var_sym <- function() rlang::sym("Probability")
-  # 
-  # # Dynamic map (leaflet) -------------------------------------------------------------------------
-  # brks <- pretty(probs_df$Probability, n = 8)
-  # bin_colors <- fishset_viridis(length(brks))
-  # pal <- colorBin(
-  #   bin_colors,
-  #   bins = brks,
-  #   domain = spat_join$Probability # colors depend on the count variable
-  # )
-  # 
-  # # Leaflet map
-  # if (plot_type == "dynamic"){
-  #   out <- leaflet::leaflet() %>%
-  #     leaflet::addProviderTiles("OpenStreetMap") %>%
-  #     leaflet::addPolygons(data =  spat_join,
-  #                          fillColor = "white",
-  #                          fillOpacity = 0.5,
-  #                          color = "black",
-  #                          stroke = TRUE,
-  #                          weight = 0.5,
-  #                          layerId = ~var_sym(),
-  #                          group = "regions") %>%
-  #     leaflet::addPolygons(data = (spat_join %>% filter(!is.na(spat_join$Probability))),
-  #                          fillColor = ~pal(Probability),
-  #                          color = "black",
-  #                          fillOpacity = 1,
-  #                          stroke = TRUE,
-  #                          weight = 1,
-  #                          smoothFactor = 0.2,
-  #                          layerId = ~var_sym(),
-  #                          label = ~paste0("Probability: ", round(Probability,2))) %>%
-  #     leaflet::addLegend(pal = pal,
-  #                        values = spat_join$Probability,
-  #                        position = "bottomright",
-  #                        title = "Probability")
-  # 
-  #   # Static map (ggplot2) ------------------------------------------------------------------------
-  # } else if (plot_type == "static") {
-  #   spat_probability <- (spat_join %>% filter(!is.na(spat_join$Probability))) # Zones in model
-  # 
-  #   # Calculate the bounding box and buffer for map aesthetics
-  #   bbox <- st_bbox(spat_probability)
-  #   x_buffer_ratio <- 0.6
-  #   y_buffer_ratio <- 0.8
-  #   x_range <- bbox$xmax - bbox$xmin
-  #   y_range <- bbox$ymax - bbox$ymin
-  #   x_buffer <- x_range * x_buffer_ratio
-  #   y_buffer <- y_range * y_buffer_ratio
-  #   x_limits <- c(bbox$xmin - x_buffer, bbox$xmax + x_buffer) # Apply buffer to the bounding box
-  #   y_limits <- c(bbox$ymin - y_buffer, bbox$ymax + y_buffer)
-  # 
-  #   # Get world map and convert to sf format
-  #   base_map <- ggplot2::map_data(map = "world",
-  #                                 xlim = c(bbox["xmin"], bbox["xmax"]),
-  #                                 ylim = c(bbox["ymin"], bbox["ymax"]))
-  #   base_map <- sf::st_as_sf(base_map, coords = c("long", "lat"),
-  #                            crs = sf::st_crs(spat_join)) %>%
-  #     dplyr::group_by(across(all_of("group"))) %>%
-  #     dplyr::summarize(do_union = FALSE) %>%
-  #     sf::st_cast("POLYGON")
-  # 
-  #   # Plot using ggplot2
-  #   out <- ggplot() +
-  #     geom_sf(data = base_map) +
-  #     geom_sf(data = spat_probability, aes(fill = Probability)) +
-  #     scale_fill_viridis_c() +
-  #     coord_sf(xlim = x_limits, ylim = y_limits, expand = FALSE) +
-  #     theme_classic() +
-  #     theme(legend.position = "inside",
-  #           legend.position.inside = c(0.85, 0.25))
-  # }
-  # 
-  # return(out)
+  # Load and prepare spatial dataset --------------------------------------------------------------
+  spatout <- data_pull(spat, project) # Parse spatial dataset
+  spatdat <- spatout$dataset
+  spat <- parse_data_name(spat, "spat", project)
+  spatdat[[zone.spat]] <- as.character(spatdat[[zone.spat]])
+
+  # Prepare the probability data for joining with spatial data
+  names(probs_df) <- c(zone.spat, "Probability")
+  probs_df[,1] <- as.character(probs_df[,1])
+
+  # Merge spatial dataset with predicted probabilities
+  spat_join <- dplyr::left_join(spatdat[zone.spat], probs_df, by = zone.spat)
+  spat_join <-  sf::st_transform(spat_join, "+proj=longlat +datum=WGS84")
+
+  # Define variable for dynamic mapping
+  var_sym <- function() rlang::sym("Probability")
+
+  # Dynamic map (leaflet) -------------------------------------------------------------------------
+  brks <- pretty(probs_df$Probability, n = 8)
+  bin_colors <- fishset_viridis(length(brks))
+  pal <- colorBin(
+    bin_colors,
+    bins = brks,
+    domain = spat_join$Probability # colors depend on the count variable
+  )
+
+  # Leaflet map
+  if (plot_type == "dynamic"){
+    out <- leaflet::leaflet() %>%
+      leaflet::addProviderTiles("OpenStreetMap") %>%
+      leaflet::addPolygons(data =  spat_join,
+                           fillColor = "white",
+                           fillOpacity = 0.5,
+                           color = "black",
+                           stroke = TRUE,
+                           weight = 0.5,
+                           layerId = ~var_sym(),
+                           group = "regions") %>%
+      leaflet::addPolygons(data = (spat_join %>% filter(!is.na(spat_join$Probability))),
+                           fillColor = ~pal(Probability),
+                           color = "black",
+                           fillOpacity = 1,
+                           stroke = TRUE,
+                           weight = 1,
+                           smoothFactor = 0.2,
+                           layerId = ~var_sym(),
+                           label = ~paste0("Probability: ", round(Probability,2))) %>%
+      leaflet::addLegend(pal = pal,
+                         values = spat_join$Probability,
+                         position = "bottomright",
+                         title = "Probability")
+
+    # Static map (ggplot2) ------------------------------------------------------------------------
+  } else if (plot_type == "static") {
+    spat_probability <- (spat_join %>% filter(!is.na(spat_join$Probability))) # Zones in model
+
+    # Calculate the bounding box and buffer for map aesthetics
+    bbox <- st_bbox(spat_probability)
+    x_buffer_ratio <- 0.6
+    y_buffer_ratio <- 0.8
+    x_range <- bbox$xmax - bbox$xmin
+    y_range <- bbox$ymax - bbox$ymin
+    x_buffer <- x_range * x_buffer_ratio
+    y_buffer <- y_range * y_buffer_ratio
+    x_limits <- c(bbox$xmin - x_buffer, bbox$xmax + x_buffer) # Apply buffer to the bounding box
+    y_limits <- c(bbox$ymin - y_buffer, bbox$ymax + y_buffer)
+
+    # Get world map and convert to sf format
+    base_map <- ggplot2::map_data(map = "world",
+                                  xlim = c(bbox["xmin"], bbox["xmax"]),
+                                  ylim = c(bbox["ymin"], bbox["ymax"]))
+    base_map <- sf::st_as_sf(base_map, coords = c("long", "lat"),
+                             crs = sf::st_crs(spat_join)) %>%
+      dplyr::group_by(across(all_of("group"))) %>%
+      dplyr::summarize(do_union = FALSE) %>%
+      sf::st_cast("POLYGON")
+
+    # Plot using ggplot2
+    out <- ggplot() +
+      geom_sf(data = base_map) +
+      geom_sf(data = spat_probability, aes(fill = Probability)) +
+      scale_fill_viridis_c() +
+      coord_sf(xlim = x_limits, ylim = y_limits, expand = FALSE) +
+      theme_classic() +
+      theme(legend.position = "inside",
+            legend.position.inside = c(0.85, 0.25))
+  }
+
+  return(out)
 }

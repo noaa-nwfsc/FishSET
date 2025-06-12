@@ -25,7 +25,7 @@ test_that("predict_map ggplot output works", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test
   test_folder <- testthat::test_path("testdata/FishSETFolder")
-  
+
   # Override the folder path used by locproject() which is nested within predict_map()
   # This isolates the test env from the default paths
   withr::local_options(list(test_folder_path = test_folder))
@@ -41,13 +41,11 @@ test_that("predict_map ggplot output works", {
     outsample_pred <- NULL
   )
 
-  expect_equal(test_fig, TRUE)
-  
-  # # Confirm the output is a ggplot
-  # expect_s3_class(test_fig, "ggplot")
-  # 
-  # # Check figure characteristics
-  # expect_equal(test_fig$labels$fill, "Probability")
+  # Confirm the output is a ggplot
+  expect_s3_class(test_fig, "ggplot")
+
+  # Check figure characteristics
+  expect_equal(test_fig$labels$fill, "Probability")
 })
 
 # Test dynamic map output (leaflet-----------------------------------------------------------------

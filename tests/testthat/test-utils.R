@@ -79,3 +79,19 @@ test_that("test loc_data() works", {
   # Check that the path to the database is correct
   expect_equal(result, paste0(test_folder, "/s1/data"))
 })
+
+test_that("test data_pull() works", {
+  # Define the base folder path to the test data directory
+  # This folder should contain the subfolder named "s1" to pass the test
+  test_folder <- testthat::test_path("testdata/FishSETFolder")
+  
+  # Override the folder path used by locproject() which is called in loc_data()
+  # This isolates the test env from the default paths
+  withr::local_options(list(test_folder_path = test_folder))
+  
+  # Call the function to construct the path to the database
+  result <- loc_data("s1")
+  
+  # Check that the path to the database is correct
+  expect_equal(result, paste0(test_folder, "/s1/data"))
+})

@@ -106,3 +106,23 @@ test_that("test unserialize_table() works", {
   expect_equal(dim(result1[[1]][[2]]), c(2, 2))
   expect_equal(dim(result1[[1]][[3]]), c(6, 2))
 })
+
+
+test_that("test table_view() works", {
+  # Define the base folder path to the test data directory
+  # This folder should contain the subfolder named "s1" to pass the test
+  test_folder <- testthat::test_path("testdata/FishSETFolder")
+  
+  # Override the folder path used by locproject() which is nested 
+  # within unserialize_table().
+  # This isolates the test env from the default paths
+  withr::local_options(list(test_folder_path = test_folder))
+  
+  # Call the function to test a few cases
+  result_main <- table_view("s1MainDataTable", "s1")
+  result_spat <- table_view("s1spatSpatTable", "s1")
+  
+  # Check that the results are correct
+  expect_s3_class(result_main, "tbl_df")
+  expect_s3_class(result_spat, "sf")
+})
