@@ -18,7 +18,8 @@ test_that("test locproject() works", {
 
   # Override the folder path option used by locproject()
   # This isolates the test env from the default paths
-  withr::local_options(list(test_folder_path = test_folder))
+  old_option <- getOption("test_folder_path")
+  options(test_folder_path = test_folder)
   
   # Call the function
   result <- locproject()
@@ -35,7 +36,8 @@ test_that("test project_exists() works", {
   
   # Override the folder path used by locproject() which is called in project_exists()
   # This isolates the test env from the default paths
-  withr::local_options(list(test_folder_path = test_folder))
+  old_option <- getOption("test_folder_path")
+  options(test_folder_path = test_folder)
   
   # Call the function for a pass (s1) and a fail test (s2)
   result1 <- project_exists("s1")
@@ -54,7 +56,8 @@ test_that("test locdatabase() works", {
   
   # Override the folder path used by locproject() which is called in locdatabase()
   # This isolates the test env from the default paths
-  withr::local_options(list(test_folder_path = test_folder))
+  old_option <- getOption("test_folder_path")
+  options(test_folder_path = test_folder)
   
   # Call the function to construct the path to the database
   result <- locdatabase("s1")
@@ -71,7 +74,8 @@ test_that("test loc_data() works", {
   
   # Override the folder path used by locproject() which is called in loc_data()
   # This isolates the test env from the default paths
-  withr::local_options(list(test_folder_path = test_folder))
+  old_option <- getOption("test_folder_path")
+  options(test_folder_path = test_folder)
   
   # Call the function to construct the path to the database
   result <- loc_data("s1")
@@ -87,7 +91,8 @@ test_that("test data_pull() works", {
   
   # Override the folder path used by locproject() which is called in loc_data()
   # This isolates the test env from the default paths
-  withr::local_options(list(test_folder_path = test_folder))
+  old_option <- getOption("test_folder_path")
+  options(test_folder_path = test_folder)
   
   # Call the function to construct the path to the database
   result <- loc_data("s1")

@@ -28,7 +28,8 @@ test_that("predict_map ggplot output works", {
 
   # Override the folder path used by locproject() which is nested within predict_map()
   # This isolates the test env from the default paths
-  withr::local_options(list(test_folder_path = test_folder))
+  old_option <- getOption("test_folder_path")
+  options(test_folder_path = test_folder)
 
   test_fig <- predict_map(
     project <- "s1",
@@ -56,7 +57,8 @@ test_that("predict_map leaflet output works", {
   
   # Override the folder path used by locproject() which is nested within predict_map()
   # This isolates the test env from the default paths
-  withr::local_options(list(test_folder_path = test_folder))
+  old_option <- getOption("test_folder_path")
+  options(test_folder_path = test_folder)
   
   test_fig <- predict_map(
     project <- "s1",

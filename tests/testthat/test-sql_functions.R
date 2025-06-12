@@ -17,7 +17,9 @@ test_that("test projects() works", {
 
   # Override the folder path used by locproject() which is nested within projects()
   # This isolates the test env from the default paths
-  withr::local_options(list(test_folder_path = test_folder))
+  # withr::local_options(list(test_folder_path = test_folder))
+  old_option <- getOption("test_folder_path")
+  options(test_folder_path = test_folder)
 
   # Call the function and "s1" should be returned
   result <- projects()
@@ -34,7 +36,8 @@ test_that("test list_tables() works", {
   
   # Override the folder path used by locproject() which is nested within list_tables()
   # This isolates the test env from the default paths
-  withr::local_options(list(test_folder_path = test_folder))
+  old_option <- getOption("test_folder_path")
+  options(test_folder_path = test_folder)
   
   # Call the function and assess table names
   result_main <- list_tables("s1")
@@ -55,7 +58,8 @@ test_that("test tables_database() works", {
 
   # Override the folder path used by locproject() which is nested within tables_database()
   # This isolates the test env from the default paths
-  withr::local_options(list(test_folder_path = test_folder))
+  old_option <- getOption("test_folder_path")
+  options(test_folder_path = test_folder)
 
   # Call the function and assess table names
   result <- tables_database("s1")
@@ -74,7 +78,8 @@ test_that("test table_exists() works", {
 
   # Override the folder path used by locproject() which is nested within table_exists()
   # This isolates the test env from the default paths
-  withr::local_options(list(test_folder_path = test_folder))
+  old_option <- getOption("test_folder_path")
+  options(test_folder_path = test_folder)
 
   # Call the function to test a few cases
   result1 <- table_exists(paste0("s1", "MainDataTable"), "s1")
@@ -95,7 +100,8 @@ test_that("test unserialize_table() works", {
   # Override the folder path used by locproject() which is nested 
   # within unserialize_table().
   # This isolates the test env from the default paths
-  withr::local_options(list(test_folder_path = test_folder))
+  old_option <- getOption("test_folder_path")
+  options(test_folder_path = test_folder)
   
   # Call the function to test a few cases
   result1 <- unserialize_table(paste0("s1", "predictOutput"), "s1")
@@ -116,7 +122,8 @@ test_that("test table_view() works", {
   # Override the folder path used by locproject() which is nested 
   # within unserialize_table().
   # This isolates the test env from the default paths
-  withr::local_options(list(test_folder_path = test_folder))
+  old_option <- getOption("test_folder_path")
+  options(test_folder_path = test_folder)
   
   # Call the function to test a few cases
   result_main <- table_view("s1MainDataTable", "s1")
