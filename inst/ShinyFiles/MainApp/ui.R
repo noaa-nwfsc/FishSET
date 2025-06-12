@@ -17,6 +17,8 @@
 source("modules/spinner.R", local = TRUE) # Reusable spinner
 source("modules/load_files_ui.R", local = TRUE) # Upload data - load files subtab
 source("modules/other_actions_ui.R", local = TRUE) # Other actions in sidebar 
+source("modules/select_variables_ui.R", local = TRUE) # Other actions in sidebar 
+
 
 # UI function definition
 ui <- function(request){
@@ -130,7 +132,28 @@ ui <- function(request){
       ## Select variables subtab ------------------------------------------------------------------
       bslib::nav_panel(
         title = "Select variables", 
-        id = "select_variables"
+        id = "select_variables",
+        bslib::layout_column_wrap( fill = TRUE,
+                                   width = 1/2,
+                                   bslib::card(fill = TRUE,fillable = TRUE,
+                                               bslib::card_header(strong("Primary data variables"), class = "bg-info"),
+                                               bslib::card_body( 
+                                                 bslib::card(
+                                                   h6("Primary data"),
+                                                   select_main_var_ui("selecting_main")),
+                                                 bslib::card(
+                                                   h6("Port data"),
+                                                   select_port_var_ui("selecting_port"))
+                                               )
+                                   ),
+                                   bslib::card(fill = TRUE,fillable = TRUE,
+                                               bslib::card_header(strong('Spatial data variables'),  class = "bg-info"),
+                                               bslib::card_body(
+                                                 h6("Spatial data"),
+                                                 select_spat_var_ui("selecting_spat")
+                                               )
+                                   )
+        )
       )
     )
   )

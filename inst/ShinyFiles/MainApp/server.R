@@ -18,6 +18,8 @@
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/load_files_server.R", local = TRUE) # Upload data - load files subtab
 source("modules/other_actions_server.R", local = TRUE) # Other actions in sidebar 
+source("modules/select_variables_server.R", local = TRUE) # Other actions in sidebar 
+
 
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
@@ -36,6 +38,8 @@ server <- function(input, output, session) {
   rv_data_load_error <- reactiveVal(TRUE) # Track errors with loading data for sidebar
   rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, 
                                    rule = "n", value = 3) # basic default
+  rv_selected_variables <- reactiveValues() # All selected variables from select_variables_server
+  
   
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
@@ -116,4 +120,18 @@ server <- function(input, output, session) {
       }
     }
   })
+  
+  # Upload data -----------------------------------------------------------------------------------
+  ## Selecting variables subtab ----------------------------------------------------------------------------
+  ### Sidebar
+  
+  
+  ### Main panel
+  rv_selected_variables$main <- select_main_var_server("selecting_main", 
+                                                       rv_data = rv_data)
+  rv_selected_variables$spat <- select_spat_var_server("selecting_spat", 
+                                                       rv_data = rv_data)
+  rv_selected_variables$port <- select_port_var_server("selecting_port", 
+                                                       rv_data = rv_data)
+  
 }
