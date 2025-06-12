@@ -20,6 +20,10 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
+    # Initialize reactives
+    rv_log_overwrite <- reactiveVal(NULL) # Reactive value for resetting log (T/F for overwriting 
+                                          # existing log)
+    
     # enable/disable confidentiality and reset log buttons based on data loading status
     observeEvent(rv_data_load_error(), {
       # Save reactive value in a static variable
@@ -34,6 +38,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
                            condition = !data_load_error)
     })
     
+    # Confidentiality setting ----------------------------------------------------------------------
     # create a modal for creating confidentiality rules
     observeEvent(input$confid_modal_btn, {
       req(rv_project_name()) # Ensure rv_project_name is not NULL
@@ -68,7 +73,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
                                            observational units (e.g., vessels).
                                            The k rule (“identification of majority 
                                            allocation”) defaults to 90; no single
-                                           observationalunit can account for 90%
+                                           observational unit can account for 90%
                                            or more of the value.", 
                                           id = "tip", 
                                           placement = "right"))), 
@@ -130,9 +135,8 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
       removeModal()
     }, ignoreInit=FALSE)
     
-    # Reactive value for resetting log (T/F for overwriting existing log)
-    rv_log_overwrite <- reactiveVal(NULL)
     
+    # Reset log ------------------------------------------------------------------------------------
     # Resetting log or overwriting existing modal
     observeEvent(input$reset_log_modal_btn, {
       req(rv_project_name()) # Ensure rv_project_name is not NULL
@@ -148,7 +152,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
         modalDialog(title = "Reset Log",
                     div(id = ns("log_overwrite_container"),
                         style = "display: none;",
-                        checkboxInput(ns("log_overwrite_chk"), 
+                        checkboxInput(ns("log_overwrite_chk_input"), 
                                       paste("Overwrite", last_log), value = FALSE)
                     ),
                     DT::DTOutput(ns("logreset_table")),
@@ -178,7 +182,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
       project_name <- rv_project_name() # Retrieve current project info
       
       # if user checks overwrite checkbox, then user input in log_reset function
-      if (rv_log_overwrite()== TRUE) overwrite <- input$log_overwrite_chk
+      if (rv_log_overwrite()== TRUE) overwrite <- input$log_overwrite_chk_input
       else overwrite <- FALSE
       
       # check for errors and reset log
@@ -193,6 +197,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
       }
     })
     
+    # Refresh data ---------------------------------------------------------------------------------
     # refresh data actions
     observeEvent(input$refresh_data_btn, {
       
@@ -219,7 +224,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
         # reset main data table with initial data
         ref_err <- FALSE
         tryCatch(
-          main_data <- table_view(tmp_tabs, project_name$value),
+          rv_data$main <- table_view(tmp_tabs, project_name$value),
           error = function(e) {ref_err <<- TRUE}
         )
         
