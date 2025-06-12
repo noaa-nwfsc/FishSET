@@ -16,7 +16,7 @@
 #      - Checks that the base map tiles and color mapping arguments are as expected.
 #
 # Notes:
-#   - Uses test project: "test_scallop_policy"
+#   - Uses test project: "s1"
 #   - Assumes access to example model and spatial objects for reproducibility.
 # -------------------------------------------------------------------------------------------------
 
