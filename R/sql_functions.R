@@ -258,18 +258,18 @@ unserialize_table <- function(table, project) {
   sql_qry <- paste0("SELECT ", tab_qry, " FROM ", table, " LIMIT 1")
   
   # Need to change folderpath for unit testing
-  if (identical(Sys.getenv("TESTTHAT"), "true")) {
-    folderpath <- testthat::test_path("testdata/FishSETFolder/s1/fishset_db.sqlite")
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), folderpath)
-    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-    
+  test_folderpath <- getOption("test_db_path")
+  if (!is.null(test_folderpath)) {
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), test_folderpath)
+  
     # Else use the global variable for folderpath
   } else {
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
     
   }
-
+  
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
   unserialize(DBI::dbGetQuery(fishset_db, sql_qry)[[tab_qry]][[1]])
 }
 
