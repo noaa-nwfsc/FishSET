@@ -37,14 +37,14 @@ test_that("predict_map ggplot output works", {
     outsample_pred <- NULL
   )
 
-  # TEST CODE
-  expect_equal(test_fig, TRUE
-               )
-#   # Confirm the output is a ggplot
-#   expect_s3_class(test_fig, "ggplot")
-
-#   # Check figure characteristics
-#   expect_equal(test_fig$labels$fill, "Probability")
+  # # TEST CODE
+  expect_equal(test_fig, TRUE)
+  
+  # # Confirm the output is a ggplot
+  # expect_s3_class(test_fig, "ggplot")
+  # 
+  # # Check figure characteristics
+  # expect_equal(test_fig$labels$fill, "Probability")
 })
 
 # Test dynamic map output (leaflet-----------------------------------------------------------------

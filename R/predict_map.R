@@ -37,45 +37,34 @@
 predict_map <- function(project, mod.name = NULL, policy.name = NULL, 
                         spat, zone.spat, plot_type = "dynamic", 
                         outsample = FALSE, outsample_pred = NULL){
-
+  
   # Declare variables to appease rcmd check
   Probability <- NULL
   
   # Load project data ----------------------------------------------------------------------------
   if(!outsample){
-    # Attempt to load the model design for mod.name
+    # Attempt to load policy prediction output
     tryCatch(
       {
-        model_idx <- which(lapply(model_design_list(project), "[[", "mod.name") == mod.name)
-        model_output <- model_design_list(project)[[model_idx]]
+        pred_out <- unserialize_table(paste0(project, "predictOutput"), project)
+        
+        # Identify prediction output matching the specified model
+        get_mod_pred_out <- lapply(pred_out, function(x){
+          if (x$modelDat$mod.name == mod.name) return(1) else return(0)
+        })
+        
+        pred_output <- pred_out[which(unlist(get_mod_pred_out) == 1)]
       },
       error = function(e){
-        message(paste0("Model output table not found in ", project))
+        message(paste0("Prediction output table not found in ", project))
       }
     )
     
-    # TEST CODE
+    # Get a list of model names from prediction output scenario names
+    predict_n <- unlist(lapply(pred_output, function(x) x$scenario.name))
+    
     return(TRUE)
     
-    # # Attempt to load policy prediction output
-    # tryCatch(
-    #   {
-    #     pred_out <- unserialize_table(paste0(project, "predictOutput"), project)
-    #     
-    #     # Identify prediction output matching the specified model
-    #     get_mod_pred_out <- lapply(pred_out, function(x){
-    #       if (x$modelDat$mod.name == mod.name) return(1) else return(0)
-    #     })
-    #     
-    #     pred_output <- pred_out[which(unlist(get_mod_pred_out) == 1)]
-    #   },
-    #   error = function(e){
-    #     message(paste0("Prediction output table not found in ", project))
-    #   }
-    # )
-    # 
-    # # Get a list of model names from prediction output scenario names
-    # predict_n <- unlist(lapply(pred_output, function(x) x$scenario.name))
     # mod_n <- unique(sapply(strsplit(predict_n, split = " "), "[", 1))
     # model_policy_name <- paste0(mod_n, " ", policy.name)
     # 
@@ -86,7 +75,7 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
     #                          Probability = predProbs)
     #   
     # } else if (model_policy_name %in% predict_n) {
-    #   ind <- which(predict_n %in% model_policy_name) # Get index for the prediction output 
+    #   ind <- which(predict_n %in% model_policy_name) # Get index for the prediction output
     #   predProbs <- pred_output[[ind]]$prob[, 2]/100 # Get predicted probabilities by zone
     #   probs_df <- data.frame(ZoneID = as.character(pred_output[[ind]]$zoneID),
     #                          Probability = predProbs)
@@ -151,7 +140,7 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
   #                        position = "bottomright",
   #                        title = "Probability")
   #   
-  #   # Static map (ggplot2) ------------------------------------------------------------------------ 
+  #   # Static map (ggplot2) ------------------------------------------------------------------------
   # } else if (plot_type == "static") {
   #   spat_probability <- (spat_join %>% filter(!is.na(spat_join$Probability))) # Zones in model
   #   
@@ -164,7 +153,7 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
   #   x_buffer <- x_range * x_buffer_ratio
   #   y_buffer <- y_range * y_buffer_ratio
   #   x_limits <- c(bbox$xmin - x_buffer, bbox$xmax + x_buffer) # Apply buffer to the bounding box
-  #   y_limits <- c(bbox$ymin - y_buffer, bbox$ymax + y_buffer) 
+  #   y_limits <- c(bbox$ymin - y_buffer, bbox$ymax + y_buffer)
   #   
   #   # Get world map and convert to sf format
   #   base_map <- ggplot2::map_data(map = "world",
@@ -186,6 +175,6 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
   #     theme(legend.position = "inside",
   #           legend.position.inside = c(0.85, 0.25))
   # }
-  #
+  # 
   # return(out)
 }
