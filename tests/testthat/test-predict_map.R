@@ -23,10 +23,10 @@
 # Test static map output (ggplot) -----------------------------------------------------------------
 test_that("predict_map ggplot output works", {
   test_fig <- predict_map(
-    project <- "test_proj",
+    project <- "s1",
     mod.name <- "logit_c_mod1",
     policy.name <- "closure_1",
-    spat <- "test_projtest_spatSpatTable",
+    spat <- "s1spatSpatTable",
     zone.spat <- "TEN_ID",
     plot_type <- "static",
     outsample <- FALSE,
@@ -43,10 +43,10 @@ test_that("predict_map ggplot output works", {
 # Test dynamic map output (leaflet-----------------------------------------------------------------
 test_that("predict_map leaflet output works", {
   test_fig <- predict_map(
-    project <- "test_proj",
+    project <- "s1",
     mod.name <- "logit_c_mod1",
     policy.name <- "closure_1",
-    spat <- "test_projtest_spatSpatTable",
+    spat <- "s1spatSpatTable",
     zone.spat <- "TEN_ID",
     plot_type <- "dynamic",
     outsample <- FALSE,

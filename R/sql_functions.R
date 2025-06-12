@@ -259,7 +259,7 @@ unserialize_table <- function(table, project) {
   
   # Need to change folderpath for unit testing
   if (identical(Sys.getenv("TESTTHAT"), "true")) {
-    folderpath <- testthat::test_path("testdata/FishSETFolder/scallop_testthat/fishset_db.sqlite")
+    folderpath <- testthat::test_path("testdata/FishSETFolder/s1/fishset_db.sqlite")
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), folderpath)
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
     
