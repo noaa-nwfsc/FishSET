@@ -121,7 +121,8 @@ ui <- function(request){
             ),
             
             fluidRow(
-              column(7, load_data_ui("load_data"))
+              column(12, load_data_ui("load_data")),
+
             )
           )
         )
@@ -130,7 +131,7 @@ ui <- function(request){
       ## Select variables subtab ------------------------------------------------------------------
       bslib::nav_panel(
         title = "Select variables", 
-        id = "select_variables"
+        id = "select_variables",
       )
     )
   )
