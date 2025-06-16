@@ -77,7 +77,9 @@ clean_spat <- function(spat) {
   if (any(sf::st_is_valid(spat) == FALSE)) {
     
     if (requireNamespace("lwgeom")) {
-      
+      # invisible() does nothing, but having this line here removes the warning in R CMD check
+      # for the lwgeom package (supports sf package)
+      invisible(lwgeom::lwgeom_extSoftVersion())
       spat <- sf::st_make_valid(spat)
       
     } else {
