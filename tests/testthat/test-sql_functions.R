@@ -2,14 +2,23 @@
 # File: test-sql_functions.R
 # Purpose: Unit tests for the SQL functions in the FishSET package
 # Description:
+#   This script tests the core database access and management functions provided in the FishSET
+#   package. It ensures they operate correctly on a sample test project ("s1") within known
+#   structure and contents.
 #
 # Scenarios tested:
+#   - Discovering available projects
+#   - Listing available tables in both main and spatial databases
+#   - Checking table presence
+#   - Reading/unserializing tables
+#   - Viewing table contents as tibbles or spatial objects
 #
 # Notes:
 #   - Uses test project: "s1"
 #   - Assumes access to example model and spatial objects for reproducibility.
 # -------------------------------------------------------------------------------------------------
 
+# Test for the 'projects()' function --------------------------------------------------------------
 test_that("test projects() works", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test
@@ -29,6 +38,7 @@ test_that("test projects() works", {
 })
 
 
+# Tests for the 'list_tables()' function ----------------------------------------------------------
 test_that("test list_tables() works", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test
@@ -51,6 +61,7 @@ test_that("test list_tables() works", {
 })
 
 
+# Tests for the 'tables_database()' function ------------------------------------------------------ 
 test_that("test tables_database() works", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test
@@ -71,6 +82,7 @@ test_that("test tables_database() works", {
 })
 
 
+# Tests for the 'table_exists()' function ---------------------------------------------------------
 test_that("test table_exists() works", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test
@@ -92,6 +104,8 @@ test_that("test table_exists() works", {
   expect_equal(result3, FALSE)
 })
 
+
+# Tests for the 'unserialize_table()' function ----------------------------------------------------
 test_that("test unserialize_table() works", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test
@@ -114,6 +128,7 @@ test_that("test unserialize_table() works", {
 })
 
 
+# Tests for the 'table_view()' function -----------------------------------------------------------
 test_that("test table_view() works", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test

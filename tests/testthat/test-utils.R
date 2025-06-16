@@ -12,6 +12,7 @@
 #     isolated testing
 # -------------------------------------------------------------------------------------------------
 
+# Test for 'locproject()' function ----------------------------------------------------------------
 test_that("test locproject() works", {
   # Get the full path to the test folder inside the testdata directory
   test_folder <- testthat::test_path("testdata/FishSETFolder")
@@ -29,6 +30,7 @@ test_that("test locproject() works", {
 })
 
 
+# Tests for the 'project_exists()' function -------------------------------------------------------
 test_that("test project_exists() works", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test
@@ -49,6 +51,7 @@ test_that("test project_exists() works", {
 })
 
 
+# Test for the 'locdatabase()' function -----------------------------------------------------------
 test_that("test locdatabase() works", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test
@@ -67,6 +70,7 @@ test_that("test locdatabase() works", {
 })
 
 
+# Test for the 'loc_data()' function --------------------------------------------------------------
 test_that("test loc_data() works", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test
@@ -84,6 +88,8 @@ test_that("test loc_data() works", {
   expect_equal(result, paste0(test_folder, "/s1/data"))
 })
 
+
+# Test for the 'data_pull()' function -------------------------------------------------------------
 test_that("test data_pull() works", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test

@@ -41,7 +41,7 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL,
   # Declare variables to appease rcmd check
   Probability <- NULL
   
-  # Load project data ----------------------------------------------------------------------------
+  # Load project data -----------------------------------------------------------------------------
   if(!outsample){
     # Attempt to load policy prediction output
     tryCatch(
