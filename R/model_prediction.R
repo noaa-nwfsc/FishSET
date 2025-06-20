@@ -257,7 +257,7 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL,
         
         predict[[length(predict)+1]] <- list(
           scenario.name = paste(mod.name[ii], closures[[i]]$scenario), 
-          InOut=InOutepm, prob=ProbE, 
+          InOut=InOutepm, prob = ProbE, 
           time='nameAllTime', type=x_new$likelihood, tac=tac, 
           zoneID=zoneID, zoneIdIn=zoneIdIn, zoneIdOut=zoneIdOut,
           modelDat=modelDat)

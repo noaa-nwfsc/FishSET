@@ -22,14 +22,13 @@
 #' @export
 #' @keywords internal
 
-create_model_input <-
-  function(project,
-           x = NULL,
-           mod.name = NULL,
-           use.scalers = FALSE,
-           scaler.func = NULL,
-           expected.catch = NULL,
-           exp.names = NULL) {
+create_model_input <- function(project,
+                               x = NULL,
+                               mod.name = NULL,
+                               use.scalers = FALSE,
+                               scaler.func = NULL,
+                               expected.catch = NULL,
+                               exp.names = NULL) {
     
     # Two scenarios 
     # 1) Pulling from discrete fish subroutine  - x will be supplied
@@ -64,7 +63,8 @@ create_model_input <-
     # TODO: fix non-syntactic choice column name (or leave as vector)
     choice <- as.data.frame(as.numeric(factor(as.matrix(choice))))
     # Note: ab is # of cost parameters + # of alts (shift_sort_x)
-    ab <- max(choice) + 1 # no interactions in create_logit_input - interact distances in likelihood function instead
+    # no interactions in create_logit_input - interact distances in likelihood function instead
+    ab <- max(choice) + 1 
     distance <- data.frame(x$distance)
     startingloc <- x$startingloc
     mod.name <- unlist(x$mod.name)
@@ -171,14 +171,17 @@ create_model_input <-
     
     if (fr == "logit_correction" & all(is.na(startingloc))) {
       # Note: use stop() instead?
-      warning("Startingloc parameter is not specified. Rerun the create_alternative_choice function")
+      warning("Startingloc parameter is not specified. 
+              Rerun the create_alternative_choice function")
     }
     
     # Flattened identity matrices (alts x alts) in each row, and nrows = number of observations
     dataCompile <- create_logit_input(choice)
     
-    # IMPORTANT NOTE: Both choice possibilities AND distances are sorted/shifted even though the column names for distances are not shifted.
-    d <- shift_sort_x(x = dataCompile, ch = choice, y = catch, distance = distance, alts = max(choice), ab = ab)
+    # IMPORTANT NOTE: Both choice possibilities AND distances are sorted/shifted even 
+    #                 though the column names for distances are not shifted.
+    d <- shift_sort_x(x = dataCompile, ch = choice, y = catch, 
+                      distance = distance, alts = max(choice), ab = ab)
     
     # Data needs will vary by the likelihood function
     if (grepl("epm", fr)) {
