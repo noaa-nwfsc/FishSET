@@ -22,7 +22,7 @@ select_main_var_server <- function(id, rv_data){
          
          # Initialize reactives
          
-         observe({
+         observeEvent( input$save_vars_btn, {
             req(rv_data) # Ensure data is not null
             main_data <- rv_data$main # Save static copy of main data from reactive input
             
@@ -139,5 +139,52 @@ select_port_var_server <- function(id, rv_data){
             )
          })
       })
+}
+   
+   select_aux_var_server <- function(id, rv_data){
+      moduleServer(
+         id,
+         function(input, output, session){
+            
+            ns <- session$ns
+            
+            observe({    
+               req(rv_data) # Ensure data is not null
+               aux_data <- rv_data$aux
+               
+               if(!is.null(aux_data)){
+                  shinyjs::hide("select_error_message")
+                  shinyjs::show("aux_variables_container")  
+                  tagList(
+                     updateSelectInput(session,
+                                       "aux_id_input",
+                                       choices =colnames(aux_data))
+                  )
+                  
+               } else {
+                  shinyjs::show("select_error_message")
+                  shinyjs::hide("aux_variables_container")  
+                  
+                  
+               }
+               
+            })
+            
+            reactive({
+               list(
+                  aux_id = input$aux_id_input,
+               )
+            })
+         })
+   }
+   
+save_var_server <- function(id, rv_selected_variables){
+      moduleServer(
+         id,
+         function(input, output, session){
+
+            ns <- session$ns
+         }
+      )
 }
 

@@ -143,7 +143,10 @@ ui <- function(request){
                                                    select_main_var_ui("selecting_main")),
                                                  bslib::card(
                                                    h6("Port data"),
-                                                   select_port_var_ui("selecting_port"))
+                                                   select_port_var_ui("selecting_port")),
+                                                 bslib::card(
+                                                   h6("Aux data"),
+                                                   select_aux_var_ui("selecting_aux"))
                                                )
                                    ),
                                    bslib::card(fill = TRUE,fillable = TRUE,
@@ -152,7 +155,9 @@ ui <- function(request){
                                                  h6("Spatial data"),
                                                  select_spat_var_ui("selecting_spat")
                                                )
-                                   )
+                                   ),
+                                   saving_sel_var_ui("saving_all_variables")
+                                   
         )
       )
     )

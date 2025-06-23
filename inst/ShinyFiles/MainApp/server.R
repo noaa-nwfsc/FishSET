@@ -39,7 +39,7 @@ server <- function(input, output, session) {
   rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, 
                                    rule = "n", value = 3) # basic default
   rv_selected_variables <- reactiveValues() # All selected variables from select_variables_server
-  
+  rv_saved_variables <- reactiveValues() # All selected variables from select_variables_server
   
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
@@ -134,4 +134,9 @@ server <- function(input, output, session) {
   rv_selected_variables$port <- select_port_var_server("selecting_port", 
                                                        rv_data = rv_data)
   
+  rv_selected_variables$aux <-  select_aux_var_server("selecting_aux",
+                                                      rv_data = rv_data)
+  # 
+  rv_saved_variables <- save_var_server("saving_all_variables",
+                                        rv_selected_variables = rv_selected_variables)
 }

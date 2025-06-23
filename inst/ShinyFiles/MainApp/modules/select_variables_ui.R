@@ -84,3 +84,31 @@ select_port_var_ui <- function(id){
     
   )
 }
+
+select_aux_var_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    div(id = ns("aux_variables_container"),
+        style = "display: none;",
+        selectizeInput(ns('aux_id_input'),
+                       'Select column containing ID in aux data table that matches with main table',
+                       choices = NULL, multiple = FALSE)
+    ),
+    div(id = ns("select_error_message"), 
+        style = "color: red; display: none; font-size: 20px;", 
+        p(" ⚠️ Aux data not found. Return to Upload data tab and ensure data is
+            loaded correctly. ")
+    )
+  )
+}
+
+saving_sel_var_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    actionButton(inputId = ns("save_vars_btn"),
+                 label = "Save selected variables",
+                 width = "50%",
+                 icon = icon(name="upload", 
+                             lib="font-awesome")  )
+  )
+}
