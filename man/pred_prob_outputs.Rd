@@ -7,7 +7,6 @@
 pred_prob_outputs(
   project,
   mod.name = NULL,
-  zone.dat = NULL,
   policy.name = NULL,
   output_option = "table"
 )
@@ -16,8 +15,6 @@ pred_prob_outputs(
 \item{project}{Name of project}
 
 \item{mod.name}{Name of model}
-
-\item{zone.dat}{Variable in primary data table that contains unique zone ID.}
 
 \item{policy.name}{List of policy scenario names created in zone_closure function}
 

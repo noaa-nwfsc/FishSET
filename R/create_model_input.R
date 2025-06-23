@@ -62,7 +62,7 @@ create_model_input <- function(project,
     choice.table <- choice 
     # TODO: fix non-syntactic choice column name (or leave as vector)
     choice <- as.data.frame(as.numeric(factor(as.matrix(choice))))
-    # Note: ab is # of cost parameters + # of alts (shift_sort_x)
+    # Note: ab is # of cost parameters + # of alts (shift_sort_xcpp)
     # no interactions in create_logit_input - interact distances in likelihood function instead
     ab <- max(choice) + 1 
     distance <- data.frame(x$distance)
@@ -180,8 +180,12 @@ create_model_input <- function(project,
     
     # IMPORTANT NOTE: Both choice possibilities AND distances are sorted/shifted even 
     #                 though the column names for distances are not shifted.
-    d <- shift_sort_x(x = dataCompile, ch = choice, y = catch, 
-                      distance = distance, alts = max(choice), ab = ab)
+    choice_mat <- as.matrix(choice)
+    dimnames(choice_mat) <- NULL
+    distance_mat <- as.matrix(distance)
+    dimnames(distance_mat) <- NULL
+    d <- shift_sort_xcpp(x = dataCompile, ch = choice_mat, y = catch,
+                            distance = distance_mat, alts = max(choice), ab = ab)
     
     # Data needs will vary by the likelihood function
     if (grepl("epm", fr)) {

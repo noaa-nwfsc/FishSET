@@ -14,7 +14,7 @@ The area-specific parameters and travel-distance parameters are of length (# of
 area-specific parameters)*(k-1) and (# of travel-distance variables
 respectively, where (k) equals the number of alternatives.}
 
-\item{dat}{Data matrix, see output from shift_sort_x, alternatives with
+\item{dat}{Data matrix, see output from shift_sort_xcpp, alternatives with
 distance.}
 
 \item{otherdat}{Other data used in model (as a list containing objects

@@ -1,8 +1,8 @@
 # -------------------------------------------------------------------------------------------------
-# File: test-shift_sort_x.R
-# Purpose: Unit tests for the `shift_sort_x()` function in the FishSET package
+# File: test-shift_sort_xcpp.R
+# Purpose: Unit tests for the `shift_sort_xcpp()` function in the FishSET package
 # Description:
-#   This test checks the functionality of the shift_sort_x() function, which is used to rearrange
+#   This test checks the functionality of the shift_sort_xcpp() function, which is used to rearrange
 #   and encode design matrices used in logistic regression based on shifting and sorting logic
 #   involving alternative choices and distances.
 #
@@ -16,7 +16,7 @@
 #   This test provides fixed inputs and checks exact equality against known output.
 # -------------------------------------------------------------------------------------------------
 
-test_that("Test shift_sort_x() function", {
+test_that("Test shift_sort_xcpp() function", {
   # Generate 10x16 flattened identity matrix
   dataCompile <- matrix(0, nrow = 10, ncol = 16)
   dataCompile[, c(1, 6, 11, 16)] <- 1
@@ -45,8 +45,8 @@ test_that("Test shift_sort_x() function", {
   ab <- 5
   
   # Run the function
-  d <- shift_sort_x(x = dataCompile, ch = choice, y = catch, 
-                    distance = distance, alts = max(choice), ab = ab)
+  d <- shift_sort_xcpp(x = dataCompile, ch = choice, y = catch,
+                       distance = distance, alts = max(choice), ab = ab)
   
   # Manually constructed expected result matrix (10x22) based on known correct output
   expected <- matrix(c(
