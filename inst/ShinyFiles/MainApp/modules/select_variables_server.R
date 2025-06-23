@@ -22,7 +22,7 @@ select_main_var_server <- function(id, rv_data){
          
          # Initialize reactives
          
-         observeEvent( input$save_vars_btn, {
+         observe({
             req(rv_data) # Ensure data is not null
             main_data <- rv_data$main # Save static copy of main data from reactive input
             
@@ -48,15 +48,17 @@ select_main_var_server <- function(id, rv_data){
                
             }
          })
-         
-         reactive({
-            list(
-               main_zone_id = input$main_zone_id_input,
-               main_zone_lon = input$main_zone_lon_input,
-               main_zone_lat = input$main_zone_lat_input,
-               main_zone_date = input$main_zone_date_input
-            )
-         })
+         return(
+            reactive({
+               list(
+                  main_zone_id = input$main_zone_id_input,
+                  main_zone_lon = input$main_zone_lon_input,
+                  main_zone_lat = input$main_zone_lat_input,
+                  main_zone_date = input$main_zone_date_input
+               )
+               
+            })
+         )
       })
    
 } 
@@ -160,14 +162,10 @@ select_port_var_server <- function(id, rv_data){
                                        "aux_id_input",
                                        choices =colnames(aux_data))
                   )
-                  
                } else {
                   shinyjs::show("select_error_message")
                   shinyjs::hide("aux_variables_container")  
-                  
-                  
                }
-               
             })
             
             reactive({
@@ -184,6 +182,29 @@ save_var_server <- function(id, rv_selected_variables){
          function(input, output, session){
 
             ns <- session$ns
+            
+            # Initialize reactives
+            rv_var_error_message <- reactiveVal("") # Store error message
+            rv_var_success_message <- reactiveVal("") # Store success message
+            
+            # Outputs for error and success messages - initially hidden
+            output$var_error_message_out <- renderText({
+               rv_var_error_message()
+            })
+            output$var_success_message_out <- renderText({
+               rv_var_success_message()
+            })
+            
+            observeEvent(input$save_vars_btn, {
+               
+               if(input$save_vars_btn){
+                  rv_var_success_message("variables are loaded and saved in FishSET database")
+                  shinyjs::show("var_success_message")
+                  shinyjs::hide("var_error_message")
+                  
+               }
+               
+            })
          }
       )
 }

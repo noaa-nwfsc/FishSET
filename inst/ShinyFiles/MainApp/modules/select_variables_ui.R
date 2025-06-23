@@ -109,6 +109,18 @@ saving_sel_var_ui <- function(id){
                  label = "Save selected variables",
                  width = "50%",
                  icon = icon(name="upload", 
-                             lib="font-awesome")  )
+                             lib="font-awesome")  ),
+    
+    # Error message - see specific error messages in load_data_server()
+    div(id = ns("var_error_message"), 
+        style = "color: red; display: none; font-size: 20px;", 
+        textOutput(ns("var_error_message_out"))
+    ),
+    
+    # Success message
+    div(id = ns("var_success_message"), 
+        style = "color: green; display: none; font-size: 20px;",
+        textOutput(ns("var_success_message_out"))
+    ),
   )
 }
