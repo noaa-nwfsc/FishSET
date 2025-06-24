@@ -17,13 +17,18 @@ tables_database <- function(project) {
   #' }
   if (project_exists(project)) {
     
+
     fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    
+    
     db_tabs <- DBI::dbListTables(fishset_db)
     spat_tabs <- suppressWarnings(list_tables(project, type = "spat"))
     return(c(db_tabs, spat_tabs))
   }
-  else { cat('Project not found')}
+  else { 
+    cat('Project not found')
+  }
 }
 
 
@@ -181,7 +186,7 @@ table_view <- function(table, project) {
     
     if (table_type(table) == "spatial") {
       
-      filename <- paste0(loc_data(project), "spat/", table, ".geojson")
+      filename <- file.path(loc_data(project), "spat", paste0(table, ".geojson"))
       sf::st_read(filename)
       
     } else {
@@ -252,9 +257,19 @@ unserialize_table <- function(table, project) {
   
   sql_qry <- paste0("SELECT ", tab_qry, " FROM ", table, " LIMIT 1")
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+  # Need to change folderpath for unit testing
+  test_folderpath <- getOption("test_db_path")
+  if (!is.null(test_folderpath)) {
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), test_folderpath)
+  
+    # Else use the global variable for folderpath
+  } else {
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+    
+  }
+  
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-
+  
   unserialize(DBI::dbGetQuery(fishset_db, sql_qry)[[tab_qry]][[1]])
 }
 
@@ -641,7 +656,7 @@ list_tables <- function(project, type = "main") {
       
       if (type == "spat") {
         
-        tabs <- list.files(paste0(loc_data(project), "spat"))
+        tabs <- list.files(file.path(loc_data(project), "spat"))
         tabs <- grep("\\.geojson$", tabs, value = TRUE)
         tabs <- gsub("\\.geojson$", "", tabs)
         
