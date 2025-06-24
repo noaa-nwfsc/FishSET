@@ -45,7 +45,7 @@ test_that("test project_exists() works", {
   result1 <- project_exists("s1")
   result2 <- project_exists("s2")
   
-  # Check that the "s1" subfolder exists amd the "s2" folder does not
+  # Check that the "s1" subfolder exists and the "s2" folder does not
   expect_equal(result1, TRUE)
   expect_equal(result2, FALSE)
 })
