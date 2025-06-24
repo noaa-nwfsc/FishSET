@@ -10,20 +10,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// row_sums_cpp
-NumericMatrix row_sums_cpp(NumericVector x, int d1, int d2, int d3);
-RcppExport SEXP _FishSET_row_sums_cpp(SEXP xSEXP, SEXP d1SEXP, SEXP d2SEXP, SEXP d3SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< int >::type d1(d1SEXP);
-    Rcpp::traits::input_parameter< int >::type d2(d2SEXP);
-    Rcpp::traits::input_parameter< int >::type d3(d3SEXP);
-    rcpp_result_gen = Rcpp::wrap(row_sums_cpp(x, d1, d2, d3));
-    return rcpp_result_gen;
-END_RCPP
-}
 // shift_sort_xcpp
 NumericMatrix shift_sort_xcpp(NumericMatrix x, NumericMatrix ch, NumericVector y, NumericMatrix distance, int alts, int ab);
 RcppExport SEXP _FishSET_shift_sort_xcpp(SEXP xSEXP, SEXP chSEXP, SEXP ySEXP, SEXP distanceSEXP, SEXP altsSEXP, SEXP abSEXP) {
@@ -42,7 +28,6 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_FishSET_row_sums_cpp", (DL_FUNC) &_FishSET_row_sums_cpp, 4},
     {"_FishSET_shift_sort_xcpp", (DL_FUNC) &_FishSET_shift_sort_xcpp, 6},
     {NULL, NULL, 0}
 };
