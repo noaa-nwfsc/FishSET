@@ -20,7 +20,17 @@ other_actions_ui <- function(id){
   tagList(
     bslib::accordion(open = FALSE,
                      bslib::accordion_panel(
-                        "Other actions", icon = bsicons::bs_icon("menu-app") 
+                        "Other actions", icon = bsicons::bs_icon("menu-app"),
+                        
+                        # Run R expressions from the shiny app
+                        textInput(ns("r_expr_input"), 
+                                  label = "Enter an R expression",
+                                  value = "values$data$main"),
+                        actionButton(ns("run_r_expr_btn"), "Run", class = "btn-success"),
+                        div(id = ns("r_expr_container"), 
+                            style = "margin-top: 2em; display: none;", 
+                            verbatimTextOutput(ns("r_expr_result"))
+                        )
                      
     )
   )

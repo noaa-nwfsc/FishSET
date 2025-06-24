@@ -47,7 +47,10 @@ server <- function(input, output, session) {
                                         rv_data = rv_data)
   
   #### Other actions (notes, close app)
-  other_actions_server("upload_data_actions")
+  other_actions_server("upload_data_actions", 
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data
+                       ))
   
   ### Main panel 
   #### Change folderpath
@@ -88,32 +91,4 @@ server <- function(input, output, session) {
   
   observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update the sidebar
   
-  
-  
-  rv_r_expr<- reactiveValues(done = 0, ok = TRUE, output = "")
-  
-  observeEvent(input$run_r_btn, {
-    shinyjs::hide("error")
-    rv_r_expr$ok <- FALSE
-    tryCatch(
-      {
-        rv_r_expr$output <- isolate(
-          paste(utils::capture.output(eval(parse(text = input$r_expr_input))), collapse = '\n')
-        )
-        rv_r_expr$ok <- TRUE
-      },
-      error = function(err) {rv_r_expr$output <- err$message}
-    )
-    rv_r_expr$done <- rv_r_expr$done + 1
-  })
-  output$r_expr_result <- renderUI({
-    if(rv_r_expr$done > 0 ) {
-      content <- paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n')
-      if(rv_r_expr$ok) {
-        pre(content)
-      } else {
-        pre( style = "color: red; font-weight: bold;", content)
-      }
-    }
-  })
 }

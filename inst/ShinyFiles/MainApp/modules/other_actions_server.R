@@ -15,10 +15,39 @@
 # =================================================================================================
 
 
-other_actions_server <- function(id){
+other_actions_server <- function(id, values = NULL){
   moduleServer(id, function(input, output, session){
     
-
+    # Initialize reactives
+    rv_r_expr <- reactiveValues(output = "")
+    rv_r_expr_output <- reactiveVal("")
     
+    # Output for results from running R expression - initially hidden
+    output$r_expr_result <- renderText({
+      rv_r_expr_output()
+    })
+    
+    # Observer run R expression
+    observeEvent(input$run_r_expr_btn, {
+      req(input$r_expr_input) # ensure access to code input
+      
+      tryCatch(
+        {
+          rv_r_expr$output <- isolate(
+            paste(utils::capture.output(eval(parse(text = input$r_expr_input))), collapse = '\n')
+          )
+        },
+        error = function(e) {rv_r_expr$output <- e$message}
+      )
+    })
+    
+    # Generate output for R expression
+    observe({
+      req(rv_r_expr$output)
+      rv_r_expr_output(
+        paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n')
+      )
+      shinyjs::show("r_expr_container")
+    })
   })
 }
