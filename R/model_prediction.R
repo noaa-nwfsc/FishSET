@@ -266,6 +266,8 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL,
     } #end closure loop
     
     
+    browser()
+    
     # Write to FishSET database
     predOut_nm <- paste0(project, "predictOutput")
     predOut_exists <- table_exists(predOut_nm, project)
