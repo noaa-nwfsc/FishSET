@@ -30,15 +30,14 @@ Use \code{table_view("modelChosen", project)} to view a table of saved models.}
 
 \item{policy.name}{List of policy scenario names created in zone_closure function}
 
-\item{betadraws}{Integer indicating the number of times to run the welfare simulation. Default 
-value is \code{betadraws = 1000}}
+\item{betadraws}{Integer indicating the number of times to run the welfare simulation. Default value is
+\code{betadraws = 1000}}
 
-\item{marg_util_income}{For conditional and zonal logit models. Name of the coefficient to use
-as marginal utility of income.}
+\item{marg_util_income}{For conditional and zonal logit models. Name of the coefficient to use as 
+marginal utility of income.}
 
-\item{income_cost}{For conditional and zonal logit models. Logical indicating whether the 
-coefficient for the marginal utility of income relates to cost (\code{TRUE}) or 
-revenue (\code{FALSE}).}
+\item{income_cost}{For conditional and zonal logit models. Logical indicating whether the coefficient
+for the marginal utility of income relates to cost (\code{TRUE}) or revenue (\code{FALSE}).}
 
 \item{zone.dat}{Variable in primary data table that contains unique zone ID.}
 
@@ -53,19 +52,17 @@ short-term scenario (\code{short}), the medium-term scenario (\code{med}),
 the long-term scenario (\code{long}), or the user-defined temporal parameters 
 (\code{user}).}
 
-\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? 
-Defaults to \code{FALSE}. Rescaling factors are the mean of the numeric vector unless 
-specified with \code{scaler.func}.}
+\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
+numeric vector unless specified with \code{scaler.func}.}
 
-\item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling 
-factors.}
+\item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
 }
 \description{
-Estimate redistributed fishing effort and welfare loss/gain from changes in policy or change in 
-other factors that influence fisher location choice.
+Estimate redistributed fishing effort and welfare loss/gain from changes in policy or change in other factors that
+influence fisher location choice.
 }
 \details{
-\code{run_policy} is a wrapper function for \code{\link{model_prediction}} and 
-  \code{\link{welfare_predict}}. \code{model_prediction} estimates redistributed fishing 
-  effort after policy changes, and \code{welfare_predict} simulates welfare loss/gain.
+\code{run_policy} is a wrapper function for \code{\link{model_prediction}} and \code{\link{welfare_predict}}.
+   \code{model_prediction} estimates redistributed fishing effort after policy changes, and \code{welfare_predict}
+   simulates welfare loss/gain.
 }

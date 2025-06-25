@@ -40,7 +40,6 @@ design name. \code{outsample.mod.name = NULL} by default.}
 Returns probability of logit model by choice
 }
 \description{
-Prediction component from logit models (non mixed) called in Policy3, under 
-predict_model_tempNew.m
+Prediction component from logit models (non mixed) called in run_policy()
 }
 \keyword{internal}
