@@ -15,7 +15,7 @@
 # =================================================================================================
 
 
-other_actions_server <- function(id, rv_project_name, rv_data_load_error){
+other_actions_server <- function(id, rv_project_name, rv_data_load_error, current_tab){
   moduleServer(id, function(input, output, session){
     
     ns <- session$ns
@@ -55,27 +55,18 @@ other_actions_server <- function(id, rv_project_name, rv_data_load_error){
       req(rv_project_name()) # Ensure rv_project_name is not NULL
       project_name <- rv_project_name() # Retrieve current project info
       
-      # First check to make sure a project was selected
-      if(is.null(project_name$value) | is_empty(project_name$value)){
-        showNotification("Error: project name not specified", type = "error", duration = 60)
-        
-      } else {
-        if (length(suppressWarnings(projects())) == 0) {
-          showNotification("No project tables found", type = "warning", duration = 60)
-          
-        } else {
-          #save db tables to reactive data frame
-          rv_manage_db$tbl <- fishset_tables(project = project_name$value)
-          
-          # open modal
-          db_tbl_modal()
-          
-          # display list of db tables in table for user to select
-          output$db_tables <- DT::renderDT(
-            DT::datatable(rv_manage_db$tbl)
-          )
-        }  
-      }
+      #save db tables to reactive data frame
+      rv_manage_db$tbl <- fishset_tables(project = project_name$value)
+      
+      # open modal
+      db_tbl_modal()
+      
+      # display list of db tables in table for user to select
+      output$db_tables <- DT::renderDT(
+        DT::datatable(rv_manage_db$tbl)
+      )
+      
+      
     })
     
     # open new modal that only shows selected tables that user wants to remove from project
@@ -133,12 +124,11 @@ other_actions_server <- function(id, rv_project_name, rv_data_load_error){
       
       # get project name and selected table
       tabs_to_delete <- rv_manage_db$tbl$table[input$db_tables_rows_selected]
-      tab_proj <- as.character(rv_manage_db$tbl$project[input$db_tables_rows_selected])
-      
+
       # remove table from database
       lapply(seq_along(tabs_to_delete), function(i) {
         
-        table_remove(tabs_to_delete[i], project = tab_proj[i])
+        table_remove(tabs_to_delete[i], project = project_name$value)
       })
       
       # save new list of database tables and display 
@@ -158,19 +148,25 @@ other_actions_server <- function(id, rv_project_name, rv_data_load_error){
       req(rv_project_name()) # Ensure rv_project_name is not NULL
       project_name <- rv_project_name() # Retrieve current project info
       
+      req(current_tab())
+      
+      notes_file_path <- paste0(locoutput(project_name$value), current_tab(), "_upload_notes.txt")
+      
       # File already exists
-      if(file.exists(paste0(locoutput(project_name$value),"upload_notes.txt"))) {
+      if(file.exists(notes_file_path)) {
         if (!is.null(input$add_notes_input) & !is_empty(input$add_notes_input)) {
           tmp_note <- paste0(format(Sys.time(), 
                                     "%Y-%m-%d %H:%M"), ": ", input$add_notes_input, "\n")
           write(tmp_note,
-                file = paste0(locoutput(project_name$value),"upload_notes.txt"), 
+                file = notes_file_path, 
                 append = TRUE)
-          showNotification("Data notes saved.", type='message', duration=60)  
-          
+          shinyjs::show("notes_success_container") 
+          shinyjs::hide("notes_error_container") 
+
         } else{
-          showNotification("Input cannot be empty or null.", type='error', duration=60)  
-          
+          shinyjs::hide("notes_success_container") 
+          shinyjs::show("notes_error_container") 
+
         }
         # Create new file
       } else {
@@ -178,12 +174,14 @@ other_actions_server <- function(id, rv_project_name, rv_data_load_error){
           tmp_note <- paste0("Upload Data Notes: \n")
           tmp_note <- paste0(tmp_note, format(Sys.time(),
                                               "%Y-%m-%d %H:%M"), ": ", input$add_notes_input, "\n")
-          write(tmp_note, file = paste0(locoutput(project_name$value),
-                                        "upload_notes.txt"))
-          showNotification("Data notes saved.", type='message', duration=60)  
+          write(tmp_note, file = notes_file_path)
+          shinyjs::show("notes_success_container") 
+          shinyjs::hide("notes_error_container") 
           
         } else{
-          showNotification("Input cannot be empty or null.", type='error', duration=60)  
+          shinyjs::hide("notes_success_container") 
+          shinyjs::show("notes_error_container") 
+          
         }
       }
       

@@ -30,10 +30,20 @@ other_actions_ui <- function(id){
                                  label = "Add notes",
                                  value=NULL,
                                  placeholder = 'Write notes to store in text output file.'),
+                       
                        actionButton(inputId = ns('download_notes_btn'),
                                     icon = icon('comments', verify_fa = FALSE),
                                     label = 'Save notes',
                                     class = "btn-success"),
+                       div(id = ns("notes_error_container"), 
+                           style = "color: red; display: none; font-size: 16px;", 
+                           p(paste0("⚠️ Input cannot be empty or null."))
+                       ),
+                       div(id = ns("notes_success_container"), 
+                           style = "color: green; display: none; font-size: 16px;",
+                           p(paste0("Data notes saved."))
+                       ),
+                       
                        tags$br(),
                        actionButton(inputId =ns("close_app_btn"), "Close app",
                                     icon = icon("circle-xmark"),

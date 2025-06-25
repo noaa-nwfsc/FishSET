@@ -225,6 +225,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
         ref_err <- FALSE
         tryCatch(
           rv_data$main <- table_view(tmp_tabs, project_name$value),
+          
           error = function(e) {ref_err <<- TRUE}
         )
         
@@ -234,7 +235,11 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
         if(ref_err){
           showNotification("Error refreshing data", type='error', duration=60)
         } else {
-          showNotification("Data refreshed", type='message', duration=60)  
+          showNotification("Data refreshed", type='message', duration=60) 
+          # reset main table in fishset database
+          load_maindata(dat = rv_data$main,
+                        project = project_name$value,
+                        over_write = TRUE)
         }
       }
     }, ignoreInit = TRUE, ignoreNULL=TRUE) 
