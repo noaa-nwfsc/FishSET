@@ -45,7 +45,7 @@ test.}
 
 \item{fr}{Name of likelihood function to test.}
 
-\item{d}{Data from \code{shift_sort_x}}
+\item{d}{Data from \code{shift_sort_xcpp}}
 
 \item{otherdat}{Other data (as a list, corresponding to the likelihood function you want to test).}
 
