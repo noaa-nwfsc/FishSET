@@ -265,32 +265,36 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL,
       } #end epm loop
     } #end closure loop
     
-    
-    browser()
-    
     # Write to FishSET database
     predOut_nm <- paste0(project, "predictOutput")
     predOut_exists <- table_exists(predOut_nm, project)
     date_sql <- paste0(project, "predictOutput", format(Sys.Date(), format = "%Y%m%d"))
     date_tab_exists <- table_exists(date_sql, project)
     
-    if(predOut_exists){
+    if (predOut_exists) {
       # if the table already exists, then save the data and remove the existing table
       predict_out_query <- paste0("SELECT PredictOutput FROM ", project, "predictOutput LIMIT 1")
-      pOutput <- unserialize(DBI::dbGetQuery(fishset_db, predict_out_query)$PredictOutput[[1]])
-      table_remove(predOut_nm, project)
-      
-      # Get names of output scenarios
-      pOutput_db <- unlist(lapply(pOutput, function(x) x$scenario.name))
-      pOutput_n <- unlist(lapply(predict, function(x) x$scenario.name))
-      
-      # If the scenario name was already in the database, then overwrite the existing model, 
-      # else add the new model Used a for loop because apply functions were now working...
-      for(tmp_i in 1:length(pOutput_n)){
-        if(pOutput_n[tmp_i] %in% pOutput_db){
-          pOutput[[which(pOutput_db %in% pOutput_n[tmp_i])]] <- predict[[tmp_i]]
-        } else {
-          pOutput[[length(pOutput) + 1]] <- predict[[tmp_i]]
+      pOutput <- DBI::dbGetQuery(fishset_db, predict_out_query)
+      if (nrow(pOutput) == 0 | length(pOutput$PredictOutput) == 0) {
+        # Table is empty, remove and assign pOutput
+        table_remove(predOut_nm, project)
+        pOutput <- predict
+        
+      } else {
+        pOutput <- unserialize(pOutput$PredictOutput[[1]])  
+        table_remove(predOut_nm, project)  
+        # Get names of output scenarios
+        pOutput_db <- unlist(lapply(pOutput, function(x) x$scenario.name))
+        pOutput_n <- unlist(lapply(predict, function(x) x$scenario.name))
+        
+        # If the scenario name was already in the database, then overwrite the existing model, 
+        # else add the new model Used a for loop because apply functions were now working...
+        for(tmp_i in 1:length(pOutput_n)){
+          if(pOutput_n[tmp_i] %in% pOutput_db){
+            pOutput[[which(pOutput_db %in% pOutput_n[tmp_i])]] <- predict[[tmp_i]]
+          } else {
+            pOutput[[length(pOutput) + 1]] <- predict[[tmp_i]]
+          }
         }
       }
       
@@ -305,14 +309,6 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL,
     DBI::dbExecute(fishset_db, 
                    paste("INSERT INTO", predOut_nm, "VALUES (:PredictOutput)"),
                    params = list(PredictOutput = list(serialize(pOutput, NULL))))
-    
-    # if (table_exists(date_sql, project)) {
-    #   table_remove(date_sql, project)
-    # }
-    # 
-    # DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(PredictOutput predict)"))
-    # DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:PredictOutput)"),
-    #                params = list(PredictOutput = list(serialize(pOutput, NULL))))
     
   }
 }
