@@ -348,7 +348,13 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
           intbetas <- matrix(intcoef, nrow = obsnum, ncol = intnum, byrow = TRUE) * intdat
           intbetas <- matrix(apply(intbetas, 2, function(x) rep(x, alts)), ncol = intnum * alts) * matrix(rep(distance, intnum), nrow = obsnum, ncol = alts * intnum)
           dim(intbetas) <- c(nrow(intbetas), alts, intnum)
-          intbetas <- rowSums(intbetas, dims = 2)
+          
+          
+          # intbetas <- rowSums(intbetas, dims = 2)
+          
+          dims <- dim(intbetas)
+          intbetas <- array(intbetas, c(dims[1] * dims[2], dims[3])) %*% rep(1, dims[3])
+          intbetas <- array(intbetas, c(dims[1], dims[2]))
           
           # Welfare before closure
           Wb <- log(as.matrix(rowSums(exp(gridbetas + intbetas))))
