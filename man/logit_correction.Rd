@@ -19,7 +19,7 @@ and catch sigma are of length equal to unity respectively. The
 catch-function and travel-distance parameters are of length (# of
 catch variables)*(k) and (# of cost variables) respectively.}
 
-\item{dat}{Data matrix, see output from shift_sort_x, alternatives with
+\item{dat}{Data matrix, see output from shift_sort_xcpp, alternatives with
 distance.}
 
 \item{otherdat}{Other data used in model (as a list containing objects

@@ -15,7 +15,7 @@ epm_weibull <- function(starts3, dat, otherdat, alts, project, expname, mod.name
   #'     travel-distance variables, length of shape parameters defaults to 1 but alternative-
   #'     specific shape parameters can be specified (length = # of alternatives), and the
   #'     common scale parameter is a single value.
-  #' @param dat Data matrix, see output from \code{\link{shift_sort_x}}, alternatives with
+  #' @param dat Data matrix, see output from \code{\link{shift_sort_xcpp}}, alternatives with
   #'     distance.
   #' @param otherdat List that contains other data used in the model, see section 8.4.4 in the 
   #'     FishSET user manual for more details (link in the description above):

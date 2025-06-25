@@ -9,7 +9,7 @@ logit_zonal <- function(starts3, dat, otherdat, alts, project, expname, mod.name
   #'     The area-specific parameters and travel-distance parameters are of length (# of
   #'     area-specific parameters)*(k-1) and (# of travel-distance variables
   #'     respectively, where (k) equals the number of alternatives.
-  #' @param dat Data matrix, see output from shift_sort_x, alternatives with
+  #' @param dat Data matrix, see output from shift_sort_xcpp, alternatives with
   #'     distance.
   #' @param otherdat Other data used in model (as a list containing objects
   #'     `intdat` and `griddat`). \cr \cr
