@@ -1,7 +1,6 @@
 #' Logit predict
 #' 
-#' Prediction component from logit models (non mixed) called in Policy3, under 
-#' predict_model_tempNew.m
+#' Prediction component from logit models (non mixed) called in run_policy()
 #'
 #' @param project Name of project
 #' @param mod.name Name of saved model to use. Argument can be the name of the model or can pull 
@@ -70,10 +69,6 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
                                 use.scalers = use.scalers, scaler.func = scaler.func,
                                 expected.catch = mdf_new$gridVaryingVariables, 
                                 exp.names = exp.names)
-  
-  dataCompile <- as.matrix(mod.dat$dataCompile, 
-                           nrow = dim(mod.dat$dataCompile)[1], 
-                           ncol = dim(dim(mod.dat$dataCompile)[1]))
   
   distance <- as.matrix(mod.dat$distance, 
                         nrow = dim(mod.dat$distance)[1], 
@@ -159,8 +154,8 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
     matrix(rep(distance, intnum), nrow = obsnum, ncol = alts * intnum)
   dim(intbetas) <- c(nrow(intbetas), alts, intnum)
   intbetas <- rowSums(intbetas, dims = 2)
-  
-  numerLogit <- exp(gridbetas + intbetas)
+  tmp_betas <- gridbetas + intbetas
+  numerLogit <- exp(tmp_betas)
   denomLogit <- as.matrix(rowSums(numerLogit))
   pLogit <- numerLogit/(matrix(1,1,alts) %x% denomLogit)
   probLogit <- colMeans(pLogit)
