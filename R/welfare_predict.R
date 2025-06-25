@@ -329,7 +329,7 @@ welfare_predict <- function(project, mod.name, closures, betadraws = 1000, marg_
             dims <- dim(gridbetas)
             gridbetas <- array(gridbetas, c(dims[1] * dims[2], dims[3])) %*% rep(1, dims[3])
             gridbetas <- array(gridbetas, c(dims[1], dims[2]))
-  
+            
             ## logit_zonal ----
           } else if(mod.ll == "logit_zonal"){
             # insert 0 for the first alternative (interpretation is relative to the first alt and this beta_1 = 0)
