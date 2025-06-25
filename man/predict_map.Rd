@@ -10,6 +10,7 @@ predict_map(
   policy.name = NULL,
   spat,
   zone.spat,
+  plot_type = "dynamic",
   outsample = FALSE,
   outsample_pred = NULL
 )
@@ -29,10 +30,15 @@ see [load_spatial()].}
 
 \item{zone.spat}{Name of zone ID column in `spat`.}
 
-\item{outsample}{Logical, indicating if \code{predict_map()} is being used for creating map of out-of-sample
-predicted fishing probabilities \code{outsample = TRUE} or policy scenario \code{outsample = FALSE}.}
+\item{plot_type}{Character, \code{"dynamic"} for interactive leaflet plots and \code{"static"}
+for ggplot.}
 
-\item{outsample_pred}{A dataframe with fishing location and predicted probabilities for out-of-sample data.
+\item{outsample}{Logical, indicating if \code{predict_map()} is being used for creating map of 
+out-of-sample predicted fishing probabilities \code{outsample = TRUE} or policy scenario 
+\code{outsample = FALSE}.}
+
+\item{outsample_pred}{A dataframe with fishing location and predicted probabilities for 
+ out-of-sample data.
 \code{outsample_pred = NULL} by default and when plotting policy scenarios.}
 }
 \value{
@@ -42,13 +48,13 @@ A map showing predicted probabilities
 Create a map showing predicted probabilities by zone
 }
 \details{
-This function requires that model and prediction output tables exist in the FishSET database when 
-plotting policy scenario maps.
+This function requires that model and prediction output tables exist in the FishSET 
+database when plotting policy scenario maps.
 }
 \examples{
 \dontrun{
 
-predict_map(project = "scallop", policy.name = "logit_c_mod1 closure_1", 
+predict_map(project = "scallop", mod.name = "logit_c_mod1", policy.name = "closure_1", 
             spat = spat, zone.spat = "TEN_ID")
 
 }

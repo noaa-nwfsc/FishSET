@@ -12,7 +12,7 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
   #'     and catch sigma are of length equal to unity respectively. The
   #'     catch-function and travel-distance parameters are of length (# of
   #'     catch variables)*(k) and (# of cost variables) respectively.
-  #' @param dat Data matrix, see output from shift_sort_x, alternatives with
+  #' @param dat Data matrix, see output from shift_sort_xcpp, alternatives with
   #'     distance.
   #' @param otherdat Other data used in model (as a list containing objects
   #'     `griddat`, `intdat`, `startloc`, `polyn`, and `distance`). \cr \cr

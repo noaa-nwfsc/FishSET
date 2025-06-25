@@ -16,26 +16,29 @@ model_prediction(
 \arguments{
 \item{project}{Name of project}
 
-\item{mod.name}{Model name. Argument can be the name of the model or the name can be pulled the modelChosen table.
- Leave \code{mod.name} empty to use the name of the saved "best" model. If more than
-one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
-Use \code{table_view("modelChosen", project)} to view a table of saved models.}
+\item{mod.name}{Model name. Argument can be the name of the model or the name can be pulled the 
+modelChosen table. Leave \code{mod.name} empty to use the name of the saved "best" model. If 
+more than one model is saved, \code{mod.name} should be the numeric indicator of which model 
+to use. Use \code{table_view("modelChosen", project)} to view a table of saved models.}
 
 \item{closures}{closure scenarios}
 
 \item{enteredPrice}{NEED TO FIGURE OUT WHAT EXACTLY THIS IS}
 
-\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
-numeric vector unless specified with \code{scaler.func}.}
+\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? 
+Defaults to \code{FALSE}. Rescaling factors are the mean of the numeric vector unless 
+specified with \code{scaler.func}.}
 
-\item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
+\item{scaler.func}{Input for \code{create_model_input()}. Function to calculate 
+rescaling factors.}
 }
 \description{
-Estimate redistributed fishing effort following policy change or change in other factors that influence fisher
-location choice.
+Estimate redistributed fishing effort following policy change or change in other factors that 
+influence fisher location choice.
 }
 \details{
-Calls \code{\link{logit_predict}}, \code{\link{epm_predict}}, and \code{\link{predict_probability}}.
-   Closure scenarios and TAC must be define using \code{\link{zone_closure}} function before function can be run.
+Calls \code{\link{logit_predict}}, \code{\link{epm_predict}}, and 
+   \code{\link{predict_probability}}. Closure scenarios and TAC must be define using 
+   \code{\link{zone_closure}} function before function can be run.
 }
 \keyword{internal}
