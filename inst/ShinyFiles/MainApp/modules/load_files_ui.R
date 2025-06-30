@@ -19,17 +19,38 @@
 ##              closing app
 load_sidebar_ui <- function(id){
   ns <- NS(id)
-  tagList(
-    actionButton(ns("refresh_data_btn"), "Complete refresh of data",
-                 class = "btn-primary",
+  
+  refresh_btn_container <- tagList(
+    actionButton(ns("refresh_data_btn"), HTML("Complete refresh <br> of data"),
+                 class = "btn-secondary",
+                 style = "width: 100%;",
                  icon = icon('sync', verify_fa = FALSE),
-    ) ,
-    actionButton(ns("confid_modal_btn"), "Confidentiality",
+    ),
+    
+    # Overlay spinner for refreshing data
+    div(id = ns("refresh_data_spinner_container"),
+        style = "display: none;",
+        spinner_ui(ns("refresh_data_spinner"),
+                   spinner_type = "circle",
+                   size = "large",
+                   message = "Refreshing data...",
+                   overlay = TRUE)
+    )
+  )
+  
+  tagList(
+    actionButton(ns("confid_modal_btn"), "Confidentiality settings",
                  class = "btn-secondary", disable = TRUE
     ),
-    actionButton(ns("reset_log_modal_btn"), "Reset log",
-                 class = "btn-secondary",  disable = TRUE
-    ),
+    
+    splitLayout(cellWidths = c("50%", "50%"),
+                refresh_btn_container,
+                actionButton(ns("reset_log_modal_btn"), "Reset log",
+                             style = "width: 100%; height: 58px",
+                             icon = icon('file-lines', verify_fa = FALSE),
+                             class = "btn-secondary",  disable = TRUE
+                )
+    )
   )
 }
 
@@ -145,13 +166,13 @@ select_data_ui <- function(id, data_type){
 
 ## Load data --------------------------------------------------------------------------------------
 ## Description: Action button to load all of the selected data. Users are also notified if data
-##              loaded successfully, or if an error occured (with a specific error message).
+##              loaded successfully, or if an error occurred (with a specific error message).
 load_data_ui <- function(id){
   ns <- NS(id)
   tagList(
     actionButton(inputId = ns("load_data_btn"),
                  label = "Load data",
-                 width = "50%",
+                 width = "40%",
                  icon = icon(name="upload", 
                              lib="font-awesome")
     ),
@@ -177,6 +198,13 @@ load_data_ui <- function(id){
         style = "color: green; display: none; font-size: 20px;",
         textOutput(ns("load_success_message_out"))
     ),
+    # next button to select variables tab
+    actionButton(inputId = ns("load_data_next_btn"),
+                 label = "Next",
+                 width = "15%",
+                 style = "float:right",
+                 icon = icon(name="circle-chevron-right", 
+                             lib="font-awesome")),
   )
 }
 

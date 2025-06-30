@@ -37,6 +37,7 @@ ui <- function(request){
       bslib::nav_panel(
         title = "Load files", 
         id = "load_files",
+        value = "load_files",
         bslib::page_fillable(
           bslib::layout_sidebar(
             fillable = TRUE, 
@@ -50,14 +51,6 @@ ui <- function(request){
               width = 400,
               load_sidebar_ui("upload_data_sidebar"),
               other_actions_ui("upload_data_actions"),
-              
-              textInput("r_expr_input", 
-                        label = "Enter an R expression",
-                        value = "values$dataset"),
-              actionButton("run_r_btn", "Run", class = "btn-success"),
-              div(style = "margin-top: 2em;",
-                  uiOutput('r_expr_result')
-              ),
             ),
             
             ### Change folder path
@@ -121,7 +114,8 @@ ui <- function(request){
             ),
             
             fluidRow(
-              column(7, load_data_ui("load_data"))
+              column(12, load_data_ui("load_data")),
+              
             )
           )
         )
@@ -129,8 +123,9 @@ ui <- function(request){
       
       ## Select variables subtab ------------------------------------------------------------------
       bslib::nav_panel(
-        title = "Select variables", 
-        id = "select_variables"
+        title = "Select variables",
+        id = "select_variables",
+        value = "select_variables",
       )
     )
   )
