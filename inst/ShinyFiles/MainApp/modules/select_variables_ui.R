@@ -35,7 +35,7 @@ select_main_var_ui <- function(id){
     ),
     div(id = ns("select_error_message"), 
         style = "color: red; display: none; font-size: 20px;", 
-        p(" ⚠️ Main data not found. Return to Upload data tab and ensure data is
+        p(" ⚠️ Main data not found and is required. Return to Upload data tab and ensure data is
             loaded correctly. ")
     )
   )
@@ -52,7 +52,7 @@ select_spat_var_ui <- function(id){
     ),
     div(id = ns("select_error_message"), 
         style = "color: red; display: none; font-size: 20px;", 
-        p(" ⚠️ Spatial data not found. Return to Upload data tab and ensure data is
+        p(" ⚠️ Spatial data not found and is required. Return to Upload data tab and ensure data is
             loaded correctly. ")
     )
   )
@@ -63,7 +63,7 @@ select_port_var_ui <- function(id){
   tagList(
     
     div(id = ns("port_variables_container"),
-        style = "display: none;",
+        style = "display: none; width: 100%;",
         selectizeInput(ns("port_name_input"),
                        "Select variable from port table with port names",
                        choices =NULL,
@@ -77,9 +77,9 @@ select_port_var_ui <- function(id){
                        choices = NULL,
                        multiple = FALSE)),
     div(id = ns("select_error_message"), 
-        style = "color: red; display: none; font-size: 20px;", 
-        p(" ⚠️ Port data not found. Return to Upload data tab and ensure data is
-            loaded correctly. ")
+        style = "display: none; font-size: 20px;", 
+        p("Port data not found. If you supplied this data, return to Upload data tab and ensure 
+        it is loaded correctly. ")
     )
     
   )
@@ -95,9 +95,9 @@ select_aux_var_ui <- function(id){
                        choices = NULL, multiple = FALSE)
     ),
     div(id = ns("select_error_message"), 
-        style = "color: red; display: none; font-size: 20px;", 
-        p(" ⚠️ Aux data not found. Return to Upload data tab and ensure data is
-            loaded correctly. ")
+        style = "display: none; font-size: 20px;", 
+        p("Aux data not found. If you supplied this data, return to Upload data tab and ensure 
+        it is loaded correctly. ")
     )
   )
 }
@@ -111,7 +111,7 @@ saving_sel_var_ui <- function(id){
                  icon = icon(name="upload", 
                              lib="font-awesome")  ),
     
-    # Error message - see specific error messages in load_data_server()
+    # Error message - see specific error messages
     div(id = ns("var_error_message"), 
         style = "color: red; display: none; font-size: 20px;", 
         textOutput(ns("var_error_message_out"))

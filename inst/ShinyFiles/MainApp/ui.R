@@ -133,32 +133,37 @@ ui <- function(request){
       bslib::nav_panel(
         title = "Select variables", 
         id = "select_variables",
-        bslib::layout_column_wrap( fill = TRUE,
+        fluidRow(column(width = 12, bslib::layout_column_wrap( fill = TRUE,
                                    width = 1/2,
-                                   bslib::card(fill = TRUE,fillable = TRUE,
+                                   bslib::card(fill = FALSE,
                                                bslib::card_header(strong("Primary data variables"), class = "bg-info"),
                                                bslib::card_body( 
-                                                 bslib::card(
+                                                 bslib::card(fill = FALSE,
                                                    h6("Primary data"),
                                                    select_main_var_ui("selecting_main")),
-                                                 bslib::card(
+                                                 bslib::card(fill = FALSE,
                                                    h6("Port data"),
                                                    select_port_var_ui("selecting_port")),
-                                                 bslib::card(
+                                                 bslib::card(fill = FALSE,
                                                    h6("Aux data"),
                                                    select_aux_var_ui("selecting_aux"))
                                                )
                                    ),
-                                   bslib::card(fill = TRUE,fillable = TRUE,
+                                   bslib::card(fill = FALSE,
                                                bslib::card_header(strong('Spatial data variables'),  class = "bg-info"),
-                                               bslib::card_body(
+                                               bslib::card_body(fill = FALSE,
                                                  h6("Spatial data"),
                                                  select_spat_var_ui("selecting_spat")
                                                )
-                                   ),
-                                   saving_sel_var_ui("saving_all_variables")
-                                   
+                                   )
         )
+        )
+                                   
+        ),
+        fluidRow(
+          column(7, saving_sel_var_ui("saving_all_variables"))
+        )
+        
       )
     )
   )

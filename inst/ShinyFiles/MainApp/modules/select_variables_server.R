@@ -79,7 +79,7 @@ select_spat_var_server <- function(id, rv_data){
                shinyjs::show("spat_variables_container")  
                updateSelectInput(session,
                                  'spat_zone_id_input',
-                                 choices = names(as.data.frame(spat_data)))
+                                 choices = colnames(spat_data))
                shinyjs::hide("select_error_message")
                
             } else {
@@ -90,7 +90,7 @@ select_spat_var_server <- function(id, rv_data){
          })
          reactive({
             list(
-               spat_zone_id = input$spat_zone_id_input,
+               spat_zone_id = input$spat_zone_id_input
             )
          })
       })
@@ -142,70 +142,88 @@ select_port_var_server <- function(id, rv_data){
          })
       })
 }
-   
-   select_aux_var_server <- function(id, rv_data){
-      moduleServer(
-         id,
-         function(input, output, session){
-            
-            ns <- session$ns
-            
-            observe({    
-               req(rv_data) # Ensure data is not null
-               aux_data <- rv_data$aux
-               
-               if(!is.null(aux_data)){
-                  shinyjs::hide("select_error_message")
-                  shinyjs::show("aux_variables_container")  
-                  tagList(
-                     updateSelectInput(session,
-                                       "aux_id_input",
-                                       choices =colnames(aux_data))
-                  )
-               } else {
-                  shinyjs::show("select_error_message")
-                  shinyjs::hide("aux_variables_container")  
-               }
-            })
-            
-            reactive({
-               list(
-                  aux_id = input$aux_id_input,
-               )
-            })
-         })
-   }
-   
-save_var_server <- function(id, rv_selected_variables){
-      moduleServer(
-         id,
-         function(input, output, session){
 
-            ns <- session$ns
+select_aux_var_server <- function(id, rv_data){
+   moduleServer(
+      id,
+      function(input, output, session){
+         
+         ns <- session$ns
+         
+         observe({    
+            req(rv_data) # Ensure data is not null
+            aux_data <- rv_data$aux
             
-            # Initialize reactives
-            rv_var_error_message <- reactiveVal("") # Store error message
-            rv_var_success_message <- reactiveVal("") # Store success message
+            if(!is.null(aux_data)){
+               shinyjs::hide("select_error_message")
+               shinyjs::show("aux_variables_container")  
+               tagList(
+                  updateSelectInput(session,
+                                    "aux_id_input",
+                                    choices =colnames(aux_data))
+               )
+            } else {
+               shinyjs::show("select_error_message")
+               shinyjs::hide("aux_variables_container")  
+            }
+         })
+         
+         reactive({
+            list(
+               aux_id = input$aux_id_input,
+            )
+         })
+      })
+}
+
+save_var_server <- function(id, rv_project_name, rv_selected_variables){
+   moduleServer(
+      id,
+      function(input, output, session){
+         
+         ns <- session$ns
+         
+         # Initialize reactives
+         rv_var_error_message <- reactiveVal("") # Store error message
+         rv_var_success_message <- reactiveVal("") # Store success message
+         
+         # Outputs for error and success messages - initially hidden
+         output$var_error_message_out <- renderText({
+            rv_var_error_message()
+         })
+         output$var_success_message_out <- renderText({
+            rv_var_success_message()
+         })
+         
+         observeEvent(input$save_vars_btn, {
             
-            # Outputs for error and success messages - initially hidden
-            output$var_error_message_out <- renderText({
-               rv_var_error_message()
-            })
-            output$var_success_message_out <- renderText({
-               rv_var_success_message()
-            })
-            
-            observeEvent(input$save_vars_btn, {
+            if(input$save_vars_btn){
+               req(rv_project_name()) # Check to ensure reactive is available
+               project_name <- rv_project_name()$value
+               req(rv_selected_variables)
                
-               if(input$save_vars_btn){
-                  rv_var_success_message("variables are loaded and saved in FishSET database")
-                  shinyjs::show("var_success_message")
-                  shinyjs::hide("var_error_message")
-                  
-               }
+               saved_variables_main <- rv_selected_variables$main()
+               saved_variables_port <- rv_selected_variables$port()
+               saved_variables_spat <- rv_selected_variables$spat()
                
-            })
-         }
-      )
+               saved_variables <- list(main = saved_variables_main,
+                                       spat = saved_variables_spat,
+                                       port = saved_variables_port)
+               
+               tab_name <- paste0(project_name, "SavedVariables")
+               raw_name <- paste0(tab_name, format(Sys.Date(), format = "%Y%m%d"))
+               
+               file_names <- paste0(loc_data(project_name),raw_name, ".rds")
+               
+               saveRDS(saved_variables, file = file_names)
+               
+               rv_var_success_message("Variables are loaded and saved in project data folder.")
+               shinyjs::show("var_success_message")
+               shinyjs::hide("var_error_message")
+               
+            }
+         })
+      }
+   )
 }
 
