@@ -20,6 +20,10 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
+    # Initialize reactives
+    rv_log_overwrite <- reactiveVal(NULL) # Reactive value for resetting log (T/F for overwriting 
+    # existing log)
+    
     # enable/disable confidentiality and reset log buttons based on data loading status
     observeEvent(rv_data_load_error(), {
       # Save reactive value in a static variable
@@ -30,8 +34,11 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
                            condition = !data_load_error)
       shinyjs::toggleState("reset_log_modal_btn", 
                            condition = !data_load_error)
+      shinyjs::toggleState("refresh_data_btn", 
+                           condition = !data_load_error)
     })
     
+    # Confidentiality setting ---------------------------------------------------------------------
     # create a modal for creating confidentiality rules
     observeEvent(input$confid_modal_btn, {
       req(rv_project_name()) # Ensure rv_project_name is not NULL
@@ -66,7 +73,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
                                            observational units (e.g., vessels).
                                            The k rule (“identification of majority 
                                            allocation”) defaults to 90; no single
-                                           observationalunit can account for 90%
+                                           observational unit can account for 90%
                                            or more of the value.", 
                                           id = "tip", 
                                           placement = "right"))), 
@@ -127,6 +134,115 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
       
       removeModal()
     }, ignoreInit=FALSE)
+    
+    # Reset log -----------------------------------------------------------------------------------
+    # Resetting log or overwriting existing modal
+    observeEvent(input$reset_log_modal_btn, {
+      req(rv_project_name()) # Ensure rv_project_name is not NULL
+      project_name <- rv_project_name() # Retrieve current project info
+      
+      last_log <- current_log(project_name$value) # names of the most recent log file
+      today_log <- paste0(project_name$value, "_", Sys.Date(), ".json") # creates current log name
+      # return T/F if most recent and current log name match
+      rv_log_overwrite(last_log == today_log) 
+      
+      # Reset log modal
+      showModal(
+        modalDialog(title = "Reset Log",
+                    div(id = ns("log_overwrite_container"),
+                        style = "display: none;",
+                        checkboxInput(ns("log_overwrite_chk_input"), 
+                                      paste("Overwrite", last_log), value = FALSE)
+                    ),
+                    DT::DTOutput(ns("logreset_table")),
+                    footer = tagList(
+                      modalButton("Close"),
+                      actionButton(ns("reset_log_btn"), "Reset log", 
+                                   class = "btn-secondary")),
+                    easyClose = TRUE)
+      )
+      
+      # hide/show log overwrite checkbox based on the last log in the project
+      if(rv_log_overwrite() == TRUE) {
+        shinyjs::show("log_overwrite_container") 
+      } else{
+        shinyjs::hide("log_overwrite_container")
+      }
+      
+      # Retrieve all logs in project
+      log_tab <- project_logs(project_name$value, modified = TRUE)
+      # Display table with all logs listed
+      output$logreset_table <- DT::renderDT(log_tab)
+    })
+    
+    # Resetting log action button
+    observeEvent(input$reset_log_btn, {
+      
+      req(rv_project_name()) # Ensure rv_project_name is not NULL
+      project_name <- rv_project_name() # Retrieve current project info
+      
+      # if user checks overwrite checkbox, then user input in log_reset function
+      if (rv_log_overwrite()== TRUE) overwrite <- input$log_overwrite_chk_input
+      else overwrite <- FALSE
+      
+      # check for errors and reset log
+      q_test <- quietly_test(log_reset)
+      log_reset_pass <- q_test(project_name$value, over_write = overwrite)
+      
+      if (log_reset_pass) {
+        showNotification(paste0("Log has been reset for project \"",
+                                project_name$value, "\""),
+                         type = "default", duration = 60)
+        removeModal()
+      }
+    })
+    
+    # Refresh data --------------------------------------------------------------------------------
+    # refresh data actions
+    observeEvent(input$refresh_data_btn, {
+      
+      req(rv_project_name()) # Ensure rv_project_name is not NULL
+      req(rv_data) # Ensure data is not null
+      project_name <- rv_project_name() # Retrieve current project info
+      main_data <- rv_data$main # Save static copy of main data from reactive input
+      
+      # Ensure project name exists
+      if(!is.null(project_name$value)){
+        
+        # Start spinner while it loads
+        shinyjs::show("refresh_data_spinner_container")
+        
+        # get MainDataTable with date loaded
+        tmp_tabs <- tables_database(project_name$value)[grep(paste0(project_name$value, 
+                                                                    'MainDataTable\\d+'),
+                                                             tables_database(project_name$value))]
+        # all dates following MainDataTable
+        tab_dates1 <- unlist(stringi::stri_extract_all_regex(tmp_tabs, "\\d{6,}"))
+        tab_dates2 <- max(tab_dates1) # max date
+        tmp_tabs <- tmp_tabs[which(tab_dates1 == tab_dates2)] # get the latest table
+        
+        # reset main data table with initial data
+        ref_err <- FALSE
+        tryCatch(
+          rv_data$main <- table_view(tmp_tabs, project_name$value),
+          
+          error = function(e) {ref_err <<- TRUE}
+        )
+        
+        # once finished refreshing hide the spinner
+        shinyjs::hide("refresh_data_spinner_container")
+        
+        if(ref_err){
+          showNotification("Error refreshing data", type='error', duration=60)
+        } else {
+          showNotification("Data refreshed", type='message', duration=60) 
+          # reset main table in fishset database
+          load_maindata(dat = rv_data$main,
+                        project = project_name$value,
+                        over_write = TRUE)
+        }
+      }
+    }, ignoreInit = TRUE, ignoreNULL=TRUE) 
     
     # Return the confidentiality settings
     return(reactive({
@@ -366,7 +482,7 @@ select_data_server <- function(id, data_type, rv_project_name){
 ## Description: Run input checks to make sure required data (main and spatial) have been selected
 ##              and that the project name is valid. If all checks pass, then load all selected 
 ##              data.
-load_data_server <- function(id, rv_project_name, rv_data_names){
+load_data_server <- function(id, rv_project_name, rv_data_names, parent_session){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -779,7 +895,20 @@ load_data_server <- function(id, rv_project_name, rv_data_names){
       
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
     
+    # Next button to move user to Select variables sub-tab
+    observeEvent(input$load_data_next_btn, {
+      bslib::nav_show(
+        id = "tabs", target = "Select variables", select = TRUE,
+        session = parent_session
+      )
+    })
+    
+    
     # Return to main server
     return(rv_all_data_output)
+    
+    
   })
+  
+  
 }
