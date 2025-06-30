@@ -27,7 +27,7 @@ fs_folder_exist <- exists("folderpath", where = ".GlobalEnv") # Check for FishSE
 
 # Server function definition
 server <- function(input, output, session) {
-
+  
   # Define reactives ------------------------------------------------------------------------------
   rv_folderpath <- reactiveVal() # Folder path to FishSETFolder
   rv_project_name <- reactiveVal() # Project name
@@ -46,7 +46,8 @@ server <- function(input, output, session) {
                                         rv_data = rv_data)
   
   #### Other actions (notes, close app)
-  other_actions_server("upload_data_actions", rv_project_name = rv_project_name,
+  other_actions_server("upload_data_actions", 
+                       rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
   
@@ -87,9 +88,7 @@ server <- function(input, output, session) {
   rv_data <- load_data_server("load_data",
                               rv_project_name = rv_project_name,
                               rv_data_names = rv_data_names,
-                              parent_session =  session)
+                              parent_session = session)
   
   observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update the sidebar
-  
-
 }

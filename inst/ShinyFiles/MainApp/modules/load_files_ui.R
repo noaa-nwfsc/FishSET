@@ -25,7 +25,8 @@ load_sidebar_ui <- function(id){
                  class = "btn-secondary",
                  style = "width: 100%;",
                  icon = icon('sync', verify_fa = FALSE),
-    ) ,
+    ),
+    
     # Overlay spinner for refreshing data
     div(id = ns("refresh_data_spinner_container"),
         style = "display: none;",
@@ -41,6 +42,7 @@ load_sidebar_ui <- function(id){
     actionButton(ns("confid_modal_btn"), "Confidentiality settings",
                  class = "btn-secondary", disable = TRUE
     ),
+    
     splitLayout(cellWidths = c("50%", "50%"),
                 refresh_btn_container,
                 actionButton(ns("reset_log_modal_btn"), "Reset log",

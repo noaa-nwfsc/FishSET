@@ -115,7 +115,7 @@ ui <- function(request){
             
             fluidRow(
               column(12, load_data_ui("load_data")),
-
+              
             )
           )
         )

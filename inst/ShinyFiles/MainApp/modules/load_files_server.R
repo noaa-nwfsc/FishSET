@@ -22,7 +22,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
     
     # Initialize reactives
     rv_log_overwrite <- reactiveVal(NULL) # Reactive value for resetting log (T/F for overwriting 
-                                          # existing log)
+    # existing log)
     
     # enable/disable confidentiality and reset log buttons based on data loading status
     observeEvent(rv_data_load_error(), {
@@ -38,7 +38,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
                            condition = !data_load_error)
     })
     
-    # Confidentiality setting ----------------------------------------------------------------------
+    # Confidentiality setting ---------------------------------------------------------------------
     # create a modal for creating confidentiality rules
     observeEvent(input$confid_modal_btn, {
       req(rv_project_name()) # Ensure rv_project_name is not NULL
@@ -135,8 +135,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
       removeModal()
     }, ignoreInit=FALSE)
     
-    
-    # Reset log ------------------------------------------------------------------------------------
+    # Reset log -----------------------------------------------------------------------------------
     # Resetting log or overwriting existing modal
     observeEvent(input$reset_log_modal_btn, {
       req(rv_project_name()) # Ensure rv_project_name is not NULL
@@ -162,12 +161,13 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
                                    class = "btn-secondary")),
                     easyClose = TRUE)
       )
+      
       # hide/show log overwrite checkbox based on the last log in the project
-        if(rv_log_overwrite() == TRUE) {
-          shinyjs::show("log_overwrite_container") 
-        } else{
-          shinyjs::hide("log_overwrite_container")
-        }
+      if(rv_log_overwrite() == TRUE) {
+        shinyjs::show("log_overwrite_container") 
+      } else{
+        shinyjs::hide("log_overwrite_container")
+      }
       
       # Retrieve all logs in project
       log_tab <- project_logs(project_name$value, modified = TRUE)
@@ -197,7 +197,7 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
       }
     })
     
-    # Refresh data ---------------------------------------------------------------------------------
+    # Refresh data --------------------------------------------------------------------------------
     # refresh data actions
     observeEvent(input$refresh_data_btn, {
       
@@ -243,8 +243,6 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
         }
       }
     }, ignoreInit = TRUE, ignoreNULL=TRUE) 
-    
-    
     
     # Return the confidentiality settings
     return(reactive({

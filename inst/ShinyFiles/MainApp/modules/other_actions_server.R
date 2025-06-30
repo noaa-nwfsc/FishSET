@@ -14,16 +14,15 @@
 #
 # =================================================================================================
 
-
 other_actions_server <- function(id, rv_project_name, rv_data_load_error, current_tab){
   moduleServer(id, function(input, output, session){
     
     ns <- session$ns
     
-     # Initialize reactives
+    # Initialize reactives
     rv_manage_db <- reactiveValues(tbl = NULL) # creating reactive dataframe for existing db tables
-
-    # Managing saved database tables ---------------------------------------------------------------
+    
+    # Managing saved database tables --------------------------------------------------------------
     
     # enable/disable manage tables button based on data loading status
     observeEvent(rv_data_load_error(), {
@@ -51,7 +50,6 @@ other_actions_server <- function(id, rv_project_name, rv_data_load_error, curren
     
     # checks if projects exist and opens modal
     observeEvent(input$manage_tables_btn, {
-      
       req(rv_project_name()) # Ensure rv_project_name is not NULL
       project_name <- rv_project_name() # Retrieve current project info
       
@@ -65,13 +63,10 @@ other_actions_server <- function(id, rv_project_name, rv_data_load_error, curren
       output$db_tables <- DT::renderDT(
         DT::datatable(rv_manage_db$tbl)
       )
-      
-      
     })
     
     # open new modal that only shows selected tables that user wants to remove from project
     observeEvent(input$delete_db_tbl_btn, {
-      
       showModal(
         modalDialog(title = "Delete these tables?",
                     tagList(
@@ -124,7 +119,7 @@ other_actions_server <- function(id, rv_project_name, rv_data_load_error, curren
       
       # get project name and selected table
       tabs_to_delete <- rv_manage_db$tbl$table[input$db_tables_rows_selected]
-
+      
       # remove table from database
       lapply(seq_along(tabs_to_delete), function(i) {
         
@@ -142,9 +137,8 @@ other_actions_server <- function(id, rv_project_name, rv_data_load_error, curren
       db_tbl_modal()
     })
     
-    # Adding and saving notes in txt file ----------------------------------------------------------
+    # Adding and saving notes in txt file ---------------------------------------------------------
     observeEvent(input$download_notes_btn,{
-      
       req(rv_project_name()) # Ensure rv_project_name is not NULL
       project_name <- rv_project_name() # Retrieve current project info
       
@@ -162,12 +156,13 @@ other_actions_server <- function(id, rv_project_name, rv_data_load_error, curren
                 append = TRUE)
           shinyjs::show("notes_success_container") 
           shinyjs::hide("notes_error_container") 
-
+          
         } else{
           shinyjs::hide("notes_success_container") 
           shinyjs::show("notes_error_container") 
-
+          
         }
+        
         # Create new file
       } else {
         if (!is.null(input$add_notes_input) & !is_empty(input$add_notes_input)) {
@@ -184,15 +179,11 @@ other_actions_server <- function(id, rv_project_name, rv_data_load_error, curren
           
         }
       }
-      
     })
     
-    # Stop app -------------------------------------------------------------------------------------
+    # Stop app ------------------------------------------------------------------------------------
     observeEvent(input$close_app_btn, {
       stopApp()
     }, ignoreInit = TRUE)
-    
-
-    
   })
 }

@@ -26,6 +26,7 @@ other_actions_ui <- function(id){
                                     label ="Manage Tables", 
                                     class = "btn-secondary",
                                     disable = TRUE),
+                       
                        textInput(inputId = ns('add_notes_input'),
                                  label = "Add notes",
                                  value=NULL,
@@ -35,24 +36,25 @@ other_actions_ui <- function(id){
                                     icon = icon('comments', verify_fa = FALSE),
                                     label = 'Save notes',
                                     class = "btn-success"),
+                       
                        div(id = ns("notes_error_container"), 
                            style = "color: red; display: none; font-size: 16px;", 
                            p(paste0("⚠️ Input cannot be empty or null."))
                        ),
+                       
                        div(id = ns("notes_success_container"), 
                            style = "color: green; display: none; font-size: 16px;",
                            p(paste0("Data notes saved."))
                        ),
                        
                        tags$br(),
+                       
                        actionButton(inputId =ns("close_app_btn"), "Close app",
                                     icon = icon("circle-xmark"),
                                     width = "100%",
                                     class = "btn-danger", 
                                     onclick = "setTimeout(function(){window.close();},500);")
                      )
-                     
     )
   )
-  
 }
