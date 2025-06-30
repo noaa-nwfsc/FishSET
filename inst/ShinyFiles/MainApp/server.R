@@ -39,8 +39,7 @@ server <- function(input, output, session) {
   rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, 
                                    rule = "n", value = 3) # basic default
   rv_selected_variables <- reactiveValues() # All selected variables from select_variables_server
-  #rv_saved_variables <- reactiveValues() # All selected variables from select_variables_server
-  
+
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
@@ -51,7 +50,10 @@ server <- function(input, output, session) {
                                         rv_data = rv_data)
   
   #### Other actions (notes, close app)
-  other_actions_server("upload_data_actions")
+  other_actions_server("upload_data_actions", 
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
   
   ### Main panel 
   #### Change folderpath
@@ -59,6 +61,7 @@ server <- function(input, output, session) {
   
   #### Select project name
   rv_project_name <- select_project_server("select_project", rv_folderpath = rv_folderpath)
+  
   
   #### Select main data
   rv_data_names$main <- select_data_server("select_main",
@@ -88,12 +91,11 @@ server <- function(input, output, session) {
   ### Load data
   rv_data <- load_data_server("load_data",
                               rv_project_name = rv_project_name,
-                              rv_data_names = rv_data_names)
+                              rv_data_names = rv_data_names,
+                              parent_session = session)
   
   observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update the sidebar
-  
-  
-  
+
   rv_r_expr<- reactiveValues(done = 0, ok = TRUE, output = "")
   
   observeEvent(input$run_r_btn, {
@@ -137,4 +139,5 @@ server <- function(input, output, session) {
                                                       rv_data = rv_data)
   save_var_server("saving_all_variables", rv_project_name = rv_project_name,
                                           rv_selected_variables = rv_selected_variables)
+
 }
