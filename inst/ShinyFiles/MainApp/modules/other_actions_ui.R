@@ -20,21 +20,53 @@ other_actions_ui <- function(id){
   tagList(
     bslib::accordion(open = FALSE,
                      bslib::accordion_panel(
-                        "Other actions", icon = bsicons::bs_icon("menu-app"),
-                        
-                        # Run R expressions from the shiny app
-                        textInput(ns("r_expr_input"), 
-                                  label = "Enter an R expression",
-                                  value = "values$data$main"),
-                        
-                        actionButton(ns("run_r_expr_btn"), "Run", class = "btn-success"),
-                        
-                        div(id = ns("r_expr_container"), 
-                            style = "margin-top: 2em; display: none;", 
-                            verbatimTextOutput(ns("r_expr_result"))
-                        )
-                     
+                       "Other actions", icon = bsicons::bs_icon("menu-app"),
+                       actionButton(inputId =ns("manage_tables_btn"),
+                                    icon = icon('table', verify_fa = FALSE),
+                                    label ="Manage Tables", 
+                                    class = "btn-secondary",
+                                    disable = TRUE),
+                       
+                       textInput(inputId = ns('add_notes_input'),
+                                 label = "Add notes",
+                                 value=NULL,
+                                 placeholder = 'Write notes to store in text output file.'),
+                       
+                       actionButton(inputId = ns('download_notes_btn'),
+                                    icon = icon('comments', verify_fa = FALSE),
+                                    label = 'Save notes',
+                                    class = "btn-success"),
+                       
+                       div(id = ns("notes_error_container"), 
+                           style = "color: red; display: none; font-size: 16px;", 
+                           p(paste0("⚠️ Input cannot be empty or null."))
+                       ),
+                       
+                       div(id = ns("notes_success_container"), 
+                           style = "color: green; display: none; font-size: 16px;",
+                           p(paste0("Data notes saved."))
+                       ),
+                       
+                       tags$br(),
+                       
+                       # Run R expressions from the shiny app
+                       textInput(ns("r_expr_input"), 
+                                 label = "Enter an R expression",
+                                 value = "values$data$main"),
+                       
+                       actionButton(ns("run_r_expr_btn"), "Run", class = "btn-success"),
+                       
+                       div(id = ns("r_expr_container"), 
+                           style = "margin-top: 2em; display: none;", 
+                           verbatimTextOutput(ns("r_expr_result"))
+                       ),
+                       
+                       actionButton(inputId =ns("close_app_btn"), "Close app",
+                                    icon = icon("circle-xmark"),
+                                    width = "100%",
+                                    class = "btn-danger", 
+                                    onclick = "setTimeout(function(){window.close();},500);")
+                     )
     )
-  )
   )
 }
