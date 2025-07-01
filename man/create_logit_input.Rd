@@ -2,7 +2,7 @@
 % Please edit documentation in R/create_logit_input.R
 \name{create_logit_input}
 \alias{create_logit_input}
-\title{Creates a data matrix consistent with built-in model forms}
+\title{create_logit_input}
 \usage{
 create_logit_input(choice)
 }

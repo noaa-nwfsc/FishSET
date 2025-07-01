@@ -27,7 +27,7 @@ explore_startparams_discrete <- function(space, dev, breakearly=TRUE, max.iterat
   #'     The number of starting value parameters should correspond to the likelihood and data that you want to
   #'     test. 
   #' @param fr Name of likelihood function to test.
-  #' @param d  Data from \code{shift_sort_x}
+  #' @param d  Data from \code{shift_sort_xcpp}
   #' @param otherdat Other data (as a list, corresponding to the likelihood function you want to test).
   #' @param choice Data corresponding to actual zonal choice.
   #' @param project Project name
@@ -184,7 +184,7 @@ explore_startparams <- function(project, space, dev, startsr=NULL) {
     
     dataCompile <- create_logit_input(choice)
     
-    d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
+    d <- shift_sort_xcpp(dataCompile, choice, catch, distance, max(choice), ab)
     
     
     # remove unnecessary lists

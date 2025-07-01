@@ -7,7 +7,7 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
   #'     The alternative-specific parameters and travel-distance parameters
   #'     are of length (# of alternative-specific variables) and (# of
   #'     travel-distance variables) respectively.
-  #' @param dat Data matrix, see output from shift_sort_x, alternatives with
+  #' @param dat Data matrix, see output from shift_sort_xcpp, alternatives with
   #'     distance.
   #' @param otherdat Other data used in model (as a list containing objects
   #'     `intdat` and `griddat`). \cr \cr
