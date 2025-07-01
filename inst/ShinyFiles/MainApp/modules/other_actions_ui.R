@@ -21,12 +21,15 @@ other_actions_ui <- function(id){
     bslib::accordion(open = FALSE,
                      bslib::accordion_panel(
                        "Other actions", icon = bsicons::bs_icon("menu-app"),
+                       
+                       # Manage tables ------------------------------------------------------------
                        actionButton(inputId =ns("manage_tables_btn"),
                                     icon = icon('table', verify_fa = FALSE),
                                     label ="Manage Tables", 
                                     class = "btn-secondary",
                                     disable = TRUE),
                        
+                       # Notes --------------------------------------------------------------------
                        textInput(inputId = ns('add_notes_input'),
                                  label = "Add notes",
                                  value=NULL,
@@ -49,7 +52,7 @@ other_actions_ui <- function(id){
                        
                        tags$br(),
                        
-                       # Run R expressions from the shiny app
+                       # Run R expression ---------------------------------------------------------
                        textInput(ns("r_expr_input"), 
                                  label = "Enter an R expression",
                                  value = "values$data$main"),
@@ -58,9 +61,12 @@ other_actions_ui <- function(id){
                        
                        div(id = ns("r_expr_container"), 
                            style = "margin-top: 2em; display: none;", 
-                           verbatimTextOutput(ns("r_expr_result"))
+                           uiOutput(ns("r_expr_result"))
                        ),
                        
+                       tags$br(),
+                       
+                       # Close app ----------------------------------------------------------------
                        actionButton(inputId =ns("close_app_btn"), "Close app",
                                     icon = icon("circle-xmark"),
                                     width = "100%",
