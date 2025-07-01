@@ -21,6 +21,7 @@ other_actions_server <- function(id, values = NULL){
     # Initialize reactives
     rv_r_expr <- reactiveValues(output = "")
     rv_r_expr_output <- reactiveVal("")
+    rv_r_expr_status <- reactiveVal(FALSE)
     
     # Output for results from running R expression - initially hidden
     output$r_expr_result <- renderText({
@@ -31,11 +32,15 @@ other_actions_server <- function(id, values = NULL){
     observeEvent(input$run_r_expr_btn, {
       req(input$r_expr_input) # ensure access to code input
       
+      rv_r_expr_status(FALSE)
+      
       tryCatch(
         {
           rv_r_expr$output <- isolate(
             paste(utils::capture.output(eval(parse(text = input$r_expr_input))), collapse = '\n')
           )
+          
+          rv_r_expr_status(TRUE)
         },
         error = function(e) {rv_r_expr$output <- e$message}
       )
@@ -44,10 +49,19 @@ other_actions_server <- function(id, values = NULL){
     # Generate output for R expression
     observe({
       req(rv_r_expr$output)
+      
       rv_r_expr_output(
         paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n')
       )
+      
       shinyjs::show("r_expr_container")
+      
+      # Add or remove "error-text" class on the container div based on status
+      if (rv_r_expr_status()) {
+        shinyjs::removeClass(session$ns("r_expr_container"), "error-text")
+      } else {
+        shinyjs::addClass(session$ns("r_expr_container"), "error-text")
+      }
     })
   })
 }

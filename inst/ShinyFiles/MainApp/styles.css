@@ -10,3 +10,7 @@
   left: calc(0%);
   font-size: 25px;
 }
+
+.error-text pre {
+  color: red !important;
+}
