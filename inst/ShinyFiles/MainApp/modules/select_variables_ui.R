@@ -124,3 +124,11 @@ saving_sel_var_ui <- function(id){
     ),
   )
 }
+
+
+create_nominal_id_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    
+  )
+}

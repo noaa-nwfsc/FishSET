@@ -139,5 +139,6 @@ server <- function(input, output, session) {
                                                       rv_data = rv_data)
   save_var_server("saving_all_variables", rv_project_name = rv_project_name,
                                           rv_selected_variables = rv_selected_variables)
+  
 
 }

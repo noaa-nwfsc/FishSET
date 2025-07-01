@@ -74,7 +74,6 @@ select_spat_var_server <- function(id, rv_data){
             req(rv_data) # Ensure data is not null
             spat_data <- rv_data$spat # Save static copy of spat data from reactive input
             
-            
             if(!is.null(spat_data)){
                shinyjs::show("spat_variables_container")  
                updateSelectInput(session,
@@ -85,7 +84,6 @@ select_spat_var_server <- function(id, rv_data){
             } else {
                shinyjs::hide("spat_variables_container")  
                shinyjs::show("select_error_message")
-               
             }
          })
          reactive({
@@ -123,14 +121,10 @@ select_port_var_server <- function(id, rv_data){
                                     "port_lat_input",
                                     choices =  find_lat(port_data))
                )
-               
             } else {
                shinyjs::show("select_error_message")
                shinyjs::hide("port_variables_container")  
-               
-               
             }
-            
          })
          
          reactive({
@@ -222,8 +216,21 @@ save_var_server <- function(id, rv_project_name, rv_selected_variables){
                shinyjs::hide("var_error_message")
                
             }
+            
+            
          })
       }
    )
 }
 
+create_nominal_id_server <- function(id, rv_project_name, rv_selected_variables){
+   moduleServer(
+      id,
+      function(input, output, session){
+         
+         ns <- session$ns
+         
+         
+      }
+   )
+}

@@ -131,7 +131,8 @@ ui <- function(request){
         fluidRow(column(width = 12, bslib::layout_column_wrap( fill = TRUE,
                                    width = 1/2,
                                    bslib::card(fill = FALSE,
-                                               bslib::card_header(strong("Primary data variables"), class = "bg-info"),
+                                               bslib::card_header(strong("Primary data variables"), 
+                                                                  class = "bg-info"),
                                                bslib::card_body( 
                                                  bslib::card(fill = FALSE,
                                                    h6("Primary data"),
@@ -145,16 +146,17 @@ ui <- function(request){
                                                )
                                    ),
                                    bslib::card(fill = FALSE,
-                                               bslib::card_header(strong('Spatial data variables'),  class = "bg-info"),
+                                               bslib::card_header(strong('Spatial data variables'), 
+                                                                  class = "bg-info"),
                                                bslib::card_body(fill = FALSE,
-                                                 h6("Spatial data"),
-                                                 select_spat_var_ui("selecting_spat")
+                                                                h6("Spatial data"),
+                                                                select_spat_var_ui("selecting_spat")
                                                )
-                                   )
-        )
-        )
-                                   
-        ),
+                                   ), 
+                                   bslib::card(fill = FALSE,
+                                               bslib::card_header(strong("Do you need to create a 
+                                                                         trip ID?")))
+        ))),
         fluidRow(
           column(7, saving_sel_var_ui("saving_all_variables"))
         )
