@@ -1,25 +1,29 @@
 #' Logit predict
 #' 
-#' Prediction component from logit models (non mixed) called in Policy3, under predict_model_tempNew.m
+#' Prediction component from logit models (non mixed) called in run_policy()
 #'
 #' @param project Name of project
-#' @param mod.name Name of saved model to use. Argument can be the name of the model or can pull the name 
-#'   of the saved "best" model. Leave \code{mod.name} empty to use the saved "best" model. If more than
-#'   one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
-#'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
-#' @param use.scalers Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
-#' numeric vector unless specified with \code{scaler.func}.
-#' @param scaler.func Input for \code{create_model_input()}. Function to calculate rescaling factors.
-#' @param outsample Logical, \code{FALSE} if predicting probabilities for primary data, and \code{TRUE} if predicting for out-of-sample data. \code{outsample = FALSE} 
-#'   is the default setting.
-#' @param outsample.mod.name If predicting out-of-sample data, provide the out-of-sample model design name. \code{outsample.mod.name = NULL}
-#'   by default.
+#' @param mod.name Name of saved model to use. Argument can be the name of the model or can pull 
+#'   the name of the saved "best" model. Leave \code{mod.name} empty to use the saved "best" 
+#'   model. If more than one model is saved, \code{mod.name} should be the numeric indicator of
+#'   which model to use. Use \code{table_view("modelChosen", project)} to view a table of 
+#'   saved models.
+#' @param use.scalers Input for \code{create_model_input()}. Logical, should data be normalized? 
+#'   Defaults to \code{FALSE}. Rescaling factors are the mean of the numeric vector unless 
+#'   specified with \code{scaler.func}.
+#' @param scaler.func Input for \code{create_model_input()}. Function to calculate 
+#'   rescaling factors.
+#' @param outsample Logical, \code{FALSE} if predicting probabilities for primary data, and 
+#'   \code{TRUE} if predicting for out-of-sample data. \code{outsample = FALSE} is the 
+#'   default setting.
+#' @param outsample.mod.name If predicting out-of-sample data, provide the out-of-sample model 
+#'   design name. \code{outsample.mod.name = NULL} by default.
 #' @return Returns probability of logit model by choice
 #' @export
 #' @keywords internal
 
-
-logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = NULL, outsample = FALSE, outsample.mod.name = NULL){
+logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = NULL, 
+                          outsample = FALSE, outsample.mod.name = NULL){
   
   # Check if this is for in-sample or out-of-sample data
   if(!outsample){ # IN-SAMPLE
@@ -29,7 +33,8 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
     
     # Display file used in the gui
     if(isRunning()){
-      showNotification(paste0("Pulling from model output file '", tmpEq[[2]]), "'", type = 'default', duration = 60)
+      showNotification(paste0("Pulling from model output file '", tmpEq[[2]]), "'", 
+                       type = 'default', duration = 60)
     }
     
   } else { # OUT-OF-SAMPLE
@@ -39,7 +44,8 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
     
     # Display file used in the gui
     if(isRunning()){
-      showNotification(paste0("Pulling from model output file '", tmpEq[[2]]), "'", type = 'default', duration = 60)
+      showNotification(paste0("Pulling from model output file '", tmpEq[[2]]), "'", 
+                       type = 'default', duration = 60)
     }
     
     # Need to save original model in case the number of alternatives are different
@@ -61,10 +67,13 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
   
   mod.dat <- create_model_input(project = project, x = mdf_new, mod.name = mdf_new$mod.name,
                                 use.scalers = use.scalers, scaler.func = scaler.func,
-                                expected.catch = mdf_new$gridVaryingVariables, exp.names = exp.names)
+                                expected.catch = mdf_new$gridVaryingVariables, 
+                                exp.names = exp.names)
   
-  dataCompile <- as.matrix(mod.dat$dataCompile, nrow = dim(mod.dat$dataCompile)[1], ncol = dim(dim(mod.dat$dataCompile)[1]))
-  distance <- as.matrix(mod.dat$distance, nrow = dim(mod.dat$distance)[1], ncol = dim(mod.dat$distance)[2])
+  distance <- as.matrix(mod.dat$distance, 
+                        nrow = dim(mod.dat$distance)[1], 
+                        ncol = dim(mod.dat$distance)[2])
+  
   griddat <- as.matrix(do.call(cbind, mod.dat$otherdat$griddat))
   intdat <- as.matrix(do.call(cbind, mod.dat$otherdat$intdat))
   zoneID <- sort(unique(mod.dat$choice.table$choice))
@@ -76,22 +85,25 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
   if(mdf_new$likelihood == "logit_c"){
     gridnum <- dim(griddat)[2] / alts # number of gridvarying variables  
   } else if (mdf_new$likelihood == "logit_zonal") {
-    gridnum <- dim(griddat)[2] * (alts - 1) # (grid variables * num of coefficients) calculation here makes following code cleaner
+    # (grid variables * num of coefficients) calculation here makes following code cleaner
+    gridnum <- dim(griddat)[2] * (alts - 1) 
   }
   
   intnum <- dim(intdat)[2] # number of alternative-invariant variables
   
   # Get coefficients 
-  z_flag <- 0 # flag, set = 1 if logit_zonal and first alt (in-sample dataset) not in out-of-sample dataset
+  z_flag <- 0 # flag, set = 1 if logit_zonal and first alt (in-sample dataset) 
   if(!outsample | (mdf_new$likelihood == "logit_c")){
     logitEq <- logitEq$estimate
   } else if(outsample & (mdf_new$likelihood == "logit_zonal")){
     # Format out-of-sample coefficients if alts not equal to in-sample alts  
     if(mdf_om$alts != mdf_new$alts){
-      tmp <- format_outsample_coefs(in_zones = in_zones, out_zones = zoneID, Eq = logitEq, likelihood = mdf_new$likelihood)
+      tmp <- format_outsample_coefs(in_zones = in_zones, out_zones = zoneID, 
+                                    Eq = logitEq, likelihood = mdf_new$likelihood)
       logitEq <- tmp[[1]]
       z_flag <- tmp[[2]]
-      if(z_flag == 1) gridnum <- gridnum + 1 # need to add one because the first alt was removed from gridnum above
+      # need to add one because the first alt was removed from gridnum above
+      if(z_flag == 1) gridnum <- gridnum + 1 
     } else {
       # Else when alts are equal just get the original coefficients
       logitEq <- logitEq$estimate
@@ -100,13 +112,17 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
   gridcoef <- logitEq[1:gridnum] # get grid coefficients    
 
   
-  # If running zonal logit, insert 0 for the first alternative (interpretation is relative to the first alternative and this beta_1 = 0)
+  # If running zonal logit, insert 0 for the first alternative 
+  # (interpretation is relative to the first alternative and this beta_1 = 0)
   if(mdf_new$likelihood == "logit_zonal"){
     if(z_flag == 0){
-      gridcoef <- matrix(gridcoef, ncol = (alts - 1), byrow = TRUE) # get grid coefficients for each alternative
-      gridcoef <- cbind(matrix(0, nrow = dim(griddat)[2], ncol = 1), gridcoef) # insert 0 for the first alternative (other coefs are relative to the first alt)      
+      # get grid coefficients for each alternative
+      gridcoef <- matrix(gridcoef, ncol = (alts - 1), byrow = TRUE) 
+      # insert 0 for the first alternative (other coefs are relative to the first alt)      
+      gridcoef <- cbind(matrix(0, nrow = dim(griddat)[2], ncol = 1), gridcoef) 
     } else {
-      gridcoef <- matrix(gridcoef, ncol = (alts), byrow = TRUE) # get grid coefficients for each alternative
+      # get grid coefficients for each alternative
+      gridcoef <- matrix(gridcoef, ncol = (alts), byrow = TRUE) 
     }
     gridcoef <- as.vector(t(gridcoef)) # save as a single vector 
   }
@@ -115,12 +131,15 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
   
   if(mdf_new$likelihood == "logit_c"){
     # calculate the sum of the products of the grid coefficients and the gridvarying variables
-    gridbetas <- matrix(rep(gridcoef, each = alts), nrow = obsnum, ncol = alts*gridnum, byrow = TRUE) * griddat 
+    gridbetas <- matrix(rep(gridcoef, each = alts), 
+                        nrow = obsnum, 
+                        ncol = alts*gridnum, byrow = TRUE) * griddat 
     dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
     gridbetas <- rowSums(gridbetas, dims = 2)
     
   } else if (mdf_new$likelihood == "logit_zonal") {
-    # calculate the sum of the products of the alternative-specific coefficients and the alternative-invariant variables
+    # calculate the sum of the products of the alternative-specific coefficients and 
+    # the alternative-invariant variables
     gridbetas <- matrix(rep(gridcoef), nrow = obsnum, ncol = alts * dim(griddat)[2], byrow = TRUE) 
     gridbetas <- gridbetas * t(apply(griddat, 1, function(x) rep(x, each = alts)))
     dim(gridbetas) <- c(nrow(gridbetas), alts, dim(griddat)[2])
@@ -128,17 +147,18 @@ logit_predict <- function(project, mod.name, use.scalers = FALSE, scaler.func = 
     
   }
 
-  # calculate the sum of the products of the distance coefficient, alternative invariant variables that interacts with distance, and the distance between locations
+  # calculate the sum of the products of the distance coefficient, alternative invariant 
+  #variables that interacts with distance, and the distance between locations
   intbetas <- matrix(intcoef, nrow = obsnum, ncol = intnum, byrow = TRUE) * intdat
-  intbetas <- matrix(apply(intbetas, 2, function(x) rep(x, alts)), ncol = intnum * alts) * matrix(rep(distance, intnum), nrow = obsnum, ncol = alts * intnum)
+  intbetas <- matrix(apply(intbetas, 2, function(x) rep(x, alts)), ncol = intnum * alts) *
+    matrix(rep(distance, intnum), nrow = obsnum, ncol = alts * intnum)
   dim(intbetas) <- c(nrow(intbetas), alts, intnum)
   intbetas <- rowSums(intbetas, dims = 2)
-  
-  numerLogit <- exp(gridbetas + intbetas)
+  tmp_betas <- gridbetas + intbetas
+  numerLogit <- exp(tmp_betas)
   denomLogit <- as.matrix(rowSums(numerLogit))
   pLogit <- numerLogit/(matrix(1,1,alts) %x% denomLogit)
   probLogit <- colMeans(pLogit)
   probLogit <- data.frame(zoneID = zoneID, prob = probLogit)
   return(list(probLogit, mod.dat, pLogit))
-  
 }

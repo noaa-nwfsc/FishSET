@@ -85,7 +85,8 @@ Imports:
     vctrs,
     xml2,
     yaml,
-    zoo
+    zoo,
+    Rcpp
 Suggests:
     foreign,
     googlesheets4,
@@ -107,3 +108,5 @@ RoxygenNote: 7.3.2
 LazyData: true
 Config/testthat/edition: 3
 GithubSHA1: d65b9a34f1ca5d334fbb9b749da6acc382df8f61
+LinkingTo: 
+    Rcpp
