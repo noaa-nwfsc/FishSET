@@ -382,7 +382,7 @@ select_data_server <- function(id, data_type, rv_project_name){
         data_table_list <- list_tables(project_name$value, data_type) # Get existing tables
         
         # if no tables previously loaded, show the file input
-        if (all(is_empty(data_table_list))){
+        if (all(FishSET::is_empty(data_table_list))){
           shinyjs::hide(paste0(data_type, "_select_container"))
           shinyjs::show(paste0(data_type, "_upload_container")) # Show file input
           rv_data_input_type("upload")  
@@ -813,7 +813,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
       shinyjs::hide("load_error_message")
       
       # Check to make sure the reactive inputs are valid
-      if(is_empty(project_name$value)){
+      if(FishSET::is_empty(project_name$value)){
         rv_load_error_message("⚠️ Project name is required")
         shinyjs::show("load_error_message")
         # Reset reactiveValues to NULL
