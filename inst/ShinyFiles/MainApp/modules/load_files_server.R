@@ -271,7 +271,7 @@ folder_path_server <- function(id, fs_folder_exist){
     # Update FS folderpath
     observeEvent(input$change_fs_folder_btn, {
       if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - use test_path()
-        fs_path <- testthat::test_path("data/FishSETFolder")
+        fs_path <- testthat::test_path("testdata/FishSETFolder")
         rv_out_folderpath(fs_path)
         
       } else {
@@ -316,7 +316,7 @@ select_project_server <- function(id, rv_folderpath){
       if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - set existing project
         shinyjs::show("proj_select_container")
         shinyjs::hide("proj_name_container")
-        updateSelectInput(session, "proj_select_input", choices = "scallop_shiny_test")
+        updateSelectInput(session, "proj_select_input", choices = "s1")
         
       } else {
         if(input$load_existing_proj_input) {
@@ -363,11 +363,11 @@ select_data_server <- function(id, data_type, rv_project_name){
       # If running shiny tests - assign test table names
       if (getOption("shiny.testmode", FALSE)) {
         shiny_test_table <- switch(data_type,
-                                   "main" = "scallop_shiny_testMainDataTable",
-                                   "port" = "scallop_shiny_testPortTable",
-                                   "aux" = "scallop_shiny_testAuxTable",
-                                   "spat" = "scallop_shiny_testSpatTable",
-                                   "grid" = "scallop_shiny_testGridTable")
+                                   "main" = "s1MainDataTable",
+                                   "port" = "s1PortTable",
+                                   "aux" = "s1AuxTable",
+                                   "spat" = "s1SpatTable",
+                                   "grid" = "s1GridTable")
         
         shinyjs::show(paste0(data_type, "_select_container")) # Show dropdown menu
         shinyjs::hide(paste0(data_type, "_upload_container"))
