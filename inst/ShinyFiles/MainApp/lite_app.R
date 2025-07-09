@@ -13,6 +13,7 @@
 #        > shiny::runApp()
 #
 # =============================================================================
+library(shiny)
 
 # Create and run the Shiny app
 shinyApp(ui = ui, server = server, session, enableBookmarking = "server")

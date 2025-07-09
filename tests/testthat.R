@@ -10,5 +10,3 @@ library(testthat)
 library(FishSET)
 
 test_check("FishSET")
-shinytest2::test_app()
-

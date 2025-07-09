@@ -271,7 +271,7 @@ folder_path_server <- function(id, fs_folder_exist){
     # Update FS folderpath
     observeEvent(input$change_fs_folder_btn, {
       if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - use test_path()
-        fs_path <- testthat::test_path("testdata/FishSETFolder")
+        fs_path <- file.path("tests","testthat", "testdata", "FishSETFolder")
         rv_out_folderpath(fs_path)
         
       } else {
@@ -365,15 +365,15 @@ select_data_server <- function(id, data_type, rv_project_name){
         shiny_test_table <- switch(data_type,
                                    "main" = "s1MainDataTable",
                                    "port" = "s1PortTable",
-                                   "aux" = "s1AuxTable",
+                                   "aux" = "s1auxAuxTable",
                                    "spat" = "s1SpatTable",
-                                   "grid" = "s1GridTable")
+                                   "grid" = "s1gridGridTable")
         
         shinyjs::show(paste0(data_type, "_select_container")) # Show dropdown menu
         shinyjs::hide(paste0(data_type, "_upload_container"))
-        
-        updateSelectInput(session, # Update option to the test table name 
-                          paste0(data_type, "_select_input"), 
+
+        updateSelectInput(session, # Update option to the test table name
+                          paste0(data_type, "_select_input"),
                           choices = shiny_test_table)
         rv_data_input_type("select")
         
@@ -769,10 +769,10 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
                          name = sub("\\..*$", "", load_data_input$value$name),
                          project = project_name,
                          over_write = TRUE)
-          table_name <- paste0(project_name, 
+          table_name <- paste0(project_name,
                                sub("\\..*$", "", load_data_input$value$name),
                                "GridTable")
-          
+
           if (is.null(pass)) {
             rv_load_error_message(
               paste0("⚠️ Error while loading grid data file. Check user manual for file format
@@ -859,21 +859,21 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
                                                    load_data_input = main_data_info,
                                                    project_name = project_name$value)
       
-      rv_all_data_output$port <- load_project_data(data_type = "port", 
-                                                   load_data_input = port_data_info,
-                                                   project_name = project_name$value)
-      
-      rv_all_data_output$aux <- load_project_data(data_type = "aux", 
-                                                  load_data_input = aux_data_info,
-                                                  project_name = project_name$value)
-      
-      rv_all_data_output$spat <- load_project_data(data_type = "spat",
-                                                   load_data_input = spat_data_info,
-                                                   project_name = project_name$value)
-      
-      rv_all_data_output$grid <- load_project_data(data_type = "grid", 
-                                                   load_data_input = grid_data_info,
-                                                   project_name = project_name$value)
+      # rv_all_data_output$port <- load_project_data(data_type = "port", 
+      #                                              load_data_input = port_data_info,
+      #                                              project_name = project_name$value)
+      # 
+      # rv_all_data_output$aux <- load_project_data(data_type = "aux", 
+      #                                             load_data_input = aux_data_info,
+      #                                             project_name = project_name$value)
+      # 
+      # rv_all_data_output$spat <- load_project_data(data_type = "spat",
+      #                                              load_data_input = spat_data_info,
+      #                                              project_name = project_name$value)
+      # 
+      # rv_all_data_output$grid <- load_project_data(data_type = "grid", 
+      #                                              load_data_input = grid_data_info,
+      #                                              project_name = project_name$value)
       
       # If any items in list is a character, then it contains a warning or error message
       # return empty value
