@@ -30,7 +30,7 @@ server <- function(input, output, session) {
 
   # Load the entire package if in test mode (for shinytest2)
   if(getOption("shiny.testmode", FALSE)) {
-    devtools::load_all()
+    pkgload::load_all()
   }
   
   # Define reactives ------------------------------------------------------------------------------
