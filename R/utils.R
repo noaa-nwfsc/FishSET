@@ -371,7 +371,7 @@ loc_doc <- function(project) {
   if(is.null(project)){
     warning('Project name must be supplied.')
   } else {
-    paste0(locproject(), project, "/doc/")
+    file.path(locproject(), project, "doc//")
   }
 }
 

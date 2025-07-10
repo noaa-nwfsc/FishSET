@@ -528,13 +528,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
         
         tryCatch(
           {
-            showNotification("TEST before table_view()")
-            
             data_out <- table_view(table_name, project_name)
-
-            showNotification("TEST after table_view()")
-            
-            return(data_out) 
           },
           warning = function(w) {
             load_warning_error <<- TRUE

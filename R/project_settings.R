@@ -74,7 +74,7 @@ get_proj_settings <- function(project, format = FALSE) {
       create_proj_settings(project)
     }
     
-    set_file <- paste0(loc_doc(project), "project_settings.json")
+    set_file <- file.path(loc_doc(project), "project_settings.json")
     
     out <- jsonlite::fromJSON(set_file)
     
@@ -167,7 +167,7 @@ edit_proj_settings <- function(project, confid = NULL, user_out = NULL,
       
       p_set$date_modified <- Sys.Date()
       
-      set_file <- paste0(loc_doc(project), "project_settings.json")
+      set_file <- file.path(loc_doc(project), "project_settings.json")
       
       jsonlite::write_json(p_set, set_file, pretty = TRUE, auto_unbox = FALSE, 
                            null = "null", na = "string")
