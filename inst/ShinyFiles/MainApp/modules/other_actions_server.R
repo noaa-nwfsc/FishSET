@@ -14,13 +14,17 @@
 #
 # =================================================================================================
 
-other_actions_server <- function(id, rv_project_name, rv_data_load_error, current_tab){
+other_actions_server <- function(id, rv_project_name, rv_data_load_error, 
+                                 current_tab, values = NULL){
   moduleServer(id, function(input, output, session){
     
     ns <- session$ns
     
     # Initialize reactives
     rv_manage_db <- reactiveValues(tbl = NULL) # creating reactive dataframe for existing db tables
+    rv_r_expr <- reactiveValues(output = "")
+    rv_r_expr_output <- reactiveVal("")
+    rv_r_expr_status <- reactiveVal(FALSE)
     
     # Managing saved database tables --------------------------------------------------------------
     
@@ -181,9 +185,49 @@ other_actions_server <- function(id, rv_project_name, rv_data_load_error, curren
       }
     })
     
-    # Stop app ------------------------------------------------------------------------------------
+    # Run R expression ----------------------------------------------------------------------------
+    # Output for results from running R expression - initially hidden
+    output$r_expr_result <- renderUI({
+      if (rv_r_expr_status()) {
+        pre(paste(rv_r_expr_output(), sep = '\n'))  
+      } else {
+        # Display red text if there was an error in the expression
+        pre( style = "color: red; font-weight: bold;", paste(rv_r_expr_output(), sep = '\n'))
+      }
+    })
+    
+    # Observer run R expression
+    observeEvent(input$run_r_expr_btn, {
+      req(input$r_expr_input) # ensure access to code input
+      
+      rv_r_expr_status(FALSE) # reset flag
+      
+      tryCatch(
+        {
+          rv_r_expr$output <- isolate(
+            paste(utils::capture.output(eval(parse(text = input$r_expr_input))), collapse = '\n')
+          )
+          rv_r_expr_status(TRUE)
+        },
+        error = function(e) {rv_r_expr$output <- e$message}
+      )
+    })
+    
+    # Generate output for R expression
+    observe({
+      req(rv_r_expr$output)
+      
+      rv_r_expr_output(
+        paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n')
+      )
+      
+      shinyjs::show("r_expr_container")
+    })
+    
+    # Close app -----------------------------------------------------------------------------------
     observeEvent(input$close_app_btn, {
       stopApp()
     }, ignoreInit = TRUE)
+    
   })
 }

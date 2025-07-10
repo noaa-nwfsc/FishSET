@@ -52,10 +52,12 @@ server <- function(input, output, session) {
   
   #### Other actions (notes, close app)
   other_actions_server("upload_data_actions", 
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
-  
+
   ### Main panel 
   #### Change folderpath
   rv_folderpath <- folder_path_server("folderpath", fs_folder_exist = fs_folder_exist) 

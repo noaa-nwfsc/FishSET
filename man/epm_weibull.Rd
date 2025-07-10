@@ -17,7 +17,7 @@ travel-distance variables, length of shape parameters defaults to 1 but alternat
 specific shape parameters can be specified (length = # of alternatives), and the
 common scale parameter is a single value.}
 
-\item{dat}{Data matrix, see output from \code{\link{shift_sort_x}}, alternatives with
+\item{dat}{Data matrix, see output from \code{\link{shift_sort_xcpp}}, alternatives with
 distance.}
 
 \item{otherdat}{List that contains other data used in the model, see section 8.4.4 in the 
