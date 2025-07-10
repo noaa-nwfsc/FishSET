@@ -39,6 +39,7 @@ server <- function(input, output, session) {
   rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, 
                                    rule = "n", value = 3) # basic default
   rv_selected_variables <- reactiveValues() # All selected variables from select_variables_server
+  rv_nominal_id_type <- reactiveValues() # type of trip/haul id to create in select_variables_server
 
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
@@ -140,5 +141,11 @@ server <- function(input, output, session) {
   save_var_server("saving_all_variables", rv_project_name = rv_project_name,
                                           rv_selected_variables = rv_selected_variables)
   
+  rv_nominal_id_type <- create_nominal_id_server("nominal_id",rv_project_name = rv_project_name,
+                           rv_selected_variables = rv_selected_variables )
+  
+  create_nominal_id_inputs_server("nominal_id_vars",rv_project_name = rv_project_name,
+                           rv_selected_variables = rv_selected_variables,
+                           rv_nominal_id_type = rv_nominal_id_type)
 
 }

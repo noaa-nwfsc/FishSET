@@ -129,6 +129,46 @@ saving_sel_var_ui <- function(id){
 create_nominal_id_ui <- function(id){
   ns <- NS(id)
   tagList(
+    checkboxInput(ns("nominal_id_chk_input"), 
+                  "Do you need to create a trip-level ID for your data?",
+                  value = FALSE),
+    div(id = ns("nominal_id_container"),
+        style = "display: none;",
+        selectInput(ns('select_nominal_id_input'),'Functions', 
+                    choices = c('Create haul or trip ID based on variables'='create_id_input',
+                                'Create haul or trip ID based on row numbers'='create_id_seq_input',
+                                'Create binary fishery season identifier'=
+                                  'create_id_binary_seas_input',
+                                'Create location, gear, species-specific fishery 
+                                season identifier'='create_id_seasonal_input'),
+                    multiple = FALSE, selected='create_id_input'),
+        textInput(ns('create_id_varname_input'),
+                  list('Name of new variable',  
+                       bslib::tooltip(  
+                         bsicons::bs_icon("info-circle"),
+                         "If left empty, default names will be supplied.", 
+                         id = "tip", 
+                         placement = "right")
+                  )
+        )
+    )
+  )
+  
+}
+
+
+create_nominal_id_inputs_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    
+    div(id = ns("create_id_container"),
+        style = "display: none;",
+        selectInput(ns('create_id_type_input'), 
+                    "Select ID column class type",
+                    choices = c("string", "integer"))
+        
+        
+    )
     
   )
 }

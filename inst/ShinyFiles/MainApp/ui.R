@@ -128,35 +128,49 @@ ui <- function(request){
         title = "Select variables", 
         value = "select_variables",
         id = "select_variables",
-        fluidRow(column(width = 12, bslib::layout_column_wrap( fill = TRUE,
-                                   width = 1/2,
-                                   bslib::card(fill = FALSE,
-                                               bslib::card_header(strong("Primary data variables"), 
-                                                                  class = "bg-info"),
-                                               bslib::card_body( 
-                                                 bslib::card(fill = FALSE,
-                                                   h6("Primary data"),
-                                                   select_main_var_ui("selecting_main")),
-                                                 bslib::card(fill = FALSE,
-                                                   h6("Port data"),
-                                                   select_port_var_ui("selecting_port")),
-                                                 bslib::card(fill = FALSE,
-                                                   h6("Aux data"),
-                                                   select_aux_var_ui("selecting_aux"))
-                                               )
-                                   ),
-                                   bslib::card(fill = FALSE,
-                                               bslib::card_header(strong('Spatial data variables'), 
-                                                                  class = "bg-info"),
-                                               bslib::card_body(fill = FALSE,
-                                                                h6("Spatial data"),
-                                                                select_spat_var_ui("selecting_spat")
-                                               )
-                                   ), 
-                                   bslib::card(fill = FALSE,
-                                               bslib::card_header(strong("Do you need to create a 
-                                                                         trip ID?")))
-        ))),
+        fluidRow(
+          bslib::card(fill = FALSE,
+                      bslib::card_header(strong("Primary data variables"), 
+                                         class = "bg-info"),
+                      bslib::card_body( 
+                        bslib::layout_column_wrap( fill = TRUE,
+                                                   width = 1/3,
+                                                   bslib::card(fill = FALSE,
+                                                               h6("Primary data"),
+                                                               select_main_var_ui("selecting_main")),
+                                                   bslib::card(fill = FALSE,
+                                                               h6("Port data"),
+                                                               select_port_var_ui("selecting_port")),
+                                                   bslib::card(fill = FALSE,
+                                                               h6("Aux data"),
+                                                               select_aux_var_ui("selecting_aux"))
+                        )
+                      )
+          )
+        ),
+        fluidRow(
+          bslib::card(fill = FALSE,
+                      bslib::card_header(strong('Spatial data variables'), 
+                                         class = "bg-info"),
+                      bslib::card_body(fill = FALSE,
+                                       h6("Spatial data"),
+                                       select_spat_var_ui("selecting_spat")
+                      )
+          )
+        ), 
+        fluidRow(
+          bslib::card(fill = FALSE,
+                      bslib::card_header(strong("Creating Trip ID"),
+                                         class = "bg-info"),
+                      bslib::card_body(
+                        bslib::layout_column_wrap( fill = TRUE,
+                                                   width = 1/3,
+                        bslib::card(fill = FALSE, create_nominal_id_ui("nominal_id")),
+                        bslib::card(fill = FALSE, create_nominal_id_inputs_ui("nominal_id_vars"))
+                      ))
+          )
+          
+        ),
         fluidRow(
           column(7, saving_sel_var_ui("saving_all_variables"))
         )

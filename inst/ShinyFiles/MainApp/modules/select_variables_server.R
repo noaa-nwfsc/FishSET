@@ -196,6 +196,7 @@ save_var_server <- function(id, rv_project_name, rv_selected_variables){
                project_name <- rv_project_name()$value
                req(rv_selected_variables)
                
+               
                saved_variables_main <- rv_selected_variables$main()
                saved_variables_port <- rv_selected_variables$port()
                saved_variables_spat <- rv_selected_variables$spat()
@@ -230,7 +231,40 @@ create_nominal_id_server <- function(id, rv_project_name, rv_selected_variables)
          
          ns <- session$ns
          
+         observeEvent(input$nominal_id_chk_input,{
+            if(input$nominal_id_chk_input) {
+               shinyjs::show("nominal_id_container") 
+            } else{
+               shinyjs::hide("nominal_id_container")
+            }
+         })
+         reactive({
+            list(
+               id_type = input$select_nominal_id_input,
+            )
+         })
+      }
+   )
+}
+
+
+create_nominal_id_inputs_server <- function(id, rv_project_name, rv_selected_variables, rv_nominal_id_type){
+   moduleServer(
+      id,
+      function(input, output, session){
          
+         ns <- session$ns
+         
+         # observeEvent(input$select_nominal_id_input, {
+         #    
+         #    shinyjs::hide("create_id_container") 
+         #    
+         #    if(rv_nominal_id_type == 'create_id_input'){
+         #       
+         #       shinyjs::show("create_id_container") 
+         #    }
+         #    
+       #  })
       }
    )
 }
