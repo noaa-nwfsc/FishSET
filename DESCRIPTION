@@ -62,7 +62,6 @@ Imports:
     methods,
     openxlsx,
     pander,
-    pkgload,
     plotly,
     prompter,
     purrr,
