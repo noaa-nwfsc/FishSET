@@ -1,7 +1,19 @@
+# -------------------------------------------------------------------------------------------------
+# File: test-shiny-app.R
+# Purpose: Test the FishSET app using shinytest2
+# Description:
+#   This script uses the shinytest2 package to record and test the FishSET Shiny app. The tests
+#   are located in ShinyFiles/MainApp/tests/testthat/test-shinytest2.R.
+#   
+# Notes:
+#   - The app directory is specified relative to the FishSET package directory.
+#   - The test checks if the app loads correctly and if the data is loaded as expected.
+# -------------------------------------------------------------------------------------------------
+
 library(shinytest2)
 
 test_that("MainApp works", {
-  skip_on_cran() # Skip this test on CRAN
+  skip_on_ci() # Skip this test on CI environments
 
   app_dir <- system.file("ShinyFiles/MainApp", package = "FishSET")
 

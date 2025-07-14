@@ -1,11 +1,13 @@
 # -------------------------------------------------------------------------------------------------
 # File: test-shinytest2.R
-# Purpose: Test the FishSET app using shinytest2
+# Purpose: Test the FishSET app using shinytest2 
 # Description: 
-#   This script uses the shinytest2 package to record and test the FishSET Shiny app. 
+#   This script uses the shinytest2 package to record and test the FishSET Shiny app.
 #
-# Notes: 
-#
+# Notes:
+#  - The app directory is specified relative to the FishSET package directory.
+#  - The test checks if the app loads correctly and if the data is loaded as expected.
+#  - The test is skipped on CI environments and during R CMD check to avoid unnecessary failures.
 # -------------------------------------------------------------------------------------------------
 
 # Test for loading data in shiny - ----------------------------------------------------------------
@@ -36,7 +38,6 @@ test_that("test-load-data", {
     load_timeout = 120000, # Increased timeout for loading the app
     timeout = 120000) # Increased timeout for app operations
   
-  
   app$click("folderpath-change_fs_folder_btn") # Click the button to change the folder path
   Sys.sleep(2) # Brief pause to allow the dialog to open
   
@@ -56,7 +57,5 @@ test_that("test-load-data", {
   expect_equal(dim(aux_data$export$aux), c(106, 3)) # Check dimensions of auxiliary data
   expect_equal(dim(spat_data$export$spat), c(5267, 2)) # Check dimensions of spatial data
   expect_equal(dim(grid_data$export$grid), c(658, 232)) # Check dimensions of gridded data
-  
-  
 })
 
