@@ -41,6 +41,7 @@ server <- function(input, output, session) {
   rv_selected_variables <- reactiveValues() # All selected variables from select_variables_server
   rv_nominal_id_type <- reactiveValues() # type of trip/haul id to create in select_variables_server
 
+  
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
@@ -98,55 +99,44 @@ server <- function(input, output, session) {
                               parent_session = session)
   
   observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update the sidebar
-
-  rv_r_expr<- reactiveValues(done = 0, ok = TRUE, output = "")
-  
-  observeEvent(input$run_r_btn, {
-    shinyjs::hide("error")
-    rv_r_expr$ok <- FALSE
-    tryCatch(
-      {
-        rv_r_expr$output <- isolate(
-          paste(utils::capture.output(eval(parse(text = input$r_expr_input))), collapse = '\n')
-        )
-        rv_r_expr$ok <- TRUE
-      },
-      error = function(err) {rv_r_expr$output <- err$message}
-    )
-    rv_r_expr$done <- rv_r_expr$done + 1
-  })
-  output$r_expr_result <- renderUI({
-    if(rv_r_expr$done > 0 ) {
-      content <- paste(paste(">", isolate(input$r_expr_input)), rv_r_expr$output, sep = '\n')
-      if(rv_r_expr$ok) {
-        pre(content)
-      } else {
-        pre( style = "color: red; font-weight: bold;", content)
-      }
-    }
-  })
   
   # Upload data -----------------------------------------------------------------------------------
   ## Selecting variables subtab ----------------------------------------------------------------------------
   ### Sidebar
-  
+  other_actions_server("selecting_variables_actions", 
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
   
   ### Main panel
+  
+  #### Select main data variables
   rv_selected_variables$main <- select_main_var_server("selecting_main", 
+                                                       rv_project_name = rv_project_name,
                                                        rv_data = rv_data)
+  #### Select spat data variables
   rv_selected_variables$spat <- select_spat_var_server("selecting_spat", 
+                                                       rv_project_name = rv_project_name,
                                                        rv_data = rv_data)
+  #### Select port data variables (optional)
   rv_selected_variables$port <- select_port_var_server("selecting_port", 
+                                                       rv_project_name = rv_project_name,
                                                        rv_data = rv_data)
+  #### Select aux data variables (optional)
   rv_selected_variables$aux <-  select_aux_var_server("selecting_aux",
+                                                      rv_project_name = rv_project_name,
                                                       rv_data = rv_data)
+  #### Save all selected variables to project data folder 
   save_var_server("saving_all_variables", rv_project_name = rv_project_name,
                                           rv_selected_variables = rv_selected_variables)
-  
+  #### Create haul/trip level ID (if needed)
   rv_nominal_id_type <- create_nominal_id_server("nominal_id",rv_project_name = rv_project_name,
                            rv_selected_variables = rv_selected_variables )
   
   create_nominal_id_inputs_server("nominal_id_vars",rv_project_name = rv_project_name,
+                                  rv_data = rv_data,
                            rv_selected_variables = rv_selected_variables,
                            rv_nominal_id_type = rv_nominal_id_type)
 

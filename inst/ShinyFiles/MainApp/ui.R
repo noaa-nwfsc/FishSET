@@ -128,51 +128,76 @@ ui <- function(request){
         title = "Select variables", 
         value = "select_variables",
         id = "select_variables",
-        fluidRow(
-          bslib::card(fill = FALSE,
-                      bslib::card_header(strong("Primary data variables"), 
-                                         class = "bg-info"),
-                      bslib::card_body( 
-                        bslib::layout_column_wrap( fill = TRUE,
-                                                   width = 1/3,
-                                                   bslib::card(fill = FALSE,
-                                                               h6("Primary data"),
-                                                               select_main_var_ui("selecting_main")),
-                                                   bslib::card(fill = FALSE,
-                                                               h6("Port data"),
-                                                               select_port_var_ui("selecting_port")),
-                                                   bslib::card(fill = FALSE,
-                                                               h6("Aux data"),
-                                                               select_aux_var_ui("selecting_aux"))
-                        )
-                      )
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE, 
+            fill = TRUE,
+            includeCSS("styles.css"), # Line needs to be placed on same level as bslib::card() 
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+              other_actions_ui("selecting_variables_actions")
+            ),
+            
+            fluidRow(
+              column(width = 12,
+              bslib::card(fill = FALSE,
+                          bslib::card_header(
+                           "1. Primary data variables",
+                           class = "bg-secondary"),
+                          bslib::card_body( 
+                            bslib::layout_column_wrap( fill = TRUE,
+                                                       width = 1/3,
+                                                       bslib::card(fill = FALSE,
+                                                              h6("Primary data"),
+                                                              select_main_var_ui("selecting_main")),
+                                                       bslib::card(fill = FALSE,
+                                                              h6("Port data"),
+                                                              select_port_var_ui("selecting_port")),
+                                                       bslib::card(fill = FALSE,
+                                                              h6("Aux data"),
+                                                              select_aux_var_ui("selecting_aux"))
+                            )
+                          )
+              )
+            )
+            ),
+            fluidRow(
+              column(width = 12,
+              bslib::card(fill = FALSE,
+                          bslib::card_header(
+                          "2. Spatial data variables",
+                          class = "bg-secondary"),
+                          bslib::card_body(fill = FALSE,
+                                           h6("Spatial data"),
+                                           select_spat_var_ui("selecting_spat")
+                          )
+              )
+              
+            )
+            ), 
+            fluidRow(
+              column(7, saving_sel_var_ui("saving_all_variables"))
+            ),
+            fluidRow(
+              column(width = 12,
+              bslib::card(fill = FALSE,
+                          bslib::card_header("Creating Haul/Trip Level ID",
+                                             class = "bg-secondary"),
+                          bslib::card_body(
+                            bslib::layout_column_wrap( fill = TRUE,
+                                                  width = 1/3,
+                                                  bslib::card(fill = FALSE,
+                                                    create_nominal_id_ui("nominal_id")),
+                                                    create_nominal_id_inputs_ui("nominal_id_vars"),
+                                                       
+                            ))
+              )
+              )
+            )
           )
-        ),
-        fluidRow(
-          bslib::card(fill = FALSE,
-                      bslib::card_header(strong('Spatial data variables'), 
-                                         class = "bg-info"),
-                      bslib::card_body(fill = FALSE,
-                                       h6("Spatial data"),
-                                       select_spat_var_ui("selecting_spat")
-                      )
-          )
-        ), 
-        fluidRow(
-          bslib::card(fill = FALSE,
-                      bslib::card_header(strong("Creating Trip ID"),
-                                         class = "bg-info"),
-                      bslib::card_body(
-                        bslib::layout_column_wrap( fill = TRUE,
-                                                   width = 1/3,
-                        bslib::card(fill = FALSE, create_nominal_id_ui("nominal_id")),
-                        bslib::card(fill = FALSE, create_nominal_id_inputs_ui("nominal_id_vars"))
-                      ))
-          )
-          
-        ),
-        fluidRow(
-          column(7, saving_sel_var_ui("saving_all_variables"))
         )
       )
     )

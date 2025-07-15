@@ -13,6 +13,13 @@
 #
 # =================================================================================================
 
+# UI for sidebar ------------------------------------------------------------------------------
+
+# UI for main panel ---------------------------------------------------------------------------
+
+## Select variables from main data table ----------------------------------------------------------
+## Description: Users can select variables from main data table where they can then be used 
+##              throughout the app; error message will show if main data does not exist
 select_main_var_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -41,6 +48,9 @@ select_main_var_ui <- function(id){
   )
 }
 
+## Select variables from spat data table ----------------------------------------------------------
+## Description: Users can select variables from spat data table where they can then be used 
+##              throughout the app; error message will show if spat data does not exist
 select_spat_var_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -58,6 +68,9 @@ select_spat_var_ui <- function(id){
   )
 }
 
+## Select variables from port data table ----------------------------------------------------------
+## Description: Users can select variables from port data table where they can then be used 
+##              throughout the app
 select_port_var_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -85,6 +98,9 @@ select_port_var_ui <- function(id){
   )
 }
 
+## Select variables from aux data table ----------------------------------------------------------
+## Description: Users can select variables from aux data table where they can then be used 
+##              throughout the app
 select_aux_var_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -101,7 +117,9 @@ select_aux_var_ui <- function(id){
     )
   )
 }
-
+## Save variables to project folder ----------------------------------------------------------
+## Description: Users can save variables from all data tables so they can be used in future 
+##              sessions
 saving_sel_var_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -125,7 +143,9 @@ saving_sel_var_ui <- function(id){
   )
 }
 
-
+## Create trip/haul level ID ----------------------------------------------------------------------
+## Description: Users can select whether or not they need to create a trip/haul level id in the 
+##              main data table and which method
 create_nominal_id_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -135,12 +155,10 @@ create_nominal_id_ui <- function(id){
     div(id = ns("nominal_id_container"),
         style = "display: none;",
         selectInput(ns('select_nominal_id_input'),'Functions', 
-                    choices = c('Create haul or trip ID based on variables'='create_id_input',
-                                'Create haul or trip ID based on row numbers'='create_id_seq_input',
-                                'Create binary fishery season identifier'=
-                                  'create_id_binary_seas_input',
-                                'Create location, gear, species-specific fishery 
-                                season identifier'='create_id_seasonal_input'),
+                    choices = c('Create haul or trip ID based on variables'
+                                ='create_id_input',
+                                'Create haul or trip ID based on row numbers'
+                                ='create_id_seq_input'),
                     multiple = FALSE, selected='create_id_input'),
         textInput(ns('create_id_varname_input'),
                   list('Name of new variable',  
@@ -156,19 +174,31 @@ create_nominal_id_ui <- function(id){
   
 }
 
-
+## Create trip/haul level ID  Continued -----------------------------------------------------------
+## Description: Users can select how they want to create the ID either by using a row number or by
+##              combining values of two or more selected variables
 create_nominal_id_inputs_ui <- function(id){
   ns <- NS(id)
   tagList(
     
     div(id = ns("create_id_container"),
         style = "display: none;",
-        selectInput(ns('create_id_type_input'), 
-                    "Select ID column class type",
-                    choices = c("string", "integer"))
-        
-        
+        selectInput(ns("create_id_vars_input"), 
+                    "Select 2 or more variables",
+                    choices = NULL,
+                    multiple = TRUE),
+        selectizeInput(ns('create_id_type_input'), 
+                       "Select ID column class type",
+                       choices = c("string", "integer"))
+    ),
+    div(id = ns("create_id_btn_container"),
+        style = "display:none;",
+        actionButton(ns("create_nominal_id_btn"), 
+                     "Create ID")
+    ),
+    div(id = ns("id_success_message"), 
+        style = "color: green; display: none; font-size: 20px;",
+        textOutput(ns("id_success_message_out"))
     )
-    
   )
 }

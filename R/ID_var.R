@@ -36,10 +36,12 @@ ID_var <- function(dat, project, vars, name = NULL, type = "string", drop = FALS
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  if (is_empty(name) && !is_empty(vars)){
+  if (length(vars) > 0){
     name <- paste0(vars, collapse = sep)
-  }  else if (is_empty(name) && is_empty(vars)) {
+  }  else if (length(name) == 0 && length(vars) == 0) {
     stop("Add name for new unique ID variable.")
+  } else if(name == "" && length(vars) == 0){
+    name <- paste0("row_id")
   } else {
     name <- make.names(name)
   }
