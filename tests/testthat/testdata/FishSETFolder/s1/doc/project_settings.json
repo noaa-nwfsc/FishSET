@@ -1,0 +1,20 @@
+{
+  "date_created": ["2025-06-12"],
+  "date_modified": ["2025-07-08"],
+  "confid_check": {
+    "check": [false],
+    "v_id": null,
+    "rule": ["n"],
+    "value": null
+  },
+  "user_locoutput": ["C:\\Users\\Paul.Carvalho\\Documents\\fishset_projects\\FishSETFolder/s1/output/"],
+  "plot_size": [4.7083, 3.1875],
+  "save_plot_rds": [false],
+  "tables": {
+    "main": ["s1MainDataTable"],
+    "port": ["s1PortTable"],
+    "spat": ["s1spatSpatTable"],
+    "grid": ["s1gridGridTable"],
+    "aux": ["s1auxAuxTable"]
+  }
+}
