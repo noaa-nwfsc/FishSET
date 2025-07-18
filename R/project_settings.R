@@ -47,7 +47,7 @@ proj_settings_exists <- function(project) {
   #' @return TRUE if project options file exists, FALSE if not.
   #' @export
   
-  set_file <- paste0(loc_doc(project), "project_settings.json")
+  set_file <- file.path(loc_doc(project), "project_settings.json")
   
   file.exists(set_file)
 }
