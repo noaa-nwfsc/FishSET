@@ -177,41 +177,49 @@ table_view <- function(table, project) {
   #' \dontrun{
   #' head(table_view('pollockMainDataTable', project = 'pollock'))
   #' }
-  
+
   if (table_exists(table, project) == FALSE) {
-    
+
     warning("Table not found. Check spelling.", call. = FALSE)
-    
+
   } else {
-    
+
     if (table_type(table) == "spatial") {
-      
+
       filename <- file.path(loc_data(project), "spat", paste0(table, ".geojson"))
       sf::st_read(filename)
-      
+
     } else {
-      
+
       suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
       on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-      
-      tab_out <- DBI::dbGetQuery(fishset_db, 
+
+      tab_out <- DBI::dbGetQuery(fishset_db,
                                  paste0("SELECT * FROM", paste0("'", noquote(table), "'")))
-      
+
       # TODO: convert date-time columns to date-time
-      
       # # # convert date and date-time from numeric
       # dt_cols <- grep("date.*time", names(tab_out), ignore.case = TRUE, value = TRUE)
-      # 
+      #
       # dt_numeric <- numeric_cols(tab_out[dt_cols], out = "names")
-      # 
+      #
       # if (length(dt_numeric) > 0) {
       #   # date-time saved as secs since 1970-01-01
       #   tab_out[dt_numeric] <- lapply(tab_out[dt_numeric], lubridate::as_datetime)
       # }
-      
+
       # convert date variables back to date
       d_cols <- date_cols(tab_out)
       tab_out[d_cols] <- lapply(tab_out[d_cols], date_parser)
+
+      # If the table is a grid table, convert the first column to dates
+      if(table %in% list_tables(project, "grid")){
+        # If the table has more than one row AND the first column is NOT a date variable, 
+        # then convert the first column to dates
+        if (nrow(tab_out) > 1 && !lubridate::is.Date(tab_out[[1]])) {
+          tab_out[[1]] <- lubridate::as_date(tab_out[[1]])
+        }
+      }
       
       tibble::as_tibble(tab_out)
     }
@@ -257,15 +265,21 @@ unserialize_table <- function(table, project) {
   
   sql_qry <- paste0("SELECT ", tab_qry, " FROM ", table, " LIMIT 1")
   
-  # Need to change folderpath for unit testing
-  test_folderpath <- getOption("test_db_path")
-  if (!is.null(test_folderpath)) {
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), test_folderpath)
-  
-    # Else use the global variable for folderpath
-  } else {
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+  # Need to change folderpath for testing
+  if(getOption("shiny.testmode", FALSE)) {
+    shiny_test_path <- system.file("tests/testthat/testdata/FishSETFolder", package = "FishSET")
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), shiny_test_path)
     
+  } else {
+    test_folderpath <- getOption("test_db_path")
+    if (!is.null(test_folderpath)) {
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), test_folderpath)
+      
+      # Else use the global variable for folderpath
+    } else {
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+      
+    }  
   }
   
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
