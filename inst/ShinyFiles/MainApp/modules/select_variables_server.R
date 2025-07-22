@@ -99,6 +99,7 @@ select_main_var_server <- function(id,rv_project_name, rv_data){
       })
    
 } 
+
 ## Select variables from spat data table ----------------------------------------------------------
 ## Description: Users can select variables from spat data table where they can then be used 
 ##              throughout the app
@@ -333,6 +334,11 @@ save_var_server <- function(id, rv_project_name, rv_selected_variables){
                rv_var_success_message("Variables are loaded and saved in project data folder.")
                shinyjs::show("var_success_message")
                shinyjs::hide("var_error_message")
+               
+               ### Zonal centroid -----------------------------------------------------------------
+               q_test_centroid <- quietly_test(create_centroid, show_msg = FALSE)
+               q_test_centroid(project  )
+               
                
             }
             
