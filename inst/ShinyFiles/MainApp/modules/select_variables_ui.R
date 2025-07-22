@@ -122,25 +122,86 @@ select_aux_var_ui <- function(id){
 ##              sessions
 saving_sel_var_ui <- function(id){
   ns <- NS(id)
+  
   tagList(
-    actionButton(inputId = ns("save_vars_btn"),
-                 label = "Save selected variables",
-                 width = "50%",
-                 icon = icon(name="upload", 
-                             lib="font-awesome")  ),
-    
-    # Error message - see specific error messages
-    div(id = ns("var_error_message"), 
-        style = "color: red; display: none; font-size: 20px;", 
-        textOutput(ns("var_error_message_out"))
+    fluidRow(
+      column(width = 12,
+             bslib::card(fill = FALSE,
+                         bslib::card_header(
+                           "1. Primary data variables",
+                           class = "bg-secondary"),
+                         bslib::card_body(
+                           bslib::layout_column_wrap(fill = TRUE,
+                                                     width = 1/3,
+                                                     bslib::card(fill = FALSE,
+                                                                 h6("Primary data"),
+                                                                 select_main_var_ui(ns("selecting_main"))),
+                                                     bslib::card(fill = FALSE,
+                                                                 h6("Port data"),
+                                                                 select_port_var_ui(ns("selecting_port"))),
+                                                     bslib::card(fill = FALSE,
+                                                                 h6("Aux data"),
+                                                                 select_aux_var_ui(ns("selecting_aux")))
+                           )
+                         )
+             )
+      )
     ),
-    
-    # Success message
-    div(id = ns("var_success_message"), 
-        style = "color: green; display: none; font-size: 20px;",
-        textOutput(ns("var_success_message_out"))
+    fluidRow(
+      column(width = 12,
+             bslib::card(fill = FALSE,
+                         bslib::card_header(
+                           "2. Spatial data variables",
+                           class = "bg-secondary"),
+                         bslib::card_body(fill = FALSE,
+                                          h6("Spatial data"),
+                                          select_spat_var_ui(ns("selecting_spat"))
+                         )
+             )
+
+      )
     ),
+
+    fluidRow(
+      actionButton(inputId = ns("save_vars_btn"),
+                   label = "Save selected variables",
+                   width = "50%",
+                   icon = icon(name="upload",
+                               lib="font-awesome")  ),
+
+      # Error message - see specific error messages
+      div(id = ns("var_error_message"),
+          style = "color: red; display: none; font-size: 20px;",
+          textOutput(ns("var_error_message_out"))
+      ),
+
+      # Success message
+      div(id = ns("var_success_message"),
+          style = "color: green; display: none; font-size: 20px;",
+          textOutput(ns("var_success_message_out"))
+      )
+    )
   )
+  
+  # tagList(
+  #   actionButton(inputId = ns("save_vars_btn"),
+  #                label = "Save selected variables",
+  #                width = "50%",
+  #                icon = icon(name="upload",
+  #                            lib="font-awesome")  ),
+  # 
+  #   # Error message - see specific error messages
+  #   div(id = ns("var_error_message"),
+  #       style = "color: red; display: none; font-size: 20px;",
+  #       textOutput(ns("var_error_message_out"))
+  #   ),
+  # 
+  #   # Success message
+  #   div(id = ns("var_success_message"),
+  #       style = "color: green; display: none; font-size: 20px;",
+  #       textOutput(ns("var_success_message_out"))
+  #   ),
+  # )
 }
 
 ## Create trip/haul level ID ----------------------------------------------------------------------

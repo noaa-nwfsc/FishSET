@@ -38,9 +38,9 @@ server <- function(input, output, session) {
   rv_data_load_error <- reactiveVal(TRUE) # Track errors with loading data for sidebar
   rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, 
                                    rule = "n", value = 3) # basic default
-  rv_selected_variables <- reactiveValues() # All selected variables from select_variables_server
+  # rv_selected_variables <- reactiveValues() # All selected variables from select_variables_server
   rv_nominal_id_type <- reactiveValues() # type of trip/haul id to create in select_variables_server
-
+  
   
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
@@ -58,7 +58,7 @@ server <- function(input, output, session) {
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
-
+  
   ### Main panel 
   #### Change folderpath
   rv_folderpath <- folder_path_server("folderpath", fs_folder_exist = fs_folder_exist) 
@@ -76,17 +76,17 @@ server <- function(input, output, session) {
   rv_data_names$port <- select_data_server("select_port",
                                            data_type = "port",
                                            rv_project_name = rv_project_name)
-  
+
   ### #Select aux data (optional)
   rv_data_names$aux <- select_data_server("select_aux",
                                           data_type = "aux",
                                           rv_project_name = rv_project_name)
-  
+
   #### Select spatial data
   rv_data_names$spat <- select_data_server("select_spatial",
                                            data_type = "spat",
                                            rv_project_name = rv_project_name)
-  
+
   #### Select gridded data (optional)
   rv_data_names$grid <- select_data_server("select_grid",
                                            data_type = "grid",
@@ -112,32 +112,35 @@ server <- function(input, output, session) {
   
   ### Main panel
   
-  #### Select main data variables
-  rv_selected_variables$main <- select_main_var_server("selecting_main", 
-                                                       rv_project_name = rv_project_name,
-                                                       rv_data = rv_data)
-  #### Select spat data variables
-  rv_selected_variables$spat <- select_spat_var_server("selecting_spat", 
-                                                       rv_project_name = rv_project_name,
-                                                       rv_data = rv_data)
-  #### Select port data variables (optional)
-  rv_selected_variables$port <- select_port_var_server("selecting_port", 
-                                                       rv_project_name = rv_project_name,
-                                                       rv_data = rv_data)
-  #### Select aux data variables (optional)
-  rv_selected_variables$aux <-  select_aux_var_server("selecting_aux",
-                                                      rv_project_name = rv_project_name,
-                                                      rv_data = rv_data)
+  # #### Select main data variables
+  # rv_selected_variables$main <- select_main_var_server("selecting_main",
+  #                                                      rv_project_name = rv_project_name,
+  #                                                      rv_data = rv_data)
+  # #### Select spat data variables
+  # rv_selected_variables$spat <- select_spat_var_server("selecting_spat",
+  #                                                      rv_project_name = rv_project_name,
+  #                                                      rv_data = rv_data)
+  # #### Select port data variables (optional)
+  # rv_selected_variables$port <- select_port_var_server("selecting_port",
+  #                                                      rv_project_name = rv_project_name,
+  #                                                      rv_data = rv_data)
+  # #### Select aux data variables (optional)
+  # rv_selected_variables$aux <-  select_aux_var_server("selecting_aux",
+  #                                                     rv_project_name = rv_project_name,
+  #                                                     rv_data = rv_data)
+  
   #### Save all selected variables to project data folder 
-  save_var_server("saving_all_variables", rv_project_name = rv_project_name,
-                                          rv_selected_variables = rv_selected_variables)
+  save_var_server("saving_all_variables", 
+                  rv_project_name = rv_project_name,
+                  rv_data = rv_data)
+  
   #### Create haul/trip level ID (if needed)
   rv_nominal_id_type <- create_nominal_id_server("nominal_id",rv_project_name = rv_project_name,
-                           rv_selected_variables = rv_selected_variables )
+                                                 rv_selected_variables = rv_selected_variables )
   
   create_nominal_id_inputs_server("nominal_id_vars",rv_project_name = rv_project_name,
                                   rv_data = rv_data,
-                           rv_selected_variables = rv_selected_variables,
-                           rv_nominal_id_type = rv_nominal_id_type)
-
+                                  rv_selected_variables = rv_selected_variables,
+                                  rv_nominal_id_type = rv_nominal_id_type)
+  
 }
