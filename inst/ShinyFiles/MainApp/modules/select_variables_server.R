@@ -504,45 +504,48 @@ save_var_server <- function(id, rv_project_name, rv_data){
                                                           rv_data = rv_data)
       
       observeEvent(input$save_vars_btn, {
+        req(rv_project_name()) # Check to ensure reactive is available
+        project_name <- rv_project_name()$value
+        req(rv_selected_variables)
         
-        if(input$save_vars_btn){
-          req(rv_project_name()) # Check to ensure reactive is available
-          project_name <- rv_project_name()$value
-          req(rv_selected_variables)
+        # Overlay spinner
+        shinyjs::show("save_var_spinner_container")
+        
+        saved_variables_main <- rv_selected_variables$main()
+        saved_variables_port <- rv_selected_variables$port()
+        saved_variables_spat <- rv_selected_variables$spat()
+        
+        saved_variables <- list(main = saved_variables_main,
+                                spat = saved_variables_spat,
+                                port = saved_variables_port)
+        
+        tab_name <- paste0(project_name, "SavedVariables")
+        
+        file_names <- paste0(loc_data(project_name), "/", tab_name, ".rds")
+        
+        saveRDS(saved_variables, file = file_names)
+        
+        rv_var_success_message("Variables are loaded and saved in project data folder.")
+        shinyjs::show("var_success_message")
+        shinyjs::hide("var_error_message")
+        
+        ### Zonal centroid -----------------------------------------------------------------
+        cent_table_name <- paste0(project_name, "centroidTable")
+        
+        # Create centroid table if it does not exist
+        if (!table_exists(cent_table_name, project_name)) {
+          q_test_centroid <- quietly_test(create_centroid, show_msg = FALSE)
+          q_test_centroid(spat = rv_data$spat,
+                          project = project_name,
+                          spatID = saved_variables_spat$spat_zone_id,
+                          cent.name = "_",
+                          output = "centroid table")
           
           
-          saved_variables_main <- rv_selected_variables$main()
-          saved_variables_port <- rv_selected_variables$port()
-          saved_variables_spat <- rv_selected_variables$spat()
-          
-          saved_variables <- list(main = saved_variables_main,
-                                  spat = saved_variables_spat,
-                                  port = saved_variables_port)
-          
-          tab_name <- paste0(project_name, "SavedVariables")
-          
-          file_names <- paste0(loc_data(project_name), "/", tab_name, ".rds")
-          
-          saveRDS(saved_variables, file = file_names)
-          
-          rv_var_success_message("Variables are loaded and saved in project data folder.")
-          shinyjs::show("var_success_message")
-          shinyjs::hide("var_error_message")
-          
-          ### Zonal centroid -----------------------------------------------------------------
-          cent_table_name <- paste0(project_name, "centroidTable")
-          
-          # Create centroid table if it does not exist
-          if (!table_exists(cent_table_name, project_name)) {
-            q_test_centroid <- quietly_test(create_centroid, show_msg = FALSE)
-            q_test_centroid(spat = rv_data$spat,
-                            project = project_name,
-                            spatID = saved_variables_spat$spat_zone_id,
-                            cent.name = "_",
-                            output = "centroid table")
-            
-          } 
         }
+        
+        # Hide local spinner
+        shinyjs::hide("save_var_spinner_container")
       })
     }
   )

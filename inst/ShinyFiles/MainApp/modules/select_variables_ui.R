@@ -167,7 +167,17 @@ saving_sel_var_ui <- function(id){
                    label = "Save selected variables",
                    width = "50%",
                    icon = icon(name="upload",
-                               lib="font-awesome")  ),
+                               lib="font-awesome")),
+      
+      # Overlay spinner for this section
+      div(id = ns("save_var_spinner_container"),
+          style = "display: none;",
+          spinner_ui(ns("save_var_spinner"),
+                     spinner_type = "circle",
+                     size = "large",
+                     message = "Saving variables...",
+                     overlay = TRUE)
+      ),
 
       # Error message - see specific error messages
       div(id = ns("var_error_message"),
