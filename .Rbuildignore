@@ -9,3 +9,4 @@ LICENSE.md
 ^doc$
 ^docs$
 ^pkgdown$
+_\.new\.png$

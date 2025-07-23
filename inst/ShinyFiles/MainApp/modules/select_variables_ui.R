@@ -122,7 +122,6 @@ select_aux_var_ui <- function(id){
 ##              sessions
 saving_sel_var_ui <- function(id){
   ns <- NS(id)
-  
   tagList(
     fluidRow(
       column(width = 12,

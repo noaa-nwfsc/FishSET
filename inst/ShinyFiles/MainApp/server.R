@@ -30,6 +30,24 @@ fs_folder_exist <- exists("folderpath", where = ".GlobalEnv") # Check for FishSE
 # Server function definition
 server <- function(input, output, session) {
   
+  # Load the entire package if in test mode (for shinytest2)
+  is_testing <- getOption("shiny.testmode", FALSE) ||
+    Sys.getenv("TESTTHAT") == "true" ||
+    Sys.getenv("_R_CHECK_PACKAGE_NAME_") != "" ||
+    !is.null(getOption("shinytest2.app")) ||
+    identical(Sys.getenv("NOT_CRAN"), "true")
+  if (is_testing) {
+    # Try to load the package development version
+    tryCatch({
+      pkgload::load_all()
+    }, error = function(e) {
+      # If load_all fails, fall back to library
+      library(FishSET)
+    })
+  } else {
+    library(FishSET)
+  }
+  
   # Define reactives ------------------------------------------------------------------------------
   rv_folderpath <- reactiveVal() # Folder path to FishSETFolder
   rv_project_name <- reactiveVal() # Project name
@@ -38,8 +56,7 @@ server <- function(input, output, session) {
   rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, 
                                    rule = "n", value = 3) # basic default
   rv_nominal_id_type <- reactiveValues() # type of trip/haul id to create in select_variables_server
-  
-  
+
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
@@ -70,6 +87,15 @@ server <- function(input, output, session) {
                               rv_data_names = rv_data_names,
                               parent_session = session)
   
+  # Export shiny test values
+  exportTestValues(
+    main = rv_data$main,
+    port = rv_data$port,
+    aux = rv_data$aux,
+    spat = rv_data$spat,
+    grid = rv_data$grid
+  )
+  
   observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update the sidebar
   
   ## Selecting variables subtab ----------------------------------------------------------------------------
@@ -81,6 +107,7 @@ server <- function(input, output, session) {
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
   
+  ### Main panel
   #### Save all selected variables to project data folder 
   save_var_server("saving_all_variables", 
                   rv_project_name = rv_project_name,

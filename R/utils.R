@@ -59,48 +59,52 @@ loc <- function() {
 locproject <- function() {
   #' Define projects folder location
   #'
-  #'@export
-  #'@keywords internal
+  #' @export
+  #' @keywords internal
   # TODO: change folderpath to fsfolderpath, or FSFolderpath?
+
+  # If running shiny tests - return path to main unit tests
+  if (getOption("shiny.testmode", FALSE)){
+    return(system.file("tests/testthat/testdata/FishSETFolder", package = "FishSET"))
+  }
   
   # If running unit tests - return the unit test path
   test_folderpath <- getOption("test_folder_path")
   if (!is.null(test_folderpath)) {
     return(test_folderpath)
-    
   }
-  
+
   fp_exists <- exists("folderpath", where = ".GlobalEnv")
-  
+
   if (fp_exists) {
-    
+
     proj_dir <- get("folderpath", envir = as.environment(1L))
-    
+
     # Possible that user altered folderpath, check if valid
     if (!dir.exists(proj_dir)) {
-      
-      stop("The folder in 'folderpath' does not exist. Delete 'folderpath' or run ", 
-           "update_folderpath() to select the location of the FishSET Folder.", 
+
+      stop("The folder in 'folderpath' does not exist. Delete 'folderpath' or run ",
+           "update_folderpath() to select the location of the FishSET Folder.",
            call. = FALSE)
     }
-    
+
   } else {
     # have user select folder
     proj_dir <- loc()
   }
-  
+
   # add trailing slash
   proj_dir <- paste0(normalizePath(proj_dir), "/")
-  
+
   # create the new path to FishSETFolder
-  
+
   if (!fp_exists) {
-    
+
     pos <- 1
     envir = as.environment(pos)
     assign('folderpath', proj_dir, envir = envir)
   }
-  
+
   return(proj_dir)
 }
 
@@ -367,7 +371,7 @@ loc_doc <- function(project) {
   if(is.null(project)){
     warning('Project name must be supplied.')
   } else {
-    paste0(locproject(), project, "/doc/")
+    file.path(locproject(), project, "doc//")
   }
 }
 
