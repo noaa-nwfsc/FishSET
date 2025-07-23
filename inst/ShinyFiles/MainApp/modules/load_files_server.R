@@ -902,7 +902,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
     # Next button to move user to Select variables sub-tab
     observeEvent(input$load_data_next_btn, {
       bslib::nav_show(
-        id = "tabs", target = "Select variables", select = TRUE,
+        id = "tabs", target = "select_variables", select = TRUE,
         session = parent_session
       )
     })
