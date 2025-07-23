@@ -213,8 +213,8 @@ table_view <- function(table, project) {
       tab_out[d_cols] <- lapply(tab_out[d_cols], date_parser)
 
       # If the table is a grid table, convert the first column to dates
-      if(table %in% list_tables(project, "grid")){
-        # If the table has more than one row AND the first column is NOT a date variable, 
+      if(table %in% suppressWarnings(list_tables(project, "grid"))){
+        # If the table has more than one row AND the first column is NOT a date variable,
         # then convert the first column to dates
         if (nrow(tab_out) > 1 && !lubridate::is.Date(tab_out[[1]])) {
           tab_out[[1]] <- lubridate::as_date(tab_out[[1]])

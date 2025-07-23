@@ -17,6 +17,8 @@
 source("modules/spinner.R", local = TRUE) # Reusable spinner
 source("modules/load_files_ui.R", local = TRUE) # Upload data - load files subtab
 source("modules/other_actions_ui.R", local = TRUE) # Other actions in sidebar 
+source("modules/select_variables_ui.R", local = TRUE) # Other actions in sidebar 
+
 
 # UI function definition
 ui <- function(request){
@@ -123,11 +125,83 @@ ui <- function(request){
       
       ## Select variables subtab ------------------------------------------------------------------
       bslib::nav_panel(
-        title = "Select variables",
-        id = "select_variables",
+        title = "Select variables", 
         value = "select_variables",
+        id = "select_variables",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE, 
+            fill = TRUE,
+            includeCSS("styles.css"), # Line needs to be placed on same level as bslib::card() 
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+              other_actions_ui("selecting_variables_actions")
+            ),
+            
+            fluidRow(
+              column(width = 12,
+                     bslib::card(fill = FALSE,
+                       bslib::card_header(
+                         "1. Primary data variables",
+                          class = "bg-secondary"),
+                       bslib::card_body( 
+                         bslib::layout_column_wrap( fill = TRUE,
+                                                    width = 1/3,
+                                                    bslib::card(fill = FALSE,
+                                                                h6("Primary data"),
+                                                                select_main_var_ui("selecting_main")),
+                                                    bslib::card(fill = FALSE,
+                                                                h6("Port data"),
+                                                                select_port_var_ui("selecting_port")),
+                                                    bslib::card(fill = FALSE,
+                                                                h6("Aux data"),
+                                                                select_aux_var_ui("selecting_aux")),
+                         )
+                       ),
+                       
+                       fluidRow(
+                         column(width = 8,
+                                bslib::card(fill = FALSE,
+                                   bslib::card_header(h6("Creating haul/trip level ID (optional)")),
+                                   bslib::card_body(
+                                     bslib::layout_column_wrap( fill = TRUE,
+                                          width = 1/2,
+                                          bslib::card(class = "border-0 shadow-none",
+                                                      create_nominal_id_ui("nominal_id")),
+                                          bslib::card(class = "border-0 shadow-none",
+                                                     create_nominal_id_inputs_ui("nominal_id_vars")))
+                                   )
+                                )
+                         )
+                       )
+                     )
+              )
+              
+            ),
+            fluidRow(
+              column(width = 12,
+                     bslib::card(fill = FALSE,
+                                 bslib::card_header(
+                                   "2. Spatial data variables",
+                                   class = "bg-secondary"),
+                                 bslib::card_body(fill = FALSE,
+                                                  h6("Spatial data"),
+                                                  select_spat_var_ui("selecting_spat")
+                                 )
+                   )
+                   
+            )
+          ), 
+          fluidRow(
+            column(7, saving_sel_var_ui("saving_all_variables"))
+          )
+        )
       )
     )
+  )
   )
 }
 
