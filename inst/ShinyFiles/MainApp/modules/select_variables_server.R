@@ -408,6 +408,8 @@ create_nominal_id_inputs_server <- function(id, rv_project_name, rv_data,
                
             } else{
                shinyjs::hide("create_id_container")  
+               shinyjs::hide("create_id_btn_container")
+               
             }
             
          })
