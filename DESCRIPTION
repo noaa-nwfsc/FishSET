@@ -97,6 +97,7 @@ Suggests:
     R.matlab,
     readODS,
     rmarkdown,
+    shinytest2,
     testthat (>= 3.0.0)
 VignetteBuilder:
     knitr

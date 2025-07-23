@@ -28,6 +28,24 @@ fs_folder_exist <- exists("folderpath", where = ".GlobalEnv") # Check for FishSE
 # Server function definition
 server <- function(input, output, session) {
   
+  # Load the entire package if in test mode (for shinytest2)
+  is_testing <- getOption("shiny.testmode", FALSE) ||
+    Sys.getenv("TESTTHAT") == "true" ||
+    Sys.getenv("_R_CHECK_PACKAGE_NAME_") != "" ||
+    !is.null(getOption("shinytest2.app")) ||
+    identical(Sys.getenv("NOT_CRAN"), "true")
+  if (is_testing) {
+    # Try to load the package development version
+    tryCatch({
+      pkgload::load_all()
+    }, error = function(e) {
+      # If load_all fails, fall back to library
+      library(FishSET)
+    })
+  } else {
+    library(FishSET)
+  }
+  
   # Define reactives ------------------------------------------------------------------------------
   rv_folderpath <- reactiveVal() # Folder path to FishSETFolder
   rv_project_name <- reactiveVal() # Project name
@@ -52,14 +70,13 @@ server <- function(input, output, session) {
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
-
+  
   ### Main panel 
   #### Change folderpath
   rv_folderpath <- folder_path_server("folderpath", fs_folder_exist = fs_folder_exist) 
   
   #### Select project name
   rv_project_name <- select_project_server("select_project", rv_folderpath = rv_folderpath)
-  
   
   #### Select main data
   rv_data_names$main <- select_data_server("select_main",
@@ -91,6 +108,15 @@ server <- function(input, output, session) {
                               rv_project_name = rv_project_name,
                               rv_data_names = rv_data_names,
                               parent_session = session)
+  
+  # Export shiny test values
+  exportTestValues(
+    main = rv_data$main,
+    port = rv_data$port,
+    aux = rv_data$aux,
+    spat = rv_data$spat,
+    grid = rv_data$grid
+  )
   
   observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update the sidebar
 }
