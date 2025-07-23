@@ -72,52 +72,9 @@ ui <- function(request){
                         )
             ),
             
-            bslib::layout_column_wrap(
-              fill = FALSE,
-              width = 1/2,
-              ### Select main data 
-              bslib::card(fill = FALSE,
-                          bslib::card_header("3. Primary data"),
-                          bslib::card_body(
-                            bslib::card(
-                              bslib::card_body(
-                                select_data_ui("select_main", data_type = "main")
-                              )
-                            ),
-                            bslib::card(
-                              bslib::card_body(
-                                select_data_ui("select_port", data_type = "port")
-                              )
-                            ),
-                            bslib::card(
-                              bslib::card_body(
-                                select_data_ui("select_aux", data_type = "aux")
-                              )
-                            )
-                          )
-              ),
-              
-              ### Select spatial data
-              bslib::card(fill = FALSE,
-                          bslib::card_header("4. Spatial data"),
-                          bslib::card_body(
-                            bslib::card(fill = FALSE,
-                                        bslib::card_body(
-                                          select_data_ui("select_spatial", data_type = "spat")
-                                        )
-                            ), 
-                            bslib::card(fill = FALSE,
-                                        bslib::card_body(
-                                          select_data_ui("select_grid", data_type = "grid")
-                                        )
-                            )
-                          )
-              )
-            ),
-            
+            ### Load data
             fluidRow(
               column(12, load_data_ui("load_data")),
-              
             )
           )
         )
@@ -141,60 +98,28 @@ ui <- function(request){
               other_actions_ui("selecting_variables_actions")
             ),
             
-            # fluidRow(
-            #   column(width = 12,
-            #          bslib::card(fill = FALSE,
-            #                      bslib::card_header(
-            #                        "1. Primary data variables",
-            #                        class = "bg-secondary"),
-            #                      bslib::card_body(
-            #                        bslib::layout_column_wrap( fill = TRUE,
-            #                                                   width = 1/3,
-            #                                                   bslib::card(fill = FALSE,
-            #                                                               h6("Primary data"),
-            #                                                               select_main_var_ui("selecting_main")),
-            #                                                   bslib::card(fill = FALSE,
-            #                                                               h6("Port data"),
-            #                                                               select_port_var_ui("selecting_port")),
-            #                                                   bslib::card(fill = FALSE,
-            #                                                               h6("Aux data"),
-            #                                                               select_aux_var_ui("selecting_aux"))
-            #                        )
-            #                      )
-            #          )
-            #   )
-            # ),
-            # fluidRow(
-            #   column(width = 12,
-            #          bslib::card(fill = FALSE,
-            #                      bslib::card_header(
-            #                        "2. Spatial data variables",
-            #                        class = "bg-secondary"),
-            #                      bslib::card_body(fill = FALSE,
-            #                                       h6("Spatial data"),
-            #                                       select_spat_var_ui("selecting_spat")
-            #                      )
-            #          )
-            # 
-            #   )
-            # ),
             fluidRow(
               column(12, saving_sel_var_ui("saving_all_variables"))
             ),
+            
             fluidRow(
-              column(width = 12,
-                     bslib::card(fill = FALSE,
-                                 bslib::card_header("Creating Haul/Trip Level ID",
-                                                    class = "bg-secondary"),
-                                 bslib::card_body(
-                                   bslib::layout_column_wrap( fill = TRUE,
-                                                              width = 1/3,
-                                                              bslib::card(fill = FALSE,
-                                                                          create_nominal_id_ui("nominal_id")),
-                                                              create_nominal_id_inputs_ui("nominal_id_vars"),
-                                                              
-                                   ))
-                     )
+              column(
+                width = 12,
+                bslib::card(
+                  fill = FALSE,
+                  bslib::card_header(
+                    "Creating Haul/Trip Level ID",
+                    class = "bg-secondary"),
+                  bslib::card_body(
+                    bslib::layout_column_wrap( 
+                      fill = TRUE,
+                      width = 1/3,
+                      bslib::card(
+                        fill = FALSE,
+                        create_nominal_id_ui("nominal_id")),
+                      create_nominal_id_inputs_ui("nominal_id_vars"),
+                    ))
+                )
               )
             )
           )
