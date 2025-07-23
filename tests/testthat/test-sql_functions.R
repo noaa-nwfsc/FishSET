@@ -76,9 +76,9 @@ test_that("test tables_database() works", {
   result <- tables_database("s1")
 
   # Check the result
-  expect_equal(length(result), 17)
+  expect_equal(length(result), 20)
   expect_equal(result[1], "s1AltMatrix")
-  expect_equal(result[17], "s1spatSpatTable20250612")
+  expect_equal(result[17], "s1gridGridTable")
 })
 
 
