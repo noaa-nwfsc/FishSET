@@ -483,13 +483,38 @@
               {
                 "scenario": "closure_2",
                 "date": "2025-06-12",
-                "zone": ["Zone_387332", "Zone_387331"],
-                "tac": [0, 0],
+                "zone": [
+                  "Zone_387332",
+                  "Zone_387331"
+                ],
+                "tac": [
+                  0,
+                  0
+                ],
                 "grid_name": "zone_df()"
               }
             ]
           ],
           "msg": "Closure scenario saved"
+        },
+        {
+          "functionID": "load_grid",
+          "args": [
+            "grid",
+            "grid",
+            "s1",
+            true
+          ]
+        },
+        {
+          "functionID": "load_aux",
+          "args": [
+            "s1MainDataTable",
+            "aux",
+            "aux",
+            true,
+            "s1"
+          ]
         }
       ]
     }
