@@ -530,10 +530,17 @@ save_var_server <- function(id, rv_project_name, rv_data){
           shinyjs::hide("var_error_message")
           
           ### Zonal centroid -----------------------------------------------------------------
-          q_test_centroid <- quietly_test(create_centroid, show_msg = FALSE)
-          q_test_centroid(spat = ,
-                          project = project_name,
-                          spatID)
+          cent_table_name <- paste0(project_name, "centroidTable")
+          
+          # Create centroid table if it does not exist
+          if (!table_exists(cent_table_name, project_name)) {
+            q_test_centroid <- quietly_test(create_centroid, show_msg = FALSE)
+            q_test_centroid(spat = rv_data$spat,
+                            project = project_name,
+                            spatID = saved_variables_spat$spat_zone_id,
+                            cent.name = "_",
+                            output = "centroid table")  
+          } 
         }
       })
     }

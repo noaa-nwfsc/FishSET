@@ -95,5 +95,4 @@ server <- function(input, output, session) {
                                   rv_data = rv_data,
                                   rv_selected_variables = rv_selected_variables,
                                   rv_nominal_id_type = rv_nominal_id_type)
-  
 }
