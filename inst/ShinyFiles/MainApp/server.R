@@ -72,7 +72,6 @@ server <- function(input, output, session) {
   
   observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update the sidebar
   
-  # Upload data -----------------------------------------------------------------------------------
   ## Selecting variables subtab ----------------------------------------------------------------------------
   ### Sidebar
   other_actions_server("selecting_variables_actions", 

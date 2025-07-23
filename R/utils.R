@@ -2389,7 +2389,7 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal",
   }
 }
 
-quietly_test <- function(.f, show_msg = FALSE) {
+quietly_test <- function(.f, show_msg = FALSE, show_warning = FALSE) {
   #' quietly_test
   #' capture console messages if exist and print to shiny app
   #' @param .f function name
@@ -2413,9 +2413,11 @@ quietly_test <- function(.f, show_msg = FALSE) {
     
     res <- res$result # quietly output
     
-    if (!is.null(res$warnings) && length(res$warnings) > 0) {
-      
-      lapply(unique(res$warnings), showNotification, duration = 60, type = "warning")
+    if (show_warning) {
+      if (!is.null(res$warnings) && length(res$warnings) > 0) {
+        
+        lapply(unique(res$warnings), showNotification, duration = 60, type = "warning")
+      }  
     }
     
     if (show_msg) {

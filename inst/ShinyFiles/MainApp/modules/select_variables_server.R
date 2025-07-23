@@ -539,7 +539,8 @@ save_var_server <- function(id, rv_project_name, rv_data){
                             project = project_name,
                             spatID = saved_variables_spat$spat_zone_id,
                             cent.name = "_",
-                            output = "centroid table")  
+                            output = "centroid table")
+            
           } 
         }
       })
