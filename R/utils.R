@@ -93,8 +93,8 @@ locproject <- function() {
     proj_dir <- loc()
   }
 
-  # # add trailing slash
-  # proj_dir <- file.path(proj_dir)
+  # add trailing slash
+  proj_dir <- paste0(normalizePath(proj_dir), "/")
   
   # create the new path to FishSETFolder
   if (!fp_exists) {
