@@ -48,26 +48,6 @@ select_main_var_ui <- function(id){
   )
 }
 
-## Select variables from spat data table ----------------------------------------------------------
-## Description: Users can select variables from spat data table where they can then be used 
-##              throughout the app; error message will show if spat data does not exist
-select_spat_var_ui <- function(id){
-  ns <- NS(id)
-  tagList(
-    div(id = ns("spat_variables_container"),
-        style = "display: none;",
-        selectizeInput(ns('spat_zone_id_input'),
-                       'Select column containing zone ID in spatial data table',
-                       choices = NULL, multiple = FALSE)
-    ),
-    div(id = ns("select_error_message"), 
-        style = "color: red; display: none; font-size: 20px;", 
-        p(" ⚠️ Spatial data not found and is required. Return to load files and ensure data is
-          loaded correctly.")
-    )
-  )
-}
-
 ## Select variables from port data table ----------------------------------------------------------
 ## Description: Users can select variables from port data table where they can then be used 
 ##              throughout the app
@@ -113,6 +93,26 @@ select_aux_var_ui <- function(id){
     div(id = ns("select_error_message"), 
         style = "display: none; font-size: 20px;", 
         p("Aux data not found. If you supplied this data, return to load files and ensure data is
+          loaded correctly.")
+    )
+  )
+}
+
+## Select variables from spat data table ----------------------------------------------------------
+## Description: Users can select variables from spat data table where they can then be used 
+##              throughout the app; error message will show if spat data does not exist
+select_spat_var_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    div(id = ns("spat_variables_container"),
+        style = "display: none;",
+        selectizeInput(ns('spat_zone_id_input'),
+                       'Select column containing zone ID in spatial data table',
+                       choices = NULL, multiple = FALSE)
+    ),
+    div(id = ns("select_error_message"), 
+        style = "color: red; display: none; font-size: 20px;", 
+        p(" ⚠️ Spatial data not found and is required. Return to load files and ensure data is
           loaded correctly.")
     )
   )

@@ -109,65 +109,6 @@ select_main_var_server <- function(id, rv_project_name, rv_data){
     })
 } 
 
-## Select variables from spat data table ----------------------------------------------------------
-## Description: Users can select variables from spat data table where they can then be used 
-##              throughout the app
-select_spat_var_server <- function(id,rv_project_name, rv_data){
-  moduleServer(
-    id,
-    function(input, output, session){
-      
-      ns <- session$ns
-      
-      observe({
-        req(rv_project_name()) # Check to ensure reactive is available
-        project_name <- rv_project_name()$value
-        req(rv_data) # Ensure data is not null
-        spat_data <- rv_data$spat # Save static copy of spat data from reactive input
-        
-        if (is.null(spat_data)) {
-          shinyjs::hide("spat_variables_container")  
-          shinyjs::show("select_error_message")
-          
-        } else {
-          # if saved variables already exist in project folder
-          saved_var_file <- paste0(project_name, "SavedVariables.rds")
-          saved_var_filepath <- file.path(loc_data(project_name), saved_var_file)
-          saved_var_filepath <- suppressWarnings(normalizePath(saved_var_filepath)) 
-          
-          # if exists update the selectInput selections to show the existing variable
-          if (file.exists(saved_var_filepath) & !is.null(spat_data)) {
-            existing_variables <- readRDS(saved_var_filepath)
-            
-            shinyjs::show("spat_variables_container")  
-            updateSelectInput(session,
-                              'spat_zone_id_input',
-                              choices = colnames(spat_data), 
-                              selected = existing_variables$spat$spat_zone_id)
-            shinyjs::hide("select_error_message")
-            
-            # if doesn't exist, just show variables in spat data
-          } else if(!file.exists(saved_var_filepath) & !is.null(spat_data)){
-            shinyjs::show("spat_variables_container")  
-            updateSelectInput(session,
-                              'spat_zone_id_input',
-                              choices = colnames(spat_data))
-            shinyjs::hide("select_error_message")
-            
-            # if spat data does not exist, show error message
-          }
-        }
-      })
-      
-      # return selected variables 
-      reactive({
-        list(
-          spat_zone_id = input$spat_zone_id_input
-        )
-      })
-    })
-}
-
 ## Select variables from port data table ----------------------------------------------------------
 ## Description: Users can select variables from port data table where they can then be used 
 ##              throughout the app
@@ -308,6 +249,66 @@ select_aux_var_server <- function(id,rv_project_name, rv_data){
       reactive({
         list(
           aux_id = input$aux_id_input,
+        )
+      })
+    })
+}
+
+## Select variables from spat data table ----------------------------------------------------------
+## Description: Users can select variables from spat data table where they can then be used 
+##              throughout the app
+select_spat_var_server <- function(id,rv_project_name, rv_data){
+  moduleServer(
+    id,
+    function(input, output, session){
+      
+      ns <- session$ns
+      
+      observe({
+        req(rv_project_name()) # Check to ensure reactive is available
+        project_name <- rv_project_name()$value
+        req(rv_data) # Ensure data is not null
+        spat_data <- rv_data$spat # Save static copy of spat data from reactive input
+        
+        if (is.null(spat_data)) {
+          shinyjs::hide("spat_variables_container")  
+          shinyjs::show("select_error_message")
+          
+        } else {
+          # if saved variables already exist in project folder
+          saved_var_file <- paste0(project_name, "SavedVariables.rds")
+          saved_var_filepath <- file.path(loc_data(project_name), saved_var_file)
+          saved_var_filepath <- suppressWarnings(normalizePath(saved_var_filepath)) 
+          
+          # if exists update the selectInput selections to show the existing variable
+          if (file.exists(saved_var_filepath) & !is.null(spat_data)) {
+            existing_variables <- readRDS(saved_var_filepath)
+            
+            shinyjs::show("spat_variables_container") # Show inputs for spat data 
+            shinyjs::hide("select_error_message")
+            
+            updateSelectInput(session,
+                              'spat_zone_id_input',
+                              choices = colnames(spat_data), 
+                              selected = existing_variables$spat$spat_zone_id)
+            
+            # if doesn't exist, just show variables in spat data
+          } else if(!file.exists(saved_var_filepath) & !is.null(spat_data)){
+            shinyjs::show("spat_variables_container")  
+            updateSelectInput(session,
+                              'spat_zone_id_input',
+                              choices = colnames(spat_data))
+            shinyjs::hide("select_error_message")
+            
+            # if spat data does not exist, show error message
+          }
+        }
+      })
+      
+      # return selected variables 
+      reactive({
+        list(
+          spat_zone_id = input$spat_zone_id_input
         )
       })
     })
