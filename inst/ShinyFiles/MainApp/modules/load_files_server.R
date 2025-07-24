@@ -32,8 +32,10 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
       # Enable buttons if no load data errors
       shinyjs::toggleState("confid_modal_btn", 
                            condition = !data_load_error)
+      
       shinyjs::toggleState("reset_log_modal_btn", 
                            condition = !data_load_error)
+      
       shinyjs::toggleState("refresh_data_btn", 
                            condition = !data_load_error)
     })
@@ -337,8 +339,10 @@ select_project_server <- function(id, rv_folderpath){
     return(reactive({
       if(getOption("shiny.testmode", FALSE)){
         list(type = "select", value = input$proj_select_input)
+        
       } else if(input$load_existing_proj_input){
         list(type = "select", value = input$proj_select_input)
+        
       } else {
         list(type = "text", value = input$proj_name_input)
       }
