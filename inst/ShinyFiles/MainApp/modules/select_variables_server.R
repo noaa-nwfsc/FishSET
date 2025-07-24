@@ -112,7 +112,7 @@ select_main_var_server <- function(id, rv_project_name, rv_data){
 ## Select variables from port data table ----------------------------------------------------------
 ## Description: Users can select variables from port data table where they can then be used 
 ##              throughout the app
-select_port_var_server <- function(id,rv_project_name, rv_data){
+select_port_var_server <- function(id, rv_project_name, rv_data) {
   moduleServer(
     id,
     function(input, output, session){
@@ -139,44 +139,40 @@ select_port_var_server <- function(id,rv_project_name, rv_data){
           if (file.exists(saved_var_filepath) & !is.null(port_data)) {
             existing_variables <- readRDS(saved_var_filepath)
             
-            shinyjs::hide("select_error_message")
-            shinyjs::show("port_variables_container")  
-            tagList(
-              updateSelectInput(session,
-                                "port_name_input",
-                                choices =colnames(port_data),
-                                selected = existing_variables$port$port_name),
-              
-              updateSelectInput(session,
-                                "port_lon_input",
-                                choices = find_lon(port_data),
-                                selected = existing_variables$port$port_lon),
-              
-              updateSelectInput(session,
-                                "port_lat_input",
-                                choices =  find_lat(port_data),
-                                selected = existing_variables$port$port_lat)
-            )
+            shinyjs::hide("select_error_message") # Shop inputs for port data
+            shinyjs::show("port_variables_container")
+            
+            updateSelectInput(session,
+                              "port_name_input",
+                              choices =colnames(port_data),
+                              selected = existing_variables$port$port_name)
+            
+            updateSelectInput(session,
+                              "port_lon_input",
+                              choices = find_lon(port_data),
+                              selected = existing_variables$port$port_lon)
+            
+            updateSelectInput(session,
+                              "port_lat_input",
+                              choices =  find_lat(port_data),
+                              selected = existing_variables$port$port_lat)
             
             # if doesn't exist, just show variables in port data
-          } else if(!file.exists(saved_var_filepath) & !is.null(port_data)){
+          } else if (!file.exists(saved_var_filepath) & !is.null(port_data)) {
             shinyjs::hide("select_error_message")
             shinyjs::show("port_variables_container")  
-            tagList(
-              updateSelectInput(session,
-                                "port_name_input",
-                                choices =colnames(port_data)),
-              
-              updateSelectInput(session,
-                                "port_lon_input",
-                                choices = find_lon(port_data)),
-              
-              updateSelectInput(session,
-                                "port_lat_input",
-                                choices =  find_lat(port_data))
-            )
             
-            # if port data does not exist, show error message
+            updateSelectInput(session,
+                              "port_name_input",
+                              choices =colnames(port_data))
+            
+            updateSelectInput(session,
+                              "port_lon_input",
+                              choices = find_lon(port_data))
+            
+            updateSelectInput(session,
+                              "port_lat_input",
+                              choices =  find_lat(port_data))
           }
         }
       })
@@ -195,7 +191,7 @@ select_port_var_server <- function(id,rv_project_name, rv_data){
 ## Select variables from aux data table ----------------------------------------------------------
 ## Description: Users can select variables from aux data table where they can then be used 
 ##              throughout the app
-select_aux_var_server <- function(id,rv_project_name, rv_data){
+select_aux_var_server <- function(id, rv_project_name, rv_data) {
   moduleServer(
     id,
     function(input, output, session){
@@ -223,24 +219,21 @@ select_aux_var_server <- function(id,rv_project_name, rv_data){
             existing_variables <- readRDS(saved_var_filepath)
             
             shinyjs::hide("select_error_message")
-            shinyjs::show("aux_variables_container")  
-            tagList(
-              updateSelectInput(session,
-                                "aux_id_input",
-                                choices =colnames(aux_data),
-                                selected = existing_variables$aux$aux_id)
-            )
+            shinyjs::show("aux_variables_container")
+            
+            updateSelectInput(session,
+                              "aux_id_input",
+                              choices =colnames(aux_data),
+                              selected = existing_variables$aux$aux_id)
             
             # if doesn't exist, just show variables in aux data
-          } else if(!file.exists(saved_var_filepath) & !is.null(aux_data)){
+          } else if (!file.exists(saved_var_filepath) & !is.null(aux_data)) {
             shinyjs::hide("select_error_message")
-            shinyjs::show("aux_variables_container")  
-            tagList(
-              updateSelectInput(session,
-                                "aux_id_input",
-                                choices =colnames(aux_data))
-            )
-            # if aux data does not exist, show error message
+            shinyjs::show("aux_variables_container")
+            
+            updateSelectInput(session,
+                              "aux_id_input",
+                              choices =colnames(aux_data))
           } 
         }
       })
