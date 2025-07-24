@@ -250,7 +250,7 @@ select_aux_var_server <- function(id, rv_project_name, rv_data) {
 ## Select variables from spat data table ----------------------------------------------------------
 ## Description: Users can select variables from spat data table where they can then be used 
 ##              throughout the app
-select_spat_var_server <- function(id,rv_project_name, rv_data){
+select_spat_var_server <- function(id, rv_project_name, rv_data) {
   moduleServer(
     id,
     function(input, output, session){
@@ -286,14 +286,13 @@ select_spat_var_server <- function(id,rv_project_name, rv_data){
                               selected = existing_variables$spat$spat_zone_id)
             
             # if doesn't exist, just show variables in spat data
-          } else if(!file.exists(saved_var_filepath) & !is.null(spat_data)){
+          } else if(!file.exists(saved_var_filepath) & !is.null(spat_data)) {
             shinyjs::show("spat_variables_container")  
+            shinyjs::hide("select_error_message")
+            
             updateSelectInput(session,
                               'spat_zone_id_input',
                               choices = colnames(spat_data))
-            shinyjs::hide("select_error_message")
-            
-            # if spat data does not exist, show error message
           }
         }
       })
@@ -321,10 +320,12 @@ create_nominal_id_server <- function(id, rv_project_name, rv_selected_variables)
       observeEvent(input$nominal_id_chk_input,{
         if(input$nominal_id_chk_input) {
           shinyjs::show("nominal_id_container") 
-        } else{
+          
+        } else {
           shinyjs::hide("nominal_id_container")
         }
       })
+      
       # return values to be used in the create_nominal_id_inputs_server
       reactive({
         list(
@@ -353,7 +354,6 @@ create_nominal_id_inputs_server <- function(id, rv_project_name, rv_data,
       rv_create_id_table <- reactiveValues() # reactive value for table with new ID 
       rv_id_success_message <- reactiveVal("") # Store success message
       
-      
       observe({    
         req(rv_nominal_id_type())
         id_type <- rv_nominal_id_type()$id_type # type of nominal id user selected
@@ -361,11 +361,13 @@ create_nominal_id_inputs_server <- function(id, rv_project_name, rv_data,
         main_data <- rv_data$main # save as static value
         
         # only show if user checks the nominal id checkbox
-        if(rv_nominal_id_type()$id_chk == TRUE){
-          if(id_type == 'create_id_input'){
+        if (rv_nominal_id_type()$id_chk == TRUE) {
+          if (id_type == 'create_id_input') {
             shinyjs::show("create_id_container")
+            
             updateSelectizeInput(session, "create_id_vars_input",
                                  choices = colnames(main_data))
+            
           }  else {
             shinyjs::hide("create_id_container")
           }
@@ -373,11 +375,10 @@ create_nominal_id_inputs_server <- function(id, rv_project_name, rv_data,
           shinyjs::show("create_id_btn_container")
           
         } else{
+          
           shinyjs::hide("create_id_container")  
           shinyjs::hide("create_id_btn_container")
-          
         }
-        
       })
       
       observeEvent(input$create_nominal_id_btn, {
@@ -392,7 +393,7 @@ create_nominal_id_inputs_server <- function(id, rv_project_name, rv_data,
         req(input$create_id_type_input)
         
         # if user selects: Create haul or trip ID based on variables
-        if(id_type == 'create_id_input'){
+        if (id_type == 'create_id_input') {
           req(input$create_id_vars_input)
           
           vars_in <- input$create_id_vars_input # save as static value
@@ -404,8 +405,9 @@ create_nominal_id_inputs_server <- function(id, rv_project_name, rv_data,
                                               name = id_varname, 
                                               vars =vars_in, 
                                               type = input$create_id_type_input)
+          
           # if user selects: Create haul or trip ID based on row numbers 
-        } else if(id_type == 'create_id_seq_input'){
+        } else if (id_type == 'create_id_seq_input') {
           
           # user ID_var function to create ID
           q_test <- quietly_test(ID_var)
@@ -435,7 +437,6 @@ create_nominal_id_inputs_server <- function(id, rv_project_name, rv_data,
             easyClose = TRUE)
         )
       })
-      
       
       output$id_success_message_out <- renderText({
         rv_id_success_message()
@@ -555,8 +556,6 @@ save_var_server <- function(id, rv_project_name, rv_data){
                           spatID = saved_variables_spat$spat_zone_id,
                           cent.name = "_",
                           output = "centroid table")
-          
-          
         }
         
         # Hide local spinner
