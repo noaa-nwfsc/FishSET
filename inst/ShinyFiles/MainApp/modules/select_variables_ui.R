@@ -1,7 +1,7 @@
 # =================================================================================================
 # File: select_variables_ui.R
-# Description: Defines the UI layout for the selecting variables subtab in the FishSET Shiny app, which
-#              is pared with 'select_variables_server.R' and sourced in 'lite_app.R'.
+# Description: Defines the UI layout for the selecting variables subtab in the FishSET Shiny app, 
+#              which is pared with 'select_variables_server.R' and sourced in 'lite_app.R'.
 #
 # Package: FishSET
 # Authors: Anna Abelman, Paul Carvalho
@@ -13,9 +13,9 @@
 #
 # =================================================================================================
 
-# UI for sidebar ------------------------------------------------------------------------------
+# UI for sidebar ----------------------------------------------------------------------------------
 
-# UI for main panel ---------------------------------------------------------------------------
+# UI for main panel -------------------------------------------------------------------------------
 
 ## Select variables from main data table ----------------------------------------------------------
 ## Description: Users can select variables from main data table where they can then be used 
@@ -25,21 +25,26 @@ select_main_var_ui <- function(id){
   tagList(
     div(id = ns("main_variables_container"),
         style = "display: none;",
+        
         selectizeInput(ns("main_zone_id_input"), 
                        "Select zone ID from primary data",
                        choices = NULL, multiple = FALSE),
+        
         selectizeInput(ns("main_zone_lon_input"),
                        "Select fishing location longitude from primary data",
                        choices = NULL, multiple = FALSE, 
                        options = list(create = TRUE)),
+        
         selectizeInput(ns("main_zone_lat_input"), 
                        "Select fishing location latitude from primary data",
                        choices = NULL, multiple = FALSE, 
                        options = list(create = TRUE)),
+        
         selectizeInput(ns("main_zone_date_input"),
                        "Select date variable", 
                        choices = NULL, multiple = FALSE)
     ),
+    
     div(id = ns("select_error_message"), 
         style = "color: red; display: none; font-size: 20px;", 
         p("⚠️ Main data not found and is required. Return to load files and ensure data is
@@ -54,31 +59,34 @@ select_main_var_ui <- function(id){
 select_port_var_ui <- function(id){
   ns <- NS(id)
   tagList(
-    
     div(id = ns("port_variables_container"),
         style = "display: none; width: 100%;",
+        
         selectizeInput(ns("port_name_input"),
                        "Select variable from port table with port names",
                        choices =NULL,
                        multiple = FALSE),
+        
         selectizeInput(ns("port_lon_input"),
                        "Select variable from port table with port longitude",
                        choices = NULL,
                        multiple = FALSE),
+        
         selectizeInput(ns("port_lat_input"),
                        "Select variable from port table with port latitude",
                        choices = NULL,
-                       multiple = FALSE)),
+                       multiple = FALSE)
+    ),
+    
     div(id = ns("select_error_message"), 
         style = "display: none; font-size: 20px;", 
         p("Port data not found. If you supplied this data, return to load files and ensure data is
           loaded correctly.")
     )
-    
   )
 }
 
-## Select variables from aux data table ----------------------------------------------------------
+## Select variables from aux data table -----------------------------------------------------------
 ## Description: Users can select variables from aux data table where they can then be used 
 ##              throughout the app
 select_aux_var_ui <- function(id){
@@ -86,10 +94,12 @@ select_aux_var_ui <- function(id){
   tagList(
     div(id = ns("aux_variables_container"),
         style = "display: none;",
+        
         selectizeInput(ns('aux_id_input'),
                        'Select column containing ID in aux data table that matches with main table',
                        choices = NULL, multiple = FALSE)
     ),
+    
     div(id = ns("select_error_message"), 
         style = "display: none; font-size: 20px;", 
         p("Aux data not found. If you supplied this data, return to load files and ensure data is
@@ -106,10 +116,12 @@ select_spat_var_ui <- function(id){
   tagList(
     div(id = ns("spat_variables_container"),
         style = "display: none;",
+        
         selectizeInput(ns('spat_zone_id_input'),
                        'Select column containing zone ID in spatial data table',
                        choices = NULL, multiple = FALSE)
     ),
+    
     div(id = ns("select_error_message"), 
         style = "color: red; display: none; font-size: 20px;", 
         p(" ⚠️ Spatial data not found and is required. Return to load files and ensure data is
@@ -127,14 +139,18 @@ create_nominal_id_ui <- function(id){
     checkboxInput(ns("nominal_id_chk_input"), 
                   "Do you need to create a trip-level ID for your data?",
                   value = FALSE),
+    
     div(id = ns("nominal_id_container"),
         style = "display: none;",
-        selectInput(ns('select_nominal_id_input'),'Functions', 
-                    choices = c('Create haul or trip ID based on variables'
-                                ='create_id_input',
-                                'Create haul or trip ID based on row numbers'
-                                ='create_id_seq_input'),
-                    multiple = FALSE, selected='create_id_input'),
+        
+        selectInput(
+          ns('select_nominal_id_input'),
+          'Functions', 
+          choices = c('Create haul or trip ID based on variables' = 'create_id_input',
+                      'Create haul or trip ID based on row numbers' = 'create_id_seq_input'),
+          multiple = FALSE, 
+          selected = 'create_id_input'),
+        
         textInput(ns('create_id_varname_input'),
                   list('Name of new variable',  
                        bslib::tooltip(  
@@ -146,7 +162,6 @@ create_nominal_id_ui <- function(id){
         )
     )
   )
-  
 }
 
 ## Create trip/haul level ID  Continued -----------------------------------------------------------
@@ -155,22 +170,25 @@ create_nominal_id_ui <- function(id){
 create_nominal_id_inputs_ui <- function(id){
   ns <- NS(id)
   tagList(
-    
     div(id = ns("create_id_container"),
         style = "display: none;",
+        
         selectInput(ns("create_id_vars_input"), 
                     "Select 2 or more variables",
                     choices = NULL,
                     multiple = TRUE),
+        
         selectizeInput(ns('create_id_type_input'), 
                        "Select ID column class type",
                        choices = c("string", "integer"))
     ),
+    
     div(id = ns("create_id_btn_container"),
         style = "display:none;",
         actionButton(ns("create_nominal_id_btn"), 
                      "Create ID")
     ),
+    
     div(id = ns("id_success_message"), 
         style = "color: green; display: none; font-size: 20px;",
         textOutput(ns("id_success_message_out"))
@@ -178,58 +196,65 @@ create_nominal_id_inputs_ui <- function(id){
   )
 }
 
-## Save variables to project folder ----------------------------------------------------------
+## Save variables to project folder ---------------------------------------------------------------
 ## Description: Users can save variables from all data tables so they can be used in future 
 ##              sessions
 save_var_ui <- function(id){
   ns <- NS(id)
+  
   tagList(
     fluidRow(
-      column(
-        width = 12,
-        bslib::card(
-          fill = FALSE,
-          bslib::card_header(
-            "1. Primary data variables",
-            class = "bg-secondary"),
-          bslib::card_body(
-            bslib::layout_column_wrap(
-              fill = TRUE,
-              width = 1/3,
-              bslib::card(fill = FALSE,
-                          h6("Primary data"),
-                          select_main_var_ui(ns("selecting_main"))),
-              bslib::card(fill = FALSE,
-                          h6("Port data"),
-                          select_port_var_ui(ns("selecting_port"))),
-              bslib::card(fill = FALSE,
-                          h6("Aux data"),
-                          select_aux_var_ui(ns("selecting_aux")))
-            )
-          ),
-          
-          fluidRow(
-            column(width = 8,
-                   bslib::card(
-                     fill = FALSE,
-                     bslib::card_header(h6("Creating haul/trip level ID (optional)")),
-                     bslib::card_body(
-                       bslib::layout_column_wrap(
-                         fill = TRUE,
-                         width = 1/2,
-                         bslib::card(
-                           class = "border-0 shadhow-none",
-                           create_nominal_id_ui(ns("nominal_id"))),
-                         bslib::card(
-                           class = "border-0 shadhow-none",
-                           create_nominal_id_inputs_ui(ns("nominal_id_vars"))
-                         )
-                       )
-                     )
-                   )
-            )
-          )
-        )
+      column(width = 12,
+             bslib::card(
+               fill = FALSE,
+               
+               bslib::card_header(
+                 "1. Primary data variables",
+                 class = "bg-secondary"),
+               
+               bslib::card_body(
+                 bslib::layout_column_wrap(
+                   fill = TRUE,
+                   width = 1/3,
+                   bslib::card(fill = FALSE,
+                               h6("Primary data"),
+                               select_main_var_ui(ns("selecting_main"))),
+                   
+                   bslib::card(fill = FALSE,
+                               h6("Port data"),
+                               select_port_var_ui(ns("selecting_port"))),
+                   
+                   bslib::card(fill = FALSE,
+                               h6("Aux data"),
+                               select_aux_var_ui(ns("selecting_aux")))
+                 )
+               ),
+               
+               fluidRow(
+                 column(width = 8,
+                        bslib::card(
+                          fill = FALSE,
+                          
+                          bslib::card_header(h6("Creating haul/trip level ID (optional)")),
+                          
+                          bslib::card_body(
+                            bslib::layout_column_wrap(
+                              fill = TRUE,
+                              width = 1/2,
+                              bslib::card(
+                                class = "border-0 shadhow-none",
+                                create_nominal_id_ui(ns("nominal_id"))),
+                              
+                              bslib::card(
+                                class = "border-0 shadhow-none",
+                                create_nominal_id_inputs_ui(ns("nominal_id_vars"))
+                              )
+                            )
+                          )
+                        )
+                 )
+               )
+             )
       )
     ),
     
@@ -238,9 +263,11 @@ save_var_ui <- function(id){
         width = 12,
         bslib::card(
           fill = FALSE,
+          
           bslib::card_header(
             "2. Spatial data variables",
             class = "bg-secondary"),
+          
           bslib::card_body(
             fill = FALSE,
             h6("Spatial data"),
