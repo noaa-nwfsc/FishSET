@@ -93,11 +93,10 @@ locproject <- function() {
     proj_dir <- loc()
   }
 
-  # add trailing slash
-  proj_dir <- paste0(normalizePath(proj_dir), "/")
-
+  # # add trailing slash
+  # proj_dir <- file.path(proj_dir)
+  
   # create the new path to FishSETFolder
-
   if (!fp_exists) {
 
     pos <- 1
@@ -342,7 +341,7 @@ loc_data <- function(project) {
   if(is.null(project)){
     warning('Project name must be supplied.')
   } else {
-      file.path(locproject(), project, "data")
+    file.path(locproject(), project, "data")
   }
 }
 
@@ -355,7 +354,7 @@ loc_meta <- function(project) {
   if(is.null(project)){
     warning('Project name must be supplied.')
   } else {
-  paste0(locproject(), project, "/doc/meta_log.json")
+    file.path(locproject(), project, "/doc/meta_log.json")
   }
 }
 

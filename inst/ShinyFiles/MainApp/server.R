@@ -20,7 +20,6 @@ source("modules/load_files_server.R", local = TRUE) # Upload data - load files s
 source("modules/other_actions_server.R", local = TRUE) # Other actions in sidebar 
 source("modules/select_variables_server.R", local = TRUE) # Other actions in sidebar 
 
-
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
 
@@ -53,10 +52,11 @@ server <- function(input, output, session) {
   rv_project_name <- reactiveVal() # Project name
   rv_data <- reactiveValues() # All data loaded in load_data_server
   rv_data_load_error <- reactiveVal(TRUE) # Track errors with loading data for sidebar
-  rv_confid_vals <- reactiveValues(check = FALSE, v_id = NULL, 
-                                   rule = "n", value = 3) # basic default
-  rv_nominal_id_type <- reactiveValues() # type of trip/haul id to create in select_variables_server
-
+  rv_confid_vals <- reactiveValues(check = FALSE, 
+                                   v_id = NULL, 
+                                   rule = "n", 
+                                   value = 3) # basic default
+  
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
@@ -98,7 +98,7 @@ server <- function(input, output, session) {
   
   observe({rv_data_load_error(rv_data$error)}) # observe rv_data$error to update the sidebar
   
-  ## Selecting variables subtab ----------------------------------------------------------------------------
+  ## Selecting variables subtab -------------------------------------------------------------------
   ### Sidebar
   other_actions_server("selecting_variables_actions", 
                        values = list(project_name = rv_project_name,
@@ -112,13 +112,4 @@ server <- function(input, output, session) {
   save_var_server("saving_all_variables", 
                   rv_project_name = rv_project_name,
                   rv_data = rv_data)
-  
-  #### Create haul/trip level ID (if needed)
-  rv_nominal_id_type <- create_nominal_id_server("nominal_id",rv_project_name = rv_project_name,
-                                                 rv_selected_variables = rv_selected_variables )
-  
-  create_nominal_id_inputs_server("nominal_id_vars",rv_project_name = rv_project_name,
-                                  rv_data = rv_data,
-                                  rv_selected_variables = rv_selected_variables,
-                                  rv_nominal_id_type = rv_nominal_id_type)
 }

@@ -4,7 +4,7 @@
 #              is pared with 'select_variables_server.R' and sourced in 'lite_app.R'.
 #
 # Package: FishSET
-# Authors: Paul Carvalho, Anna Abelman
+# Authors: Anna Abelman, Paul Carvalho
 # Date created: 6/9/2025
 #
 # Notes: - Keep UI layout and input definitions modular and clean.
@@ -42,8 +42,8 @@ select_main_var_ui <- function(id){
     ),
     div(id = ns("select_error_message"), 
         style = "color: red; display: none; font-size: 20px;", 
-        p(" ⚠️ Main data not found and is required. Return to Upload data tab and ensure data is
-            loaded correctly. ")
+        p("⚠️ Main data not found and is required. Return to load files and ensure data is
+          loaded correctly.")
     )
   )
 }
@@ -62,8 +62,8 @@ select_spat_var_ui <- function(id){
     ),
     div(id = ns("select_error_message"), 
         style = "color: red; display: none; font-size: 20px;", 
-        p(" ⚠️ Spatial data not found and is required. Return to Upload data tab and ensure data is
-            loaded correctly. ")
+        p(" ⚠️ Spatial data not found and is required. Return to load files and ensure data is
+          loaded correctly.")
     )
   )
 }
@@ -91,8 +91,8 @@ select_port_var_ui <- function(id){
                        multiple = FALSE)),
     div(id = ns("select_error_message"), 
         style = "display: none; font-size: 20px;", 
-        p("Port data not found. If you supplied this data, return to Upload data tab and ensure 
-        it is loaded correctly. ")
+        p("Port data not found. If you supplied this data, return to load files and ensure data is
+          loaded correctly.")
     )
     
   )
@@ -112,105 +112,10 @@ select_aux_var_ui <- function(id){
     ),
     div(id = ns("select_error_message"), 
         style = "display: none; font-size: 20px;", 
-        p("Aux data not found. If you supplied this data, return to Upload data tab and ensure 
-        it is loaded correctly. ")
+        p("Aux data not found. If you supplied this data, return to load files and ensure data is
+          loaded correctly.")
     )
   )
-}
-## Save variables to project folder ----------------------------------------------------------
-## Description: Users can save variables from all data tables so they can be used in future 
-##              sessions
-saving_sel_var_ui <- function(id){
-  ns <- NS(id)
-  tagList(
-    fluidRow(
-      column(width = 12,
-             bslib::card(fill = FALSE,
-                         bslib::card_header(
-                           "1. Primary data variables",
-                           class = "bg-secondary"),
-                         bslib::card_body(
-                           bslib::layout_column_wrap(fill = TRUE,
-                                                     width = 1/3,
-                                                     bslib::card(fill = FALSE,
-                                                                 h6("Primary data"),
-                                                                 select_main_var_ui(ns("selecting_main"))),
-                                                     bslib::card(fill = FALSE,
-                                                                 h6("Port data"),
-                                                                 select_port_var_ui(ns("selecting_port"))),
-                                                     bslib::card(fill = FALSE,
-                                                                 h6("Aux data"),
-                                                                 select_aux_var_ui(ns("selecting_aux")))
-                           )
-                         )
-             )
-      )
-    ),
-    fluidRow(
-      column(width = 12,
-             bslib::card(fill = FALSE,
-                         bslib::card_header(
-                           "2. Spatial data variables",
-                           class = "bg-secondary"),
-                         bslib::card_body(fill = FALSE,
-                                          h6("Spatial data"),
-                                          select_spat_var_ui(ns("selecting_spat"))
-                         )
-             )
-
-      )
-    ),
-
-    fluidRow(
-      actionButton(inputId = ns("save_vars_btn"),
-                   label = "Save selected variables",
-                   width = "50%",
-                   icon = icon(name="upload",
-                               lib="font-awesome")),
-      
-      # Overlay spinner for this section
-      div(id = ns("save_var_spinner_container"),
-          style = "display: none;",
-          spinner_ui(ns("save_var_spinner"),
-                     spinner_type = "circle",
-                     size = "large",
-                     message = "Saving variables...",
-                     overlay = TRUE)
-      ),
-
-      # Error message - see specific error messages
-      div(id = ns("var_error_message"),
-          style = "color: red; display: none; font-size: 20px;",
-          textOutput(ns("var_error_message_out"))
-      ),
-
-      # Success message
-      div(id = ns("var_success_message"),
-          style = "color: green; display: none; font-size: 20px;",
-          textOutput(ns("var_success_message_out"))
-      )
-    )
-  )
-  
-  # tagList(
-  #   actionButton(inputId = ns("save_vars_btn"),
-  #                label = "Save selected variables",
-  #                width = "50%",
-  #                icon = icon(name="upload",
-  #                            lib="font-awesome")  ),
-  # 
-  #   # Error message - see specific error messages
-  #   div(id = ns("var_error_message"),
-  #       style = "color: red; display: none; font-size: 20px;",
-  #       textOutput(ns("var_error_message_out"))
-  #   ),
-  # 
-  #   # Success message
-  #   div(id = ns("var_success_message"),
-  #       style = "color: green; display: none; font-size: 20px;",
-  #       textOutput(ns("var_success_message_out"))
-  #   ),
-  # )
 }
 
 ## Create trip/haul level ID ----------------------------------------------------------------------
@@ -272,3 +177,109 @@ create_nominal_id_inputs_ui <- function(id){
     )
   )
 }
+
+## Save variables to project folder ----------------------------------------------------------
+## Description: Users can save variables from all data tables so they can be used in future 
+##              sessions
+save_var_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    fluidRow(
+      column(
+        width = 12,
+        bslib::card(
+          fill = FALSE,
+          bslib::card_header(
+            "1. Primary data variables",
+            class = "bg-secondary"),
+          bslib::card_body(
+            bslib::layout_column_wrap(
+              fill = TRUE,
+              width = 1/3,
+              bslib::card(fill = FALSE,
+                          h6("Primary data"),
+                          select_main_var_ui(ns("selecting_main"))),
+              bslib::card(fill = FALSE,
+                          h6("Port data"),
+                          select_port_var_ui(ns("selecting_port"))),
+              bslib::card(fill = FALSE,
+                          h6("Aux data"),
+                          select_aux_var_ui(ns("selecting_aux")))
+            )
+          ),
+          
+          fluidRow(
+            column(width = 8,
+                   bslib::card(
+                     fill = FALSE,
+                     bslib::card_header(h6("Creating haul/trip level ID (optional)")),
+                     bslib::card_body(
+                       bslib::layout_column_wrap(
+                         fill = TRUE,
+                         width = 1/2,
+                         bslib::card(
+                           class = "border-0 shadhow-none",
+                           create_nominal_id_ui(ns("nominal_id"))),
+                         bslib::card(
+                           class = "border-0 shadhow-none",
+                           create_nominal_id_inputs_ui(ns("nominal_id_vars"))
+                         )
+                       )
+                     )
+                   )
+            )
+          )
+        )
+      )
+    ),
+    
+    fluidRow(
+      column(
+        width = 12,
+        bslib::card(
+          fill = FALSE,
+          bslib::card_header(
+            "2. Spatial data variables",
+            class = "bg-secondary"),
+          bslib::card_body(
+            fill = FALSE,
+            h6("Spatial data"),
+            select_spat_var_ui(ns("selecting_spat"))
+          )
+        )
+      )
+    ),
+    
+    fluidRow(
+      actionButton(inputId = ns("save_vars_btn"),
+                   label = "Save selected variables",
+                   width = "50%",
+                   icon = icon(name="upload",
+                               lib="font-awesome")),
+      
+      # Overlay spinner for this section
+      div(id = ns("save_var_spinner_container"),
+          style = "display: none;",
+          spinner_ui(ns("save_var_spinner"),
+                     spinner_type = "circle",
+                     size = "large",
+                     message = "Saving variables...",
+                     overlay = TRUE)
+      ),
+      
+      # Error message - see specific error messages
+      div(id = ns("var_error_message"),
+          style = "color: red; display: none; font-size: 20px;",
+          textOutput(ns("var_error_message_out"))
+      ),
+      
+      # Success message
+      div(id = ns("var_success_message"),
+          style = "color: green; display: none; font-size: 20px;",
+          textOutput(ns("var_success_message_out"))
+      )
+    )
+  )
+}
+
+

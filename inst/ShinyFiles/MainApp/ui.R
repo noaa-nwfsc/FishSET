@@ -19,7 +19,6 @@ source("modules/load_files_ui.R", local = TRUE) # Upload data - load files subta
 source("modules/other_actions_ui.R", local = TRUE) # Other actions in sidebar 
 source("modules/select_variables_ui.R", local = TRUE) # Other actions in sidebar 
 
-
 # UI function definition
 ui <- function(request){
   bslib::page_navbar(
@@ -55,7 +54,8 @@ ui <- function(request){
               other_actions_ui("upload_data_actions"),
             ),
             
-            ### Change folder path
+            ### Main panel
+            #### Change folder path
             bslib::card(fill = FALSE,
                         bslib::card_header("1. Set folder path"),
                         bslib::card_body(
@@ -63,7 +63,7 @@ ui <- function(request){
                         )
             ),
             
-            ### Select project
+            #### Select project
             bslib::card(fill = FALSE,
                         bslib::card_header("2. Add or select a project"),
                         bslib::card_body(
@@ -72,7 +72,7 @@ ui <- function(request){
                         )
             ),
             
-            ### Load data
+            #### Load data
             fluidRow(
               column(12, load_data_ui("load_data")),
             )
@@ -90,6 +90,7 @@ ui <- function(request){
             fillable = TRUE, 
             fill = TRUE,
             includeCSS("styles.css"), # Line needs to be placed on same level as bslib::card() 
+            
             ### Sidebar
             sidebar = bslib::sidebar( 
               fillable = TRUE, 
@@ -98,29 +99,9 @@ ui <- function(request){
               other_actions_ui("selecting_variables_actions")
             ),
             
+            ### Main panel
             fluidRow(
-              column(12, saving_sel_var_ui("saving_all_variables"))
-            ),
-            
-            fluidRow(
-              column(
-                width = 12,
-                bslib::card(
-                  fill = FALSE,
-                  bslib::card_header(
-                    "Creating Haul/Trip Level ID",
-                    class = "bg-secondary"),
-                  bslib::card_body(
-                    bslib::layout_column_wrap( 
-                      fill = TRUE,
-                      width = 1/3,
-                      bslib::card(
-                        fill = FALSE,
-                        create_nominal_id_ui("nominal_id")),
-                      create_nominal_id_inputs_ui("nominal_id_vars"),
-                    ))
-                )
-              )
+              column(12, save_var_ui("saving_all_variables"))
             )
           )
         )
