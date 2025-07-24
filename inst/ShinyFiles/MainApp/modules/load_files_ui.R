@@ -170,6 +170,50 @@ select_data_ui <- function(id, data_type){
 load_data_ui <- function(id){
   ns <- NS(id)
   tagList(
+    bslib::layout_column_wrap(
+      fill = FALSE,
+      width = 1/2,
+      ### Select main data 
+      bslib::card(fill = FALSE,
+                  bslib::card_header("3. Primary data"),
+                  bslib::card_body(
+                    bslib::card(
+                      bslib::card_body(
+                        select_data_ui(ns("select_main"), data_type = "main")
+                      )
+                    ),
+                    bslib::card(
+                      bslib::card_body(
+                        select_data_ui(ns("select_port"), data_type = "port")
+                      )
+                    ),
+                    bslib::card(
+                      bslib::card_body(
+                        select_data_ui(ns("select_aux"), data_type = "aux")
+                      )
+                    )
+                  )
+      ),
+      
+      ### Select spatial data
+      bslib::card(fill = FALSE,
+                  bslib::card_header("4. Spatial data"),
+                  bslib::card_body(
+                    bslib::card(fill = FALSE,
+                                bslib::card_body(
+                                  select_data_ui(ns("select_spatial"), data_type = "spat")
+                                )
+                    ), 
+                    bslib::card(fill = FALSE,
+                                bslib::card_body(
+                                  select_data_ui(ns("select_grid"), data_type = "grid")
+                                )
+                    )
+                  )
+      )
+    ),
+    
+    # Action button to load data
     actionButton(inputId = ns("load_data_btn"),
                  label = "Load data",
                  width = "40%",
