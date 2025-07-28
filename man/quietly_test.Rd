@@ -5,7 +5,7 @@
 \title{quietly_test
 capture console messages if exist and print to shiny app}
 \usage{
-quietly_test(.f, show_msg = FALSE)
+quietly_test(.f, show_msg = FALSE, show_warning = FALSE)
 }
 \arguments{
 \item{.f}{function name}
