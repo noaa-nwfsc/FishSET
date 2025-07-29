@@ -32,8 +32,10 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
       # Enable buttons if no load data errors
       shinyjs::toggleState("confid_modal_btn", 
                            condition = !data_load_error)
+      
       shinyjs::toggleState("reset_log_modal_btn", 
                            condition = !data_load_error)
+      
       shinyjs::toggleState("refresh_data_btn", 
                            condition = !data_load_error)
     })
@@ -337,8 +339,10 @@ select_project_server <- function(id, rv_folderpath){
     return(reactive({
       if(getOption("shiny.testmode", FALSE)){
         list(type = "select", value = input$proj_select_input)
+        
       } else if(input$load_existing_proj_input){
         list(type = "select", value = input$proj_select_input)
+        
       } else {
         list(type = "text", value = input$proj_name_input)
       }
@@ -492,6 +496,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
     rv_load_error_message <- reactiveVal("") # Store error message
     rv_load_success_message <- reactiveVal("") # Store success message
     rv_all_data_output <- reactiveValues() # Store all of the loaded data - return to main server
+    rv_data_names <- reactiveValues() # Data file/table names for uploading
     
     # Outputs for error and success messages - initially hidden
     output$load_error_message_out <- renderText({
@@ -500,6 +505,31 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
     output$load_success_message_out <- renderText({
       rv_load_success_message()
     })
+    
+    ### Select main data
+    rv_data_names$main <- select_data_server("select_main",
+                                             data_type = "main",
+                                             rv_project_name = rv_project_name)
+    
+    ### Select port data (optional)
+    rv_data_names$port <- select_data_server("select_port",
+                                             data_type = "port",
+                                             rv_project_name = rv_project_name)
+    
+    ### Select aux data (optional)
+    rv_data_names$aux <- select_data_server("select_aux",
+                                            data_type = "aux",
+                                            rv_project_name = rv_project_name)
+    
+    ### Select spatial data
+    rv_data_names$spat <- select_data_server("select_spatial",
+                                             data_type = "spat",
+                                             rv_project_name = rv_project_name)
+    
+    ### Select gridded data (optional)
+    rv_data_names$grid <- select_data_server("select_grid",
+                                             data_type = "grid",
+                                             rv_project_name = rv_project_name)
     
     ### Loading helper functions ------------------------------------------------------------------
     # Check validity of project name
