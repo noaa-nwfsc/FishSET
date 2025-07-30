@@ -97,6 +97,7 @@ ui <- function(request){
               fillable = TRUE, 
               fill = TRUE, 
               width = 400,
+              checklist_ui("select_var_checklist"),
               other_actions_ui("selecting_variables_actions")
             ),
             

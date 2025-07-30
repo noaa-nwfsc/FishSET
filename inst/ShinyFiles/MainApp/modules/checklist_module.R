@@ -159,6 +159,14 @@ checklist_server <- function(id, rv_project_name, rv_data){
         rv_project_checklist$checklist$load_data$sel_vars <- FALSE
       }
       
+      ## QAQC checks ------------------------------------------------------------------------------
+      
+      ## Format data checks -----------------------------------------------------------------------
+      
+      ## Models checks ----------------------------------------------------------------------------
+      
+      ## Policy checks ----------------------------------------------------------------------------
+      
       # Generate check list icons based on checks
       load_icon <- pass_icon("load_data", rv_project_checklist$checklist)
       qaqc_icon <- pass_icon("qaqc", rv_project_checklist$checklist)
@@ -211,6 +219,19 @@ checklist_server <- function(id, rv_project_name, rv_data){
           
           if (!is_empty(load_icon[[2]])) {
             p(load_icon[[2]], style = "color: #F5CF27;")
+            
+          } else if (!is_empty(qaqc_icon[[2]])) {
+            p(qaqc_icon[[2]], style = "color: #F5CF27;")
+            
+          } else if (!is_empty(format_icon[[2]])) {
+            p(format_icon[[2]], style = "color: #F5CF27;")
+            
+          } else if (!is_empty(models_icon[[2]])) {
+            p(models_icon[[2]], style = "color: #F5CF27;")
+            
+          } else if (!is_empty(policy_icon[[2]])) {
+            p(policy_icon[[2]], style = "color: #F5CF27;")
+            
           },
           
           easyClose = FALSE,
