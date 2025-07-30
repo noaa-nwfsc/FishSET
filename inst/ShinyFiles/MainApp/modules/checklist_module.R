@@ -254,22 +254,3 @@ checklist_server <- function(id, rv_project_name, rv_data){
     })
   })
 } 
-
-# # Upload data check
-# column(1, icon(name="file-arrow-up", lib="font-awesome", style="color: green; font-size: 30px;")),
-# column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
-# 
-# # QAQC check
-# column(1, pass_icon('qaqc', rv_project_checklist())),
-# column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
-# 
-# # Format data check
-# column(1, icon(name="file-lines", class="fa-solid", lib="font-awesome", style="color: #FFBF00; font-size: 30px;")),
-# column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
-# 
-# # Modeling check
-# column(1, icon(name="gears", lib="font-awesome", style="color: black; font-size: 30px;")),
-# column(1, icon(name="arrow-right", lib="font-awesome", style="color: black; font-size: 30px;")),
-# 
-# # Policy check
-# column(1, icon(name="fish-fins", lib="font-awesome", style="color: black; font-size: 30px;"))
