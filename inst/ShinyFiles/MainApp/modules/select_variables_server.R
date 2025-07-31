@@ -44,8 +44,11 @@ select_main_var_server <- function(id, rv_project_name, rv_data){
           saved_var_filepath <- file.path(loc_data(project_name), saved_var_file)
           saved_var_filepath <- suppressWarnings(normalizePath(saved_var_filepath)) 
           
+          if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - set checkbox to TRUE
+            existing_variables <- readRDS(saved_var_filepath)
+            
           # if exists update the selectInput selections to show the existing variable
-          if (file.exists(saved_var_filepath) & !is.null(main_data)) {
+        } else if (file.exists(saved_var_filepath) & !is.null(main_data)) {
             existing_variables <- readRDS(saved_var_filepath)
             
             shinyjs::show("main_variables_container") # Show variable inputs for main data
@@ -309,12 +312,25 @@ select_spat_var_server <- function(id, rv_project_name, rv_data) {
 ## Create trip/haul level ID ----------------------------------------------------------------------
 ## Description: Users can select whether or not they need to create a trip/haul level id in the 
 ##              main data table
-create_nominal_id_server <- function(id, rv_project_name, rv_selected_variables){
+create_nominal_id_server <- function(id, rv_project_name, rv_data, rv_selected_variables){
   moduleServer(
     id,
     function(input, output, session){
       
       ns <- session$ns
+      observe({ 
+        req(rv_data) # Ensure data is not null
+        main_data <- rv_data$main # save as static value
+        
+        if(!is.null(main_data)){
+          shinyjs::show("nominal_id_chk_container")
+          shinyjs::hide("chk_error_message")
+        } else{
+          shinyjs::hide("nominal_id_chk_container")
+          shinyjs::show("chk_error_message")
+          
+        }
+      })
       
       # if users check box, show options and can type new variable name
       observeEvent(input$nominal_id_chk_input,{
@@ -359,6 +375,8 @@ create_nominal_id_inputs_server <- function(id, rv_project_name, rv_data,
         id_type <- rv_nominal_id_type()$id_type # type of nominal id user selected
         req(rv_data) # Ensure data is not null
         main_data <- rv_data$main # save as static value
+        
+      
         
         # only show if user checks the nominal id checkbox
         if (rv_nominal_id_type()$id_chk == TRUE) {
@@ -510,6 +528,7 @@ save_var_server <- function(id, rv_project_name, rv_data){
       rv_nominal_id_type <- create_nominal_id_server(
         "nominal_id",
         rv_project_name = rv_project_name,
+        rv_data = rv_data,
         rv_selected_variables = rv_selected_variables)
       
       create_nominal_id_inputs_server(

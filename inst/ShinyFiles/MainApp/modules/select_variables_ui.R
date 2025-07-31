@@ -136,9 +136,16 @@ select_spat_var_ui <- function(id){
 create_nominal_id_ui <- function(id){
   ns <- NS(id)
   tagList(
-    checkboxInput(ns("nominal_id_chk_input"), 
-                  "Do you need to create a trip-level ID for your data?",
-                  value = FALSE),
+    div(id = ns("nominal_id_chk_container"),
+        style = "display: none;",
+        checkboxInput(ns("nominal_id_chk_input"), 
+                      "Do you need to create a trip-level ID for your data?",
+                      value = FALSE)
+    ),
+    div(id = ns("chk_error_message"), 
+        style = "display: none; font-size: 12px;", 
+        p("Data needs to be loaded in first.")
+    ),
     
     div(id = ns("nominal_id_container"),
         style = "display: none;",
