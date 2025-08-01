@@ -50,6 +50,7 @@ ui <- function(request){
               fillable = TRUE, 
               fill = TRUE, 
               width = 400,
+              
               load_sidebar_ui("upload_data_sidebar"),
               other_actions_ui("upload_data_actions"),
             ),
@@ -96,6 +97,7 @@ ui <- function(request){
               fillable = TRUE, 
               fill = TRUE, 
               width = 400,
+              checklist_ui("select_var_checklist"),
               other_actions_ui("selecting_variables_actions")
             ),
             

@@ -13,6 +13,9 @@
 #
 # =================================================================================================
 
+# Source module scripts ---------------------------------------------------------------------------
+source("modules/checklist_module.R", local = TRUE) # Checklist/progress module
+
 # Server for sidebar ------------------------------------------------------------------------------
 # Description: Server logic for side bar buttons in the upload data tab. Buttons are enabled/
 #              disabled based on output from load_data_server.
@@ -39,6 +42,9 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
       shinyjs::toggleState("refresh_data_btn", 
                            condition = !data_load_error)
     })
+    
+    # Checklist -----------------------------------------------------------------------------------
+    checklist_server("load_checklist", rv_project_name, rv_data)
     
     # Confidentiality setting ---------------------------------------------------------------------
     # create a modal for creating confidentiality rules
