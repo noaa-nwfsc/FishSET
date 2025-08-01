@@ -100,6 +100,8 @@ server <- function(input, output, session) {
   
   ## Selecting variables subtab -------------------------------------------------------------------
   ### Sidebar
+  checklist_server("select_var_checklist", rv_project_name, rv_data)
+  
   other_actions_server("selecting_variables_actions", 
                        values = list(project_name = rv_project_name,
                                      data = rv_data),

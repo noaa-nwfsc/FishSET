@@ -13,7 +13,10 @@
 #
 # =================================================================================================
 
-## UI for sidebar ---------------------------------------------------------------------------------
+# Source module scripts ---------------------------------------------------------------------------
+source("modules/checklist_module.R", local = TRUE) # Checklist/progress module
+
+# UI for sidebar ---------------------------------------------------------------------------------
 ## Description: various action buttons for users to explore as popups including refreshing data, 
 ##              setting confidentiality rules, resetting the log, saving notes as txt output, and
 ##              closing app
@@ -39,6 +42,8 @@ load_sidebar_ui <- function(id){
   )
   
   tagList(
+    checklist_ui(ns("load_checklist")),
+    
     actionButton(ns("confid_modal_btn"), "Confidentiality settings",
                  class = "btn-secondary", disable = TRUE
     ),
