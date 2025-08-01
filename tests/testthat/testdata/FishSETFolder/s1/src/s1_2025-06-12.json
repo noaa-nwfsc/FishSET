@@ -532,6 +532,23 @@
             "_",
             "centroid table"
           ]
+        },
+        {
+          "functionID": "create_centroid",
+          "args": [
+            "s1spatSpatTable",
+            "s1MainDataTable",
+            "s1",
+            "TEN_ID",
+            null,
+            null,
+            null,
+            "zonal centroid",
+            null,
+            null,
+            "_",
+            "centroid table"
+          ]
         }
       ]
     }

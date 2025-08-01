@@ -59,3 +59,48 @@ test_that("test-load-data", {
   expect_equal(dim(grid_data$export$grid), c(658, 232)) # Check dimensions of gridded data
 })
 
+library(shinytest2)
+
+test_that("test-saved-variables", {
+  skip_on_ci() # Skip this test on CI environments
+  
+  app_dir <- system.file("ShinyFiles/MainApp", package = "FishSET") # Path to the app directory
+  
+  message("Working directory: ", getwd()) # Print the current working directory")
+  message("App directory: ", app_dir)
+  message("App directory exists: ", dir.exists(app_dir))
+  
+  # Skip if app directory does not exist
+  if (!dir.exists(app_dir) || nchar(app_dir) == 0) {
+    skip("App directory does not exist")
+  }
+  
+  # Skip during R CMD check
+  if (identical(Sys.getenv("_R_CHECK_PACKAGE_NAME_"), "FishSET")) {
+    skip("Skipping test during R CMD check")
+  }
+  
+  app <- AppDriver$new(
+    app_dir = app_dir,
+    name = "test-saved-variables",
+    options = list(test.mode = TRUE),
+    shiny_args = list(test.mode = TRUE),
+    load_timeout = 120000, # Increased timeout for loading the app
+    timeout = 120000) # Increased timeout for app operations
+  
+  app$click("folderpath-change_fs_folder_btn") # Click the button to change the folder path
+  Sys.sleep(2) # Brief pause to allow the dialog to open
+  
+  app$click("load_data-load_data_btn") # Click the button to load data
+  Sys.sleep(2)
+  
+  app$wait_for_idle(timeout = 30000) # Wait for the app to finish loading data
+  app$click("load_data-load_data_next_btn")
+  suppressWarnings(file.exists(file.path("..\\..\\..\\tests\\testthat\\testdata\\FishSETFolder\\s1\\data\\s1SavedVariables.rds")))
+  app$click("saving_all_variables-save_vars_btn")
+  
+  sav_var <- file.exists(file.path("..\\..\\..\\tests\\testthat\\testdata\\FishSETFolder\\s1\\data\\s1SavedVariables.rds"))
+  
+  expect_equal(sav_var, TRUE)
+  
+})

@@ -44,11 +44,9 @@ select_main_var_server <- function(id, rv_project_name, rv_data){
           saved_var_filepath <- file.path(loc_data(project_name), saved_var_file)
           saved_var_filepath <- suppressWarnings(normalizePath(saved_var_filepath)) 
           
-          if(getOption("shiny.testmode", FALSE)){ # If running shiny tests - set checkbox to TRUE
-            existing_variables <- readRDS(saved_var_filepath)
-            
+        
           # if exists update the selectInput selections to show the existing variable
-        } else if (file.exists(saved_var_filepath) & !is.null(main_data)) {
+         if (file.exists(saved_var_filepath) & !is.null(main_data)) {
             existing_variables <- readRDS(saved_var_filepath)
             
             shinyjs::show("main_variables_container") # Show variable inputs for main data
@@ -554,9 +552,9 @@ save_var_server <- function(id, rv_project_name, rv_data){
                                 spat = saved_variables_spat,
                                 port = saved_variables_port)
         
-        tab_name <- paste0(project_name, "SavedVariables")
+        tab_name <- paste0(project_name, "SavedVariables.rds")
         
-        file_names <- paste0(loc_data(project_name), "/", tab_name, ".rds")
+        file_names <- file.path(loc_data(project_name), tab_name )
         
         saveRDS(saved_variables, file = file_names)
         
@@ -568,15 +566,15 @@ save_var_server <- function(id, rv_project_name, rv_data){
         cent_table_name <- paste0(project_name, "centroidTable")
         
         # Create centroid table if it does not exist
-        if (!table_exists(cent_table_name, project_name)) {
-          q_test_centroid <- quietly_test(create_centroid, show_msg = FALSE)
-          q_test_centroid(spat = rv_data$spat,
-                          project = project_name,
-                          spatID = saved_variables_spat$spat_zone_id,
-                          cent.name = "_",
-                          output = "centroid table")
-        }
-        
+        # if (!table_exists(cent_table_name, project_name)) {
+        #   q_test_centroid <- quietly_test(create_centroid, show_msg = FALSE)
+        #   q_test_centroid(spat = rv_data$spat,
+        #                   project = project_name,
+        #                   spatID = saved_variables_spat$spat_zone_id,
+        #                   cent.name = "_",
+        #                   output = "centroid table")
+        # }
+        # 
         # Hide local spinner
         shinyjs::hide("save_var_spinner_container")
       })
