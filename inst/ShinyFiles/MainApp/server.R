@@ -19,6 +19,7 @@
 source("modules/load_files_server.R", local = TRUE) # Upload data - load files subtab
 source("modules/other_actions_server.R", local = TRUE) # Other actions in sidebar 
 source("modules/select_variables_server.R", local = TRUE) # Other actions in sidebar 
+source("modules/qaqc_module.R", local = TRUE)
 
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
@@ -114,4 +115,8 @@ server <- function(input, output, session) {
   save_var_server("saving_all_variables", 
                   rv_project_name = rv_project_name,
                   rv_data = rv_data)
+  
+  # QAQC ------------------------------------------------------------------------------------------
+  ## Quality checks -------------------------------------------------------------------------------
+  qaqc_server("qaqc_checks", rv_project_name, rv_data)
 }

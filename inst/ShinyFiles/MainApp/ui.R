@@ -18,6 +18,7 @@ source("modules/spinner.R", local = TRUE) # Reusable spinner
 source("modules/load_files_ui.R", local = TRUE) # Upload data - load files subtab
 source("modules/other_actions_ui.R", local = TRUE) # Other actions in sidebar 
 source("modules/select_variables_ui.R", local = TRUE) # Other actions in sidebar 
+source("modules/qaqc_module.R", local = TRUE)
 
 # UI function definition
 ui <- function(request){
@@ -107,6 +108,20 @@ ui <- function(request){
             )
           )
         )
+      )
+    ),
+    
+    # QAQC ----------------------------------------------------------------------------------------
+    bslib::nav_menu(
+      title = "QAQC",
+      
+      ## Quality checks subtab --------------------------------------------------------------------
+      bslib::nav_panel(
+        title = "Quality checks", 
+        id = "quality_checks",
+        value = "quality_checks",
+        
+        qaqc_ui("qaqc_checks")
       )
     )
   )
