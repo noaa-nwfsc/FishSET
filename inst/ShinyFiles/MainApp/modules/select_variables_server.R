@@ -552,10 +552,9 @@ save_var_server <- function(id, rv_project_name, rv_data){
                                 spat = saved_variables_spat,
                                 port = saved_variables_port)
         
+        # Save .rds file
         tab_name <- paste0(project_name, "SavedVariables.rds")
-        
-        file_names <- file.path(loc_data(project_name), tab_name )
-        
+        file_names <- file.path(loc_data(project_name), tab_name)
         saveRDS(saved_variables, file = file_names)
         
         rv_var_success_message("Variables are loaded and saved in project data folder.")
