@@ -119,6 +119,7 @@ server <- function(input, output, session) {
   
   # QAQC ------------------------------------------------------------------------------------------
   ## Quality checks -------------------------------------------------------------------------------
+  ### Sidebar
   checklist_server("quality_check_checklist", rv_project_name, rv_data)
   
   other_actions_server("quality_check_actions",
@@ -128,5 +129,6 @@ server <- function(input, output, session) {
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
   
+  ### Main panel
   qaqc_server("qaqc_checks", rv_project_name, rv_data)
 }

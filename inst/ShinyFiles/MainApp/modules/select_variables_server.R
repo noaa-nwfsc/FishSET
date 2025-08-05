@@ -561,7 +561,7 @@ save_var_server <- function(id, rv_project_name, rv_data, parent_session){
         shinyjs::hide("save_var_spinner_container")
       })
       
-      # Next button to move user to Select variables sub-tab
+      # Next button to move user to quality checks sub-tab
       observeEvent(input$select_var_next_btn, {
         bslib::nav_show(
           id = "tabs", 
