@@ -96,11 +96,12 @@ test_that("test-saved-variables", {
   
   app$wait_for_idle(timeout = 30000) # Wait for the app to finish loading data
   app$click("load_data-load_data_next_btn")
-  suppressWarnings(file.exists(file.path("..\\..\\..\\tests\\testthat\\testdata\\FishSETFolder\\s1\\data\\s1SavedVariables.rds")))
+  saved_var_path <- suppressWarnings(normalizePath("../../../../../tests/testthat/testdata/FishSETFolder/s1/data/s1SavedVariables.rds"))
+
+  message("file path to saved variables:", saved_var_path)
   app$click("saving_all_variables-save_vars_btn")
   
-  sav_var <- file.exists(file.path("..\\..\\..\\tests\\testthat\\testdata\\FishSETFolder\\s1\\data\\s1SavedVariables.rds"))
+  sav_var <- file.exists(saved_var_path)
   
   expect_equal(sav_var, TRUE)
-  
 })
