@@ -114,9 +114,19 @@ server <- function(input, output, session) {
   #### Save all selected variables to project data folder 
   save_var_server("saving_all_variables", 
                   rv_project_name = rv_project_name,
-                  rv_data = rv_data)
+                  rv_data = rv_data,
+                  parent_session = session)
   
   # QAQC ------------------------------------------------------------------------------------------
   ## Quality checks -------------------------------------------------------------------------------
+  checklist_server("quality_check_checklist", rv_project_name, rv_data)
+  
+  other_actions_server("quality_check_actions",
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
+  
   qaqc_server("qaqc_checks", rv_project_name, rv_data)
 }

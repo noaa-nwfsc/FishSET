@@ -26,8 +26,6 @@ preview_data_server <- function(id, rv_project_name, rv_data){
       
       df_names <- names(data_list)[sapply(data_list, is.data.frame)]
       
-      cat("\n", str(df_names), "\n")
-      
       updateSelectInput(session, "select_data", choices = df_names)
     })
     
