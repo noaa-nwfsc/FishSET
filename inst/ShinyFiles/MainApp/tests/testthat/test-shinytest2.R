@@ -59,6 +59,7 @@ test_that("test-load-data", {
   expect_equal(dim(grid_data$export$grid), c(658, 232)) # Check dimensions of gridded data
 })
 
+# Test save variables button ----------------------------------------------------------------------
 test_that("test-saved-variables", {
   skip_on_ci() # Skip this test on CI environments
   
