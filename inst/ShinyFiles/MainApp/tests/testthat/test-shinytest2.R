@@ -59,8 +59,6 @@ test_that("test-load-data", {
   expect_equal(dim(grid_data$export$grid), c(658, 232)) # Check dimensions of gridded data
 })
 
-library(shinytest2)
-
 test_that("test-saved-variables", {
   skip_on_ci() # Skip this test on CI environments
   
@@ -96,9 +94,15 @@ test_that("test-saved-variables", {
   
   app$wait_for_idle(timeout = 30000) # Wait for the app to finish loading data
   app$click("load_data-load_data_next_btn")
-  saved_var_path <- suppressWarnings(normalizePath("../../../../../tests/testthat/testdata/FishSETFolder/s1/data/s1SavedVariables.rds"))
-
-  message("file path to saved variables:", saved_var_path)
+  
+  saved_var_path <- 
+    system.file(
+      "tests/testthat/testdata/FishSETFolder/s1/data/s1SavedVariables.rds", 
+      package = "FishSET"
+    )
+  
+  message("file path to saved variables: ", saved_var_path)
+  
   app$click("saving_all_variables-save_vars_btn")
   
   sav_var <- file.exists(saved_var_path)
