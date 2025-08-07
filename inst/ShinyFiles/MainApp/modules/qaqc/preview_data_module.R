@@ -9,9 +9,7 @@
 # Notes: This module is used within qaqc_module.R
 # =================================================================================================
 
-# Load libraries
-library(DT)
-
+# Server ------------------------------------------------------------------------------------------
 #' preview_data_server
 #'
 #' @description Defines the server-side logic for the data preview module. It populates
@@ -40,8 +38,22 @@ preview_data_server <- function(id, rv_project_name, rv_data){
       # Filter the list to get only the names of objects that are data frames
       df_names <- names(data_list)[sapply(data_list, is.data.frame)]
       
+      # Add map for display names in the dropdown menu
+      display_name_map <- c(
+        "main" = "Main Data",
+        "port" = "Port Data",
+        "aux" = "Auxiliary Data",
+        "spat" = "Spatial Grid",
+        "grid" = "Grid Data"
+      )
+      
+      # Set display labels
+      display_labels <- display_name_map[df_names]
+      choices_vec <- df_names
+      names(choices_vec) <- display_labels
+      
       # Update input options
-      updateSelectInput(session, "select_data", choices = df_names)
+      updateSelectInput(session, "select_data", choices = choices_vec)
     })
     
     # Render interactive data table.
@@ -54,19 +66,26 @@ preview_data_server <- function(id, rv_project_name, rv_data){
       # Require input from user
       req(df_to_display)
       
+      # If spat is selected, remove the geometry column
+      if (inherits(df_to_display, "sf")) {
+        df_to_display <- as.data.frame(df_to_display)
+        col_index <- which(tolower(names(df_to_display)) == "geometry")
+        df_to_display <- df_to_display[, -col_index]
+      }
+      
       DT::datatable(
         df_to_display,
         rownames = FALSE,
         filter = "top",
         options = list(
-          scrollX = TRUE,
-          pageLength = 15
+          scrollX = TRUE
         )
       )
     })
   })
 }
 
+# UI ----------------------------------------------------------------------------------------------
 #' preview_data_ui
 #'
 #' @description Creates the user interface for the data preview module. This includes
@@ -83,8 +102,6 @@ preview_data_ui <- function(id){
                 label = "Select data to view:",
                 choices = NULL),
     
-    DT::DTOutput(ns("preview_datatable"))
+    DT::DTOutput(ns("preview_datatable"))    
   )
-  
-  
 }

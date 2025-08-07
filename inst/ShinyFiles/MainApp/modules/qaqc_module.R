@@ -12,6 +12,7 @@
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/qaqc/preview_data_module.R", local = TRUE) # Preview data in table format
 
+# QAQC server -------------------------------------------------------------------------------------
 #' qaqc_server
 #'
 #' @description Defines the server-side logic for the QAQC tab. It handles the
@@ -32,6 +33,7 @@ qaqc_server <- function(id, rv_project_name, rv_data){
   })
 }
 
+# QAQC ui sidebar ---------------------------------------------------------------------------------
 #' qaqc_sidebar_ui
 #'
 #' @description Creates the sidebar UI for the QAQC tab. This includes radio buttons
@@ -50,6 +52,7 @@ qaqc_sidebar_ui <- function(id) {
   )
 }
 
+# QAQC ui main panel ------------------------------------------------------------------------------
 #' qaqc_ui
 #'
 #' @description Creates the main panel UI for the QAQC tab. It uses conditionalPanels
