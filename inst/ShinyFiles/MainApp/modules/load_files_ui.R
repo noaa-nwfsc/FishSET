@@ -247,6 +247,7 @@ load_data_ui <- function(id){
         style = "color: green; display: none; font-size: 20px;",
         textOutput(ns("load_success_message_out"))
     ),
+    
     # next button to select variables tab
     actionButton(inputId = ns("load_data_next_btn"),
                  label = "Next",
