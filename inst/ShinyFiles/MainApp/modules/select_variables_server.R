@@ -481,7 +481,7 @@ create_nominal_id_inputs_server <- function(id, rv_project_name, rv_data,
   )
 }
 
-## Save variables to project folder ----------------------------------------------------------
+## Save variables to project folder --------------------------------------------------------------
 ## Description: Users can save variables from all data tables so they can be used in future 
 ##              sessions
 save_var_server <- function(id, rv_project_name, rv_data, parent_session){
@@ -561,7 +561,7 @@ save_var_server <- function(id, rv_project_name, rv_data, parent_session){
         shinyjs::show("var_success_message")
         shinyjs::hide("var_error_message")
         
-        ### Zonal centroid -----------------------------------------------------------------
+        ### Zonal centroid ------------------------------------------------------------------------
         cent_table_name <- paste0(project_name, "_ZoneCentroid")
         
         # Create centroid table if it does not exist

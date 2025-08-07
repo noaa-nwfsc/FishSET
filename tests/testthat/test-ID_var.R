@@ -20,7 +20,6 @@
 #   - Assumes access to example model and spatial objects for reproducibility.
 # -------------------------------------------------------------------------------------------------
 
-
 # Test default settings ---------------------------------------------------------------------------
 test_that("ID_var creates correct string ID with default setting", {
   # Define the base folder path to the test data directory
@@ -33,7 +32,6 @@ test_that("ID_var creates correct string ID with default setting", {
   options(test_folder_path = test_folder)
   
   result_main <- table_view("s1MainDataTable", "s1")
-  
   
   result <- ID_var(dat = result_main,
                    project = "s1",
@@ -72,8 +70,6 @@ test_that("ID_var creates correct integer ID", {
   
   expect_true("PermitID" %in% names(result))
   expect_type(result$PermitID, "integer")
-#  expect_equal(length(unique(result$PermitID)), 10000) ## saying actual 1992
-
 })
 
 # Test with custom separator -----------------------------------------------------------------------
@@ -102,6 +98,7 @@ test_that("ID_var uses custom separator for string ID", {
   
   
 })
+
 # Test with drop = TRUE ---------------------------------------------------------------------------
 test_that("ID_var drops original variables when drop = TRUE", {
   # Define the base folder path to the test data directory
@@ -124,7 +121,6 @@ test_that("ID_var drops original variables when drop = TRUE", {
   
   expect_true("PermitID" %in% names(result))
   expect_false(all(c( "TRIPID", "ZoneID") %in% names(result)))  
-  
 })
 
 # Test with vars empty and name provided -----------------------------------------------------------
@@ -149,9 +145,8 @@ test_that("ID_var creates row_id when vars is empty and name is provided", {
   expect_true("PermitID" %in% names(result))
   expect_equal(result$PermitID[1], "1")
   expect_equal(result$PermitID[5], "5")
-  
-  
 })
+
 # Test with vars and name empty -------------------------------------------------------------------
 test_that("ID_var stops if vars is empty and name is NULL", {
   # Define the base folder path to the test data directory
@@ -169,5 +164,4 @@ test_that("ID_var stops if vars is empty and name is NULL", {
                    project = "s1",
                    vars = NULL,
                    log_fun = FALSE))
-  
 })
