@@ -468,7 +468,7 @@ create_nominal_id_inputs_server <- function(id, rv_project_name, rv_data,
 ## Save variables to project folder ----------------------------------------------------------
 ## Description: Users can save variables from all data tables so they can be used in future 
 ##              sessions
-save_var_server <- function(id, rv_project_name, rv_data){
+save_var_server <- function(id, rv_project_name, rv_data, parent_session){
   moduleServer(
     id,
     function(input, output, session){
@@ -559,6 +559,16 @@ save_var_server <- function(id, rv_project_name, rv_data){
         
         # Hide local spinner
         shinyjs::hide("save_var_spinner_container")
+      })
+      
+      # Next button to move user to quality checks sub-tab
+      observeEvent(input$select_var_next_btn, {
+        bslib::nav_show(
+          id = "tabs", 
+          target = "quality_checks", 
+          select = TRUE,
+          session = parent_session
+        )
       })
     }
   )

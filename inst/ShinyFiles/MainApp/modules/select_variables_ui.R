@@ -305,7 +305,15 @@ save_var_ui <- function(id){
           style = "color: green; display: none; font-size: 20px;",
           textOutput(ns("var_success_message_out"))
       )
-    )
+    ),
+    
+    # Next button to move to quality checks tab
+    actionButton(inputId = ns("select_var_next_btn"),
+                 label = "Next",
+                 width = "15%",
+                 style = "float:right",
+                 icon = icon(name="circle-chevron-right", 
+                             lib="font-awesome"))
   )
 }
 
