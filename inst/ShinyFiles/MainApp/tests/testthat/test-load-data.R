@@ -1,24 +1,19 @@
 # -------------------------------------------------------------------------------------------------
-# File: test-shinytest2.R
-# Purpose: Test the FishSET app using shinytest2 
+# File: test-load-data.R
+# Purpose: Test the data loading functionality of the shiny app.
 # Description: 
-#   This script uses the shinytest2 package to record and test the FishSET Shiny app.
+#   Verifies that the main app correctly loads all expected data sources.
 #
 # Notes:
 #  - The app directory is specified relative to the FishSET package directory.
-#  - The test checks if the app loads correctly and if the data is loaded as expected.
 #  - The test is skipped on CI environments and during R CMD check to avoid unnecessary failures.
 # -------------------------------------------------------------------------------------------------
 
-# Test for loading data in shiny - ----------------------------------------------------------------
 test_that("test-load-data", {
+  ## Set up testing environment -------------------------------------------------------------------
   skip_on_ci() # Skip this test on CI environments
   
   app_dir <- system.file("ShinyFiles/MainApp", package = "FishSET") # Path to the app directory
-  
-  message("Working directory: ", getwd()) # Print the current working directory")
-  message("App directory: ", app_dir)
-  message("App directory exists: ", dir.exists(app_dir))
   
   # Skip if app directory does not exist
   if (!dir.exists(app_dir) || nchar(app_dir) == 0) {
@@ -38,6 +33,7 @@ test_that("test-load-data", {
     load_timeout = 120000, # Increased timeout for loading the app
     timeout = 120000) # Increased timeout for app operations
   
+  ## Interact with app ----------------------------------------------------------------------------
   app$click("folderpath-change_fs_folder_btn") # Click the button to change the folder path
   Sys.sleep(2) # Brief pause to allow the dialog to open
   
@@ -52,6 +48,7 @@ test_that("test-load-data", {
   spat_data <- app$get_values(export = "spat") # Get the spatial data values
   grid_data <- app$get_values(export = "grid") # Get the gridded data values
   
+  ## Run tests ------------------------------------------------------------------------------------
   expect_equal(dim(main_data$export$main), c(1992, 20)) # Check dimensions of main data
   expect_equal(dim(port_data$export$port), c(40, 3)) # Check dimensions of port data
   expect_equal(dim(aux_data$export$aux), c(106, 3)) # Check dimensions of auxiliary data
