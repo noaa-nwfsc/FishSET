@@ -303,7 +303,7 @@ locoutput <- function(project) {
   } else {
   
   
-      paste0(locproject(), project, "/output/")
+      file.path(locproject(), project, "/output", "/")
   
   }
 }
