@@ -11,6 +11,7 @@
 
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/qaqc/preview_data_module.R", local = TRUE) # Preview data in table format
+source("modules/qaqc/spatial_checks_module.R", local = TRUE) # Preview data in table format
 
 # QAQC server -------------------------------------------------------------------------------------
 #' qaqc_server
@@ -30,6 +31,8 @@ qaqc_server <- function(id, rv_project_name, rv_data){
     # Preview data tables
     preview_data_server("preview_data", rv_project_name, rv_data)
     
+    # Spatial checks
+    spatial_checks_server("spat_checks", rv_project_name, rv_data)
   })
 }
 
@@ -47,7 +50,8 @@ qaqc_sidebar_ui <- function(id) {
   tagList(
     radioButtons(ns("qaqc_options"), 
                  "Data quality checks:",
-                 choices = c("Preview data" = "preview"),
+                 choices = c("Preview data" = "preview",
+                             "Spatial checks" = "spat_checks"),
                  selected = "preview")
   )
 }
@@ -70,6 +74,13 @@ qaqc_ui <- function(id){
       condition = "input.qaqc_options == 'preview'",
       ns = ns,
       preview_data_ui(ns("preview_data"))
+    ),
+    
+    # Spatial checks
+    conditionalPanel(
+      condition = "input.qaqc_options == 'spat_checks'",
+      ns = ns,
+      spatial_checks_ui(ns("spat_checks"))
     )
   )
 }
