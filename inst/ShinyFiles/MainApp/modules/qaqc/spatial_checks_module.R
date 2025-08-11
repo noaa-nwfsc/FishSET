@@ -64,6 +64,16 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
                                                     select = -c(YEAR))
         
         # Update dataset based on data quality flags
+        if (any(rv_spat_check$flag)) {
+          flag_cols <- flag_nms[which(rv_spat_check$flag)]
+          rv_spat_check$spat_checks$dataset <- 
+            rv_spat_check$spat_checks$dataset[,c(selected_vars$main$main_date, 
+                                                 selected_vars$main$main_zone_id, 
+                                                 selected_vars$main$main_lat,
+                                                 selected_vars$main$main_lon,
+                                                 flag_cols)]
+        }
+        
       }
       
       shinyjs::hide("spat_checks_spinner_container")
