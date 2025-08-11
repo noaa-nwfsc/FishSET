@@ -549,6 +549,15 @@
             "_",
             "centroid table"
           ]
+        },
+        {
+          "functionID": "summary_stats",
+          "args": [
+            "s1MainDataTable",
+            "s1",
+            null,
+            true
+          ]
         }
       ]
     }
