@@ -173,7 +173,9 @@ spatial_checks_ui <- function(id){
           radioButtons(ns("spat_check_output_view"),
                        label = "Select an output to view:",
                        choices = c("Annual summary table" = "summary",
-                                   "All data table" = "all_data"),
+                                   "All data table" = "all_data",
+                                   "Obs on land" = "on_land",
+                                   "Obs out of spatial bounds" = "out_bounds"),
                        selected = "summary"),
           
           conditionalPanel(
