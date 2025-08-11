@@ -15,7 +15,19 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    observeEvent(input$run_spat_checks, {
+    # Initialize reactives
+    rv_spat_check <- reactiveValues(flag = FALSE, spat_checks = NULL, c_tab = NULL)
+    
+    # Settings to hide outputs until run_spat_checks_btn
+    output$show_output_cards <- reactive({
+      !is.null(rv_spat_check$spat_checks)
+    })
+    
+    # Ensure the output is available for the conditionalPanel to check in the ui
+    outputOptions(output, "show_output_cards", suspendWhenHidden = FALSE)
+    
+    # Run spatial data checks
+    observeEvent(input$run_spat_checks_btn, {
       req(rv_project_name)
       req(rv_folderpath)
       project_name <- rv_project_name()$value
@@ -31,21 +43,54 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       # Read selected variables RDS
       selected_vars <- readRDS(file_path)
       
-      cat(str(selected_vars))
+      q_test <- quietly_test(spatial_qaqc)
       
-      # q_test <- quietly_test(spatial_qaqc)
-      # 
-      # out <- q_test(dat = rv_data$main, project = project_name, spat = rv_data$spat,
-      #               lon.dat = selected_vars$main$main_zone_lon, 
-      #               lat.dat = selected_vars$main$main_zone_lat,
-      #               date = selected_vars$main$main_zone_date,
-      #                group = input$spat_qaqc_grp, epsg = input$spat_qaqc_epsg)
+      spat_check_out <- q_test(dat = rv_data$main, 
+                               project = project_name, 
+                               spat = rv_data$spat,
+                               lon.dat = selected_vars$main$main_lon,
+                               lat.dat = selected_vars$main$main_lat,
+                               date = selected_vars$main$main_date,
+                               epsg = input$epsg_code_input)
       
-      Sys.sleep(2)
+      if (!is_value_empty(spat_check_out)) {
+        # Check for data quality issues
+        flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
+        rv_spat_check$flag <- flag_nms %in% names(spat_check_out$dataset)
+        
+        # Save output to reactive value (and remove year from dataframe)
+        rv_spat_check$spat_checks <- spat_check_out
+        rv_spat_check$spat_checks$dataset <- subset(rv_spat_check$spat_checks$dataset, 
+                                                    select = -c(YEAR))
+        
+        # Update dataset based on data quality flags
+      }
       
       shinyjs::hide("spat_checks_spinner_container")
-      
-      
+    })
+    
+    # Render interactive summary data table
+    output$spat_check_summary <- DT::renderDT({
+      DT::datatable(
+        rv_spat_check$spat_checks$spatial_summary,
+        rownames = FALSE,
+        filter = "top",
+        options = list(
+          scrollX = TRUE
+        )
+      )
+    })
+    
+    # Render interactive data table with all data
+    output$spat_check_alldata <- DT::renderDT({
+      DT::datatable(
+        rv_spat_check$spat_checks$dataset,
+        rownames = FALSE,
+        filter = "top",
+        options = list(
+          scrollX = TRUE
+        )
+      )
     })
   })
 }
@@ -61,7 +106,7 @@ spatial_checks_ui <- function(id){
         bslib::card(
           bslib::card_header("1. Spatial Checks"),
           bslib::card_body(
-            textInput(ns("epsg_code"), 
+            textInput(ns("epsg_code_input"), 
                       value = NULL,
                       label = 
                         tagList(
@@ -91,7 +136,7 @@ spatial_checks_ui <- function(id){
                            overlay = TRUE)
             ),
             
-            actionButton(ns("run_spat_checks"),
+            actionButton(ns("run_spat_checks_btn"),
                          "Run spatial checks"
             )
           )
@@ -105,6 +150,35 @@ spatial_checks_ui <- function(id){
           bslib::card_header("2. Spatial Corrections")
         )
       )
+    ),
+    
+    conditionalPanel(
+      # Check that run spatial checks has been clicked
+      condition = "output.show_output_cards",
+      ns = ns,
+      bslib::card(
+        bslib::card_header("Spatial data quality checks"),
+        bslib::card_body(
+          # Options for display tables
+          radioButtons(ns("spat_check_output_view"),
+                       label = "Select an output to view:",
+                       choices = c("Annual summary table" = "summary",
+                                   "All data table" = "all_data"),
+                       selected = "summary"),
+          
+          conditionalPanel(
+            condition = "input.spat_check_output_view == 'summary'",
+            ns = ns,
+            DT::DTOutput(ns("spat_check_summary"))  
+          ),
+          
+          conditionalPanel(
+            condition = "input.spat_check_output_view == 'all_data'",
+            ns = ns,
+            DT::DTOutput(ns("spat_check_alldata"))  
+          )
+        )
+      )  
     )
   )
 }

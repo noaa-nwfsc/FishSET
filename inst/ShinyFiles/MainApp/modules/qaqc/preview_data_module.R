@@ -31,7 +31,7 @@ preview_data_server <- function(id, rv_project_name, rv_data){
       
       # If the data list is empty or NULL, clear the choices and exit.
       if (is.null(data_list) || length(data_list) == 0) {
-        updateSelectInput(session, "select_data", choices = character(0)) # Clear choices
+        updateSelectInput(session, "select_data_input", choices = character(0)) # Clear choices
         return()
       }
       
@@ -53,15 +53,15 @@ preview_data_server <- function(id, rv_project_name, rv_data){
       names(choices_vec) <- display_labels
       
       # Update input options
-      updateSelectInput(session, "select_data", choices = choices_vec)
+      updateSelectInput(session, "select_data_input", choices = choices_vec)
     })
     
-    # Render interactive data table.
+    # Render interactive data table
     output$preview_datatable <- DT::renderDT({
-      req(input$select_data)
+      req(input$select_data_input)
       
       # Get the df to display based on input
-      df_to_display <- rv_data[[input$select_data]]
+      df_to_display <- rv_data[[input$select_data_input]]
       
       # Require input from user
       req(df_to_display)
@@ -98,7 +98,7 @@ preview_data_ui <- function(id){
   ns <- NS(id)
   
   tagList(
-    selectInput(ns("select_data"),
+    selectInput(ns("select_data_input"),
                 label = "Select data to view:",
                 choices = NULL),
     
