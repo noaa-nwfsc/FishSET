@@ -1,12 +1,11 @@
 # -------------------------------------------------------------------------------------------------
-# File: test-ID_var.R
+# File: test-summary_stats.R
 # Purpose: Unit tests for creating summary statistics data table
 # Description:
 #   This script tests the that `summary_stats()` function returns a data frame containing summary
 #   statistics for all (or selected) variables in the primary data. The summary statistics that are
 #   expected for numeric variables are: 'Min', 'Median', 'Mean', 'Max', 'Missing', 'Unique Obs.',
 #   "No. 0's", while character variables are: "First" ,"NA's", "Unique Obs", "No. Empty" 
-#
 #
 # Scenarios tested:
 #   - Return summary stats for single numeric variable
@@ -32,7 +31,7 @@ test_that("summary_stats works correctly for a single numeric column", {
   result_main <- table_view("s1MainDataTable", "s1")
   
   result <- summary_stats(dat = result_main, project = "s1", x = "TRIPID", log_fun = FALSE)
-
+  
   # Define the expected output
   expected <- c(
     "Min." = 6.00,
@@ -52,7 +51,7 @@ test_that("summary_stats works correctly for a single numeric column", {
 })
 
 # Test single character variable ------------------------------------------------------------------
-test_that("summary_stats works correctly for a single character column", {
+test_that("summary_stats works correctly for a character column", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test
   test_folder <- testthat::test_path("testdata/FishSETFolder")
@@ -66,7 +65,7 @@ test_that("summary_stats works correctly for a single character column", {
   
   # Run the function on the character column
   result <- summary_stats(result_main, project = "s1",
-    x = "GEARCODE", log_fun = FALSE)
+                          x = "GEARCODE", log_fun = FALSE)
   
   # Define the expected output
   expected <- c(
@@ -84,7 +83,7 @@ test_that("summary_stats works correctly for a single character column", {
 
 # Test for all variables --------------------------------------------------------------------------
 test_that("summary_stats works correctly for the entire data frame (no 'x' specified)", {
-   # Define the base folder path to the test data directory
+  # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test
   test_folder <- testthat::test_path("testdata/FishSETFolder")
   

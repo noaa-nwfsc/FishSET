@@ -3,7 +3,7 @@
 # Description: This module displays an interactive table to view summary statistic of the primary 
 #              data table.
 #
-# Authors: Paul Carvalho, Anna Abelman
+# Authors: Anna Abelman, Paul Carvalho 
 # Date created: 8/7/2025
 # Dependencies: shiny, DT
 # Notes: This module is used within qaqc_module.R
@@ -39,37 +39,34 @@ summary_data_server <- function(id, rv_project_name, rv_data){
       } else{
         
         # Calculate summary stats
-        sum_table <- summary_stats(dat=main_data, project = project_name) 
+        sum_table <- summary_stats(dat = main_data, 
+                                   project = project_name) 
         
         # Reconfigure results to better table layout
         nums <- unlist(lapply(main_data, is.numeric))
-        sum_table  <- apply(sum_table[nums], 2, function(x) gsub(".*:","", x))
-        rownames(sum_table)=c('Min', 'Median','Mean', 'Max',"Missing",'Unique Obs.', "No. 0's")
+        sum_table <- apply(sum_table[nums], 2, function(x) gsub(".*:", "", x))
+        rownames(sum_table) <- c('Min', 'Median', 'Mean', 'Max', 
+                                 'Missing', 'Unique Obs.', "No. 0's")
         sum_table <- as.data.frame(as.matrix(sum_table))
         sum_table <- as.data.frame((t(sum_table)))
         
         return(sum_table)
       }
-      
     })
-    
     
     output$summary_datatable <- DT::renderDataTable(
       summary_stats_df(),
-      server = FALSE, rownames=TRUE,
+      server = FALSE, rownames = TRUE,
       # Add options for scrolling and disable paging
       options = list(
         scrollY = "100%",
         scrollCollapse = TRUE,
-        autoWidth=FALSE, scrollX=TRUE, responsive=FALSE, pageLength = 25
+        autoWidth = FALSE, scrollX = TRUE, responsive = FALSE, pageLength = 25
       ),
       # This ensures width and height are handled correctly
       fillContainer = TRUE
-      
     )
-    
-  }
-  )
+  })
 }
 
 

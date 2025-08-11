@@ -33,7 +33,6 @@ qaqc_server <- function(id, rv_project_name, rv_data){
     preview_data_server("preview_data", rv_project_name, rv_data)
     # Summary statistics table for primary data
     summary_data_server("summary_table", rv_project_name, rv_data)
-    
   })
 }
 
@@ -50,10 +49,10 @@ qaqc_sidebar_ui <- function(id) {
   ns <- NS(id)
   tagList(
     radioButtons(ns("qaqc_options"), 
-      h6("Data quality checks:"),
-      choices = c("Preview data" = "preview", 
-                  "Summary table"="summary"),
-      selected = "preview")
+                 h6("Data quality checks:"),
+                 choices = c("Preview data" = "preview", 
+                             "Summary table"="summary"),
+                 selected = "preview")
   )
 }
 
@@ -76,7 +75,7 @@ qaqc_ui <- function(id){
       ns = ns,
       preview_data_ui(ns("preview_data"))
     ),
-     # Conditionally display the summary data table UI
+    # Conditionally display the summary data table UI
     conditionalPanel(
       condition = "input.qaqc_options == 'summary'",
       ns = ns,
