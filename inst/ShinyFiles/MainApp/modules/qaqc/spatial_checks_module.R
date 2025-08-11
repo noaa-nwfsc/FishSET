@@ -11,24 +11,41 @@
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/spinner.R", local = TRUE)
 
-spatial_checks_server <- function(id, rv_project_name, rv_data){
+spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
     observeEvent(input$run_spat_checks, {
+      req(rv_project_name)
+      req(rv_folderpath)
+      project_name <- rv_project_name()$value
+      folderpath <- rv_folderpath()
       
       # Start spinner while it loads
       shinyjs::show("spat_checks_spinner_container")
       
-      Sys.sleep(5)
+      # Load selected variables
+      file_name <- paste0(project_name, "SavedVariables.rds")
+      file_path <- normalizePath(file.path(folderpath, project_name, "data", file_name))
       
-      shinyjs::hide("spat_checks_spinner_container")
+      # Read selected variables RDS
+      selected_vars <- readRDS(file_path)
+      
+      cat(str(selected_vars))
       
       # q_test <- quietly_test(spatial_qaqc)
       # 
-      # out <- q_test(dat = values$dataset, project = project$name, spat = spatdat$dataset, 
-      #               lon.dat = all_variables()$pz_lon, lat.dat = all_variables()$pz_lat,
-      #               date = all_variables()$pz_date, group = input$spat_qaqc_grp, epsg = input$spat_qaqc_epsg)
+      # out <- q_test(dat = rv_data$main, project = project_name, spat = rv_data$spat,
+      #               lon.dat = selected_vars$main$main_zone_lon, 
+      #               lat.dat = selected_vars$main$main_zone_lat,
+      #               date = selected_vars$main$main_zone_date,
+      #                group = input$spat_qaqc_grp, epsg = input$spat_qaqc_epsg)
+      
+      Sys.sleep(2)
+      
+      shinyjs::hide("spat_checks_spinner_container")
+      
+      
     })
   })
 }

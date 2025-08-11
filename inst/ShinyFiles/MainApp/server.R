@@ -130,5 +130,5 @@ server <- function(input, output, session) {
                        current_tab = reactive(input$tabs))
   
   ### Main panel
-  qaqc_server("qaqc_checks", rv_project_name, rv_data)
+  qaqc_server("qaqc_checks", rv_project_name, rv_data, rv_folderpath)
 }

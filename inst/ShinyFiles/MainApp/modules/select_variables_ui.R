@@ -30,17 +30,17 @@ select_main_var_ui <- function(id){
                        "Select zone ID from primary data",
                        choices = NULL, multiple = FALSE),
         
-        selectizeInput(ns("main_zone_lon_input"),
+        selectizeInput(ns("main_lon_input"),
                        "Select fishing location longitude from primary data",
                        choices = NULL, multiple = FALSE, 
                        options = list(create = TRUE)),
         
-        selectizeInput(ns("main_zone_lat_input"), 
+        selectizeInput(ns("main_lat_input"), 
                        "Select fishing location latitude from primary data",
                        choices = NULL, multiple = FALSE, 
                        options = list(create = TRUE)),
         
-        selectizeInput(ns("main_zone_date_input"),
+        selectizeInput(ns("main_date_input"),
                        "Select date variable", 
                        choices = NULL, multiple = FALSE)
     ),

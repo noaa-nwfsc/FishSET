@@ -58,19 +58,19 @@ select_main_var_server <- function(id, rv_project_name, rv_data){
                               selected = existing_variables$main$main_zone_id)
             
             updateSelectInput(session,
-                              'main_zone_lon_input',
+                              'main_lon_input',
                               choices = find_lon(main_data),
-                              selected = existing_variables$main$main_zone_lon)
+                              selected = existing_variables$main$main_lon)
             
             updateSelectInput(session,
-                              'main_zone_lat_input',
+                              'main_lat_input',
                               choices = find_lat(main_data),
-                              selected = existing_variables$main$main_zone_lat)
+                              selected = existing_variables$main$main_lat)
             
             updateSelectInput(session,
-                              'main_zone_date_input',
+                              'main_date_input',
                               choices = date_cols(main_data),
-                              selected = existing_variables$main$main_zone_date)
+                              selected = existing_variables$main$main_date)
             
             # if doesn't exist, just show variables in main data
           } else if(!file.exists(saved_var_filepath) & !is.null(main_data)){
@@ -82,15 +82,15 @@ select_main_var_server <- function(id, rv_project_name, rv_data){
                               choices = colnames(main_data))
             
             updateSelectInput(session,
-                              'main_zone_lon_input',
+                              'main_lon_input',
                               choices = find_lon(main_data))
             
             updateSelectInput(session,
-                              'main_zone_lat_input',
+                              'main_lat_input',
                               choices = find_lat(main_data))
             
             updateSelectInput(session,
-                              'main_zone_date_input',
+                              'main_date_input',
                               choices = date_cols(main_data))
           }
         }
@@ -101,9 +101,9 @@ select_main_var_server <- function(id, rv_project_name, rv_data){
         reactive({
           list(
             main_zone_id = input$main_zone_id_input,
-            main_zone_lon = input$main_zone_lon_input,
-            main_zone_lat = input$main_zone_lat_input,
-            main_zone_date = input$main_zone_date_input
+            main_lon = input$main_lon_input,
+            main_lat = input$main_lat_input,
+            main_date = input$main_date_input
           )
         })
       )
