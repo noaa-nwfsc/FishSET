@@ -67,6 +67,7 @@ ui <- function(request){
             
             #### Select project
             bslib::card(fill = FALSE,
+                        height = 200,
                         bslib::card_header("2. Add or select a project"),
                         bslib::card_body(
                           shinyjs::useShinyjs(),

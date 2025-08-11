@@ -8,10 +8,28 @@
 # Notes: 
 # =================================================================================================
 
+# Source module scripts ---------------------------------------------------------------------------
+source("modules/spinner.R", local = TRUE)
+
 spatial_checks_server <- function(id, rv_project_name, rv_data){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
+    observeEvent(input$run_spat_checks, {
+      
+      # Start spinner while it loads
+      shinyjs::show("spat_checks_spinner_container")
+      
+      Sys.sleep(5)
+      
+      shinyjs::hide("spat_checks_spinner_container")
+      
+      # q_test <- quietly_test(spatial_qaqc)
+      # 
+      # out <- q_test(dat = values$dataset, project = project$name, spat = spatdat$dataset, 
+      #               lon.dat = all_variables()$pz_lon, lat.dat = all_variables()$pz_lat,
+      #               date = all_variables()$pz_date, group = input$spat_qaqc_grp, epsg = input$spat_qaqc_epsg)
+    })
   })
 }
 
@@ -44,6 +62,16 @@ spatial_checks_ui <- function(id){
                             options = list(delay = list(show = 0, hide = 850))
                           ),
                         )
+            ),
+            
+            # Overlay spinner for this section
+            div(id = ns("spat_checks_spinner_container"),
+                style = "display: none;",
+                spinner_ui(ns("spat_checks_spinner"),
+                           spinner_type = "circle",
+                           size = "large",
+                           message = "Running spatial checks...",
+                           overlay = TRUE)
             ),
             
             actionButton(ns("run_spat_checks"),
