@@ -76,6 +76,27 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
         
       }
       
+      cat(names(rv_spat_check$spat_checks))
+      
+      # Create the list of spatial check outputs based on flags
+      new_choices <- c("Annual summary table" = "summary",
+                   "All data table" = "all_data")
+      
+      if ("ON_LAND" %in% names(rv_spat_check$spat_checks$dataset)) {
+        new_choices <- c(new_choices, "Obs on land" = "on_land")
+      }
+      
+      if ("OUTSIDE_ZONE" %in% names(rv_spat_check$spat_checks$dataset)) {
+        new_choices <- c(new_choices, "Obs out of spatial bounds" = "out_bounds")
+      }
+      
+      # Update radio buttons
+      updateRadioButtons(session,
+                         "spat_check_output_view",
+                         label = "Select an output to view:",
+                         choices = new_choices,
+                         selected = "summary")
+      
       shinyjs::hide("spat_checks_spinner_container")
     })
     
@@ -101,6 +122,16 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
           scrollX = TRUE
         )
       )
+    })
+    
+    # On land plot
+    output$on_land_plot <- renderPlot({
+      req(rv_spat_check$spat_checks$land_plot)
+    })
+    
+    # Out of spatial bounds plot outside_plot
+    output$out_bounds_plot <- renderPlot({
+      req(rv_spat_check$spat_checks$outside_plot)
     })
   })
 }
@@ -173,9 +204,7 @@ spatial_checks_ui <- function(id){
           radioButtons(ns("spat_check_output_view"),
                        label = "Select an output to view:",
                        choices = c("Annual summary table" = "summary",
-                                   "All data table" = "all_data",
-                                   "Obs on land" = "on_land",
-                                   "Obs out of spatial bounds" = "out_bounds"),
+                                   "All data table" = "all_data"),
                        selected = "summary"),
           
           conditionalPanel(
@@ -188,6 +217,18 @@ spatial_checks_ui <- function(id){
             condition = "input.spat_check_output_view == 'all_data'",
             ns = ns,
             DT::DTOutput(ns("spat_check_alldata"))  
+          ),
+          
+          conditionalPanel(
+            condition = "input.spat_check_output_view == 'on_land'",
+            ns = ns,
+            plotOutput(ns("on_land_plot"), width = "800px", height = "600px")
+          ),
+          
+          conditionalPanel(
+            condition = "input.spat_check_output_view == 'out_bounds'",
+            ns = ns,
+            plotOutput(ns("out_bounds_plot"), width = "800px", height = "600px")
           )
         )
       )  
