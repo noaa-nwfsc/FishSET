@@ -26,14 +26,14 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     # Ensure the output is available for the conditionalPanel to check in the ui
     outputOptions(output, "show_output_cards", suspendWhenHidden = FALSE)
     
-    # Run spatial data checks
+    ## Run spatial data checks --------------------------------------------------------------------
     observeEvent(input$run_spat_checks_btn, {
       req(rv_project_name)
       req(rv_folderpath)
       project_name <- rv_project_name()$value
       folderpath <- rv_folderpath()
       
-      # Start spinner while it loads
+      # Start spinner while running spatial checks
       shinyjs::show("spat_checks_spinner_container")
       
       # Load selected variables
@@ -73,14 +73,11 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
                                                  selected_vars$main$main_lon,
                                                  flag_cols)]
         }
-        
       }
-      
-      cat(names(rv_spat_check$spat_checks))
       
       # Create the list of spatial check outputs based on flags
       new_choices <- c("Annual summary table" = "summary",
-                   "All data table" = "all_data")
+                       "All data table" = "all_data")
       
       if ("ON_LAND" %in% names(rv_spat_check$spat_checks$dataset)) {
         new_choices <- c(new_choices, "Obs on land" = "on_land")
@@ -100,6 +97,7 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       shinyjs::hide("spat_checks_spinner_container")
     })
     
+    ## Display spatial check outputs --------------------------------------------------------------
     # Render interactive summary data table
     output$spat_check_summary <- DT::renderDT({
       DT::datatable(
@@ -133,6 +131,68 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     output$out_bounds_plot <- renderPlot({
       req(rv_spat_check$spat_checks$outside_plot)
     })
+    
+    ## Spatial corrections ------------------------------------------------------------------------
+    # Show button to remove observations on land if present
+    output$show_remove_land_btn <- reactive({
+      "ON_LAND" %in% names(rv_spat_check$spat_checks$dataset)
+    })
+    
+    outputOptions(output, "show_remove_land_btn", suspendWhenHidden = FALSE)
+    
+    # Show button to remove observations out of spatial bounds if present
+    output$show_remove_out_bounds_btn <- reactive({
+      "OUTSIDE_ZONE" %in% names(rv_spat_check$spat_checks$dataset)
+    })
+    
+    outputOptions(output, "show_remove_out_bounds_btn", suspendWhenHidden = FALSE)
+    
+    observeEvent(input$remove_land_obs_btn,{
+      req(rv_spat_check$spat_checks$land_plot)
+      
+      # Start spinner while removing observations
+      shinyjs::show("remove_land_obs_spinner_container")
+      
+      land_rm_ind <- which(rv_spat_check$spat_checks$dataset$ON_LAND)
+      
+      if(length(land_rm_ind) > 0){
+        # First change spat_check tables
+        rv_spat_check$spat_checks$dataset <- rv_spat_check$spat_checks$dataset[-land_rm_ind, ]
+        
+        date_col_name <- names(rv_spat_check$spat_checks$dataset)[1]
+        
+        flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
+        flag_cols <- flag_nms[flag_nms %in% names(rv_spat_check$spat_checks$dataset)]
+        
+        rv_spat_check$spat_checks$spatial_summary <- 
+          rv_spat_check$spat_checks$dataset %>%
+          dplyr::mutate(YEAR = as.integer(format(!!rlang::sym(date_col_name), "%Y"))) %>%
+          dplyr::group_by(YEAR) %>%
+          dplyr::summarize(
+            n = n(),
+            dplyr::across(
+              .cols = all_of(flag_cols),
+              .fns = ~sum(., na.rm = TRUE)
+            )
+          ) %>%
+          dplyr::ungroup()
+        
+        total_n <- sum(rv_spat_check$spat_checks$spatial_summary$n)
+        
+        rv_spat_check$spat_checks$spatial_summary <-
+          rv_spat_check$spat_checks$spatial_summary %>%
+          dplyr::mutate(perc = round((n / total_n) * 100, 2))
+
+        # values$dataset <- values$dataset[-land_remove_i,] # change primary data table
+        # spat_qaqc$out_df <- spat_qaqc$out_df[-land_remove_i,] # need to update the reactive
+      }
+      
+      # showNotification(paste0(length(land_remove_i), " points removed"), type = "message", duration = 60)
+      
+      shinyjs::hide("remove_land_obs_spinner_container")
+      
+    })
+    
   })
 }
 
@@ -151,19 +211,22 @@ spatial_checks_ui <- function(id){
                       value = NULL,
                       label = 
                         tagList(
-                          HTML("(<b>OPTIONAL</b>) Enter spatial reference EPSG code: &nbsp;"),
-                          bslib::tooltip(
-                            shiny::icon("circle-info", `aria-label` = "More information"),
-                            HTML("<h4>EPSG Information</h4><hr>
-                               Option to manually set the spatial reference EPSG code for
-                               spatial and primary datasets. If EPSG is specified in the spatial 
-                               data and this box is left empty, then the EPSG of the spatial data 
-                               will be automatically applied to primary data. For more information 
-                               on spatial reference systems visit - 
-                               <a href='https://spatialreference.org/' 
-                               target='_blank'>https://spatialreference.org/</a>"),
-                            options = list(delay = list(show = 0, hide = 850))
-                          ),
+                          span(style = "white-space: nowrap; display: inline-flex; 
+                               align-items: center;",
+                               HTML("(<b>OPTIONAL</b>) Enter spatial reference EPSG code: &nbsp;"),
+                               bslib::tooltip(
+                                 shiny::icon("circle-info", `aria-label` = "More information"),
+                                 HTML("<h4>EPSG Information</h4><hr>
+                                      Option to manually set the spatial reference EPSG code for
+                                      spatial and primary datasets. If EPSG is specified in the 
+                                      spatial data and this box is left empty, then the EPSG of 
+                                      the spatial data will be automatically applied to primary 
+                                      data. For more information on spatial reference systems 
+                                      visit - <a href='https://spatialreference.org/' 
+                                      target='_blank'>https://spatialreference.org/</a>"),
+                                 options = list(delay = list(show = 0, hide = 850))
+                               )
+                          )
                         )
             ),
             
@@ -178,7 +241,8 @@ spatial_checks_ui <- function(id){
             ),
             
             actionButton(ns("run_spat_checks_btn"),
-                         "Run spatial checks"
+                         "Run spatial checks",
+                         style = "display: inline-block; width: 315px;"
             )
           )
         )
@@ -188,7 +252,36 @@ spatial_checks_ui <- function(id){
       column(
         6,
         bslib::card(
-          bslib::card_header("2. Spatial Corrections")
+          bslib::card_header("2. Spatial Corrections"),
+          bslib::card_body(
+            conditionalPanel(
+              condition = "output.show_remove_land_btn",
+              ns = ns,
+              actionButton(ns("remove_land_obs_btn"), 
+                           "Remove observations on land",
+                           style = "display: inline-block; width: 315px;"
+              ),
+            ),
+            
+            conditionalPanel(
+              condition = "output.show_remove_out_bounds_btn",
+              ns = ns,
+              actionButton(ns("remove_out_bounds_obs_btn"),
+                           "Remove out-of-bounds observations",
+                           style = "display: inline-block; width: 315px;"
+              )
+            ),
+            
+            # Overlay spinner for this section
+            div(id = ns("remove_land_obs_spinner_container"),
+                style = "display: none;",
+                spinner_ui(ns("remove_land_obs_spinner"),
+                           spinner_type = "circle",
+                           size = "large",
+                           message = "Removing observations on land...",
+                           overlay = TRUE)
+            ),
+          )
         )
       )
     ),
@@ -222,13 +315,13 @@ spatial_checks_ui <- function(id){
           conditionalPanel(
             condition = "input.spat_check_output_view == 'on_land'",
             ns = ns,
-            plotOutput(ns("on_land_plot"), width = "800px", height = "600px")
+            plotOutput(ns("on_land_plot"), width = "650px", height = "450px")
           ),
           
           conditionalPanel(
             condition = "input.spat_check_output_view == 'out_bounds'",
             ns = ns,
-            plotOutput(ns("out_bounds_plot"), width = "800px", height = "600px")
+            plotOutput(ns("out_bounds_plot"), width = "650px", height = "450px")
           )
         )
       )  
