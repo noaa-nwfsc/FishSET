@@ -1,95 +1,95 @@
+#' Spatial data quality checks
+#' 
+#' This function performs spatial quality checks and outputs summary tables and 
+#' plots. Checks include percent of observations on land, outside regulatory zone
+#' (\code{spat}), and on a zone boundary. If any observation occurs outside the 
+#' regulatory zones then summary information on distance from nearest zone is 
+#' provided. \code{spatial_qaqc} can filter out observations that are not within
+#' the distance specified in \code{filter_dist}. 
+#' 
+#' @param dat Primary data containing information on hauls or trips. Table in 
+#'   FishSET database contains the string 'MainDataTable'.
+#' @param project Name of project.
+#' @param spat Spatial data containing information on fishery management or 
+#'   regulatory zones. \code{sf} objects are recommended, but \code{sp} objects
+#'   can be used as well. If using a spatial table read from a csv file, then
+#'   arguments \code{lon.spat} and \code{lat.spat} are required. To upload your
+#'   spatial data to the FishSETFolder see \code{\link{load_spatial}}.
+#' @param lon.dat Longitude variable in \code{dat}.
+#' @param lat.dat Latitude variable in \code{dat}.
+#' @param lon.spat Variable or list from \code{spat} containing longitude data. 
+#'    Required for spatial tables read from csv files. Leave as \code{NULL} if 
+#'    \code{spat} is an \code{sf} or 
+#'   \code{sp} object.
+#' @param lat.spat Variable or list from \code{spat} containing latitude data. 
+#'   Required for spatial tables read from csv files. Leave as \code{NULL} if 
+#'   \code{spat} is an \code{sf} or \code{sp} object.
+#' @param id.spat Polygon ID column. Required for spatial tables read from csv 
+#'   files. Leave as \code{NULL} if \code{spat} is an \code{sf} or \code{sp} object.
+#' @param epsg EPSG number. Manually set the epsg code, which will be applied to 
+#'   \code{spat} and \code{dat}. If epsg is not specified but is defined for 
+#'   \code{spat}, then the \code{spat} epsg will be applied to \code{dat}. In addition,
+#'   if epsg is not specified and epsg is not defined for \code{spat}, then a default
+#'   epsg value will be applied to \code{spat} and \code{dat} (\code{epsg = 4326}).
+#'   See \url{http://spatialreference.org/} to help identify optimal epsg number.
+#' @param date String, name of date variable. Used to summarize over year. If
+#'   \code{NULL} the first date column will be used. Returns an error if no date
+#'   columns can be found. 
+#' @param group String, optional. Name of variable to group spatial summary by. 
+#' @param filter_dist (Optional) Numeric, distance value to filter primary data by
+#'   (in meters). Rows containing distance values greater than or equal to \code{filter_dist}
+#'   will be removed from the data. This action will be saved to the filter table.
+#' @export
+#' @import ggplot2
+#' @import sf
+#' @importFrom rlang sym
+#' @importFrom dplyr group_by summarize %>% left_join
+#' @importFrom stats dist reformulate aggregate
+#' @return A list of plots and/or dataframes depending on whether spatial data 
+#' quality issues are detected. The list includes:
+#'   \describe{
+#'     \item{dataset}{Primary data. Up to five logical columns will be added if
+#'       spatial issues are found: "ON_LAND" (if obs fall on land), "OUTSIDE_ZONE"
+#'       (if obs occur at sea but outside zone), "ON_ZONE_BOUNDARY" (if obs occurs
+#'       on zone boundary), "EXPECTED_LOC" (whether obs occurs at sea, within a zone,
+#'       and not on zone boundary), and "NEAREST_ZONE_DIST_M" (distance in meters from
+#'       nearest zone. Applies only to obs outside zone or on land).}
+#'     \item{spatial_summary}{Dataframe containing the percentage of observations 
+#'       that occur at sea and within zones, on land, outside zones but at sea, 
+#'       or on zone boundary by year and/or group. The total number of observations by 
+#'       year/group are in the "N" column.}
+#'     \item{outside_plot}{Plot of observations outside regulatory zones.}
+#'     \item{land_plot}{Plot of observations that fall on land.}
+#'     \item{land_out_plot}{Plot of observations that occur on land and are outside
+#'       the regulatory zones (combines outside_plot and land_plot if both occur).}
+#'     \item{boundary_plot}{Plot of observations that fall on zone boundary.}
+#'     \item{expected_plot}{Plot of observations that occur at sea and within zones.}
+#'     \item{distance_plot}{Histogram of distance form nearest zone (meters) by year 
+#'       for observations that are outside regulatory grid.}
+#'     \item{distance_freq}{Binned frequency table of distance values.}
+#'     \item{distance_summary}{Dataframe containing the minimum, 1st quartile, 
+#'       median, mean, 3rd quartile, and maximum distance values by year and/or group.}
+#'   }
+#' @examples 
+#' \dontrun{
+#' # run spatial checks
+#' spatial_qaqc("pollockMainDataTable", "pollock", spat = NMFS_AREAS, 
+#'              lon.dat = "LonLat_START_LON", lat.dat = "LonLat_START_LAT")
+#'              
+#' # filter obs by distance
+#' spat_out <- 
+#'      spatial_qaqc(pollockMainDataTable, "pollock", spat = NMFS_AREAS,
+#'                   lon.dat = "LonLat_START_LON", lat.dat = "LonLat_START_LAT",
+#'                   filter_dist = 100)
+#' mod.dat <- spat_out$dataset
+#' }
+#'   
+
 spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                          lat.spat = NULL, id.spat = NULL, epsg = NULL, date = NULL, 
                          group = NULL, filter_dist = NULL) {
-  #' Spatial data quality checks
-  #' 
-  #' This function performs spatial quality checks and outputs summary tables and 
-  #' plots. Checks include percent of observations on land, outside regulatory zone
-  #' (\code{spat}), and on a zone boundary. If any observation occurs outside the 
-  #' regulatory zones then summary information on distance from nearest zone is 
-  #' provided. \code{spatial_qaqc} can filter out observations that are not within
-  #' the distance specified in \code{filter_dist}. 
-  #' 
-  #' @param dat Primary data containing information on hauls or trips. Table in 
-  #'   FishSET database contains the string 'MainDataTable'.
-  #' @param project Name of project.
-  #' @param spat Spatial data containing information on fishery management or 
-  #'   regulatory zones. \code{sf} objects are recommended, but \code{sp} objects
-  #'   can be used as well. If using a spatial table read from a csv file, then
-  #'   arguments \code{lon.spat} and \code{lat.spat} are required. To upload your
-  #'   spatial data to the FishSETFolder see \code{\link{load_spatial}}.
-  #' @param lon.dat Longitude variable in \code{dat}.
-  #' @param lat.dat Latitude variable in \code{dat}.
-  #' @param lon.spat Variable or list from \code{spat} containing longitude data. 
-  #'    Required for spatial tables read from csv files. Leave as \code{NULL} if 
-  #'    \code{spat} is an \code{sf} or 
-  #'   \code{sp} object.
-  #' @param lat.spat Variable or list from \code{spat} containing latitude data. 
-  #'   Required for spatial tables read from csv files. Leave as \code{NULL} if 
-  #'   \code{spat} is an \code{sf} or \code{sp} object.
-  #' @param id.spat Polygon ID column. Required for spatial tables read from csv 
-  #'   files. Leave as \code{NULL} if \code{spat} is an \code{sf} or \code{sp} object.
-  #' @param epsg EPSG number. Manually set the epsg code, which will be applied to 
-  #'   \code{spat} and \code{dat}. If epsg is not specified but is defined for 
-  #'   \code{spat}, then the \code{spat} epsg will be applied to \code{dat}. In addition,
-  #'   if epsg is not specified and epsg is not defined for \code{spat}, then a default
-  #'   epsg value will be applied to \code{spat} and \code{dat} (\code{epsg = 4326}).
-  #'   See \url{http://spatialreference.org/} to help identify optimal epsg number.
-  #' @param date String, name of date variable. Used to summarize over year. If
-  #'   \code{NULL} the first date column will be used. Returns an error if no date
-  #'   columns can be found. 
-  #' @param group String, optional. Name of variable to group spatial summary by. 
-  #' @param filter_dist (Optional) Numeric, distance value to filter primary data by
-  #'   (in meters). Rows containing distance values greater than or equal to \code{filter_dist}
-  #'   will be removed from the data. This action will be saved to the filter table.
-  #' @export
-  #' @import ggplot2
-  #' @import sf
-  #' @importFrom rlang sym
-  #' @importFrom dplyr group_by summarize %>% left_join
-  #' @importFrom stats dist reformulate aggregate
-  #' @return A list of plots and/or dataframes depending on whether spatial data 
-  #' quality issues are detected. The list includes:
-  #'   \describe{
-  #'     \item{dataset}{Primary data. Up to five logical columns will be added if
-  #'       spatial issues are found: "ON_LAND" (if obs fall on land), "OUTSIDE_ZONE"
-  #'       (if obs occur at sea but outside zone), "ON_ZONE_BOUNDARY" (if obs occurs
-  #'       on zone boundary), "EXPECTED_LOC" (whether obs occurs at sea, within a zone,
-  #'       and not on zone boundary), and "NEAREST_ZONE_DIST_M" (distance in meters from
-  #'       nearest zone. Applies only to obs outside zone or on land).}
-  #'     \item{spatial_summary}{Dataframe containing the percentage of observations 
-  #'       that occur at sea and within zones, on land, outside zones but at sea, 
-  #'       or on zone boundary by year and/or group. The total number of observations by 
-  #'       year/group are in the "N" column.}
-  #'     \item{outside_plot}{Plot of observations outside regulatory zones.}
-  #'     \item{land_plot}{Plot of observations that fall on land.}
-  #'     \item{land_out_plot}{Plot of observations that occur on land and are outside
-  #'       the regulatory zones (combines outside_plot and land_plot if both occur).}
-  #'     \item{boundary_plot}{Plot of observations that fall on zone boundary.}
-  #'     \item{expected_plot}{Plot of observations that occur at sea and within zones.}
-  #'     \item{distance_plot}{Histogram of distance form nearest zone (meters) by year 
-  #'       for observations that are outside regulatory grid.}
-  #'     \item{distance_freq}{Binned frequency table of distance values.}
-  #'     \item{distance_summary}{Dataframe containing the minimum, 1st quartile, 
-  #'       median, mean, 3rd quartile, and maximum distance values by year and/or group.}
-  #'   }
-  #' @examples 
-  #' \dontrun{
-  #' # run spatial checks
-  #' spatial_qaqc("pollockMainDataTable", "pollock", spat = NMFS_AREAS, 
-  #'              lon.dat = "LonLat_START_LON", lat.dat = "LonLat_START_LAT")
-  #'              
-  #' # filter obs by distance
-  #' spat_out <- 
-  #'      spatial_qaqc(pollockMainDataTable, "pollock", spat = NMFS_AREAS,
-  #'                   lon.dat = "LonLat_START_LON", lat.dat = "LonLat_START_LAT",
-  #'                   filter_dist = 100)
-  #' mod.dat <- spat_out$dataset
-  #' }
-  #'   
   
-  YEAR <- c()
-  
+  # Pull primary data and spatial data
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
@@ -98,43 +98,49 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   spatdat <- spatout$dataset
   spat <- parse_data_name(spat, "spat", project)
   
+  # Create a temporary file to store messages and warnings
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)
   
+  # Initialize YEAR variable to be used later
+  YEAR <- c()
+  
+  # Initialize columns for spatial flags
   out_col <- NULL
   land_col <- NULL
   bound_col <- NULL
   expected_col <- NULL
   
-  # Year ----
-  
+  # Year parsing and handling ---------------------------------------------------------------------
   if (!is.null(date)) {
-    
+    # If a date column is specified, parse it and extract the year
     dataset[[date]] <- date_parser(dataset[[date]])
     dataset$YEAR <- as.integer(format(dataset[[date]], "%Y"))
     
   } else {
-    
+    # If no date column, find the first one
     date <- date_cols(dataset)[1]
     
     if (length(date) == 0) {
-      
+      # Stop if no date column found
       stop("'date' column required.", call. = FALSE)
       
     } else {
-      
+      # Otherwise, parse the date column found
       dataset[[date]] <- date_parser(dataset[[date]])
       dataset$YEAR <- as.integer(format(dataset[[date]], "%Y"))
     }
   }
   
-  # Lat Lon checks ----
-  
+  # Lon and lat validation checks -----------------------------------------------------------------
+  # Combine lon and lat column names for easier checks
   lon_cols <- c(lon.dat, lon.spat)
   lat_cols <- c(lat.dat, lat.spat)
   
+  # Check if lon/lat columns are numeric
   num_ll <- !qaqc_helper(dataset[c(lon_cols, lat_cols)], is.numeric)
   
+  # Check if lon/lat values are in decimal degrees
   lat_deg <- qaqc_helper(dataset[lat_cols], function(x) {
     if (!is.numeric(x)) TRUE
     else any(nchar(trunc(abs(x))) > 2)}) 
@@ -143,6 +149,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     if (!is.numeric(x)) TRUE
     else any(nchar(trunc(abs(x))) > 3)}) 
   
+  # If any of the checks fail, stop and provide message
   if (any(c(lat_deg, lon_deg, num_ll))) {
     
     lat_deg_ind <- which(lat_deg)
@@ -150,46 +157,47 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     num_ind <- which(num_ll)
     
     stop(paste("The following latitude/longitude variables are not in decimal degrees:", 
-                  paste(names(dataset)[unique(c(num_ind, lat_deg_ind, lon_deg_ind))], collapse = ","), 
-                  "\nRun 'degree' function to convert to decimal degrees."),
+               paste(names(dataset)[unique(c(num_ind, lat_deg_ind, lon_deg_ind))], collapse = ","), 
+               "\nRun 'degree' function to convert to decimal degrees."),
          call. = FALSE)
   } 
   
+  # Check if lon values are within the valid range
   if (any(abs(dataset[[lon.dat]]) > 180)) {
-    
     stop("Longitude is not valid (outside -180:180). Function not run", call. = FALSE)
   }
   
+  # Check if lat values are within the valid range
   if (any(abs(dataset[[lat.dat]]) > 90)) {
-    
     stop("Latitude is not valid (outside -90:90. Function not run", call. = FALSE)
   }
   
+  # Filter distance validation --------------------------------------------------------------------
   if (!is.null(filter_dist)) {
-    
     if (!is.numeric(filter_dist)) {
-      
       stop("filter_dist must be numeric", call. = FALSE)
       
     } else if (filter_dist < 0) {
-      
       stop("filter_dist must be positive", call. = FALSE)
     }
   }
   
-  # convert dat to sf object
-  dat_sf <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), 
-                         crs = 4326)
+  # Data conversion and CRS handling --------------------------------------------------------------
+  # Convert dat to sf object
+  dat_sf <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = 4326)
   
+  # Check and prepare spatial data
   spatdat <- check_spatdat(spatdat, lon.dat, lat.dat, id.spat)
   
+  # Warn the user if the CRSs of the datasets don't match
   if (sf::st_crs(spatdat) != sf::st_crs(dat_sf)) {
-    
-    warning("Spatial reference EPSG codes for the spatial and primary datasets do not match. The detected projection in the", 
+    warning("Spatial reference EPSG codes for the spatial and primary datasets do not match. 
+            The detected projection in the", 
             " spatial file will be used unless epsg is specified.", 
             call. = FALSE)
   }
   
+  # Handle EPSG code based on user input 
   if(is_empty(epsg)) epsg <- NULL # set epsg to null if empty value passed via shiny
   
   if (!is.null(epsg)) { # user-defined epsg
@@ -203,52 +211,56 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     spatdat <- sf::st_transform(spatdat, crs = 4326)
   }
   
-
-  # base map ----
-
+  # Base map creation -----------------------------------------------------------------------------
+  # Get the bounding box of the primary data
   bbox <- sf::st_bbox(dat_sf)
-
+  
+  # Create a world map base layer limited to the data's bounding box
   base_map <- ggplot2::map_data("world",
                                 xlim = c(bbox["xmin"], bbox["xmax"]),
                                 ylim = c(bbox["ymin"], bbox["ymax"]))
-
-
+  
+  # Convert the base map to an 'sf' object with the same CRS as the data
   base_map <- dat_to_sf(base_map, lon = "long", lat = "lat", id = "group",
                         cast = "POLYGON", multi = TRUE, crs = sf::st_crs(spatdat))
-
-  # plot functions
+  
+  # Plotting helpers ------------------------------------------------------------------------------
   lon_sym <- rlang::sym(lon.dat)
   lat_sym <- rlang::sym(lat.dat)
-
+  
+  # Helper function to get the grouping expression for plots
   group_exp <- function() {
-
     if (!is.null(group)) {
-
       g_sym <- rlang::sym(group)
       rlang::expr(as.factor(!!g_sym))
-
+      
     } else NULL
   }
-
-  # points on land ----
-  sf_use_s2(FALSE) # by default 'sf' package enables 's2' but this sometimes generates errors with st_intersects
+  
+  # Spatial quality checks and plot generation ----------------------------------------------------
+  
+  # Disable 's2' geography engine to prevent errors with 'st_intersects'
+  sf_use_s2(FALSE) 
+  
+  ## 1. Observations on land ----------------------------------------------------------------------
+  # User st_intersects to check if data points intersect with land polygons
   land_pts <- sf::st_intersects(dat_sf, base_map)
-
   obs_on_land <- lengths(land_pts) > 0
-
+  
+  # If any observations are on land, long the warning and generate a plot
   if (sum(obs_on_land) > 0) {
-
     land_ind <- which(obs_on_land)
     n_land <- sum(obs_on_land)
     p_land <- round(n_land/nrow(dataset) * 100, 1)
     land_msg <- paste0(n_land, " observations (", p_land, "%) occur on land.\n")
-
     cat(land_msg, file = tmp)
     warning(land_msg, call. = FALSE)
-
+    
+    # Add a flag column to the dataset
     land_col <- "ON_LAND"
     dataset[[land_col]] <- obs_on_land
-
+    
+    # Generate a plot of points on land
     land_plot <-
       ggplot2::ggplot() +
       ggplot2::geom_sf(data = base_map) +
@@ -261,64 +273,72 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                     subtitle = paste0("N:", n_land, " (", p_land, "%)")) +
       fishset_theme()
   }
-
-  # points outside zone ----
+  
+  ## 2. Observations outside of the spatial data bounds -------------------------------------------
+  # Use st_intersects to check if data points fall within any zone
   pts_int <- sf::st_intersects(dat_sf, spatdat)
-
   obs_outside <- lengths(pts_int) == 0
-
+  
+  # Separate observations that are outside the zones but not on land
   if (sum(obs_outside) > 0) {
-
-    obs_out_not_land <- obs_outside != obs_on_land # remove land obs
-
+    if (any(obs_outside & obs_on_land)) {
+      obs_out_not_land_ind <- which(obs_outside & obs_on_land)
+      obs_outside[obs_out_not_land_ind] <- FALSE
+      obs_out_not_land_ind <- obs_outside
+      
+    } else {
+      obs_out_not_land <- obs_outside
+    }
   } else {
-
     obs_out_not_land <- FALSE
   }
-
+  
+  # If any observations are outside the spatial bounds, log and plot
   if (sum(obs_out_not_land) > 0) {
-
     out_nl_ind <- which(obs_out_not_land)
     n_out <- sum(obs_out_not_land)
     p_out <- round(n_out/nrow(dataset) * 100, 1)
     out_msg <- paste0(n_out, " observations (", p_out, "%) are outside the regulatory zones.\n")
-
     cat(out_msg, file = tmp, append = TRUE)
     warning(out_msg, call. = FALSE)
-
+    
+    # Add a flag column
     out_col <- "OUTSIDE_ZONE"
     dataset[[out_col]] <- obs_out_not_land
-
+    
+    # Generate plot of points outside zones
     outside_plot <-
       ggplot2::ggplot() +
       ggplot2::geom_sf(data = base_map) +
       ggplot2::geom_point(data = dataset[out_nl_ind, ],
                           ggplot2::aes(x = !!lon_sym, y = !!lat_sym),
-                          size = 1, alpha = .25, color = "red") +
+                          size = 2, alpha = .25, color = "red") +
       ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
                         expand = TRUE) +
       ggplot2::labs(title = "Obs outside zone", x = "Longitude", y = "Latitude",
                     subtitle = paste0("N:", n_out, " (", p_out, "%)")) +
       fishset_theme()
   }
-
-  # obs on zone boundary lines ----
+  
+  ## 3. Observations on zone boundary lines -------------------------------------------------------
+  # An observation is on a boundary if it intersects with more than one polygon
   obs_on_bound <- lengths(pts_int) > 1
-
+  
+  # If any observations are on boundaries, log and plot
   if (sum(obs_on_bound) > 0) {
-
     bound_ind <- which(obs_on_bound)
     n_bound <- sum(obs_on_bound)
     p_bound <- round(n_bound/nrow(dataset) * 100, 1)
     bound_msg <- paste0(n_bound, " observations (", p_bound, "%) occur on boundary",
                         " line between regulatory zones.\n")
-
     cat(bound_msg, file = tmp, append = TRUE)
     warning(bound_msg, call. = FALSE)
-
+    
+    # Add flag column
     bound_col <- "ON_ZONE_BOUNDARY"
     dataset[[bound_col]] <- obs_on_bound
-
+    
+    # Generate a plot of points on boundaries
     bound_plot <-
       ggplot2::ggplot() +
       ggplot2::geom_sf(data = base_map) +
@@ -331,16 +351,19 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                     subtitle = paste0("N:", n_bound, " (", p_bound, "%)")) +
       fishset_theme()
   }
-
-  # expected location ----
+  
+  ## 4. Observations in the "expected" locations --------------------------------------------------
+  # Points not on boundaries, land, or outside spatial bounds
   obs_expected_loc <- !obs_on_bound & !obs_on_land & !obs_outside
-
+  
+  # Add a flag column
   expected_col <- "EXPECTED_LOC"
   dataset[[expected_col]] <- obs_expected_loc
-
+  
   n_expected <- sum(obs_expected_loc)
   p_expected <- round(n_expected/nrow(dataset) * 100, 1)
-
+  
+  # Generate a plot of points in the "expected" location
   expected_plot <-
     ggplot2::ggplot() +
     ggplot2::geom_sf(data = base_map) +
@@ -352,9 +375,11 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     ggplot2::labs(title = "Obs in expected location", x = "Longitude", y = "Latitude",
                   subtitle = paste0("N:", n_expected, " (", p_expected, "%)")) +
     fishset_theme()
-
-  # Spatial summary table ----
-  spat_tab <- agg_helper(dataset, value = c(expected_col, out_col, land_col, bound_col),
+  
+  # Spatial summary table -------------------------------------------------------------------------
+  # Create  a summary table of the spatial checks
+  spat_tab <- agg_helper(dataset, 
+                         value = c(expected_col, out_col, land_col, bound_col),
                          group = c("YEAR", group), fun = sum)
   
   year_tab <- agg_helper(dataset, value = "YEAR", group = group, count = TRUE, fun = "percent")
@@ -365,29 +390,33 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   
   spat_tab <- spat_tab[order(spat_tab$YEAR),
                        c("YEAR", "n", group, last_cols)]
-
-  # distance from nearest zone (meters) ----
+  
+  # Distance from nearest zone calculation and analysis -------------------------------------------
+  # If more than half of the observations are outside the spatial bounds, show and error
   if(p_expected < 50) {
-    showNotification("Over 50% of the observations are outside of the study location and/or on land. Check for erros in latitude and longitude values in the primary data table.",
+    showNotification("Over 50% of the observations are outside of the study location and/or 
+                     on land. Check for erros in latitude and longitude values in the primary 
+                     data table.",
                      type = "error",
                      duration = 60)
     
   } else if(sum(obs_outside) > 0) {
-
+    # If any observations are outside the zones, calculate distances
+    # Find nearest feature and get distance
     nearest <- sf::st_nearest_feature(dat_sf[obs_outside, ], spatdat)
     dist.rec <- sf::st_distance(dat_sf[obs_outside, ], spatdat[nearest, ],
                                 by_element = TRUE)
-
+    
+    # Add the distance to the dataset
     dataset[obs_outside, "dist"] <- as.numeric(dist.rec)
     dataset$dist[is.na(dataset$dist)] <- 0
     dist_vec <- dataset$dist
-
-    # dist plot
+    
+    # Create a distance plot (histogram)
     dist_df <- dataset[obs_outside, c(lat.dat, lon.dat, "YEAR", group, "dist")]
-
     dist_rng <- range(dist_df$dist, finite = TRUE)
     p_brks <- pretty(dist_rng, n = 15, min.n = 1)
-
+    
     dist_plot <-
       ggplot2::ggplot(data = dist_df, ggplot2::aes(dist)) +
       ggplot2::labs(title = "Distance (m) from nearest zone",
@@ -396,52 +425,41 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                             adjust = 2, color = "black") +
       fishset_theme() +
       ggplot2::theme(legend.position = "bottom")
-
-    # freq table
+    
+    # Create a frequency table of distances
     dist_freq <- freq_table(dist_df, "dist", group = c("YEAR", group),
                             bins = 15, type = "freq", format_lab = "decimal")
-
-    # dist summary table
+    
+    # Distance summary table
     dist_fm <- stats::reformulate(c("YEAR", group), "dist")
     dist_sum <- stats::aggregate(dist_fm, FUN = summary, data = dataset, digits = 2)
-
-    # dist_sum <- agg_helper(dist_df, "dist", group = c("YEAR", group),
-    #                        fun = function(x) summary(x, digits = 2))
-
+    
     dsm <- as.data.frame(dist_sum$dist)
     dist_sum$dist <- NULL
     dist_sum <- cbind(dist_sum, dsm)
     dist_sum <- dist_sum[order(dist_sum$YEAR), ]
     row.names(dist_sum) <- 1:nrow(dist_sum)
-
+    
+    # Rename the distance column and, if a filter is specified apply it
     names(dataset)[names(dataset) == "dist"] <- "NEAREST_ZONE_DIST_M"
-
+    
     if (!is.null(filter_dist)) {
-
       dataset <- dataset[dataset$NEAREST_ZONE_DIST_M < filter_dist, ]
-
       filter_table(dataset, project, x = "NEAREST_ZONE_DIST_M",
                    exp = paste0("NEAREST_ZONE_DIST_M < ", filter_dist))
     }
   }
-
-  if (sum(obs_on_bound, obs_outside) == 0) {
-
+  
+  # If no spatial issues are found, write message to temp file
+  if (sum(obs_on_bound, obs_on_land, obs_outside) == 0) {
     cat(c("All observations occur within regulatory zones.",
           "No observations fall on zone boundaries."), file = tmp)
   }
-
-  # arrange plots ----
-  # on land/outside zone
-  if (sum(obs_on_land) > 0 & sum(obs_out_not_land) > 0) {
-
-    land_out_plot <- gridExtra::arrangeGrob(grobs = list(land_plot, outside_plot),
-                                            nrow = 1, ncol = 2)
-  }
-
+  
+  # Arrange plots and log outputs -----------------------------------------------------------------
   msg_print(tmp)
-
-  # Log function
+  
+  # Log function call and its arguments
   spatial_qaqc_function <- list()
   spatial_qaqc_function$functionID <- "spatial_qaqc"
   spatial_qaqc_function$args <- list(dat, project, spat, lon.dat, lat.dat,
@@ -449,33 +467,24 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                                      filter_dist)
   spatial_qaqc_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, spatial_qaqc_function)
-
+  
+  # Helper functions to conditionally return plots
   f_plot <- function(x) if (!is.null(x)) gridExtra::grid.arrange(x) else NULL
-
   f_land <- function() {
-
-    if (sum(obs_on_land) > 0 & sum(obs_out_not_land) == 0) land_plot
+    if (sum(obs_on_land) > 0) land_plot
     else NULL
   }
-
   f_outside <- function() {
-
-    if (sum(obs_out_not_land) > 0 & sum(obs_on_land) == 0) outside_plot
+    if (sum(obs_out_not_land) > 0) outside_plot
     else NULL
   }
-
-  f_land_out <- function() {
-    if (sum(obs_out_not_land) > 0 & sum(obs_on_land) > 0) {
-      gridExtra::grid.arrange(land_out_plot)
-    } else NULL
-  }
-
+  
+  # Create final output list
   out <-
     list(dataset = dataset,
          spatial_summary = get0("spat_tab"),
          land_plot = f_land(),
          outside_plot =  f_outside(),
-         land_outside_plot = f_land_out(),
          boundary_plot = get0("bound_plot"),
          expected_plot = expected_plot,
          distance_plot = get0("dist_plot"),
@@ -486,34 +495,30 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
          bound_ind = get0("bound_ind"),
          dist_vector = get0("dist_vec")
     )
-
+  
+  # Filter out null entries
   ind <- vapply(out, function(x) !is.null(x), logical(1))
   out_nms <- names(ind[ind][-1])# skip primary data
-
-  # save output ----
+  
+  # Save output to project folder -----------------------------------------------------------------
   lapply(out_nms, function(nm) {
-    
     if (!is.null(out[[nm]])) {
-
       if (is.data.frame(out[[nm]])) {
-
         save_table(out[[nm]], project, paste0("spatial_qaqc_", nm))
-
+        
       } else if (nm %in% c("land_ind", "outside_ind", "bound_ind", "dist_vector")) {
-
         out_ind <- data.frame(out[[nm]])
         names(out_ind) <- nm
-
         save_table(out_ind, project, paste0("spatial_qaqc_", nm))
-
+        
       } else {
-
         save_plot(project, paste0("spatial_qaqc_", nm), out[[nm]])
       }
     }
     
   })
-
+  
+  # Return the output list, excluding the index vectors
   ind[c("land_ind", "outside_ind", "bound_ind", "dist_vector")] <- FALSE
   out[ind]
 }
