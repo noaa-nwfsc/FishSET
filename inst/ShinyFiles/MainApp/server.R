@@ -140,6 +140,10 @@ server <- function(input, output, session) {
     if (!is.null(unique_ids$ids) && length(unique_ids$ids) > 0 && !is.null(unique_ids$id_col)) {
       # Filter the main data frame to remove IDs
       rv_data$main <- rv_data$main[!rv_data$main[[unique_ids$id_col]] %in% unique_ids$ids, ]
+      
+      # Save sql table
+      q_save <- quietly_test(table_save)
+      saved <- q_save(rv_data$main, project = rv_project_name()$value, type = "main")
     }
   }, ignoreNULL = TRUE)
 }
