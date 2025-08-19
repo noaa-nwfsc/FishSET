@@ -44,13 +44,18 @@ select_main_var_server <- function(id, rv_project_name, rv_data){
           saved_var_filepath <- file.path(loc_data(project_name), saved_var_file)
           saved_var_filepath <- suppressWarnings(normalizePath(saved_var_filepath)) 
           
-        
+          
           # if exists update the selectInput selections to show the existing variable
-         if (file.exists(saved_var_filepath) & !is.null(main_data)) {
+          if (file.exists(saved_var_filepath) & !is.null(main_data)) {
             existing_variables <- readRDS(saved_var_filepath)
             
             shinyjs::show("main_variables_container") # Show variable inputs for main data
             shinyjs::hide("select_error_message")
+            
+            updateSelectInput(session,
+                              'main_unique_obs_id_input',
+                              choices = colnames(main_data),
+                              selected = existing_variables$main$main_unique_obs_id)
             
             updateSelectInput(session,
                               'main_zone_id_input',
@@ -78,6 +83,10 @@ select_main_var_server <- function(id, rv_project_name, rv_data){
             shinyjs::hide("select_error_message")
             
             updateSelectInput(session,
+                              'main_unique_obs_id_input',
+                              choices = colnames(main_data))
+            
+            updateSelectInput(session,
                               'main_zone_id_input',
                               choices = colnames(main_data))
             
@@ -100,6 +109,7 @@ select_main_var_server <- function(id, rv_project_name, rv_data){
       return(
         reactive({
           list(
+            main_unique_obs_id = input$main_unique_obs_id_input,
             main_zone_id = input$main_zone_id_input,
             main_lon = input$main_lon_input,
             main_lat = input$main_lat_input,
@@ -374,7 +384,7 @@ create_nominal_id_inputs_server <- function(id, rv_project_name, rv_data,
         req(rv_data) # Ensure data is not null
         main_data <- rv_data$main # save as static value
         
-      
+        
         
         # only show if user checks the nominal id checkbox
         if (rv_nominal_id_type()$id_chk == TRUE) {
@@ -573,7 +583,7 @@ save_var_server <- function(id, rv_project_name, rv_data, parent_session){
                           cent.name = "_",
                           output = "centroid table")
         }
-
+        
         # Hide local spinner
         shinyjs::hide("save_var_spinner_container")
       })

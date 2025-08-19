@@ -18,6 +18,7 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     # Initialize reactives
     rv_spat_check <- reactiveValues(flag = FALSE, spat_checks = NULL, c_tab = NULL)
     rv_land_obs_message <- reactiveVal("")
+    rv_out_obs_message <- reactiveVal("")
     
     # Settings to hide outputs until run_spat_checks_btn
     output$show_output_cards <- reactive({
@@ -70,18 +71,15 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
         # Update dataset based on data quality flags
         if (any(rv_spat_check$flag)) {
           flag_cols <- flag_nms[which(rv_spat_check$flag)]
+          
+          cat(str(selected_vars$main))
+          
           rv_spat_check$spat_checks$dataset <- 
             rv_spat_check$spat_checks$dataset[,c(selected_vars$main$main_date, 
                                                  selected_vars$main$main_zone_id, 
                                                  selected_vars$main$main_lat,
                                                  selected_vars$main$main_lon,
                                                  flag_cols)]
-        }
-        
-        # If land and outside bounds observations, split figures
-        if (all(c("ON_LAND", "OUTSIDE_ZONE") %in% flag_cols)) {
-          cat(str(rv_spat_check$spat_checks$land_outside_plot))
-          
         }
       }
       
@@ -143,6 +141,8 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     })
     
     ## Spatial corrections ------------------------------------------------------------------------
+    
+    ### Remove land observations ------------------------------------------------------------------
     # Show button to remove observations on land if present
     output$show_remove_land_btn <- reactive({
       "ON_LAND" %in% names(rv_spat_check$spat_checks$dataset)
@@ -150,15 +150,8 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     
     outputOptions(output, "show_remove_land_btn", suspendWhenHidden = FALSE)
     
-    # Show button to remove observations out of spatial bounds if present
-    output$show_remove_out_bounds_btn <- reactive({
-      "OUTSIDE_ZONE" %in% names(rv_spat_check$spat_checks$dataset)
-    })
-    
-    outputOptions(output, "show_remove_out_bounds_btn", suspendWhenHidden = FALSE)
-    
     # Output message for removing observations on land
-    output$rv_land_obs_message_out <- renderText({
+    output$land_obs_message_out <- renderText({
       rv_land_obs_message()
     })
     
@@ -204,7 +197,7 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
         
         # Update message
         rv_land_obs_message(
-          paste0("Removed ", length(land_rm_ind), " observations from the main data table")
+          paste0("Removed ", length(land_rm_ind), " observation(s) from the main data table")
         )
         shinyjs::show("remove_land_obs_message")
         
@@ -213,6 +206,72 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       
       shinyjs::hide("remove_land_obs_spinner_container")
     })
+    
+    ### Remove out-of-bounds observations ---------------------------------------------------------
+    # Show button to remove observations out of spatial bounds if present
+    output$show_remove_out_bounds_btn <- reactive({
+      "OUTSIDE_ZONE" %in% names(rv_spat_check$spat_checks$dataset)
+    })
+    
+    outputOptions(output, "show_remove_out_bounds_btn", suspendWhenHidden = FALSE)
+    
+    # Output message for removing out-of-bounds observations
+    output$out_obs_message_out <- renderText({
+      rv_out_obs_message()
+    })
+    
+    observeEvent(input$remove_out_bounds_obs_btn,{
+      req(rv_spat_check$spat_checks$outside_plot)
+      
+      # Hide previous messages
+      shinyjs::hide("remove_out_obs_message")
+      
+      # Start spinner while removing observations
+      shinyjs::show("remove_out_obs_spinner_container")
+      
+      out_rm_ind <- which(rv_spat_check$spat_checks$dataset$OUTSIDE_ZONE)
+      
+      if(length(out_rm_ind) > 0){
+        # Update all data table
+        rv_spat_check$spat_checks$dataset <- rv_spat_check$spat_checks$dataset[-out_rm_ind, ]
+        
+        # Update spatial summary table
+        date_col_name <- names(rv_spat_check$spat_checks$dataset)[1]
+
+        flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
+        flag_cols <- flag_nms[flag_nms %in% names(rv_spat_check$spat_checks$dataset)]
+
+        rv_spat_check$spat_checks$spatial_summary <-
+          rv_spat_check$spat_checks$dataset %>%
+          dplyr::mutate(YEAR = as.integer(format(!!rlang::sym(date_col_name), "%Y"))) %>%
+          dplyr::group_by(YEAR) %>%
+          dplyr::summarize(
+            n = n(),
+            dplyr::across(
+              .cols = all_of(flag_cols),
+              .fns = ~sum(., na.rm = TRUE)
+            )
+          ) %>%
+          dplyr::ungroup()
+
+        total_n <- sum(rv_spat_check$spat_checks$spatial_summary$n)
+
+        rv_spat_check$spat_checks$spatial_summary <-
+          rv_spat_check$spat_checks$spatial_summary %>%
+          dplyr::mutate(perc = round((n / total_n) * 100, 2))
+
+        # Update message
+        rv_out_obs_message(
+          paste0("Removed ", length(out_rm_ind), " observation(s) from the main data table")
+        )
+        shinyjs::show("remove_out_obs_message")
+
+        # values$dataset <- values$dataset[-land_remove_i,] # change primary data table
+      }
+      
+      shinyjs::hide("remove_out_obs_spinner_container")
+    })
+    
   })
 }
 
@@ -289,7 +348,7 @@ spatial_checks_ui <- function(id){
             # Remove observations on land message
             div(id = ns("remove_land_obs_message"),
                 style = "color: green; display: none; font-size: 20px;",
-                textOutput(ns("rv_land_obs_message_out"))
+                textOutput(ns("land_obs_message_out"))
             ),
             
             conditionalPanel(
@@ -307,6 +366,22 @@ spatial_checks_ui <- function(id){
                            spinner_type = "circle",
                            size = "large",
                            message = "Removing observations on land...",
+                           overlay = TRUE)
+            ),
+            
+            # Remove out-of-bounds message
+            div(id = ns("remove_out_obs_message"),
+                style = "color: green; display: none; font-size: 20px;",
+                textOutput(ns("out_obs_message_out"))
+            ),
+            
+            # Overlay spinner for this section
+            div(id = ns("remove_out_obs_spinner_container"),
+                style = "display: none;",
+                spinner_ui(ns("remove_out_obs_spinner"),
+                           spinner_type = "circle",
+                           size = "large",
+                           message = "Removing out-of-bounds observations...",
                            overlay = TRUE)
             )
           )
@@ -343,13 +418,13 @@ spatial_checks_ui <- function(id){
           conditionalPanel(
             condition = "input.spat_check_output_view == 'on_land'",
             ns = ns,
-            plotOutput(ns("on_land_plot"), width = "650px", height = "450px")
+            plotOutput(ns("on_land_plot"), width = "750px", height = "550px")
           ),
           
           conditionalPanel(
             condition = "input.spat_check_output_view == 'out_bounds'",
             ns = ns,
-            plotOutput(ns("out_bounds_plot"), width = "650px", height = "450px")
+            plotOutput(ns("out_bounds_plot"), width = "750px", height = "550px")
           )
         )
       )  
