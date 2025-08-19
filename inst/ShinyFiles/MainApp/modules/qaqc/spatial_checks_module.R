@@ -16,6 +16,8 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     ns <- session$ns
     
     # Initialize reactives
+    rv_selected_vars <- reactiveValues(vars = NULL)
+    rv_remove_ids <- reactiveValues(ids = NULL)
     rv_spat_check <- reactiveValues(flag = FALSE, spat_checks = NULL, c_tab = NULL)
     rv_land_obs_message <- reactiveVal("")
     rv_out_obs_message <- reactiveVal("")
@@ -37,6 +39,7 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       
       # Hide previous messages
       shinyjs::hide("remove_land_obs_message")
+      shinyjs::hide("remove_out_obs_message")
       
       # Start spinner while running spatial checks
       shinyjs::show("spat_checks_spinner_container")
@@ -47,6 +50,7 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       
       # Read selected variables RDS
       selected_vars <- readRDS(file_path)
+      rv_selected_vars$vars <- selected_vars
       
       q_test <- quietly_test(spatial_qaqc)
       
@@ -72,10 +76,9 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
         if (any(rv_spat_check$flag)) {
           flag_cols <- flag_nms[which(rv_spat_check$flag)]
           
-          cat(str(selected_vars$main))
-          
           rv_spat_check$spat_checks$dataset <- 
-            rv_spat_check$spat_checks$dataset[,c(selected_vars$main$main_date, 
+            rv_spat_check$spat_checks$dataset[,c(selected_vars$main$main_unique_obs_id,
+                                                 selected_vars$main$main_date, 
                                                  selected_vars$main$main_zone_id, 
                                                  selected_vars$main$main_lat,
                                                  selected_vars$main$main_lon,
@@ -168,10 +171,15 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       
       if(length(land_rm_ind) > 0){
         # Update all data table
+        id_var <- rv_selected_vars$vars$main$main_unique_obs_id
+        tmp_ids <- dplyr::pull(rv_spat_check$spat_checks$dataset[, id_var], id_var) 
+        rv_remove_ids$ids <- c(rv_remove_ids$ids, tmp_ids[land_rm_ind]) 
         rv_spat_check$spat_checks$dataset <- rv_spat_check$spat_checks$dataset[-land_rm_ind, ]
         
         # Update spatial summary table
-        date_col_name <- names(rv_spat_check$spat_checks$dataset)[1]
+        date_var <- rv_selected_vars$vars$main$main_date
+        date_ind <- which(names(rv_spat_check$spat_checks$dataset) == date_var)
+        date_col_name <- names(rv_spat_check$spat_checks$dataset)[date_ind]
         
         flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
         flag_cols <- flag_nms[flag_nms %in% names(rv_spat_check$spat_checks$dataset)]
@@ -233,14 +241,19 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       
       if(length(out_rm_ind) > 0){
         # Update all data table
+        id_var <- rv_selected_vars$vars$main$main_unique_obs_id
+        tmp_ids <- dplyr::pull(rv_spat_check$spat_checks$dataset[, id_var], id_var) 
+        rv_remove_ids$ids <- c(rv_remove_ids$ids, tmp_ids[out_rm_ind]) 
         rv_spat_check$spat_checks$dataset <- rv_spat_check$spat_checks$dataset[-out_rm_ind, ]
         
         # Update spatial summary table
-        date_col_name <- names(rv_spat_check$spat_checks$dataset)[1]
-
+        date_var <- rv_selected_vars$vars$main$main_date
+        date_ind <- which(names(rv_spat_check$spat_checks$dataset) == date_var)
+        date_col_name <- names(rv_spat_check$spat_checks$dataset)[date_ind]
+        
         flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
         flag_cols <- flag_nms[flag_nms %in% names(rv_spat_check$spat_checks$dataset)]
-
+        
         rv_spat_check$spat_checks$spatial_summary <-
           rv_spat_check$spat_checks$dataset %>%
           dplyr::mutate(YEAR = as.integer(format(!!rlang::sym(date_col_name), "%Y"))) %>%
@@ -253,25 +266,34 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
             )
           ) %>%
           dplyr::ungroup()
-
+        
         total_n <- sum(rv_spat_check$spat_checks$spatial_summary$n)
-
+        
         rv_spat_check$spat_checks$spatial_summary <-
           rv_spat_check$spat_checks$spatial_summary %>%
           dplyr::mutate(perc = round((n / total_n) * 100, 2))
-
+        
         # Update message
         rv_out_obs_message(
           paste0("Removed ", length(out_rm_ind), " observation(s) from the main data table")
         )
         shinyjs::show("remove_out_obs_message")
-
+        
         # values$dataset <- values$dataset[-land_remove_i,] # change primary data table
       }
       
       shinyjs::hide("remove_out_obs_spinner_container")
     })
     
+    # Return the reactive containing the IDs to be removed 
+    return(
+      reactive({
+        list(
+          ids = rv_remove_ids$ids,
+          id_col = rv_selected_vars$vars$main$main_unique_obs_id
+        )
+      })
+    )
   })
 }
 
@@ -337,6 +359,28 @@ spatial_checks_ui <- function(id){
         bslib::card(
           bslib::card_header("2. Spatial Corrections"),
           bslib::card_body(
+            # Show initial message before spatial checks button clicked
+            conditionalPanel(
+              condition = "!output.show_output_cards",
+              ns = ns,
+              tags$p(
+                "Corrective actions will be available here after running spatial checks.",
+                style = "color: grey; font-style: italic; font-size: 18px;"
+              )
+            ),
+            
+            # Show message when there are no spatial corrections to be made
+            conditionalPanel(
+              condition = "!output.show_remove_land_btn & 
+                           !output.show_remove_out_bounds_btn &
+                           output.show_output_cards",
+              ns = ns,
+              tags$p(
+                "All spatial checks passed successfully. No corrective actions are needed.",
+                style = "color: green; font-style: italic; font-size: 18px;"
+              )
+            ),
+            
             conditionalPanel(
               condition = "output.show_remove_land_btn",
               ns = ns,

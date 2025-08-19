@@ -130,5 +130,16 @@ server <- function(input, output, session) {
                        current_tab = reactive(input$tabs))
   
   ### Main panel
-  qaqc_server("qaqc_checks", rv_project_name, rv_data, rv_folderpath)
+  rv_ids_to_remove <- qaqc_server("qaqc_checks", rv_project_name, rv_data, rv_folderpath)
+  
+  # Update rv_data based on spatial corrections
+  observeEvent(rv_ids_to_remove(), {
+    unique_ids <- rv_ids_to_remove()
+    
+    # Ensure that the ids are valid
+    if (!is.null(unique_ids$ids) && length(unique_ids$ids) > 0 && !is.null(unique_ids$id_col)) {
+      # Filter the main data frame to remove IDs
+      rv_data$main <- rv_data$main[!rv_data$main[[unique_ids$id_col]] %in% unique_ids$ids, ]
+    }
+  }, ignoreNULL = TRUE)
 }

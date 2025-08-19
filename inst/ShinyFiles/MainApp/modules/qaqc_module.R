@@ -32,7 +32,13 @@ qaqc_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     preview_data_server("preview_data", rv_project_name, rv_data)
     
     # Spatial checks
-    spatial_checks_server("spat_checks", rv_project_name, rv_data, rv_folderpath)
+    rv_ids_to_remove <- spatial_checks_server("spat_checks", 
+                                              rv_project_name, 
+                                              rv_data, 
+                                              rv_folderpath)
+    
+    # Return the captured reactive so the main server can use it
+    return(rv_ids_to_remove)
   })
 }
 
