@@ -578,6 +578,7 @@ save_var_server <- function(id, rv_project_name, rv_data, parent_session){
         if (!table_exists(cent_table_name, project_name)) {
           q_test_centroid <- quietly_test(create_centroid, show_msg = FALSE)
           q_test_centroid(spat = rv_data$spat,
+                          dat = rv_data$main,
                           project = project_name,
                           spatID = saved_variables_spat$spat_zone_id,
                           cent.name = "_",

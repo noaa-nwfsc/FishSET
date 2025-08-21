@@ -919,7 +919,8 @@ data_pull <- function(dat, project) {
     
   } else {
     # Handle cases where the input is neither a character nor a dataframe
-    stop("Input 'dat' must be a character string (table name) or a data frame object.")
+    stop("data_pull() error: input 'dat' must be a character string (table name) or a 
+         data frame object.")
   }
   
   return(list(dat = dat_name, 
