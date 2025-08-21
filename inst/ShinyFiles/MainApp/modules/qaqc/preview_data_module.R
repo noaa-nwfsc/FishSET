@@ -98,10 +98,13 @@ preview_data_ui <- function(id){
   ns <- NS(id)
   
   tagList(
-    selectInput(ns("select_data_input"),
-                label = "Select data to view:",
-                choices = NULL),
-    
-    DT::DTOutput(ns("preview_datatable"))    
+    bslib::card(
+      height = "1000px",
+      fill = TRUE, 
+      selectInput(ns("select_data"),
+                  label = "Select data to view:",
+                  choices = NULL),
+      DT::DTOutput(ns("preview_datatable"))
+    )
   )
 }
