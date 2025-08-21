@@ -84,8 +84,6 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
         # If no status file exists, checks need to be run
         rv_status("pending")
       }
-      
-      cat("\n\n", rv_status(), "\n\n")
     })
     
     # Reactive to control UI elements based on rv_status()

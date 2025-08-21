@@ -148,8 +148,5 @@ server <- function(input, output, session) {
       q_save <- quietly_test(table_save)
       saved <- q_save(rv_data$main, project = rv_project_name()$value, type = "main")
     }
-    
-    cat(str(rv_qaqc$spatial_checks()))
-    
   }, ignoreNULL = TRUE)
 }
