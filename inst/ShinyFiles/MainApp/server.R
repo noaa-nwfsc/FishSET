@@ -62,6 +62,8 @@ server <- function(input, output, session) {
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
+  checklist_server("load_checklist", rv_project_name, rv_data, rv_qaqc)
+  
   #### Set confidentiality rules (popup)
   rv_confid_vals <- load_sidebar_server("upload_data_sidebar",
                                         rv_project_name = rv_project_name, 
@@ -102,7 +104,7 @@ server <- function(input, output, session) {
   
   ## Selecting variables subtab -------------------------------------------------------------------
   ### Sidebar
-  checklist_server("select_var_checklist", rv_project_name, rv_data)
+  checklist_server("select_var_checklist", rv_project_name, rv_data, rv_qaqc)
   
   other_actions_server("selecting_variables_actions", 
                        values = list(project_name = rv_project_name,
@@ -146,5 +148,8 @@ server <- function(input, output, session) {
       q_save <- quietly_test(table_save)
       saved <- q_save(rv_data$main, project = rv_project_name()$value, type = "main")
     }
+    
+    cat(str(rv_qaqc$spatial_checks()))
+    
   }, ignoreNULL = TRUE)
 }

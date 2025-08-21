@@ -52,6 +52,7 @@ ui <- function(request){
               fill = TRUE, 
               width = 400,
               
+              checklist_ui("load_checklist"),
               load_sidebar_ui("upload_data_sidebar"),
               other_actions_ui("upload_data_actions"),
             ),

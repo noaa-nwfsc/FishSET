@@ -237,6 +237,8 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_qaqc = NULL){
       ## QAQC checks ------------------------------------------------------------------------------
       # Check if spatial checks passed
       if (!is.null(rv_qaqc) & rv_project_checklist$checklist$load_data$sel_vars) {
+        cat("\n\n test checklist \n\n")
+        
         if (rv_qaqc$spatial_checks()$status == "passed") {
           rv_project_checklist$checklist$qaqc$spatial_check <- TRUE
 
