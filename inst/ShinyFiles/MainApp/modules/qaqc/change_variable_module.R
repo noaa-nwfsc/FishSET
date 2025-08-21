@@ -56,6 +56,11 @@ variable_class_server <- function(id, rv_project_name, rv_data){
       
       req(rv_data) # Ensure data is not null
       
+        # Check that main data table exist and if not return nothing
+      if (is.null(rv_data$main) || length(rv_data$main) == 0) {
+        return()
+      } else{
+      
       first_class <- function(x) class(x)[1]
       int = t(t(vapply(rv_data$main, first_class, character(1))))
       df = matrix(as.character(1:2), nrow = nrow(int), ncol = 2, byrow = TRUE,
@@ -64,7 +69,7 @@ variable_class_server <- function(id, rv_project_name, rv_data){
       df[,2] = t(rv_data$main[1,])
       
       return(df)
-      
+      }
     })
     
     # Displaying change class table using DT
@@ -209,16 +214,23 @@ variable_class_ui <- function(id){
   ns <- NS(id)
   
   tagList(
-    selectInput(ns("change_class_var"),
-      label = "Select data to view:",
-      choices = NULL),
-    selectInput(ns("change_class"), 
-      label = "Select new class type",
-      choices = c('numeric', 'character', 'factor', 'date')),
-    actionButton(ns('var_class_btn'),
-      label = 'Change variable classes', 
-      class = "btn-secondary"),
-    DT::DTOutput(ns("change_var_table")),
+    bslib::layout_column_wrap(
+      fill = TRUE,
+      width = 1/3,
+      selectInput(ns("change_class_var"),
+        label = "Select data to view:",
+        choices = NULL),
+      selectInput(ns("change_class"), 
+        label = "Select new class type",
+        choices = c('numeric', 'character', 'factor', 'date'))),
+      actionButton(ns('var_class_btn'),
+        label = 'Change variable classes', 
+        class = "btn-secondary",
+        width = "25%"),
+    bslib::card(
+         height = "750px",
+      fill = TRUE, DT::DTOutput(ns("change_var_table"))
+    )
     
   )
 }

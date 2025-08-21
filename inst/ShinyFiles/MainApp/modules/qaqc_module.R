@@ -11,6 +11,7 @@
 
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/qaqc/preview_data_module.R", local = TRUE) # Preview data in table format
+source("modules/qaqc/summary_data_module.R", local = TRUE) # Summary stats data table
 source("modules/qaqc/change_variable_module.R", local = TRUE) # Preview data in table format
 
 
@@ -31,8 +32,10 @@ qaqc_server <- function(id, rv_project_name, rv_data){
     
     # Preview data tables
     preview_data_server("preview_data", rv_project_name, rv_data)
+    # Summary statistics table for primary data
+    summary_data_server("summary_table", rv_project_name, rv_data)
+    # Change variable class for primary data
     variable_class_server("change_variable_class", rv_project_name, rv_data)
-
     
   })
 }
@@ -50,10 +53,11 @@ qaqc_sidebar_ui <- function(id) {
   ns <- NS(id)
   tagList(
     radioButtons(ns("qaqc_options"), 
-                 "Data quality checks:",
-                 choices = c("Preview data" = "preview",
-                   "Change variable class" = "variable_class"),
-                 selected = "preview")
+      "Data quality checks:",
+      choices = c("Preview data" = "preview",
+        "Summary table"="summary",
+        "Change variable class" = "variable_class"),
+      selected = "preview")
   )
 }
 
@@ -75,6 +79,12 @@ qaqc_ui <- function(id){
       condition = "input.qaqc_options == 'preview'",
       ns = ns,
       preview_data_ui(ns("preview_data"))
+    ),
+    # Conditionally display the summary data table UI
+    conditionalPanel(
+      condition = "input.qaqc_options == 'summary'",
+      ns = ns,
+      summary_data_ui(ns("summary_table"))
     ),
     # Conditionally display the preview data UI
     conditionalPanel(
