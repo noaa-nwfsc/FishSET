@@ -525,7 +525,6 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
 
 
 spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
-  
   #' GUI for spatial data checks
   #' 
   #' Runs the spatial checks performed by \code{\link{spatial_qaqc}} in a shiny
@@ -611,8 +610,9 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
                       
                       tabPanel(title = "Spatial Corrections", value = "corrections",
                                uiOutput("spat_correct_msg"),
-                               tags$div(shinycssloaders::withSpinner(DT::DTOutput("spat_correct_tab")), 
-                                        style = "font-size: 75%; width: 100%")
+                               tags$div(
+                                 shinycssloaders::withSpinner(DT::DTOutput("spat_correct_tab")), 
+                                 style = "font-size: 75%; width: 100%")
                       )
           )
         )
@@ -732,12 +732,13 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
               
             } else {
               
-              plot_header <- switch(x, "outside_plot" = "Points outside zone",
-                                    "land_plot" = "Points on land",
-                                    "land_outside_plot" = "Points on land/outside zone",
-                                    "boundary_plot" = "Points on zone boundary",
-                                    "expected_plot" = "Points at sea and within zones",
-                                    "distance_plot" = "Density of point distance (m) from nearest zone")
+              plot_header <- switch(
+                x, "outside_plot" = "Points outside zone",
+                "land_plot" = "Points on land",
+                "land_outside_plot" = "Points on land/outside zone",
+                "boundary_plot" = "Points on zone boundary",
+                "expected_plot" = "Points at sea and within zones",
+                "distance_plot" = "Density of point distance (m) from nearest zone")
               
               tagList(
                 h4(strong(plot_header)),
@@ -898,10 +899,12 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
         showModal(
           modalDialog(title = paste("Remove", sum(dist_filter()), "rows?"),
                       
-                      actionButton("confirm_dist_remove", "Remove", 
-                                   style = "color: white; background-color: #0073e6;"),
-                      actionButton("dist_remove_cancel", "Cancel", 
-                                   style = "color: #fff; background-color: #FF6347; border-color: #800000;"),
+                      actionButton(
+                        "confirm_dist_remove", "Remove", 
+                        style = "color: white; background-color: #0073e6;"),
+                      actionButton(
+                        "dist_remove_cancel", "Cancel", 
+                        style = "color: #fff; background-color: #FF6347; border-color: #800000;"),
                       
                       footer = tagList(modalButton("Close")),
                       easyClose = FALSE, size = "s"))
@@ -950,9 +953,12 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
       
       # save data to FishSET DB
       observeEvent(input$saveData, {
-        
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
-        DBI::dbWriteTable(fishset_db, paste0(project(), 'MainDataTable'), values$dataset, overwrite = TRUE)
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
+                                                      locdatabase(project = project)))
+        DBI::dbWriteTable(fishset_db, 
+                          paste0(project(), 'MainDataTable'), 
+                          values$dataset, 
+                          overwrite = TRUE)
         DBI::dbDisconnect(fishset_db)
         showNotification('Data saved to FishSET database', type = 'message', duration = 60)
       })
