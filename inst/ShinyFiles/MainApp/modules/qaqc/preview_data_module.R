@@ -101,7 +101,7 @@ preview_data_ui <- function(id){
     bslib::card(
       height = "1000px",
       fill = TRUE, 
-      selectInput(ns("select_data"),
+      selectInput(ns("select_data_input"),
                   label = "Select data to view:",
                   choices = NULL),
       DT::DTOutput(ns("preview_datatable"))
