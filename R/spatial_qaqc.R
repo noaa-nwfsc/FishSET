@@ -204,6 +204,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     dat_sf <- sf::st_transform(dat_sf, crs = epsg)
     spatdat <- sf::st_transform(spatdat, crs = epsg)
     
+    
   } else if (!is.na(sf::st_crs(spatdat))) { # use epsg from spatial data
     dat_sf <- sf::st_transform(dat_sf, sf::st_crs(spatdat))
     
@@ -276,6 +277,8 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   
   ## 2. Observations outside of the spatial data bounds -------------------------------------------
   # Use st_intersects to check if data points fall within any zone
+  st_crs(dat_sf)
+  st_crs(spatdat)
   pts_int <- sf::st_intersects(dat_sf, spatdat)
   obs_outside <- lengths(pts_int) == 0
   
@@ -284,7 +287,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     if (any(obs_outside & obs_on_land)) {
       obs_out_not_land_ind <- which(obs_outside & obs_on_land)
       obs_outside[obs_out_not_land_ind] <- FALSE
-      obs_out_not_land_ind <- obs_outside
+      obs_out_not_land <- obs_outside
       
     } else {
       obs_out_not_land <- obs_outside
@@ -462,10 +465,11 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   # Log function call and its arguments
   spatial_qaqc_function <- list()
   spatial_qaqc_function$functionID <- "spatial_qaqc"
-  spatial_qaqc_function$args <- list(dat, project, spat, lon.dat, lat.dat,
+  spatial_qaqc_function$args <- list(deparse(substitute(dat)), project, spat, lon.dat, lat.dat,
                                      lon.spat, lat.spat, id.spat, epsg, date, group,
                                      filter_dist)
   spatial_qaqc_function$msg <- suppressWarnings(readLines(tmp))
+  
   log_call(project, spatial_qaqc_function)
   
   # Helper functions to conditionally return plots
