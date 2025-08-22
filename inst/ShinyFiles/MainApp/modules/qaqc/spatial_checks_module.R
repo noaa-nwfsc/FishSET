@@ -69,9 +69,13 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
           size = object.size(rv_data$main)
         )
 
-        # If metrics match, the data is unchanged, and can load the "passed" status
-        if ((current_data_metrics$nrows == saved_status$data_metrics$nrow) &&
-            (saved_status$status == "passed")) {
+        # If values in RDS are null then something went wrong with saving data
+        if (is.null(saved_status$data_metrics$nrow) | 
+            saved_status$data_metrics$size == 0) {
+          rv_status("pending")
+          # If metrics match, the data is unchanged, and can load the "passed" status
+        } else if ((current_data_metrics$nrows == saved_status$data_metrics$nrow) &&
+                   (saved_status$status == "passed")) {
           rv_status("passed")
 
         } else {

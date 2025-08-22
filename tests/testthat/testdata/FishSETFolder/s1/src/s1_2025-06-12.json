@@ -737,6 +737,60 @@
             null
           ],
           "msg": "1 observations (5%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "summary_stats",
+          "args": [
+            "s1MainDataTable",
+            "s1",
+            null,
+            true
+          ]
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "s1MainDataTable",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            null,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "110 observations (5.5%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "summary_stats",
+          "args": [
+            "s1MainDataTable",
+            "s1",
+            null,
+            true
+          ]
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "s1MainDataTable",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            null,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "110 observations (5.5%) occur on boundary line between regulatory zones."
         }
       ]
     }
