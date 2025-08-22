@@ -55,9 +55,9 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       
       # Define the path for the status file
       status_file_path <- file.path(rv_folderpath(),
-                                   rv_project_name()$value,
-                                   "data",
-                                   "SpatialChecksStatus.rds")
+                                    rv_project_name()$value,
+                                    "data",
+                                    "SpatialChecksStatus.rds")
       status_file_path <- suppressWarnings(normalizePath(status_file_path))
       
       if (file.exists(status_file_path)) {
@@ -68,7 +68,7 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
           nrows = nrow(rv_data$main),
           size = object.size(rv_data$main)
         )
-
+        
         # If values in RDS are null then something went wrong with saving data
         if (is.null(saved_status$data_metrics$nrow) | 
             saved_status$data_metrics$size == 0) {
@@ -77,7 +77,7 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
         } else if ((current_data_metrics$nrows == saved_status$data_metrics$nrow) &&
                    (saved_status$status == "passed")) {
           rv_status("passed")
-
+          
         } else {
           # If metrics don't match, the data has changed and spatial checks have to run again
           file.remove(status_file_path)

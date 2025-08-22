@@ -97,7 +97,7 @@ pass_icon <- function(tab, checklist, previous_check = NULL) {
   }
   
   # QAQC
-  # TODO: add checks
+  # TODO: add more checks
   if (tab == 'qaqc') {
     if (all(unlist(list_checks))) {
       # All qaqc checks passed: green icon
@@ -235,8 +235,9 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_qaqc = NULL){
       }
       
       ## QAQC checks ------------------------------------------------------------------------------
-      # Check if spatial checks passed
-      if (!is.null(rv_qaqc) & rv_project_checklist$checklist$load_data$sel_vars) {
+      # First check that all load_data checks have passed
+      if (!is.null(rv_qaqc) & all(unlist(rv_project_checklist$checklist$load_data))) {
+        # Check if spat checks passed
         if (rv_qaqc$spatial_checks()$status == "passed") {
           rv_project_checklist$checklist$qaqc$spatial_check <- TRUE
 

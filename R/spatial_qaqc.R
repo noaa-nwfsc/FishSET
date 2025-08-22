@@ -277,8 +277,6 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   
   ## 2. Observations outside of the spatial data bounds -------------------------------------------
   # Use st_intersects to check if data points fall within any zone
-  st_crs(dat_sf)
-  st_crs(spatdat)
   pts_int <- sf::st_intersects(dat_sf, spatdat)
   obs_outside <- lengths(pts_int) == 0
   

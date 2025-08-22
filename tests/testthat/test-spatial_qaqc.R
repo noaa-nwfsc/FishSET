@@ -110,7 +110,7 @@ test_that("test spatial_qaqc() throws errors", {
   # Save a sample of the data and create invalid coordinates
   test_df <- head(table_view("s1MainDataTable", "s1"), 4)
   test_df[,"DDLON"] <- c(-190, -125, -192, 0)
-
+  
   # Check that the function correctly throws an error for invalid longitude values
   expect_error(
     suppressMessages(

@@ -31,7 +31,7 @@ qaqc_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     
     # Preview data tables
     preview_data_server("preview_data", rv_project_name, rv_data)
-
+    
     # Summary statistics table for primary data
     summary_data_server("summary_table", rv_project_name, rv_data)
     
@@ -86,7 +86,7 @@ qaqc_ui <- function(id){
       ns = ns,
       preview_data_ui(ns("preview_data"))
     ),
-
+    
     # Conditionally display the summary data table UI
     conditionalPanel(
       condition = "input.qaqc_options == 'summary'",
