@@ -900,31 +900,25 @@ data_pull <- function(dat, project) {
   #' @export
   
   if (is.character(dat)) {
-    dat_name <- dat
-    
-    # Attempt to view table directly
-    tryCatch({
-      dataset <- table_view(dat_name, project)
-      
-    }, error = function(e) {
+    if (is.null(dat) | table_exists(dat, project) == FALSE) {
       print(project_tables(project))
       stop(paste(dat, "not defined or does not exist. Consider using one of the",
                  "tables listed above that exist in the database."))
-    })
-    
-  } else if (inherits(dat, "data.frame")) {
-    # If a dataframe is provided, use it directly
-    dataset <- dat
-    dat_name <- deparse(substitute(dat))
+      
+    } else {
+      
+      dataset <- table_view(dat, project)
+      
+    }
     
   } else {
-    # Handle cases where the input is neither a character nor a dataframe
-    stop("data_pull() error: input 'dat' must be a character string (table name) or a 
-         data frame object.")
+    dataset <- dat
+    dat <- deparse(substitute(dat))
+    
   }
   
-  return(list(dat = dat_name, 
-              dataset = dataset))
+  
+  return(list(dat = dat, dataset = dataset))
 }
 
 parse_data_name <- function(dat, type, project) {

@@ -161,19 +161,3 @@ test_that("test data_pull() works with dat as tibble", {
                                      "LANDED_OBSCURED", "DOLLAR_OBSCURED", "DOLLAR_2020_OBSCURED",
                                      "DOLLAR_ALL_SP_2020_OBSCURED", "landed_thousands"))
 })
-
-test_that("test data_pull() throws errors", {
-  # Define the base folder path to the test data directory
-  # This folder should contain the subfolder named "s1" to pass the test
-  test_folder <- testthat::test_path("testdata/FishSETFolder")
-  
-  # Override the folder path used by locproject() which is called in loc_data()
-  # This isolates the test env from the default paths
-  old_option <- getOption("test_folder_path")
-  options(test_folder_path = test_folder)
-  
-  # Expect error when dat is not a character or dataframe, or table doesn't exist
-  expect_error(data_pull(dat = 2, project = "s1"))
-  expect_error(data_pull(dat = NULL, project = "s1"))
-  expect_warning(data_pull(dat = "testFail", project = "s1"))
-})
