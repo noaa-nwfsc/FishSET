@@ -12,6 +12,7 @@
 #' Shape, json, geojson, and csv formats are supported.
 #' @param spat_zone Variable or list in \code{spat} that identifies the individual areas or zones.
 #' If \code{spat} is class sf, \code{cat} should be name of list containing information on zones.
+#' @param project Name of the project
 #' @details 
 #' The function measures the degree of spatial autocorrelation and utilizes functions from the 
 #' `spdep` package. The function requires a spatial file with latitude and longitude 
@@ -32,7 +33,15 @@
 #'
 moran_stats <- function(dat, var, dat_zone, spat, spat_zone, project) {
   
-  # Data prep -------------------------------------------------------------------------------------
+  # Ensure necessary packages are loaded
+  if (!requireNamespace("sf", quietly = TRUE)) {
+    stop("Package 'sf' is required.")
+  }
+  if (!requireNamespace("spdep", quietly = TRUE)) {
+    stop("Package 'spdep' is required for spatial weights calculation.")
+  }
+  
+  # Data check and prep ---------------------------------------------------------------------------
   
   # Call in datasets
   out <- data_pull(dat, project)
@@ -43,12 +52,25 @@ moran_stats <- function(dat, var, dat_zone, spat, spat_zone, project) {
   spatdat <- spat_out$dataset
   spat <- parse_data_name(spat, 'spat', project)
   
-  # Ensure necessary packages are loaded
-  if (!requireNamespace("sf", quietly = TRUE)) {
-    stop("Package 'sf' is required.")
+  # Check if the variable exists in the dataset
+  if (!var %in% names(dataset)) {
+    stop(paste0("The variable '", var, "' was not found in the dataset '", dat, "'."))
   }
-  if (!requireNamespace("spdep", quietly = TRUE)) {
-    stop("Package 'spdep' is required for spatial weights calculation.")
+  
+  # Check if the variable is numeric
+  if (!is.numeric(dataset[[var]])) {
+    stop(paste0("The variable '", var, "' is of type '", class(dataset[[var]]), 
+                "'. It must be a numeric variable to calculate Moran's I."))
+  }
+  
+  # Check if the data zone variable exists in the dataset
+  if (!dat_zone %in% names(dataset)) {
+    stop(paste0("The variable '", dat_zone, "' was not found in the dataset '", dat, "'."))
+  }
+  
+  # Check if the spatial zone variable exists in the spatial data
+  if (!spat_zone %in% names(spatdat)) {
+    stop(paste0("The variable '", spat_zone, "' was not found in the spatial data '", spat, "'."))
   }
   
   # Rename zone IDs to make sure these match between dataset and spat
