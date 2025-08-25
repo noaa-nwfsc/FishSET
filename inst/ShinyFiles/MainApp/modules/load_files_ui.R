@@ -42,8 +42,6 @@ load_sidebar_ui <- function(id){
   )
   
   tagList(
-    checklist_ui(ns("load_checklist")),
-    
     actionButton(ns("confid_modal_btn"), "Confidentiality settings",
                  class = "btn-secondary", disable = TRUE
     ),

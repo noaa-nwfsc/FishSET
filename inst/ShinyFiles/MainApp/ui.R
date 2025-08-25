@@ -52,6 +52,7 @@ ui <- function(request){
               fill = TRUE, 
               width = 400,
               
+              checklist_ui("load_checklist"),
               load_sidebar_ui("upload_data_sidebar"),
               other_actions_ui("upload_data_actions"),
             ),
@@ -67,6 +68,7 @@ ui <- function(request){
             
             #### Select project
             bslib::card(fill = FALSE,
+                        height = 200,
                         bslib::card_header("2. Add or select a project"),
                         bslib::card_body(
                           shinyjs::useShinyjs(),

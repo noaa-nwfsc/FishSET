@@ -187,7 +187,7 @@ table_view <- function(table, project) {
     if (table_type(table) == "spatial") {
 
       filename <- file.path(loc_data(project), "spat", paste0(table, ".geojson"))
-      sf::st_read(filename)
+      sf::st_read(filename, quiet=TRUE) 
 
     } else {
 

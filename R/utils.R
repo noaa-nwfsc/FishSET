@@ -894,15 +894,13 @@ find_original_name <- function(fun) {
 
 data_pull <- function(dat, project) {
   #' Pull data from sqlite database
-  #' @param dat Data table
+  #' @param dat Data table name (character) or a data frame object
   #' @param project Project name
   #' @keywords internal
   #' @export
   
   if (is.character(dat)) {
-    
     if (is.null(dat) | table_exists(dat, project) == FALSE) {
-      
       print(project_tables(project))
       stop(paste(dat, "not defined or does not exist. Consider using one of the",
                  "tables listed above that exist in the database."))
@@ -910,21 +908,15 @@ data_pull <- function(dat, project) {
     } else {
       
       dataset <- table_view(dat, project)
+      
     }
     
   } else {
-    
     dataset <- dat
+    dat <- deparse(substitute(dat))
+    
   }
   
-  if (is.character(dat) == TRUE) {
-    
-    dat <- dat
-    
-  } else {
-    
-    dat <- deparse(substitute(dat))
-  }
   
   return(list(dat = dat, dataset = dataset))
 }

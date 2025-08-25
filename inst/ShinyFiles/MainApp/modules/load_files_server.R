@@ -43,9 +43,6 @@ load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data
                            condition = !data_load_error)
     })
     
-    # Checklist -----------------------------------------------------------------------------------
-    checklist_server("load_checklist", rv_project_name, rv_data)
-    
     # Confidentiality setting ---------------------------------------------------------------------
     # create a modal for creating confidentiality rules
     observeEvent(input$confid_modal_btn, {

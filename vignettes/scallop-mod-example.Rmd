@@ -154,6 +154,7 @@ which saves the centroids to the FishSET database.
 
 ```{r}
 create_centroid(spat = scallopModTenMnSqrSpatTable,
+                dat = scallopModMainDataTable,
                 project = "scallopMod",
                 spatID = "TEN_ID",
                 type = "zonal centroid",
@@ -179,8 +180,7 @@ create_alternative_choice(dat = scallopModMainDataTable,
                           alt_var = "zonal centroid",
                           zoneID = "ZoneID",
                           zone.cent.name = "scallopModZoneCentroid",
-                          min.haul = 90
-                          )
+                          min.haul = 90)
 ```
 
 <br>

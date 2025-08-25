@@ -558,6 +558,447 @@
             null,
             true
           ]
+        },
+        {
+          "functionID": "create_centroid",
+          "args": [
+            "s1spatSpatTable",
+            "s1MainDataTable",
+            "s1",
+            "TEN_ID",
+            null,
+            null,
+            null,
+            "zonal centroid",
+            null,
+            null,
+            "_",
+            "centroid table"
+          ]
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "tmp_df",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "110 observations (5.5%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "tmp_df",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "110 observations (5.5%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "head(tmp_df)",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "1 observations (16.7%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "head(tmp_df)",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "1 observations (16.7%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "head(tmp_df)",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "1 observations (16.7%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "head(test_df)",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "1 observations (16.7%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "head(test_df)",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "1 observations (16.7%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "head(test_df)",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "1 observations (16.7%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "test_df",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "1 observations (5%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "summary_stats",
+          "args": [
+            "s1MainDataTable",
+            "s1",
+            null,
+            true
+          ]
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "s1MainDataTable",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            null,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "110 observations (5.5%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "summary_stats",
+          "args": [
+            "s1MainDataTable",
+            "s1",
+            null,
+            true
+          ]
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "s1MainDataTable",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            null,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "110 observations (5.5%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "test_df",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": "1 observations (5%) occur on boundary line between regulatory zones."
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "test_df",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": [
+            "2 observations (8.3%) occur on land.",
+            "1 observations (4.2%) occur on boundary line between regulatory zones."
+          ]
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "test_df",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": [
+            "2 observations (8.3%) occur on land.",
+            "1 observations (4.2%) occur on boundary line between regulatory zones."
+          ]
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "test_df",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": [
+            "2 observations (8.3%) occur on land.",
+            "1 observations (4.2%) occur on boundary line between regulatory zones."
+          ]
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "test_df",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": [
+            "2 observations (8.3%) occur on land.",
+            "3 observations (12.5%) occur on boundary line between regulatory zones."
+          ]
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "test_df",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": [
+            "4 observations (14.3%) occur on land.",
+            "2 observations (7.1%) are outside the regulatory zones.",
+            "3 observations (10.7%) occur on boundary line between regulatory zones."
+          ]
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "test_df",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": [
+            "2 observations (8.3%) occur on land.",
+            "2 observations (8.3%) are outside the regulatory zones.",
+            "1 observations (4.2%) occur on boundary line between regulatory zones."
+          ]
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "test_df",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": [
+            "2 observations (8.3%) occur on land.",
+            "2 observations (8.3%) are outside the regulatory zones.",
+            "1 observations (4.2%) occur on boundary line between regulatory zones."
+          ]
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "test_df",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": [
+            "2 observations (8.3%) occur on land.",
+            "2 observations (8.3%) are outside the regulatory zones.",
+            "1 observations (4.2%) occur on boundary line between regulatory zones."
+          ]
+        },
+        {
+          "functionID": "spatial_qaqc",
+          "args": [
+            "\"test_df\"",
+            "s1",
+            "s1spatSpatTable",
+            "DDLON",
+            "DDLAT",
+            null,
+            null,
+            null,
+            4269,
+            "DATE_TRIP",
+            null,
+            null
+          ],
+          "msg": ["2 observations (8.3%) occur on land.", "2 observations (8.3%) are outside the regulatory zones.", "1 observations (4.2%) occur on boundary line between regulatory zones."]
         }
       ]
     }
