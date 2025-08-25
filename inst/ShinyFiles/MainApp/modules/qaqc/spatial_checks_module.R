@@ -276,7 +276,7 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       if(length(land_rm_ind) > 0){
         # Get the unique ID variable name and extract the IDs to be removed.
         id_var <- rv_selected_vars$vars$main$main_unique_obs_id
-        tmp_ids <- dplyr::pull(rv_spat_check$spat_checks$dataset[, id_var], id_var) 
+        tmp_ids <- dplyr::pull(rv_spat_check$spat_checks$dataset, id_var) 
         rv_remove_ids$ids <- c(rv_remove_ids$ids, tmp_ids[land_rm_ind]) 
         
         # Remove the flagged rows from the dataset displayed in the module.
