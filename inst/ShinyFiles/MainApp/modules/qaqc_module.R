@@ -32,8 +32,10 @@ qaqc_server <- function(id, rv_project_name, rv_data){
     
     # Preview data tables
     preview_data_server("preview_data", rv_project_name, rv_data)
+    
     # Summary statistics table for primary data
     summary_data_server("summary_table", rv_project_name, rv_data)
+    
     # Change variable class for primary data
     variable_class_server("change_variable_class", rv_project_name, rv_data)
     
@@ -53,11 +55,11 @@ qaqc_sidebar_ui <- function(id) {
   ns <- NS(id)
   tagList(
     radioButtons(ns("qaqc_options"), 
-      "Data quality checks:",
-      choices = c("Preview data" = "preview",
-        "Summary table"="summary",
-        "Change variable class" = "variable_class"),
-      selected = "preview")
+                 "Data quality checks:",
+                 choices = c("Preview data" = "preview",
+                             "Summary table"="summary",
+                             "Change variable class" = "variable_class"),
+                 selected = "preview")
   )
 }
 
