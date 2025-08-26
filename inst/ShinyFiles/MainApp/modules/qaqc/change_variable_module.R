@@ -40,7 +40,8 @@ variable_class_server <- function(id, rv_project_name, rv_data){
       
       # If the data list is empty or NULL, clear the choices and exit.
       if (is.null(main_data) || length(main_data) == 0) {
-        updateSelectInput(session, "change_class_var_input", choices = character(0)) # Clear choices
+        # Clear choices
+        updateSelectInput(session, "change_class_var_input", choices = character(0)) 
         return()
       }
       
@@ -155,7 +156,6 @@ variable_class_server <- function(id, rv_project_name, rv_data){
         size = "l",
         easyClose = TRUE
       ))
-      
     }, ignoreInit = TRUE) # Essential: prevents firing when the app starts
     
     # Save to session and to FishSET db
@@ -213,6 +213,5 @@ variable_class_ui <- function(id){
       height = "750px",
       fill = TRUE, DT::DTOutput(ns("change_var_table"))
     )
-    
   )
 }
