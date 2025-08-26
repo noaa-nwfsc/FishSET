@@ -41,7 +41,7 @@
 #' }
 #' @export change_class
 
-change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE) {
+change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE, log_fun = TRUE) {
  
   # Call in datasets
   out <- data_pull(dat, project)
@@ -267,11 +267,13 @@ change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE)
   }
   
   #Log the function
+  if (log_fun) {
   change_class_function <- list()
   change_class_function$functionID <- "change_class"
   change_class_function$args <- list(dat, project, x, new_class, save)
 
   log_call(project, change_class_function)
+ }
     
   if (change_flag) {
     
