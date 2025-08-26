@@ -14,6 +14,23 @@
 # =================================================================================================
 
 # Checklist helper functions ----------------------------------------------------------------------
+
+#' Generate Status Text
+#'
+#' @description Creates a styled "Passed" or "Incomplete" span tag based on a boolean condition.
+#'
+#' @param passed logical. A boolean indicating if the check has passed.
+#'
+#' @returns A `shiny.tag` object (a span) with the appropriate text and color.
+#'
+status_text <- function(passed) {
+  if (passed) {
+    tags$span("Passed", style = "color: green; font-weight: bold;")
+  } else {
+    tags$span("Incomplete", style = "color: #E74C3C;")
+  }
+}
+
 #' Create a Styled Font Awesome Icon
 #'
 #' @description A wrapper for `shiny::icon` to simplify creating icons with consistent styling.
@@ -42,7 +59,7 @@ icon_wrapper <- function(icon_name, icon_color) {
 #'          1. A `shiny.tag` icon object.
 #'          2. A character string message (or NULL if no message is needed).
 #'
-pass_icon <- function(tab, checklist) {
+pass_icon <- function(tab, checklist, previous_check = NULL) {
   # Get progress checks for tab
   list_index <- which(names(checklist) == tab)
   list_name <- names(checklist)[list_index]
@@ -65,23 +82,41 @@ pass_icon <- function(tab, checklist) {
       failed_checks <- names(which(list_checks == FALSE))
       
       if (any(failed_checks %in% c("main_data", "spat_data"))){
-        out_icon_message <- "Load the required data"
+        out_icon_message <- "NEXT STEP: Load the required data"
         
       } else if (any(failed_checks %in% ("sel_vars"))) {
-        out_icon_message <- 
-          "Select and save variables"
+        out_icon_message <- "NEXT STEP: Select and save variables"
       }
       
     } else {
       # No checks passed: black icon
-      out_icon <- icon_wrapper(icon_name = "file-arrow-up", icon_color = "black")    
+      out_icon <- icon_wrapper(icon_name = "file-arrow-up", icon_color = "black")
+      
+      out_icon_message <- "NEXT STEP: Add/select project and load data in the Upload Data tab."
     }
   }
   
   # QAQC
-  # TODO: add checks
+  # TODO: add more checks
   if (tab == 'qaqc') {
-    out_icon <- icon_wrapper(icon_name = "magnifying-glass-chart", icon_color = "black")
+    if (all(unlist(list_checks))) {
+      # All qaqc checks passed: green icon
+      out_icon <- icon_wrapper(icon_name = "magnifying-glass-chart", icon_color = "green")
+      
+    } else if (any(unlist(list_checks))) {
+      out_icon <- icon_wrapper(icon_name = "magnifying-glass-chart", icon_color = "#F5CF27")
+      
+      # Identity failed checks
+      
+    } else {
+      # No checks passed: black icon
+      out_icon <- icon_wrapper(icon_name = "magnifying-glass-chart", icon_color = "black")
+      
+      if (previous_check) {
+        out_icon_message <- "NEXT STEP: Run QAQC checks"
+      }
+    }
+    
   }
   
   # Format data
@@ -139,7 +174,7 @@ checklist_ui <- function(id){
 #' @returns The server-side module logic. This function does not return a value but has the
 #'          side effect of showing a modal dialog.
 #'
-checklist_server <- function(id, rv_project_name, rv_data){
+checklist_server <- function(id, rv_project_name, rv_data, rv_qaqc = NULL){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -152,7 +187,7 @@ checklist_server <- function(id, rv_project_name, rv_data){
           sel_vars = FALSE),
         
         qaqc = list(
-          tmp_check = FALSE),
+          spatial_check = FALSE),
         
         format_data = list(
           tmp_check = FALSE),
@@ -200,7 +235,16 @@ checklist_server <- function(id, rv_project_name, rv_data){
       }
       
       ## QAQC checks ------------------------------------------------------------------------------
-      #TODO
+      # First check that all load_data checks have passed
+      if (!is.null(rv_qaqc) & all(unlist(rv_project_checklist$checklist$load_data))) {
+        # Check if spat checks passed
+        if (rv_qaqc$spatial_checks()$status == "passed") {
+          rv_project_checklist$checklist$qaqc$spatial_check <- TRUE
+
+        } else {
+          rv_project_checklist$checklist$qaqc$spatial_check <- FALSE
+        }
+      }
       
       ## Format data checks -----------------------------------------------------------------------
       #TODO
@@ -212,8 +256,11 @@ checklist_server <- function(id, rv_project_name, rv_data){
       #TODO
       
       # Generate check list icons based on checks
-      load_icon <- pass_icon("load_data", rv_project_checklist$checklist)
-      qaqc_icon <- pass_icon("qaqc", rv_project_checklist$checklist)
+      load_icon <- pass_icon("load_data", 
+                             rv_project_checklist$checklist)
+      qaqc_icon <- pass_icon("qaqc", 
+                             rv_project_checklist$checklist, 
+                             all(unlist(rv_project_checklist$checklist$load_data)))
       format_icon <- pass_icon("format_data", rv_project_checklist$checklist)
       models_icon <- pass_icon("models", rv_project_checklist$checklist)
       policy_icon <- pass_icon("policy", rv_project_checklist$checklist)
@@ -224,6 +271,23 @@ checklist_server <- function(id, rv_project_name, rv_data){
           title = "Project progress",
           
           tags$div(
+            if (!is_empty(load_icon[[2]])) {
+              p(load_icon[[2]], style = "color: black; font-size: 16px;")
+              
+            } else if (!is_empty(qaqc_icon[[2]])) {
+              p(qaqc_icon[[2]], style = "color: black; font-size: 16px;")
+              
+            } else if (!is_empty(format_icon[[2]])) {
+              p(format_icon[[2]], style = "color: #F5CF27;")
+              
+            } else if (!is_empty(models_icon[[2]])) {
+              p(models_icon[[2]], style = "color: #F5CF27;")
+              
+            } else if (!is_empty(policy_icon[[2]])) {
+              p(policy_icon[[2]], style = "color: #F5CF27;")
+              
+            },
+            
             fluidRow(
               # Load data check
               column(1, load_icon[[1]]), 
@@ -255,27 +319,23 @@ checklist_server <- function(id, rv_project_name, rv_data){
           ),
           
           br(),
-          br(),
-          
-          if (!is_empty(load_icon[[2]])) {
-            p(load_icon[[2]], style = "color: #F5CF27;")
+        
+          tags$div(
+            style = "font-size: 16px;",
+            p(
+              style = "margin-bottom: 3px;", # Reduced bottom margin
+              tags$b("Upload data: "),
+              status_text(all(unlist(rv_project_checklist$checklist$load_data)))
+            ),
             
-          } else if (!is_empty(qaqc_icon[[2]])) {
-            p(qaqc_icon[[2]], style = "color: #F5CF27;")
-            
-          } else if (!is_empty(format_icon[[2]])) {
-            p(format_icon[[2]], style = "color: #F5CF27;")
-            
-          } else if (!is_empty(models_icon[[2]])) {
-            p(models_icon[[2]], style = "color: #F5CF27;")
-            
-          } else if (!is_empty(policy_icon[[2]])) {
-            p(policy_icon[[2]], style = "color: #F5CF27;")
-            
-          },
+            p(
+              style = "margin-bottom: 3px;", # Reduced bottom margin
+              tags$b("QAQC: "),
+              status_text(all(unlist(rv_project_checklist$checklist$qaqc))),
+            )
+          ),
           
           easyClose = FALSE,
-          
           footer = tagList(
             modalButton("Close")
           ))
