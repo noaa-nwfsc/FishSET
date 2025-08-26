@@ -130,8 +130,8 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
         shinyjs::hide("spat_checks_spinner_container")
         showModal(modalDialog(
           title = "Error: Missing Data",
-          "The 'SavedVariables.rds' file for the current project could not be found. 
-          Please ensure you have completed the necessary data selection steps.",
+          "The selected variables file for the current project could not be found. 
+          Please ensure you have selected and saved variables in the previous tab.",
           easyClose = TRUE
         ))
         return() # Stop execution of the observer
@@ -454,7 +454,7 @@ spatial_checks_ui <- function(id){
                     tagList(
                       span(style = "white-space: wrap; display: inline-flex; 
                                        align-items: center;",
-                           HTML("(<b>OPTIONAL</b>) Enter spatial reference EPSG code: &nbsp;"),
+                           HTML("(OPTIONAL) Enter spatial reference EPSG code: &nbsp;"),
                            bslib::tooltip(
                              shiny::icon("circle-info", `aria-label` = "More information"),
                              HTML("<h4>EPSG Information</h4><hr>
