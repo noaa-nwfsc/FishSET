@@ -452,7 +452,7 @@ spatial_checks_ui <- function(id){
                   value = NULL,
                   label = 
                     tagList(
-                      span(style = "white-space: nowrap; display: inline-flex; 
+                      span(style = "white-space: wrap; display: inline-flex; 
                                        align-items: center;",
                            HTML("(<b>OPTIONAL</b>) Enter spatial reference EPSG code: &nbsp;"),
                            bslib::tooltip(

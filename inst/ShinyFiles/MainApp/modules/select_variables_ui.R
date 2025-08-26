@@ -28,7 +28,7 @@ select_main_var_ui <- function(id){
         
         selectizeInput(ns("main_unique_obs_id_input"),
                        tagList(
-                         span(style = "white-space: nowrap; display: inline-flex; 
+                         span(style = "white-space: wrap; display: inline-flex; 
                                        align-items: center;",
                               HTML("Select trip/haul ID from primary data: &nbsp;"),
                               bslib::tooltip(
