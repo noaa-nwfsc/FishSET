@@ -99,10 +99,11 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     outputOptions(output, "rv_status_controls", suspendWhenHidden = FALSE)
     
     ## Run spatial data checks --------------------------------------------------------------------
-    observeEvent(input$run_spat_checks_btn, {
+    observeEvent(c(input$run_spat_checks_btn, input$save_and_run_spat_checks_btn), {
       # Ensure required reactive values are available before proceeding.
       req(rv_project_name)
       req(rv_folderpath)
+      req(rv_data$main)
       project_name <- rv_project_name()$value
       folderpath <- rv_folderpath()
       
@@ -326,6 +327,8 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
           rv_spat_check$spat_checks$spatial_summary %>%
           dplyr::mutate(perc = round((n / total_n) * 100, 2))
         
+        
+        
         # Set and show the confirmation message.
         rv_land_obs_message(
           paste0("Removed ", length(land_rm_ind), " observation(s) from the main data table")
@@ -485,7 +488,7 @@ spatial_checks_ui <- function(id){
                 spinner_ui(ns("spat_checks_spinner"),
                            spinner_type = "circle",
                            size = "large",
-                           message = "Running spatial checks...",
+                           message = "Running/saving spatial checks...",
                            overlay = TRUE)
             )
           )
@@ -526,7 +529,8 @@ spatial_checks_ui <- function(id){
               condition = "output.show_remove_land_btn | output.show_remove_out_bounds_btn",
               ns = ns,
               tags$p(
-                "View data quality checks below before taking corrective action:",
+                "View data quality checks below before taking corrective action, and click on
+                'Save spatial corrections' after all actions are complete:",
                 style = "color: black; font-size: 16.5px;"
               )
             ),
@@ -579,6 +583,16 @@ spatial_checks_ui <- function(id){
                            size = "large",
                            message = "Removing out-of-bounds observations...",
                            overlay = TRUE)
+            ),
+            
+            # Button to save spatial corrections and rerun spatial checks
+            conditionalPanel(
+              condition = "output.show_remove_land_btn | output.show_remove_out_bounds_btn",
+              ns = ns,
+              actionButton(ns("save_and_run_spat_checks_btn"),
+                           "Save spatial corrections",
+                           class = "btn-primary",
+                           style = "display: inline-block; width: 315px;")
             )
           )
         )
