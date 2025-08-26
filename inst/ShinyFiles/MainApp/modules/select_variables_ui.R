@@ -26,21 +26,38 @@ select_main_var_ui <- function(id){
     div(id = ns("main_variables_container"),
         style = "display: none;",
         
+        selectizeInput(ns("main_unique_obs_id_input"),
+                       tagList(
+                         span(style = "white-space: wrap; display: inline-flex; 
+                                       align-items: center;",
+                              HTML("Select trip/haul ID from primary data: &nbsp;"),
+                              bslib::tooltip(
+                                shiny::icon("circle-info", `aria-label` = "More information"),
+                                HTML("If unique trip/haul ID is not available for your dataset, 
+                                      use the optional input below to create an ID variable. 
+                                      Return to this input after the variable is created and 
+                                      saved."),
+                                options = list(delay = list(show = 0, hide = 850))
+                              )
+                         )
+                       ),
+                       choices = NULL, multiple = FALSE),
+        
         selectizeInput(ns("main_zone_id_input"), 
                        "Select zone ID from primary data",
                        choices = NULL, multiple = FALSE),
         
-        selectizeInput(ns("main_zone_lon_input"),
+        selectizeInput(ns("main_lon_input"),
                        "Select fishing location longitude from primary data",
                        choices = NULL, multiple = FALSE, 
                        options = list(create = TRUE)),
         
-        selectizeInput(ns("main_zone_lat_input"), 
+        selectizeInput(ns("main_lat_input"), 
                        "Select fishing location latitude from primary data",
                        choices = NULL, multiple = FALSE, 
                        options = list(create = TRUE)),
         
-        selectizeInput(ns("main_zone_date_input"),
+        selectizeInput(ns("main_date_input"),
                        "Select date variable", 
                        choices = NULL, multiple = FALSE)
     ),

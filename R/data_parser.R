@@ -520,7 +520,7 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
   #' looad_maindata(dat = "pollockMainDataTable", project = "pollock2020")
   #' }
   #' 
-  
+
   # project name check
   stopifnot("Project name cannot contain spaces." = !grepl("\\s", project),
             "Project name cannot be empty." = !is_value_empty(project))
