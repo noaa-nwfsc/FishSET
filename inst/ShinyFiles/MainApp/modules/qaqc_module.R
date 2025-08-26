@@ -12,7 +12,8 @@
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/qaqc/preview_data_module.R", local = TRUE) # Preview data in table format
 source("modules/qaqc/summary_data_module.R", local = TRUE) # Summary stats data table
-
+source("modules/qaqc/change_variable_module.R", local = TRUE) # Preview data in table format
+source("modules/qaqc/spatial_checks_module.R", local = TRUE) # Preview data in table format
 
 # QAQC server -------------------------------------------------------------------------------------
 #' qaqc_server
@@ -25,14 +26,27 @@ source("modules/qaqc/summary_data_module.R", local = TRUE) # Summary stats data 
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-qaqc_server <- function(id, rv_project_name, rv_data){
+qaqc_server <- function(id, rv_project_name, rv_data, rv_folderpath){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
     # Preview data tables
     preview_data_server("preview_data", rv_project_name, rv_data)
+    
     # Summary statistics table for primary data
     summary_data_server("summary_table", rv_project_name, rv_data)
+    
+    # Change variable class for primary data
+    variable_class_server("change_variable_class", rv_project_name, rv_data)
+
+    # Spatial checks
+    rv_ids_to_remove <- spatial_checks_server("spat_checks", 
+                                              rv_project_name, 
+                                              rv_data, 
+                                              rv_folderpath)
+    
+    # Return the captured reactive so the main server can use it
+    return(rv_ids_to_remove)
   })
 }
 
@@ -51,7 +65,9 @@ qaqc_sidebar_ui <- function(id) {
     radioButtons(ns("qaqc_options"), 
                  h6("Data quality checks:"),
                  choices = c("Preview data" = "preview", 
-                             "Summary table"="summary"),
+                             "Summary table"="summary",
+                             "Change variable class" = "variable_class",
+                             "Spatial checks" = "spat_checks"),
                  selected = "preview")
   )
 }
@@ -75,11 +91,26 @@ qaqc_ui <- function(id){
       ns = ns,
       preview_data_ui(ns("preview_data"))
     ),
+    
     # Conditionally display the summary data table UI
     conditionalPanel(
       condition = "input.qaqc_options == 'summary'",
       ns = ns,
       summary_data_ui(ns("summary_table"))
+    ),
+
+    # Conditionally display the change class UI
+    conditionalPanel(
+      condition = "input.qaqc_options == 'variable_class'",
+      ns = ns,
+      variable_class_ui(ns("change_variable_class"))
+    ),
+      
+    # Conditionally display spatial checks
+    conditionalPanel(
+      condition = "input.qaqc_options == 'spat_checks'",
+      ns = ns,
+      spatial_checks_ui(ns("spat_checks"))
     )
   )
 }
