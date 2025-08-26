@@ -115,11 +115,27 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       
       # Define the path for the status file for saving/deleting.
       status_file_path <- file.path(folderpath, project_name, "data", "SpatialChecksStatus.rds")
-      status_file_path <- suppressWarnings(normalizePath(status_file_path))
+      if (file.exists(status_file_path)) {
+        status_file_path <- suppressWarnings(normalizePath(status_file_path))  
+      }
       
       # Construct the file path for the saved variables.
       file_name <- paste0(project_name, "SavedVariables.rds")
-      file_path <- normalizePath(file.path(folderpath, project_name, "data", file_name))
+      file_path <- file.path(folderpath, project_name, "data", file_name)
+      if (file.exists(file_path)) {
+        file_path <- suppressWarnings(normalizePath(file_path))
+        
+      } else {
+        # Handle the case where the RDS file does not exist.
+        shinyjs::hide("spat_checks_spinner_container")
+        showModal(modalDialog(
+          title = "Error: Missing Data",
+          "The 'SavedVariables.rds' file for the current project could not be found. 
+          Please ensure you have completed the necessary data selection steps.",
+          easyClose = TRUE
+        ))
+        return() # Stop execution of the observer
+      }
       
       # Read the RDS file containing selected variable names.
       selected_vars <- readRDS(file_path)
