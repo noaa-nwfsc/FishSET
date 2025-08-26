@@ -7,7 +7,7 @@
 data_pull(dat, project)
 }
 \arguments{
-\item{dat}{Data table}
+\item{dat}{Data table name (character) or a data frame object}
 
 \item{project}{Project name}
 }
