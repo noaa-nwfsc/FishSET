@@ -575,6 +575,7 @@ spatial_checks_ui <- function(id){
       condition = "output.show_output_cards",
       ns = ns,
       bslib::card(
+        height = "60%",
         bslib::card_header("Spatial data quality checks"),
         bslib::card_body(
           # Radio buttons to select which output to view.
