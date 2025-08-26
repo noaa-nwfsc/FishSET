@@ -84,7 +84,6 @@
 #' mod.dat <- spat_out$dataset
 #' }
 #'   
-
 spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                          lat.spat = NULL, id.spat = NULL, epsg = NULL, date = NULL, 
                          group = NULL, filter_dist = NULL) {
@@ -267,12 +266,18 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
       ggplot2::geom_sf(data = base_map) +
       ggplot2::geom_point(data = dataset[land_ind, ],
                           ggplot2::aes(x = !!lon_sym, y = !!lat_sym),
-                          size = 1, alpha = .25, color = "red") +
+                          size = 2, alpha = .25, color = "red") +
       ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
                         expand = TRUE) +
       ggplot2::labs(title = "Obs on land", x = "Longitude", y = "Latitude",
                     subtitle = paste0("N:", n_land, " (", p_land, "%)")) +
-      fishset_theme()
+      fishset_theme() +
+      theme(axis.text.x = element_text(size = 14),
+            axis.text.y = element_text(size = 14),
+            axis.title.x = element_text(size = 14),
+            axis.title.y = element_text(size = 14),
+            plot.title = element_text(size = 14),
+            plot.subtitle = element_text(size = 14))
   }
   
   ## 2. Observations outside of the spatial data bounds -------------------------------------------
@@ -318,7 +323,13 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                         expand = TRUE) +
       ggplot2::labs(title = "Obs outside zone", x = "Longitude", y = "Latitude",
                     subtitle = paste0("N:", n_out, " (", p_out, "%)")) +
-      fishset_theme()
+      fishset_theme() +
+      theme(axis.text.x = element_text(size = 14),
+            axis.text.y = element_text(size = 14),
+            axis.title.x = element_text(size = 14),
+            axis.title.y = element_text(size = 14),
+            plot.title = element_text(size = 14),
+            plot.subtitle = element_text(size = 14))
   }
   
   ## 3. Observations on zone boundary lines -------------------------------------------------------
@@ -350,7 +361,13 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                         expand = TRUE) +
       ggplot2::labs(title = "Obs on zone boundary", x = "Longitude", y = "Latitude",
                     subtitle = paste0("N:", n_bound, " (", p_bound, "%)")) +
-      fishset_theme()
+      fishset_theme() +
+      theme(axis.text.x = element_text(size = 14),
+            axis.text.y = element_text(size = 14),
+            axis.title.x = element_text(size = 14),
+            axis.title.y = element_text(size = 14),
+            plot.title = element_text(size = 14),
+            plot.subtitle = element_text(size = 14))
   }
   
   ## 4. Observations in the "expected" locations --------------------------------------------------
@@ -375,7 +392,13 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                       expand = TRUE) +
     ggplot2::labs(title = "Obs in expected location", x = "Longitude", y = "Latitude",
                   subtitle = paste0("N:", n_expected, " (", p_expected, "%)")) +
-    fishset_theme()
+    fishset_theme() +
+    theme(axis.text.x = element_text(size = 14),
+          axis.text.y = element_text(size = 14),
+          axis.title.x = element_text(size = 14),
+          axis.title.y = element_text(size = 14),
+          plot.title = element_text(size = 14),
+          plot.subtitle = element_text(size = 14))
   
   # Spatial summary table -------------------------------------------------------------------------
   # Create  a summary table of the spatial checks
@@ -396,7 +419,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   # If more than half of the observations are outside the spatial bounds, show and error
   if(p_expected < 50) {
     showNotification("Over 50% of the observations are outside of the study location and/or 
-                     on land. Check for erros in latitude and longitude values in the primary 
+                     on land. Check for errors in latitude and longitude values in the primary 
                      data table.",
                      type = "error",
                      duration = 60)
@@ -425,7 +448,13 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
       ggplot2::stat_density(ggplot2::aes(fill = factor(YEAR)), position = "stack",
                             adjust = 2, color = "black") +
       fishset_theme() +
-      ggplot2::theme(legend.position = "bottom")
+      ggplot2::theme(legend.position = "bottom") +
+      theme(axis.text.x = element_text(size = 14),
+            axis.text.y = element_text(size = 14),
+            axis.title.x = element_text(size = 14),
+            axis.title.y = element_text(size = 14),
+            plot.title = element_text(size = 14),
+            plot.subtitle = element_text(size = 14))
     
     # Create a frequency table of distances
     dist_freq <- freq_table(dist_df, "dist", group = c("YEAR", group),
