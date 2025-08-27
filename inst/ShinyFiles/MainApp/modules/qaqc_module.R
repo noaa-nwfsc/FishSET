@@ -39,7 +39,7 @@ qaqc_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     
     # Change variable class for primary data
     variable_class_server("change_variable_class", rv_project_name, rv_data)
-
+    
     # Spatial autocorrelation
     spatial_autocorr_server("spatial_autocorrelation", rv_project_name, rv_data, rv_folderpath)
     
@@ -103,7 +103,7 @@ qaqc_ui <- function(id){
       ns = ns,
       summary_data_ui(ns("summary_table"))
     ),
-
+    
     # Conditionally display the change class UI
     conditionalPanel(
       condition = "input.qaqc_options == 'variable_class'",
@@ -117,7 +117,7 @@ qaqc_ui <- function(id){
       ns = ns,
       spatial_autocorr_ui(ns("spatial_autocorrelation"))
     ),
-      
+    
     # Conditionally display spatial checks
     conditionalPanel(
       condition = "input.qaqc_options == 'spat_checks'",

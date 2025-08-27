@@ -47,7 +47,7 @@ moran_stats <- function(dat, var, dat_zone, spat, spat_zone, project) {
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
-
+  
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
   spat <- parse_data_name(spat, 'spat', project)
@@ -71,6 +71,10 @@ moran_stats <- function(dat, var, dat_zone, spat, spat_zone, project) {
   # Check if the spatial zone variable exists in the spatial data
   if (!spat_zone %in% names(spatdat)) {
     stop(paste0("The variable '", spat_zone, "' was not found in the spatial data '", spat, "'."))
+  }
+  
+  if (var == dat_zone) {
+    stop(paste0("Cannot use ", var, " for 'var' and 'dat_zone' input arguments."))
   }
   
   # Rename zone IDs to make sure these match between dataset and spat
