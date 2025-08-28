@@ -160,21 +160,25 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
           dataset[x_nan] <- lapply(x_nan, function(i) {
             
             if (is.numeric(dataset[[i]])) {
+                mean_function <- mean 
+
+                rep.value_mean <- do.call(mean_function, list(dataset[[i]], na.rm = TRUE))
               
-              if (rep.value %in% c("mean", "median")) {
-                
-                rep.value <- mean(dataset[[i]], na.rm = TRUE)
-                rep.value <- do.call(rep.value, list(dataset[[i]], na.rm = TRUE))
-              }
-              # TODO: extend rep.value to non-numeric vars
-              if (!is.numeric(rep.value)) {
+              if (!is.numeric(rep.value_mean)) {
+              # if (rep.value %in% c("mean", "median")) {
+              #   
+              #   rep.value <- mean(dataset[[i]], na.rm = TRUE)
+              #   rep.value <- do.call(rep.value, list(dataset[[i]], na.rm = TRUE))
+              # }
+              # # TODO: extend rep.value to non-numeric vars
+              # if (!is.numeric(rep.value)) {
                 
                 stop("Replacement value must be numeric.", call. = FALSE)
               }
               
               out <- dataset[[i]]
-              out[is.nan(out)] <- rep.value
-              cat("All NaNs in", i, "have been replaced with", rep.value, "\n", 
+              out[is.nan(out)] <- rep.value_mean
+              cat("All NaNs in", i, "have been replaced with", rep.value_mean, "\n", 
                   file = tmp, append = TRUE)
               
               out
@@ -194,7 +198,7 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
           nan_ind <- sort(unique(unlist(nan_ind)))
           dataset <- dataset[-nan_ind, ]
           
-          cat("The entire row will be removed from the dataframe.\n", file = tmp, 
+          cat("All rows containing NaNs have been removed from the dataframe.\n", file = tmp, 
               append = TRUE)
         }
       }
@@ -219,12 +223,13 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, nan_filter_function)
   
-  unlink(tmp)
-  
   if (replace | remove) {
+    return(list(
+      data = dataset,
+      messages = suppressWarnings(readLines(tmp))
+    ))
     
-    return(dataset)
-  }
+  } 
 }
 
 
@@ -277,10 +282,7 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   #'                      c('OFFICIAL_TOTAL_CATCH_MT', 'CATCH_VALUE'), 
   #'                      remove = TRUE)
   #' }
-
-  # TODO: remove and replace args can be replaced with a single 
-  # categorical arg: na.action = c("check", "replace", "remove")
-  
+  #' 
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
@@ -329,25 +331,20 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
             
             if (is.numeric(dataset[[i]])) {
               
-              if (rep.value %in% c("mean", "median")) {
-                # TODO: check this. if rep.value is a function it should 
-                # be used in do.call, mean() shouldn't always be run
-                rep.value <- mean(dataset[[i]], na.rm = TRUE)
-                rep.value <- do.call(rep.value, list(dataset[[i]], na.rm = TRUE))
-              }
-              # TODO: extend rep.value to non-numeric vars
-              if (!is.numeric(rep.value)) {
+              mean_function <- mean 
+
+                rep.value_mean <- do.call(mean_function, list(dataset[[i]], na.rm = TRUE))
+              
+              if (!is.numeric(rep.value_mean)) {
                 
                 stop("Replacement value must be numeric.", call. = FALSE)
               }
-              
               out <- dataset[[i]]
-              out[is.na(out)] <- rep.value
-              cat("All NAs in", i, "have been replaced with", rep.value, "\n", 
+              out[is.na(out)] <- rep.value_mean
+              cat("All NAs in", i, "have been replaced with", rep.value_mean, "\n", 
                   file = tmp, append = TRUE)
               
               out
-              
             } else {
               
               cat("Variable is not numeric. Function not applied.\n", file = tmp, 
@@ -363,7 +360,7 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
           na_ind <- sort(unique(unlist(na_ind)))
           dataset <- dataset[-na_ind, ]
           
-          cat("The entire row will be removed from the dataframe.\n", file = tmp, 
+          cat("All rows containing NAs have been removed from the dataframe.\n", file = tmp, 
               append = TRUE)
         }
       }
@@ -381,6 +378,8 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   
   msg_print(tmp)
   
+  
+  
   na_filter_function <- list()
   na_filter_function$functionID <- "na_filter"
   na_filter_function$args <- list(dat, project, x, replace, remove, rep.value, 
@@ -389,8 +388,14 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   na_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, na_filter_function)
   
+  
   if (replace | remove) {
+    return(list(
+      data = dataset,
+      messages = suppressWarnings(readLines(tmp))
+    ))
     
-    return(dataset)
-  }
+  } 
+  
+
 }

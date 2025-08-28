@@ -12,6 +12,8 @@
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/qaqc/preview_data_module.R", local = TRUE) # Preview data in table format
 source("modules/qaqc/summary_data_module.R", local = TRUE) # Summary stats data table
+source("modules/qaqc/remove_na_nan_module.R", local = TRUE) # Summary stats data table
+
 
 
 # QAQC server -------------------------------------------------------------------------------------
@@ -33,6 +35,8 @@ qaqc_server <- function(id, rv_project_name, rv_data){
     preview_data_server("preview_data", rv_project_name, rv_data)
     # Summary statistics table for primary data
     summary_data_server("summary_table", rv_project_name, rv_data)
+      # Summary statistics table for primary data
+    remove_na_nan_server("na_and_nan", rv_project_name, rv_data)
   })
 }
 
@@ -51,7 +55,8 @@ qaqc_sidebar_ui <- function(id) {
     radioButtons(ns("qaqc_options"), 
                  h6("Data quality checks:"),
                  choices = c("Preview data" = "preview", 
-                             "Summary table"="summary"),
+                             "Summary table"="summary",
+                   "Identifying NAs and NaNs" = "na_nan"),
                  selected = "preview")
   )
 }
@@ -80,6 +85,12 @@ qaqc_ui <- function(id){
       condition = "input.qaqc_options == 'summary'",
       ns = ns,
       summary_data_ui(ns("summary_table"))
+    ),
+       # Conditionally display the summary data table UI
+    conditionalPanel(
+      condition = "input.qaqc_options == 'na_nan'",
+      ns = ns,
+      remove_na_nan_ui(ns("na_and_nan"))
     )
   )
 }
