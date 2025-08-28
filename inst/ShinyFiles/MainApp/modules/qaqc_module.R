@@ -13,6 +13,7 @@
 source("modules/qaqc/preview_data_module.R", local = TRUE) # Preview data in table format
 source("modules/qaqc/summary_data_module.R", local = TRUE) # Summary stats data table
 source("modules/qaqc/change_variable_module.R", local = TRUE) # Preview data in table format
+source("modules/qaqc/outliers_module.R", local = TRUE) # View outliers
 source("modules/qaqc/spatial_checks_module.R", local = TRUE) # Preview data in table format
 
 # QAQC server -------------------------------------------------------------------------------------
@@ -38,6 +39,9 @@ qaqc_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     
     # Change variable class for primary data
     variable_class_server("change_variable_class", rv_project_name, rv_data)
+    
+    # View outliers in data
+    outliers_server("outliers", rv_project_name, rv_data, rv_folderpath)
 
     # Spatial checks
     rv_ids_to_remove <- spatial_checks_server("spat_checks", 
@@ -67,6 +71,7 @@ qaqc_sidebar_ui <- function(id) {
                  choices = c("Preview data" = "preview", 
                              "Summary table"="summary",
                              "Change variable class" = "variable_class",
+                             "Data outliers" = "data_outliers",
                              "Spatial checks" = "spat_checks"),
                  selected = "preview")
   )
@@ -104,6 +109,13 @@ qaqc_ui <- function(id){
       condition = "input.qaqc_options == 'variable_class'",
       ns = ns,
       variable_class_ui(ns("change_variable_class"))
+    ),
+    
+    # Conditionally display the outliers UI
+    conditionalPanel(
+      condition = "input.qaqc_options == 'data_outliers'",
+      ns = ns,
+      outliers_ui(ns("outliers"))
     ),
       
     # Conditionally display spatial checks
