@@ -243,236 +243,275 @@ outlier_plot <- function(dat, project, x, dat.remove = 'none', sd_val = NULL,
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
+  if (!is.numeric(dataset[[x]])) {
+    stop("Data is not numeric.", call. = FALSE)
+  }
+  
   if (!is.null(date)) {
-    
     dataset[[date]] <- date_parser(dataset[[date]])
     dataset$YEAR <- format(dataset[[date]], "%Y")
   }
   
-  if (!is.null(group)) dataset[[group]] <- as.factor(dataset[[group]])
+  if (!is.null(group)) {
+    dataset[[group]] <- as.factor(dataset[[group]])
+  }
   
   if(!is.null(sd_val) & is.numeric(sd_val)){
     dat.remove <- sd_val
   }
   
-  if (is.numeric(dataset[[x]]) == TRUE) {
-    # Begin outlier check
-    dataset$y <- 1:length(dataset[[x]])
-    
-    if (dat.remove == "none") {
-      
-      dat_sub <- dataset
-      
-    } else {
-      if(is.numeric(dat.remove)){
-        dat_sub <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + dat.remove * stats::sd(dataset[[x]], na.rm = TRUE)) &
-                             dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) - dat.remove* stats::sd(dataset[[x]], na.rm = TRUE)), ]
-      } else {
-        if (dat.remove == "5_95_quant") {
-          dat_sub <- dataset[dataset[[x]] < stats::quantile(dataset[[x]], 0.95, na.rm = TRUE) &
-                               dataset[[x]] > stats::quantile(dataset[[x]], 0.05, na.rm = TRUE), ]
-        } else if (dat.remove == "25_75_quant") {
-          dat_sub <- dataset[dataset[[x]] < stats::quantile(dataset[[x]], 0.75, na.rm = TRUE) &
-                               dataset[[x]] > stats::quantile(dataset[[x]], 0.25, na.rm = TRUE), ]
-        } else if (dat.remove == "mean_2SD") {
-          dat_sub <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + 2 * stats::sd(dataset[[x]], na.rm = TRUE)) &
-                               dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
-        } else if (dat.remove == "median_2SD") {
-          dat_sub <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 2 * stats::sd(dataset[[x]], na.rm = TRUE)) &
-                               dataset[[x]] > (stats::median(dataset[[x]], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
-        } else if (dat.remove == "mean_3SD") {
-          dat_sub <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + 3 * stats::sd(dataset[[x]], na.rm = TRUE)) &
-                               dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
-        } else if (dat.remove == "median_3SD") {
-          dat_sub <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 3 * stats::sd(dataset[[x]], na.rm = TRUE)) &
-                               dataset[[x]] > (stats::median(dataset[[x]], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
-        }
-      }
-    } # End Outlier mod
-    
-    
-    mytheme <- fishset_theme() + 
-      ggplot2::theme(axis.text = ggplot2::element_text(size = 9), 
-                     axis.title = ggplot2::element_text(size = 8))
-    ## Plot 1!
-    distplot <- function(gdf, first, second) {
-      
-      first_sym <- rlang::sym(first)
-      sec_sym <- rlang::sym(second)
-      
-      ggplot2::ggplot(gdf, ggplot2::aes(x = !!first_sym, y = !!sec_sym)) +
-        ggplot2::geom_point(color = "red", na.rm = TRUE) +
-        ggplot2::geom_point(data = dat_sub,
-                            ggplot2::aes(x = !!first_sym, y = !!sec_sym), 
-                            color = "blue", na.rm = TRUE) +
-        ggplot2::labs(x = "Data row") +
-        mytheme
-    }
-    
-    p1 <- distplot(dataset, "y", x)
-    
-    
-    # Hist Plot 2!
-    x_sym <- rlang::sym(x)
-    #h_bins <- if (nrow(dataset) < 500) round(nrow(dataset) / 2) else 250
-    # need a better method for determining bin size
-    
-    year_sym <- if (is.null(date)) NULL else rlang::sym("YEAR")
-    
-    group_sym <- if (is.null(group)) NULL else rlang::sym(group)
-    
-    fill_sym <- if (is.null(year_sym)) "gray" else year_sym
-    
-    p2 <- ggplot2::ggplot(dat_sub, ggplot2::aes(!!x_sym))
-    
-    if (is.null(year_sym)) {
-      
-      p2 <-
-        p2 + ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)), 
-                                     fill = "gray", color = "black",  
-                                     na.rm = TRUE, bins = 30) +  
-        mytheme
-      
-    } else {
-      
-      p2 <-
-        p2 + ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density), 
-                                                  fill = !!fill_sym), 
-                                     na.rm = TRUE, bins = 30) +  
-        mytheme
-    }
-    
-    if (x.dist == "normal") {
-      
-      p2 <- p2 + 
-        ggplot2::stat_function(fun = dnorm, colour = "blue", 
-                               args = list(mean = mean(dat_sub[[x]], na.rm = TRUE), 
-                                           sd = sd(dat_sub[[x]], na.rm = TRUE)))
-      
-    } else if (x.dist == "lognormal") {
-      # lognormal
-      p2 <- p2 + 
-        ggplot2::stat_function(fun = dlnorm, colour = "blue", 
-                               args = list(mean = mean(log(dat_sub[[x]]), na.rm = TRUE), 
-                                           sd = sd(log(dat_sub[[x]]), na.rm = TRUE)))
-      
-    } else if (x.dist == "exponential") {
-      # Exponential
-      p2 <- p2 + 
-        ggplot2::stat_function(fun = dexp, colour = "blue", 
-                               args = list(rate = 1 / mean(dat_sub[[x]], na.rm = TRUE)))
-      
-    } else if (x.dist == "weibull") {
-      # Weibull
-      p2 <- p2 + 
-        ggplot2::stat_function(fun = dweibull, colour = "blue", 
-                               args = list(shape = 1.2 / sqrt(var(log(dat_sub[[x]]), na.rm = TRUE)), 
-                                           scale = mean(dat_sub[[x]], na.rm = TRUE) + 0.572 / (1.2 / sqrt(var(log(dat_sub[[x]]), na.rm = TRUE)))))
-      
-    } else if (x.dist == "poisson") {
-      # Poisson
-      p2 <- p2 + 
-        ggplot2::stat_function(fun = dpois, colour = "blue", 
-                               args = list(lambda = mean(dat_sub[[x]], na.rm = TRUE)))
-      
-    } else if (x.dist == "negative binomial") {
-      # Negative Binomial
-      p2 <- p2 + 
-        ggplot2::stat_function(fun = dnbinom, colour = "blue", 
-                               args = list(mean(dat_sub[[x]], na.rm = TRUE)^2 / (var(dat_sub[[x]], na.rm = TRUE) - mean(dat_sub[[x]], na.rm = TRUE)), 
-                                           mu = mean(dat_sub[[x]], na.rm = TRUE)))
-    }
-    
-    # Plot3 Probability plot
-    quants <- seq(0, 1, length = length(dat_sub[[x]]) + 2)[2:(length(dat_sub[[x]]) + 1)]
-    # normal
-    if (x.dist == "normal") {
-      fit_quants <- stats::qnorm(quants, mean(dat_sub[[x]], na.rm = TRUE), sd(dat_sub[[x]], na.rm = TRUE))
-    } else if (x.dist == "lognormal") {
-      # lognormal
-      fit_quants <- stats::qlnorm(quants, mean = mean(log(dat_sub[[x]]), na.rm = TRUE), sd = sd(log(dat_sub[[x]]), na.rm = TRUE))
-    } else if (x.dist == "exponential") {
-      # Exponential
-      fit_quants <- stats::qexp(quants, rate = 1 / mean(dat_sub[[x]], na.rm = TRUE))
-    } else if (x.dist == "weibull") {
-      # Weibull
-      fit_quants <- stats::qweibull(quants,
-                                    shape = 1.2 / sqrt(var(log(dat_sub[[x]]), na.rm = TRUE)),
-                                    scale = mean(dat_sub[[x]], na.rm = TRUE) + 0.572 / (1.2 / sqrt(var(log(dat_sub[[x]]), na.rm = TRUE)))
-      )
-    } else if (x.dist == "poisson") {
-      # Poisson
-      fit_quants <- stats::qpois(quants, lambda = mean(dat_sub[[x]], na.rm = TRUE))
-    } else if (x.dist == "negative binomial") {
-      # Negative Binomial
-      fit_quants <- stats::qnbinom(quants,
-                                   size = mean(dat_sub[[x]], na.rm = TRUE)^2 / (var(dat_sub[[x]], na.rm = TRUE) - mean(dat_sub[[x]], na.rm = TRUE)),
-                                   mu = mean(dat_sub[[x]], na.rm = TRUE)
-      )
-    }
-    
-    data_quants <- stats::quantile(as.numeric(dat_sub[[x]]), quants, na.rm = TRUE)
-    # create Q-Q plot
-    temp <- data.frame(fit_quants, data_quants)
-    
-    if (!is.null(date)) temp$YEAR <- dat_sub$YEAR
-    
-    p3 <- 
-      ggplot2::ggplot(temp, ggplot2::aes(x = fit_quants, y = data_quants)) +
-      ggplot2::geom_point(shape = 1) +
-      ggplot2::geom_abline() +
-      ggplot2::labs(x = "Theoretical Quantiles", y = "Sample Quantiles", 
-                    title = paste("Q-Q plot of", x.dist, "fit against data")) +
-      mytheme
-    
-    # TODO: switch from ggpubr to gridExtra
-    
-    if (is.numeric(dat.remove)) {
-      
-      p_title <- paste0("Plots for ", x, " with ", x.dist, 
-                        " distribution and data removed based on '", 
-                        dat.remove, "SD from the mean'. \nBlue: Included points",
-                        "   Red: Removed points") 
-      
-    } else {
-      
-      p_title <- paste0("Plots for ", x, " with ", x.dist,
-                        " distribution and data removed based on '",
-                        dat.remove, "'. \nBlue: Included points   Red: Removed points")
-    }
-    
-    if (pages == "single") {
-      
-      fig <- gridExtra::grid.arrange(p1, p2, p3, ncol = 2, nrow = 2, 
-                                     top = grid::textGrob(p_title, gp = grid::gpar(fontsize = 10)))
-      
-    } else {
-      
-      fig <- list(data_plot = p1, prob_plot = p2, QQ_plot = p3)
-    }
-    
-    # Log function
-    if (log_fun) {
-      
-      outlier_plot_function <- list()
-      outlier_plot_function$functionID <- "outlier_plot"
-      outlier_plot_function$args <- list(dat, project, x, dat.remove, sd_val,
-                                         x.dist, date, group, pages, output.screen, 
-                                         log_fun)
-      log_call(project, outlier_plot_function)
-    }
-    
-    if (pages == "single") save_plot(project, "outlier_plot", fig)
-    else save_nplot(project, "outlier_plot", fig, id = "name")
-    
-    if (output.screen) fig
-    
-    
+  # Begin outlier check
+  dataset$row_num <- 1:length(dataset[[x]])
+  
+  if (dat.remove == "none") {
+    dat_sub <- dataset
     
   } else {
-    # Actions to take if data is not numeric
-    print("Data is not numeric. Plots not generated.")
+    data_mean <- mean(dataset[[x]], na.rm = TRUE)
+    data_median <- stats::median(dataset[[x]], na.rm = TRUE)
+    data_sd <- stats::sd(dataset[[x]], na.rm = TRUE)
+    
+    if(is.numeric(dat.remove)){
+      dat_sub <- 
+        dataset[dataset[[x]] < (data_mean + dat.remove * data_sd) & 
+                  dataset[[x]] > (data_mean - dat.remove* data_sd), ]
+    } else {
+      if (dat.remove == "5_95_quant") {
+        data_95 <- stats::quantile(dataset[[x]], 0.95, na.rm = TRUE)
+        data_05 <- stats::quantile(dataset[[x]], 0.05, na.rm = TRUE)
+        dat_sub <- dataset[dataset[[x]] < data_95 & dataset[[x]] > data_05, ]
+        
+      } else if (dat.remove == "25_75_quant") {
+        data_75 <- stats::quantile(dataset[[x]], 0.75, na.rm = TRUE)
+        data_25 <- stats::quantile(dataset[[x]], 0.25, na.rm = TRUE)
+        dat_sub <- dataset[dataset[[x]] < data_75 & dataset[[x]] > data_25, ]
+        
+      } else if (dat.remove == "mean_2SD") {
+        dat_sub <- dataset[dataset[[x]] < (data_mean + 2 * data_sd) &
+                             dataset[[x]] > (data_mean - 2 * data_sd), ]
+        
+      } else if (dat.remove == "median_2SD") {
+        dat_sub <- dataset[dataset[[x]] < (data_median + 2 * data_sd) &
+                             dataset[[x]] > (data_median - 2 * data_sd), ]
+        
+      } else if (dat.remove == "mean_3SD") {
+        dat_sub <- dataset[dataset[[x]] < (data_mean + 3 * data_sd) &
+                             dataset[[x]] > (data_mean - 3 * data_sd), ]
+        
+      } else if (dat.remove == "median_3SD") {
+        dat_sub <- dataset[dataset[[x]] < (data_median + 3 * data_sd) &
+                             dataset[[x]] > (data_median - 3 * data_sd), ]
+      }
+    }
   }
+  
+  tmp_theme <- fishset_theme() + 
+    ggplot2::theme(axis.text = ggplot2::element_text(size = 9), 
+                   axis.title = ggplot2::element_text(size = 8))
+  
+  # Data spread plot
+  data_spread_plot <- ggplot2::ggplot() +
+    ggplot2::geom_point(data = dataset, 
+                        aes(x = row_num, y = .data[[x]]),
+                        color = "tomato") +
+    ggplot2::geom_point(data = dat_sub, 
+                        aes(x = row_num, y = .data[[x]]),
+                        color = "royalblue") +
+    ggplot2::labs(x = "Data row") +
+    ggplot2::scale_x_continuous(expand = expansion(mult = c(0.01, 0.05))) +
+    ggplot2::scale_y_continuous(expand = expansion(mult = c(0.01, 0.05))) +
+    tmp_theme
+  
+  # Histogram
+  x_sym <- rlang::sym(x)
+  
+  year_sym <- if (is.null(date)) NULL else rlang::sym("YEAR")
+  
+  group_sym <- if (is.null(group)) NULL else rlang::sym(group)
+  
+  fill_sym <- if (is.null(year_sym)) "gray" else year_sym
+  
+  hist_plot <- ggplot2::ggplot(dat_sub, ggplot2::aes(!!x_sym))
+  
+  # Add bars to histogram
+  if (is.null(year_sym)) {
+    hist_plot <-
+      hist_plot + 
+      ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)), 
+                              fill = "gray", 
+                              color = "black",  
+                              na.rm = TRUE, 
+                              bins = 30) +
+      ggplot2::scale_x_continuous(expand = expansion(mult = c(0.01, 0.05))) +
+      ggplot2::scale_y_continuous(expand = expansion(mult = c(0.01, 0.05))) +
+      tmp_theme
+    
+  } else {
+    hist_plot <-
+      hist_plot + 
+      ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density), fill = !!fill_sym), 
+                              na.rm = TRUE, 
+                              bins = 30) +
+      ggplot2::scale_x_continuous(expand = expansion(mult = c(0.01, 0.05))) +
+      ggplot2::scale_y_continuous(expand = expansion(mult = c(0.01, 0.05))) +
+      mytheme
+  }
+  
+  # Add probability density line
+  if (x.dist == "normal") {
+    hist_plot <- 
+      hist_plot + 
+      ggplot2::stat_function(fun = dnorm,
+                             colour = "royalblue", 
+                             args = list(mean = mean(dat_sub[[x]], na.rm = TRUE), 
+                                         sd = sd(dat_sub[[x]], na.rm = TRUE)))
+    
+  } else if (x.dist == "lognormal") {
+    # lognormal
+    hist_plot <- 
+      hist_plot + 
+      ggplot2::stat_function(fun = dlnorm, 
+                             colour = "royalblue", 
+                             args = list(mean = mean(log(dat_sub[[x]]), na.rm = TRUE), 
+                                         sd = sd(log(dat_sub[[x]]), na.rm = TRUE)))
+    
+  } else if (x.dist == "exponential") {
+    # Exponential
+    hist_plot <- 
+      hist_plot + 
+      ggplot2::stat_function(fun = dexp, 
+                             colour = "royalblue", 
+                             args = list(rate = 1 / mean(dat_sub[[x]], na.rm = TRUE)))
+    
+  } else if (x.dist == "weibull") {
+    # Weibull
+    hist_plot <- 
+      hist_plot + 
+      ggplot2::stat_function(fun = dweibull, 
+                             colour = "royalblue", 
+                             args = list(shape = 1.2 / sqrt(var(log(dat_sub[[x]]), na.rm = TRUE)), 
+                                         scale = mean(dat_sub[[x]], na.rm = TRUE) + 0.572 / 
+                                           (1.2 / sqrt(var(log(dat_sub[[x]]), na.rm = TRUE)))))
+    
+  } else if (x.dist == "poisson") {
+    # Poisson
+    hist_plot <- 
+      hist_plot + 
+      ggplot2::stat_function(fun = dpois, 
+                             colour = "royalblue", 
+                             args = list(lambda = mean(dat_sub[[x]], na.rm = TRUE)))
+    
+  } else if (x.dist == "negative binomial") {
+    # Negative Binomial
+    dat_sub_mean <- mean(dat_sub[[x]], na.rm = TRUE)
+    dat_sub_var <- var(dat_sub[[x]], na.rm = TRUE)
+    hist_plot <- 
+      hist_plot + 
+      ggplot2::stat_function(fun = dnbinom, 
+                             colour = "royalblue", 
+                             args = list(dat_sub_mean^2 / (dat_sub_var - dat_sub_mean), 
+                                         mu = dat_sub_mean))
+  }
+  
+  # Probability plot
+  quants <- seq(0, 1, length = length(dat_sub[[x]]) + 2)[2:(length(dat_sub[[x]]) + 1)]
+  # normal
+  if (x.dist == "normal") {
+    fit_quants <- 
+      stats::qnorm(quants, mean(dat_sub[[x]], na.rm = TRUE), sd(dat_sub[[x]], na.rm = TRUE))
+    
+  } else if (x.dist == "lognormal") {
+    # lognormal
+    fit_quants <- 
+      stats::qlnorm(quants, 
+                    mean = mean(log(dat_sub[[x]]), na.rm = TRUE), 
+                    sd = sd(log(dat_sub[[x]]), na.rm = TRUE))
+    
+  } else if (x.dist == "exponential") {
+    # Exponential
+    fit_quants <- 
+      stats::qexp(quants, rate = 1 / mean(dat_sub[[x]], na.rm = TRUE))
+    
+  } else if (x.dist == "weibull") {
+    # Weibull
+    fit_quants <- 
+      stats::qweibull(quants,
+                      shape = 1.2 / sqrt(var(log(dat_sub[[x]]), na.rm = TRUE)),
+                      scale = mean(dat_sub[[x]], na.rm = TRUE) + 0.572 / 
+                        (1.2 / sqrt(var(log(dat_sub[[x]]), na.rm = TRUE))))
+    
+  } else if (x.dist == "poisson") {
+    # Poisson
+    fit_quants <- 
+      stats::qpois(quants, lambda = mean(dat_sub[[x]], na.rm = TRUE))
+    
+  } else if (x.dist == "negative binomial") {
+    # Negative Binomial
+    fit_quants <- 
+      stats::qnbinom(quants,
+                     size = mean(dat_sub[[x]], na.rm = TRUE)^2 / 
+                       (var(dat_sub[[x]], na.rm = TRUE) - mean(dat_sub[[x]], na.rm = TRUE)),
+                     mu = mean(dat_sub[[x]], na.rm = TRUE)
+      )
+  }
+  
+  data_quants <- stats::quantile(as.numeric(dat_sub[[x]]), quants, na.rm = TRUE)
+  
+  # create Q-Q plot
+  temp <- data.frame(fit_quants, data_quants)
+  
+  if (!is.null(date)) temp$YEAR <- dat_sub$YEAR
+  
+  qq_plot <- 
+    ggplot2::ggplot(temp, ggplot2::aes(x = fit_quants, y = data_quants)) +
+    ggplot2::geom_point(shape = 1) +
+    ggplot2::geom_abline() +
+    ggplot2::labs(x = "Theoretical Quantiles", y = "Sample Quantiles", 
+                  title = paste("Q-Q plot of", x.dist, "fit against data")) +
+    tmp_theme
+  
+  if (is.numeric(dat.remove)) {
+    
+    p_title <- paste0("Plots for ", x, " with ", x.dist, 
+                      " distribution and data removed based on '", 
+                      dat.remove, "SD from the mean'. \nBlue: Included points",
+                      "   Red: Removed points") 
+    
+  } else {
+    
+    p_title <- paste0("Plots for ", x, " with ", x.dist,
+                      " distribution and data removed based on '",
+                      dat.remove, "'. \nBlue: Included points   Red: Removed points")
+  }
+  
+  if (pages == "single") {
+    
+    fig <- gridExtra::arrangeGrob(data_spread_plot, hist_plot,
+                                  nrow = 2, 
+                                  top = grid::textGrob(p_title, gp = grid::gpar(fontsize = 10)))
+    
+  } else {
+    
+    fig <- list(data_plot = data_spread_plot, 
+                prob_plot = hist_plot)
+  }
+  
+  # Log function
+  if (log_fun) {
+    outlier_plot_function <- list()
+    outlier_plot_function$functionID <- "outlier_plot"
+    outlier_plot_function$args <- list(dat, project, x, dat.remove, sd_val,
+                                       x.dist, date, group, pages, output.screen, 
+                                       log_fun)
+    log_call(project, outlier_plot_function)
+  }
+  
+  if (pages == "single") save_plot(project, "outlier_plot", fig)
+  else save_nplot(project, "outlier_plot", fig, id = "name")
+  
+  if (output.screen) fig
+  
+  return(fig)
 }
 
 
@@ -533,37 +572,52 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", sd_val=NULL, ov
   if(!is.null(sd_val) & is.numeric(sd_val)){
     dat.remove <- sd_val
   }
+  
   # Begin outlier check
+  # summary stats for below calculations
+  datmean <- mean(dataset[[x]], na.rm = TRUE)
+  datmedian <- stats::median(dataset[[x]], na.rm = TRUE)
+  datsd <- stats::sd(dataset[[x]], na.rm = TRUE)
+  
   if(is.numeric(dat.remove)){
-    dataset <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + dat.remove * stats::sd(dataset[[x]], na.rm = TRUE)) & 
-                         dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) - dat.remove * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+    dataset <- dataset[dataset[[x]] < (datmean + dat.remove * datsd) & 
+                         dataset[[x]] > (datmean - dat.remove * datsd), ]
   } else {
     if (dat.remove == "none") {
       dataset <- dataset
+      
     } else if (dat.remove == "5_95_quant") {
       dataset <- dataset[dataset[[x]] < stats::quantile(dataset[[x]], 0.95, na.rm = TRUE) & 
                            dataset[[x]] > stats::quantile(dataset[[x]], 0.05, na.rm = TRUE), ]
+      
     } else if (dat.remove == "25_75_quant") {
       dataset <- dataset[dataset[[x]] < stats::quantile(dataset[[x]], 0.75, na.rm = TRUE) & 
                            dataset[[x]] > stats::quantile(dataset[[x]], 0.25, na.rm = TRUE), ]
+      
     } else if (dat.remove == "mean_2SD") {
-      dataset <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + 2 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
-                           dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+      dataset <- dataset[dataset[[x]] < (datmean + 2 * datsd) & 
+                           dataset[[x]] > (datmean - 2 * datsd), ]
+      
     } else if (dat.remove == "median_2SD") {
-      dataset <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 2 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
-                           dataset[[x]] > (stats::median(dataset[[x]], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+      dataset <- dataset[dataset[[x]] < (datmedian + 2 * datsd) & 
+                           dataset[[x]] > (datmedian - 2 * datsd), ]
+      
     } else if (dat.remove == "mean_3SD") {
-      dataset <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + 3 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
-                           dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+      dataset <- dataset[dataset[[x]] < (datmean + 3 * datsd) & 
+                           dataset[[x]] > (datmean - 3 * datsd), ]
+      
     } else if (dat.remove == "median_3SD") {
-      dataset <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 3 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
-                           dataset[[x]] > (stats::median(dataset[[x]], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+      dataset <- dataset[dataset[[x]] < (datmedian + 3 * datsd) & 
+                           dataset[[x]] > (datmedian - 3 * datsd), ]
     }
   }
   
   
   if (dat.remove != "none" & over_write == TRUE) {
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+    suppressWarnings(
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
+                                   locdatabase(project = project))
+    )
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
     
     DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), dataset, overwrite = over_write)
@@ -577,7 +631,6 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", sd_val=NULL, ov
   outlier_remove_function$msg <- paste("outliers removed using", dat.remove)
   log_call(project, outlier_remove_function)
   
-  # assign('pollockMainDataTable', dataset, envir=.GlobalEnv)
   return(dataset)
 }
 
