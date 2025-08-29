@@ -170,10 +170,10 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
           replace = FALSE, remove = TRUE, over_write = TRUE)  
         
         if (!is_value_empty(output)) {
-          rv_data$main <- output[["data"]]
+          rv_data$main <- output
           
           # capturing the messages produced in the na_filter function
-          messages_to_show <- output[["messages"]]
+          messages_to_show <- attr(output, "messages")
           
           # ONLY remove the first element if there is more than one message
           if (length(messages_to_show) > 1) {
@@ -208,10 +208,10 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
           replace = TRUE, remove = FALSE, rep.value = "mean", over_write = TRUE)  
         
         if (!is_value_empty(output)) {
-          rv_data$main <- output[["data"]]
+          rv_data$main <- output
           # capturing the messages produced in the na_filter function
           
-          messages_to_show <- output[["messages"]]
+          messages_to_show <- attr(output, "messages")
           
           # ONLY remove the first element if there is more than one message
           if (length(messages_to_show) > 1) {
@@ -265,9 +265,9 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
           replace = FALSE, remove = TRUE, over_write = FALSE)
         
         if (!is_value_empty(output)) {
-          rv_data$main <- output[["data"]]
+          rv_data$main <- output
           # capturing the messages produced in the nan_filter function
-          messages_to_show <- output[["messages"]]
+          messages_to_show <- attr(output, "messages")
           
           # ONLY remove the first element if there is more than one message
           if (length(messages_to_show) > 1) {
@@ -303,9 +303,9 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
         
         if (!is_value_empty(output)) {
           
-          rv_data$main <- output[["data"]]
+          rv_data$main <- output
           # capturing the messages produced in the nan_filter function
-          messages_to_show <- output[["messages"]]
+          messages_to_show <- attr(output, "messages")
           
           # ONLY remove the first element if there is more than one message
           if (length(messages_to_show) > 1) {

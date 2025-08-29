@@ -210,10 +210,12 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   
   msg_print(tmp)
   
-    return(list(
-      data = dataset,
-      messages = suppressWarnings(readLines(tmp))
-    ))
+    
+  # Read the messages from the temp file into a vector
+  messages_vector <- suppressWarnings(readLines(tmp))
+  
+  # Attach this vector as an attribute to the dataframe
+  attr(dataset, "messages") <- messages_vector
   
   nan_filter_function <- list()
   nan_filter_function$functionID <- "nan_filter"
@@ -223,6 +225,10 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, nan_filter_function)
   
+  if (replace | remove) {
+    
+    return(dataset)
+  }
 }
 
 
@@ -306,14 +312,14 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
       
       if (any(x_empty)) {
         
-        warning("The following variables are empty (contain all NAs): ",
+        message("The following variables are empty (contain all NAs): ",
                 paste(x[x_empty], collapse = ", "), 
                 ". Use empty_vars_filter() to remove empty variables.", call. = FALSE)
       }
       
       if (any(!x_ind)) {
         
-        warning(paste(x[!x_ind], collapse = ", "), " do not contain NAs.", call. = FALSE) 
+        message(paste(x[!x_ind], collapse = ", "), " do not contain NAs.", call. = FALSE) 
       }
       
       if (length(x_na) > 0) {
@@ -364,7 +370,6 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
                                                       locdatabase(project = project)))
         on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-        
         DBI::dbWriteTable(fishset_db, dat, dataset, overwrite = TRUE)
       }
     }
@@ -372,10 +377,11 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   
   msg_print(tmp)
   
-     return(list(
-      data = dataset,
-      messages = suppressWarnings(readLines(tmp))
-    ))
+  # Read the messages from the temp file into a vector
+  messages_vector <- suppressWarnings(readLines(tmp))
+  
+  # Attach this vector as an attribute to the dataframe
+  attr(dataset, "messages") <- messages_vector
   
   na_filter_function <- list()
   na_filter_function$functionID <- "na_filter"
@@ -385,5 +391,11 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   na_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, na_filter_function)
   
+
+  
+if (replace | remove) {
+    
+    return(dataset)
+  }
 
 }
