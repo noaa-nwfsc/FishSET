@@ -487,7 +487,7 @@ outlier_plot <- function(dat, project, x, dat.remove = 'none', sd_val = NULL,
   if (pages == "single") {
     
     fig <- gridExtra::arrangeGrob(data_spread_plot, hist_plot,
-                                  nrow = 2, 
+                                  ncol = 2, 
                                   top = grid::textGrob(p_title, gp = grid::gpar(fontsize = 10)))
     
   } else {
