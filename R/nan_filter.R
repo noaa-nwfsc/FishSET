@@ -159,26 +159,21 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
           
           dataset[x_nan] <- lapply(x_nan, function(i) {
             
-            if (is.numeric(dataset[[i]])) {
-                mean_function <- mean 
-
-                rep.value_mean <- do.call(mean_function, list(dataset[[i]], na.rm = TRUE))
+          if (is.numeric(dataset[[i]])) {
+              mean_function <- mean
+              if (rep.value == "mean") {
+                rep.value <- do.call(mean_function, list(dataset[[i]], na.rm = TRUE))
+              }
               
-              if (!is.numeric(rep.value_mean)) {
-              # if (rep.value %in% c("mean", "median")) {
-              #   
-              #   rep.value <- mean(dataset[[i]], na.rm = TRUE)
-              #   rep.value <- do.call(rep.value, list(dataset[[i]], na.rm = TRUE))
-              # }
               # # TODO: extend rep.value to non-numeric vars
-              # if (!is.numeric(rep.value)) {
+               if (!is.numeric(rep.value)) {
                 
                 stop("Replacement value must be numeric.", call. = FALSE)
               }
               
               out <- dataset[[i]]
-              out[is.nan(out)] <- rep.value_mean
-              cat("All NaNs in", i, "have been replaced with", rep.value_mean, "\n", 
+              out[is.nan(out)] <- rep.value
+              cat("All NaNs in", i, "have been replaced with", rep.value, "\n", 
                   file = tmp, append = TRUE)
               
               out
@@ -215,6 +210,11 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   
   msg_print(tmp)
   
+    return(list(
+      data = dataset,
+      messages = suppressWarnings(readLines(tmp))
+    ))
+  
   nan_filter_function <- list()
   nan_filter_function$functionID <- "nan_filter"
   nan_filter_function$args <- list(dat, project, x, replace, remove, rep.value, 
@@ -223,13 +223,6 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, nan_filter_function)
   
-  if (replace | remove) {
-    return(list(
-      data = dataset,
-      messages = suppressWarnings(readLines(tmp))
-    ))
-    
-  } 
 }
 
 
@@ -329,19 +322,20 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
           
           dataset[x_na] <- lapply(x_na, function(i) {
             
-            if (is.numeric(dataset[[i]])) {
+               if (is.numeric(dataset[[i]])) {
+              mean_function <- mean
+              if (rep.value == "mean") {
+                rep.value <- do.call(mean_function, list(dataset[[i]], na.rm = TRUE))
+              }
               
-              mean_function <- mean 
-
-                rep.value_mean <- do.call(mean_function, list(dataset[[i]], na.rm = TRUE))
-              
-              if (!is.numeric(rep.value_mean)) {
+             
+              if (!is.numeric(rep.value)) {
                 
                 stop("Replacement value must be numeric.", call. = FALSE)
               }
               out <- dataset[[i]]
-              out[is.na(out)] <- rep.value_mean
-              cat("All NAs in", i, "have been replaced with", rep.value_mean, "\n", 
+              out[is.na(out)] <- rep.value
+              cat("All NAs in", i, "have been replaced with", rep.value, "\n", 
                   file = tmp, append = TRUE)
               
               out
@@ -378,7 +372,10 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   
   msg_print(tmp)
   
-  
+     return(list(
+      data = dataset,
+      messages = suppressWarnings(readLines(tmp))
+    ))
   
   na_filter_function <- list()
   na_filter_function$functionID <- "na_filter"
@@ -387,15 +384,6 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   na_filter_function$output <- list(dat)
   na_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, na_filter_function)
-  
-  
-  if (replace | remove) {
-    return(list(
-      data = dataset,
-      messages = suppressWarnings(readLines(tmp))
-    ))
-    
-  } 
   
 
 }
