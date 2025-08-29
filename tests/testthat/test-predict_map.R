@@ -49,7 +49,7 @@ test_that("predict_map ggplot output works", {
   expect_equal(test_fig$labels$fill, "Probability")
 })
 
-# Test dynamic map output (leaflet-----------------------------------------------------------------
+# Test dynamic map output (leaflet) ---------------------------------------------------------------
 test_that("predict_map leaflet output works", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test
