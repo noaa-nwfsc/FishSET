@@ -100,6 +100,11 @@ moran_stats <- function(dat, var, dat_zone, spat, spat_zone, project) {
   # Convert the merged data frame to a simple features (sf) object
   merged_sf <- sf::st_as_sf(merged_df)
   
+  # Find indices with empty geometries, and remove
+  empty_geoms_ind <- which(st_is_empty(merged_sf))
+  merged_sf <- st_make_valid(merged_sf)
+  merged_sf <- merged_sf[!st_is_empty(merged_sf), ]
+  
   # Check if the merged object is empty
   if (nrow(merged_sf) == 0) {
     stop("The provided data frames do not have matching zone IDs. The merge resulted in an 

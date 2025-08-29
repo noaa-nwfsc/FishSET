@@ -63,6 +63,10 @@ spatial_autocorr_server <- function(id, rv_project_name, rv_data, rv_folderpath)
       }
       rv_selected_vars$vars <- selected_vars
       
+      if (rv_selected_vars$vars$main$main_zone_id == input$select_var_input) {
+        return()
+      }
+      
       # Calculate Moran stats and generate figures  
       moran_output <- tryCatch({
         moran_stats(dat = rv_data$main,
@@ -179,7 +183,8 @@ spatial_autocorr_ui <- function(id){
           tags$p(
             HTML("Variables must be selected in the Load Data subtab to view 
                  spatial autocorrelation outputs. <br>
-                 If you completed this step, change the variable in the dropdown above."),
+                 If you completed this step, change the variable in the dropdown above 
+                 (cannot compute for the zone ID variable)."),
             style = "color: #b0b0b0; font-style: italic; font-size: 20px;")
         )
       )
