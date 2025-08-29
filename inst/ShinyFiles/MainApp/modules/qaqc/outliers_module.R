@@ -100,7 +100,6 @@ outliers_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       
       grid::grid.draw(result[[1]])
     }, height = 600, res = 100)
-    
   })
 }
 
