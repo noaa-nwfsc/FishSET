@@ -177,7 +177,7 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
           
           # ONLY remove the first element if there is more than one message
           if (length(messages_to_show) > 1) {
-            rv_na_filter_message(paste(messages_to_show, collapse = "\n"))
+            rv_na_filter_message(paste(messages_to_show[-1], collapse = "\n"))
           } else {
             # Otherwise, just show the single message that exists
             rv_na_filter_message(paste(messages_to_show, collapse = "\n"))

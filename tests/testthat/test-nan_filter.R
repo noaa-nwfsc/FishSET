@@ -64,7 +64,7 @@ test_that("it reports no NaNs when data is clean", {
       result <- nan_filter(clean_df, "test")
       # In identification mode, the function prints a message. We check that message.
       # The function also returns the captured messages in its log output.
-      expect_true(any(grepl("No NaNs found.", result$messages)))
+      expect_true(any(grepl("No NaNs found.", attr(result, "messages"))))
     },
     msg_print = function(...) invisible(NULL),
   )
@@ -76,7 +76,7 @@ test_that("it identifies and lists columns with NaNs", {
       result <- nan_filter(test_df, "test")
       expected_msg <-paste0("The following columns contain NaNs: nan_only_col, mixed_special_col, all_nan_col. Consider using nan_filter to replace or remove NaNs.")
       # Check that the expected message is part of the output
-      expect_true(any(grepl(expected_msg, result$messages)))
+      expect_true(any(grepl(expected_msg, attr(result, "messages"))))
     },
     msg_print = function(...) invisible(NULL)
   )
@@ -88,9 +88,9 @@ test_that("it removes rows with NaNs in a single specified column", {
   with_mocked_bindings(
     {
       result <- nan_filter(test_df, "test", x = "nan_only_col", remove = TRUE)
-      expect_equal(nrow(result$data), 4)
-      expect_equal(result$data$id, c(1, 3, 4, 6))
-      expect_true(any(grepl("All rows containing NaNs have been removed", result$messages)))
+      expect_equal(nrow(result), 4)
+      expect_equal(result$id, c(1, 3, 4, 6))
+      expect_true(any(grepl("All rows containing NaNs have been removed", attr(result, "messages"))))
     },
     msg_print = function(...) invisible(NULL),
   )
@@ -102,8 +102,8 @@ test_that("it removes rows based on NaNs in multiple columns", {
     {
       result <- nan_filter(test_df, "test", x = c("nan_only_col", "mixed_special_col"),
         remove = TRUE)
-      expect_equal(nrow(result$data), 3)
-      expect_equal(result$data$id, c(1, 3,6))
+      expect_equal(nrow(result), 3)
+      expect_equal(result$id, c(1, 3,6))
     },
     msg_print = function(...) invisible(NULL),
   )
@@ -115,9 +115,9 @@ test_that("it replaces NaNs with the column mean by default", {
     {
       result <- nan_filter(test_df, "test", x = "nan_only_col", replace = TRUE)
       mean_val1 <- mean(test_df$nan_only_col, na.rm = TRUE) # Should be 30
-      expect_equal(sum(is.na(result$data$nan_only_col)), 0)
-      expect_equal(result$data$nan_only_col, c(10, 35, 30, 40, 35, 60))
-      expect_true(any(grepl("replaced with 35", result$messages)))
+      expect_equal(sum(is.na(result$nan_only_col)), 0)
+      expect_equal(result$nan_only_col, c(10, 35, 30, 40, 35, 60))
+      expect_true(any(grepl("replaced with 35", attr(result, "messages"))))
     },
     msg_print = function(...) invisible(NULL),
   )
@@ -130,9 +130,9 @@ test_that("it replaces NaNs with a specific numeric value", {
       result <- nan_filter(test_df, "test", x = "nan_only_col", replace = TRUE, 
         rep.value = 0)
       
-      expect_equal(sum(is.na(result$data$nan_only_col)), 0)
-      expect_equal(result$data$nan_only_col, c(10, 0, 30, 40, 0, 60))
-      expect_true(any(grepl("replaced with 0", result$messages)))
+      expect_equal(sum(is.na(result$nan_only_col)), 0)
+      expect_equal(result$nan_only_col, c(10, 0, 30, 40, 0, 60))
+      expect_true(any(grepl("replaced with 0", attr(result, "messages"))))
     },
     msg_print = function(...) invisible(NULL),
   )
@@ -148,8 +148,8 @@ test_that("replace=TRUE takes precedence over remove=TRUE", {
         remove = TRUE)
       
       # The result should be a replacement, not a removal.
-      expect_equal(nrow(result$data), 6) # No rows removed
-      expect_equal(sum(is.na(result$data$nan_only_col)), 0) # NaNs replaced
+      expect_equal(nrow(result), 6) # No rows removed
+      expect_equal(sum(is.na(result$nan_only_col)), 0) # NaNs replaced
     },
     msg_print = function(...) invisible(NULL),
   )

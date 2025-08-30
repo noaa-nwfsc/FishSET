@@ -225,10 +225,9 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, nan_filter_function)
   
-  if (replace | remove) {
-    
+
     return(dataset)
-  }
+  
 }
 
 
@@ -312,14 +311,16 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
       
       if (any(x_empty)) {
         
-        message("The following variables are empty (contain all NAs): ",
+        cat("The following variables are empty (contain all NAs): ",
                 paste(x[x_empty], collapse = ", "), 
-                ". Use empty_vars_filter() to remove empty variables.", call. = FALSE)
+                ". Use empty_vars_filter() to remove empty variables.", file = tmp, 
+                  append = TRUE)
       }
       
       if (any(!x_ind)) {
         
-        message(paste(x[!x_ind], collapse = ", "), " do not contain NAs.", call. = FALSE) 
+        cat(paste(x[!x_ind], collapse = ", "), " do not contain NAs.", file = tmp, 
+                  append = TRUE) 
       }
       
       if (length(x_na) > 0) {
@@ -393,9 +394,7 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   
 
   
-if (replace | remove) {
-    
+
     return(dataset)
-  }
 
 }
