@@ -203,6 +203,12 @@ unique_filter <- function(dat, project, remove = FALSE) {
   }
 
   msg_print(tmp)
+  
+   # Read the messages from the temp file into a vector
+  messages_vector <- suppressWarnings(readLines(tmp))
+  
+  # Attach this vector as an attribute to the dataframe
+  attr(dataset, "messages") <- messages_vector
 
   unique_filter_function <- list()
   unique_filter_function$functionID <- "unique_filter"
@@ -213,9 +219,9 @@ unique_filter <- function(dat, project, remove = FALSE) {
 
   unlink(tmp)
   
-  if (remove == TRUE) {
+  #if (remove == TRUE) {
     return(dataset)
-  }
+ # }
 }
 
 

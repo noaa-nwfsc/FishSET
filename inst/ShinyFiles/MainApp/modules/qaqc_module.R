@@ -12,9 +12,11 @@
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/qaqc/preview_data_module.R", local = TRUE) # Preview data in table format
 source("modules/qaqc/summary_data_module.R", local = TRUE) # Summary stats data table
-source("modules/qaqc/change_variable_module.R", local = TRUE) # Preview data in table format
+source("modules/qaqc/change_variable_module.R", local = TRUE) # Change variable class
 source("modules/qaqc/remove_variables_module.R", local = TRUE) # Remove variables
-source("modules/qaqc/spatial_checks_module.R", local = TRUE) # Preview data in table format
+source("modules/qaqc/unique_obs_module.R", local = TRUE) # Ensure only unique observations
+source("modules/qaqc/spatial_checks_module.R", local = TRUE) # Spatial checks
+
 
 # QAQC server -------------------------------------------------------------------------------------
 #' qaqc_server
@@ -42,6 +44,9 @@ qaqc_server <- function(id, rv_project_name, rv_data, rv_folderpath){
 
     # Remove variables
     remove_variables_server("rm_variables", rv_project_name, rv_data, rv_folderpath)
+    
+    # Identifying unique observations in primary data
+    unique_obs_server("unique_observations", rv_project_name, rv_data)
     
     # Spatial checks
     rv_ids_to_remove <- spatial_checks_server("spat_checks", 
@@ -72,6 +77,7 @@ qaqc_sidebar_ui <- function(id) {
                              "Summary table"="summary",
                              "Change variable class" = "variable_class",
                              "Remove variables" = "remove_vars",
+                             "Unique observations" = "unique_obs",
                              "Spatial checks" = "spat_checks"),
                  selected = "preview")
   )
@@ -116,6 +122,12 @@ qaqc_ui <- function(id){
       condition = "input.qaqc_options == 'remove_vars'",
       ns = ns,
       remove_variables_ui(ns("rm_variables"))
+    ),
+    # Conditionally display unique observations UI
+    conditionalPanel(
+      condition = "input.qaqc_options == 'unique_obs'",
+      ns = ns,
+      unique_obs_ui(ns("unique_observations"))
     ),
     
     # Conditionally display spatial checks
