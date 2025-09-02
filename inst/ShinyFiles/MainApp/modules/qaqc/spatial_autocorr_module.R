@@ -43,8 +43,14 @@ spatial_autocorr_server <- function(id, rv_project_name, rv_data, rv_folderpath)
       # Filter the names to get only numeric variables
       numeric_choices <- names(rv_data$main[sapply(rv_data$main, is.numeric)])
       
+      # Add a placeholder prompt and set it as the default selected value.
+      choices_with_placeholder <- c("Select a variable..." = "", numeric_choices)
+      
       # Update input options
-      updateSelectInput(session, "select_var_input", choices = numeric_choices)
+      updateSelectInput(session, 
+                        "select_var_input", 
+                        choices = choices_with_placeholder,
+                        selected = "")
     })
     
     # Observe the variable input and calculate Moran's stats
@@ -64,6 +70,14 @@ spatial_autocorr_server <- function(id, rv_project_name, rv_data, rv_folderpath)
       rv_selected_vars$vars <- selected_vars
       
       if (rv_selected_vars$vars$main$main_zone_id == input$select_var_input) {
+        showModal(modalDialog(
+          title = "Error",
+          paste("An error occurred during the spatial autocorrelation analysis: Spatial 
+                autocorrelation cannot be calculated for the zone ID column. Select
+                another column from the main dropdown menu."),
+          easyClose = TRUE
+        ))
+        moran_results_rv(NULL) # Clear previous results
         return()
       }
       
@@ -88,7 +102,7 @@ spatial_autocorr_server <- function(id, rv_project_name, rv_data, rv_folderpath)
       
       # Save output from global Moran's I test 
       moran_results_rv(moran_output)
-    })
+    }, ignoreInit = TRUE)
     
     # Output table of Moran's I test
     output$moran_table <- renderTable({
