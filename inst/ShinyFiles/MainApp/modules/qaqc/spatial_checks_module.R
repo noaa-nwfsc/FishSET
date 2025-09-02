@@ -120,13 +120,9 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
         status_file_path <- suppressWarnings(normalizePath(status_file_path))  
       }
       
-      # Construct the file path for the saved variables.
-      file_name <- paste0(project_name, "SavedVariables.rds")
-      file_path <- file.path(folderpath, project_name, "data", file_name)
-      if (file.exists(file_path)) {
-        file_path <- suppressWarnings(normalizePath(file_path))
-        
-      } else {
+      # Load selected variables
+      selected_vars <- load_gui_variables(project_name, folderpath)
+      if (is.null(selected_vars)) {
         # Handle the case where the RDS file does not exist.
         shinyjs::hide("spat_checks_spinner_container")
         showModal(modalDialog(
@@ -137,9 +133,6 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
         ))
         return() # Stop execution of the observer
       }
-      
-      # Read the RDS file containing selected variable names.
-      selected_vars <- readRDS(file_path)
       rv_selected_vars$vars <- selected_vars
       
       # Wrap the main spatial QA/QC function to catch any errors or warnings quietly.

@@ -12,5 +12,6 @@ LICENSE
 FishSET.Rproj
 # {shinytest2}: Ignore new debug snapshots for `$expect_values()`
 *_.new.png
+tests/testthat/*.pdf
 tests/testthat/testdata/FishSETFolder/s1/output/*.csv
 tests/testthat/testdata/FishSETFolder/s1/output/*.png
