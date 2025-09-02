@@ -13,6 +13,7 @@
 source("modules/qaqc/preview_data_module.R", local = TRUE) # Preview data in table format
 source("modules/qaqc/summary_data_module.R", local = TRUE) # Summary stats data table
 source("modules/qaqc/change_variable_module.R", local = TRUE) # Change variable
+source("modules/qaqc/remove_variables_module.R", local = TRUE) # Remove variables
 source("modules/qaqc/spatial_autocorr_module.R", local = TRUE) # Spatial autocorrrelation
 source("modules/qaqc/spatial_checks_module.R", local = TRUE) # Run spatial checks/corrections
 
@@ -39,6 +40,9 @@ qaqc_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     
     # Change variable class for primary data
     variable_class_server("change_variable_class", rv_project_name, rv_data)
+    
+    # Remove variables
+    remove_variables_server("rm_variables", rv_project_name, rv_data, rv_folderpath)
     
     # Spatial autocorrelation
     spatial_autocorr_server("spatial_autocorrelation", rv_project_name, rv_data, rv_folderpath)
@@ -71,6 +75,7 @@ qaqc_sidebar_ui <- function(id) {
                  choices = c("Preview data" = "preview", 
                              "Summary table"="summary",
                              "Change variable class" = "variable_class",
+                             "Remove variables" = "remove_vars",
                              "Spatial autocorrelation" = "spat_autocorr",
                              "Spatial checks" = "spat_checks"),
                  selected = "preview")
@@ -109,6 +114,13 @@ qaqc_ui <- function(id){
       condition = "input.qaqc_options == 'variable_class'",
       ns = ns,
       variable_class_ui(ns("change_variable_class"))
+    ),
+    
+    # Conditionally display remove variables UI
+    conditionalPanel(
+      condition = "input.qaqc_options == 'remove_vars'",
+      ns = ns,
+      remove_variables_ui(ns("rm_variables"))
     ),
     
     # Conditionally display spatial autocorrelation
