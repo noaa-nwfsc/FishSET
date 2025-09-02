@@ -194,7 +194,7 @@ moran_stats <- function(dat, var, dat_zone, spat, spat_zone, project) {
   lisa_cluster_map <- ggplot() +
     ggplot2::geom_sf(data = base_map) +
     ggplot2::geom_sf(data = merged_sf, 
-                     aes(fill = lisa_cluster, color = lisa_cluster), lwd = 0.5) +
+                     aes(fill = lisa_cluster, color = lisa_cluster), lwd = 0.5, alpha = 0.6) +
     ggplot2::scale_fill_manual(values = lisa_colors, name = "Cluster Type") +
     ggplot2::scale_color_manual(values = lisa_colors, name = "Cluster Type") +
     ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
