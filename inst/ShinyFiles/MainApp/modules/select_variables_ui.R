@@ -30,7 +30,7 @@ select_main_var_ui <- function(id){
                        tagList(
                          span(style = "white-space: wrap; display: inline-flex; 
                                        align-items: center;",
-                              HTML("Select trip/haul ID from primary data: &nbsp;"),
+                              HTML("Select trip/haul ID from main data: &nbsp;"),
                               bslib::tooltip(
                                 shiny::icon("circle-info", `aria-label` = "More information"),
                                 HTML("If unique trip/haul ID is not available for your dataset, 
@@ -43,17 +43,35 @@ select_main_var_ui <- function(id){
                        ),
                        choices = NULL, multiple = FALSE),
         
-        selectizeInput(ns("main_zone_id_input"), 
-                       "Select zone ID from primary data",
+        selectizeInput(ns("main_zone_id_input"),
+                       tagList(
+                         span(style = "white-space: wrap; display: inline-flex; 
+                                       align-items: center;",
+                              HTML("Select zone ID from main data: &nbsp;"),
+                              bslib::tooltip(
+                                shiny::icon("circle-info", `aria-label` = "More information"),
+                                HTML("If a zone ID is not available for your dataset, 
+                                      click on 'Create zone ID column' to merge the main
+                                      data with spatial grid file to generate a zone ID column.
+                                      Return to this input after the variable is created and 
+                                      saved."),
+                                options = list(delay = list(show = 0, hide = 850))
+                              )
+                         )
+                       ),
                        choices = NULL, multiple = FALSE),
         
+        create_zone_id_ui(ns("create_zone_id")), 
+        
+        br(), br(),
+        
         selectizeInput(ns("main_lon_input"),
-                       "Select fishing location longitude from primary data",
+                       "Select fishing location longitude from main data",
                        choices = NULL, multiple = FALSE, 
                        options = list(create = TRUE)),
         
         selectizeInput(ns("main_lat_input"), 
-                       "Select fishing location latitude from primary data",
+                       "Select fishing location latitude from main data",
                        choices = NULL, multiple = FALSE, 
                        options = list(create = TRUE)),
         
@@ -220,6 +238,17 @@ create_nominal_id_inputs_ui <- function(id){
   )
 }
 
+## Create zone ID column --------------------------------------------------------------------------
+## Description: Modal popup for users to create a zone ID column by merging the main data with 
+##              spatial grid.
+create_zone_id_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    actionButton(ns("create_zone_id_btn"),
+                 "Create zone ID column (optional)")
+  )
+}
+
 ## Save variables to project folder ---------------------------------------------------------------
 ## Description: Users can save variables from all data tables so they can be used in future 
 ##              sessions
@@ -233,7 +262,7 @@ save_var_ui <- function(id){
                fill = FALSE,
                
                bslib::card_header(
-                 "1. Primary data variables",
+                 "1. main data variables",
                  class = "bg-secondary"),
                
                bslib::card_body(
@@ -241,7 +270,7 @@ save_var_ui <- function(id){
                    fill = TRUE,
                    width = 1/3,
                    bslib::card(fill = FALSE,
-                               h6("Primary data"),
+                               h6("main data"),
                                select_main_var_ui(ns("selecting_main"))),
                    
                    bslib::card(fill = FALSE,

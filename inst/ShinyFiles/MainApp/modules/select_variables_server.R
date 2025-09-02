@@ -105,6 +105,10 @@ select_main_var_server <- function(id, rv_project_name, rv_data){
         }
       })
       
+      create_zone_id_server("create_zone_id",
+                            rv_project_name = rv_project_name,
+                            rv_data = rv_data)
+      
       # return selected variables 
       return(
         reactive({
@@ -489,6 +493,98 @@ create_nominal_id_inputs_server <- function(id, rv_project_name, rv_data,
       } )
     }
   )
+}
+
+## Create zone ID column --------------------------------------------------------------------------
+## Description: Modal popup for users to create a zone ID column by merging the main data with 
+##              spatial grid.
+create_zone_id_server <- function(id, rv_project_name, rv_data){
+  moduleServer(id, function(input, output, session){
+    ns <- session$ns
+    
+    observeEvent(input$create_zone_id_btn, {
+      req(rv_data$main, rv_data$spat)
+      
+      showModal(
+        modalDialog(
+          title = "Create Zone ID Column",
+          size = "m",
+          
+          selectInput(ns("modal_main_lon"),
+                      "Select longitude from main data",
+                      choices = find_lon(rv_data$main),
+                      selected = find_lon(rv_data$main)[1]),
+          
+          selectInput(ns("modal_main_lat"),
+                      "Select latitude from main data",
+                      choices = find_lat(rv_data$main),
+                      selected = find_lat(rv_data$main)[1]),
+          
+          selectInput(ns("modal_spat_zone"),
+                      "Select zone ID from spatial data",
+                      choices = colnames(rv_data$spat)),
+          
+          textInput(ns("modal_new_name"),
+                    "Enter name for new zone ID column",
+                    value = ""),
+          
+          footer = tagList(
+            modalButton("Cancel"),
+            actionButton(ns("confirm_create_zone_btn"), "Create ID", class = "btn-primary")
+          ),
+          easyClose = TRUE
+        )
+      )
+    })
+    
+    observeEvent(input$confirm_create_zone_btn, {
+      req(rv_project_name(), rv_data$main, rv_data$spat)
+      
+      project_name <- rv_project_name()$value
+      
+      tryCatch({
+        # Call the function to assign zones and create the new column
+        updated_main_data <- assignment_column(
+          dat = rv_data$main,
+          project = project_name,
+          spat = rv_data$spat,
+          lon.dat = input$modal_main_lon,
+          lat.dat = input$modal_main_lat,
+          cat = input$modal_spat_zone,
+          name = input$modal_new_name,
+        )
+        
+        # Update the reactive data frame with the new data
+        rv_data$main <- updated_main_data
+        
+        # Save the updated data frame back to the project's database
+        load_maindata(dat = rv_data$main,
+                      project = project_name,
+                      over_write = TRUE)
+        
+        # Close the modal and show success/failure notifications
+        removeModal()
+        
+        # Show success message
+        showNotification("Zone ID created and saved successfully.", type = "message")
+
+      }, error = function(e) {
+        # If an error occurs
+        removeModal()
+        
+        # Show a new modal with the error message
+        showModal(
+          modalDialog(
+            title = tagList(shiny::icon("circle-xmark", style = "color: red;"), " Error"),
+            p("An error occurred while creating the Zone ID column:"),
+            tags$b(e$message),
+            footer = modalButton("Close"),
+            easyClose = TRUE
+          )
+        )
+      })
+    })
+  })
 }
 
 ## Save variables to project folder --------------------------------------------------------------
