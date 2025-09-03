@@ -12,7 +12,12 @@
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/qaqc/preview_data_module.R", local = TRUE) # Preview data in table format
 source("modules/qaqc/summary_data_module.R", local = TRUE) # Summary stats data table
+<<<<<<< HEAD
 source("modules/qaqc/change_variable_module.R", local = TRUE) # Change variable class
+=======
+  source("modules/qaqc/remove_na_nan_module.R", local = TRUE) # Summary stats data table
+source("modules/qaqc/change_variable_module.R", local = TRUE) # Preview data in table format
+>>>>>>> c9041c820194e0eed1cd4bb56cb2ac327e5f3e78
 source("modules/qaqc/remove_variables_module.R", local = TRUE) # Remove variables
 source("modules/qaqc/unique_obs_module.R", local = TRUE) # Ensure only unique observations
 source("modules/qaqc/spatial_checks_module.R", local = TRUE) # Spatial checks
@@ -41,12 +46,15 @@ qaqc_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     
     # Change variable class for primary data
     variable_class_server("change_variable_class", rv_project_name, rv_data)
-
-    # Remove variables
-    remove_variables_server("rm_variables", rv_project_name, rv_data, rv_folderpath)
+    
+    # Remove/replace NA/NaNs values
+    remove_na_nan_server("na_and_nan", rv_project_name, rv_data)
     
     # Identifying unique observations in primary data
     unique_obs_server("unique_observations", rv_project_name, rv_data)
+    
+    # Remove variables
+    remove_variables_server("rm_variables", rv_project_name, rv_data, rv_folderpath)
     
     # Spatial checks
     rv_ids_to_remove <- spatial_checks_server("spat_checks", 
@@ -76,8 +84,9 @@ qaqc_sidebar_ui <- function(id) {
                  choices = c("Preview data" = "preview", 
                              "Summary table"="summary",
                              "Change variable class" = "variable_class",
-                             "Remove variables" = "remove_vars",
+                             "Check NAs and NaNs" = "na_nan",
                              "Unique observations" = "unique_obs",
+                             "Remove variables" = "remove_vars",
                              "Spatial checks" = "spat_checks"),
                  selected = "preview")
   )
@@ -109,7 +118,7 @@ qaqc_ui <- function(id){
       ns = ns,
       summary_data_ui(ns("summary_table"))
     ),
-
+    
     # Conditionally display the change class UI
     conditionalPanel(
       condition = "input.qaqc_options == 'variable_class'",
@@ -117,17 +126,25 @@ qaqc_ui <- function(id){
       variable_class_ui(ns("change_variable_class"))
     ),
     
-    # Conditionally display remove variables UI
+    # Conditionally display the NA/NaN values UI
     conditionalPanel(
-      condition = "input.qaqc_options == 'remove_vars'",
+      condition = "input.qaqc_options == 'na_nan'",
       ns = ns,
-      remove_variables_ui(ns("rm_variables"))
+      remove_na_nan_ui(ns("na_and_nan"))
     ),
+    
     # Conditionally display unique observations UI
     conditionalPanel(
       condition = "input.qaqc_options == 'unique_obs'",
       ns = ns,
       unique_obs_ui(ns("unique_observations"))
+    ),
+    
+    # Conditionally display remove variables UI
+    conditionalPanel(
+      condition = "input.qaqc_options == 'remove_vars'",
+      ns = ns,
+      remove_variables_ui(ns("rm_variables"))
     ),
     
     # Conditionally display spatial checks
