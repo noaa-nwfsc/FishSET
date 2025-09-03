@@ -36,13 +36,12 @@ unique_obs_server <- function(id, rv_project_name, rv_data){
       # Check that main data table exist and if not return nothing
       if (is.null(rv_data$main) || length(rv_data$main) == 0) {
         return()
-      } else{
         
+      } else{
         rv_data$main %>% 
           filter(duplicated(.) | duplicated(., fromLast = TRUE)) %>%
           arrange(across(everything()))
       }
-      
     })
     
     # Duplicate rows data table 
@@ -53,6 +52,7 @@ unique_obs_server <- function(id, rv_project_name, rv_data){
         shinyjs::show("unique_obs_no_message")
         return()
       }
+      
       shinyjs::hide("unique_obs_no_message")
       
       duplicated_df <- duplicated_rows()
@@ -63,6 +63,7 @@ unique_obs_server <- function(id, rv_project_name, rv_data){
           options = list(pageLength = 10, scrollX = TRUE),
           rownames = FALSE
         )
+        
       } else {
         datatable(
           data.frame("Note"=  "No duplicate rows found in the dataset."),
@@ -147,22 +148,22 @@ unique_obs_ui <- function(id){
       p("The table below displays all rows that are exact duplicates of another row 
         in the dataset."),
       div(id = ns("unique_obs_no_message"),
-        style = "color: grey; font-style: italic; font-size: 16px;",
-        p("Data needs to be loaded first.")
+          style = "color: grey; font-style: italic; font-size: 16px;",
+          p("Data needs to be loaded first.")
       ),
       # Data table output to display the duplicated rows
       DT::DTOutput(ns("duplicates_table")),
     ),
     # An action button to confirm removing duplicate rows first
     actionButton(ns("unique_obs_btn"), 
-      label="Remove duplicates",
-      width = "25%",
-      icon = icon(name="clone",lib="font-awesome")
+                 label="Remove duplicates",
+                 width = "25%",
+                 icon = icon(name="clone",lib="font-awesome")
     ),
     # Messages created in function displayed for confirmation
     div(id = ns('duplicate_message_container'),
-      style = "color: green; display: none; font-size: 16px;",
-      uiOutput(ns("rv_duplicate_message_out")))
+        style = "color: green; display: none; font-size: 16px;",
+        uiOutput(ns("rv_duplicate_message_out")))
     
   )
 }

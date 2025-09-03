@@ -57,59 +57,59 @@ test_that("it handles unique data correctly with remove=FALSE", {
       expect_equal(nrow(result), 4)
       expect_equal(result, unique_df, ignore_attr = TRUE)
       expect_true(any(grepl("Each row is a unique choice occurrence", 
-        attr(result, "messages"))))
+                            attr(result, "messages"))))
     },
     msg_print = function(...) invisible(NULL)
   )
 })
-  
-  # Duplicate rows exist, remove = FALSE (default) -----------------------------------------------
-  test_that("it identifies duplicates but does not remove them when remove=FALSE", {
-     with_mocked_bindings(
+
+# Duplicate rows exist, remove = FALSE (default) -----------------------------------------------
+test_that("it identifies duplicates but does not remove them when remove=FALSE", {
+  with_mocked_bindings(
     { 
-    # Run the function
-    result <- unique_filter(dat = duplicate_df, project = "test_proj", remove = FALSE)
-    
-    # Assertions
-    expect_equal(nrow(result), 4) # Should still have 4 rows
-    expect_equal(result, duplicate_df, ignore_attr = TRUE) # Data frame should be unchanged
-    expect_true(any(grepl("Consider removing non-unique rows", attr(result, "messages"))))
+      # Run the function
+      result <- unique_filter(dat = duplicate_df, project = "test_proj", remove = FALSE)
+      
+      # Assertions
+      expect_equal(nrow(result), 4) # Should still have 4 rows
+      expect_equal(result, duplicate_df, ignore_attr = TRUE) # Data frame should be unchanged
+      expect_true(any(grepl("Consider removing non-unique rows", attr(result, "messages"))))
     },
     msg_print = function(...) invisible(NULL)
   )
-  })
-  
-  # Duplicate rows exist, remove = TRUE -----------------------------------------------------------
-  test_that("it removes duplicates when remove=TRUE", {
-    with_mocked_bindings(
+})
+
+# Duplicate rows exist, remove = TRUE -----------------------------------------------------------
+test_that("it removes duplicates when remove=TRUE", {
+  with_mocked_bindings(
     {
-    # Run the function
-    result <- unique_filter(dat = duplicate_df, project = "test_proj", remove = TRUE)
-    
-    expect_equal(nrow(result), 3) 
-    # Should match the distinct version
-    expect_equal(result, dplyr::distinct(duplicate_df), ignore_attr = TRUE) 
-    expect_true(any(grepl("Non-unique rows removed", attr(result, "messages"))))
+      # Run the function
+      result <- unique_filter(dat = duplicate_df, project = "test_proj", remove = TRUE)
+      
+      expect_equal(nrow(result), 3) 
+      # Should match the distinct version
+      expect_equal(result, dplyr::distinct(duplicate_df), ignore_attr = TRUE) 
+      expect_true(any(grepl("Non-unique rows removed", attr(result, "messages"))))
     },
     msg_print = function(...) invisible(NULL)
   )
-  })
-  
-  # Edge case with an empty data frame -----------------------------------------------------------
-  test_that("it handles an empty data frame without error", {
-     with_mocked_bindings(
+})
+
+# Edge case with an empty data frame ------------------------------------------------------------
+test_that("it handles an empty data frame without error", {
+  with_mocked_bindings(
     { 
-    # Run the function
-    result <- unique_filter(dat = empty_df, project = "test_proj")
-    
-    # Assertions
-    expect_equal(nrow(result), 0)
-    expect_s3_class(result, "data.frame")
-    expect_true(any(grepl("Each row is a unique choice occurrence", 
-      attr(result, "messages"))))
+      # Run the function
+      result <- unique_filter(dat = empty_df, project = "test_proj")
+      
+      # Assertions
+      expect_equal(nrow(result), 0)
+      expect_s3_class(result, "data.frame")
+      expect_true(any(grepl("Each row is a unique choice occurrence", 
+                            attr(result, "messages"))))
     },
     msg_print = function(...) invisible(NULL)
   )
-  })
-  
+})
+
 

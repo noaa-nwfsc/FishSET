@@ -12,14 +12,10 @@
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/qaqc/preview_data_module.R", local = TRUE) # Preview data in table format
 source("modules/qaqc/summary_data_module.R", local = TRUE) # Summary stats data table
-<<<<<<< HEAD
 source("modules/qaqc/change_variable_module.R", local = TRUE) # Change variable class
-=======
-  source("modules/qaqc/remove_na_nan_module.R", local = TRUE) # Summary stats data table
-source("modules/qaqc/change_variable_module.R", local = TRUE) # Preview data in table format
->>>>>>> c9041c820194e0eed1cd4bb56cb2ac327e5f3e78
-source("modules/qaqc/remove_variables_module.R", local = TRUE) # Remove variables
+source("modules/qaqc/remove_na_nan_module.R", local = TRUE) # Summary stats data table
 source("modules/qaqc/unique_obs_module.R", local = TRUE) # Ensure only unique observations
+source("modules/qaqc/remove_variables_module.R", local = TRUE) # Remove variables
 source("modules/qaqc/spatial_checks_module.R", local = TRUE) # Spatial checks
 
 

@@ -21,19 +21,19 @@
 #' }
 #'
 data_verification <- function(dat, project, log_fun = TRUE) {
-
+  
   # Call in datasets Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
   check <- 0
-
+  
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)
   cat("Data verification checks for the", project, "project using", dat, "dataset on", 
       format(Sys.Date(), format = "%Y%m%d"), file = tmp)
-
+  
   # check each row of data is a unique choice occurrence at haul or trip level
   if (nrow(dataset) == nrow(dplyr::distinct(dataset))) {
     cat("\nPass: Each row is a unique choice occurrence.", file = tmp, append = TRUE)
@@ -42,19 +42,20 @@ data_verification <- function(dat, project, log_fun = TRUE) {
         file = tmp, append = TRUE)
     check <- 1
   }
-
+  
   # Handling of empty variables
   empty_ind <- qaqc_helper(dataset, function(x) all(is.na(x)))
   
   if (any(empty_ind)) {
     
-    cat("\n", names(dataset[empty_ind]), "is empty. Consider removing the column from the dataset.",
-      file = tmp, append = TRUE)
+    cat("\n", names(dataset[empty_ind]), 
+        "is empty. Consider removing the column from the dataset.",
+        file = tmp, append = TRUE)
     
   } else {
     cat("\nPass: No empty variables exist in the dataset.", file = tmp, append = TRUE)
   }
-
+  
   if (any(grepl("lat|lon", names(dataset), ignore.case = TRUE))) {
     
     lat_lon <- grep("lat|lon", names(dataset), ignore.case = TRUE)
@@ -63,7 +64,8 @@ data_verification <- function(dat, project, log_fun = TRUE) {
     
     if (any(c(deg_ll, num_ll))) {
       
-      cat("At least one lat/lon variable is not in decimal degrees. Use the function degree() to convert to decimal degrees.", 
+      cat("At least one lat/lon variable is not in decimal degrees. 
+          Use the function degree() to convert to decimal degrees.", 
           file = tmp, append = TRUE)
       
     }  else {
@@ -71,14 +73,14 @@ data_verification <- function(dat, project, log_fun = TRUE) {
       cat("\nPass: lat/lon variables in decimal degrees.",
           file = tmp, append = TRUE)
       
-     
+      
       
       lat <- find_lat(dataset)[1]
       lon <- find_lon(dataset)[1]
-       pts <- sample(nrow(dataset), nrow(dataset) / 10)
-       datatomap <- dataset[pts,c(lat,lon) ]
-       datatomap$lon <- datatomap[[lon]]
-       datatomap$lat <- datatomap[[lat]]
+      pts <- sample(nrow(dataset), nrow(dataset) / 10)
+      datatomap <- dataset[pts,c(lat,lon) ]
+      datatomap$lon <- datatomap[[lon]]
+      datatomap$lat <- datatomap[[lat]]
       
       if(min(datatomap$lon) < 0 & max(datatomap$lon) > 0){
         recenter <- TRUE
@@ -93,9 +95,11 @@ data_verification <- function(dat, project, log_fun = TRUE) {
       
       
       g_map <- ggplot2::ggplot() +
-        suppressWarnings(ggplot2::geom_map(map = worldmap, ggplot2::aes(x = worldmap$long, y = worldmap$lat,
-                                                                     map_id = worldmap$region),
-                                           fill = "grey", color = "black", size = 0.375))
+        suppressWarnings(ggplot2::geom_map(
+          map = worldmap, 
+          ggplot2::aes(x = worldmap$long, y = worldmap$lat,
+                       map_id = worldmap$region),
+          fill = "grey", color = "black", size = 0.375))
       
       
       map_theme <-
@@ -123,13 +127,13 @@ data_verification <- function(dat, project, log_fun = TRUE) {
         ggplot2::ylab("Latitude")
       
       
-       print(mapout)
+      print(mapout)
       print("10% of samples plotted. Verify that points occur in correct geographic area.")
     }
   }
-
+  
   msg_print(tmp)
-
+  
   if (log_fun) {
     
     data_verification_function <- list()
@@ -139,7 +143,7 @@ data_verification <- function(dat, project, log_fun = TRUE) {
     data_verification_function$msg <- suppressWarnings(readLines(tmp))
     log_call(project, data_verification_function)
   }
-
+  
   if (check == 1) {
     warning("At least one error exists")
   }
@@ -172,7 +176,7 @@ unique_filter <- function(dat, project, remove = FALSE) {
   #' # remove non-unique rows from dataset
   #' mod.dat <- unique_filter(pollockMainDataTable, remove = TRUE)
   #' }
-
+  
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
@@ -181,7 +185,7 @@ unique_filter <- function(dat, project, remove = FALSE) {
   tmp <- tempfile()
   cat("Unique filter check for", dat, "dataset on", 
       format(Sys.Date(), format = "%Y%m%d"), "\n", file = tmp, append = TRUE)
-
+  
   if (nrow(dataset) == nrow(dplyr::distinct(dataset))) {
     
     cat("Each row is a unique choice occurrence. No further action required.\n", 
@@ -191,37 +195,37 @@ unique_filter <- function(dat, project, remove = FALSE) {
     
     if (remove == FALSE) {
       
-      cat("Each row in data set is not a unique choice occurrence at haul or trip level. \nConsider removing non-unique rows.\n", 
+      cat("Each row in data set is not a unique choice occurrence at haul or trip level. 
+          \nConsider removing non-unique rows.\n", 
           file = tmp, append = TRUE)
       
     } else {
       
-      cat("Each row in data set is not a unique choice occurrence at haul or trip level. \nNon-unique rows removed.\n", 
+      cat("Each row in data set is not a unique choice occurrence at haul or trip level. 
+          \nNon-unique rows removed.\n", 
           file = tmp, append = TRUE)
       dataset <- dplyr::distinct(dataset)
     }
   }
-
+  
   msg_print(tmp)
   
-   # Read the messages from the temp file into a vector
+  # Read the messages from the temp file into a vector
   messages_vector <- suppressWarnings(readLines(tmp))
   
   # Attach this vector as an attribute to the dataframe
   attr(dataset, "messages") <- messages_vector
-
+  
   unique_filter_function <- list()
   unique_filter_function$functionID <- "unique_filter"
   unique_filter_function$args <- list(dat, project, remove)
   unique_filter_function$output <- c(dat)
   unique_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, unique_filter_function)
-
+  
   unlink(tmp)
   
-  #if (remove == TRUE) {
-    return(dataset)
- # }
+  return(dataset)
 }
 
 
@@ -249,23 +253,23 @@ empty_vars_filter <- function(dat, project, remove = FALSE) {
   #' # remove empty vars from data
   #' mod.dat <- empty_vars_filter(pollockMainDataTable, 'pollock', remove = TRUE)
   #' }
-
+  
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-
+  
   tmp <- tempfile()
   cat("Empty vars check for", dat, "dataset on", 
       format(Sys.Date(), format = "%Y%m%d"), "\n", file = tmp, append = TRUE)
-
+  
   empty_ind <- qaqc_helper(dataset, is_value_empty)
   
   if (any(empty_ind)) {
     
     empty_vars <- names(dataset[empty_ind])
-
+    
     if (remove == TRUE) {
       
       dataset <- dataset[!empty_ind]
@@ -282,16 +286,16 @@ empty_vars_filter <- function(dat, project, remove = FALSE) {
     
     cat("No empty variables identified.", file = tmp, append = TRUE)
   }
-
+  
   msg_print(tmp)
-
+  
   empty_vars_filter_function <- list()
   empty_vars_filter_function$functionID <- "empty_vars_filter"
   empty_vars_filter_function$args <- list(dat, project, remove)
   empty_vars_filter_function$output <- list(dat)
   empty_vars_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, empty_vars_filter_function)
-
+  
   unlink(tmp)
   
   if (remove == TRUE) return(dataset)
