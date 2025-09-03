@@ -153,7 +153,7 @@ test_that("test outlier_plot() works", {
   expect_named(result_multi, c("data_plot", "prob_plot"))
 })
 
-## Test the outlier_plot() handles errors ----------------------------------------------------------
+## Test the outlier_plot() handles errors ---------------------------------------------------------
 test_that("test outlier_plot() works", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test
@@ -176,7 +176,7 @@ test_that("test outlier_plot() works", {
   )
 })
 
-## Test outlier_plot() filtering -------------------------------------------------------------------
+## Test outlier_plot() filtering ------------------------------------------------------------------
 test_that("dat.remove filtering logic works as expected", {
   # Define the base folder path to the test data directory
   # This folder should contain the subfolder named "s1" to pass the test

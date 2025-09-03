@@ -79,13 +79,15 @@ outliers_server <- function(id, rv_project_name, rv_data, rv_folderpath){
           input$outlier_dist_input)
       
       # Determine sd_val if user-defined method is selected
-      dat_remove_val <- input$outlier_method_input
-      sd_val <- if (dat_remove_val == "user_defined_sd") {
+      dat_remove_method <- input$outlier_method_input
+      user_sd <- NULL
+      
+      # Handle user-defined SD value
+      if (dat_remove_method == "user_defined_sd") {
         req(input$outlier_sd_input)
-        dat_remove_val <- input$outlier_sd_input # Set dat.remove to the numeric value
-        input$outlier_sd_input
-      } else {
-        NULL
+        user_sd <- input$outlier_sd_input
+        # The outlier_plot function expects the numeric value in dat.remove
+        dat_remove_method <- user_sd 
       }
       
       # Use a quiet version of the plot function to avoid stopping the app on error
@@ -95,11 +97,92 @@ outliers_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       result <- q_outlier_plot(
         dat = rv_data$main,
         project = rv_project_name()$value,
-        x = input$outlier_var_input
+        x = input$outlier_var_input,
+        dat.remove = dat_remove_method,
+        sd_val = user_sd,
+        x.dist = input$outlier_dist_input
       )
       
       grid::grid.draw(result[[1]])
     }, height = 600, res = 100)
+    
+    # Modal for reviewing and removing outliers
+    observeEvent(input$review_outliers_btn, {
+      req(rv_project_name(), rv_data$main, input$outlier_var_input, input$outlier_method_input)
+      
+      original_data <- rv_data$main
+      original_n <- nrow(original_data)
+      
+      # Determine removal method and sd_val
+      dat_remove_method <- input$outlier_method_input
+      user_sd <- NULL
+      if (dat_remove_method == "user_defined_sd") {
+        req(input$outlier_sd_input)
+        user_sd <- input$outlier_sd_input
+        dat_remove_method <- user_sd
+      }
+      
+      # Perform the removal on a temporary copy
+      removed_data <- outlier_remove(
+        dat = original_data,
+        project = rv_project_name()$value,
+        x = input$outlier_var_input,
+        dat.remove = dat_remove_method,
+        sd_val = user_sd,
+        over_write = FALSE # IMPORTANT: Do not overwrite yet
+      )
+      
+      # Store the processed data in the reactive value
+      rv_outlier_data(removed_data)
+      new_n <- nrow(removed_data)
+      
+      # Show the confirmation modal
+      showModal(
+        modalDialog(
+          title = "Confirm Outlier Removal",
+          p(strong("Variable: "), code(input$outlier_var_input)),
+          p(strong("Method: "), code(input$outlier_method_input)),
+          if (input$outlier_method_input == "user_defined_sd") {
+            p(strong("SD Value: "), code(input$outlier_sd_input))
+          },
+          hr(),
+          p(paste("This action will remove", original_n - new_n, "rows from the dataset.")),
+          p(paste("Original row count:", original_n)),
+          p(paste("New row count:", new_n)),
+          footer = tagList(
+            modalButton("Cancel"),
+            actionButton(ns("save_removal_btn"), 
+                         "Remove outliers", 
+                         class = "btn-danger",
+                         icon = icon("trash"))
+          ),
+          size = "m",
+          easyClose = TRUE
+        ))
+    })
+    
+    # Save changes to session data and database
+    observeEvent(input$save_removal_btn, {
+      req(rv_outlier_data(), rv_project_name())
+      
+      # Update the main reactive data
+      rv_data$main <- rv_outlier_data()
+      
+      # Save the updated data to the project database
+      q_save <- quietly(table_save)
+      saved <- q_save(rv_data$main, project = rv_project_name()$value, type = "main")
+      
+      if (!is.null(saved$result)) {
+        showNotification("Outliers removed and data saved successfully!", type = "default")
+        
+      } else {
+        showNotification("Failed to save data.", type = "error")
+      }
+      
+      # Clean up and close modal
+      rv_outlier_data(NULL)
+      removeModal()
+    })
   })
 }
 
@@ -123,7 +206,8 @@ outliers_ui <- function(id){
                   choices = NULL),
       selectInput(ns("outlier_method_input"), 
                   label = "Select outlier method:",
-                  choices = c("5-95% Quantile" = "5_95_quant", 
+                  choices = c("None" = "none",
+                              "5-95% Quantile" = "5_95_quant", 
                               "25-75% Quantile" = "25_75_quant", 
                               "Mean +/- 2 SD" = "mean_2SD", 
                               "Median +/- 2 SD" = "median_2SD", 
@@ -140,12 +224,27 @@ outliers_ui <- function(id){
                               "Negative Binomial" = "negative binomial"))
     ),
     
+    # Conditional panel for user-defined SD
+    conditionalPanel(
+      condition = "input.outlier_method_input == 'user_defined_sd'",
+      ns = ns,
+      numericInput(ns("outlier_sd_input"), "Enter SD value:", 
+                   value = 2, min = 0, step = 0.5, width = "25%")
+    ),
+    
+    actionButton(ns('review_outliers_btn'),
+                 label = 'Review & Remove Outliers', 
+                 class = "btn-secondary",
+                 width = "25%"),
+    
     bslib::card(
-      height = "650px",
       fill = TRUE,
       bslib::card_header("Outlier Analysis"),
       bslib::card_body(
+        fillable = TRUE,
         DT::DTOutput(ns("outlier_summary_table")),
+        # Add a div for responsive vertical spacing
+        div(class = "mt-2"), # mt-4 means "margin-top of size 4"
         plotOutput(ns("outlier_diagnostic_plot"))
       )
     )

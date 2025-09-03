@@ -306,8 +306,8 @@ outlier_plot <- function(dat, project, x, dat.remove = 'none', sd_val = NULL,
   }
   
   tmp_theme <- fishset_theme() + 
-    ggplot2::theme(axis.text = ggplot2::element_text(size = 9), 
-                   axis.title = ggplot2::element_text(size = 8))
+    ggplot2::theme(axis.text = ggplot2::element_text(size = 10), 
+                   axis.title = ggplot2::element_text(size = 10))
   
   # Data spread plot
   data_spread_plot <- ggplot2::ggplot() +
@@ -488,7 +488,7 @@ outlier_plot <- function(dat, project, x, dat.remove = 'none', sd_val = NULL,
     
     fig <- gridExtra::arrangeGrob(data_spread_plot, hist_plot,
                                   ncol = 2, 
-                                  top = grid::textGrob(p_title, gp = grid::gpar(fontsize = 10)))
+                                  top = grid::textGrob(p_title, gp = grid::gpar(fontsize = 11)))
     
   } else {
     
