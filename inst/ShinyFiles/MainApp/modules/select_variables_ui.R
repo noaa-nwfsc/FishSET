@@ -30,10 +30,13 @@ select_main_var_ui <- function(id){
                        tagList(
                          span(style = "white-space: wrap; display: inline-flex; 
                                        align-items: center;",
-                              HTML("Select trip/haul ID from primary data: &nbsp;"),
+                              HTML("Select unique observation ID from primary data: &nbsp;"),
                               bslib::tooltip(
                                 shiny::icon("circle-info", `aria-label` = "More information"),
-                                HTML("If unique trip/haul ID is not available for your dataset, 
+                                HTML("This variable should identify unique observations in the 
+                                      main data table. For example, if data are at the trip level, 
+                                      then a trip_id would be the unique observation ID. 
+                                      If unique trip/haul ID is not available for your dataset, 
                                       use the optional input below to create an ID variable. 
                                       Return to this input after the variable is created and 
                                       saved."),
