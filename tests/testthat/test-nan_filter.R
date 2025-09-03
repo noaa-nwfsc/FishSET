@@ -54,7 +54,7 @@ on.exit({
 # Now, replace the original log_call with our mock function.
 assignInNamespace("log_call", mock_log_call, ns = "FishSET")
 
-# No NaNs when data is clean -----------------------------------------------------------------------
+# No NaNs when data is clean ----------------------------------------------------------------------
 test_that("it reports no NaNs when data is clean", {
   clean_df <- data.frame(a = 1:3, b = c("x", "y", "z"))
   
@@ -69,12 +69,14 @@ test_that("it reports no NaNs when data is clean", {
     msg_print = function(...) invisible(NULL),
   )
 })
-# Identifies and lists columns with NaNs ------------------------------------------------------------
+# Identifies and lists columns with NaNs ----------------------------------------------------------
 test_that("it identifies and lists columns with NaNs", {
   with_mocked_bindings(
     {
       result <- nan_filter(test_df, "test")
-      expected_msg <-paste0("The following columns contain NaNs: nan_only_col, mixed_special_col, all_nan_col. Consider using nan_filter to replace or remove NaNs.")
+      expected_msg <-
+        paste0("The following columns contain NaNs: nan_only_col, mixed_special_col, 
+               all_nan_col. Consider using nan_filter to replace or remove NaNs.")
       # Check that the expected message is part of the output
       expect_true(any(grepl(expected_msg, attr(result, "messages"))))
     },
@@ -83,25 +85,26 @@ test_that("it identifies and lists columns with NaNs", {
 })
 
 
-# Removes rows with NaNs in a single specified column ----------------------------------------------
+# Removes rows with NaNs in a single specified column ---------------------------------------------
 test_that("it removes rows with NaNs in a single specified column", {
   with_mocked_bindings(
     {
       result <- nan_filter(test_df, "test", x = "nan_only_col", remove = TRUE)
       expect_equal(nrow(result), 4)
       expect_equal(result$id, c(1, 3, 4, 6))
-      expect_true(any(grepl("All rows containing NaNs have been removed", attr(result, "messages"))))
+      expect_true(any(grepl("All rows containing NaNs have been removed", 
+                            attr(result, "messages"))))
     },
     msg_print = function(...) invisible(NULL),
   )
 })
 
-# Removes rows based on NaNs in multiple columns ---------------------------------------------------
+# Removes rows based on NaNs in multiple columns --------------------------------------------------
 test_that("it removes rows based on NaNs in multiple columns", {
   with_mocked_bindings(
     {
       result <- nan_filter(test_df, "test", x = c("nan_only_col", "mixed_special_col"),
-        remove = TRUE)
+                           remove = TRUE)
       expect_equal(nrow(result), 3)
       expect_equal(result$id, c(1, 3,6))
     },
@@ -123,12 +126,12 @@ test_that("it replaces NaNs with the column mean by default", {
   )
 })
 
-# replaces NaNs with a specific numeric value ------------------------------------------------------
+# replaces NaNs with a specific numeric value -----------------------------------------------------
 test_that("it replaces NaNs with a specific numeric value", {
   with_mocked_bindings(
     {
       result <- nan_filter(test_df, "test", x = "nan_only_col", replace = TRUE, 
-        rep.value = 0)
+                           rep.value = 0)
       
       expect_equal(sum(is.na(result$nan_only_col)), 0)
       expect_equal(result$nan_only_col, c(10, 0, 30, 40, 0, 60))
@@ -145,7 +148,7 @@ test_that("replace=TRUE takes precedence over remove=TRUE", {
     {
       # When both are TRUE, replace should be performed.
       result <- nan_filter(test_df, "test", x = "nan_only_col", replace = TRUE, 
-        remove = TRUE)
+                           remove = TRUE)
       
       # The result should be a replacement, not a removal.
       expect_equal(nrow(result), 6) # No rows removed
@@ -155,7 +158,7 @@ test_that("replace=TRUE takes precedence over remove=TRUE", {
   )
 })
 
-# warns when a specified column has no NaNs ------------------------------------------------------
+# warns when a specified column has no NaNs -------------------------------------------------------
 test_that("it warns when a specified column has no NaNs", {
   with_mocked_bindings(
     {

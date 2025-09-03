@@ -3,13 +3,13 @@
 # Description: This module is to remove/replace NA or NaN values found in the primary data table.
 #
 # Authors: Anna Abelman, Paul Carvalho 
-# Date created: 8/7/2025
+# Date created: 8/28/2025
 # Dependencies: shiny, DT
 # Notes: This module is used within qaqc_module.R
 # =================================================================================================
 
 # Server ------------------------------------------------------------------------------------------
-#' summary_data_server
+#' remove_na_nan_server
 #'
 #' @description Defines the server-side logic for removing NA/NaN values module. It renders
 #' an interactive DT::datatable that displays any variables that contain these missing values or
@@ -29,11 +29,11 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
     # Initialize reactives
     rv_na_filter_message <- reactiveVal("") # Reactive value for NA messages
     rv_nan_filter_message <- reactiveVal("") # Reactive value for NaN messages
-    rv_na_action_taken <- reactiveVal(FALSE) # Reactive value indicating whether remove/replace was 
-                                          # clicked for NAs
-    rv_nan_action_taken<- reactiveVal(FALSE)# Reactive value indicating whether remove/replace was 
-                                          # clicked for NaNs
-
+    # Reactive value indicating whether remove/replace was clicked for NAs
+    rv_na_action_taken <- reactiveVal(FALSE)
+    # Reactive value indicating whether remove/replace was clicked for NaNs
+    rv_nan_action_taken<- reactiveVal(FALSE)
+    
     # Data frame of variables with NAs and counts
     na_df <- reactive({
       req(rv_data) # Ensure data is not null
@@ -43,14 +43,14 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
       if (is_value_empty(na_cols)) {
         # Return an empty data frame or NULL if no NAs
         return(NULL) 
-      } else{
         
+      } else{
         main_data_na <- main_data %>% 
           select(all_of(c(na_cols))) %>% 
           summarise(across(everything(), ~sum(is.na(.) & !is.nan(.)))) %>% 
           pivot_longer(., cols = everything(),
-            names_to="Variable",
-            values_to = "NA Count")
+                       names_to="Variable",
+                       values_to = "NA Count")
         
         return(main_data_na)
       }
@@ -71,8 +71,8 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
           select(all_of(c(nan_cols))) %>% 
           summarise(across(everything(), ~sum(is.nan(.)))) %>% 
           pivot_longer(., cols = everything(),
-            names_to="Variable",
-            values_to = "NaN Count")
+                       names_to="Variable",
+                       values_to = "NaN Count")
         
         return(main_data_nan)
       }
@@ -89,9 +89,11 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
         # After a button click, show the message from na_filter()
         shinyjs::hide("no_na_message")
         shinyjs::show("na_filter_message_container")
+        
       } else {
         # On initial load or data change, manage the "no NA" message
         shinyjs::hide("na_filter_message_container")
+        
         if (has_nas) {
           shinyjs::hide("no_na_message")
         } else {
@@ -105,9 +107,11 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
         # After a button click, show the message from na_filter()
         shinyjs::hide("no_nan_message")
         shinyjs::show("nan_filter_message_container")
+        
       } else {
         # On initial load or data change, manage the "no NA" message
         shinyjs::hide("nan_filter_message_container")
+        
         if (has_nans) {
           shinyjs::hide("no_nan_message")
         } else {
@@ -140,10 +144,10 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
         footer = tagList(
           # Button to remove all rows with NA values
           actionButton(ns("na_filter_all_btn"), "Remove All NAs", 
-            class = "btn-danger"),
+                       class = "btn-danger"),
           # Button to replace NAs with the mean of their column
           actionButton(ns("na_filter_mean_btn"), "Replace with Mean", 
-            class = "btn-success"),
+                       class = "btn-success"),
           # Button to close the modal without any action
           modalButton("Cancel")
         ),
@@ -164,10 +168,9 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
       na_names <- qaqc_helper(main_data, "NA", output = "names")
       
       if (length(na_names) > 0) {
-        
         q_test <- quietly_test(na_filter)
         output <- q_test(main_data, project = project_name, x = na_names,  
-          replace = FALSE, remove = TRUE, over_write = TRUE)  
+                         replace = FALSE, remove = TRUE, over_write = TRUE)  
         
         if (!is_value_empty(output)) {
           rv_data$main <- output
@@ -178,17 +181,21 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
           # ONLY remove the first element if there is more than one message
           if (length(messages_to_show) > 1) {
             rv_na_filter_message(paste(messages_to_show[-1], collapse = "\n"))
+            
           } else {
             # Otherwise, just show the single message that exists
             rv_na_filter_message(paste(messages_to_show, collapse = "\n"))
           }
+          
           rv_na_action_taken(TRUE) # Set the flag
         }
+        
       } else {
         showNotification('No missing values to remove', type = "default", duration = 60)
       }
+      
       removeModal()
-    } )
+    })
     
     # Run na_filter function to replace NAs with mean value
     # save to DB and rv_data; show message
@@ -205,7 +212,7 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
         
         q_test <- quietly_test(na_filter)
         output <- q_test(main_data, project = project_name, x = na_names, 
-          replace = TRUE, remove = FALSE, rep.value = "mean", over_write = TRUE)  
+                         replace = TRUE, remove = FALSE, rep.value = "mean", over_write = TRUE)  
         
         if (!is_value_empty(output)) {
           rv_data$main <- output
@@ -216,15 +223,19 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
           # ONLY remove the first element if there is more than one message
           if (length(messages_to_show) > 1) {
             rv_na_filter_message(paste(messages_to_show[-1], collapse = "<br>"))
+            
           } else {
             # Otherwise, just show the single message that exists
             rv_na_filter_message(paste(messages_to_show, collapse = "<br>"))
           }
+          
           rv_na_action_taken(TRUE) # Set the flag
         }
+        
       } else {
         showNotification('No missing values to remove', type = "default", duration = 60)
       }
+      
       removeModal()
     })
     
@@ -236,10 +247,10 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
         footer = tagList(
           # Button to remove all rows with NA values
           actionButton(ns("nan_filter_all_btn"), "Remove All NaNs",
-            class = "btn-danger"),
+                       class = "btn-danger"),
           # Button to replace NAs with the mean of their column
           actionButton(ns("nan_filter_mean_btn"), "Replace with Mean", 
-            class = "btn-success"),
+                       class = "btn-success"),
           # Button to close the modal without any action
           modalButton("Cancel")
         ),
@@ -262,7 +273,7 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
         
         q_test <- quietly_test(nan_filter)
         output <- q_test(main_data, project = project_name, x = nan_names,
-          replace = FALSE, remove = TRUE, over_write = FALSE)
+                         replace = FALSE, remove = TRUE, over_write = FALSE)
         
         if (!is_value_empty(output)) {
           rv_data$main <- output
@@ -272,15 +283,19 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
           # ONLY remove the first element if there is more than one message
           if (length(messages_to_show) > 1) {
             rv_nan_filter_message(paste(messages_to_show[-1], collapse = "<br>"))
+            
           } else {
             # Otherwise, just show the single message that exists
             rv_nan_filter_message(paste(messages_to_show, collapse = "<br>"))
           }
+          
           rv_nan_action_taken(TRUE) # Set the flag
         }
+        
       } else {
         showNotification('No missing values to remove', type = "default", duration = 60)
       }
+      
       removeModal()
     })
     
@@ -299,7 +314,7 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
         
         q_test <- quietly_test(nan_filter)
         output <- q_test(main_data, project = project_name, x = nan_names,
-          replace = TRUE, remove = FALSE, rep.value = "mean", over_write = FALSE)
+                         replace = TRUE, remove = FALSE, rep.value = "mean", over_write = FALSE)
         
         if (!is_value_empty(output)) {
           
@@ -310,25 +325,27 @@ remove_na_nan_server <- function(id, rv_project_name, rv_data){
           # ONLY remove the first element if there is more than one message
           if (length(messages_to_show) > 1) {
             rv_nan_filter_message(paste(messages_to_show[-1], collapse = "<br>"))
+            
           } else {
             # Otherwise, just show the single message that exists
             rv_nan_filter_message(paste(messages_to_show, collapse = "<br>"))
           }
+          
           rv_nan_action_taken(TRUE) # Set the flag
         }
+        
       } else {
         showNotification('No missing values to remove', type = "default", duration = 60)
       }
+      
       removeModal()
     })
-    
   })
 }
 
 
-
 # UI ----------------------------------------------------------------------------------------------
-#' summary_data_ui
+#' remove_na_nan_ui
 #'
 #' @description Creates the user interface for removing/replacing the NA and NaN values in the
 #' primary data table. This included a placeholder for data tables showing variables and counts of 
@@ -353,18 +370,18 @@ remove_na_nan_ui <- function(id){
         height = "500px",
         fill = TRUE,
         div(id = ns("no_na_message"),
-          style = "color: grey; font-style: italic; font-size: 19px;",
-          p("No NA observation(s) from the main data table")
+            style = "color: grey; font-style: italic; font-size: 19px;",
+            p("No NA observation(s) from the main data table")
         ),
         div(id = ns('na_filter_message_container'),
-          style = "color: green; display: none; font-size: 16px;",
-          uiOutput(ns("rv_na_filter_message_out"))),
+            style = "color: green; display: none; font-size: 16px;",
+            uiOutput(ns("rv_na_filter_message_out"))),
         DT::DTOutput(ns("na_datatable")),
         bslib::card_footer(
           class = "d-flex justify-content-end bg-transparent border-0",
           actionButton(inputId = ns("remove_na_btn"),  
-            label = "Remove NAs",
-            width = "50%"))
+                       label = "Remove NAs",
+                       width = "50%"))
       ),
       
       # Card for NaN values
@@ -375,20 +392,19 @@ remove_na_nan_ui <- function(id){
         height = "500px",
         fill = TRUE,    
         div(id = ns("no_nan_message"),
-          style = "color: grey; font-style: italic; font-size: 19px;",
-          p("No NaN observation(s) from the main data table")
+            style = "color: grey; font-style: italic; font-size: 19px;",
+            p("No NaN observation(s) from the main data table")
         ),
         div(id = ns('nan_filter_message_container'),
-          style = "color: green; display: none; font-size: 16px;",
-          uiOutput(ns("rv_nan_filter_message_out"))),
+            style = "color: green; display: none; font-size: 16px;",
+            uiOutput(ns("rv_nan_filter_message_out"))),
         DT::DTOutput(ns("nan_datatable")),
         bslib::card_footer(
           class = "d-flex justify-content-end bg-transparent border-0",
           actionButton(inputId = ns("remove_nan_btn"),  
-            label = "Remove NaNs",
-            width = "50%"))
+                       label = "Remove NaNs",
+                       width = "50%"))
       )
     )
   )
-  
 }

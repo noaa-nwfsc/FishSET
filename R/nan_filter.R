@@ -1,6 +1,5 @@
 # Filters NaN's from variable
 
-
 nan_identify <- function(dat, project) {
   #' Identify NaNs and NAs
   #' 
@@ -19,7 +18,7 @@ nan_identify <- function(dat, project) {
   #' \dontrun{
   #' nan_identify(pcodMainDataTable, "pcod")
   #' }
-
+  
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
@@ -34,7 +33,7 @@ nan_identify <- function(dat, project) {
     
     cat("The following columns contain NAs: ", paste0(na_cols, collapse = ", "),
         ". Consider using na_filter to replace or remove NAs.\n", file = tmp, sep = "")
-
+    
   } else {
     
     cat("No columns in the dataframe contain NAs.\n", file = tmp, append = TRUE)
@@ -44,10 +43,10 @@ nan_identify <- function(dat, project) {
   na2_cols <- qaqc_helper(dataset, function(x) any(x == -999), "names")
   
   if (length(na2_cols) > 0) {
-     
-     cat("The following columns contain the value -999: ", paste(na2_cols, collapse = ", "),
-         ". Check that this is a valid value or stands for NA.\n", file = tmp,sep = "", 
-         append = TRUE)
+    
+    cat("The following columns contain the value -999: ", paste(na2_cols, collapse = ", "),
+        ". Check that this is a valid value or stands for NA.\n", file = tmp,sep = "", 
+        append = TRUE)
   }
   
   # check for NaNs
@@ -58,20 +57,20 @@ nan_identify <- function(dat, project) {
     cat("The following columns contain NaNs: ", paste(nan_cols, collapse = ", "),
         ". Consider using na_filter to replace or remove NaNs.\n", file = tmp, sep = "", 
         append = TRUE)
-
+    
   } else {
-   
+    
     cat("No columns in the dataframe contain NaNs.\n", file = tmp, append = TRUE)
   }
-
+  
   msg_print(tmp)
-
+  
   nan_identify_function <- list()
   nan_identify_function$functionID <- "nan_identify"
   nan_identify_function$args <- list(dat, project)
   nan_identify_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, nan_identify_function)
-
+  
   unlink(tmp)
 }
 
@@ -124,7 +123,7 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', 
   #'                       remove = TRUE)
   #' }
-
+  
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
@@ -159,14 +158,14 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
           
           dataset[x_nan] <- lapply(x_nan, function(i) {
             
-          if (is.numeric(dataset[[i]])) {
+            if (is.numeric(dataset[[i]])) {
               mean_function <- mean
               if (rep.value == "mean") {
                 rep.value <- do.call(mean_function, list(dataset[[i]], na.rm = TRUE))
               }
               
               # # TODO: extend rep.value to non-numeric vars
-               if (!is.numeric(rep.value)) {
+              if (!is.numeric(rep.value)) {
                 
                 stop("Replacement value must be numeric.", call. = FALSE)
               }
@@ -210,7 +209,6 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   
   msg_print(tmp)
   
-    
   # Read the messages from the temp file into a vector
   messages_vector <- suppressWarnings(readLines(tmp))
   
@@ -225,8 +223,7 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, nan_filter_function)
   
-
-    return(dataset)
+  return(dataset)
   
 }
 
@@ -312,15 +309,15 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
       if (any(x_empty)) {
         
         cat("The following variables are empty (contain all NAs): ",
-                paste(x[x_empty], collapse = ", "), 
-                ". Use empty_vars_filter() to remove empty variables.", file = tmp, 
-                  append = TRUE)
+            paste(x[x_empty], collapse = ", "), 
+            ". Use empty_vars_filter() to remove empty variables.", file = tmp, 
+            append = TRUE)
       }
       
       if (any(!x_ind)) {
         
         cat(paste(x[!x_ind], collapse = ", "), " do not contain NAs.", file = tmp, 
-                  append = TRUE) 
+            append = TRUE) 
       }
       
       if (length(x_na) > 0) {
@@ -329,13 +326,13 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
           
           dataset[x_na] <- lapply(x_na, function(i) {
             
-               if (is.numeric(dataset[[i]])) {
+            if (is.numeric(dataset[[i]])) {
               mean_function <- mean
               if (rep.value == "mean") {
                 rep.value <- do.call(mean_function, list(dataset[[i]], na.rm = TRUE))
               }
               
-             
+              
               if (!is.numeric(rep.value)) {
                 
                 stop("Replacement value must be numeric.", call. = FALSE)
@@ -392,9 +389,5 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   na_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, na_filter_function)
   
-
-  
-
-    return(dataset)
-
+  return(dataset)
 }

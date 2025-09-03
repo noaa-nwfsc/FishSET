@@ -75,7 +75,7 @@ qaqc_sidebar_ui <- function(id) {
                  choices = c("Preview data" = "preview", 
                              "Summary table"="summary",
                              "Change variable class" = "variable_class",
-                             "Identifying NAs and NaNs" = "na_nan",
+                             "Check NAs and NaNs" = "na_nan",
                              "Remove variables" = "remove_vars",
                              "Spatial checks" = "spat_checks"),
                  selected = "preview")
