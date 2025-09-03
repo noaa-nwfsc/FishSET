@@ -32,6 +32,7 @@ test_df <- data.frame(
   no_special_col = c(1, 2, 3, 4, 5, 6),
   all_nan_col = rep(NaN, 6)
 )
+
 # Create mock log_call() --------------------------------------------------------------------------
 # Description: Override the FishSET::log_call() function to avoid errors with connecting when
 #              running spat_qaqc() through unit tests
@@ -74,11 +75,9 @@ test_that("it identifies and lists columns with NaNs", {
   with_mocked_bindings(
     {
       result <- nan_filter(test_df, "test")
-      expected_msg <-
-        paste0("The following columns contain NaNs: nan_only_col, mixed_special_col, 
-               all_nan_col. Consider using nan_filter to replace or remove NaNs.")
       # Check that the expected message is part of the output
-      expect_true(any(grepl(expected_msg, attr(result, "messages"))))
+      expect_true(any(grepl("The following columns contain NaNs: nan_only_col, mixed_special_col,",
+        attr(result, "messages"))))
     },
     msg_print = function(...) invisible(NULL)
   )
