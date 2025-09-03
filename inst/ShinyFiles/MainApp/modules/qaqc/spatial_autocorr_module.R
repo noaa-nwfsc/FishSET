@@ -171,16 +171,18 @@ spatial_autocorr_ui <- function(id){
                   label = "Select a variable to estimate spatial autocorrelation:",
                   choices = NULL),
       
-      tableOutput(ns("moran_table")),
+      div(style = "display: flex; justify-content: center;",
+          tableOutput(ns("moran_table"))
+      ),
       
       conditionalPanel(
         condition = "output.show_lisa_plot",
         ns = ns,
         div(
-          style = "width: 800px; height: 600px; margin-right: auto;",
+          style = "width: 800px; height: 600px; margin: auto; text-align: center;",
           plotOutput(ns("lisa_plot"), width = "100%", height = "100%"),
           HTML(
-            paste0("<p style='text-align: left; font-size: 14px; color: grey;'>",
+            paste0("<p font-size: 14px; color: grey;'>",
                    "Note: Local indicators of spatial association (LISA) breaks down the
                   Moran's I to the local level, and shows <br> where clustering is happening. 
                   High-high identifies 'hot-spots', low-low identifies 'cold-spots'. Spatial
