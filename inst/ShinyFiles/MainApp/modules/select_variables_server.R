@@ -511,17 +511,17 @@ create_zone_id_server <- function(id, rv_project_name, rv_data){
           size = "m",
           
           selectInput(ns("modal_main_lon"),
-                      "Select longitude from main data",
+                      HTML("Select longitude from <strong>main data</strong>"),
                       choices = find_lon(rv_data$main),
                       selected = find_lon(rv_data$main)[1]),
           
           selectInput(ns("modal_main_lat"),
-                      "Select latitude from main data",
+                      HTML("Select latitude from <strong>main data</strong>"),
                       choices = find_lat(rv_data$main),
                       selected = find_lat(rv_data$main)[1]),
           
           selectInput(ns("modal_spat_zone"),
-                      "Select zone ID from spatial data",
+                      HTML("Select zone ID from <strong>spatial data</strong>"),
                       choices = colnames(rv_data$spat)),
           
           textInput(ns("modal_new_name"),
