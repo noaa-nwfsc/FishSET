@@ -57,12 +57,12 @@ test_that("it handles unique data correctly with remove=FALSE", {
       expect_equal(nrow(result), 4)
       expect_equal(result, unique_df, ignore_attr = TRUE)
       expect_true(any(grepl("Each row is a unique choice occurrence", 
-        attr(result, "messages"))))
+                            attr(result, "messages"))))
     },
     msg_print = function(...) invisible(NULL)
   )
 })
-  
+
   # Duplicate rows exist, remove = FALSE (default) -----------------------------------------------
   test_that("it identifies duplicates but does not remove them when remove=FALSE", {
      with_mocked_bindings(
@@ -112,4 +112,3 @@ test_that("it handles unique data correctly with remove=FALSE", {
   )
   })
   
-
