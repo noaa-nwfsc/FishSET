@@ -12,7 +12,12 @@
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/qaqc/preview_data_module.R", local = TRUE) # Preview data in table format
 source("modules/qaqc/summary_data_module.R", local = TRUE) # Summary stats data table
+<<<<<<< HEAD
 source("modules/qaqc/change_variable_module.R", local = TRUE) # Change variable class
+=======
+source("modules/qaqc/remove_na_nan_module.R", local = TRUE) # Summary stats data table
+source("modules/qaqc/change_variable_module.R", local = TRUE) # Preview data in table format
+>>>>>>> b031ecb20d46b29cd29e39fc57d61af87d315f62
 source("modules/qaqc/remove_variables_module.R", local = TRUE) # Remove variables
 source("modules/qaqc/unique_obs_module.R", local = TRUE) # Ensure only unique observations
 source("modules/qaqc/spatial_checks_module.R", local = TRUE) # Spatial checks
@@ -41,7 +46,10 @@ qaqc_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     
     # Change variable class for primary data
     variable_class_server("change_variable_class", rv_project_name, rv_data)
-
+    
+    # Remove/replace NA/NaNs values
+    remove_na_nan_server("na_and_nan", rv_project_name, rv_data)
+    
     # Remove variables
     remove_variables_server("rm_variables", rv_project_name, rv_data, rv_folderpath)
     
@@ -76,6 +84,7 @@ qaqc_sidebar_ui <- function(id) {
                  choices = c("Preview data" = "preview", 
                              "Summary table"="summary",
                              "Change variable class" = "variable_class",
+                             "Check NAs and NaNs" = "na_nan",
                              "Remove variables" = "remove_vars",
                              "Unique observations" = "unique_obs",
                              "Spatial checks" = "spat_checks"),
@@ -109,12 +118,19 @@ qaqc_ui <- function(id){
       ns = ns,
       summary_data_ui(ns("summary_table"))
     ),
-
+    
     # Conditionally display the change class UI
     conditionalPanel(
       condition = "input.qaqc_options == 'variable_class'",
       ns = ns,
       variable_class_ui(ns("change_variable_class"))
+    ),
+    
+    # Conditionally display the NA/NaN values UI
+    conditionalPanel(
+      condition = "input.qaqc_options == 'na_nan'",
+      ns = ns,
+      remove_na_nan_ui(ns("na_and_nan"))
     ),
     
     # Conditionally display remove variables UI

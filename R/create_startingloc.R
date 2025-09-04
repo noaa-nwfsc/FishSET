@@ -62,7 +62,7 @@ create_startingloc <- function(dat,
                                zoneID,
                                spatID, 
                                name = "startingloc") {
-    
+  
   # TODO: consider removing assignment_column() functionality
   # TODO: Change this to required? project is required for nearly every other function
   # why not here?
@@ -74,7 +74,7 @@ create_startingloc <- function(dat,
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
-
+  
   # Call in port table
   out <- data_pull(port, project)
   port.table <- out$dataset
@@ -99,7 +99,7 @@ create_startingloc <- function(dat,
     lon.dat = port_lon, lat.dat = port_lat, cat = spatID, closest.pt = TRUE, 
     log.fun = FALSE, bufferval = 100 # need to consider how this affects things
   )
-
+  
   # Create starting loc variable
   # TODO: trip_id is currently required; can't be NULL. Resolve.
   if (is.null(trip_id)) {
@@ -111,12 +111,14 @@ create_startingloc <- function(dat,
   
   newvar <- rep(NA, nrow(dataset))
   newvar[2:nrow(dataset)] <- dataset[[zoneID]][1:(nrow(dataset) - 1)]
-
+  
   # Make starting of trips set to zone of starting port
   if (!is.null(trip_id)) {
     rownumbers <- match(
-      trimws(dataset[tapply(seq_along(dataset[[trip_id]]), dataset[[trip_id]], min), starting_port][[1]]), 
-      port.table[port_name])
+      trimws(dataset[tapply(seq_along(dataset[[trip_id]]), dataset[[trip_id]], min), 
+                     starting_port][[1]]), 
+      port.table[[port_name]]
+    )
     
     if (any(is.na(rownumbers))) { 
       warning('NAs produced. At least one disembarked port was not found in the port table.')
@@ -131,14 +133,14 @@ create_startingloc <- function(dat,
   
   g <- cbind(dataset, as.character(newvar))
   colnames(g)[dim(g)[2]] <- name
-
+  
   create_startingloc_function <- list()
   create_startingloc_function$functionID <- "create_startingloc"
   create_startingloc_function$args <- list(dat, project, spat, port, trip_id, 
                                            haul_order, starting_port, zoneID, 
                                            spatID, name)
-
+  
   log_call(project, create_startingloc_function)
-
+  
   return(g)
 }
