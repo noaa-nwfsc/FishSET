@@ -102,7 +102,7 @@ unique_obs_server <- function(id, rv_project_name, rv_data){
       
       # Saving message to be shown in gui
       messages_to_show <- attr(removed_dup, "messages")
-      rv_duplicate_message(paste(messages_to_show, collapse = "<br>"))
+      rv_duplicate_message(paste(messages_to_show[-1], collapse = "<br>"))
       
       # Update the reactive data
       rv_data$main <- removed_dup

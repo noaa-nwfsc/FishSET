@@ -89,7 +89,7 @@ test_that("it handles unique data correctly with remove=FALSE", {
     expect_equal(nrow(result), 3) 
     # Should match the distinct version
     expect_equal(result, dplyr::distinct(duplicate_df), ignore_attr = TRUE) 
-    expect_true(any(grepl("Non-unique rows removed", attr(result, "messages"))))
+    expect_true(any(grepl("Duplicate rows have been removed.", attr(result, "messages"))))
     },
     msg_print = function(...) invisible(NULL)
   )

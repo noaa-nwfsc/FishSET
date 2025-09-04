@@ -196,7 +196,7 @@ unique_filter <- function(dat, project, remove = FALSE) {
       
     } else {
       
-      cat("Each row in data set is not a unique choice occurrence at haul or trip level. \nNon-unique rows removed.\n", 
+      cat("Duplicate rows have been removed.", 
           file = tmp, append = TRUE)
       dataset <- dplyr::distinct(dataset)
     }
