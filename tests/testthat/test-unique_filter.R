@@ -63,7 +63,7 @@ test_that("it handles unique data correctly with remove=FALSE", {
   )
 })
 
-  # Duplicate rows exist, remove = FALSE (default) -----------------------------------------------
+  # Duplicate rows exist, remove = FALSE (default) ------------------------------------------------
   test_that("it identifies duplicates but does not remove them when remove=FALSE", {
      with_mocked_bindings(
     { 
@@ -95,7 +95,7 @@ test_that("it handles unique data correctly with remove=FALSE", {
   )
   })
   
-  # Edge case with an empty data frame -----------------------------------------------------------
+  # Edge case with an empty data frame ------------------------------------------------------------
   test_that("it handles an empty data frame without error", {
      with_mocked_bindings(
     { 
