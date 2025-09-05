@@ -105,6 +105,10 @@ select_main_var_server <- function(id, rv_project_name, rv_data){
         }
       })
       
+      create_trip_haul_id_server("create_trip_haul_id",
+                                 rv_project_name = rv_project_name,
+                                 rv_data = rv_data)
+      
       create_zone_id_server("create_zone_id",
                             rv_project_name = rv_project_name,
                             rv_data = rv_data)
@@ -322,177 +326,133 @@ select_spat_var_server <- function(id, rv_project_name, rv_data) {
 }
 
 ## Create trip/haul level ID ----------------------------------------------------------------------
-## Description: Users can select whether or not they need to create a trip/haul level id in the 
-##              main data table
-create_nominal_id_server <- function(id, rv_project_name, rv_data, rv_selected_variables){
-  moduleServer(
-    id,
-    function(input, output, session){
+## Description: Modal popup for users to create a trip/haul ID column.
+create_trip_haul_id_server <- function(id, rv_project_name, rv_data){
+  moduleServer(id, function(input, output, session){
+    ns <- session$ns
+    
+    # Initialize reactive values
+    rv_create_id_table <- reactiveVal() # For preview data
+    
+    # Show the main modal for creating an ID
+    observeEvent(input$create_trip_haul_id_btn, {
+      req(rv_data$main)
       
-      ns <- session$ns
-      observe({ 
-        req(rv_data) # Ensure data is not null
-        main_data <- rv_data$main # save as static value
-        
-        if(!is.null(main_data)){
-          shinyjs::show("nominal_id_chk_container")
-          shinyjs::hide("chk_error_message")
-        } else{
-          shinyjs::hide("nominal_id_chk_container")
-          shinyjs::show("chk_error_message")
+      showModal(
+        modalDialog(
+          title = "Create Trip/Haul ID Column",
+          size = "m",
           
-        }
-      })
-      
-      # if users check box, show options and can type new variable name
-      observeEvent(input$nominal_id_chk_input,{
-        if(input$nominal_id_chk_input) {
-          shinyjs::show("nominal_id_container") 
+          selectInput(ns('select_nominal_id_input'),
+                      'How would you like to create the ID?', 
+                      choices = c('Based on variables' = 'create_id_input',
+                                  'Based on row numbers' = 'create_id_seq_input'),
+                      multiple = FALSE, 
+                      selected = 'create_id_input'),
           
-        } else {
-          shinyjs::hide("nominal_id_container")
-        }
-      })
-      
-      # return values to be used in the create_nominal_id_inputs_server
-      reactive({
-        list(
-          id_chk = input$nominal_id_chk_input,
-          id_type = input$select_nominal_id_input,
-          create_id_varname = input$create_id_varname_input
+          textInput(ns('create_id_varname_input'),
+                    'Name for new ID column',
+                    placeholder = "e.g., trip_id"),
+          
+          # This part is shown/hidden based on the selection above
+          shinyjs::hidden(
+            div(id = ns("create_id_vars_container"),
+                selectInput(ns("create_id_vars_input"), 
+                            "Select 2 or more variables to combine",
+                            choices = colnames(rv_data$main),
+                            multiple = TRUE),
+                
+                selectizeInput(ns('create_id_type_input'), 
+                               "Select ID column class type",
+                               choices = c("string", "integer"))
+            )
+          ),
+          
+          footer = tagList(
+            modalButton("Cancel"),
+            actionButton(ns("preview_id_btn"), "Preview & Save", class = "btn-primary")
+          ),
+          easyClose = TRUE
         )
-      })
-    }
-  )
-}
-
-## Create trip/haul level ID  Continued -----------------------------------------------------------
-## Description: Users can select how they want to create the ID either by using a row number or by
-##              combining values of two or more selected variables; a modal will open for users to
-##              preview the new IDs before saving to the Fishset database.
-create_nominal_id_inputs_server <- function(id, rv_project_name, rv_data, 
-                                            rv_selected_variables, rv_nominal_id_type){
-  moduleServer(
-    id,
-    function(input, output, session){
+      )
+    })
+    
+    # Dynamically show/hide the variable selector in the modal
+    observe({
+      req(input$select_nominal_id_input)
+      if (input$select_nominal_id_input == 'create_id_input') {
+        shinyjs::show("create_id_vars_container")
+      } else {
+        shinyjs::hide("create_id_vars_container")
+      }
+    })
+    
+    # Handle the "Preview & Save" button click
+    observeEvent(input$preview_id_btn, {
+      id_type <- input$select_nominal_id_input
+      id_varname <- input$create_id_varname_input
+      main_data <- rv_data$main
       
-      ns <- session$ns
+      # Basic validation
+      if (id_type == 'create_id_input' && (is.null(input$create_id_vars_input) || length(input$create_id_vars_input) < 2)) {
+        showNotification("Please select 2 or more variables to combine.", type = "error")
+        return()
+      }
       
-      # Initialize reactives
-      rv_create_id_table <- reactiveValues() # reactive value for table with new ID 
-      rv_id_success_message <- reactiveVal("") # Store success message
+      # Create data
+      new_data_output <- NULL
+      if (id_type == 'create_id_input') {
+        vars_in <- input$create_id_vars_input
+        q_test <- quietly_test(ID_var)
+        new_data_output <- q_test(main_data, project = rv_project_name()$value, name = id_varname, 
+                                  vars = vars_in, type = input$create_id_type_input)
+      } else if (id_type == 'create_id_seq_input') {
+        q_test <- quietly_test(ID_var)
+        # Row number ID is always integer, no type input needed for this choice
+        new_data_output <- q_test(main_data, project = rv_project_name()$value, name = id_varname, 
+                                  vars = NULL, type = "integer")
+      }
       
-      observe({    
-        req(rv_nominal_id_type())
-        id_type <- rv_nominal_id_type()$id_type # type of nominal id user selected
-        req(rv_data) # Ensure data is not null
-        main_data <- rv_data$main # save as static value
+      if (!is.null(new_data_output)) {
+        rv_create_id_table(new_data_output)
         
-        
-        
-        # only show if user checks the nominal id checkbox
-        if (rv_nominal_id_type()$id_chk == TRUE) {
-          if (id_type == 'create_id_input') {
-            shinyjs::show("create_id_container")
-            
-            updateSelectizeInput(session, "create_id_vars_input",
-                                 choices = colnames(main_data))
-            
-          }  else {
-            shinyjs::hide("create_id_container")
-          }
-          
-          shinyjs::show("create_id_btn_container")
-          
-        } else{
-          
-          shinyjs::hide("create_id_container")  
-          shinyjs::hide("create_id_btn_container")
-        }
-      })
-      
-      observeEvent(input$create_nominal_id_btn, {
-        
-        req(rv_nominal_id_type())
-        id_type <- rv_nominal_id_type()$id_type
-        id_varname <- rv_nominal_id_type()$create_id_varname
-        req(rv_project_name()) # Check to ensure reactive is available
-        project_name <- rv_project_name()$value
-        req(rv_data) # Ensure data is not null
-        main_data <- rv_data$main
-        req(input$create_id_type_input)
-        
-        # if user selects: Create haul or trip ID based on variables
-        if (id_type == 'create_id_input') {
-          req(input$create_id_vars_input)
-          
-          vars_in <- input$create_id_vars_input # save as static value
-          
-          # user ID_var function to create ID
-          q_test <- quietly_test(ID_var)
-          rv_create_id_table$output <- q_test(main_data,
-                                              project = project_name,
-                                              name = id_varname, 
-                                              vars =vars_in, 
-                                              type = input$create_id_type_input)
-          
-          # if user selects: Create haul or trip ID based on row numbers 
-        } else if (id_type == 'create_id_seq_input') {
-          
-          # user ID_var function to create ID
-          q_test <- quietly_test(ID_var)
-          rv_create_id_table$output <- q_test(main_data,
-                                              project = project_name,
-                                              name = id_varname, 
-                                              vars = NULL, 
-                                              type = input$create_id_type_input)
-        }
-        
-        # creating table with initial values for user to get a glance at new variable created
-        output$create_id_table <- DT::renderDT(
-          head(rv_create_id_table$output)
-        )
-        
-        # Popup to view new table and confirmation button
+        # Show preview modal
         showModal(
           modalDialog(
-            title = "Are you sure you would like to add this new variable?",
+            title = "Preview New ID: Confirm & Save",
             style = "overflow-x: auto; white-space: nowrap;",
             size = "l",
-            DT::DTOutput(ns("create_id_table")),
+            DT::DTOutput(ns("create_id_table_preview")),
             footer = tagList(
-              modalButton("Close"),
-              actionButton(ns("confirm_nominal_id_btn"), "Confirm & Save", 
-                           class = "btn-secondary")),
-            easyClose = TRUE)
+              modalButton("Back"),
+              actionButton(ns("confirm_save_id_btn"), "Confirm & Save", class = "btn-secondary")
+            ),
+            easyClose = TRUE
+          )
         )
-      })
+      }
+    })
+    
+    # Render the preview table
+    output$create_id_table_preview <- DT::renderDT(
+      head(rv_create_id_table())
+    )
+    
+    # Handle the final "Confirm & Save" button
+    observeEvent(input$confirm_save_id_btn, {
+      req(rv_project_name(), rv_data, rv_create_id_table())
       
-      output$id_success_message_out <- renderText({
-        rv_id_success_message()
-      })
+      rv_data$main <- rv_create_id_table()
       
-      observeEvent(input$confirm_nominal_id_btn,{
-        req(rv_project_name()) # Ensure rv_project_name is not NULL
-        req(rv_data) # Ensure data is not null
-        project_name <- rv_project_name() # Retrieve current project info
-        req(rv_create_id_table$output)
-        
-        # save new table with new variables
-        rv_data$main <- rv_create_id_table$output
-        
-        # reset main table in fishset database
-        load_maindata(dat = rv_data$main,
-                      project = project_name$value,
-                      over_write = TRUE)
-        
-        removeModal()
-        
-        rv_id_success_message("table saved")
-        shinyjs::show("id_success_message")
-      } )
-    }
-  )
+      load_maindata(dat = rv_data$main, project = rv_project_name()$value, over_write = TRUE)
+      
+      removeModal() # Closes preview modal
+      removeModal() # Closes main modal
+      
+      showNotification("Trip/Haul ID created and saved successfully.", type = "message")
+    })
+    
+  })
 }
 
 ## Create zone ID column --------------------------------------------------------------------------
@@ -567,7 +527,7 @@ create_zone_id_server <- function(id, rv_project_name, rv_data){
         
         # Show success message
         showNotification("Zone ID created and saved successfully.", type = "message")
-
+        
       }, error = function(e) {
         # If an error occurs
         removeModal()
@@ -628,19 +588,19 @@ save_var_server <- function(id, rv_project_name, rv_data, parent_session){
                                                           rv_project_name = rv_project_name,
                                                           rv_data = rv_data)
       
-      #### Create haul/trip level ID (if needed)
-      rv_nominal_id_type <- create_nominal_id_server(
-        "nominal_id",
-        rv_project_name = rv_project_name,
-        rv_data = rv_data,
-        rv_selected_variables = rv_selected_variables)
-      
-      create_nominal_id_inputs_server(
-        "nominal_id_vars",
-        rv_project_name = rv_project_name,
-        rv_data = rv_data,
-        rv_selected_variables = rv_selected_variables,
-        rv_nominal_id_type = rv_nominal_id_type)
+      # #### Create haul/trip level ID (if needed)
+      # rv_nominal_id_type <- create_nominal_id_server(
+      #   "nominal_id",
+      #   rv_project_name = rv_project_name,
+      #   rv_data = rv_data,
+      #   rv_selected_variables = rv_selected_variables)
+      # 
+      # create_nominal_id_inputs_server(
+      #   "nominal_id_vars",
+      #   rv_project_name = rv_project_name,
+      #   rv_data = rv_data,
+      #   rv_selected_variables = rv_selected_variables,
+      #   rv_nominal_id_type = rv_nominal_id_type)
       
       observeEvent(input$save_vars_btn, {
         req(rv_project_name()) # Check to ensure reactive is available

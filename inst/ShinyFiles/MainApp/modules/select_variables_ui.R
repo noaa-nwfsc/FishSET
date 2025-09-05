@@ -33,8 +33,10 @@ select_main_var_ui <- function(id){
                               HTML("Select trip/haul ID from main data: &nbsp;"),
                               bslib::tooltip(
                                 shiny::icon("circle-info", `aria-label` = "More information"),
-                                HTML("If unique trip/haul ID is not available for your dataset, 
-                                      use the optional input below to create an ID variable. 
+                                HTML("Note: this ID variable should be unique for each observation
+                                      (i.e., row) in the main data table. If unique trip/haul ID 
+                                      is not available for your dataset, click on 
+                                      'Create trip/haul ID' to create an ID variable. 
                                       Return to this input after the variable is created and 
                                       saved."),
                                 options = list(delay = list(show = 0, hide = 850))
@@ -42,6 +44,10 @@ select_main_var_ui <- function(id){
                          )
                        ),
                        choices = NULL, multiple = FALSE),
+        
+        create_trip_haul_id_ui(ns("create_trip_haul_id")),
+        
+        br(), br(),
         
         selectizeInput(ns("main_zone_id_input"),
                        tagList(
@@ -165,76 +171,13 @@ select_spat_var_ui <- function(id){
   )
 }
 
-## Create trip/haul level ID ----------------------------------------------------------------------
-## Description: Users can select whether or not they need to create a trip/haul level id in the 
-##              main data table and which method
-create_nominal_id_ui <- function(id){
+## Create trip/haul level ID button ---------------------------------------------------------------
+## Description: Button to open modal for creating a trip/haul level ID.
+create_trip_haul_id_ui <- function(id) {
   ns <- NS(id)
   tagList(
-    div(id = ns("nominal_id_chk_container"),
-        style = "display: none;",
-        checkboxInput(ns("nominal_id_chk_input"), 
-                      "Do you need to create a trip-level ID for your data?",
-                      value = FALSE)
-    ),
-    div(id = ns("chk_error_message"), 
-        style = "display: none; font-size: 12px;", 
-        p("Data needs to be loaded in first.")
-    ),
-    
-    div(id = ns("nominal_id_container"),
-        style = "display: none;",
-        
-        selectInput(
-          ns('select_nominal_id_input'),
-          'Functions', 
-          choices = c('Create haul or trip ID based on variables' = 'create_id_input',
-                      'Create haul or trip ID based on row numbers' = 'create_id_seq_input'),
-          multiple = FALSE, 
-          selected = 'create_id_input'),
-        
-        textInput(ns('create_id_varname_input'),
-                  list('Name of new variable',  
-                       bslib::tooltip(  
-                         bsicons::bs_icon("info-circle"),
-                         "If left empty, default names will be supplied.", 
-                         id = "tip", 
-                         placement = "right")
-                  )
-        )
-    )
-  )
-}
-
-## Create trip/haul level ID  Continued -----------------------------------------------------------
-## Description: Users can select how they want to create the ID either by using a row number or by
-##              combining values of two or more selected variables
-create_nominal_id_inputs_ui <- function(id){
-  ns <- NS(id)
-  tagList(
-    div(id = ns("create_id_container"),
-        style = "display: none;",
-        
-        selectInput(ns("create_id_vars_input"), 
-                    "Select 2 or more variables",
-                    choices = NULL,
-                    multiple = TRUE),
-        
-        selectizeInput(ns('create_id_type_input'), 
-                       "Select ID column class type",
-                       choices = c("string", "integer"))
-    ),
-    
-    div(id = ns("create_id_btn_container"),
-        style = "display:none;",
-        actionButton(ns("create_nominal_id_btn"), 
-                     "Create ID")
-    ),
-    
-    div(id = ns("id_success_message"), 
-        style = "color: green; display: none; font-size: 20px;",
-        textOutput(ns("id_success_message_out"))
-    )
+    actionButton(ns("create_trip_haul_id_btn"),
+                 "Create trip/haul ID (optional)")
   )
 }
 
@@ -257,57 +200,33 @@ save_var_ui <- function(id){
   
   tagList(
     fluidRow(
-      column(width = 12,
-             bslib::card(
-               fill = FALSE,
-               
-               bslib::card_header(
-                 "1. Main data variables",
-                 class = "bg-secondary"),
-               
-               bslib::card_body(
-                 bslib::layout_column_wrap(
-                   fill = TRUE,
-                   width = 1/3,
-                   bslib::card(fill = FALSE,
-                               h6("Main data"),
-                               select_main_var_ui(ns("selecting_main"))),
-                   
-                   bslib::card(fill = FALSE,
-                               h6("Port data"),
-                               select_port_var_ui(ns("selecting_port"))),
-                   
-                   bslib::card(fill = FALSE,
-                               h6("Aux data"),
-                               select_aux_var_ui(ns("selecting_aux")))
-                 )
-               ),
-               
-               fluidRow(
-                 column(width = 8,
-                        bslib::card(
-                          fill = FALSE,
-                          
-                          bslib::card_header(h6("Creating haul/trip level ID (optional)")),
-                          
-                          bslib::card_body(
-                            bslib::layout_column_wrap(
-                              fill = TRUE,
-                              width = 1/2,
-                              bslib::card(
-                                class = "border-0 shadhow-none",
-                                create_nominal_id_ui(ns("nominal_id"))),
-                              
-                              bslib::card(
-                                class = "border-0 shadhow-none",
-                                create_nominal_id_inputs_ui(ns("nominal_id_vars"))
-                              )
-                            )
-                          )
-                        )
-                 )
-               )
-             )
+      column(
+        width = 12,
+        bslib::card(
+          fill = FALSE,
+          
+          bslib::card_header(
+            "1. Main data variables",
+            class = "bg-secondary"),
+          
+          bslib::card_body(
+            bslib::layout_column_wrap(
+              fill = TRUE,
+              width = 1/3,
+              bslib::card(fill = FALSE,
+                          h6("Main data"),
+                          select_main_var_ui(ns("selecting_main"))),
+              
+              bslib::card(fill = FALSE,
+                          h6("Port data"),
+                          select_port_var_ui(ns("selecting_port"))),
+              
+              bslib::card(fill = FALSE,
+                          h6("Aux data"),
+                          select_aux_var_ui(ns("selecting_aux")))
+            )
+          )
+        )
       )
     ),
     
