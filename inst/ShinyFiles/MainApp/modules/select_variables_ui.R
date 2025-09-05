@@ -26,50 +26,62 @@ select_main_var_ui <- function(id){
     div(id = ns("main_variables_container"),
         style = "display: none;",
         
-        selectizeInput(ns("main_unique_obs_id_input"),
-                       tagList(
-                         span(style = "white-space: wrap; display: inline-flex; 
+        fluidRow(
+          column(
+            6,
+            selectizeInput(
+              ns("main_unique_obs_id_input"),
+              tagList(
+                span(style = "white-space: wrap; display: inline-flex; 
                                        align-items: center;",
-                              HTML("Select trip/haul ID from main data: &nbsp;"),
-                              bslib::tooltip(
-                                shiny::icon("circle-info", `aria-label` = "More information"),
-                                HTML("Note: this ID variable should be unique for each observation
-                                      (i.e., row) in the main data table. If unique trip/haul ID 
-                                      is not available for your dataset, click on 
-                                      'Create trip/haul ID' to create an ID variable. 
-                                      Return to this input after the variable is created and 
-                                      saved."),
-                                options = list(delay = list(show = 0, hide = 850))
-                              )
-                         )
-                       ),
-                       choices = NULL, multiple = FALSE),
+                     HTML("Select trip/haul ID from main data: &nbsp;"),
+                     bslib::tooltip(
+                       shiny::icon("circle-info", `aria-label` = "More information"),
+                       HTML("Note: this ID variable should be unique for each observation
+                            (i.e., row) in the main data table. If unique trip/haul ID 
+                            is not available for your dataset, click on 
+                            'Create trip/haul ID' to create an ID variable. 
+                            Return to this input after the variable is created and 
+                            saved."),
+                       options = list(delay = list(show = 0, hide = 850))
+                     )
+                )
+              ),
+              choices = NULL, multiple = FALSE)
+          ),
+          column(
+            6,
+            create_trip_haul_id_ui(ns("create_trip_haul_id"))
+          )
+        ),
         
-        create_trip_haul_id_ui(ns("create_trip_haul_id")),
-        
-        br(), br(),
-        
-        selectizeInput(ns("main_zone_id_input"),
-                       tagList(
-                         span(style = "white-space: wrap; display: inline-flex; 
+        fluidRow(
+          column(
+            6,
+            selectizeInput(
+              ns("main_zone_id_input"),
+              tagList(
+                span(style = "white-space: wrap; display: inline-flex; 
                                        align-items: center;",
-                              HTML("Select zone ID from main data: &nbsp;"),
-                              bslib::tooltip(
-                                shiny::icon("circle-info", `aria-label` = "More information"),
-                                HTML("If a zone ID is not available for your dataset, 
-                                      click on 'Create zone ID column' to merge the main
-                                      data with spatial grid file to generate a zone ID column.
-                                      Return to this input after the variable is created and 
-                                      saved."),
-                                options = list(delay = list(show = 0, hide = 850))
-                              )
-                         )
-                       ),
-                       choices = NULL, multiple = FALSE),
-        
-        create_zone_id_ui(ns("create_zone_id")), 
-        
-        br(), br(),
+                     HTML("Select zone ID from main data: &nbsp;"),
+                     bslib::tooltip(
+                       shiny::icon("circle-info", `aria-label` = "More information"),
+                       HTML("If a zone ID is not available for your dataset, 
+                            click on 'Create zone ID column' to merge the main
+                            data with spatial grid file to generate a zone ID column.
+                            Return to this input after the variable is created and 
+                            saved."),
+                       options = list(delay = list(show = 0, hide = 850))
+                     )
+                )
+              ),
+              choices = NULL, multiple = FALSE)
+          ),
+          column(
+            6,
+            create_zone_id_ui(ns("create_zone_id"))
+          )
+        ),
         
         selectizeInput(ns("main_lon_input"),
                        "Select fishing location longitude from main data",
@@ -176,8 +188,12 @@ select_spat_var_ui <- function(id){
 create_trip_haul_id_ui <- function(id) {
   ns <- NS(id)
   tagList(
-    actionButton(ns("create_trip_haul_id_btn"),
-                 "Create trip/haul ID (optional)")
+    div(
+      style = "margin-top: 30px;",
+      actionButton(ns("create_trip_haul_id_btn"),
+                   "Create trip/haul ID (optional)",
+                   width = "100%")    
+    )
   )
 }
 
@@ -187,8 +203,12 @@ create_trip_haul_id_ui <- function(id) {
 create_zone_id_ui <- function(id){
   ns <- NS(id)
   tagList(
-    actionButton(ns("create_zone_id_btn"),
-                 "Create zone ID column (optional)")
+    div(
+      style = "margin-top: 30px;",
+      actionButton(ns("create_zone_id_btn"),
+                   "Create zone ID column (optional)",
+                   width = "100%")
+    )
   )
 }
 
@@ -208,7 +228,6 @@ save_var_ui <- function(id){
           bslib::card_header(
             "1. Main data variables",
             class = "bg-secondary"),
-          
           bslib::card_body(
             bslib::layout_column_wrap(
               fill = TRUE,
