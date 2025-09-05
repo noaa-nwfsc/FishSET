@@ -161,7 +161,8 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
       
       message(length(within_buff), ' observations assigned to nearest zone polygon within ', 
               bufferval, ' meters. ', length(ind) - length(within_buff), 
-              ' observations had distances greater than ', bufferval, ' meters and were not assigned.')
+              ' observations had distances greater than ', bufferval, 
+              ' meters and were not assigned.')
     }
   }
   
