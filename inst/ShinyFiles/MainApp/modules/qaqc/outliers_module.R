@@ -242,10 +242,8 @@ outliers_ui <- function(id){
       bslib::card_header("Outlier Analysis"),
       bslib::card_body(
         fillable = TRUE,
-        DT::DTOutput(ns("outlier_summary_table")),
-        # Add a div for responsive vertical spacing
-        div(class = "mt-2"), # mt-4 means "margin-top of size 4"
-        plotOutput(ns("outlier_diagnostic_plot"))
+        div(DT::DTOutput(ns("outlier_summary_table"))),
+        div(plotOutput(ns("outlier_diagnostic_plot")))
       )
     )
   )
