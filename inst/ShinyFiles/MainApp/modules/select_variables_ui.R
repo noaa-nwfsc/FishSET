@@ -262,7 +262,7 @@ save_var_ui <- function(id){
                fill = FALSE,
                
                bslib::card_header(
-                 "1. main data variables",
+                 "1. Main data variables",
                  class = "bg-secondary"),
                
                bslib::card_body(
@@ -270,7 +270,7 @@ save_var_ui <- function(id){
                    fill = TRUE,
                    width = 1/3,
                    bslib::card(fill = FALSE,
-                               h6("main data"),
+                               h6("Main data"),
                                select_main_var_ui(ns("selecting_main"))),
                    
                    bslib::card(fill = FALSE,
