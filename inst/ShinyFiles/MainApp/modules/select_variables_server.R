@@ -370,7 +370,7 @@ create_trip_haul_id_server <- function(id, rv_project_name, rv_data){
           
           footer = tagList(
             modalButton("Cancel"),
-            actionButton(ns("preview_id_btn"), "Preview & Save", class = "btn-primary")
+            actionButton(ns("preview_id_btn"), "Preview & Create", class = "btn-primary")
           ),
           easyClose = TRUE
         )
@@ -382,35 +382,45 @@ create_trip_haul_id_server <- function(id, rv_project_name, rv_data){
       req(input$select_nominal_id_input)
       if (input$select_nominal_id_input == 'create_id_input') {
         shinyjs::show("create_id_vars_container")
+        
       } else {
         shinyjs::hide("create_id_vars_container")
       }
     })
     
-    # Handle the "Preview & Save" button click
+    # Handle the "Preview & Create" button click
     observeEvent(input$preview_id_btn, {
       id_type <- input$select_nominal_id_input
       id_varname <- input$create_id_varname_input
       main_data <- rv_data$main
       
       # Basic validation
-      if (id_type == 'create_id_input' && (is.null(input$create_id_vars_input) || length(input$create_id_vars_input) < 2)) {
+      if (id_type == 'create_id_input' && 
+          (is.null(input$create_id_vars_input) || length(input$create_id_vars_input) < 2)) {
         showNotification("Please select 2 or more variables to combine.", type = "error")
         return()
       }
       
       # Create data
       new_data_output <- NULL
+      
       if (id_type == 'create_id_input') {
         vars_in <- input$create_id_vars_input
         q_test <- quietly_test(ID_var)
-        new_data_output <- q_test(main_data, project = rv_project_name()$value, name = id_varname, 
-                                  vars = vars_in, type = input$create_id_type_input)
+        new_data_output <- q_test(main_data, 
+                                  project = rv_project_name()$value, 
+                                  name = id_varname, 
+                                  vars = vars_in, 
+                                  type = input$create_id_type_input)
+        
       } else if (id_type == 'create_id_seq_input') {
         q_test <- quietly_test(ID_var)
         # Row number ID is always integer, no type input needed for this choice
-        new_data_output <- q_test(main_data, project = rv_project_name()$value, name = id_varname, 
-                                  vars = NULL, type = "integer")
+        new_data_output <- q_test(main_data, 
+                                  project = rv_project_name()$value, 
+                                  name = id_varname, 
+                                  vars = NULL, 
+                                  type = "integer")
       }
       
       if (!is.null(new_data_output)) {
@@ -424,8 +434,11 @@ create_trip_haul_id_server <- function(id, rv_project_name, rv_data){
             size = "l",
             DT::DTOutput(ns("create_id_table_preview")),
             footer = tagList(
-              modalButton("Back"),
-              actionButton(ns("confirm_save_id_btn"), "Confirm & Save", class = "btn-secondary")
+              modalButton("Cancel"),
+              actionButton(ns("confirm_save_id_btn"), 
+                           "Confirm & Save", 
+                           class = "btn-secondary",
+                           icon = icon("save"))
             ),
             easyClose = TRUE
           )
@@ -490,7 +503,10 @@ create_zone_id_server <- function(id, rv_project_name, rv_data){
           
           footer = tagList(
             modalButton("Cancel"),
-            actionButton(ns("confirm_create_zone_btn"), "Create ID", class = "btn-primary")
+            actionButton(ns("confirm_create_zone_btn"), 
+                         "Create ID", 
+                         class = "btn-primary",
+                         icon = icon("save"))
           ),
           easyClose = TRUE
         )
