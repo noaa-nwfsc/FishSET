@@ -136,7 +136,9 @@ spatial_autocorr_server <- function(id, rv_project_name, rv_data, rv_folderpath)
         theme(
           title = element_text(size = 14),
           axis.text = element_text(size = 14),
-          legend.text = element_text(size = 14)
+          legend.text = element_text(size = 14),
+          # Add this line to reduce margin size
+          plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm") 
         )
     })
     
@@ -172,15 +174,21 @@ spatial_autocorr_ui <- function(id){
                   choices = NULL),
       
       div(style = "display: flex; justify-content: center;",
-          tableOutput(ns("moran_table"))
+          withSpinner(
+            tableOutput(ns("moran_table")),
+            type = 6
+          )
       ),
       
       conditionalPanel(
         condition = "output.show_lisa_plot",
         ns = ns,
         div(
-          style = "width: 800px; height: 600px; margin: auto; text-align: center;",
-          plotOutput(ns("lisa_plot"), width = "100%", height = "100%"),
+          style = "width: 800px; height: 650px; margin: auto; text-align: center;",
+          withSpinner(
+            plotOutput(ns("lisa_plot"), width = "100%", height = "600px"),
+            type = 6
+          ),
           HTML(
             paste0("<p font-size: 14px; color: grey;'>",
                    "Note: Local indicators of spatial association (LISA) breaks down the
