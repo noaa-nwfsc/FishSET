@@ -179,7 +179,7 @@ moran_stats <- function(dat, var, dat_zone, spat, spat_zone, project) {
   
   # Base map
   bbox <- sf::st_bbox(merged_sf)
-  base_map <- ggplot2::map_data(map = ifelse(shift_long(merged_sf), "world2", "world"),
+  base_map <- ggplot2::map_data(map = "world",
                                 xlim = c(bbox["xmin"], bbox["xmax"]),
                                 ylim = c(bbox["ymin"], bbox["ymax"]))
   base_map <- sf::st_as_sf(base_map, coords = c("long", "lat"),

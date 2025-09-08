@@ -72,14 +72,17 @@ create_centroid <- function(spat = NULL,
   
   # check for invalid args
   if (is_value_empty(dataset) & output %in% c("dataset", "both")) {
-    
     stop("'dat' required if output = 'dataset'.", call. = FALSE)
+  }
+  
+  # check bbox for spatial data
+  if (max(st_bbox(spatdat)) > 180) {
+    spatdat <- sf::st_wrap_dateline(spatdat)
   }
   
   if (type == "zonal centroid") {
     
     if (is_value_empty(spatdat)) {
-      
       stop("'spat' required for zonal centroid.", call. = FALSE)
     }
     
