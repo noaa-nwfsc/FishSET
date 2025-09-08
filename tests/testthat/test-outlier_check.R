@@ -110,7 +110,7 @@ test_that("test outlier_table() works", {
   expect_s3_class(result, "data.frame")
   
   # Check that the data frame has the correct columns
-  expect_named(result, c("Vector", "outlier_check", "N", "mean", "median",
+  expect_named(result, c("Variable", "outlier_check", "N", "mean", "median",
                          "SD", "min", "max", "NAs", "skew"))
   
   # Check that the statistics are calculated correctly
