@@ -55,7 +55,7 @@ outlier_table <- function(dat, project, x, sd_val = NULL, log_fun = TRUE) {
   }
   
   # Output table of summary statistics Row 1 No data removed
-  dat.table <- data.frame(Vector = x, 
+  dat.table <- data.frame(Variable = x, 
                           outlier_check = "None", 
                           N = length(dataset[[x]]), 
                           mean = round(mean(dataset[[x]], na.rm = TRUE), 2),
@@ -72,7 +72,7 @@ outlier_table <- function(dat, project, x, sd_val = NULL, log_fun = TRUE) {
       stats::quantile(dataset[[x]], 0.95, na.rm = TRUE) & dataset[[x]] > 
       stats::quantile(dataset[[x]], 0.05, na.rm = TRUE), ]
   dat.table <- rbind(dat.table, 
-                     data.frame(Vector = x, 
+                     data.frame(Variable = x, 
                                 outlier_check = "5_95_quant", 
                                 if (dim(temp)[1] == 0) { emptyrow } else { filledrow(temp, x)}
                      ))
@@ -83,7 +83,7 @@ outlier_table <- function(dat, project, x, sd_val = NULL, log_fun = TRUE) {
       quantile(dataset[[x]], 0.75, na.rm = TRUE) & dataset[[x]] > 
       quantile(dataset[[x]], 0.25, na.rm = TRUE), ]
   dat.table <- rbind(dat.table, 
-                     data.frame(Vector = x, outlier_check = "25_75_quant", 
+                     data.frame(Variable = x, outlier_check = "25_75_quant", 
                                 if (dim(temp)[1] == 0) { emptyrow } else { filledrow(temp, x)}
                      ))
   
@@ -94,7 +94,7 @@ outlier_table <- function(dat, project, x, sd_val = NULL, log_fun = TRUE) {
       dataset[[x]] > 
       (mean(dataset[[x]], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
   dat.table <- rbind(dat.table, 
-                     data.frame(Vector = x, outlier_check = "mean_2SD", 
+                     data.frame(Variable = x, outlier_check = "mean_2SD", 
                                 if (dim(temp)[1] == 0) { emptyrow} else { filledrow(temp, x)}
                      ))
   
@@ -105,7 +105,7 @@ outlier_table <- function(dat, project, x, sd_val = NULL, log_fun = TRUE) {
       dataset[[x]] > 
       (mean(dataset[[x]], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
   dat.table <- rbind(dat.table, 
-                     data.frame(Vector = x, outlier_check = "mean_3SD", 
+                     data.frame(Variable = x, outlier_check = "mean_3SD", 
                                 if (dim(temp)[1] == 0) { emptyrow } else { filledrow(temp, x)}
                      ))
   
@@ -116,7 +116,7 @@ outlier_table <- function(dat, project, x, sd_val = NULL, log_fun = TRUE) {
       dataset[[x]] > 
       (stats::median(dataset[[x]], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
   dat.table <- rbind(dat.table, 
-                     data.frame(Vector = x, outlier_check = "median_2SD", 
+                     data.frame(Variable = x, outlier_check = "median_2SD", 
                                 if (dim(temp)[1] == 0) { emptyrow} else { filledrow(temp, x)}
                      ))
   
@@ -127,7 +127,7 @@ outlier_table <- function(dat, project, x, sd_val = NULL, log_fun = TRUE) {
       dataset[[x]] > 
       (stats::median(dataset[[x]], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
   dat.table <- rbind(dat.table, 
-                     data.frame(Vector = x, outlier_check = "median_3SD", 
+                     data.frame(Variable = x, outlier_check = "median_3SD", 
                                 if (dim(temp)[1] == 0) { emptyrow} else {filledrow(temp, x)}
                      ))
   
@@ -138,7 +138,7 @@ outlier_table <- function(dat, project, x, sd_val = NULL, log_fun = TRUE) {
         dataset[[x]] > 
         (mean(dataset[[x]], na.rm = TRUE) - sd_val * stats::sd(dataset[[x]], na.rm = TRUE)), ]
     dat.table <- rbind(dat.table, 
-                       data.frame(Vector = x, outlier_check = paste0("mean_",sd_val,"SD"), 
+                       data.frame(Variable = x, outlier_check = paste0("mean_",sd_val,"SD"), 
                                   if (dim(temp)[1] == 0) {emptyrow} else {filledrow(temp, x)}
                        ))
   }

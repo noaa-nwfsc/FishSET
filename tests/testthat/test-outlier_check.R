@@ -1,11 +1,37 @@
 # -------------------------------------------------------------------------------------------------
 # File: test-outlier_check.R
-# Purpose: 
-# Description:
+# Purpose: To provide unit tests for the outlier detection and handling functions: 
+#          `outlier_table()`, `outlier_plot()`, and `outlier_remove()`.
+# Description: This script uses the `testthat` package to validate the functionality of 
+#              outlier-related functions within the `FishSET` package. It ensures that 
+#              these functions produce the correct output formats, handle non-numeric 
+#              data gracefully by throwing errors, and perform filtering operations as 
+#              expected. To create a controlled testing environment, the script mocks 
+#              several functions (`log_call`, `save_plot`, `save_nplot`) to prevent 
+#              side effects like logging or file I/O.
 #
 # Scenarios tested:
+# - `outlier_table()`:
+#     - Correctly calculates and returns summary statistics for a numeric vector.
+#     - Produces a `data.frame` with the expected structure and column names.
+#     - Throws an error when provided with a non-numeric vector.
+#   - `outlier_plot()`:
+#     - Generates a `gtable` object for default single-page output.
+#     - Generates a list of plots for multi-page output.
+#     - Correctly filters data points using the `dat.remove` argument.
+#     - Throws an error when provided with a non-numeric vector.
+#   - `outlier_remove()`:
+#     - Successfully removes outliers based on specified criteria (e.g., 'mean_2SD').
+#     - Correctly handles both numeric and string arguments for `dat.remove`.
+#     - Returns the original data frame when `dat.remove` is 'none'.
+#     - Throws an error when the target column for outlier removal is not numeric.
 #
 # Notes:
+#   - The `FishSET::log_call()`, `FishSET::save_plot()`, and `FishSET::save_nplot()` 
+#     functions are mocked to prevent database connections and file writing during tests.
+#   - The global option `test_folder_path` is temporarily set to ensure functions use the 
+#     dedicated test data directory (`testdata/FishSETFolder`), isolating tests from 
+#     the user's local file system and project configurations.
 #
 # -------------------------------------------------------------------------------------------------
 

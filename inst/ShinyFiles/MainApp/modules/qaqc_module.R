@@ -50,7 +50,7 @@ qaqc_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     unique_obs_server("unique_observations", rv_project_name, rv_data)
     
     # View outliers in data
-    outliers_server("outliers", rv_project_name, rv_data, rv_folderpath)
+    outliers_server("outliers", rv_project_name, rv_data)
     
     # Remove variables
     remove_variables_server("rm_variables", rv_project_name, rv_data, rv_folderpath)

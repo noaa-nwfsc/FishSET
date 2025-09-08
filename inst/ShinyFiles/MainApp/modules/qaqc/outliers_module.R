@@ -19,11 +19,10 @@
 #' @param id A character string that is the namespace for this module.
 #' @param rv_project_name A reactive value containing the name of the current project.
 #' @param rv_data A reactive list containing the main dataset (`main`) and spatial data (`spat`).
-#' @param rv_folderpath A reactive value containing the file path to the project's root folder.
 #'
 #' @return A reactive list containing `$ids`, the unique identifiers of observations to be removed,
 #'         and `$id_col`, the name of the unique ID column.
-outliers_server <- function(id, rv_project_name, rv_data, rv_folderpath){
+outliers_server <- function(id, rv_project_name, rv_data){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -189,7 +188,9 @@ outliers_server <- function(id, rv_project_name, rv_data, rv_folderpath){
 # UI ----------------------------------------------------------------------------------------------
 #' outliers_ui
 #'
-#' @description
+#' @description Defines the UI logic for the data outliers module. It allows users to
+#' select a numeric variable, view a summary table of outlier checks, visualize the data
+#' distribution, and remove outliers based on selected criteria.
 #'
 #' @param id A character string that is the namespace for this module.
 #'
@@ -242,8 +243,18 @@ outliers_ui <- function(id){
       bslib::card_header("Outlier Analysis"),
       bslib::card_body(
         fillable = TRUE,
-        div(DT::DTOutput(ns("outlier_summary_table"))),
-        div(plotOutput(ns("outlier_diagnostic_plot")))
+        div(
+          withSpinner(
+            DT::DTOutput(ns("outlier_summary_table")),
+            type = 6
+          )
+        ),
+        div(
+          withSpinner(
+            plotOutput(ns("outlier_diagnostic_plot")),
+            type = 6
+          )
+        )
       )
     )
   )
