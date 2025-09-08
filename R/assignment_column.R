@@ -124,6 +124,15 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
     spatdat <- sf::st_make_valid(spatdat)
   } 
   
+  # Check lat and lon range
+  if (max(st_bbox(dat_sf))  > 180) {
+    dat_sf <- sf::st_wrap_dateline(dat_sf)
+  }
+  
+  if (max(st_bbox(spatdat)) > 180) {
+    spatdat <- sf::st_wrap_dateline(spatdat)
+  }
+  
   inter <- sf::st_intersects(dat_sf, spatdat)
   
   if (any(lengths(inter) > 1)) {

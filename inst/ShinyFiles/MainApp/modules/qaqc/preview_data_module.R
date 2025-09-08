@@ -71,8 +71,6 @@ preview_data_server <- function(id, rv_project_name, rv_data){
         df_to_display <- as.data.frame(df_to_display)
         col_index <- which(tolower(names(df_to_display)) == "geometry")
         df_to_display <- df_to_display[, -col_index, drop = FALSE]
-        
-        cat("\n", str(df_to_display), "\n")
       }
       
       DT::datatable(
