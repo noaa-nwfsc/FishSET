@@ -998,7 +998,108 @@
             null,
             null
           ],
-          "msg": ["2 observations (8.3%) occur on land.", "2 observations (8.3%) are outside the regulatory zones.", "1 observations (4.2%) occur on boundary line between regulatory zones."]
+          "msg": [
+            "2 observations (8.3%) occur on land.",
+            "2 observations (8.3%) are outside the regulatory zones.",
+            "1 observations (4.2%) occur on boundary line between regulatory zones."
+          ]
+        },
+        {
+          "functionID": "outlier_plot",
+          "args": [
+            "s1MainDataTable",
+            "s1",
+            "LANDED_OBSCURED",
+            "none",
+            null,
+            "normal",
+            null,
+            null,
+            "single",
+            false,
+            true
+          ]
+        },
+        {
+          "functionID": "outlier_plot",
+          "args": [
+            "s1MainDataTable",
+            "s1",
+            "LANDED_OBSCURED",
+            "none",
+            null,
+            "normal",
+            null,
+            null,
+            "multi",
+            false,
+            true
+          ]
+        },
+        {
+          "functionID": "outlier_plot",
+          "args": [
+            "s1MainDataTable",
+            "s1",
+            "LANDED_OBSCURED",
+            "mean_2SD",
+            null,
+            "normal",
+            null,
+            null,
+            "single",
+            false,
+            true
+          ]
+        },
+        {
+          "functionID": "outlier_plot",
+          "args": [
+            "s1MainDataTable",
+            "s1",
+            "LANDED_OBSCURED",
+            "mean_2SD",
+            null,
+            "normal",
+            null,
+            null,
+            "multi",
+            false,
+            true
+          ]
+        },
+        {
+          "functionID": "outlier_remove",
+          "args": [
+            "sample_dat",
+            "s1",
+            "value",
+            "mean_2SD",
+            "FALSE"
+          ],
+          "kwargs": [],
+          "output": "",
+          "msg": "outliers removed using mean_2SD"
+        },
+        {
+          "functionID": "outlier_remove",
+          "args": [
+            "sample_dat",
+            "s1",
+            "value",
+            "mean_2SD",
+            "FALSE"
+          ],
+          "kwargs": [],
+          "output": "",
+          "msg": "outliers removed using mean_2SD"
+        },
+        {
+          "functionID": "outlier_remove",
+          "args": ["sample_dat", "s1", "value", "2", "FALSE"],
+          "kwargs": [],
+          "output": "",
+          "msg": "outliers removed using 2"
         }
       ]
     }
