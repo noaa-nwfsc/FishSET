@@ -584,7 +584,7 @@ qaqc_helper <-function(dat, fun, output = "logical") {
     
     if (fun %in% c("NA", "NaN", "Inf")) {
       
-      qaqc_fun <- switch(fun, "NA" = function(x) anyNA(x), 
+      qaqc_fun <- switch(fun, "NA" = function(x) any(is.na(x) & !is.nan(x)), 
                          "NaN" = function(x) any(is.nan(x)), 
                          "Inf" = function(x) any(is.infinite(x)))
       
