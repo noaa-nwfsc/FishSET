@@ -60,7 +60,7 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
                               closest.pt = FALSE, bufferval = NULL, lon.spat = NULL, 
                               lat.spat = NULL, hull.polygon = FALSE, epsg = NULL,
                               log.fun = TRUE) {
-
+  
   # Call in data sets
   out <- data_pull(dat, project)
   dataset <- out$dataset
@@ -124,7 +124,7 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
     spatdat <- sf::st_make_valid(spatdat)
   } 
   
-  # Check lat and lon range
+  # Check lat and lon format
   if (max(st_bbox(dat_sf))  > 180) {
     dat_sf <- sf::st_wrap_dateline(dat_sf)
   }
@@ -178,7 +178,7 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
   # create new assignment column
   pts <- as.numeric(inter)
   dataset[[name]] <- spatdat[[cat]][pts]
-
+  
   if (log.fun) {
     
     assignment_column_function <- list()
@@ -189,6 +189,6 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
                                             log.fun)
     log_call(project, assignment_column_function)
   }
-
+  
   return(dataset)
 }
