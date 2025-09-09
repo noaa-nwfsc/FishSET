@@ -604,20 +604,6 @@ save_var_server <- function(id, rv_project_name, rv_data, parent_session){
                                                           rv_project_name = rv_project_name,
                                                           rv_data = rv_data)
       
-      # #### Create haul/trip level ID (if needed)
-      # rv_nominal_id_type <- create_nominal_id_server(
-      #   "nominal_id",
-      #   rv_project_name = rv_project_name,
-      #   rv_data = rv_data,
-      #   rv_selected_variables = rv_selected_variables)
-      # 
-      # create_nominal_id_inputs_server(
-      #   "nominal_id_vars",
-      #   rv_project_name = rv_project_name,
-      #   rv_data = rv_data,
-      #   rv_selected_variables = rv_selected_variables,
-      #   rv_nominal_id_type = rv_nominal_id_type)
-      
       observeEvent(input$save_vars_btn, {
         req(rv_project_name()) # Check to ensure reactive is available
         project_name <- rv_project_name()$value

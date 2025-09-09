@@ -30,8 +30,8 @@ test_that("test-load-data", {
     name = "test-load-data",
     options = list(test.mode = TRUE),
     shiny_args = list(test.mode = TRUE),
-    load_timeout = 120000, # Increased timeout for loading the app
-    timeout = 120000) # Increased timeout for app operations
+    load_timeout = 1e5, # Increased timeout for loading the app
+    timeout = 1e5) # Increased timeout for app operations
   
   ## Interact with app ----------------------------------------------------------------------------
   app$click("folderpath-change_fs_folder_btn") # Click the button to change the folder path

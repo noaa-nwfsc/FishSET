@@ -1096,10 +1096,84 @@
         },
         {
           "functionID": "outlier_remove",
-          "args": ["sample_dat", "s1", "value", "2", "FALSE"],
+          "args": [
+            "sample_dat",
+            "s1",
+            "value",
+            "2",
+            "FALSE"
+          ],
           "kwargs": [],
           "output": "",
           "msg": "outliers removed using 2"
+        },
+        {
+          "functionID": "create_centroid",
+          "args": [
+            "s1spatSpatTable",
+            "s1MainDataTable",
+            "s1",
+            "TEN_ID",
+            null,
+            null,
+            null,
+            "zonal centroid",
+            null,
+            null,
+            "_",
+            "centroid table"
+          ]
+        },
+        {
+          "functionID": "create_centroid",
+          "args": [
+            "s1spatSpatTable",
+            "s1MainDataTable",
+            "s1",
+            "TEN_ID",
+            null,
+            null,
+            null,
+            "zonal centroid",
+            null,
+            null,
+            "_",
+            "centroid table"
+          ]
+        },
+        {
+          "functionID": "create_centroid",
+          "args": [
+            "s1spatSpatTable",
+            "s1MainDataTable",
+            "s1",
+            "TEN_ID",
+            null,
+            null,
+            null,
+            "zonal centroid",
+            null,
+            null,
+            "_",
+            "centroid table"
+          ]
+        },
+        {
+          "functionID": "create_centroid",
+          "args": [
+            "test_spat",
+            "s1MainDataTable",
+            "s1",
+            "TEN_ID",
+            null,
+            null,
+            null,
+            "zonal centroid",
+            null,
+            null,
+            "_",
+            "centroid table"
+          ]
         }
       ]
     }

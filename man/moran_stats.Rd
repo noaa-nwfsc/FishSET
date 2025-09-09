@@ -2,72 +2,43 @@
 % Please edit documentation in R/moran_stats.r
 \name{moran_stats}
 \alias{moran_stats}
-\title{Calculate and view Moran's I statistic}
+\title{Calculate Moran's I statistic}
 \usage{
-moran_stats(
-  dat,
-  project,
-  varofint,
-  zoneid,
-  spat,
-  cat,
-  lon.dat = NULL,
-  lat.dat = NULL,
-  lon.spat = NULL,
-  lat.spat = NULL
-)
+moran_stats(dat, var, dat_zone, spat, spat_zone, project)
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips.
-Table in FishSET database contains the string 'MaindataTable'.}
+\item{dat}{Primary data containing information on hauls or trips. Table in FishSET database 
+contains the string 'MaindataTable'.}
 
-\item{project}{String, name of project.}
+\item{var}{Numeric variable from \code{dat} to test for spatial autocorrelation.}
 
-\item{varofint}{Numeric variable from \code{dat} to test for spatial autocorrelation.}
-
-\item{zoneid}{Variable in \code{dat} that identifies the individual zones or
+\item{dat_zone}{Variable in \code{dat} that identifies the individual zones or
 areas. Define if exists in \code{dat} and is not named `ZoneID`. Defaults to NULL.}
 
 \item{spat}{Spatial data containing information on fishery management or regulatory zones.
 Shape, json, geojson, and csv formats are supported.}
 
-\item{cat}{Variable or list in \code{spat} that identifies the individual areas or zones.
+\item{spat_zone}{Variable or list in \code{spat} that identifies the individual areas or zones.
 If \code{spat} is class sf, \code{cat} should be name of list containing information on zones.}
-
-\item{lon.dat}{Longitude variable from \code{dat}.}
-
-\item{lat.dat}{Latitude variable from \code{dat}.}
-
-\item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
-Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
-
-\item{lat.spat}{Variable or list from \code{spat} containing latitude data. 
-Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
 }
 \value{
-Returns a plot and map of Moran’s I. Output is saved to the Output folder.
+Returns a list with (1) global Moran's I stats, (2) Moran lagged plot, (3) LISA cluster
+ map summarizing local Moran's values
 }
 \description{
-Wrapper function to calculate global and local Moran's I by discrete area.
+This wrapper function calculates global and local Moran's I statistics to measure spatial 
+autocorrelation by discrete area.
 }
 \details{
-Measure degree of spatial autocorrelation. Function utilizes the 
-\code{\link[spdep]{localmoran}} and \code{\link[spdep]{knearneigh}} functions 
-from the spdep package. The spatial input is a row-standardized spatial
-weights matrix for computed nearest neighbor matrix, which is the null setting 
-for the \code{\link[spdep]{nb2listw}} function. The function requires a map 
-file with lat/lon defining boundaries of area/zones and \code{varofint} for 
-to test for spatial autocorrelation. If zonal centroid is not included in the 
-map file, then the \code{\link{find_centroid}} function is called to calculate 
-the centroid of each zone. If the variable of interest is not associated with an
-area/zone then \code{\link{assignment_column}} is called to assign each observation 
-to a zone. Arguments to identify centroid and assign variable of interest to 
-area/zone are optional and default to NULL.
+The function measures the degree of spatial autocorrelation and utilizes functions from the 
+`spdep` package. The function requires a spatial file with latitude and longitude 
+coordinates defining the boundaries of areas or zones and a variable of interest (`var`) to 
+test for spatial autocorrelation.
 }
 \examples{
 \dontrun{
-moran_stats(pcodMainDataTable, project='pcod', varofint='OFFICIAL_MT_TONS',
-spat=spatdat, lon.dat='LonLat_START_LON', lat.dat ='LonLat_START_LAT', cat='NMFS_AREA')
+moran_stats(pcodMainDataTable, var='OFFICIAL_MT_TONS', dat_zone='zoneID',
+  spat=spatdat, spat_zone='NMFS_AREA', project = 'pcod')
 }
 
 }
