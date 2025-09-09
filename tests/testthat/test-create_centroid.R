@@ -1,12 +1,26 @@
 # -------------------------------------------------------------------------------------------------
 # File: test-create_centroid.R
-# Purpose: 
+# Purpose: To perform unit tests on the create_centroid() function.
 # Description: 
+#   This script uses the 'testthat' package to validate the functionality of the 
+#   create_centroid() function from the FishSET package. It ensures that the function
+#   correctly calculates centroids for spatial data under different longitude conventions
+#   (-180 to 180 and 0 to 360). The script sets up a controlled test environment by
+#   mocking a logging function and using a dedicated test data directory.
 #   
 # Scenarios tested:
+#   - Zonal centroid calculation for spatial data using a standard -180 to 180 longitude range.
+#   - Zonal centroid calculation for spatial data using a 0 to 360 longitude range, which is
+#     relevant for data crossing the antimeridian (dateline).
+#   - Verification of the output structure, ensuring the correct columns are added and the
+#     dimensions of the returned data frame are as expected.
 #
 # Notes:
-#
+#   - The FishSET::log_call() function is mocked to prevent errors from database connection
+#     attempts during isolated testing.
+#   - The script sets a temporary option ('test_folder_path') to direct functions to a
+#     specific test data folder ("testdata/FishSETFolder"), ensuring tests are self-contained
+#     and reproducible.
 # -------------------------------------------------------------------------------------------------
 
 # Create mock log_call() --------------------------------------------------------------------------
