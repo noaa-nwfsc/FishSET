@@ -34,80 +34,81 @@ find_centroid <-
            lat.spat = NULL,
            cent.name = NULL,
            log.fun = TRUE) {
- 
-  # Call in datasets
-  spat_out <- data_pull(spat, project)
-  spatdat <- spat_out$dataset
-  spat <- parse_data_name(spat, "spat", project)
-  
-  tmp <- tempfile()
-  on.exit(unlink(tmp), add = TRUE)
-  cat("", file = tmp, append = TRUE)
-  
-  column_check(spatdat, cols = c(spatID, lon.spat, lat.spat))
-  
-  spatdat <- check_spatdat(spatdat, lon = lon.spat, lat = lat.spat, id = spatID)
     
-  cent <- sf::st_centroid(spatdat)
-  
-  # check if any feature is not a point (possible/necessary?)
-  if (any(!sf::st_is(cent, "POINT"))) {
+    # Call in datasets
+    spat_out <- data_pull(spat, project)
+    spatdat <- spat_out$dataset
+    spat <- parse_data_name(spat, "spat", project)
     
-    cent <- sf::st_cast(cent, "POINT")
+    tmp <- tempfile()
+    on.exit(unlink(tmp), add = TRUE)
+    cat("", file = tmp, append = TRUE)
+    
+    column_check(spatdat, cols = c(spatID, lon.spat, lat.spat))
+    
+    spatdat <- check_spatdat(spatdat, lon = lon.spat, lat = lat.spat, id = spatID)
+    
+    cent <- suppressWarnings(
+      sf::st_centroid(spatdat)
+    )
+    
+    # check if any feature is not a point (possible/necessary?)
+    if (any(!sf::st_is(cent, "POINT"))) {
+      cent <- sf::st_cast(cent, "POINT")
+    }
+    
+    # TODO: consider different name for ZoneID, e.g. cent.id (or name in "spatID" var). Update other functions.
+    cent_coord <- sf::st_coordinates(cent)
+    cent <- tibble::tibble(ZoneID = cent[[spatID]], 
+                           cent.lon = cent_coord[ , 1], 
+                           cent.lat = cent_coord[ , 2])
+    
+    cent$cent.lon <- as.numeric(cent$cent.lon)
+    cent$cent.lat <- as.numeric(cent$cent.lat)
+    
+    cent <- cent[order(cent$ZoneID), ]
+    
+    if (any(abs(cent$cent.lon) > 180)) {
+      
+      cat("Longitude is not valid (outside -180:180).", file = tmp, append = TRUE)
+      stop("Longitude is not valid (outside -180:180).")
+    }
+    
+    if (any(abs(cent$cent.lat) > 90)) {
+      
+      cat("\nLatitude is not valid (outside -90:90).", file = tmp, append = TRUE)
+      stop("Latitude is not valid (outside -90:90).")
+    }
+    
+    if (any(table(cent$ZoneID) > 1)) {
+      
+      cent <- cent[!duplicated(cent$ZoneID),]
+      warning('Duplicate centroids found for at least one zone. Using first centroid.')
+    }
+    
+    # TODO: add project name to centroid table name, update other funs
+    # TODO: what if user doesn't want to save centroid to project folder, just
+    # wants the centroid table (or to add centroid to dataset)?
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    
+    c_name <- paste0(project, cent.name)
+    
+    DBI::dbWriteTable(fishset_db, paste0(c_name, "ZoneCentroid"), cent, overwrite = TRUE)
+    
+    # this should be removed eventually; create_alternative_choice() tends to break
+    # if "spatCentroid" hasn't been saved
+    # DBI::dbWriteTable(fishset_db, "spatCentroid", cent, overwrite = TRUE)
+    message('Geographic centroid saved to fishSET database')
+    
+    if (log.fun) {
+      
+      find_centroid_function <- list()
+      find_centroid_function$functionID <- "find_centroid"
+      find_centroid_function$args <- list(spat, project, spatID, lon.spat, lat.spat, 
+                                          log.fun)
+      log_call(project, find_centroid_function)
+    }
+    
+    return(cent)
   }
-  
-  # TODO: consider different name for ZoneID, e.g. cent.id (or name in "spatID" var). Update other functions.
-  cent_coord <- sf::st_coordinates(cent)
-  cent <- tibble::tibble(ZoneID = cent[[spatID]], 
-                         cent.lon = cent_coord[ , 1], 
-                         cent.lat = cent_coord[ , 2])
-  
-  cent$cent.lon <- as.numeric(cent$cent.lon)
-  cent$cent.lat <- as.numeric(cent$cent.lat)
-  
-  cent <- cent[order(cent$ZoneID), ]
-  
-  if (any(abs(cent$cent.lon) > 180)) {
-    
-    cat("Longitude is not valid (outside -180:180).", file = tmp, append = TRUE)
-    stop("Longitude is not valid (outside -180:180).")
-  }
-  
-  if (any(abs(cent$cent.lat) > 90)) {
-    
-    cat("\nLatitude is not valid (outside -90:90).", file = tmp, append = TRUE)
-    stop("Latitude is not valid (outside -90:90).")
-  }
-  
-  if (any(table(cent$ZoneID) > 1)) {
-    
-    cent <- cent[!duplicated(cent$ZoneID),]
-    warning('Duplicate centroids found for at least one zone. Using first centroid.')
-  }
-  
-  # TODO: add project name to centroid table name, update other funs
-  # TODO: what if user doesn't want to save centroid to project folder, just
-  # wants the centroid table (or to add centroid to dataset)?
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-  
-  c_name <- paste0(project, cent.name)
-  
-  DBI::dbWriteTable(fishset_db, paste0(c_name, "ZoneCentroid"), cent, overwrite = TRUE)
-  
-  # this should be removed eventually; create_alternative_choice() tends to break
-  # if "spatCentroid" hasn't been saved
-  # DBI::dbWriteTable(fishset_db, "spatCentroid", cent, overwrite = TRUE)
-  message('Geographic centroid saved to fishSET database')
-  
-  if (log.fun) {
-    
-    find_centroid_function <- list()
-    find_centroid_function$functionID <- "find_centroid"
-    find_centroid_function$args <- list(spat, project, spatID, lon.spat, lat.spat, 
-                                        log.fun)
-    log_call(project, find_centroid_function)
-  }
-  
-  return(cent)
-}

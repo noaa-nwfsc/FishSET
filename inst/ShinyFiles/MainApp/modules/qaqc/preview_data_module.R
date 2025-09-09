@@ -70,7 +70,7 @@ preview_data_server <- function(id, rv_project_name, rv_data){
       if (inherits(df_to_display, "sf")) {
         df_to_display <- as.data.frame(df_to_display)
         col_index <- which(tolower(names(df_to_display)) == "geometry")
-        df_to_display <- df_to_display[, -col_index]
+        df_to_display <- df_to_display[, -col_index, drop = FALSE]
       }
       
       DT::datatable(

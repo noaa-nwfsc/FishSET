@@ -1227,6 +1227,11 @@ load_spatial <- function(spat, name = NULL, over_write = TRUE, project,
   # empty variables
   spat <- empty_vars(spat)
   
+  # check bbox
+  if (max(st_bbox(spat)) > 180) {
+    spat <- sf::st_wrap_dateline(spat)
+  }
+  
   # save spatial data
   tab_name <- paste0(project, name, "SpatTable")
   raw_name <- paste0(tab_name, format(Sys.Date(), format = "%Y%m%d"))

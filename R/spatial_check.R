@@ -206,5 +206,9 @@ check_spatdat <- function(spatdat, lon = NULL, lat = NULL, id = NULL) {
     spatdat <- clean_spat(spatdat)
   } 
   
+  if (max(st_bbox(spatdat)) > 180) {
+    spatdat <- sf::st_wrap_dateline(spatdat)
+  }
+  
   spatdat
 }
