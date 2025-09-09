@@ -32,9 +32,8 @@ select_main_var_ui <- function(id){
             selectizeInput(
               ns("main_unique_obs_id_input"),
               tagList(
-                span(style = "white-space: wrap; display: inline-flex; 
-                                       align-items: center;",
-                     HTML("Select trip/haul ID from main data: &nbsp;"),
+                span(style = "white-space: wrap; display: inline-flex; align-items: center;",
+                     HTML("Select unique trip/haul ID from main data: &nbsp;"),
                      bslib::tooltip(
                        shiny::icon("circle-info", `aria-label` = "More information"),
                        HTML("Note: this ID variable should be unique for each observation
@@ -47,7 +46,8 @@ select_main_var_ui <- function(id){
                      )
                 )
               ),
-              choices = NULL, multiple = FALSE)
+              choices = NULL, multiple = FALSE),
+            
           ),
           column(
             6,
@@ -61,8 +61,7 @@ select_main_var_ui <- function(id){
             selectizeInput(
               ns("main_zone_id_input"),
               tagList(
-                span(style = "white-space: wrap; display: inline-flex; 
-                                       align-items: center;",
+                span(style = "white-space: wrap; display: inline-flex; align-items: center;",
                      HTML("Select zone ID from main data: &nbsp;"),
                      bslib::tooltip(
                        shiny::icon("circle-info", `aria-label` = "More information"),
@@ -93,9 +92,21 @@ select_main_var_ui <- function(id){
                        choices = NULL, multiple = FALSE, 
                        options = list(create = TRUE)),
         
-        selectizeInput(ns("main_date_input"),
-                       "Select date variable", 
-                       choices = NULL, multiple = FALSE)
+        selectizeInput(
+          ns("main_date_input"),
+          tagList(
+            span(style = "white-space: wrap; display: inline-flex; align-items: center;",
+                 HTML("Select date variable: &nbsp;"),
+                 bslib::tooltip(
+                   shiny::icon("circle-info", `aria-label` = "More information"),
+                   HTML("Note: If the date dropdown menu is empty, the date column may have been
+                        loaded into FishSET with the incorrect data type. Navigate to the QAQC
+                        tab and reclassify the column as Date type and return to this page."),
+                   options = list(delay = list(show = 0, hide = 850))
+                 )
+            )
+          ),
+          choices = NULL, multiple = FALSE)
     ),
     
     div(id = ns("select_error_message"), 

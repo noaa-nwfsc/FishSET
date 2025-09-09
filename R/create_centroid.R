@@ -72,14 +72,16 @@ create_centroid <- function(spat = NULL,
   
   # check for invalid args
   if (is_value_empty(dataset) & output %in% c("dataset", "both")) {
-    
     stop("'dat' required if output = 'dataset'.", call. = FALSE)
   }
   
+  # check bbox for spatial data
+  if (max(st_bbox(spatdat)) > 180) {
+    spatdat <- sf::st_wrap_dateline(spatdat)
+  }
+  
   if (type == "zonal centroid") {
-    
     if (is_value_empty(spatdat)) {
-      
       stop("'spat' required for zonal centroid.", call. = FALSE)
     }
     
@@ -88,26 +90,16 @@ create_centroid <- function(spat = NULL,
                               log.fun = FALSE, cent.name = cent.name) # add ... for spat.lat/lon
 
     if (output == "dataset") {
-      
-      # if (is_value_empty(dat)) stop("Argument 'dat' required.", call. = FALSE)
-      
       stopifnot(
         "'dat' is missing" = !is_value_empty(dat),
         "'zoneID' is missing" = !is_value_empty(zoneID)
       )
-      # ZoneID = standardized name for zones in centroid table
+      
       by_join <- stats::setNames('ZoneID', zoneID)
       dat_out <- dplyr::left_join(dataset, cent_tab, by = by_join)
     }
-      
-    # } else {
-    #   
-    #   stop("Invalid output, check spelling. The options are 'dataset', or ", 
-    #        "'centroid table'.", call. = FALSE)
-    # }
     
   } else if (type == "fishing centroid") {
-    
     stopifnot(
       "'dat' is missing" = !is_value_empty(dat),
       "'zoneID' is missing" = !is_value_empty(zoneID),
@@ -116,9 +108,12 @@ create_centroid <- function(spat = NULL,
     )
     
     if (is_value_empty(names)) {
-      
-      if (!is_value_empty(weight.var)) names <- c("weight_cent_lon", "weight_cent_lat")
-      else                             names <- c("fish_cent_lon", "fish_cent_lat")
+      if (!is_value_empty(weight.var)) {
+        names <- c("weight_cent_lon", "weight_cent_lat")
+        
+      } else {
+        names <- c("fish_cent_lon", "fish_cent_lat")
+      } 
     }
     
     dat_out <- find_fishing_centroid(dat = dataset, project = project, zoneID = zoneID, 
@@ -127,14 +122,12 @@ create_centroid <- function(spat = NULL,
                                      cent.name = cent.name, log.fun = FALSE)
     
     if (output %in% c("centroid table", "both")) {
-      
       cent_tab <- unique(dat_out[c(zoneID, names)])
       cent_tab <- cent_tab[order(cent_tab[[zoneID]]), ]
       cent_tab <- stats::setNames(cent_tab, c("ZoneID", "cent.lon", "cent.lat"))
     }
     
   } else {
-    
     stop("Invalid type, check spelling. The options are 'zonal centroid', or ", 
          "'fishing centroid'.", call. = FALSE)
   }
@@ -147,9 +140,7 @@ create_centroid <- function(spat = NULL,
                                         names, cent.name, output)
   log_call(project, create_centroid_function)
   
-  
   if (output == "centroid table") cent_tab
   else if (output == "dataset") dat_out
   else if (output == "both") list(dat = dat_out, cent_tab = cent_tab)
-  
 }

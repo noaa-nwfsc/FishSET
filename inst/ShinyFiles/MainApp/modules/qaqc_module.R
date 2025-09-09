@@ -17,6 +17,7 @@ source("modules/qaqc/remove_na_nan_module.R", local = TRUE) # Remove NA and NaN
 source("modules/qaqc/unique_obs_module.R", local = TRUE) # Ensure only unique observations
 source("modules/qaqc/outliers_module.R", local = TRUE) # View outliers
 source("modules/qaqc/remove_variables_module.R", local = TRUE) # Remove variables
+source("modules/qaqc/spatial_autocorr_module.R", local = TRUE) # Spatial autocorrrelation
 source("modules/qaqc/spatial_checks_module.R", local = TRUE) # Spatial checks
 
 # QAQC server -------------------------------------------------------------------------------------
@@ -55,6 +56,9 @@ qaqc_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     # Remove variables
     remove_variables_server("rm_variables", rv_project_name, rv_data, rv_folderpath)
     
+    # Spatial autocorrelation
+    spatial_autocorr_server("spatial_autocorrelation", rv_project_name, rv_data, rv_folderpath)
+    
     # Spatial checks
     rv_ids_to_remove <- spatial_checks_server("spat_checks", 
                                               rv_project_name, 
@@ -87,6 +91,7 @@ qaqc_sidebar_ui <- function(id) {
                              "Unique observations" = "unique_obs",
                              "Data outliers" = "data_outliers",
                              "Remove variables" = "remove_vars",
+                             "Spatial autocorrelation" = "spat_autocorr",
                              "Spatial checks" = "spat_checks"),
                  selected = "preview")
   )
@@ -152,6 +157,13 @@ qaqc_ui <- function(id){
       condition = "input.qaqc_options == 'remove_vars'",
       ns = ns,
       remove_variables_ui(ns("rm_variables"))
+    ),
+    
+    # Conditionally display spatial autocorrelation
+    conditionalPanel(
+      condition = "input.qaqc_options == 'spat_autocorr'",
+      ns = ns,
+      spatial_autocorr_ui(ns("spatial_autocorrelation"))
     ),
     
     # Conditionally display spatial checks
