@@ -791,6 +791,10 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
             )
             shinyjs::show("load_error_message")
           }
+          
+          # Some spatial files require loading from the SQLite DB to gather
+          # correct column names (particularly for 'geometry' column)
+          data_out <- table_view(table_name, project_name)
 
         } else if (data_type == "grid") {
           pass <- q_test(grid = data_out,
