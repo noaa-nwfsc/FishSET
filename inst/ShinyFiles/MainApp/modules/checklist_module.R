@@ -174,7 +174,7 @@ checklist_ui <- function(id){
 #' @returns The server-side module logic. This function does not return a value but has the
 #'          side effect of showing a modal dialog.
 #'
-checklist_server <- function(id, rv_project_name, rv_data, rv_qaqc = NULL){
+checklist_server <- function(id, rv_project_name, rv_data, rv_folderpath){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -187,6 +187,8 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_qaqc = NULL){
           sel_vars = FALSE),
         
         qaqc = list(
+          na_check = FALSE,
+          unique_check = FALSE,
           spatial_check = FALSE),
         
         format_data = list(
@@ -236,14 +238,20 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_qaqc = NULL){
       
       ## QAQC checks ------------------------------------------------------------------------------
       # First check that all load_data checks have passed
-      if (!is.null(rv_qaqc) & all(unlist(rv_project_checklist$checklist$load_data))) {
-        # Check if spat checks passed
-        if (rv_qaqc$spatial_checks()$status == "passed") {
-          rv_project_checklist$checklist$qaqc$spatial_check <- TRUE
-
-        } else {
-          rv_project_checklist$checklist$qaqc$spatial_check <- FALSE
-        }
+      if (all(unlist(rv_project_checklist$checklist$load_data))) {
+        
+        # 1. Check for NAs and NaNs
+        has_na <- !is_value_empty(qaqc_helper(rv_data$main, "NA", "names"))
+        has_nan <- !is_value_empty(qaqc_helper(rv_data$main, "NaN", "names"))
+        if (!has_na && !has_nan) {
+          rv_project_checklist$checklist$qaqc$na_check <- TRUE
+        } 
+        
+        # 2. Check for duplicate rows.
+        if (!any(duplicated(rv_data$main))) {
+          rv_project_checklist$checklist$qaqc$unique_check <- TRUE
+        } 
+        
       }
       
       ## Format data checks -----------------------------------------------------------------------
