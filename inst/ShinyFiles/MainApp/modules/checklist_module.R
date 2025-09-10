@@ -150,7 +150,7 @@ pass_icon <- function(tab, checklist, previous_check = NULL) {
     out_icon <- icon_wrapper(icon_name = "fish-fins", icon_color = "black")
   }
   
-  # Return the icon and any corresponding message
+  # Return the icon and any corresponding message 
   return(list(
     out_icon,
     out_icon_message
