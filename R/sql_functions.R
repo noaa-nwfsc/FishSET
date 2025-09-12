@@ -180,7 +180,7 @@ table_view <- function(table, project) {
 
   if (table_exists(table, project) == FALSE) {
 
-    warning("Table not found. Check spelling.", call. = FALSE)
+    stop("Table not found. Check spelling.", call. = FALSE)
 
   } else {
 

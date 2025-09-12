@@ -86,7 +86,11 @@ summary_data_ui <- function(id){
   tagList(
     bslib::card(
       height = "1000px",
-      fill = TRUE, 
-      DT::DTOutput(ns("summary_datatable")))
+      fill = TRUE,
+      withSpinner(
+        DT::DTOutput(ns("summary_datatable")),
+        type = 6
+      )
+    )
   )
 }
