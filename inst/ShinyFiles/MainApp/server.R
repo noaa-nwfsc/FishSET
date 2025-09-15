@@ -166,7 +166,8 @@ server <- function(input, output, session) {
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
 
-  explore_data_server("explore_data", rv_data=rv_data)
+  explore_data_server("explore_data", rv_folderpath= rv_folderpath, 
+    rv_project_name = rv_project_name, rv_data = rv_data )
 
  ### Main panel
 }

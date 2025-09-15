@@ -21,11 +21,11 @@ source("modules/explore_data/zone_summary_module.R", local = TRUE) # Spatial che
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-explore_data_server <- function(id, rv_data){
+explore_data_server <- function(id, rv_folderpath, rv_project_name, rv_data ){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    zone_summary_server("zone_summ_plot",rv_data)
+    zone_summary_server("zone_summ_plot",rv_folderpath, rv_project_name, rv_data )
     
   })
 }
