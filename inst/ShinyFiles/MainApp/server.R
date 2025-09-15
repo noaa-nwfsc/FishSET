@@ -151,23 +151,24 @@ server <- function(input, output, session) {
       saved <- q_save(rv_data$main, project = rv_project_name()$value, type = "main")
     }
   }, ignoreNULL = TRUE)
-
-
-  # QAQC ------------------------------------------------------------------------------------------
-  ## Quality checks -------------------------------------------------------------------------------
+  
+  
+  
+  ## Explore data ---------------------------------------------------------------------------------
   ### Sidebar
- checklist_server("explore_data_checklist", rv_project_name, rv_data, rv_qaqc)
-
-
+  checklist_server("explore_data_checklist", rv_project_name, rv_data, rv_qaqc)
+  
   other_actions_server("explore_data_actions",
                        values = list(project_name = rv_project_name,
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
-
-  explore_data_server("explore_data", rv_folderpath= rv_folderpath, 
-    rv_project_name = rv_project_name, rv_data = rv_data )
-
- ### Main panel
+  
+  ### Main panel
+  explore_data_server("explore_data", 
+                      rv_folderpath = rv_folderpath, 
+                      rv_project_name = rv_project_name, 
+                      rv_data = rv_data)
+  
 }

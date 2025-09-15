@@ -145,8 +145,9 @@ ui <- function(request){
             qaqc_ui("qaqc_checks")    
           )
         )
-        
       ),
+      
+      ## Data exploration subtab ------------------------------------------------------------------
       bslib::nav_panel(
         title = "Explore the data", 
         id = "explore_data",
@@ -164,7 +165,7 @@ ui <- function(request){
               
               checklist_ui("explore_data_checklist"),
               hr(),
-              explore_data_sidebar_ui("explore_data_inputs"),
+              explore_data_sidebar_ui("explore_data"),
               other_actions_ui("explore_data_actions")
             ),
             
@@ -172,7 +173,6 @@ ui <- function(request){
             explore_data_ui("explore_data")    
           )
         )
-        
       )
     )
   )
