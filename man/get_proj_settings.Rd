@@ -9,7 +9,7 @@ get_proj_settings(project, format = FALSE)
 \arguments{
 \item{project}{Name of project.}
 
-\item{format}{Logical, output project settings using \code{\link{pander}}. Useful
+\item{format}{Logical, output project settings using \code{pander}. Useful
 for markdown documents.}
 }
 \description{
