@@ -1,19 +1,39 @@
 # =================================================================================================
 # File: temporal_plots_module.R
-# Description: 
+# Description:  A Shiny module for visualizing temporal trends. It includes a scatter 
+#              plot of a selected variable over time and two bar charts that 
+#              summarize data annually by observation count and other statistics.
 #
 # Authors: Paul Carvalho, Anna Abelman
 # Date created: 9/15/2025
-# Dependencies: 
-# Notes: 
+# Dependencies: shiny, bslib, dplyr, ggplot2, lubridate, shinycssloaders
+# Notes: This module is designed to be a plug-and-play component in a larger Shiny
+#        application for data exploration.
 # =================================================================================================
+
+# Constants and Helpers ---------------------------------------------------------------------------
+# Temporal plot color
+temp_plot_color <- "#586A89"
+
+## Shared plot theme
+temporal_plot_theme <- ggplot2::theme_classic() +
+  ggplot2::theme(
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(size = 14),
+    axis.title.y = element_text(size = 14),
+    plot.margin = margin(t = 5.5, r = 30, b = 5.5, l = 5.5, unit = "pt")
+  )
 
 # Server ------------------------------------------------------------------------------------------
 #' temp_plots_server
 #'
-#' @description 
+#' @description The server-side logic for the temporal plots module. It handles 
+#'              dynamic UI updates, data filtering based on user input, and the
+#'              generation of three distinct plots for temporal analysis.
 #'
 #' @param id A character string that is unique to this module instance.
+#' @param rv_folderpath A reactive value containing the path to the project folder.
 #' @param rv_project_name A reactive value containing the current project name.
 #' @param rv_data A reactiveValues object containing the list of data frames to be displayed.
 #'
@@ -70,24 +90,15 @@ temp_plots_server <- function(id, rv_folderpath, rv_project_name, rv_data){
                     choose a date column first.")
       )
       
-      cat(diff(range(lubridate::year(rv_tmp_main()$Date))))
-      cat("\n")
-      
       ggplot2::ggplot() +
         ggplot2::geom_point(data = rv_tmp_main(),
                             aes(x = Date, y = Var),
                             alpha = 0.6,
-                            color = '#586A89') +
-        ggplot2::theme_classic() +
+                            color = temp_plot_color) +
         ggplot2::labs(x = "Date",
                       y = input$select_var_input) +
         ggplot2::scale_y_continuous(expand = c(0.01,0.01)) +
-        ggplot2::theme(
-          axis.text.x = element_text(size = 14),
-          axis.text.y = element_text(size = 14),
-          axis.title.x = element_text(size = 14),
-          axis.title.y = element_text(size = 14)
-        )
+        temporal_plot_theme
     })
     
     # Plot 2: Bar chart summarizing observation counts by year
@@ -98,9 +109,9 @@ temp_plots_server <- function(id, rv_folderpath, rv_project_name, rv_data){
                     choose a date column first.")
       )
       
+      # Prep data for plotting
       df <- rv_tmp_main() %>% dplyr::mutate(Year = lubridate::year(Date))
       total_obs <- nrow(df)
-      
       summary_df <- switch(
         input$count_function_input,
         "No. observations" = df %>% 
@@ -112,19 +123,12 @@ temp_plots_server <- function(id, rv_folderpath, rv_project_name, rv_data){
       )
       
       ggplot2::ggplot(summary_df, ggplot2::aes(x = Year, y = Value)) +
-        ggplot2::geom_col(fill = "#586A89") +
+        ggplot2::geom_col(fill = temp_plot_color) +
         ggplot2::labs(title = input$select_var_input,
-                      x = "Year", 
+                      x = "Year",
                       y = input$count_function_input) +
         ggplot2::scale_y_continuous(expand = c(0.01,0.01)) +
-        ggplot2::theme_classic() +
-        ggplot2::theme(
-          axis.text.x = element_text(size = 14),
-          axis.text.y = element_text(size = 14),
-          axis.title.x = element_text(size = 14),
-          axis.title.y = element_text(size = 14),
-          plot.margin = margin(t = 5.5, r = 30, b = 5.5, l = 5.5, unit = "pt")
-        ) 
+        temporal_plot_theme
     })
     
     # Plot 3: Bar chart with summary stats by year
@@ -135,8 +139,8 @@ temp_plots_server <- function(id, rv_folderpath, rv_project_name, rv_data){
                     choose a date column first.")
       )
       
+      # Prep data for plotting
       df <- rv_tmp_main() %>% dplyr::mutate(Year = lubridate::year(Date))
-      
       summary_df <- switch(
         input$stat_function_input,
         "Mean" = df %>% 
@@ -157,19 +161,12 @@ temp_plots_server <- function(id, rv_folderpath, rv_project_name, rv_data){
       )
       
       ggplot2::ggplot(summary_df, ggplot2::aes(x = Year, y = Value)) +
-        ggplot2::geom_col(fill = "#586A89") +
+        ggplot2::geom_col(fill = temp_plot_color) +
         ggplot2::labs(title = input$select_var_input,
-                      x = "Year", 
+                      x = "Year",
                       y = input$stat_function_input) +
         ggplot2::scale_y_continuous(expand = c(0.01,0.01)) +
-        ggplot2::theme_classic() +
-        ggplot2::theme(
-          axis.text.x = element_text(size = 14),
-          axis.text.y = element_text(size = 14),
-          axis.title.x = element_text(size = 14),
-          axis.title.y = element_text(size = 14),
-          plot.margin = margin(t = 5.5, r = 30, b = 5.5, l = 5.5, unit = "pt")
-        ) 
+        temporal_plot_theme
     })
   })
 }
@@ -177,7 +174,9 @@ temp_plots_server <- function(id, rv_folderpath, rv_project_name, rv_data){
 # UI ----------------------------------------------------------------------------------------------
 #' temp_plots_ui
 #'
-#' @description 
+#' @description The UI-side function for the temporal plots module. It defines the 
+#'              layout of the user interface elements, including input controls 
+#'              and plot containers, using the bslib package for a card-based layout.
 #'
 #' @param id A character string that is unique to this module instance.
 #'
