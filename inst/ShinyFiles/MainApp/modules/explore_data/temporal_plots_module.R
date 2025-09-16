@@ -8,6 +8,8 @@
 # Notes: 
 # =================================================================================================
 
+# TODO: REMOVE ANY TEMPORAL PLOTS IN CODEBASE
+
 # Server ------------------------------------------------------------------------------------------
 #' temp_plots_server
 #'
@@ -111,7 +113,8 @@ temp_plots_server <- function(id, rv_folderpath, rv_project_name, rv_data){
       
       ggplot2::ggplot(summary_df, ggplot2::aes(x = Year, y = Value)) +
         ggplot2::geom_col(fill = "#586A89") +
-        ggplot2::labs(x = "Year", 
+        ggplot2::labs(title = input$select_var_input,
+                      x = "Year", 
                       y = input$count_function_input) +
         ggplot2::scale_y_continuous(expand = c(0.01,0.01)) +
         ggplot2::theme_classic() +
@@ -155,7 +158,8 @@ temp_plots_server <- function(id, rv_folderpath, rv_project_name, rv_data){
       
       ggplot2::ggplot(summary_df, ggplot2::aes(x = Year, y = Value)) +
         ggplot2::geom_col(fill = "#586A89") +
-        ggplot2::labs(x = "Year", 
+        ggplot2::labs(title = input$select_var_input,
+                      x = "Year", 
                       y = input$stat_function_input) +
         ggplot2::scale_y_continuous(expand = c(0.01,0.01)) +
         ggplot2::theme_classic() +
@@ -191,7 +195,7 @@ temp_plots_ui <- function(id){
         fluidRow(
           column(12,
                  shinycssloaders::withSpinner(
-                   plotOutput(ns("scatter_plot"), height = "300px"), type = 6)
+                   plotOutput(ns("scatter_plot"), height = "33vh"), type = 6)
           )
         )
       )
@@ -203,18 +207,18 @@ temp_plots_ui <- function(id){
         fluidRow(
           column(6,
                  selectInput(ns("count_function_input"),
-                             "Summary options:",
+                             label = NULL,
                              choices = c("No. observations",
                                          "% of total observations")),
                  shinycssloaders::withSpinner(
-                   plotOutput(ns("count_summary_plot"), height = "300px"), type = 6)
+                   plotOutput(ns("count_summary_plot"), height = "33vh"), type = 6)
           ),
           column(6,
                  selectInput(ns("stat_function_input"),
-                             "Summary stat:",
+                             label = NULL,
                              choices = c("Mean", "Median", "Min", "Max", "Sum")),
                  shinycssloaders::withSpinner(
-                   plotOutput(ns("stat_summary_plot"), height = "300px"), type = 6)
+                   plotOutput(ns("stat_summary_plot"), height = "33vh"), type = 6)
           )
         )      
       )
