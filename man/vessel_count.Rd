@@ -105,7 +105,7 @@ vessels. Defaults to \code{"count"}.}
 
 \item{type}{Plot type, options include \code{"bar"} (the default) and \code{"line"}.}
 
-\item{scale}{Scale argument passed to \code{\link{facet_grid}}. 
+\item{scale}{Scale argument passed to \code{facet_grid}. 
 Options include \code{"free"}, \code{"free_x"}, \code{"free_y"}. Defaults to 
 \code{"fixed"}.}
 

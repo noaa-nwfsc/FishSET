@@ -103,7 +103,7 @@ by using a function entered as a string. Defaults to \code{"none"} for no conver
 
 \item{combine}{Logical, whether to combine variables listed in \code{group}.}
 
-\item{scale}{Scale argument passed to \code{\link{facet_grid}}. Defaults to 
+\item{scale}{Scale argument passed to \code{facet_grid}. Defaults to 
 \code{"fixed"}. Other options include \code{"free_y"}, \code{"free_x"}, and 
 \code{"free_xy"}.}
 

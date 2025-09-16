@@ -47,7 +47,7 @@ dens_plot_helper(
 
 \item{format_lab}{String, label formatting option passed from \code{density_plot}.}
 
-\item{scale}{Scale argument passed to \code{\link{facet_grid}}. Defaults to "fixed". 
+\item{scale}{Scale argument passed to \code{facet_grid}. Defaults to "fixed". 
 Other options include "free_y", "free_x", and "free".}
 
 \item{position}{String, plot position passed from \code{density_plot}.}

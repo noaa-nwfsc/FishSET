@@ -55,7 +55,7 @@
 #' @param format_lab Formatting option for y-axis labels. Options include 
 #'   \code{"decimal"} or \code{"scientific"}.  
 #' @param combine Logical, whether to combine variables listed in \code{group}. 
-#' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to 
+#' @param scale Scale argument passed to \code{facet_grid}. Defaults to 
 #'   \code{"fixed"}. Other options include \code{"free_y"}, \code{"free_x"}, and 
 #'   \code{"free_xy"}. 
 #' @param output Output type. Options include 'table' or 'plot'.

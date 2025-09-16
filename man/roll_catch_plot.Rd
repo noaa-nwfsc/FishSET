@@ -41,7 +41,7 @@ log10, sqrt.}
 \item{format_lab}{Formatting option for y-axis labels. Options include 
 \code{"decimal"} or \code{"scientific"}.}
 
-\item{scale}{Scale argument passed to \code{\link{facet_grid}}.Options include 
+\item{scale}{Scale argument passed to \code{facet_grid}.Options include 
 \code{"free"}, \code{"free_x"}, \code{"free_y"}. Defaults to \code{"fixed"}.}
 }
 \description{

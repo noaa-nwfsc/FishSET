@@ -56,7 +56,7 @@
 #'   \code{"log"} or \code{"sqrt"}.
 #' @param format_lab Formatting option for x-axis labels. Options include 
 #'   \code{"decimal"} or \code{"scientific"}.
-#' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to 
+#' @param scale Scale argument passed to \code{facet_grid}. Defaults to 
 #'   \code{"fixed"}. Other options include \code{"free_y"}, \code{"free_x"}, and 
 #'   \code{"free"}.
 #' @param bw Adjusts KDE bandwidth. Defaults to 1.
@@ -355,7 +355,7 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
   #' @param bw Numeric, bandwidth passed from \code{density_plot}.
   #' @param conv String, convert pounds to "tons" or "metric_tons".
   #' @param tran String, scale transformation passed from \code{density_plot}.
-  #' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to "fixed". 
+  #' @param scale Scale argument passed to \code{facet_grid}. Defaults to "fixed". 
   #'   Other options include "free_y", "free_x", and "free".
   #' @param position String, plot position passed from \code{density_plot}.
   #' @param format_lab String, label formatting option passed from \code{density_plot}.
