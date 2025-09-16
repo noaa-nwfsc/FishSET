@@ -129,7 +129,7 @@ pred_prob_outputs <- function(project, mod.name = NULL,
     if(output_option == "model_fig"){
       # Add prop observation and convert to long format dataframe
       fig_df <- out_tab_df %>% 
-        select(-se) %>% 
+        select(-"se") %>% 
         pivot_wider(., names_from = "model", values_from = c("predprob")) %>% 
         pivot_longer(., -c("ZoneID"))
       

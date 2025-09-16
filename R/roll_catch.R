@@ -31,7 +31,7 @@
 #' @param facet_by Variable name to facet by. This can be a variable that exists in
 #'   the dataset, or a variable created by \code{roll_catch()} such as \code{"year"},
 #'   \code{"month"}, or \code{"species"} if more than one variable is entered in \code{catch}.
-#' @param scale Scale argument passed to \code{\link{facet_grid}}.
+#' @param scale Scale argument passed to \code{facet_grid}.
 #'   Options include \code{"free"}, \code{"free_x"}, \code{"free_y"}. Defaults to
 #'   \code{"fixed"}.
 #' @param align Indicates whether results of window should be left-aligned (\code{"left"}),
@@ -382,7 +382,7 @@ roll_catch_plot <- function(roll_tab, catch, date, group, facet_by, fun, k, conv
   #'@param format_lab Formatting option for y-axis labels. Options include 
   #'   \code{"decimal"} or \code{"scientific"}.
   #'@param conv String, convert pounds to "tons" or "metric_tons". 
-  #'@param scale Scale argument passed to \code{\link{facet_grid}}.Options include 
+  #'@param scale Scale argument passed to \code{facet_grid}.Options include 
   #'  \code{"free"}, \code{"free_x"}, \code{"free_y"}. Defaults to \code{"fixed"}.
   #'@import ggplot2
   #'@importFrom rlang sym

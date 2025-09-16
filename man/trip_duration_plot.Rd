@@ -46,7 +46,7 @@ trip_duration_plot(
 \item{format_lab}{Formatting option for x-axis labels. Options include 
 \code{"decimal"} or \code{"scientific"}.}
 
-\item{scale}{Scale argument passed to \code{\link{facet_grid}}.}
+\item{scale}{Scale argument passed to \code{facet_grid}.}
 
 \item{combine}{Logical, whether grouping variables should be combined.}
 

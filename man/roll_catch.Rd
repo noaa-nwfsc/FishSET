@@ -74,7 +74,7 @@ in \code{filter_by}.}
 the dataset, or a variable created by \code{roll_catch()} such as \code{"year"},
 \code{"month"}, or \code{"species"} if more than one variable is entered in \code{catch}.}
 
-\item{scale}{Scale argument passed to \code{\link{facet_grid}}.
+\item{scale}{Scale argument passed to \code{facet_grid}.
 Options include \code{"free"}, \code{"free_x"}, \code{"free_y"}. Defaults to
 \code{"fixed"}.}
 
