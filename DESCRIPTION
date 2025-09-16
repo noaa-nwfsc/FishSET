@@ -38,7 +38,7 @@ License: MIT + file LICENSE
 URL: https://github.com/noaa-nwfsc/FishSET
 BugReports: https://pkgname.bugtracker.url
 Depends:
-    R (>= 3.5.0)
+    R (>= 4.1.0)
 Imports:
     bsicons (>= 0.1.2),
     bslib (>= 0.5.1),
@@ -79,6 +79,7 @@ Imports:
     spdep,
     stats,
     stringi,
+    stringr,
     rstudioapi,
     tibble,
     tidyr,

@@ -70,5 +70,6 @@ mod.dat <- na_filter(pcodMainDataTable, 'pcod',
                      c('OFFICIAL_TOTAL_CATCH_MT', 'CATCH_VALUE'), 
                      remove = TRUE)
 }
+
 }
 \keyword{NA}
