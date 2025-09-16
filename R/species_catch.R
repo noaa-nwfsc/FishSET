@@ -72,7 +72,7 @@
 #'   and 'fill'. 
 #' @param combine Whether to combine variables listed in \code{group}. This is 
 #'   passed to the "fill" or "color" aesthetic for plots. 
-#' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to 
+#' @param scale Scale argument passed to \code{facet_grid}. Defaults to 
 #'   \code{"fixed"}.
 #' @param output Output a \code{"plot"} or \code{"table"}. Defaults 
 #'   to both (\code{"tab_plot"}).
