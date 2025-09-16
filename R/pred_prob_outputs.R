@@ -23,6 +23,7 @@
 #' @export
 #' @import ggplot2
 #' @import tidyr
+#' @import stringr
 #' @examples 
 #' \dontrun{
 #' pred_prob_outputs(project = "scallop")
