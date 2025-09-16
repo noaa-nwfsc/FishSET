@@ -8,8 +8,6 @@
 # Notes: 
 # =================================================================================================
 
-# TODO: REMOVE ANY TEMPORAL PLOTS IN CODEBASE
-
 # Server ------------------------------------------------------------------------------------------
 #' temp_plots_server
 #'
@@ -72,6 +70,9 @@ temp_plots_server <- function(id, rv_folderpath, rv_project_name, rv_data){
                     choose a date column first.")
       )
       
+      cat(diff(range(lubridate::year(rv_tmp_main()$Date))))
+      cat("\n")
+      
       ggplot2::ggplot() +
         ggplot2::geom_point(data = rv_tmp_main(),
                             aes(x = Date, y = Var),
@@ -79,8 +80,7 @@ temp_plots_server <- function(id, rv_folderpath, rv_project_name, rv_data){
                             color = '#586A89') +
         ggplot2::theme_classic() +
         ggplot2::labs(x = "Date",
-                      y = input$select_var_input) + 
-        ggplot2::scale_x_continuous(expand = c(0.01,0.01)) +
+                      y = input$select_var_input) +
         ggplot2::scale_y_continuous(expand = c(0.01,0.01)) +
         ggplot2::theme(
           axis.text.x = element_text(size = 14),
