@@ -12,6 +12,7 @@
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/explore_data/zone_summary_module.R", local = TRUE) # Zone summary
 source("modules/explore_data/temporal_plots_module.R", local = TRUE) # Temporal plots
+source("modules/explore_data/compare_vars_module.R", local = TRUE) # Temporal plots
 
 # Explore the data server -------------------------------------------------------------------------
 #' explore_data_server
@@ -34,6 +35,8 @@ explore_data_server <- function(id, rv_folderpath, rv_project_name, rv_data ){
     # Temporal plots
     temp_plots_server("temp_plots", rv_folderpath, rv_project_name, rv_data)
     
+    # Scatter plot
+    compare_vars_server("compare_variables", rv_folderpath, rv_project_name, rv_data)
   })
 }
 
@@ -53,7 +56,8 @@ explore_data_sidebar_ui <- function(id) {
     radioButtons(ns("explore_data_options"), 
                  label = h6("Explore options"),
                  choices = c("Zone summary" = "zone_summary",
-                             "Temporal plots" = "temporal_plots"),
+                             "Temporal plots" = "temporal_plots",
+                             "Compare variables" = "comp_vars"),
                  selected = "zone_summary")
     
   )
@@ -84,6 +88,13 @@ explore_data_ui <- function(id){
       condition = "input.explore_data_options == 'temporal_plots'",
       ns = ns,
       temp_plots_ui(ns("temp_plots"))
+    ),
+    
+    # Conditionally display the scatter plot UI
+    conditionalPanel(
+      condition = "input.explore_data_options == 'comp_vars'",
+      ns = ns,
+      compare_vars_ui(ns("compare_variables"))
     )
   )
 }
