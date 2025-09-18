@@ -12,7 +12,8 @@
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/explore_data/zone_summary_module.R", local = TRUE) # Zone summary
 source("modules/explore_data/temporal_plots_module.R", local = TRUE) # Temporal plots
-source("modules/explore_data/compare_vars_module.R", local = TRUE) # Temporal plots
+source("modules/explore_data/compare_vars_module.R", local = TRUE) # Compare variables
+source("modules/explore_data/correlation_module.R", local = TRUE) # Correlation
 
 # Explore the data server -------------------------------------------------------------------------
 #' explore_data_server
@@ -35,8 +36,11 @@ explore_data_server <- function(id, rv_folderpath, rv_project_name, rv_data ){
     # Temporal plots
     temp_plots_server("temp_plots", rv_folderpath, rv_project_name, rv_data)
     
-    # Scatter plot
+    # Compare variable plot
     compare_vars_server("compare_variables", rv_folderpath, rv_project_name, rv_data)
+    
+    # Correlation
+    correlation_server("correlation", rv_folderpath, rv_project_name, rv_data)
   })
 }
 
@@ -57,11 +61,12 @@ explore_data_sidebar_ui <- function(id) {
                  label = h6("Explore options"),
                  choices = c("Zone summary" = "zone_summary",
                              "Temporal plots" = "temporal_plots",
-                             "Compare variables" = "comp_vars"),
+                             "Compare variables" = "comp_vars",
+                             "Correlation" = "corr"),
                  selected = "zone_summary")
-    
   )
 }
+
 
 # Explore the data ui main panel ------------------------------------------------------------------
 #' explore_data_ui
@@ -90,11 +95,18 @@ explore_data_ui <- function(id){
       temp_plots_ui(ns("temp_plots"))
     ),
     
-    # Conditionally display the scatter plot UI
+    # Conditionally display the compare var plot UI
     conditionalPanel(
       condition = "input.explore_data_options == 'comp_vars'",
       ns = ns,
       compare_vars_ui(ns("compare_variables"))
+    ),
+    
+    # Conditionally display the correlation plot UI
+    conditionalPanel(
+      condition = "input.explore_data_options == 'corr'",
+      ns = ns,
+      correlation_ui(ns("correlation"))
     )
   )
 }
