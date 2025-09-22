@@ -1,105 +1,96 @@
 
-  #' Summarize zones, closure areas
-  #' 
-  #' `zone_summary` counts observations and aggregates values in `dat` 
-  #' by regulatory zone or closure area.
-  #' 
-  #'@param dat Primary data containing information on hauls or trips. 
-  #'  Table in FishSET database contains the string 'MainDataTable'.
-  #'@param spat A spatial data file containing information on fishery management 
-  #'  or regulatory zones boundaries. `sf` objects are recommended, but `sp` objects 
-  #'  can be used as well. See [dat_to_sf()] to convert a spatial table read from 
-  #'  a csv file to an `sf` object. To upload your spatial data to the FishSETFolder 
-  #'  see [load_spatial()].
-  #'@param project Name of project.
-  #'@param zone.dat Name of zone ID column in `dat`.
-  #'@param zone.spat Name of zone ID column in `spat`.
-  #'@param count Logical. if `TRUE`, then the number observations per zone 
-  #'  will be returned. Can be paired with `fun = "percent"` and `group`.
-  #'  `zone_summary` will return an error if `var` is include and 
-  #'  `count = TRUE`.
-  #'@param var Optional, name of numeric variable to aggregate by zone/closure
-  #'  area. 
-  #'@param group Name of grouping variable to aggregate by zone/closure area. Only
-  #'  one variable is allowed. 
-  #'@param fun Function name (string) to aggregate by. `"percent"` the 
-  #'  percentage of observations in a given zone. Other options include "sum", 
-  #'  "mean", "median", "min", and "max". 
-  #'@param breaks A numeric vector of breaks to bin zone frequencies by. Overrides
-  #'  `n.breaks` if entered. 
-  #'@param n.breaks The number of break points to create if breaks are not given 
-  #'  directly. Defaults to 10. 
-  #'@param bin_colors Optional, a vector of colors to use in plot. Must be same length
-  #'  as breaks. Defaults to `fishset_viridis(10)`.
-  #'@param na.rm Logical, whether to remove zones with zero counts. 
-  #'@param dat.center Logical, whether the plot should center on `dat` 
-  #'  (`TRUE`) or `spat` (`FALSE`). Recommend `dat.center = TRUE`
-  #'  when aggregating by regulatory zone and `dat.center = FALSE` when
-  #'  aggregating by closure area. 
-  #'@param output  Output a `"plot"`, `"table"`, or both (`"tab_plot"`).
-  #'  Defaults to `"plot"`.
-  #'@details Observations in `dat` must be assigned to regulatory zones to 
-  #'  use this function. See [assignment_column()] for details. 
-  #'  `zone_summary` can return: the number of observations per zone 
-  #'  (`count = TRUE`, `fun = NULL`, `group = NULL`), the percentage
-  #'  of observations by zone (`count = TRUE`, `fun = "percent"`, 
-  #'  `group = NULL`), the percentage of observations by zone and group 
-  #'  (`count = TRUE`, `fun = "percent"`, `group = "group"`), summary 
-  #'  of a numeric variable by zone (`count = FALSE`, `var = "var"`, 
-  #'  `fun = "sum"`, `group = NULL`), summary of a numeric variable
-  #'  by zone and group (`count = FALSE`, `var = "var"`, `fun = "sum"`, 
-  #'  `group = "group"`), share (percentage) of a numeric variable by zone
-  #'  (`count = FALSE`, `var = "var"`, `fun = "percent"`, `group = NULL`), 
-  #'  share (percentage) of a numeric variable by zone and group (`count = FALSE`, 
-  #'  `var = "var"`, `fun = "percent"`, `group = "group"`).
-  #'@export
-  #'@import ggplot2
-  #'@import dplyr
-  #'@import sf
-  #'@importFrom plotly ggplotly style config plotly_build
-  #'@examples 
-  #'\dontrun{
-  #'
-  #'# count # of obs
-  #'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
-  #'             zone.spat = "NMFS_AREA")
-  #'             
-  #'# percent of obs
-  #'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
-  #'             zone.spat = "NMFS_AREA", count = TRUE, fun = "percent")
-  #'
-  #'# count by group
-  #'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
-  #'             zone.spat = "NMFS_AREA", group = "GEAR_TYPE")   
-  #'
-  #'# total catch by zone           
-  #'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
-  #'             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
-  #'             count = FALSE, fun = "sum")  
-  #'
-  #'# percent of catch by zone           
-  #'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
-  #'             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
-  #'             count = FALSE, fun = "percent")         
-  #'             
-  #'}
+#' Summarize zones, closure areas
+#' 
+#' `zone_summary` counts observations and aggregates values in `dat` 
+#' by regulatory zone or closure area.
+#' 
+#'@param dat Primary data containing information on hauls or trips. 
+#'  Table in FishSET database contains the string 'MainDataTable'.
+#'@param spat A spatial data file containing information on fishery management 
+#'  or regulatory zones boundaries. `sf` objects are recommended, but `sp` objects 
+#'  can be used as well. See [dat_to_sf()] to convert a spatial table read from 
+#'  a csv file to an `sf` object. To upload your spatial data to the FishSETFolder 
+#'  see [load_spatial()].
+#'@param project Name of project.
+#'@param zone.dat Name of zone ID column in `dat`.
+#'@param zone.spat Name of zone ID column in `spat`.
+#'@param count Logical. if `TRUE`, then the number observations per zone 
+#'  will be returned. Can be paired with `fun = "percent"` and `group`.
+#'  `zone_summary` will return an error if `var` is include and 
+#'  `count = TRUE`.
+#'@param var Optional, name of numeric variable to aggregate by zone/closure
+#'  area. 
+#'@param group Name of grouping variable to aggregate by zone/closure area. Only
+#'  one variable is allowed. 
+#'@param fun Function name (string) to aggregate by. `"percent"` the 
+#'  percentage of observations in a given zone. Other options include "sum", 
+#'  "mean", "median", "min", and "max". 
+#'@param na.rm Logical, whether to remove zones with zero counts. 
+#'@param dat.center Logical, whether the plot should center on `dat` 
+#'  (`TRUE`) or `spat` (`FALSE`). Recommend `dat.center = TRUE`
+#'  when aggregating by regulatory zone and `dat.center = FALSE` when
+#'  aggregating by closure area. 
+#'@param output  Output a `"plot"`, `"table"`, or both (`"tab_plot"`).
+#'  Defaults to `"plot"`.
+#'@details Observations in `dat` must be assigned to regulatory zones to 
+#'  use this function. See [assignment_column()] for details. 
+#'  `zone_summary` can return: the number of observations per zone 
+#'  (`count = TRUE`, `fun = NULL`, `group = NULL`), the percentage
+#'  of observations by zone (`count = TRUE`, `fun = "percent"`, 
+#'  `group = NULL`), the percentage of observations by zone and group 
+#'  (`count = TRUE`, `fun = "percent"`, `group = "group"`), summary 
+#'  of a numeric variable by zone (`count = FALSE`, `var = "var"`, 
+#'  `fun = "sum"`, `group = NULL`), summary of a numeric variable
+#'  by zone and group (`count = FALSE`, `var = "var"`, `fun = "sum"`, 
+#'  `group = "group"`), share (percentage) of a numeric variable by zone
+#'  (`count = FALSE`, `var = "var"`, `fun = "percent"`, `group = NULL`), 
+#'  share (percentage) of a numeric variable by zone and group (`count = FALSE`, 
+#'  `var = "var"`, `fun = "percent"`, `group = "group"`).
+#'@export
+#'@import ggplot2
+#'@import dplyr
+#'@import sf
+#'@importFrom plotly ggplotly style config plotly_build
+#'@examples 
+#'\dontrun{
+#'
+#'# count # of obs
+#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
+#'             zone.spat = "NMFS_AREA")
+#'             
+#'# percent of obs
+#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
+#'             zone.spat = "NMFS_AREA", count = TRUE, fun = "percent")
+#'
+#'# count by group
+#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
+#'             zone.spat = "NMFS_AREA", group = "GEAR_TYPE")   
+#'
+#'# total catch by zone           
+#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
+#'             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
+#'             count = FALSE, fun = "sum")  
+#'
+#'# percent of catch by zone           
+#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
+#'             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
+#'             count = FALSE, fun = "percent")         
+#'             
+#'}
 
 zone_summary <- function(dat,
-                         spat,
-                         project,
-                         zone.dat,
-                         zone.spat,
-                         count = TRUE,
-                         var = NULL,
-                         group = NULL,
-                         fun = NULL,
-                         breaks = NULL,
-                         n.breaks = 10,
-                         bin_colors = NULL,
-                         na.rm = TRUE,
-                         dat.center = TRUE,
-                         plot_type = "dynamic",
-                         output = "plot") {
+  spat,
+  project,
+  zone.dat,
+  zone.spat,
+  count = TRUE,
+  var = NULL,
+  group = NULL,
+  fun = NULL,
+  na.rm = TRUE,
+  dat.center = TRUE,
+  plot_type = "dynamic",
+  output = "plot") {
   
   # Call in datasets
   out <- data_pull(dat, project)
@@ -114,9 +105,6 @@ zone_summary <- function(dat,
   
   # secondary column when fun = percent
   val_2 <- NULL
-  val_rescale <- is.null(bin_colors)
-  scale_args <- list(brks = breaks, bc = bin_colors)
-  binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
   
   # summary table ----
   
@@ -216,7 +204,8 @@ zone_summary <- function(dat,
       
       zone_tab_c <-
         suppress_table(check_out$table, zone_tab, value_var = c(val_2, val_var),
-          group = c(zone.dat, group), rule = cc_par$rule, type = "code")
+          group = c(zone.dat, group), rule = cc_par$rule, type = "code") %>% 
+        mutate(zone.dat = as.character(zone.dat))
       
       save_table(zone_tab_c, project, "zone_summary_confid")
     }
@@ -232,7 +221,7 @@ zone_summary <- function(dat,
       by_vec <- zone.dat
       names(by_vec) <- zone.spat
       # merge spatdat w/ zone summary
-      spat_join <- dplyr::left_join(spatdat[zone.spat], zone_tab,
+      spat_join <- dplyr::left_join(spatdat[zone.spat], z_tab,
         relationship = "many-to-many", by = by_vec)
       # use WGS 84 if crs is missing
       if (is.na(sf::st_crs(spatdat))) {
@@ -275,61 +264,24 @@ zone_summary <- function(dat,
       dplyr::summarize(do_union = FALSE) %>%
       sf::st_cast("POLYGON")
     
-    # breaks ----
-    z_brk_fun <- function(dat, breaks, n.breaks, bin_colors, count) {
-      
-      # check if breaks include range, show.limits = TRUE will add additional bins
-      # Note: this can reject users bin_colors
-      
-      val_range <- range(spat_join[[val_var]])
-      
-      if (is.null(breaks)){
-        brks <- pretty(spat_join[[val_var]], n = n.breaks)
-      } else{
-        brks <- breaks
-      }
-      if (!is.null(bin_colors)) {
-        if (length(bin_colors) != length(brks)) {
-          warning("bin_colors length is not equal to breaks. Using default colors.",
-            call. = FALSE) # TODO: use bin_colors[seq_along(brks)] ?
-          bin_colors <- fishset_viridis(length(brks))
-        }
-      } else {
-        bin_colors <- fishset_viridis(length(brks))
-      }
-      # if (count) {
-      #   if (min(brks) == 0) {
-      #     if (brks[2] > 10) {brks[1] <- 10
-      #    } else { brks[1] <- round((brks[2]/2))}
-      #   }
-      #   if (is.null(scale_args$bc)) {
-      #     bin_colors <- c("white", fishset_viridis(length(brks - 1)))
-      #   }
-      # }
-      list(brks = brks, colors = bin_colors)
-    }
-    
     # plot ----
     var_sym <- rlang::sym(val_var)
     
     ## function to plot ---------------------------------------------------------------------------
-    z_plot_fun_static <- function(spatdat, brks, bin_colors, legend_name) {
-      
-      rescale_val <- function() if (val_rescale) scales::rescale(brks) else NULL
-      
-      Zone <- spatdat[[zone.spat]] # Need to assign zone so "Zone" is displayed when hovering in plotly
+    z_plot_fun_static <- function(spatdat, legend_name) {
+      full_data_range <- range(spatdat[[val_var]], na.rm = TRUE)
+    #  Zone <- spatdat[[zone.spat]] # Need to assign zone so "Zone" is displayed when hovering in plotly
       
       out <- ggplot2::ggplot() +
         ggplot2::geom_sf(data = base_map) +
         ggplot2::geom_sf(data = spatdat,
-          ggplot2::aes(fill = !!rlang::sym(val_var), label = Zone),
+          ggplot2::aes(fill = !!rlang::sym(val_var)),
           color = "black", alpha = .8) +
         ggplot2::scale_fill_gradientn(
           name = legend_name,
-          colours = bin_colors,
-          values = rescale_val() # Rescales your breaks to the required 0-1 range
-        #  breaks = brks#,          # Sets the tick marks on the legend
-       #   labels = brks           # Sets the labels on the legend
+          limits = full_data_range,
+          colours = fishset_viridis(10),
+          #values = scales::rescale(range(spatdat[[val_var]])) 
         ) +
         ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
           expand = TRUE) +
@@ -340,13 +292,13 @@ zone_summary <- function(dat,
       out
     }
     
-    z_plot_fun_dynamic <- function(spatdat, brks, bin_colors, legend_name) {
+    z_plot_fun_dynamic <- function(spatdat, legend_name) {
       
       spatdat <-  sf::st_transform(spatdat, "+proj=longlat +datum=WGS84")
       
       pal <- colorBin(
-        bin_colors,
-        bins = brks,
+        fishset_viridis(10),
+        bins = 10,
         domain = spatdat[[var_sym]] # colors depend on the count variable
       )
       
@@ -369,67 +321,108 @@ zone_summary <- function(dat,
           title = legend_name)
       
     }
-  
     
     if (multi_plot) {
       
-      # GROUP ZONE FUNCTION
-      group_zone <- function(spat_join) {
-        p_levels <- unique(spat_join[[group]]) # what if too many levels?
+      create_layered_map <- function(multdat, group, legend_name) {
         
-        z_plot <- lapply(p_levels, function(x) {
-          dat <- dplyr::filter(spat_join, .data[[group]] == !!x)
-          
-          if (count) {
+        multdat <-  sf::st_transform(multdat, "+proj=longlat +datum=WGS84")
+        
+         if (count) {
             # update legend to include group name
-            if (calc_perc) legend_name <- paste0("% of total obs: \n ", x)
-            else legend_name <- paste("# of obs: \n ", x)
+            if (calc_perc) {legend_name <- paste0("% of total obs")
+            }else {legend_name <- paste("# of obs ")}
             
           } else {
             
-            if (calc_perc) legend_name <- paste0("% of ", var, ": \n", x)
-            else legend_name <- paste0(fun, " ", var, ": \n", x)
+            if (calc_perc) {legend_name <- paste0("% of ", var)
+            } else {legend_name <- paste0(fun, " ", var)}
           }
-          
-          break_list <- z_brk_fun(dat, breaks, n.breaks, bin_colors, count = count)
-          
-          if(plot_type == "dynamic"){
-            
-            z_plot <- suppressWarnings(z_plot_fun_dynamic(dat, brks = break_list$brks,
-              bin_colors = break_list$colors,
-              legend_name = legend_name))
-            
-          } else{ 
-            #static plot
-            z_plot <- suppressWarnings(z_plot_fun_static(dat, brks = break_list$brks,
-              bin_colors = break_list$colors,
-              legend_name = legend_name))
-              
-          }
-        })
         
-        z_plot
-      } # END GROUP ZONE FUNCTION
-      
-      z_plot <- group_zone(spat_join)
-      
-      # save plot
-      save_nplot(project, "zone_summary", z_plot)
-      
-    } else {
-      
-      break_list <- z_brk_fun(spat_join, breaks, n.breaks, bin_colors, count = count)
+        pal <- colorBin(
+          fishset_viridis(10),
+          bins = 10,
+          domain = multdat[[var_sym]] # colors depend on the count variable
+        )
+        
+        fill_colors <- pal(multdat[[var_sym]])
+        
+        my_map <- leaflet(data = multdat) %>%
+          addProviderTiles("OpenStreetMap")
+        
+        p_levels <- unique(multdat[[group]])
+        for (level in p_levels) {
+          
+          # Filter the data for the current group
+          dat_subset <- multdat %>%
+            filter(.data[[group]] == level)
+          
+          my_map <- my_map %>%
+            leaflet::addPolygons(
+              data = dat_subset,
+              fillColor = ~fill_colors, # Use the palette to get color
+              fillOpacity = 0.75,
+              color = "black",
+              stroke = TRUE,
+              weight = 1,
+              label = ~paste0(val_var, ": ", round(multdat[[var_sym]], 2)),
+              group = level # Assign the layer to the current group
+            )
+        }
+        
+        my_map <- my_map %>%
+          leaflet::addLayersControl(
+            overlayGroups = p_levels,
+            options = layersControlOptions(collapsed = FALSE)
+          ) %>%
+          leaflet::addLegend(
+            pal = pal,
+            values =multdat[[var_sym]], # Legend uses values from the whole dataset
+            position = "bottomright",
+            title = legend_name
+          )
+        my_map
+      } 
       
       if(plot_type == "dynamic"){
-        z_plot <- z_plot_fun_dynamic(spat_join, brks = break_list$brks,
-          bin_colors = break_list$colors,
-          legend_name = legend_name)
+        z_plot <- create_layered_map(spat_join, group,legend_name = legend_name)
         
       } else{ 
         #static plot
-        z_plot <- suppressWarnings(z_plot_fun_static(spat_join, brks = break_list$brks,
-          bin_colors = break_list$colors,
-          legend_name = legend_name))
+        p_levels <- unique(spat_join[[group]]) # what if too many levels?
+        z_plot <- lapply(p_levels, function(x) {
+          dat <- dplyr::filter(spat_join, .data[[group]] == !!x)
+  
+          if (count) {
+            # update legend to include group name
+            if (calc_perc) {legend_name <- paste0("% of total obs: \n ", x)
+            }else {legend_name <- paste("# of obs: \n ", x)}
+            
+          } else {
+            
+            if (calc_perc) {legend_name <- paste0("% of ", var, ": \n", x)
+            } else {legend_name <- paste0(fun, " ", var, ": \n", x)}
+          }
+          
+            Zone <- dat[[zone.spat]] 
+           z_plot <-  suppressWarnings(z_plot_fun_static(dat,legend_name = legend_name))
+     
+          
+        })
+        
+        z_plot
+      } 
+      # save plot
+      save_nplot(project, "zone_summary", z_plot)
+     
+    } else {
+      
+      if(plot_type == "dynamic"){
+        z_plot <- z_plot_fun_dynamic(spat_join, legend_name = legend_name)
+        
+      } else{ 
+        #static plot
+        z_plot <- suppressWarnings(z_plot_fun_static(spat_join, legend_name = legend_name))
       }    
       # save plot
       save_plot(project, "zone_summary", z_plot)
@@ -437,46 +430,45 @@ zone_summary <- function(dat,
     
     # confid plot ----
     if (check_c && any(check_out$suppress)) {
-      # filter out suppressed values
+      
+      zone_tab_c[[zone.dat]] <- as.character(zone_tab_c[[zone.dat]])
+      spatdat[[zone.spat]] <- as.character(spatdat[[zone.spat]])
+      
       spat_join_c <- merge_spat(zone_tab_c)
-      spat_join_c <- spat_join_c %>% dplyr::filter(.data[[val_var]] != -999)
-
+      spat_join <- spat_join_c %>% dplyr::filter(.data[[val_var]] != -999)
+      
       if (multi_plot) {
+        
+      z_plot <- create_layered_map(spat_join, group,legend_name = legend_name)
 
-        z_plot_c <- group_zone(spat_join_c)
         # save plot
-        save_nplot(project, "zone_summary_confid", z_plot_c)
-
+        save_nplot(project, "zone_summary_confid", z_plot)
+        
       } else {
-
-        break_list_c <- z_brk_fun(spat_join_c, breaks, n.breaks, bin_colors, count = count)
-
+        
         if(plot_type == "dynamic"){
-          z_plot_c <- suppressWarnings(z_plot_fun_dynamic(spat_join_c, brks = break_list_c$brks,
-            bin_colors = break_list_c$colors,
+          z_plot <- suppressWarnings(z_plot_fun_dynamic(spat_join,
             legend_name = legend_name))
         } else{
-          z_plot_c <- suppressWarnings(z_plot_fun_static(spat_join_c, brks = break_list_c$brks,
-            bin_colors = break_list_c$colors,
+          z_plot <- suppressWarnings(z_plot_fun_static(spat_join, 
             legend_name = legend_name))
         }
         # save plot
-        save_plot(project, "zone_summary_confid", z_plot_c)
+        save_plot(project, "zone_summary_confid", z_plot)
       }
     }
+  
   }
-
   # save table
   save_table(zone_tab, project, "zone_summary")
-
+  
   # log function
   zone_summary_function <- list()
   zone_summary_function$functionID <- "zone_summary"
   zone_summary_function$args <- list(dat, spat, project, zone.dat, zone.spat,
-    count, var, group, fun, breaks, n.breaks,
-    bin_colors, na.rm, dat.center, output)
+    count, var, group, fun, na.rm, dat.center, output)
   log_call(project, zone_summary_function)
-
+  
   if (output == "plot") z_plot
   else if (output == "tab_plot") list(table = zone_tab, plot = z_plot)
   else zone_tab

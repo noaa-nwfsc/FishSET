@@ -1798,11 +1798,11 @@ save_nplot <- function(project, func_name, plot_list, id = "num", ...) {
   if (id == "num") vec <- seq_along(plot_list)
   else if (id == "name") vec <- names(plot_list)
   
-  if("plotly" %in% class(plot_list[[1]])){
-    lapply(vec, function(x) {
-      fn <- paste0(func_name, "_", x)
-      save_plot(project, func_name = fn, plot_list[[x]])
-    })
+  if("leaflet" %in% class(plot_list)){
+  #  lapply(vec, function(x) {
+      fn <- paste0(func_name)
+      save_plot(project, func_name = fn, plot_list)
+   # })
   } else {
     lapply(vec, function(x) {
 
