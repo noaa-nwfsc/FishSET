@@ -266,6 +266,10 @@ create_expectations <-
     }
   }
   
+  if (class(dataset[[temp.var]]) != "Date") {
+    dataset[[temp.var]] <- as.Date(dataset[[temp.var]])
+  }
+  
   # user-defined ----
   user_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
                        defineGroup = defineGroup, temp.var = temp.var, 
