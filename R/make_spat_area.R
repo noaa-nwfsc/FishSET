@@ -67,7 +67,7 @@ add_polygon <- function(poly, spat, spat.id, new.id = NULL, combine = FALSE) {
   #' @seealso \code{\link{combine_zone}}
   #' @keywords internal
   #' @import sf
-  #' @importFrom dplyr bind_rows
+  #' @importFrom dplyr bind_rows rename_with
   #' @importFrom tibble tibble
  
   # need to consider whether to allow multiple polygons (not multipolygons)
@@ -137,7 +137,8 @@ add_polygon <- function(poly, spat, spat.id, new.id = NULL, combine = FALSE) {
   # covert to sf, add new id 
   # note: geometry column may be named something else, like "geom" and
   # new spat will have two geometry cols
-  poly <- sf::st_sf(tibble::tibble(!!spat.id := new.id, geometry = poly))
+  poly <- sf::st_sf(tibble::tibble("temporary_col_name" = new.id, geometry = poly)) %>%
+    dplyr::rename_with(~ spat.id, .cols = "temporary_col_name")
   
   # combine 
   if (combine && sum(inter) > 0) {
