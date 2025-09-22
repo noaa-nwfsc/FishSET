@@ -55,7 +55,7 @@
 #' @param bins The number of bins used in histogram/freqency polygon. 
 #' @param density Logical, whether densities or frequencies are used for histogram. 
 #'   Defaults  to \code{TRUE}. 
-#' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to 
+#' @param scale Scale argument passed to \code{facet_grid}. Defaults to 
 #'   \code{"fixed"}. Other options include \code{"free_y"}, \code{"free_x"}, and 
 #'   \code{"free_xy"}.
 #' @param tran Transformation to be applied to the x-axis. A few options include 
@@ -579,7 +579,7 @@ trip_duration_plot <- function(trip_tab, trp_nms, vpue, group, facet_by, units, 
   #' @param tran Transformation to be applied to the x-axis. 
   #' @param format_lab Formatting option for x-axis labels. Options include 
   #'   \code{"decimal"} or \code{"scientific"}.
-  #' @param scale Scale argument passed to \code{\link{facet_grid}}.
+  #' @param scale Scale argument passed to \code{facet_grid}.
   #' @param combine Logical, whether grouping variables should be combined. 
   #' @param pages Whether to output plots on a single page (\code{"single"}, the 
   #'   default) or multiple pages (\code{"multi"}).

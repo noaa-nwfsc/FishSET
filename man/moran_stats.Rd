@@ -20,6 +20,8 @@ Shape, json, geojson, and csv formats are supported.}
 
 \item{spat_zone}{Variable or list in \code{spat} that identifies the individual areas or zones.
 If \code{spat} is class sf, \code{cat} should be name of list containing information on zones.}
+
+\item{project}{Name of the project}
 }
 \value{
 Returns a list with (1) global Moran's I stats, (2) Moran lagged plot, (3) LISA cluster

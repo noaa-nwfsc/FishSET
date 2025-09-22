@@ -57,7 +57,7 @@ get_proj_settings <- function(project, format = FALSE) {
   #' Retrieve project settings
   #' 
   #' @param project Name of project.
-  #' @param format Logical, output project settings using \code{\link{pander}}. Useful
+  #' @param format Logical, output project settings using \code{pander}. Useful
   #' for markdown documents. 
   #' @export
   #' @importFrom jsonlite fromJSON

@@ -312,10 +312,10 @@ outlier_plot <- function(dat, project, x, dat.remove = 'none', sd_val = NULL,
   # Data spread plot
   data_spread_plot <- ggplot2::ggplot() +
     ggplot2::geom_point(data = dataset, 
-                        aes(x = row_num, y = .data[[x]]),
+                        aes(x = .data$row_num, y = .data[[x]]),
                         color = "tomato") +
     ggplot2::geom_point(data = dat_sub, 
-                        aes(x = row_num, y = .data[[x]]),
+                        aes(x = .data$row_num, y = .data[[x]]),
                         color = "royalblue") +
     ggplot2::labs(x = "Data row") +
     ggplot2::scale_x_continuous(expand = expansion(mult = c(0.01, 0.05))) +
@@ -354,7 +354,7 @@ outlier_plot <- function(dat, project, x, dat.remove = 'none', sd_val = NULL,
                               bins = 30) +
       ggplot2::scale_x_continuous(expand = expansion(mult = c(0.01, 0.05))) +
       ggplot2::scale_y_continuous(expand = expansion(mult = c(0.01, 0.05))) +
-      mytheme
+      tmp_theme
   }
   
   # Add probability density line
