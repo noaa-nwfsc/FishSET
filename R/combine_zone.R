@@ -61,7 +61,7 @@ new_zone_id <- function(combined, id, grid = NULL, closure = NULL, inter = NULL,
   #'   \code{\link{recast_multipoly}}.
   #' @keywords internal
   #' @export
-  #' @import dplyr
+  #' @importFrom dplyr mutate group_by across all_of ungroup count filter pull 
   #' @importFrom purrr pmap
   #' @importFrom  sf st_set_geometry
   #' @details This function assigns a new zone ID if the intersection of \code{grid} 

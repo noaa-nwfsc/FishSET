@@ -23,8 +23,8 @@
 #' @details This function requires that model and prediction output tables exist in the FishSET 
 #' database when plotting policy scenario maps.
 #' @import ggplot2
-#' @import dplyr
 #' @import sf
+#' @importFrom dplyr left_join group_by across all_of summarize
 #' @export
 #' @examples 
 #' \dontrun{
@@ -191,7 +191,7 @@ predict_map <- function(project, mod.name = NULL, policy.name = NULL, spat,
     # Convert base map to sf object and convert points to polygons
     base_map <- sf::st_as_sf(base_map, coords = c("long", "lat"),
                              crs = sf::st_crs(spat_join)) %>%
-      dplyr::group_by(across(all_of("group"))) %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of("group"))) %>%
       dplyr::summarize(do_union = FALSE) %>%
       sf::st_cast("POLYGON")
     

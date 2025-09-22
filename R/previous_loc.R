@@ -24,7 +24,7 @@
 #'  variable. 
 #'@param lat Latitude variable from `dat`. Required for previous location variable.
 #'@export
-#'@import dplyr
+#'@importFrom dplyr arrange across all_of group_by mutate ungroup
 #'@md
 #'@details `previous_loc()` can create a previous area or location variable. 
 #'  "Previous area" is defined as the port or zone the vessel last visited. The first

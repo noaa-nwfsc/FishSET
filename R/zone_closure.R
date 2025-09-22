@@ -21,7 +21,6 @@
 #' @importFrom grDevices topo.colors
 #' @importFrom shiny dataTableOutput renderDataTable
 #' @import leaflet
-#' @import dplyr
 #' @import bslib
 #' @import bsicons
 #' @details Define zone closure scenarios. Function opens an interactive map. 
