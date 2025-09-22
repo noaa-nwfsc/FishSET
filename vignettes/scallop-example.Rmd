@@ -500,7 +500,6 @@ zone_out <- zone_summary(scallopMainDataTable, project = proj,
                          zone.spat = "TEN_ID",
                          output = "tab_plot",
                          count = TRUE,
-                         breaks = NULL, n.breaks = 10,
                          na.rm = TRUE)
 
 zone_out$plot
@@ -521,7 +520,6 @@ zone_out <-
                zone.spat = "TEN_ID",
                output = "tab_plot",
                count = TRUE, fun = "percent",
-               breaks = c(seq(.2, .5, .1), seq(1, 2, .5)), 
                na.rm = TRUE)
 
 zone_out$plot
@@ -544,7 +542,6 @@ zone_out <-
                  zone.spat = "TEN_ID",
                  output = "tab_plot",
                  count = TRUE,
-                 breaks = NULL, n.breaks = 10, 
                  na.rm = TRUE)
 
 zone_out$plot
@@ -567,7 +564,6 @@ zone_out <-
                  zone.spat = "TEN_ID",
                  output = "tab_plot",
                  count = TRUE,
-                 breaks = NULL, n.breaks = 10, 
                  na.rm = TRUE)
 
 zone_out$plot
@@ -591,7 +587,6 @@ zone_out <-
                zone.spat = "TEN_ID",
                count = FALSE,
                var = "LANDED_OBSCURED", fun = "sum",
-               breaks = c(1e3, 1e4, 5e4, 1e5, seq(1e6, 1.3e7, 2e6)),
                output = "tab_plot", na.rm = TRUE)
 
 zone_out$plot
@@ -613,7 +608,6 @@ zone_out <-
                zone.spat = "TEN_ID",
                count = FALSE,
                var = "LANDED_OBSCURED", fun = "mean",
-               breaks = c(1e3, 5e3, seq(1e4, 4e4, 5e3)),
                output = "tab_plot", na.rm = TRUE)
 
 zone_out$plot
@@ -633,8 +627,6 @@ zone_out <-
                zone.spat = "TEN_ID",
                count = FALSE,
                var = "LANDED_OBSCURED", fun = "percent",
-               breaks = seq(0, 2, .2),
-               bin_colors = c("white", fishset_viridis(10)),
                output = "tab_plot", na.rm = TRUE)
 
 zone_out$plot
@@ -656,7 +648,6 @@ zone_out <-
                zone.spat = "TEN_ID",
                count = FALSE,
                var = "TRIP_LENGTH", fun = "mean",
-               breaks = seq(2, 16, 2),
                output = "tab_plot", na.rm = TRUE)
 
 zone_out$plot
@@ -703,7 +694,6 @@ scallopMainDataTable %>%
                zone.spat = "TEN_ID",
                count = FALSE,
                var = "VPUE", fun = "mean",
-               breaks = seq(5e3, 3.5e4, 5e3),
                na.rm = TRUE, output = "tab_plot")
 zone_out$plot
 zone_out$table %>% 
