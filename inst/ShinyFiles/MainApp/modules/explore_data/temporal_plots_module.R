@@ -73,6 +73,9 @@ temp_plots_server <- function(id, rv_folderpath, rv_project_name, rv_data){
       req(rv_project_name()$value, rv_folderpath())
       vars <- try(load_gui_variables(rv_project_name()$value, rv_folderpath()), silent = TRUE)
       
+      # Check that 'vars' loaded correctly and that the date variable exists before proceeding.
+      req(!inherits(vars, "try-error") && !is.null(vars$main$main_date))
+      
       # Filter dataset
       tmp_df <- rv_data$main %>%
         dplyr::select(Date = vars$main$main_date, 
@@ -85,9 +88,11 @@ temp_plots_server <- function(id, rv_folderpath, rv_project_name, rv_data){
     # Plot 1: Scatter plot of the selected variable over time
     output$scatter_plot <- renderPlot({
       validate(need(input$select_var_input != "", "Select a variable to generate plots."))
-      validate(need(!is.null(rv_tmp_main()$Date), 
-                    "A date column is required. Please go to the 'Select variables' tab and 
-                    choose a date column first.")
+      validate(
+        need(
+          !is.null(rv_tmp_main()) && "Date" %in% names(rv_tmp_main()), 
+          "A date column is required. Please go to the 'Select variables' tab and 
+           choose a date column first.")
       )
       
       ggplot2::ggplot() +
