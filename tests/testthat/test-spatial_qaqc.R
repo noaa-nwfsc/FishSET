@@ -16,7 +16,7 @@
 #
 # Notes:
 #   - Uses test project: "s1" and its associated tables.
-#   - Mocks the log_call() function to prevent side effects during testing.
+#   - Mocks functions that store output to prevent side effects in R-CMD checks
 # -------------------------------------------------------------------------------------------------
 
 # Create mock log_call() --------------------------------------------------------------------------
@@ -40,6 +40,35 @@ on.exit({
 
 # Now, replace the original log_call with our mock function.
 assignInNamespace("log_call", mock_log_call, ns = "FishSET")
+
+# Create mock save_plot() and save_table() --------------------------------------------------------
+# Description: Override the FishSET functions for saving the output folder
+# Get a reference to the original function from its namespace.
+# We'll use this to restore it later.
+original_save_plot <- get("save_plot", envir = as.environment("package:FishSET"))
+original_save_table <- get("save_table", envir = as.environment("package:FishSET"))
+
+# This is the fake function that will do nothing.
+mock_save_plot <- function(...) {
+  # This function does nothing and returns invisibly.
+  invisible(NULL)
+}
+
+mock_save_table <- function(...) {
+  # This function does nothing and returns invisibly.
+  invisible(NULL)
+}
+
+# On exit, restore the original functions to the namespace. This is crucial
+# for clean testing and prevents side effects.
+on.exit({
+  assignInNamespace("save_plot", original_save_plot, ns = "FishSET")
+  assignInNamespace("save_table", original_save_table, ns = "FishSET")
+})
+
+# Now, replace the original log_call with our mock function.
+assignInNamespace("save_plot", mock_save_plot, ns = "FishSET")
+assignInNamespace("save_table", mock_save_table, ns = "FishSET")
 
 # Test spat_qaqc() --------------------------------------------------------------------------------
 test_that("test spatial_qaqc() works", {

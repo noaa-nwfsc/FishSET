@@ -119,7 +119,7 @@ and 'fill'.}
 \item{combine}{Whether to combine variables listed in \code{group}. This is 
 passed to the "fill" or "color" aesthetic for plots.}
 
-\item{scale}{Scale argument passed to \code{\link{facet_grid}}. Defaults to 
+\item{scale}{Scale argument passed to \code{facet_grid}. Defaults to 
 \code{"fixed"}.}
 
 \item{output}{Output a \code{"plot"} or \code{"table"}. Defaults 

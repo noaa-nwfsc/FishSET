@@ -84,7 +84,7 @@ moran_stats <- function(dat, var, dat_zone, spat, spat_zone, project) {
   # Only include zones that are present in dataset and remove any duplcated zones
   spat_tmp <- spat_tmp[which(spat_tmp[[dat_zone]] %in% dataset[[dat_zone]]),]
   spat_tmp <- spat_tmp %>%
-    dplyr::select(all_of(dat_zone), geometry) %>%
+    dplyr::select(all_of(dat_zone), "geometry") %>%
     dplyr::distinct(pick(all_of(dat_zone)), .keep_all = TRUE)
   
   # Merge dataset and spat and convert to sf object and group by zone
@@ -95,7 +95,7 @@ moran_stats <- function(dat, var, dat_zone, spat, spat_zone, project) {
       across(all_of(var), \(x) mean(x, na.rm = TRUE), .names = "{.col}"),
       .groups = "drop") %>%
     dplyr::ungroup() %>%
-    dplyr::left_join(., spat_tmp, by = dat_zone)
+    dplyr::left_join(spat_tmp, by = dat_zone)
   
   # Convert the merged data frame to a simple features (sf) object
   merged_sf <- sf::st_as_sf(merged_df)
@@ -130,8 +130,8 @@ moran_stats <- function(dat, var, dat_zone, spat, spat_zone, project) {
   
   # Generate Moran's plot using ggplot
   moran_plot <- ggplot() +
-    geom_point(data = moran_plot_dat, aes(x = x, y = wx), shape = 1) +
-    geom_smooth(data = moran_plot_dat, aes(x = x, y = wx), method = "lm") +
+    geom_point(data = moran_plot_dat, aes(x = "x", y = "wx"), shape = 1) +
+    geom_smooth(data = moran_plot_dat, aes(x = "x", y = "wx"), method = "lm") +
     geom_vline(xintercept = mean(moran_plot_dat$x), 
                linetype = "dashed") +
     geom_hline(yintercept = mean(moran_plot_dat$wx), 
@@ -194,7 +194,7 @@ moran_stats <- function(dat, var, dat_zone, spat, spat_zone, project) {
   lisa_cluster_map <- ggplot() +
     ggplot2::geom_sf(data = base_map) +
     ggplot2::geom_sf(data = merged_sf, 
-                     aes(fill = lisa_cluster, color = lisa_cluster), lwd = 0.5, alpha = 0.6) +
+                     aes(fill = .data$lisa_cluster, color = .data$lisa_cluster), lwd = 0.5, alpha = 0.6) +
     ggplot2::scale_fill_manual(values = lisa_colors, name = "Cluster Type") +
     ggplot2::scale_color_manual(values = lisa_colors, name = "Cluster Type") +
     ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),

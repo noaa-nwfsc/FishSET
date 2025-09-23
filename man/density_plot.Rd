@@ -95,7 +95,7 @@ conversion.}
 \item{format_lab}{Formatting option for x-axis labels. Options include 
 \code{"decimal"} or \code{"scientific"}.}
 
-\item{scale}{Scale argument passed to \code{\link{facet_grid}}. Defaults to 
+\item{scale}{Scale argument passed to \code{facet_grid}. Defaults to 
 \code{"fixed"}. Other options include \code{"free_y"}, \code{"free_x"}, and 
 \code{"free"}.}
 

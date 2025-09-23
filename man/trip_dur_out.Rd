@@ -107,7 +107,7 @@ default) and frequency polygon (\code{"freq_poly"}).}
 \item{density}{Logical, whether densities or frequencies are used for histogram. 
 Defaults  to \code{TRUE}.}
 
-\item{scale}{Scale argument passed to \code{\link{facet_grid}}. Defaults to 
+\item{scale}{Scale argument passed to \code{facet_grid}. Defaults to 
 \code{"fixed"}. Other options include \code{"free_y"}, \code{"free_x"}, and 
 \code{"free_xy"}.}
 
