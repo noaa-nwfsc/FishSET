@@ -232,6 +232,8 @@ calc_exp <- function(dataset,
   }
   
   # Finalize output
+  occasions <- df[, .(occasion_id, dateFloor)]
+  
   if (dummy.exp) {
     dum_dt <- copy(ec_small)
     
@@ -239,23 +241,23 @@ calc_exp <- function(dataset,
       set(dum_dt, j = col, value = as.numeric(!is.na(dum_dt[[col]])))
     }
     
-    dum_matrix <- as.matrix(
-      df[, .(dateFloor)][dum_dt, on = "dateFloor"][, .SD, .SDcols = sort(altc_names)]
-    )
+    final_dummy <- dum_dt[occasions, on = "dateFloor"]
+    setkey(final_dummy, occasion_id)
+    dum_matrix <- as.matrix(final_dummy[, .SD, .SDcols = sort(altc_names)])
     
   } else {
     dum_matrix <- NULL
   }
   
   fill_val <- if (is.null(empty.expectation) || 
-                  !is.numeric(empty.expectation)) 0.0001 else empty.expectation
+                  !is.numeric(empty.expectation)) 1e-4 else empty.expectation
   
   for (col in altc_names) {
     ec_small[is.na(get(col)), (col) := fill_val]
   }
   
   setkey(ec_small, dateFloor)
-  final_exp <- df[, .(occasion_id, dateFloor)][ec_small, on = "dateFloor"]
+  final_exp <- ec_small[occasions, on = "dateFloor"]
   
   setkey(final_exp, occasion_id)
   exp_matrix <- as.matrix(final_exp[, .SD, .SDcols = sort(altc_names)])

@@ -88,88 +88,88 @@ test_that("standardAverage works with a daily temporal variable", {
   expect_equal(unname(exp_matrix[10, "B"]), 27)
 })
 
-# test_that("Revenue is calculated when 'price' argument is provided", {
-#   result <- calc_exp(
-#     dataset = test_data,
-#     catch = "catch",
-#     price = "price",
-#     temp.var = "date",
-#     temporal = "daily",
-#     temp.window = 3,
-#     Alt = Alt,
-#     weight_avg = FALSE
-#   )
-#   
-#   exp_matrix <- result$exp
-#   
-#   # Check value for an observation on 2023-01-05 (row 7).
-#   # Window covers: 2023-01-03, 2023-01-04, 2023-01-05.
-#   # Zone A revenue in window: 16*2=32 (on 01-05). NA on 01-04. Expected: 32.
-#   # Zone B revenue in window: mean(22*3, 24*3) = 69 (on 01-03). Expected: 69.
-#   expect_equal(unname(exp_matrix[7, "A"]), 32)
-#   expect_equal(unname(exp_matrix[7, "B"]), 69)
-# })
-# 
-# test_that("'defineGroup' correctly calculates expectations by group", {
-#   result <- calc_exp(
-#     dataset = test_data,
-#     catch = "catch",
-#     defineGroup = "fleet",
-#     temp.var = "date",
-#     temporal = "daily",
-#     temp.window = 3,
-#     Alt = Alt,
-#     weight_avg = FALSE
-#   )
-#   
-#   exp_matrix <- result$exp
-#   
-#   # Expect 4 columns: F1A, F1B, F2A, F2B (names are coerced to 1A, 1B, etc.)
-#   expect_equal(ncol(exp_matrix), 4)
-#   expect_equal(sort(colnames(exp_matrix)), c("1A", "1B", "2A", "2B"))
-#   
-#   # Check for obs on 2023-01-05 (row 7), which is fleet F2.
-#   # Window: 2023-01-03, 2023-01-04, 2023-01-05.
-#   # Exp for F1, Zone A: 16 (on 01-05).
-#   # Exp for F2, Zone B: 22 (on 01-03).
-#   expect_equal(unname(exp_matrix[7, "1A"]), 16)
-#   expect_equal(unname(exp_matrix[7, "2B"]), 22)
-# })
-# 
-# test_that("'temp.lag' and 'year.lag' work correctly", {
-#   # Test temp.lag
-#   # Obs on 2023-01-07. Window=2, lag=2. Window becomes: 2023-01-04 to 2023-01-05.
-#   # Zone A in window: NA (01-04), 16 (01-05). Exp = 16.
-#   # Zone B in window: No data. Exp = NA -> replaced by default 0.0001.
-#   result_lag <- calc_exp(
-#     dataset = test_data, 
-#     catch = "catch",
-#     temp.var = "date",
-#     temp.window = 2, 
-#     temp.lag = 2, 
-#     Alt = Alt, 
-#     weight_avg = FALSE
-#   )
-#   expect_equal(unname(result_lag$exp[10, "A"]), 16)
-#   expect_equal(unname(result_lag$exp[10, "B"]), 0.0001)
-#   
-#   # Test year.lag
-#   # Obs on 2024-01-05. Window=3, year.lag=1. Window becomes: 2023-01-03 to 2023-01-05.
-#   # Zone A in window: NA (01-04), 16 (01-05). Exp = 16.
-#   # Zone B in window: mean(22, 24) = 23 (01-03). Exp = 23.
-#   result_year_lag <- calc_exp(
-#     dataset = test_data, 
-#     catch = "catch", 
-#     temp.var = "date",
-#     temp.window = 3, 
-#     year.lag = 1, 
-#     Alt = Alt, 
-#     weight_avg = FALSE
-#   )
-#   expect_equal(unname(result_year_lag$exp[12, "A"]), 16)
-#   expect_equal(unname(result_year_lag$exp[12, "B"]), 23)
-# })
-# 
+test_that("Revenue is calculated when 'price' argument is provided", {
+  result <- calc_exp(
+    dataset = test_data,
+    catch = "catch",
+    price = "price",
+    temp.var = "date",
+    temporal = "daily",
+    temp.window = 3,
+    Alt = Alt,
+    weight_avg = FALSE
+  )
+
+  exp_matrix <- result$exp
+
+  # Check value for an observation on 2023-01-05 (row 7).
+  # Window covers: 2023-01-03, 2023-01-04, 2023-01-05.
+  # Zone A revenue in window: 16*2=32 (on 01-05). NA on 01-04. Expected: 32.
+  # Zone B revenue in window: mean(22*3, 24*3) = 69 (on 01-03). Expected: 69.
+  expect_equal(unname(exp_matrix[7, "A"]), 32)
+  expect_equal(unname(exp_matrix[7, "B"]), 69)
+})
+
+test_that("'defineGroup' correctly calculates expectations by group", {
+  result <- calc_exp(
+    dataset = test_data,
+    catch = "catch",
+    defineGroup = "fleet",
+    temp.var = "date",
+    temporal = "daily",
+    temp.window = 3,
+    Alt = Alt,
+    weight_avg = FALSE
+  )
+
+  exp_matrix <- result$exp
+
+  # Expect 4 columns: F1A, F1B, F2A, F2B (names are coerced to 1A, 1B, etc.)
+  expect_equal(ncol(exp_matrix), 4)
+  expect_equal(sort(colnames(exp_matrix)), c("1A", "1B", "2A", "2B"))
+
+  # Check for obs on 2023-01-05 (row 7), which is fleet F2.
+  # Window: 2023-01-03, 2023-01-04, 2023-01-05.
+  # Exp for F1, Zone A: 16 (on 01-05).
+  # Exp for F2, Zone B: 22 (on 01-03).
+  expect_equal(unname(exp_matrix[7, "1A"]), 16)
+  expect_equal(unname(exp_matrix[7, "2B"]), 22)
+})
+
+test_that("'temp.lag' and 'year.lag' work correctly", {
+  # Test temp.lag
+  # Obs on 2023-01-07. Window=2, lag=2. Window becomes: 2023-01-04 to 2023-01-05.
+  # Zone A in window: NA (01-04), 16 (01-05). Exp = 16.
+  # Zone B in window: No data. Exp = NA -> replaced by default 0.0001.
+  result_lag <- calc_exp(
+    dataset = test_data,
+    catch = "catch",
+    temp.var = "date",
+    temp.window = 2,
+    temp.lag = 2,
+    Alt = Alt,
+    weight_avg = FALSE
+  )
+  expect_equal(unname(result_lag$exp[10, "A"]), 16)
+  expect_equal(unname(result_lag$exp[10, "B"]), 0.0001)
+
+  # Test year.lag
+  # Obs on 2024-01-05. Window=3, year.lag=1. Window becomes: 2023-01-03 to 2023-01-05.
+  # Zone A in window: NA (01-04), 16 (01-05). Exp = 16.
+  # Zone B in window: mean(22, 24) = 23 (01-03). Exp = 23.
+  result_year_lag <- calc_exp(
+    dataset = test_data,
+    catch = "catch",
+    temp.var = "date",
+    temp.window = 3,
+    year.lag = 1,
+    Alt = Alt,
+    weight_avg = FALSE
+  )
+  expect_equal(unname(result_year_lag$exp[12, "A"]), 16)
+  expect_equal(unname(result_year_lag$exp[12, "B"]), 23)
+})
+
 # test_that("'empty.catch' and 'empty.expectation' options work", {
 #   # Test empty.catch = 0
 #   # Obs on 2023-01-05. Window=3. Window: 01-03, 01-04, 01-05.
