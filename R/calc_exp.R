@@ -18,7 +18,7 @@
 #' @param Alt Alternative choice list
 #' @keywords internal
 #' @importFrom data.table := as.data.table .I .GRP fcoalesce dcast setnames 
-#'             setcolorder setkey .SD data.table
+#'             setcolorder setkey .SD data.table set copy rbindlist
 #' @importFrom lubridate floor_date year years %m-%
 #' @importFrom stats aggregate lm coef na.pass
 #' @returns Returns a list containing the expected catch/revenue matrix, 
@@ -61,19 +61,8 @@ calc_exp <- function(dataset,
     dt[, fleet := .GRP, by = defineGroup]
   }
   
-  # # check whether defining a group or using all fleet averaging
-  # if (is_value_empty(defineGroup)) {
-  #   # just use an id=ones to get all info as one group
-  #   fleet <- rep(1, nrow(dataset))
-  #   
-  #   # Define by group case
-  # } else {
-  #   fleet <- as.integer(as.factor(dataset[[defineGroup]]))
-  # }
-  
   # Subset to relevant data zone and create core calculation table
   z_ind <- which(dataZoneTrue == 1)
-  # fleet <- fleet[z_ind]
   
   # Non temporal ----------------------------------------------------------------------------------
   if (is_value_empty(temp.var) || temp.var == "none") {
@@ -153,9 +142,6 @@ calc_exp <- function(dataset,
   df[, dateFloor := floor_date(date, unit = "day")]
   df[, ID := if (is_value_empty(defineGroup)) as.character(zones) else paste0(fleet, zones)]
   
-  # altc_names is always derive from consistent ID column
-  altc_names <- unique(df$ID)
-  
   # Handle empty catch values with joins
   if (!is_value_empty(empty.catch) && anyNA(df$catch_val)) {
     if (empty.catch == 0) {
@@ -176,39 +162,43 @@ calc_exp <- function(dataset,
   altc_names <- if (is_value_empty(defineGroup)) unique(df$zones) else unique(df$ID)
   unique_dates <- unique(df$dateFloor)
   
-
   ## Core moving window calculation ----
-  windows <- data.table(
-    date_target = unique_dates,
-    window_end = (unique_dates - years(year.lag)) - temp.lag,
-    window_start = (unique_dates - years(year.lag)) - temp.lag - temp.window + 1
-  )
-  
-  window_data <- df[windows, 
-                    on = .(dateFloor >= window_start, dateFloor <= window_end), 
-                    nomatch = 0,
-                    .(ID, catch_val, target_date = date_target, observation_date = dateFloor)]
-  
-  if (nrow(window_data) == 0) {
-    warning("The moving window calculation resulted in zero observations. 
-            Check temporal window and lag settings.", call. = FALSE)
-  }
-  
-  if (weight_avg) {
-    ec_small_long <- window_data[, .(exp_catch = mean(catch_val, na.rm = TRUE)), 
-                                 by = .(dateFloor, ID)]
-  } else {
-    daily_means <- window_data[, .(daily_mean = mean(catch_val, na.rm = TRUE)), 
-                               by = .(target_date, ID, observation_date)]
-    ec_small_long <- daily_means[, .(exp_catch = mean(daily_mean, na.rm = TRUE)), 
-                                 by = .(target_date, ID)]
-  }
+  results_list <- lapply(unique_dates, function(current_date) {
+    
+    window_end <- (current_date - years(year.lag)) - temp.lag
+    window_start <- window_end - temp.window + 1
+    
+    # Subset data for the current window
+    data_in_window <- df[dateFloor >= window_start & dateFloor <= window_end]
+    
+    local_res <- if (nrow(data_in_window) == 0) {
+      # If no data in window, create a table with NA for all zones
+      data.table(ID = altc_names, exp_catch = NA_real_)
+    } else {
+      if (weight_avg) {
+        # Average all points in the window
+        data_in_window[, .(exp_catch = mean(catch_val, na.rm = TRUE)), by = ID]
+      } else {
+        # Two-step average: first by day, then average daily means
+        daily_means <- data_in_window[, .(daily_mean = mean(catch_val, na.rm = TRUE)), by = .(ID, dateFloor)]
+        daily_means[, .(exp_catch = mean(daily_mean, na.rm = TRUE)), by = ID]
+      }
+    }
+    
+    # Ensure all possible zones are present for this date using a merge
+    template <- data.table(ID = altc_names, key = "ID")
+    final_res_for_date <- merge(template, local_res, by = "ID", all.x = TRUE)
+    
+    final_res_for_date[, dateFloor := current_date]
+    return(final_res_for_date)
+  })
+  ec_small_long <- data.table::rbindlist(results_list)
   
   # Reshape to wide matrix and do some post-processing
-  ec_small <- dcast(ec_small_long, target_date ~ ID, value.var = "exp_catch")
-  setnames(ec_small, "target_date", "dateFloor")
-  
+  ec_small <- dcast(ec_small_long, dateFloor ~ ID, value.var = "exp_catch")
+
   missing_cols <- setdiff(altc_names, names(ec_small))
+  
   if (length(missing_cols) > 0) {
     ec_small[, (missing_cols) := NA_real_]
   }
@@ -235,10 +225,10 @@ calc_exp <- function(dataset,
   occasions <- df[, .(occasion_id, dateFloor)]
   
   if (dummy.exp) {
-    dum_dt <- copy(ec_small)
+    dum_dt <- data.table::copy(ec_small)
     
     for (col in altc_names) {
-      set(dum_dt, j = col, value = as.numeric(!is.na(dum_dt[[col]])))
+      data.table::set(dum_dt, j = col, value = as.numeric(!is.na(dum_dt[[col]])))
     }
     
     final_dummy <- dum_dt[occasions, on = "dateFloor"]
@@ -249,15 +239,26 @@ calc_exp <- function(dataset,
     dum_matrix <- NULL
   }
   
-  fill_val <- if (is.null(empty.expectation) || 
-                  !is.numeric(empty.expectation)) 1e-4 else empty.expectation
-  
-  for (col in altc_names) {
-    ec_small[is.na(get(col)), (col) := fill_val]
-  }
-  
   setkey(ec_small, dateFloor)
   final_exp <- ec_small[occasions, on = "dateFloor"]
+  
+  if (is.null(empty.expectation)) {
+    # If NULL, fill NAs with 1e-04
+    for (col in altc_names) {
+      # Use fcoalesce for a fast, in-place replacement of NAs
+      final_exp[, (col) := fcoalesce(final_exp[[col]], 1e-04)]
+    }
+  } else if (empty.expectation == 1e-04) {
+    # If 1e-04, fill both NAs and 0s with 1e-04
+    for (col in altc_names) {
+      final_exp[is.na(get(col)) | get(col) == 0, (col) := 1e-04]
+    }
+  } else if (empty.expectation == 0) {
+    # If 0, fill NAs with 0
+    for (col in altc_names) {
+      final_exp[, (col) := fcoalesce(final_exp[[col]], 0)]
+    }
+  }
   
   setkey(final_exp, occasion_id)
   exp_matrix <- as.matrix(final_exp[, .SD, .SDcols = sort(altc_names)])
@@ -285,7 +286,7 @@ calc_exp <- function(dataset,
   
   
   
-
+  
   # # TODO: check if this is needed
   # fleetNAN <- which(is.nan(fleet))
   # 

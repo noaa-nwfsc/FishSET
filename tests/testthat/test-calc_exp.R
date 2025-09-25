@@ -170,106 +170,106 @@ test_that("'temp.lag' and 'year.lag' work correctly", {
   expect_equal(unname(result_year_lag$exp[12, "B"]), 23)
 })
 
-# test_that("'empty.catch' and 'empty.expectation' options work", {
-#   # Test empty.catch = 0
-#   # Obs on 2023-01-05. Window=3. Window: 01-03, 01-04, 01-05.
-#   # NA catch for Zone A on 01-04 is replaced with 0.
-#   # Zone A daily means in window: 0 (01-04), 16 (01-05). Exp = mean(0, 16) = 8.
-#   result_zero_catch <- calc_exp(
-#     dataset = test_data, 
-#     catch = "catch", 
-#     temp.var = "date",
-#     temp.window = 3, 
-#     empty.catch = 0, 
-#     Alt = Alt, 
-#     weight_avg = FALSE
-#   )
-#   expect_equal(unname(result_zero_catch$exp[7, "A"]), 8)
-#   
-#   # Test empty.expectation = 0
-#   # Obs on 2023-01-04. Window=2. Window: 01-03, 01-04.
-#   # Zone A exp is NA because only catch in window is NA. This should be replaced by 0.
-#   result_zero_exp <- calc_exp(
-#     dataset = test_data, 
-#     catch = "catch", 
-#     temp.var = "date",
-#     temp.window = 2, 
-#     empty.expectation = 0, 
-#     Alt = Alt
-#   )
-#   expect_equal(unname(result_zero_exp$exp[6, "A"]), 0)
-# })
-# 
-# test_that("'dummy.exp' creates a correct dummy matrix", {
-#   # Obs on 2023-01-04 (row 6). Window=2. Window: 01-03, 01-04.
-#   # Zone A exp is NA (only data point is NA). Dummy should be 0.
-#   # Zone B exp is 23 (from 01-03). Dummy should be 1.
-#   result <- calc_exp(
-#     dataset = test_data, 
-#     catch = "catch",
-#     temp.var = "date",
-#     temp.window = 2, 
-#     dummy.exp = TRUE, 
-#     Alt = Alt
-#   )
-#   
-#   expect_true(!is.null(result$dummy))
-#   expect_equal(nrow(result$dummy), nrow(test_data))
-#   expect_equal(unname(result$dummy[6, "A"]), 0)
-#   expect_equal(unname(result$dummy[6, "B"]), 1)
-# })
-# 
-# test_that("'weight_avg' calculates averages differently", {
-#   # Create data where one day has more observations than another
-#   test_data_weight <- data.frame(
-#     date = as.Date(c("2023-01-01", "2023-01-01", "2023-01-02", "2023-01-03")),
-#     zone = c("A", "A", "A", "B"),
-#     catch = c(10, 30, 100, 500)
-#   )
-#   Alt_weight <- list(dataZoneTrue = rep(1, 4), choice = test_data_weight$zone)
-#   
-#   # For obs on 2023-01-03, window=3. Look at expected catch for Zone A.
-#   # Data for A in window: {10, 30} on 01-01; {100} on 01-02.
-#   
-#   # weight_avg = FALSE: Averages daily means. mean(mean(10,30), 100) = mean(20, 100) = 60
-#   res_false <- calc_exp(
-#     dataset = test_data_weight, 
-#     catch = "catch", 
-#     temp.var = "date",
-#     temp.window = 3, 
-#     Alt = Alt_weight, 
-#     weight_avg = FALSE
-#   )
-#   expect_equal(unname(res_false$exp[4, "A"]), 60)
-#   
-#   # weight_avg = TRUE: Averages all individual points. mean(10, 30, 100) = 46.66...
-#   res_true <- calc_exp(
-#     dataset = test_data_weight, 
-#     catch = "catch", 
-#     temp.var = "date",
-#     temp.window = 3, 
-#     Alt = Alt_weight, 
-#     weight_avg = TRUE
-#   )
-#   expect_equal(unname(res_true$exp[4, "A"]), mean(c(10, 30, 100)))
-# })
-# 
-# test_that("calc.method = 'simpleLag' runs without error", {
-#   # This is a smoke test to ensure the code path executes and produces a valid matrix.
-#   # Verifying the exact regression output is complex and brittle for a unit test.
-#   result <- calc_exp(
-#     dataset = test_data,
-#     catch = "catch",
-#     temp.var = "date",
-#     calc.method = "simpleLag",
-#     lag.method = "simple",
-#     temp.window = 4, # Use a slightly larger window
-#     Alt = Alt
-#   )
-#   
-#   expect_true(is.matrix(result$exp))
-#   expect_equal(nrow(result$exp), nrow(test_data))
-#   expect_equal(sort(colnames(result$exp)), c("A", "B"))
-#   # The result should not be all NAs or zeros (unless the data is pathological)
-#   expect_false(all(is.na(result$exp)))
-# })
+test_that("'empty.catch' and 'empty.expectation' options work", {
+  # Test empty.catch = 0
+  # Obs on 2023-01-05. Window=3. Window: 01-03, 01-04, 01-05.
+  # NA catch for Zone A on 01-04 is replaced with 0.
+  # Zone A daily means in window: 0 (01-04), 16 (01-05). Exp = mean(0, 16) = 8.
+  result_zero_catch <- calc_exp(
+    dataset = test_data,
+    catch = "catch",
+    temp.var = "date",
+    temp.window = 3,
+    empty.catch = 0,
+    Alt = Alt,
+    weight_avg = FALSE
+  )
+  expect_equal(unname(result_zero_catch$exp[7, "A"]), 8)
+
+  # Test empty.expectation = 0
+  # Obs on 2023-01-04. Window=2. Window: 01-03, 01-04.
+  # Zone A exp is NA because only catch in window is NA. This should be replaced by 0.
+  result_zero_exp <- calc_exp(
+    dataset = test_data,
+    catch = "catch",
+    temp.var = "date",
+    temp.window = 2,
+    empty.expectation = 0,
+    Alt = Alt
+  )
+  expect_equal(unname(result_zero_exp$exp[6, "A"]), 0)
+})
+
+test_that("'dummy.exp' creates a correct dummy matrix", {
+  # Obs on 2023-01-04 (row 6). Window=2. Window: 01-03, 01-04.
+  # Zone A exp is NA (only data point is NA). Dummy should be 0.
+  # Zone B exp is 23 (from 01-03). Dummy should be 1.
+  result <- calc_exp(
+    dataset = test_data,
+    catch = "catch",
+    temp.var = "date",
+    temp.window = 2,
+    dummy.exp = TRUE,
+    Alt = Alt
+  )
+
+  expect_true(!is.null(result$dummy))
+  expect_equal(nrow(result$dummy), nrow(test_data))
+  expect_equal(unname(result$dummy[6, "A"]), 0)
+  expect_equal(unname(result$dummy[6, "B"]), 1)
+})
+
+test_that("'weight_avg' calculates averages differently", {
+  # Create data where one day has more observations than another
+  test_data_weight <- data.frame(
+    date = as.Date(c("2023-01-01", "2023-01-01", "2023-01-02", "2023-01-03")),
+    zone = c("A", "A", "A", "B"),
+    catch = c(10, 30, 100, 500)
+  )
+  Alt_weight <- list(dataZoneTrue = rep(1, 4), choice = test_data_weight$zone)
+
+  # For obs on 2023-01-03, window=3. Look at expected catch for Zone A.
+  # Data for A in window: {10, 30} on 01-01; {100} on 01-02.
+
+  # weight_avg = FALSE: Averages daily means. mean(mean(10,30), 100) = mean(20, 100) = 60
+  res_false <- calc_exp(
+    dataset = test_data_weight,
+    catch = "catch",
+    temp.var = "date",
+    temp.window = 3,
+    Alt = Alt_weight,
+    weight_avg = FALSE
+  )
+  expect_equal(unname(res_false$exp[4, "A"]), 60)
+
+  # weight_avg = TRUE: Averages all individual points. mean(10, 30, 100) = 46.66...
+  res_true <- calc_exp(
+    dataset = test_data_weight,
+    catch = "catch",
+    temp.var = "date",
+    temp.window = 3,
+    Alt = Alt_weight,
+    weight_avg = TRUE
+  )
+  expect_equal(unname(res_true$exp[4, "A"]), mean(c(10, 30, 100)))
+})
+
+test_that("calc.method = 'simpleLag' runs without error", {
+  # This is a smoke test to ensure the code path executes and produces a valid matrix.
+  # Verifying the exact regression output is complex and brittle for a unit test.
+  result <- calc_exp(
+    dataset = test_data,
+    catch = "catch",
+    temp.var = "date",
+    calc.method = "simpleLag",
+    lag.method = "simple",
+    temp.window = 4, # Use a slightly larger window
+    Alt = Alt
+  )
+
+  expect_true(is.matrix(result$exp))
+  expect_equal(nrow(result$exp), nrow(test_data))
+  expect_equal(sort(colnames(result$exp)), c("A", "B"))
+  # The result should not be all NAs or zeros (unless the data is pathological)
+  expect_false(all(is.na(result$exp)))
+})
