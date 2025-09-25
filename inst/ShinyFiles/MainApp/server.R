@@ -20,6 +20,8 @@ source("modules/load_files_server.R", local = TRUE) # Upload data - load files s
 source("modules/other_actions_server.R", local = TRUE) # Other actions in sidebar 
 source("modules/select_variables_server.R", local = TRUE) # Other actions in sidebar 
 source("modules/qaqc_module.R", local = TRUE)
+source("modules/explore_data_module.R", local = TRUE)
+
 
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
@@ -133,4 +135,21 @@ server <- function(input, output, session) {
   
   ### Main panel
   qaqc_server("qaqc_checks", rv_project_name, rv_data, rv_folderpath)
+  
+  ## Explore data ---------------------------------------------------------------------------------
+  ### Sidebar
+  checklist_server("explore_data_checklist", rv_project_name, rv_data, rv_qaqc)
+  
+  other_actions_server("explore_data_actions",
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
+  
+  ### Main panel
+  explore_data_server("explore_data", 
+                      rv_folderpath = rv_folderpath, 
+                      rv_project_name = rv_project_name, 
+                      rv_data = rv_data)
 }
