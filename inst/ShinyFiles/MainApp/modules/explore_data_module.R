@@ -59,7 +59,6 @@ explore_data_sidebar_ui <- function(id) {
                              "Temporal plots" = "temporal_plots",
                              "Compare variables" = "comp_vars"),
                  selected = "zone_summary")
-    
   )
 }
 
