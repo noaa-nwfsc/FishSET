@@ -92,7 +92,7 @@ pass_icon <- function(tab, checklist, previous_check = NULL) {
       # No checks passed: black icon
       out_icon <- icon_wrapper(icon_name = "file-arrow-up", icon_color = "black")
       
-      out_icon_message <- "NEXT STEP: Add/select project and load data in the Upload Data tab."
+      out_icon_message <- "NEXT STEP: Add/select project and load data in the Upload Data tab"
     }
   }
   
@@ -107,6 +107,19 @@ pass_icon <- function(tab, checklist, previous_check = NULL) {
       out_icon <- icon_wrapper(icon_name = "magnifying-glass-chart", icon_color = "#F5CF27")
       
       # Identity failed checks
+      failed_checks <- names(which(list_checks == FALSE))
+      
+      if ("na_check" %in% failed_checks) {
+        out_icon_message <- "NEXT STEP: Check for NAs and NaNs in the main data table"
+        
+      } else if ("unique_check" %in% failed_checks) {
+        out_icon_message <- "NEXT STEP: Check that each observation is unique 
+                             and remove duplicates"
+    
+      } else if ("spatial_check" %in% failed_checks) {
+        out_icon_message <- "NEXT STEP: Run spatial checks and make corrections if needed"
+        
+      }
       
     } else {
       # No checks passed: black icon
@@ -137,7 +150,7 @@ pass_icon <- function(tab, checklist, previous_check = NULL) {
     out_icon <- icon_wrapper(icon_name = "fish-fins", icon_color = "black")
   }
   
-  # Return the icon and any corresponding message
+  # Return the icon and any corresponding message 
   return(list(
     out_icon,
     out_icon_message
@@ -174,7 +187,7 @@ checklist_ui <- function(id){
 #' @returns The server-side module logic. This function does not return a value but has the
 #'          side effect of showing a modal dialog.
 #'
-checklist_server <- function(id, rv_project_name, rv_data, rv_qaqc = NULL){
+checklist_server <- function(id, rv_project_name, rv_data, rv_folderpath){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -187,6 +200,8 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_qaqc = NULL){
           sel_vars = FALSE),
         
         qaqc = list(
+          na_check = FALSE,
+          unique_check = FALSE,
           spatial_check = FALSE),
         
         format_data = list(
@@ -236,11 +251,49 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_qaqc = NULL){
       
       ## QAQC checks ------------------------------------------------------------------------------
       # First check that all load_data checks have passed
-      if (!is.null(rv_qaqc) & all(unlist(rv_project_checklist$checklist$load_data))) {
-        # Check if spat checks passed
-        if (rv_qaqc$spatial_checks()$status == "passed") {
-          rv_project_checklist$checklist$qaqc$spatial_check <- TRUE
-
+      if (all(unlist(rv_project_checklist$checklist$load_data))) {
+        
+        # 1. Check for NAs and NaNs
+        has_na <- !is_value_empty(qaqc_helper(rv_data$main, "NA", "names"))
+        has_nan <- !is_value_empty(qaqc_helper(rv_data$main, "NaN", "names"))
+        if (!has_na && !has_nan) {
+          rv_project_checklist$checklist$qaqc$na_check <- TRUE
+        } 
+        
+        # 2. Check for duplicate rows.
+        if (!any(duplicated(rv_data$main))) {
+          rv_project_checklist$checklist$qaqc$unique_check <- TRUE
+        } 
+        
+        # 3. Check spatial check status
+        if (!is.null(rv_folderpath)) {
+          status_file_path <- file.path(rv_folderpath(),
+                                        rv_project_name()$value,
+                                        "data",
+                                        "SpatialChecksStatus.rds")
+          
+          if (file.exists(status_file_path)) {
+            saved_status <- readRDS(status_file_path)
+            
+            # Create a fingerprint of the current data to ensure it hasn't changed
+            current_data_metrics <- list(
+              nrows = nrow(rv_data$main),
+              size = object.size(rv_data$main)
+            )
+            
+            # "Passes" if the file exists, the data fingerprint matches, and status is "passed"
+            if (!is.null(saved_status$data_metrics$nrows) &&
+                current_data_metrics$nrows == saved_status$data_metrics$nrows &&
+                saved_status$status == "passed") {
+              
+              rv_project_checklist$checklist$qaqc$spatial_check <- TRUE
+              
+            } else {
+              rv_project_checklist$checklist$qaqc$spatial_check <- FALSE
+            }
+          } else {
+            rv_project_checklist$checklist$qaqc$spatial_check <- FALSE
+          }
         } else {
           rv_project_checklist$checklist$qaqc$spatial_check <- FALSE
         }
