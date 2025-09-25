@@ -22,7 +22,6 @@ source("modules/select_variables_server.R", local = TRUE) # Other actions in sid
 source("modules/qaqc_module.R", local = TRUE)
 source("modules/explore_data_module.R", local = TRUE)
 
-
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
 
@@ -55,7 +54,6 @@ server <- function(input, output, session) {
   rv_project_name <- reactiveVal() # Project name
   rv_data <- reactiveValues() # All data loaded in load_data_server
   rv_data_load_error <- reactiveVal(TRUE) # Track errors with loading data for sidebar
-  rv_qaqc <- reactiveValues() # Store qaqc checks to update progress check
   rv_confid_vals <- reactiveValues(check = FALSE, 
                                    v_id = NULL, 
                                    rule = "n", 
@@ -64,7 +62,7 @@ server <- function(input, output, session) {
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
-  checklist_server("load_checklist", rv_project_name, rv_data, rv_qaqc)
+  checklist_server("load_checklist", rv_project_name, rv_data, rv_folderpath)
   
   #### Set confidentiality rules (popup)
   rv_confid_vals <- load_sidebar_server("upload_data_sidebar",
@@ -106,7 +104,7 @@ server <- function(input, output, session) {
   
   ## Selecting variables subtab -------------------------------------------------------------------
   ### Sidebar
-  checklist_server("select_var_checklist", rv_project_name, rv_data, rv_qaqc)
+  checklist_server("select_var_checklist", rv_project_name, rv_data, rv_folderpath)
   
   other_actions_server("selecting_variables_actions", 
                        values = list(project_name = rv_project_name,
@@ -125,7 +123,7 @@ server <- function(input, output, session) {
   # QAQC ------------------------------------------------------------------------------------------
   ## Quality checks -------------------------------------------------------------------------------
   ### Sidebar
-  checklist_server("quality_check_checklist", rv_project_name, rv_data, rv_qaqc)
+  checklist_server("quality_check_checklist", rv_project_name, rv_data, rv_folderpath)
   
   other_actions_server("quality_check_actions",
                        values = list(project_name = rv_project_name,
@@ -135,24 +133,7 @@ server <- function(input, output, session) {
                        current_tab = reactive(input$tabs))
   
   ### Main panel
-  rv_qaqc$spatial_checks <- qaqc_server("qaqc_checks", rv_project_name, rv_data, rv_folderpath)
-  
-  # Update rv_data based on spatial corrections
-  observeEvent(rv_qaqc$spatial_checks(), {
-    unique_ids <- rv_qaqc$spatial_checks()
-    
-    # Ensure that the ids are valid
-    if (!is.null(unique_ids$ids) && length(unique_ids$ids) > 0 && !is.null(unique_ids$id_col)) {
-      # Filter the main data frame to remove IDs
-      rv_data$main <- rv_data$main[!rv_data$main[[unique_ids$id_col]] %in% unique_ids$ids, ]
-      
-      # Save SQLite table
-      q_save <- quietly_test(table_save)
-      saved <- q_save(rv_data$main, project = rv_project_name()$value, type = "main")
-    }
-  }, ignoreNULL = TRUE)
-  
-  
+  qaqc_server("qaqc_checks", rv_project_name, rv_data, rv_folderpath)
   
   ## Explore data ---------------------------------------------------------------------------------
   ### Sidebar
@@ -170,5 +151,4 @@ server <- function(input, output, session) {
                       rv_folderpath = rv_folderpath, 
                       rv_project_name = rv_project_name, 
                       rv_data = rv_data)
-  
 }

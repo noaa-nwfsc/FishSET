@@ -77,6 +77,32 @@ remove_variables_server <- function(id, rv_project_name, rv_data, rv_folderpath)
     observeEvent(input$confirm_remove_btn, {
       vars_to_remove <- input$select_vars_to_remove
       
+      # Check if any removed variables are used in 'Select Variables' and update the RDS file
+      try({
+        # Load the saved GUI variables
+        gui_vars <- load_gui_variables(rv_project_name()$value, rv_folderpath())
+        
+        # Use a vectorized approach to update the list
+        updated_gui_vars <- lapply(gui_vars, function(category_list) {
+          lapply(category_list, function(setting_value) {
+            if (!is.null(setting_value) && setting_value %in% vars_to_remove) {
+              NULL # Set to NULL if the variable is being removed
+            } else {
+              setting_value # Otherwise, keep the original value
+            }
+          })
+        })
+        
+        # Only re-save the file if a change was made
+        if (!identical(gui_vars, updated_gui_vars)) {
+          # Construct the file path
+          saved_var_file <- paste0(rv_project_name()$value, "SavedVariables.rds")
+          saved_var_filepath <- file.path(loc_data(rv_project_name()$value), saved_var_file)
+          saved_var_filepath <- suppressWarnings(normalizePath(saved_var_filepath))
+          saveRDS(updated_gui_vars, file = saved_var_filepath)
+        }
+      }, silent = TRUE)
+      
       # Create a copy and remove the columns
       current_data <- rv_data$main
       current_data <- current_data[, !names(current_data) %in% vars_to_remove, drop = FALSE]
