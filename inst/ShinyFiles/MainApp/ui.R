@@ -19,6 +19,8 @@ source("modules/load_files_ui.R", local = TRUE) # Upload data - load files subta
 source("modules/other_actions_ui.R", local = TRUE) # Other actions in sidebar 
 source("modules/select_variables_ui.R", local = TRUE) # Other actions in sidebar 
 source("modules/qaqc_module.R", local = TRUE)
+source("modules/explore_data_module.R", local = TRUE)
+
 
 # UI function definition
 ui <- function(request){
@@ -143,7 +145,34 @@ ui <- function(request){
             qaqc_ui("qaqc_checks")    
           )
         )
-        
+      ),
+      
+      ## Data exploration subtab ------------------------------------------------------------------
+      bslib::nav_panel(
+        title = "Explore the data", 
+        id = "explore_data",
+        value = "explore_data",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE,
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+              
+              checklist_ui("explore_data_checklist"),
+              hr(),
+              explore_data_sidebar_ui("explore_data"),
+              other_actions_ui("explore_data_actions")
+            ),
+            
+            ### Main panel
+            explore_data_ui("explore_data")    
+          )
+        )
       )
     )
   )
