@@ -38,7 +38,10 @@ compare_vars_server <- function(id, rv_folderpath, rv_project_name, rv_data){
     observe({
       req(rv_data$main)
       
-      all_vars <- names(rv_data$main)
+      is_not_date <- sapply(rv_data$main, function(col) !inherits(col, c("Date", "POSIXt")))
+      
+      # Filter column names
+      all_vars <- names(rv_data$main)[is_not_date]
       numeric_vars <- names(rv_data$main[sapply(rv_data$main, is.numeric)])
       
       # Add a placeholder for inputs
