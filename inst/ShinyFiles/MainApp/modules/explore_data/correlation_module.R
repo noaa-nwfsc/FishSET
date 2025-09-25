@@ -70,6 +70,15 @@ correlation_server <- function(id, rv_folderpath, rv_project_name, rv_data){
       cor(selected_data(), use = "pairwise.complete.obs")
     })
     
+    # This calculation will be shared by both the heatmap and the pairs plot.
+    dynamic_plot_height <- reactive({
+      req(input$select_vars_input)
+      num_vars <- length(input$select_vars_input)
+
+      # Set a minimum height and add pixels for each variable.
+      max(400, 150 + num_vars * 35) 
+    })
+    
     # Render the correlation heatmap
     output$corr_heatmap <- renderPlot({
       c_matrix <- corr_matrix()
@@ -106,7 +115,7 @@ correlation_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         coord_fixed() + # Ensure tiles are square
         geom_text(aes(label = round(value, 2)), color = "black", size = 4) +
         ggplot2::scale_fill_viridis_c(name="Correlation", limit = c(-1,1))
-    })
+    }, height = function() dynamic_plot_height())
     
     # Render the pairs plot using base R graphics
     output$corr_pairs_plot <- renderPlot({
@@ -140,7 +149,7 @@ correlation_server <- function(id, rv_folderpath, rv_project_name, rv_data){
                       lower.panel = panel.smooth, 
                       upper.panel = panel.cor,
                       diag.panel = panel.hist)
-    })
+    }, height = function() dynamic_plot_height())
     
     # Render the correlation matrix as a data table
     output$corr_table <- DT::renderDataTable({
@@ -198,7 +207,7 @@ correlation_ui <- function(id){
           ns = ns,
           h5("Correlation Heatmap"),
           shinycssloaders::withSpinner(
-            plotOutput(ns("corr_heatmap"), height = "50vh"), type = 6
+            plotOutput(ns("corr_heatmap")), type = 6
           )
         ),
         
@@ -208,7 +217,7 @@ correlation_ui <- function(id){
           ns = ns,
           h5("Pairs Plot"),
           shinycssloaders::withSpinner(
-            plotOutput(ns("corr_pairs_plot"), height = "50vh"), type = 6
+            plotOutput(ns("corr_pairs_plot")), type = 6
           )
         ),
         
