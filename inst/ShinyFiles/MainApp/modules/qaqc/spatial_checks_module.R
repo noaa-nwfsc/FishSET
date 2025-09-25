@@ -34,11 +34,45 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     
     # Initialize reactives
     rv_selected_vars <- reactiveValues(vars = NULL)
-    rv_spat_check <- reactiveValues(flag = FALSE, spat_checks = NULL, c_tab = NULL)
-    rv_remove_ids <- reactiveValues(ids = NULL)
+    rv_spat_check <- reactiveValues(flag = FALSE, spat_checks = NULL)
     rv_status <- reactiveVal("pending") # Overall status: pending, passed, failed
-    rv_land_obs_message <- reactiveVal("")
-    rv_out_obs_message <- reactiveVal("")
+    rv_land_indices_to_remove <- reactiveVal(NULL) # Holds indices for removal confirmation
+    rv_out_indices_to_remove <- reactiveVal(NULL) # Holds indices for removal confirmation
+    
+    # Helper function to save status
+    save_status <- function() {
+      # Condition for passing: no more TRUE values in either of the flag columns
+      checks_pass <- {
+        !any(rv_spat_check$spat_checks$dataset$ON_LAND, na.rm = TRUE) &&
+          !any(rv_spat_check$spat_checks$dataset$OUTSIDE_ZONE, na.rm = TRUE)
+      }
+      
+      if (checks_pass) {
+        # Get project details
+        project_name <- rv_project_name()$value
+        folderpath <- rv_folderpath()
+        
+        # Define the path for the status file
+        status_file_path <- file.path(folderpath, 
+                                      project_name, 
+                                      "data", 
+                                      "SpatialChecksStatus.rds")
+        
+        # Create a fingerprint of the *current main data*
+        current_data_metrics <- list(
+          nrows = nrow(rv_data$main),
+          size = object.size(rv_data$main)
+        )
+        
+        # Prepare the list to save
+        status_to_save <- list(status = "passed", 
+                               data_metrics = current_data_metrics)
+        
+        # Save the file and update the session's status
+        saveRDS(status_to_save, file = status_file_path)
+        rv_status("passed")
+      }
+    }
     
     # Reactive flag to control the visibility of data quality check output UI
     output$show_output_cards <- reactive({
@@ -49,9 +83,9 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     outputOptions(output, "show_output_cards", suspendWhenHidden = FALSE)
     
     ## Load and check status on startup -----------------------------------------------------------
-    observeEvent(rv_data$main, {
-      req(rv_project_name()$value)
-      req(rv_folderpath())
+    observe({
+      # This observer automatically runs when data or project name changes
+      req(rv_data$main, rv_project_name()$value, rv_folderpath())
       
       # Define the path for the status file
       status_file_path <- file.path(rv_folderpath(),
@@ -73,6 +107,7 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
         if (is.null(saved_status$data_metrics$nrow) | 
             saved_status$data_metrics$size == 0) {
           rv_status("pending")
+          
           # If metrics match, the data is unchanged, and can load the "passed" status
         } else if ((current_data_metrics$nrows == saved_status$data_metrics$nrow) &&
                    (saved_status$status == "passed")) {
@@ -99,17 +134,13 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     outputOptions(output, "rv_status_controls", suspendWhenHidden = FALSE)
     
     ## Run spatial data checks --------------------------------------------------------------------
-    observeEvent(c(input$run_spat_checks_btn, input$save_and_run_spat_checks_btn), {
+    observeEvent(input$run_spat_checks_btn, {
       # Ensure required reactive values are available before proceeding.
       req(rv_project_name)
       req(rv_folderpath)
       req(rv_data$main)
       project_name <- rv_project_name()$value
       folderpath <- rv_folderpath()
-      
-      # Hide any messages from previous correction actions.
-      shinyjs::hide("remove_land_obs_message")
-      shinyjs::hide("remove_out_obs_message")
       
       # Show a spinner to indicate that the checks are running.
       shinyjs::show("spat_checks_spinner_container")
@@ -177,8 +208,8 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       if (checks_passed) {
         # If checks passed, save the status and the data metrics
         current_data_metrics <- list(
-          nrows = nrow(spat_check_out$dataset),
-          size = object.size(spat_check_out$dataset)
+          nrows = nrow(rv_data$main),
+          size = object.size(rv_data$main)
         )
         
         # Save RDS and reactive to indicate spatial checks passed
@@ -259,35 +290,64 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
     ### Remove land observations ------------------------------------------------------------------
     # Reactive to determine if the "Remove observations on land" button should be shown.
     output$show_remove_land_btn <- reactive({
-      "ON_LAND" %in% names(rv_spat_check$spat_checks$dataset)
+      # Button should only show if the flag column exists AND contains at least one TRUE value
+      !is.null(rv_spat_check$spat_checks$dataset) &&
+        "ON_LAND" %in% names(rv_spat_check$spat_checks$dataset) &&
+        any(rv_spat_check$spat_checks$dataset$ON_LAND, na.rm = TRUE)
     })
     
     # Ensure the output is available for the UI's conditionalPanel.
     outputOptions(output, "show_remove_land_btn", suspendWhenHidden = FALSE)
     
-    # Render the message that confirms removal of land observations.
-    output$land_obs_message_out <- renderText({
-      rv_land_obs_message()
-    })
-    
     # Observer for the "Remove observations on land" button click.
     observeEvent(input$remove_land_obs_btn,{
       req(rv_spat_check$spat_checks$land_plot)
-      
-      # Hide any previous messages
-      shinyjs::hide("remove_land_obs_message")
-      
-      # Show spinner while processing removal.
-      shinyjs::show("remove_land_obs_spinner_container")
       
       # Find the indices of rows where the ON_LAND flag is TRUE.
       land_rm_ind <- which(rv_spat_check$spat_checks$dataset$ON_LAND)
       
       if(length(land_rm_ind) > 0){
+        # Store indices for the confirmation step
+        rv_land_indices_to_remove(land_rm_ind)
+        
+        # Show confirmation modal
+        showModal(
+          modalDialog(
+            title = "Confirm removal of observations on land",
+            paste0("This will remove ", length(land_rm_ind), 
+                   " observation(s) on land from the main data table.
+                   Do you want to proceed?"),
+            footer = tagList(
+              modalButton("Cancel"),
+              actionButton(ns("confirm_remove_land_btn"), 
+                           "Remove observations",
+                           class = "btn-danger",
+                           icon = icon("trash"))
+            ),
+            easyClose = TRUE
+          )
+        )
+      }
+    })
+    
+    observeEvent(input$confirm_remove_land_btn, {
+      removeModal() # Close the modal
+      req(rv_land_indices_to_remove())
+      
+      shinyjs::show("remove_land_obs_spinner_container")
+      
+      land_rm_ind <- rv_land_indices_to_remove()
+      
+      if (length(land_rm_ind) > 0) {
         # Get the unique ID variable name and extract the IDs to be removed.
         id_var <- rv_selected_vars$vars$main$main_unique_obs_id
         tmp_ids <- dplyr::pull(rv_spat_check$spat_checks$dataset, id_var) 
-        rv_remove_ids$ids <- c(rv_remove_ids$ids, tmp_ids[land_rm_ind]) 
+        ids_to_remove <- tmp_ids[land_rm_ind]
+        
+        # Update rv_data$main and save the table directly in the module
+        rv_data$main <- rv_data$main[!rv_data$main[[id_var]] %in% ids_to_remove, ]
+        q_save <- quietly_test(table_save)
+        saved <- q_save(rv_data$main, project = rv_project_name()$value, type = "main")
         
         # Remove the flagged rows from the dataset displayed in the module.
         rv_spat_check$spat_checks$dataset <- rv_spat_check$spat_checks$dataset[-land_rm_ind, ]
@@ -320,51 +380,106 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
           rv_spat_check$spat_checks$spatial_summary %>%
           dplyr::mutate(perc = round((n / total_n) * 100, 2))
         
+        # Reset the reactive value
+        rv_land_indices_to_remove(NULL)
         
+        # Hide the observations on land plot and update radio buttons
+        # Update radio button choices to hide the plot option if no data remains
+        current_selection <- input$spat_check_output_view
+        new_choices <- c("Annual summary table" = "summary", "All data table" = "all_data")
+        if ("ON_LAND" %in% names(rv_spat_check$spat_checks$dataset) &&
+            any(rv_spat_check$spat_checks$dataset$ON_LAND, na.rm = TRUE)) {
+          new_choices <- c(new_choices, "Obs on land" = "on_land")
+        }
+        if ("OUTSIDE_ZONE" %in% names(rv_spat_check$spat_checks$dataset) &&
+            any(rv_spat_check$spat_checks$dataset$OUTSIDE_ZONE, na.rm = TRUE)) {
+          new_choices <- c(new_choices, "Obs out of spatial bounds" = "out_bounds")
+        }
+        # If the currently viewed plot was just removed, default back to the summary table
+        new_selection <- if (current_selection %in% names(new_choices)) {
+          current_selection
+        } else {
+          "summary"
+        }
         
-        # Set and show the confirmation message.
-        rv_land_obs_message(
-          paste0("Removed ", length(land_rm_ind), " observation(s) from the main data table")
-        )
-        shinyjs::show("remove_land_obs_message")
+        updateRadioButtons(session,
+                           "spat_check_output_view",
+                           choices = new_choices,
+                           selected = new_selection)
+        
+        # Check if checks now pass and save status if they do
+        save_status()
+        
+        # Hide the spinner.
+        shinyjs::hide("remove_land_obs_spinner_container")
+        
+      } else {
+        # Hide the spinner.
+        shinyjs::hide("remove_land_obs_spinner_container")
       }
-      
-      # Hide the spinner.
-      shinyjs::hide("remove_land_obs_spinner_container")
     })
     
     ### Remove out-of-bounds observations ---------------------------------------------------------
     # Reactive to determine if the "Remove out-of-bounds observations" button should be shown.
     output$show_remove_out_bounds_btn <- reactive({
-      "OUTSIDE_ZONE" %in% names(rv_spat_check$spat_checks$dataset)
+      # Button should only show if the flag column exists AND contains at least one TRUE value
+      !is.null(rv_spat_check$spat_checks$dataset) &&
+        "OUTSIDE_ZONE" %in% names(rv_spat_check$spat_checks$dataset) &&
+        any(rv_spat_check$spat_checks$dataset$OUTSIDE_ZONE, na.rm = TRUE)
     })
     
     # Ensure the output is available for the UI's conditionalPanel.
     outputOptions(output, "show_remove_out_bounds_btn", suspendWhenHidden = FALSE)
     
-    # Render the message that confirms removal of out-of-bounds observations.
-    output$out_obs_message_out <- renderText({
-      rv_out_obs_message()
-    })
-    
     # Observer for the "Remove out-of-bounds observations" button click.
     observeEvent(input$remove_out_bounds_obs_btn,{
       req(rv_spat_check$spat_checks$outside_plot)
-      
-      # Hide any previous messages
-      shinyjs::hide("remove_out_obs_message")
-      
-      # Show spinner while processing removal.
-      shinyjs::show("remove_out_obs_spinner_container")
       
       # Find the indices of rows where the OUTSIDE_ZONE flag is TRUE.
       out_rm_ind <- which(rv_spat_check$spat_checks$dataset$OUTSIDE_ZONE)
       
       if(length(out_rm_ind) > 0){
+        # Store indices for the confirmation step
+        rv_out_indices_to_remove(out_rm_ind)
+        
+        # Show confirmation modal
+        showModal(
+          modalDialog(
+            title = "Confirm removal of out-of-bounds observations",
+            paste0("This will remove ", length(out_rm_ind), 
+                   " observation(s) from the main data table.
+                   Do you want to proceed?"),
+            footer = tagList(
+              modalButton("Cancel"),
+              actionButton(ns("confirm_remove_out_btn"), 
+                           "Remove observations",
+                           class = "btn-danger",
+                           icon = icon("trash"))
+            ),
+            easyClose = TRUE
+          )
+        )
+      }
+    })
+    
+    observeEvent(input$confirm_remove_out_btn, {
+      removeModal()
+      req(rv_out_indices_to_remove())
+      
+      shinyjs::show("remove_out_obs_spinner_container")
+      
+      out_rm_ind <- rv_out_indices_to_remove()
+      
+      if (length(out_rm_ind) > 0) {
         # Get the unique ID variable name and extract the IDs to be removed.
         id_var <- rv_selected_vars$vars$main$main_unique_obs_id
         tmp_ids <- dplyr::pull(rv_spat_check$spat_checks$dataset[, id_var], id_var) 
-        rv_remove_ids$ids <- c(rv_remove_ids$ids, tmp_ids[out_rm_ind]) 
+        ids_to_remove <- tmp_ids[out_rm_ind]
+        
+        # Update rv_data$main and save the table directly in the module
+        rv_data$main <- rv_data$main[!rv_data$main[[id_var]] %in% ids_to_remove, ]
+        q_save <- quietly_test(table_save)
+        saved <- q_save(rv_data$main, project = rv_project_name()$value, type = "main")
         
         # Remove the flagged rows from the dataset displayed in the module.
         rv_spat_check$spat_checks$dataset <- rv_spat_check$spat_checks$dataset[-out_rm_ind, ]
@@ -397,27 +512,43 @@ spatial_checks_server <- function(id, rv_project_name, rv_data, rv_folderpath){
           rv_spat_check$spat_checks$spatial_summary %>%
           dplyr::mutate(perc = round((n / total_n) * 100, 2))
         
-        # Set and show the confirmation message.
-        rv_out_obs_message(
-          paste0("Removed ", length(out_rm_ind), " observation(s) from the main data table")
-        )
-        shinyjs::show("remove_out_obs_message")
+        # Reset the reactive value
+        rv_out_indices_to_remove(NULL)
+        
+        # Hide the observations on land plot and update radio buttons
+        # Update radio button choices to hide the plot option if no data remains
+        current_selection <- input$spat_check_output_view
+        new_choices <- c("Annual summary table" = "summary", "All data table" = "all_data")
+        if ("ON_LAND" %in% names(rv_spat_check$spat_checks$dataset) &&
+            any(rv_spat_check$spat_checks$dataset$ON_LAND, na.rm = TRUE)) {
+          new_choices <- c(new_choices, "Obs on land" = "on_land")
+        }
+        if ("OUTSIDE_ZONE" %in% names(rv_spat_check$spat_checks$dataset) &&
+            any(rv_spat_check$spat_checks$dataset$OUTSIDE_ZONE, na.rm = TRUE)) {
+          new_choices <- c(new_choices, "Obs out of spatial bounds" = "out_bounds")
+        }
+        # If the currently viewed plot was just removed, default back to the summary table
+        new_selection <- if (current_selection %in% names(new_choices)) {
+          current_selection
+        } else {
+          "summary"
+        }
+        updateRadioButtons(session,
+                           "spat_check_output_view",
+                           choices = new_choices,
+                           selected = new_selection)
+        
+        # Check if checks now pass and save status if they do
+        save_status()
+        
+        # Hide the spinner.
+        shinyjs::hide("remove_out_obs_spinner_container")
+        
+      } else {
+        # Hide the spinner.
+        shinyjs::hide("remove_out_obs_spinner_container")
       }
-      
-      # Hide the spinner.
-      shinyjs::hide("remove_out_obs_spinner_container")
     })
-    
-    # Return the reactive containing the IDs to be removed to the main app. 
-    return(
-      reactive({
-        list(
-          ids = rv_remove_ids$ids,
-          id_col = rv_selected_vars$vars$main$main_unique_obs_id,
-          status = rv_status()
-        )
-      })
-    )
   })
 }
 
@@ -537,12 +668,6 @@ spatial_checks_ui <- function(id){
                            style = "display: inline-block; width: 315px;")    
             ),
             
-            # Success message after removing land observations.
-            div(id = ns("remove_land_obs_message"),
-                style = "color: green; display: none; font-size: 20px;",
-                textOutput(ns("land_obs_message_out"))
-            ),
-            
             # Spinner for the "remove on land" action.
             div(id = ns("remove_land_obs_spinner_container"),
                 style = "display: none;",
@@ -562,12 +687,6 @@ spatial_checks_ui <- function(id){
                            style = "display: inline-block; width: 315px;")
             ),
             
-            # Success message after removing out-of-bounds observations.
-            div(id = ns("remove_out_obs_message"),
-                style = "color: green; display: none; font-size: 20px;",
-                textOutput(ns("out_obs_message_out"))
-            ),
-            
             # Spinner for the "remove out-of-bounds" action.
             div(id = ns("remove_out_obs_spinner_container"),
                 style = "display: none;",
@@ -576,16 +695,6 @@ spatial_checks_ui <- function(id){
                            size = "large",
                            message = "Removing out-of-bounds observations...",
                            overlay = TRUE)
-            ),
-            
-            # Button to save spatial corrections and rerun spatial checks
-            conditionalPanel(
-              condition = "output.show_remove_land_btn | output.show_remove_out_bounds_btn",
-              ns = ns,
-              actionButton(ns("save_and_run_spat_checks_btn"),
-                           "Save spatial corrections",
-                           class = "btn-primary",
-                           style = "display: inline-block; width: 315px;")
             )
           )
         )
