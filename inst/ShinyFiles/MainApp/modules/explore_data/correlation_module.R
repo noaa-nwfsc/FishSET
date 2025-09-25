@@ -74,7 +74,7 @@ correlation_server <- function(id, rv_folderpath, rv_project_name, rv_data){
     dynamic_plot_height <- reactive({
       req(input$select_vars_input)
       num_vars <- length(input$select_vars_input)
-
+      
       # Set a minimum height and add pixels for each variable.
       max(400, 150 + num_vars * 35) 
     })
@@ -157,8 +157,10 @@ correlation_server <- function(id, rv_folderpath, rv_project_name, rv_data){
       
       DT::datatable(df_corr,
                     options = list(
-                      pageLength = 10,
+                      scrollY = "300px",
                       scrollX = TRUE,
+                      scrollCollapse = TRUE,
+                      paging = FALSE,
                       searching = FALSE,
                       lengthChange = FALSE
                     ),
@@ -201,25 +203,28 @@ correlation_ui <- function(id){
           )
         ),
         
-        # Conditional UI for Heatmap
-        conditionalPanel(
-          condition = "input.plot_type_input == 'Heatmap'",
-          ns = ns,
-          h5("Correlation Heatmap"),
-          shinycssloaders::withSpinner(
-            plotOutput(ns("corr_heatmap")), type = 6
+        div(
+          style = "max-height: 65vh; overflow-y: auto;",
+          # Conditional UI for Heatmap
+          conditionalPanel(
+            condition = "input.plot_type_input == 'Heatmap'",
+            ns = ns,
+            h5("Correlation Heatmap"),
+            shinycssloaders::withSpinner(
+              plotOutput(ns("corr_heatmap")), type = 6
+            )
+          ),
+          
+          # Conditional UI for Pairs Plot
+          conditionalPanel(
+            condition = "input.plot_type_input == 'Pairs Plot'",
+            ns = ns,
+            h5("Pairs Plot"),
+            shinycssloaders::withSpinner(
+              plotOutput(ns("corr_pairs_plot")), type = 6
+            )
           )
-        ),
-        
-        # Conditional UI for Pairs Plot
-        conditionalPanel(
-          condition = "input.plot_type_input == 'Pairs Plot'",
-          ns = ns,
-          h5("Pairs Plot"),
-          shinycssloaders::withSpinner(
-            plotOutput(ns("corr_pairs_plot")), type = 6
-          )
-        ),
+        ), 
         
         # Data table output
         h5("Correlation Matrix"),
