@@ -79,7 +79,11 @@ compare_vars_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         
         if (input$show_lm_input == "Show") {
           p <- p +
-            ggplot2::geom_smooth(method = "lm", se = FALSE, color = 'black')
+            ggplot2::geom_smooth(method = "lm", 
+                                 se = TRUE, 
+                                 color = 'black', 
+                                 fill = 'grey60', 
+                                 alpha = 0.8)
         }
         
       } else {

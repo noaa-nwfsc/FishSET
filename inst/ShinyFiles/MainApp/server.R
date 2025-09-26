@@ -22,7 +22,6 @@ source("modules/select_variables_server.R", local = TRUE) # Other actions in sid
 source("modules/qaqc_module.R", local = TRUE)
 source("modules/explore_data_module.R", local = TRUE)
 
-
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
 
@@ -153,4 +152,3 @@ server <- function(input, output, session) {
                       rv_project_name = rv_project_name, 
                       rv_data = rv_data)
 }
-
