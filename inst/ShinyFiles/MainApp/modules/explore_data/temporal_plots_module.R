@@ -88,7 +88,6 @@ temp_plots_server <- function(id, rv_folderpath, rv_project_name, rv_data){
     # Plot 1: Scatter plot of the selected variable over time
     output$scatter_plot <- renderPlot({
       validate(need(input$select_var_input != "", "Select a variable to generate plots."))
-      
       validate(
         need(
           !is.null(rv_tmp_main()) && "Date" %in% names(rv_tmp_main()), 
