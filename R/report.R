@@ -704,8 +704,8 @@ function_summary <- function(project, date = NULL, type = "dat_load", show = "al
   )
 
   dat_exploration <- c(
-    "map_plot", "map_kernel", "getis_ord_stats", "moran_stats", "temp_plot", 
-    "xy_plot", "corr_out", "map_viewer", "spatial_hist", "spatial_summary",
+    "map_plot", "map_kernel", "getis_ord_stats", "moran_stats", 
+    "map_viewer", "spatial_hist", "spatial_summary",
     "view_grid_dat", "zone_summary"
   )
 
