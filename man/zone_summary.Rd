@@ -70,6 +70,8 @@ as breaks. Defaults to `fishset_viridis(10)`.}
 when aggregating by regulatory zone and `dat.center = FALSE` when
 aggregating by closure area.}
 
+\item{plot_type}{Character: "dynamic" for leaflet plot, "static" for ggplot}
+
 \item{output}{Output a `"plot"`, `"table"`, or both (`"tab_plot"`).
 Defaults to `"plot"`.}
 }

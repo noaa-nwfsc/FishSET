@@ -36,6 +36,7 @@
   #'  (`TRUE`) or `spat` (`FALSE`). Recommend `dat.center = TRUE`
   #'  when aggregating by regulatory zone and `dat.center = FALSE` when
   #'  aggregating by closure area. 
+  #'@param plot_type Character: "dynamic" for leaflet plot, "static" for ggplot
   #'@param output  Output a `"plot"`, `"table"`, or both (`"tab_plot"`).
   #'  Defaults to `"plot"`.
   #'@details Observations in `dat` must be assigned to regulatory zones to 
