@@ -67,7 +67,7 @@ correlation_server <- function(id, rv_folderpath, rv_project_name, rv_data){
     # Create a reactive expression for the correlation matrix
     corr_matrix <- reactive({
       # Calculate the correlation matrix
-      cor(selected_data(), use = "pairwise.complete.obs")
+      stats::cor(selected_data(), use = "pairwise.complete.obs")
     })
     
     # This calculation will be shared by both the heatmap and the pairs plot.
