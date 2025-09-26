@@ -193,16 +193,6 @@ plots and/or tables that are output to the R console and saved to the
                         hauls = NULL, output = c("table", "plot"), haul_to_trip = FALSE)
 ```
 
-##Simple Analyses\
-View and quantify relationship between variables. The correlation
-function, `corr_out` returns a plot and table of correlations values
-between all numberic variables supplied.
-
-```{r  eval=FALSE}
-#correlation
-  corr_out(dat, project, variables='all')
-```
-
 ##Compute New Variables\
 Modify or create variables such as cpue and trip centroid. Functions
 focus on data transformations, generating ID variables (for haul or

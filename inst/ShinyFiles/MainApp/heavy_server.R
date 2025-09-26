@@ -4440,8 +4440,7 @@ heavy_server <- function(input, output, session) {
   # DATA ANALYSIS ----
   # ---
   # output project tracker
-  anal_out_proj <- reactiveValues(corr = NULL, reg = NULL, corr_out = NULL, 
-                                  reg_out = NULL)
+  anal_out_proj <- reactiveValues(corr = NULL, reg = NULL, reg_out = NULL)
   
   output$corr_out <- renderUI({
     selectInput('corr_select', 'Select variables to include in correlation test', 
@@ -4474,8 +4473,7 @@ heavy_server <- function(input, output, session) {
     if (colnames(values$dataset)[1] != 'var1') {
       
       anal_out_proj$corr <- project$name
-      q_test <- quietly_test(corr_out)
-      q_test(values$dataset, project$name, input$corr_select)
+      
     }
   }, ignoreInit = TRUE)
   
