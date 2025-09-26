@@ -3923,10 +3923,9 @@ heavy_server <- function(input, output, session) {
       
       explore_out_proj$temp <- project$name
       
-      q_test <- quietly_test(temp_plot)
-      out <- q_test(values$dataset, project$name, input$col_select,
-                    len.fun = len_fun, agg.fun = input$p3fun, 
-                    date.var = all_variables()$pz_date)
+      
+      out <- ggplot() +
+        theme_void()
       
       out 
     }
@@ -7484,7 +7483,6 @@ heavy_server <- function(input, output, session) {
                                   input[["explore_plot-save_plot"]]), {
                                     
                                     list(
-                                      temp_plot = get_reactive(plotInputTemporal, project$name, explore_out_proj$temp),
                                       map_plot = get_reactive(plotInputSpatial, project$name, explore_out_proj$spat),
                                       kernel_plot = get_reactive(plotInputKernel, project$name, explore_out_proj$kernel),
                                       getis_moran = get_reactive(gtmt_table, project$name, explore_out_proj$gtmt),

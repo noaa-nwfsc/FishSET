@@ -138,7 +138,7 @@ from the raw data set back into the working data set.
 ```
 
 ##Data Exploration\
-View the spatial (`map_plot`) and temporal (`temp_plot`) distribution of
+View the spatial (`map_plot`) distribution of
 data and the relationship between variables (`xy_plot`). Plots and
 tables to the `output` folder. The `map_kernel`, `getis_ord_stats`, and
 `moran_stats` functions provide measures of clustering, or hot spot
@@ -155,8 +155,6 @@ distribution function plot of the selected variable.
   getis_ord_stats()
 #Moran's I
   moran_stats()
-#Temporal Plots
-  temp_plot()
 #x-y plots
   xy_plot(dat, project, var1, var2, regress = FALSE) 
   density_plot()

@@ -19,6 +19,7 @@ zone_summary(
   bin_colors = NULL,
   na.rm = TRUE,
   dat.center = TRUE,
+  plot_type = "dynamic",
   output = "plot"
 )
 }

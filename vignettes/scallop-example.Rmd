@@ -876,45 +876,6 @@ outlier_plot(scallopMainDataTable, proj,
 
 <br>
 
-## Temporal Plots
-
-FishSET can plot variables over time.
-
-```{r}
-temp_plot(scallopMainDataTable, proj,
-          var.select = "LANDED_OBSCURED",
-          len.fun = "percent",
-          agg.fun = "sum",
-          date.var = "DATE_TRIP",
-          pages = "multi")
-```
-
-This plot reveals some seasonality in the Landed pounds. 
-
-<br>
-
-```{r}
-temp_plot(scallopMainDataTable, proj,
-          var.select = "TRIP_LENGTH",
-          len.fun = "percent",
-          agg.fun = "sum",
-          date.var = "DATE_TRIP",
-          pages = "multi")
-```
-
-<br>
-
-```{r}
-temp_plot(scallopMainDataTable, proj,
-          var.select = "DOLLAR_OBSCURED",
-          len.fun = "percent",
-          agg.fun = "sum",
-          date.var = "DATE_TRIP",
-          pages = "multi")
-```
-
-<br>
-
 ## Scatter Plots
 
 Trip length by meat catch. 
