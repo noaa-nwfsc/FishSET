@@ -138,8 +138,7 @@ from the raw data set back into the working data set.
 ```
 
 ##Data Exploration\
-View the spatial (`map_plot`) distribution of
-data and the relationship between variables (`xy_plot`). Plots and
+View the spatial (`map_plot`) distribution of data. Plots and
 tables to the `output` folder. The `map_kernel`, `getis_ord_stats`, and
 `moran_stats` functions provide measures of clustering, or hot spot
 analysis. The `density_plot` creates a density or cumulative
@@ -156,7 +155,6 @@ distribution function plot of the selected variable.
 #Moran's I
   moran_stats()
 #x-y plots
-  xy_plot(dat, project, var1, var2, regress = FALSE) 
   density_plot()
 
 ```
@@ -198,15 +196,11 @@ plots and/or tables that are output to the R console and saved to the
 ##Simple Analyses\
 View and quantify relationship between variables. The correlation
 function, `corr_out` returns a plot and table of correlations values
-between all numberic variables supplied. The regression function,
-`xy_plot', returns a plot with fitted simple linear regression line and test statitistics whne regress is set to TRUE. When`regress\`
-is set to FALSE, points are plotted without a best fit line.
+between all numberic variables supplied.
 
 ```{r  eval=FALSE}
 #correlation
   corr_out(dat, project, variables='all')
-#regression
-  xy_plot(dat, project, var1, var2, regress = TRUE)
 ```
 
 ##Compute New Variables\

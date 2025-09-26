@@ -876,36 +876,6 @@ outlier_plot(scallopMainDataTable, proj,
 
 <br>
 
-## Scatter Plots
-
-Trip length by meat catch. 
-```{r}
-xy_plot(scallopMainDataTable, proj,
-        var1 = "TRIP_LENGTH", var2 = "LANDED_OBSCURED",
-        regress = FALSE, alpha = .3)
-```
-
-<br>
-
-Trip length by revenue. 
-```{r}
-xy_plot(scallopMainDataTable, proj,
-        var1 = "TRIP_LENGTH", var2 = "DOLLAR_OBSCURED",
-        regress = FALSE, alpha = .3)
-```
-
-<br>
-
-Trip length by trip cost (Winsor).
-```{r}
-xy_plot(scallopMainDataTable, proj,
-        var1 = "TRIP_LENGTH", var2 = "TRIP_COST_WINSOR_2020_DOL",
-        regress = FALSE, alpha = .3)
-```
-The winsorization of trip costs is apparent in the horizontal line of points just over $30,000.
-
-<br>
-
 ## Correlation Matrix
 
 A simple table of two-way correlations can be illuminative.

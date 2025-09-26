@@ -4273,9 +4273,7 @@ heavy_server <- function(input, output, session) {
       
       explore_out_proj$xy <- project$name
       
-      q_test <- quietly_test(xy_plot)
-      q_test(values$dataset, project$name, input$x_y_select1, input$x_y_select2, 
-             regress = FALSE)
+      ggplot() + theme_void()
     } 
   })
   
@@ -4505,9 +4503,7 @@ heavy_server <- function(input, output, session) {
   lm_out1 <- eventReactive(input$run_reg, {
     if (colnames(values$dataset)[1] != 'var1') {
       anal_out_proj$reg <- project$name
-      q_test <- quietly_test(xy_plot)
-      q_test(values$dataset, project$name, input$reg_exp_select,
-                        input$reg_resp_select, regress = TRUE)
+      ggplot() + theme_void()
     }
   }, ignoreInit = TRUE)
 
@@ -4515,9 +4511,7 @@ heavy_server <- function(input, output, session) {
   lm_out2 <- eventReactive(input$run_reg, {
     if (colnames(values$dataset)[1] != 'var1') {
       anal_out_proj$reg <- project$name
-      q_test <- quietly_test(xy_plot)
-      q_test(values$dataset, project$name, input$reg_exp_select,
-             input$reg_resp_select, regress = TRUE)
+      ggplot() + theme_void()
     }
   }, ignoreInit = TRUE)
   
@@ -7486,7 +7480,6 @@ heavy_server <- function(input, output, session) {
                                       map_plot = get_reactive(plotInputSpatial, project$name, explore_out_proj$spat),
                                       kernel_plot = get_reactive(plotInputKernel, project$name, explore_out_proj$kernel),
                                       getis_moran = get_reactive(gtmt_table, project$name, explore_out_proj$gtmt),
-                                      xy_plot = get_reactive(plotInputXY, project$name, explore_out_proj$xy),
                                       view_grid_dat = get_reactive(grid_values$plot, project$name, explore_out_proj$grid)
                                     )
                                   })
