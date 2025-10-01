@@ -16,7 +16,7 @@ calc_exp(
   empty.catch = NULL,
   empty.expectation = NULL,
   temp.window = 7,
-  temp.lag = 0,
+  day.lag = 1,
   year.lag = 0,
   dummy.exp = FALSE,
   weight_avg = FALSE,
@@ -46,7 +46,7 @@ calc_exp(
 
 \item{temp.window}{temporal window}
 
-\item{temp.lag}{temporal lag}
+\item{day.lag}{temporal lag}
 
 \item{year.lag}{year lag}
 

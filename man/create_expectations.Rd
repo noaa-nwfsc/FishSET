@@ -7,6 +7,7 @@
 create_expectations(
   dat,
   project,
+  name,
   catch,
   price = NULL,
   defineGroup = NULL,
@@ -17,11 +18,9 @@ create_expectations(
   empty.catch = NULL,
   empty.expectation = 1e-04,
   temp.window = 7,
-  temp.lag = 0,
+  day.lag = 1,
   year.lag = 0,
   dummy.exp = FALSE,
-  default.exp = FALSE,
-  replace.output = TRUE,
   weight_avg = FALSE,
   outsample = FALSE
 )
@@ -31,6 +30,8 @@ create_expectations(
 database contains the string 'MainDataTable'.}
 
 \item{project}{String, name of project.}
+
+\item{name}{Name of the expected matrix to be saved}
 
 \item{catch}{Variable from \code{dat} containing catch data.}
 
@@ -70,7 +71,7 @@ are to not replace (\code{NULL}) or replace with 0.0001 or 0.}
 set the window size to average catch over. Defaults to 14 (14 days if \code{temporal} 
 is \code{"daily"}).}
 
-\item{temp.lag}{Numeric, temporal lag time. If \code{temp.var} is not \code{NULL}, 
+\item{day.lag}{Numeric, temporal lag time. If \code{temp.var} is not \code{NULL}, 
 how far back to lag \code{temp.window}.}
 
 \item{year.lag}{If expected catch should be based on catch from previous year(s), 
@@ -79,19 +80,6 @@ set \code{year.lag} to the number of years to go back.}
 \item{dummy.exp}{Logical, should a dummy variable be created? If \code{TRUE}, 
 output dummy variable for originally missing value. If \code{FALSE}, no dummy 
 variable is outputted. Defaults to \code{FALSE}.}
-
-\item{default.exp}{Whether to run default expectations. Defaults to \code{FALSE}.
-Alternatively, a character string containing the names of default expectations 
-to run can be entered. Options include "recent", "older", "oldest", and 
-"logbook". The logbook expectation is only run if \code{defineGroup} is used. 
-"recent" will not include \code{defineGroup}. Setting \code{default.exp = TRUE}
-will include all four options. See Details for how default expectations are 
-defined.}
-
-\item{replace.output}{Logical, replace existing saved expected catch data frame 
-with new expected catch data frame? If \code{FALSE}, new expected catch data 
-frames appended to previously saved expected catch data frames. Default is 
-\code{TRUE}. If \code{TRUE}}
 
 \item{weight_avg}{Logical, if \code{TRUE} then all observations for a given zone on a 
 given date will be included when calculating the mean, thus giving more 
@@ -106,31 +94,28 @@ out-of-sample data. If \code{FALSE} generate for primary data table. Defaults to
 \value{
 Function saves a list of expected catch matrices to the FishSET database
   as \code{projectExpectedCatch}. The list includes 
-  the expected catch matrix from the user-defined choices, recent fine grained
-  information, older fine grained information, oldest fine grained information,
-  and logbook level information. Additional expected catch cases can be added 
-  to the list by specifying \code{replace.output = FALSE}. The list is 
-  automatically saved to the FishSET database and is called 
-  in \code{\link{make_model_design}}. The expected catch output does not need 
-  to be loaded when defining or running the model.
+  the expected catch matrix from the user-defined choices. Multiple expected catch cases 
+  can be added to the list by specifying unique names. The list is automatically saved to 
+  the FishSET database and is called in \code{\link{make_model_design}}. The expected catch 
+  output does not need to be loaded when defining or running the model.
 
 newGridVar,  newDumV
 }
 \description{
 Create expected catch or expected revenue matrix. The matrix is required for 
-the \code{\link{logit_c}} model. Multiple user-defined matrices can be saved
-by setting \code{replace.output = FALSE} and re-running the function.
+the \code{\link{logit_c}} model. Multiple matrices (with unique names) can be saved in a 
+project.
 }
 \details{
 Function creates an expectation of catch or revenue for alternative 
   fishing zones (zones where they could have fished but did not). The output is 
   saved to the FishSET database and called by the \code{\link{make_model_design}} 
   function. \code{\link{create_alternative_choice}} must be called first as observed 
-  catch and zone inclusion requirements are defined there.\cr The primary choices 
-  are whether to treat data as a fleet or to group the data (\code{defineGroup}) 
-  and the time frame of catch data for calculating expected catch. Catch is averaged 
-  along a daily or sequential timeline (\code{temporal}) using a rolling average. 
-  \code{temp.window} and \code{temp.lag} determine the window size and temporal 
+  catch and zone inclusion requirements are defined there.\cr 
+  The primary choices are whether to treat data as a fleet or to group the data 
+  (\code{defineGroup}) and the time frame of catch data for calculating expected catch. 
+  Catch is averaged along a daily or sequential timeline (\code{temporal}) using a rolling 
+  average. \code{temp.window} and \code{day.lag} determine the window size and temporal 
   lag of the window for averaging. Use \code{\link{temp_obs_table}} before using 
   this function to assess the availability of data for the desired temporal moving 
   window size. Sparse data is not suited for shorter moving window sizes. For very 
@@ -140,25 +125,14 @@ Function creates an expectation of catch or revenue for alternative
   of 0 in the catch variable are considered times when fishing activity occurred 
   but with no catch. These points are included in the averaging and dummy creation 
   as points in time when fishing occurred. \cr
-  Four default expected catch cases will be run:
-  \itemize{
-  \item{recent: Moving window size of two days. In this case, there is 
-  no grouping, and catch for entire fleet is used.}
-  \item{older: Moving window size of seven days and lag of two days. In this 
-  case, vessels are grouped (or not) based on \code{defineGroup} argument.}
-  \item{oldest: Moving window of seven days and lag of eight days. In this 
-  case, vessels are grouped (or not) based on \code{defineGroup} argument.}
-  \item{logbook: Moving window size of 14 days and lag of one year, seven days. 
-  Only used if fleet is defined in \code{defineGroup}.}
-}
 }
 \examples{
 \dontrun{
-create_expectations(pollockMainDataTable, "pollock", "OFFICIAL_TOTAL_CATCH_MT",
+create_expectations(pollockMainDataTable, "pollock", "exp1", "OFFICIAL_TOTAL_CATCH_MT",
   price = NULL, defineGroup = "fleet", temp.var = "DATE_FISHING_BEGAN",
   temporal = "daily", calc.method = "standardAverage", lag.method = "simple",
   empty.catch = "allCatch", empty.expectation = 0.0001, temp.window = 4,
-  temp.lag = 2, year.lag = 0, dummy.exp = FALSE, replace.output = FALSE,
+  day.lag = 2, year.lag = 0, dummy.exp = FALSE, 
   weight_avg = FALSE, outsample = FALSE
 )
 }

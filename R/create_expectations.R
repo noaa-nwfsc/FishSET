@@ -61,11 +61,11 @@
 #'   fishing zones (zones where they could have fished but did not). The output is 
 #'   saved to the FishSET database and called by the \code{\link{make_model_design}} 
 #'   function. \code{\link{create_alternative_choice}} must be called first as observed 
-#'   catch and zone inclusion requirements are defined there.\cr The primary choices 
-#'   are whether to treat data as a fleet or to group the data (\code{defineGroup}) 
-#'   and the time frame of catch data for calculating expected catch. Catch is averaged 
-#'   along a daily or sequential timeline (\code{temporal}) using a rolling average. 
-#'   \code{temp.window} and \code{day.lag} determine the window size and temporal 
+#'   catch and zone inclusion requirements are defined there.\cr 
+#'   The primary choices are whether to treat data as a fleet or to group the data 
+#'   (\code{defineGroup}) and the time frame of catch data for calculating expected catch. 
+#'   Catch is averaged along a daily or sequential timeline (\code{temporal}) using a rolling 
+#'   average. \code{temp.window} and \code{day.lag} determine the window size and temporal 
 #'   lag of the window for averaging. Use \code{\link{temp_obs_table}} before using 
 #'   this function to assess the availability of data for the desired temporal moving 
 #'   window size. Sparse data is not suited for shorter moving window sizes. For very 
@@ -75,7 +75,6 @@
 #'   of 0 in the catch variable are considered times when fishing activity occurred 
 #'   but with no catch. These points are included in the averaging and dummy creation 
 #'   as points in time when fishing occurred. \cr
-#' }
 #' @return newGridVar,  newDumV
 #' @examples
 #' \dontrun{
