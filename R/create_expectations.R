@@ -7,6 +7,7 @@
 #' @param dat  Primary data containing information on hauls or trips. Table in FishSET 
 #'   database contains the string 'MainDataTable'.
 #' @param project String, name of project.
+#' @param name Name of the expected matrix to be saved
 #' @param catch Variable from \code{dat} containing catch data.
 #' @param price Optional, variable from \code{dat} containing price/value data.  
 #'   Price is multiplied against \code{catch} to generated revenue. If revenue exists 
@@ -35,20 +36,13 @@
 #' @param temp.window Numeric, temporal window size. If \code{temp.var} is not \code{NULL}, 
 #'   set the window size to average catch over. Defaults to 14 (14 days if \code{temporal} 
 #'   is \code{"daily"}).
-#' @param temp.lag Numeric, temporal lag time. If \code{temp.var} is not \code{NULL}, 
+#' @param day.lag Numeric, temporal lag time. If \code{temp.var} is not \code{NULL}, 
 #'   how far back to lag \code{temp.window}.
 #' @param year.lag If expected catch should be based on catch from previous year(s), 
 #'   set \code{year.lag} to the number of years to go back.
 #' @param dummy.exp Logical, should a dummy variable be created? If \code{TRUE}, 
 #'   output dummy variable for originally missing value. If \code{FALSE}, no dummy 
 #'   variable is outputted. Defaults to \code{FALSE}.
-#' @param default.exp Whether to run default expectations. Defaults to \code{FALSE}.
-#'   Alternatively, a character string containing the names of default expectations 
-#'   to run can be entered. Options include "recent", "older", "oldest", and 
-#'   "logbook". The logbook expectation is only run if \code{defineGroup} is used. 
-#'   "recent" will not include \code{defineGroup}. Setting \code{default.exp = TRUE}
-#'   will include all four options. See Details for how default expectations are 
-#'   defined. 
 #' @param replace.output Logical, replace existing saved expected catch data frame 
 #'   with new expected catch data frame? If \code{FALSE}, new expected catch data 
 #'   frames appended to previously saved expected catch data frames. Default is 
@@ -79,7 +73,7 @@
 #'   are whether to treat data as a fleet or to group the data (\code{defineGroup}) 
 #'   and the time frame of catch data for calculating expected catch. Catch is averaged 
 #'   along a daily or sequential timeline (\code{temporal}) using a rolling average. 
-#'   \code{temp.window} and \code{temp.lag} determine the window size and temporal 
+#'   \code{temp.window} and \code{day.lag} determine the window size and temporal 
 #'   lag of the window for averaging. Use \code{\link{temp_obs_table}} before using 
 #'   this function to assess the availability of data for the desired temporal moving 
 #'   window size. Sparse data is not suited for shorter moving window sizes. For very 
@@ -107,15 +101,15 @@
 #'   price = NULL, defineGroup = "fleet", temp.var = "DATE_FISHING_BEGAN",
 #'   temporal = "daily", calc.method = "standardAverage", lag.method = "simple",
 #'   empty.catch = "allCatch", empty.expectation = 0.0001, temp.window = 4,
-#'   temp.lag = 2, year.lag = 0, dummy.exp = FALSE, replace.output = FALSE,
+#'   day.lag = 2, year.lag = 0, dummy.exp = FALSE, replace.output = FALSE,
 #'   weight_avg = FALSE, outsample = FALSE
 #' )
 #' }
 #'
 create_expectations <-
-  
   function(dat,
            project,
+           name,
            catch,
            price = NULL,
            defineGroup = NULL,
@@ -126,24 +120,27 @@ create_expectations <-
            empty.catch = NULL,
            empty.expectation = 1e-04,
            temp.window = 7,
-           temp.lag = 0,
+           day.lag = 1,
            year.lag = 0,
            dummy.exp = FALSE,
-           default.exp = FALSE,
            replace.output = TRUE,
            weight_avg = FALSE,
            outsample = FALSE) {
   
-  # TODO: custom names, need exp.name arg
-
   # TODO: when revenue col exists, either automatically create col of ones (currently user must do this) 
   # or allow catch arg to also be revenue. Use generic name (e.g. value) 
+
+  # First check if expected catch matrix with this name is already saved
+  if (table_exists(paste0(project, "ExpectedCatch"), project)) {
+    # get previous list
+    exp_mats <- unserialize_table(paste0(project, "ExpectedCatch"), project)
+    exp_names <- names(exp_mats)[!names(exp_mats) %in% c('scale', 'units')]
+    if (name %in% exp_names) {
+      stop("An expected catch matrix with this name already exist. Please enter a new name for
+           this expected catch matrix.")
+    }
+  }
     
-  # TODO: Check whether/which default options have already been run, notify user
-  # that they don't need to be re-run -- unless the alt choice matrix has been changed
-  # in which case the previous ec matrices are no longer valid and replace.output must 
-  # be TRUE.
-  
   # Call in data sets
   out <- data_pull(dat, project = project)
   dataset <- out$dataset
@@ -158,9 +155,7 @@ create_expectations <-
     
   }
   
-  
   # checks ----
-  
   column_check(dataset, c(catch, price, temp.var, defineGroup))
   
   if (all(is_empty(date_cols(dataset)))) {
@@ -192,79 +187,6 @@ create_expectations <-
   }
   
   stopifnot("empty.expectations must be numeric" = is.numeric(empty.expectation))
-
-  # default exp catch ----
-  
-  # old defaults:
-  # 1) short-term: 2 day window, no lag
-  # 2) medium-term: 7 day window, no lag
-  # 3) long-term: 7 day window, 1 year lag
-  
-  # Abbot Wilen 2011 Appendix (Alan's preference for default)
-  # 1) Recent fine grained info: 1 day lag (2 day window?)
-  # 2) Older fine grained info: 2 day lag, window 7 days 
-  # 3) Oldest fine grained info: 8 day lag, window 7 days
-  # 4) "Logbook" data: l year lag - 7 days, window 14 days
-  # 5) "Coarse grained" info: grouped of sites across entire history of catch (?) 
-  
-  # within each: observe fleet-wide or individual catch (2 and 3)
-  # 4 and 5 always fleet-wide
-  
-  # empty exp lists
-  recent_exp <- list()
-  older_exp <- list()
-  oldest_exp <- list()
-  logbook_exp <- list()
-  
-  if (!is_value_empty(default.exp)) {
-    
-    if (isTRUE(default.exp) || "recent" %in% default.exp) {
-      
-      recent_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
-                             defineGroup = NULL, temp.var = temp.var,
-                             temp.window = 2, temp.lag = 0, year.lag = 0, 
-                             temporal = temporal, calc.method = calc.method,
-                             lag.method = lag.method, empty.catch = empty.catch,
-                             empty.expectation = empty.expectation, dummy.exp = dummy.exp,
-                             Alt = Alt)
-    }
-    
-    if (isTRUE(default.exp) || "older" %in% default.exp) {
-      
-      older_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
-                            defineGroup = defineGroup, temp.var = temp.var,
-                            temp.window = 7, temp.lag = 2, year.lag = 0, 
-                            temporal = temporal, calc.method = calc.method,
-                            lag.method = lag.method, empty.catch = empty.catch,
-                            empty.expectation = empty.expectation, dummy.exp = dummy.exp,
-                            Alt = Alt)
-    }
-   
-    if (isTRUE(default.exp) || "oldest" %in% default.exp) {
-      
-      oldest_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
-                             defineGroup = defineGroup, temp.var = temp.var,
-                             temp.window = 7, temp.lag = 8, year.lag = 0,
-                             temporal = temporal, calc.method = calc.method,
-                             lag.method = lag.method, empty.catch = empty.catch,
-                             empty.expectation = empty.expectation, dummy.exp = dummy.exp,
-                             Alt = Alt)
-    }
-   
-    if (isTRUE(default.exp) || "logbook" %in% default.exp) {
-      
-      if (!is_value_empty(defineGroup)) {
-        
-        logbook_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
-                                defineGroup = defineGroup, temp.var = temp.var,
-                                temp.window = 14, temp.lag = 7, year.lag = 1, 
-                                temporal = temporal, calc.method = calc.method,
-                                lag.method = lag.method, empty.catch = empty.catch,
-                                empty.expectation = empty.expectation, dummy.exp = dummy.exp,
-                                Alt = Alt)
-      }
-    }
-  }
   
   if (class(dataset[[temp.var]]) != "Date") {
     dataset[[temp.var]] <- as.Date(dataset[[temp.var]])
@@ -273,12 +195,11 @@ create_expectations <-
   # user-defined ----
   user_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
                        defineGroup = defineGroup, temp.var = temp.var, 
-                       temp.window = temp.window, temp.lag = temp.lag, 
+                       temp.window = temp.window, day.lag = day.lag, 
                        year.lag = year.lag, temporal = temporal, 
                        calc.method = calc.method, lag.method = lag.method, 
                        empty.catch = empty.catch, empty.expectation = empty.expectation,
                        dummy.exp = dummy.exp, weight_avg = weight_avg, Alt = Alt)
-  
   r <- nchar(sub("\\.[0-9]+", "", mean(as.matrix(user_exp$exp), na.rm = TRUE))) 
   sscale <- 10^(r - 1)
 
@@ -287,94 +208,29 @@ create_expectations <-
     scale = sscale,
     # TODO: Use alternative approach for determining units
     units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS"), # units of catch data
-    recent = recent_exp$exp,
-    recent_dummy = recent_exp$dummy,
-    recent_settings = recent_exp$settings,
-    older = older_exp$exp,
-    older_dummy = older_exp$dummy,
-    older_settings = older_exp$settings,
-    oldest = oldest_exp$exp,
-    oldest_dummy = oldest_exp$dummy,
-    oldest_settings = oldest_exp$settings,
-    logbook = logbook_exp$exp,
-    logbook_dummy = logbook_exp$dummy,
-    logbook_settings = logbook_exp$settings,
     exp1 = user_exp$exp,
     exp1_dummy = user_exp$dummy,
     exp1_settings = user_exp$settings
   )
   
+  names(ExpectedCatch)[which(names(ExpectedCatch) == "exp1")] <- name
+  names(ExpectedCatch)[which(names(ExpectedCatch) == "exp1_dummy")] <- paste0(name,"_dummy")
+  names(ExpectedCatch)[which(names(ExpectedCatch) == "exp1_settings")] <- paste0(name,"_settings")
+  
+  # Is this for testing out of sample data?
   if(!outsample){
     single_sql <- paste0(project, "ExpectedCatch")
-    
   } else {
     single_sql <- paste0(project, "ExpectedCatchOutSample")
-    
   }
-  
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  if (replace.output == FALSE) {
-    
-    # recursive naming function
-    exp_nm_r <- function(n1, n2, v1) {
-      # check if new names match any existing names
-      if (n1 %in% n2) {
-        # replace digit w/ new value
-        n1 <- gsub('\\d+', v1, n1)
-        
-        if (n1 %in% n2) {
-          # if still matches, add 1 to new values and rerun func
-          v1 <- v1 + 1
-          exp_nm_r(n1, n2, v1)
-          
-        } else n1
-        
-      } else n1
-    }
-    
-    if (table_exists(single_sql, project)) {
-      
-      # get previous list
-      ExpectedCatchOld <- unserialize_table(single_sql, project)
-      # names of all matrices
-      exp_names <- names(ExpectedCatchOld)[!names(ExpectedCatchOld) %in% c('scale', 'units')]
-      exp_new_names <- c('exp1', 'exp1_dummy', 'exp1_settings')
-      # generate new names
-      exp_new_names <- vapply(exp_new_names, 
-                              function(x) exp_nm_r(x, exp_names, 1), 
-                              character(1))
-      # get default exp names
-      exp_names2 <- names(ExpectedCatch)[!names(ExpectedCatch) %in% c('scale', 'units', 'exp1', 'exp1_dummy', 'exp1_settings')]
-      # see if default was run
-      non_empty_exp <- vapply(exp_names2, function(x) !is.null(ExpectedCatch[[x]]), logical(1))
-      
-      # update expected catch list 
-      if (any(non_empty_exp)) {
-        
-        for (i in names(non_empty_exp)[non_empty_exp]) {
-          
-          ExpectedCatchOld[[i]] <- ExpectedCatch[[i]]
-        }
-      }
-      # merge previous list into newest list
-      ExpectedCatch <- c(ExpectedCatchOld,
-                         setNames(list(ExpectedCatch$exp1, ExpectedCatch$exp1_dummy, ExpectedCatch$exp1_settings),exp_new_names))
-    }
-  }
-
-  if (table_exists(single_sql, project)) {
-    
-    table_remove(single_sql, project)
-  }
-
   DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, 
                                    "(data ExpectedCatch)"))
   DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:data)"),
-    params = list(data = list(serialize(ExpectedCatch, NULL)))
-  )
+    params = list(data = list(serialize(ExpectedCatch, NULL))))
   
   if(!outsample){
     message('Expected catch/revenue matrix saved to FishSET database')  
@@ -386,7 +242,7 @@ create_expectations <-
   create_expectations_function$functionID <- "create_expectations"
   create_expectations_function$args <- list(
     dat, project, catch, price, defineGroup, temp.var, temporal, calc.method, 
-    lag.method, empty.catch, empty.expectation, temp.window, temp.lag, year.lag, 
+    lag.method, empty.catch, empty.expectation, temp.window, day.lag, year.lag, 
     dummy.exp, default.exp, replace.output, weight_avg, outsample
   )
   create_expectations_function$kwargs <- list()
