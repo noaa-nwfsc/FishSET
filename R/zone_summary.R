@@ -83,6 +83,8 @@ zone_summary <- function(dat,
   project,
   zone.dat,
   zone.spat,
+  dat_lon,
+  dat_lat, 
   count = TRUE,
   var = NULL,
   group = NULL,
@@ -235,6 +237,7 @@ zone_summary <- function(dat,
         # filter out zero counts
         spat_join <- spat_join[!is.na(spat_join[[val_var]]), ]
       }
+      
       spat_join
     }
     
@@ -270,19 +273,15 @@ zone_summary <- function(dat,
     ## function to plot ---------------------------------------------------------------------------
     z_plot_fun_static <- function(spatdat, legend_name) {
       full_data_range <- range(spatdat[[val_var]], na.rm = TRUE)
-    #  Zone <- spatdat[[zone.spat]] # Need to assign zone so "Zone" is displayed when hovering in plotly
       
       out <- ggplot2::ggplot() +
         ggplot2::geom_sf(data = base_map) +
         ggplot2::geom_sf(data = spatdat,
           ggplot2::aes(fill = !!rlang::sym(val_var)),
           color = "black", alpha = .8) +
-        ggplot2::scale_fill_gradientn(
+        viridis::scale_fill_viridis(
           name = legend_name,
-          limits = full_data_range,
-          colours = fishset_viridis(10),
-          #values = scales::rescale(range(spatdat[[val_var]])) 
-        ) +
+          limits = full_data_range) +
         ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
           expand = TRUE) +
         fishset_theme() +
@@ -297,7 +296,7 @@ zone_summary <- function(dat,
       spatdat <-  sf::st_transform(spatdat, "+proj=longlat +datum=WGS84")
       
       pal <- colorBin(
-        fishset_viridis(10),
+        palette = "viridis",
         bins = 10,
         domain = spatdat[[var_sym]] # colors depend on the count variable
       )
@@ -314,12 +313,28 @@ zone_summary <- function(dat,
           stroke = TRUE,
           weight = 0.5,
           layerId = ~var_sym,
+          group = "Polygons",
           label = ~paste0(val_var,": ", round(spatdat[[var_sym]],2))) %>%
+        addCircleMarkers(
+          data = dataset,
+          lng = ~dataset[[dat_lon]], lat = ~dataset[[dat_lat]],
+          popup = ~var_sym,
+          color = "red",
+          radius= 3,
+          stroke = FALSE, fillOpacity = 0.5,
+          label = ~paste0(val_var,": ", round(spatdat[[var_sym]],2)),
+          group = "Points"
+        ) %>%
+        # Add the layer control to manage both groups
+        addLayersControl(
+          overlayGroups = c("Polygons", "Points"),
+          options = layersControlOptions(collapsed = FALSE)
+        ) %>% 
         leaflet::addLegend(pal = pal,
           values = spatdat[[var_sym]],
           position = "bottomright",
-          title = legend_name)
-      
+          title = legend_name) %>% 
+        hideGroup("Points")
     }
     
     if (multi_plot) {
@@ -340,7 +355,7 @@ zone_summary <- function(dat,
           }
         
         pal <- colorBin(
-          fishset_viridis(10),
+          palette = "viridis",
           bins = 10,
           domain = multdat[[var_sym]] # colors depend on the count variable
         )
@@ -457,8 +472,8 @@ zone_summary <- function(dat,
         save_plot(project, "zone_summary_confid", z_plot)
       }
     }
-  
   }
+  
   # save table
   save_table(zone_tab, project, "zone_summary")
   

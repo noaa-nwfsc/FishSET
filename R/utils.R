@@ -1759,7 +1759,9 @@ save_plot <- function(project, func_name, ...) {
 
   p_set <- get_proj_settings(project)
   
-  filename <- paste0(locoutput(project), project, "_", func_name, "_", Sys.Date())
+  name <- paste0(project, "_", func_name, "_", Sys.Date())
+  
+  filename <- file.path(locoutput(project), name)
   
   if("leaflet" %in% class(...)){
     fname <- paste0(filename, ".rds")
@@ -1799,13 +1801,10 @@ save_nplot <- function(project, func_name, plot_list, id = "num", ...) {
   else if (id == "name") vec <- names(plot_list)
   
   if("leaflet" %in% class(plot_list)){
-  #  lapply(vec, function(x) {
       fn <- paste0(func_name)
       save_plot(project, func_name = fn, plot_list)
-   # })
   } else {
     lapply(vec, function(x) {
-
       fn <- paste0(func_name, "_", x)
       save_plot(project, func_name = fn, plot_list[[x]], ...)
     })

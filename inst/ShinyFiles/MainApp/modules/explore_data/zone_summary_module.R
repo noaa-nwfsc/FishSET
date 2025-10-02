@@ -17,7 +17,7 @@
 #' @param id A character string that is the namespace for this module.
 #' @param rv_project_name A reactive value containing the name of the current project.
 #' @param rv_data A reactive list containing the main dataset (`main`) and spatial data (`spat`).
-#' #' @param rv_folderpath A reactive value containing the file path to the project's root folder.
+#' @param rv_folderpath A reactive value containing the file path to the project's root folder.
 
 #'
 #' @return A module server instance.
@@ -42,14 +42,16 @@ zone_summary_server <- function(id, rv_folderpath, rv_project_name, rv_data  ){
       req(rv_data$main)
       
       updateSelectInput(session, "zone_summ_var_input", 
-        choices =  c("observations",
-          numeric_cols(rv_data$main)), selected = "observations"
-      )
-      updateSelectInput(session, "zone_summ_filter_var_input",
-        choices = c('none', colnames(rv_data$main)), selected = 'none')
+                        choices =  c("observations", numeric_cols(rv_data$main)), 
+                        selected = "observations")
       
-        updateSelectInput(session, "zone_summ_group_input",
-        choices = c('none', colnames(rv_data$main)), selected = 'none')
+      updateSelectInput(session, "zone_summ_filter_var_input",
+                        choices = c('none', colnames(rv_data$main)), 
+                        selected = 'none')
+      
+      updateSelectInput(session, "zone_summ_group_input",
+                        choices = c('none', colnames(rv_data$main)), 
+                        selected = 'none')
     })
     
     # used for value input in zone summary
@@ -67,10 +69,11 @@ zone_summary_server <- function(id, rv_folderpath, rv_project_name, rv_data  ){
     # select value input for zone summary
     output$zone_summ_val_input <- renderUI({
         selectizeInput(ns("zone_summ_value_input"), "Value",
-          choices = zs_unique_values(),
-          multiple = FALSE, options = list(maxOptions = 15, maxItems = 1,
-            placeholder = "Select or type value name",
-            create = TRUE))
+                      choices = zs_unique_values(),
+                      multiple = FALSE, 
+                      options = list(maxOptions = 15, maxItems = 1,
+                      placeholder = "Select or type value name",
+                      create = TRUE))
     })
     
     # run zone_summary function for dynamic plot
@@ -105,14 +108,15 @@ zone_summary_server <- function(id, rv_folderpath, rv_project_name, rv_data  ){
         if(any(class(rv_zone_variables$dat[[input$zone_summ_filter_var_input]]) %in% 
             c("character", "factor", "Date", "POSIXct", "POSIXt"))){
           zone_summ_expr <- paste0("`",input$zone_summ_filter_var_input,"`", 
-            input$zone_summ_operator_input, '"',  input$zone_summ_value_input, '"')
+                                   input$zone_summ_operator_input, '"',  
+                                   input$zone_summ_value_input, '"')
         } else {
           zone_summ_expr <- paste0(input$zone_summ_filter_var_input,
                                    input$zone_summ_operator_input,
                                    input$zone_summ_value_input)
         }
         rv_zone_variables$dat <- eval(parse(text = paste0("subset(rv_data$main, ",
-          zone_summ_expr, ")")))
+                                                            zone_summ_expr, ")")))
       }
       # Saving user selected values
       if(input$zone_summ_var_input == 'observations'){
@@ -143,6 +147,8 @@ zone_summary_server <- function(id, rv_folderpath, rv_project_name, rv_data  ){
                                   spat = rv_data$spat,
                                   zone.dat = rv_selected_vars$vars$main$main_zone_id,
                                   zone.spat = rv_selected_vars$vars$spat$spat_zone_id,
+                                  dat_lat = rv_selected_vars$vars$main$main_lat,
+                                  dat_lon = rv_selected_vars$vars$main$main_lon,
                                   output = "plot", 
                                   count = rv_zone_variables$count, 
                                   na.rm = TRUE,
@@ -167,17 +173,17 @@ zone_summary_server <- function(id, rv_folderpath, rv_project_name, rv_data  ){
       req(rv_zone_variables)
     
     rv_zone_map_static$z_plot <- zone_summary(dat = rv_zone_variables$dat, 
-                                  project = rv_project_name()$value,
-                                  spat = rv_data$spat,
-                                  zone.dat = rv_selected_vars$vars$main$main_zone_id,
-                                  zone.spat = rv_selected_vars$vars$spat$spat_zone_id,
-                                  output = "plot", 
-                                  count = rv_zone_variables$count, 
-                                  na.rm = TRUE,
-                                  plot_type = "static",
-                                  group = rv_zone_variables$group,
-                                  fun = rv_zone_variables$fun,
-                                  var = rv_zone_variables$var)
+                                              project = rv_project_name()$value,
+                                              spat = rv_data$spat,
+                                              zone.dat = rv_selected_vars$vars$main$main_zone_id,
+                                              zone.spat = rv_selected_vars$vars$spat$spat_zone_id,
+                                              output = "plot", 
+                                              count = rv_zone_variables$count, 
+                                              na.rm = TRUE,
+                                              plot_type = "static",
+                                              group = rv_zone_variables$group,
+                                              fun = rv_zone_variables$fun,
+                                              var = rv_zone_variables$var)
     
     showModal(modalDialog(
       title = "Preview saved static map",
@@ -191,9 +197,9 @@ zone_summary_server <- function(id, rv_folderpath, rv_project_name, rv_data  ){
   
   # Render the plot for the preview window
   output$preview_plot <- renderPlot({
-  rv_zone_map_static$z_plot
+    rv_zone_map_static$z_plot
   })
-
+  
   })
 }
 
@@ -209,55 +215,62 @@ zone_summary_ui <- function(id){
   ns <- NS(id)
   
   tagList(
-    bslib::layout_column_wrap(
-      width = 1/3,
-      bslib::card(
+      bslib::layout_column_wrap(
+        width = 1/2,
+        bslib::card(
         selectInput(ns('zone_summ_var_input'), 
-          'Select a variable to plot',
-          choices = NULL),
-        conditionalPanel(
-          condition = "input.zone_summ_var_input == 'observations'",
-          ns = ns,
+                    'Select a variable to plot',
+                    choices = NULL,
+          width = "100%")),
+        bslib::card(
+          conditionalPanel(
+            condition = "input.zone_summ_var_input == 'observations'",
+            ns = ns,
           selectizeInput(ns('zone_summ_obs_input'),
-            'Select a function to summarize observations',
-            choices = c("number of obs","percent"))
+                         'Select a function to summarize observations',
+                         choices = c("number of obs","percent"))
         ),
         conditionalPanel(
           condition = "input.zone_summ_var_input != 'observations'",
           ns = ns,
+          bslib::layout_column_wrap(
+            width = 1/2,
           selectizeInput(ns('zone_summ_fun_input'),
-            'Select a function to summarize variable',
-            choices = c("sum","percent","mean","median","min","max")),
-           selectInput(ns('zone_summ_group_input'), 
-          'Select a variable to group by',
-          choices = NULL),
-        )),
-      bslib::card(
+                         'Select a function to summarize variable',
+                         choices = c("sum","percent","mean","median","min","max")),
+          selectInput(ns('zone_summ_group_input'), 
+                        'Select a variable to group by',
+                        choices = NULL))
+        ))),
+    bslib::card(
+      bslib::layout_column_wrap(
+        width = 1/2,
         selectInput(ns('zone_summ_filter_var_input'),
-          'Select a variable for filtering the dataset',
-          choices = NULL),
+                    'Select a variable for filtering the dataset',
+                    choices = NULL),
         conditionalPanel("input.zone_summ_filter_var_input!='none'",
           ns = ns,
+          bslib::layout_column_wrap(
+            width = 1/2,
           selectizeInput(ns('zone_summ_operator_input'), 'Select an operator',
-            choices = c("less than" = "<",
-              "greater than" = ">",
-              "less than or equal to" = "<=",
-              "greater than or equal to" = ">=",
-              "equal to" = "==", "not equal to" = "!=")),
-          uiOutput(ns("zone_summ_val_input")))),
-      bslib::card( class = "bg-transparent border-0",
-        bslib::card_footer(
-          class = "d-flex justify-content-end bg-transparent border-0",
-          actionButton(ns("run_zone_summ_btn"), "Run zone summary", width = "100%",
-            class = "btn-secondary")))),
+                        choices = c("less than" = "<",
+                                    "greater than" = ">",
+                                    "less than or equal to" = "<=",
+                                    "greater than or equal to" = ">=",
+                                    "equal to" = "==", "not equal to" = "!=")),
+          uiOutput(ns("zone_summ_val_input")))))),
+          actionButton(ns("run_zone_summ_btn"), 
+                        "Run zone summary", width = "25%",
+                        class = "btn-secondary"),
     bslib::card(
       full_screen = TRUE,
       bslib::card_header(strong("Zone Summary"), class = "bg-info"), 
       bslib::card_body(
-        leaflet::leafletOutput(ns("plot_zone_summary")))
-    ),
-          actionButton(ns("show_modal_btn"), "Save as static map", 
-            icon = icon("save"), width = "25%"),
+        leaflet::leafletOutput(ns("plot_zone_summary"))) ),
+          actionButton(ns("show_modal_btn"),
+                        "Save as static map", 
+                        icon = icon("save"), 
+                        width = "25%"),
     # Container for the loading spinner, shown while checks are running.
     div(id = ns("zone_summ_spinner_container"),
       style = "display: none;",
