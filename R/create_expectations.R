@@ -166,6 +166,7 @@ create_expectations <-
     }
     
     # Calculate expactations ----------------------------------------------------------------------
+    tic()
     user_exp <- calc_exp(dataset = dataset, 
                          catch = catch, 
                          price = price,
@@ -182,6 +183,7 @@ create_expectations <-
                          dummy.exp = dummy.exp, 
                          weight_avg = weight_avg, 
                          Alt = Alt)
+    toc()
     
     # Determine scaling factor for the results ----------------------------------------------------
     r <- nchar(sub("\\.[0-9]+", "", mean(as.matrix(user_exp$exp), na.rm = TRUE))) 

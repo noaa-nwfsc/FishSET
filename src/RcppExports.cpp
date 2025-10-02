@@ -11,19 +11,19 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // calculate_moving_avg
-NumericVector calculate_moving_avg(DateVector unique_dates, CharacterVector unique_zones, DateVector obs_dates, CharacterVector obs_zones, NumericVector obs_catches, int window_size, int lag);
-RcppExport SEXP _FishSET_calculate_moving_avg(SEXP unique_datesSEXP, SEXP unique_zonesSEXP, SEXP obs_datesSEXP, SEXP obs_zonesSEXP, SEXP obs_catchesSEXP, SEXP window_sizeSEXP, SEXP lagSEXP) {
+NumericVector calculate_moving_avg(DateVector unique_dates, CharacterVector unique_groups, DateVector obs_dates, CharacterVector obs_groups, NumericVector obs_values, int window_size, int lag);
+RcppExport SEXP _FishSET_calculate_moving_avg(SEXP unique_datesSEXP, SEXP unique_groupsSEXP, SEXP obs_datesSEXP, SEXP obs_groupsSEXP, SEXP obs_valuesSEXP, SEXP window_sizeSEXP, SEXP lagSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< DateVector >::type unique_dates(unique_datesSEXP);
-    Rcpp::traits::input_parameter< CharacterVector >::type unique_zones(unique_zonesSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type unique_groups(unique_groupsSEXP);
     Rcpp::traits::input_parameter< DateVector >::type obs_dates(obs_datesSEXP);
-    Rcpp::traits::input_parameter< CharacterVector >::type obs_zones(obs_zonesSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type obs_catches(obs_catchesSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type obs_groups(obs_groupsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type obs_values(obs_valuesSEXP);
     Rcpp::traits::input_parameter< int >::type window_size(window_sizeSEXP);
     Rcpp::traits::input_parameter< int >::type lag(lagSEXP);
-    rcpp_result_gen = Rcpp::wrap(calculate_moving_avg(unique_dates, unique_zones, obs_dates, obs_zones, obs_catches, window_size, lag));
+    rcpp_result_gen = Rcpp::wrap(calculate_moving_avg(unique_dates, unique_groups, obs_dates, obs_groups, obs_values, window_size, lag));
     return rcpp_result_gen;
 END_RCPP
 }
