@@ -124,6 +124,7 @@ calc_exp <- function(dataset,
   df <- dt[z_ind, c("occasion_id", "fleet", catch, temp.var), with = FALSE]
   
   setnames(df, c(catch, temp.var), c("catch_val", "date"))
+  
   df[, ':='(
     zones = as.character(choice[z_ind]),
     date = date_parser(date),
@@ -137,7 +138,21 @@ calc_exp <- function(dataset,
   }
   
   df[, dateFloor := floor_date(date, unit = "day")]
+  
   df[, ID := if (is_value_empty(defineGroup)) as.character(zones) else paste0(fleet, zones)]
+  
+  # Check if fleet/group results in single observations per ID
+  if (any(table(df$ID) == 1)) {
+    total_single_obs <- sum(table(df$ID) == 1)
+    perc_single_obs <- (total_single_obs / length(table(df$ID) == 1)) * 100
+    
+    warning(paste0(
+      "The selected grouping variable results in ",
+      perc_single_obs,
+      "% group-zone combinations with a single value. Expected catch/revenue will be empty for 
+      these group-zone combinations."
+    ))
+  }
   
   # Handle empty catch values with joins
   if (!is_value_empty(empty.catch) && anyNA(df$catch_val)) {
@@ -156,70 +171,53 @@ calc_exp <- function(dataset,
     }
   }
   
-  # ## Core moving window calculation ----
-  # results_list <- lapply(unique_dates, function(current_date) {
-  #   
-  #   window_end <- (current_date - years(year.lag)) - day.lag
-  #   window_start <- window_end - temp.window + 1
-  #   
-  #   # Subset data for the current window
-  #   data_in_window <- df[dateFloor >= window_start & dateFloor <= window_end]
-  #   
-  #   local_res <- if (nrow(data_in_window) == 0) {
-  #     # If no data in window, create a table with NA for all zones
-  #     data.table(ID = altc_names, exp_catch = NA_real_)
-  #   } else {
-  #     if (weight_avg) {
-  #       # Average all points in the window
-  #       data_in_window[, .(exp_catch = mean(catch_val, na.rm = TRUE)), by = ID]
-  #     } else {
-  #       # Two-step average: first by day, then average daily means
-  #       daily_means <- data_in_window[, .(daily_mean = mean(catch_val, na.rm = TRUE)), by = .(ID, dateFloor)]
-  #       daily_means[, .(exp_catch = mean(daily_mean, na.rm = TRUE)), by = ID]
-  #     }
-  #   }
-  #   
-  #   # Ensure all possible zones are present for this date using a merge
-  #   template <- data.table(ID = altc_names, key = "ID")
-  #   final_res_for_date <- merge(template, local_res, by = "ID", all.x = TRUE)
-  #   
-  #   final_res_for_date[, dateFloor := current_date]
-  #   return(final_res_for_date)
-  # })
+  # Daily method - fill in missing dates prior to calculating moving window average
+  if (temporal == "daily") {
+    all_dates_in_range <- seq(from = min(df$dateFloor), to = max(df$dateFloor), by = "day")
   
-  # unique_dates <- unique(df$dateFloor)
-  
-  altc_names <- if (is_value_empty(defineGroup)) unique(df$zones) else unique(df$ID)
-  all_dates_in_range <- seq(from = min(df$dateFloor), to = max(df$dateFloor), by = "day")
-  
-  moving_avg_catch <- calculate_moving_avg(
-    all_dates_in_range,
-    unique(df$ID), 
-    df$dateFloor,
-    df$ID,
-    df$catch_val, 
-    temp.window, 
-    day.lag
-  )
-  
-  moving_avg_catch <- as.data.frame(moving_avg_catch) %>% 
-    mutate(date = as.Date(rownames(moving_avg_catch)))
-  
-  moving_avg_catch <- data.frame(date = df$dateFloor) %>%
-    left_join(., moving_avg_catch, by = "date") %>%
-    dplyr::rename(dateFloor = date)
-  
-  # ec_small_long <- data.table::rbindlist(results_list)
-  # # Reshape to wide matrix and do some post-processing
-  # ec_small <- dcast(ec_small_long, dateFloor ~ ID, value.var = "exp_catch")
-
-  missing_cols <- setdiff(altc_names, names(moving_avg_catch))
-  
-  if (length(missing_cols) > 0) {
-    moving_avg_catch[, (missing_cols) := NA_real_]
+    moving_avg <- calculate_moving_avg(all_dates_in_range,
+                                       unique(df$ID), 
+                                       df$dateFloor,
+                                       df$ID,
+                                       df$catch_val, 
+                                       temp.window, 
+                                       day.lag)  
   }
   
-  setcolorder(moving_avg_catch, c("dateFloor", sort(altc_names)))
+  # Reformat matrix and merge with observed dates
+  moving_avg <- as.data.frame(moving_avg) %>% 
+    mutate(date = as.Date(rownames(moving_avg)))
+  exp_df <- data.frame(date = df$dateFloor) %>%
+    left_join(., moving_avg, by = "date") %>%
+    select(!date)
+  
+  # Check for missing columns and fill in with NAs
+  missing_cols <- setdiff(unique(df$ID), names(exp_df))
+  if (length(missing_cols) > 0) {
+    exp_df[missing_cols] = NA
+  }
+  
+  # Set the order of columns in the matrix
+  setcolorder(exp_df, sort(unique(df$ID)))
+  
+  # Change to matrix
+  exp_matrix <- as.matrix(exp_df)
+  
+  # Handle empty expectation values
+  if (is.null(empty.expectation)) {
+    # If NULL, fill NAs with 1e-04
+    exp_matrix[is.na(exp_matrix)] <- 1e-4
+    
+  } else if (empty.expectation == 1e-4) {
+    # If 1e-04, fill both NAs and 0s with 1e-04
+    exp_matrix[is.na(exp_matrix)] <- 1e-4
+    exp_matrix[exp_matrix == 0] <- 1e-4
+    
+  } else if (empty.expectation == 0) {
+    # If 0, fill NAs with 0
+    exp_matrix[is.na(exp_matrix)] <- 0
+  }
+  
   
   # if (calc.method == "simpleLag") {
   #   ec_mat_lag <- as.matrix(ec_small[, -1])
@@ -259,29 +257,11 @@ calc_exp <- function(dataset,
   # setkey(ec_small, dateFloor)
   # final_exp <- ec_small[occasions, on = "dateFloor"]
   
-  # if (is.null(empty.expectation)) {
-  #   # If NULL, fill NAs with 1e-04
-  #   for (col in altc_names) {
-  #     # Use fcoalesce for a fast, in-place replacement of NAs
-  #     final_exp[, (col) := fcoalesce(final_exp[[col]], 1e-04)]
-  #   }
-  # } else if (empty.expectation == 1e-04) {
-  #   # If 1e-04, fill both NAs and 0s with 1e-04
-  #   for (col in altc_names) {
-  #     final_exp[is.na(get(col)) | get(col) == 0, (col) := 1e-04]
-  #   }
-  # } else if (empty.expectation == 0) {
-  #   # If 0, fill NAs with 0
-  #   for (col in altc_names) {
-  #     final_exp[, (col) := fcoalesce(final_exp[[col]], 0)]
-  #   }
-  # }
+  
   
   # setkey(final_exp, occasion_id)
   # exp_matrix <- as.matrix(final_exp[, .SD, .SDcols = sort(altc_names)])
-  exp_matrix <- moving_avg_catch %>%
-    select(!dateFloor)
-  
+
   return(
     list(
       exp = exp_matrix,
@@ -302,5 +282,4 @@ calc_exp <- function(dataset,
                       "weight_avg" = weight_avg)
     )
   )
-  
 }
