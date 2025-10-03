@@ -280,7 +280,7 @@ zone_summary <- function(dat,
         ggplot2::geom_sf(data = spatdat,
           ggplot2::aes(fill = !!rlang::sym(val_var)),
           color = "black", alpha = .8) +
-        viridis::scale_fill_viridis(
+        ggplot2::scale_fill_viridis_c(
           name = legend_name,
           limits = full_data_range) +
         ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
