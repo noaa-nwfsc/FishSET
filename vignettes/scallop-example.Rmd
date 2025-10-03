@@ -498,6 +498,8 @@ zone_out <- zone_summary(scallopMainDataTable, project = proj,
                          spat = scallopTenMNSQRSpatTable,
                          zone.dat = "ZONE_ID",
                          zone.spat = "TEN_ID",
+    dat_lat = "DDLAT",
+  dat_lon = "DDLON",
                          output = "tab_plot",
                          count = TRUE,
                          na.rm = TRUE)
@@ -518,6 +520,8 @@ zone_out <-
                spat = scallopTenMNSQRSpatTable,
                zone.dat = "ZONE_ID",
                zone.spat = "TEN_ID",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
                output = "tab_plot",
                count = TRUE, fun = "percent",
                na.rm = TRUE)
@@ -540,6 +544,8 @@ zone_out <-
                  spat = scallopTenMNSQRSpatTable, 
                  zone.dat = "ZONE_ID",
                  zone.spat = "TEN_ID",
+                 dat_lat = "DDLAT",
+                 dat_lon = "DDLON",
                  output = "tab_plot",
                  count = TRUE,
                  na.rm = TRUE)
@@ -562,6 +568,8 @@ zone_out <-
                  spat = scallopTenMNSQRSpatTable,
                  zone.dat = "ZONE_ID",
                  zone.spat = "TEN_ID",
+                 dat_lat = "DDLAT",
+                 dat_lon = "DDLON",
                  output = "tab_plot",
                  count = TRUE,
                  na.rm = TRUE)
@@ -585,6 +593,8 @@ zone_out <-
                spat = scallopTenMNSQRSpatTable, 
                zone.dat = "ZONE_ID",
                zone.spat = "TEN_ID",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
                count = FALSE,
                var = "LANDED_OBSCURED", fun = "sum",
                output = "tab_plot", na.rm = TRUE)
@@ -606,6 +616,8 @@ zone_out <-
                spat = scallopTenMNSQRSpatTable, 
                zone.dat = "ZONE_ID",
                zone.spat = "TEN_ID",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
                count = FALSE,
                var = "LANDED_OBSCURED", fun = "mean",
                output = "tab_plot", na.rm = TRUE)
@@ -625,6 +637,8 @@ zone_out <-
                spat = scallopTenMNSQRSpatTable,
                zone.dat = "ZONE_ID",
                zone.spat = "TEN_ID",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
                count = FALSE,
                var = "LANDED_OBSCURED", fun = "percent",
                output = "tab_plot", na.rm = TRUE)
@@ -646,6 +660,8 @@ zone_out <-
                spat = scallopTenMNSQRSpatTable, 
                zone.dat = "ZONE_ID",
                zone.spat = "TEN_ID",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
                count = FALSE,
                var = "TRIP_LENGTH", fun = "mean",
                output = "tab_plot", na.rm = TRUE)
@@ -669,6 +685,8 @@ zone_out <-
                  spat = scallopTenMNSQRSpatTable, 
                  zone.dat = "ZONE_ID",
                  zone.spat = "TEN_ID",
+                 dat_lat = "DDLAT",
+                 dat_lon = "DDLON",
                  count = FALSE,
                  var = "CPUE", fun = "mean",
                  na.rm = TRUE, output = "tab_plot")
@@ -692,6 +710,8 @@ scallopMainDataTable %>%
                spat = scallopTenMNSQRSpatTable, 
                zone.dat = "ZONE_ID",
                zone.spat = "TEN_ID",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
                count = FALSE,
                var = "VPUE", fun = "mean",
                na.rm = TRUE, output = "tab_plot")
@@ -714,6 +734,8 @@ zone_out <-
                spat = scallopWindCloseSpatTable, 
                zone.dat = "closeID",
                zone.spat = "NAME",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
                count = TRUE,
                na.rm = TRUE, dat.center = FALSE, 
                output = "tab_plot")
@@ -734,6 +756,8 @@ zone_out <-
                spat = scallopWindCloseSpatTable, 
                zone.dat = "closeID",
                zone.spat = "NAME",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
                fun = "percent",
                count = TRUE,
                na.rm = TRUE, dat.center = FALSE, 
@@ -757,6 +781,8 @@ zone_out <-
                zone.spat = "NAME",
                var = "DOLLAR_OBSCURED",
                fun = "percent",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
                count = FALSE, 
                na.rm = TRUE, dat.center = FALSE,
                output = "tab_plot")
@@ -780,6 +806,8 @@ zone_out <-
                zone.spat = "NAME",
                var = "DOLLAR_OBSCURED", group = "fleet",
                fun = "percent",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
                count = FALSE, 
                na.rm = TRUE, dat.center = FALSE,
                output = "tab_plot")
@@ -801,6 +829,8 @@ zone_out <-
                zone.spat = "NAME",
                var = "LANDED_OBSCURED",
                fun = "mean",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
                count = FALSE,
                na.rm = TRUE, dat.center = FALSE, 
                output = "tab_plot")
@@ -823,6 +853,8 @@ zone_out <-
                zone.spat = "NAME",
                var = "LANDED_OBSCURED", group = "fleet",
                fun = "mean",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
                count = FALSE,
                na.rm = TRUE, dat.center = FALSE, 
                output = "tab_plot")
