@@ -1,4 +1,3 @@
-
 #' Summarize zones, closure areas
 #' 
 #' `zone_summary` counts observations and aggregates values in `dat` 
@@ -93,6 +92,7 @@ zone_summary <- function(dat,
   dat.center = TRUE,
   plot_type = "dynamic",
   output = "plot") {
+
   
   # Call in datasets
   out <- data_pull(dat, project)
@@ -107,7 +107,7 @@ zone_summary <- function(dat,
   
   # secondary column when fun = percent
   val_2 <- NULL
-  
+
   # summary table ----
   
   if (count & !is.null(var)) {
@@ -223,7 +223,9 @@ zone_summary <- function(dat,
       by_vec <- zone.dat
       names(by_vec) <- zone.spat
       # merge spatdat w/ zone summary
+
       spat_join <- dplyr::left_join(spatdat[zone.spat], z_tab,
+
         relationship = "many-to-many", by = by_vec)
       # use WGS 84 if crs is missing
       if (is.na(sf::st_crs(spatdat))) {
@@ -237,7 +239,6 @@ zone_summary <- function(dat,
         # filter out zero counts
         spat_join <- spat_join[!is.na(spat_join[[val_var]]), ]
       }
-      
       spat_join
     }
     
@@ -273,7 +274,7 @@ zone_summary <- function(dat,
     ## function to plot ---------------------------------------------------------------------------
     z_plot_fun_static <- function(spatdat, legend_name) {
       full_data_range <- range(spatdat[[val_var]], na.rm = TRUE)
-      
+
       out <- ggplot2::ggplot() +
         ggplot2::geom_sf(data = base_map) +
         ggplot2::geom_sf(data = spatdat,
@@ -292,7 +293,7 @@ zone_summary <- function(dat,
     }
     
     z_plot_fun_dynamic <- function(spatdat, legend_name) {
-      
+    
       spatdat <-  sf::st_transform(spatdat, "+proj=longlat +datum=WGS84")
       
       pal <- colorBin(
@@ -438,6 +439,7 @@ zone_summary <- function(dat,
       } else{ 
         #static plot
         z_plot <- suppressWarnings(z_plot_fun_static(spat_join, legend_name = legend_name))
+
       }    
       # save plot
       save_plot(project, "zone_summary", z_plot)
@@ -445,13 +447,14 @@ zone_summary <- function(dat,
     
     # confid plot ----
     if (check_c && any(check_out$suppress)) {
-      
+
       zone_tab_c[[zone.dat]] <- as.character(zone_tab_c[[zone.dat]])
       spatdat[[zone.spat]] <- as.character(spatdat[[zone.spat]])
       
       spat_join_c <- merge_spat(zone_tab_c)
       spat_join <- spat_join_c %>% dplyr::filter(.data[[val_var]] != -999)
       
+
       if (multi_plot) {
         
       z_plot <- create_layered_map(spat_join, group,legend_name = legend_name)
@@ -460,7 +463,6 @@ zone_summary <- function(dat,
         save_nplot(project, "zone_summary_confid", z_plot)
         
       } else {
-        
         if(plot_type == "dynamic"){
           z_plot <- suppressWarnings(z_plot_fun_dynamic(spat_join,
             legend_name = legend_name))

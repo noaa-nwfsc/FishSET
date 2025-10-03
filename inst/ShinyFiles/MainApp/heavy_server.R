@@ -3923,10 +3923,9 @@ heavy_server <- function(input, output, session) {
       
       explore_out_proj$temp <- project$name
       
-      q_test <- quietly_test(temp_plot)
-      out <- q_test(values$dataset, project$name, input$col_select,
-                    len.fun = len_fun, agg.fun = input$p3fun, 
-                    date.var = all_variables()$pz_date)
+      
+      out <- ggplot() +
+        theme_void()
       
       out 
     }
@@ -4274,9 +4273,7 @@ heavy_server <- function(input, output, session) {
       
       explore_out_proj$xy <- project$name
       
-      q_test <- quietly_test(xy_plot)
-      q_test(values$dataset, project$name, input$x_y_select1, input$x_y_select2, 
-             regress = FALSE)
+      ggplot() + theme_void()
     } 
   })
   
@@ -4443,8 +4440,7 @@ heavy_server <- function(input, output, session) {
   # DATA ANALYSIS ----
   # ---
   # output project tracker
-  anal_out_proj <- reactiveValues(corr = NULL, reg = NULL, corr_out = NULL, 
-                                  reg_out = NULL)
+  anal_out_proj <- reactiveValues(corr = NULL, reg = NULL, reg_out = NULL)
   
   output$corr_out <- renderUI({
     selectInput('corr_select', 'Select variables to include in correlation test', 
@@ -4477,8 +4473,7 @@ heavy_server <- function(input, output, session) {
     if (colnames(values$dataset)[1] != 'var1') {
       
       anal_out_proj$corr <- project$name
-      q_test <- quietly_test(corr_out)
-      q_test(values$dataset, project$name, input$corr_select)
+      
     }
   }, ignoreInit = TRUE)
   
@@ -4506,9 +4501,7 @@ heavy_server <- function(input, output, session) {
   lm_out1 <- eventReactive(input$run_reg, {
     if (colnames(values$dataset)[1] != 'var1') {
       anal_out_proj$reg <- project$name
-      q_test <- quietly_test(xy_plot)
-      q_test(values$dataset, project$name, input$reg_exp_select,
-                        input$reg_resp_select, regress = TRUE)
+      ggplot() + theme_void()
     }
   }, ignoreInit = TRUE)
 
@@ -4516,9 +4509,7 @@ heavy_server <- function(input, output, session) {
   lm_out2 <- eventReactive(input$run_reg, {
     if (colnames(values$dataset)[1] != 'var1') {
       anal_out_proj$reg <- project$name
-      q_test <- quietly_test(xy_plot)
-      q_test(values$dataset, project$name, input$reg_exp_select,
-             input$reg_resp_select, regress = TRUE)
+      ggplot() + theme_void()
     }
   }, ignoreInit = TRUE)
   
@@ -7484,11 +7475,9 @@ heavy_server <- function(input, output, session) {
                                   input[["explore_plot-save_plot"]]), {
                                     
                                     list(
-                                      temp_plot = get_reactive(plotInputTemporal, project$name, explore_out_proj$temp),
                                       map_plot = get_reactive(plotInputSpatial, project$name, explore_out_proj$spat),
                                       kernel_plot = get_reactive(plotInputKernel, project$name, explore_out_proj$kernel),
                                       getis_moran = get_reactive(gtmt_table, project$name, explore_out_proj$gtmt),
-                                      xy_plot = get_reactive(plotInputXY, project$name, explore_out_proj$xy),
                                       view_grid_dat = get_reactive(grid_values$plot, project$name, explore_out_proj$grid)
                                     )
                                   })

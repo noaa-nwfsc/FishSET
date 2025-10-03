@@ -1,5 +1,6 @@
 # =================================================================================================
 # File: zone_summary_module.R
+# 
 # Description: This module allows users to counts observations and aggregates values in data frame
 #'            by regulatory zone or closure area and preview as an interactive map or static
 #
@@ -19,8 +20,8 @@
 #' @param rv_data A reactive list containing the main dataset (`main`) and spatial data (`spat`).
 #' @param rv_folderpath A reactive value containing the file path to the project's root folder.
 
-#'
 #' @return A module server instance.
+
 zone_summary_server <- function(id, rv_folderpath, rv_project_name, rv_data  ){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
@@ -36,7 +37,7 @@ zone_summary_server <- function(id, rv_folderpath, rv_project_name, rv_data  ){
       var = NULL
     )
     rv_zone_map_static <- reactiveValues(z_plot = NULL)
-    
+
     # Update the selectInput with variable names from rv_data$main
     observe({
       req(rv_data$main)
@@ -200,6 +201,7 @@ zone_summary_server <- function(id, rv_folderpath, rv_project_name, rv_data  ){
     rv_zone_map_static$z_plot
   })
   
+
   })
 }
 
