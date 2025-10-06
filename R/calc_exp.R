@@ -18,9 +18,9 @@
 #' @param Alt Alternative choice list
 #' @keywords internal
 #' @importFrom data.table := as.data.table .I .GRP fcoalesce dcast setnames 
-#'             setcolorder setkey .SD data.table set copy rbindlist
+#'             setcolorder setkey .SD data.table set copy rbindlist setorder
 #' @importFrom lubridate floor_date year years %m-%
-#' @importFrom stats aggregate lm coef na.pass
+#' @importFrom stats aggregate lm coef na.pass ar.ols predict
 #' @returns Returns a list containing the expected catch/revenue matrix, 
 #'   dummy matrix (if \code{dummy.exp = TRUE}), and list of input args. 
 #' 
@@ -171,24 +171,43 @@ calc_exp <- function(dataset,
     }
   }
   
-  # Daily method - fill in missing dates prior to calculating moving window average
-  if (temporal == "daily") {
-    all_dates_in_range <- seq(from = min(df$dateFloor), to = max(df$dateFloor), by = "day")
+  all_dates_in_range <- seq(from = min(df$dateFloor), to = max(df$dateFloor), by = "day")
   
-    moving_avg <- calculate_moving_avg(all_dates_in_range,
-                                       unique(df$ID), 
-                                       df$dateFloor,
-                                       df$ID,
-                                       df$catch_val, 
-                                       temp.window, 
-                                       day.lag)  
+  # Daily = TRUE, Sequential = FALSE
+  temporal_daily = if (temporal == "daily") TRUE else FALSE
+  
+  # Moving window average
+  if (calc.method == "standardAverage") {
+    exp_values <- calculate_moving_avg(
+      unique_dates = all_dates_in_range,
+      unique_groups =  unique(df$ID), 
+      obs_dates =  df$dateFloor,
+      obs_groups =  df$ID,
+      obs_values =  df$catch_val, 
+      window_size =  temp.window, 
+      lag = day.lag,
+      year_lag = year.lag,
+      temporal = temporal_daily,
+      weighted = weight_avg
+    )  
+    
+    # Autoregressive model
+  } else {
+    exp_values <- fit_ar_models(
+      unique_dates = unique(df$date),
+      unique_groups = unique(df$ID),
+      obs_dates = df$date,
+      obs_groups = df$ID,
+      obs_values = df$catch_val,
+      lag_p = day.lag
+    )
   }
   
   # Reformat matrix and merge with observed dates
-  moving_avg <- as.data.frame(moving_avg) %>% 
-    mutate(date = as.Date(rownames(moving_avg)))
+  exp_values <- as.data.frame(exp_values) %>% 
+    mutate(date = as.Date(rownames(exp_values)))
   exp_df <- data.frame(date = df$dateFloor) %>%
-    left_join(., moving_avg, by = "date") %>%
+    left_join(., exp_values, by = "date") %>%
     select(!date)
   
   # Check for missing columns and fill in with NAs
@@ -203,12 +222,16 @@ calc_exp <- function(dataset,
   # Change to matrix
   exp_matrix <- as.matrix(exp_df)
   
-  # Handle empty expectation values
-  if (is.null(empty.expectation)) {
-    # If NULL, fill NAs with 1e-04
-    exp_matrix[is.na(exp_matrix)] <- 1e-4
+  # Dummy matrix for catch ------------------------------------------------------------------------
+  if (dummy.exp) {
+    dum_matrix <- (!is.na(exp_matrix)) * 1
     
-  } else if (empty.expectation == 1e-4) {
+  } else {
+    dum_matrix <- NULL
+  }
+  
+  # Handle empty expectation values ---------------------------------------------------------------
+  if (empty.expectation == 1e-4) {
     # If 1e-04, fill both NAs and 0s with 1e-04
     exp_matrix[is.na(exp_matrix)] <- 1e-4
     exp_matrix[exp_matrix == 0] <- 1e-4
@@ -216,51 +239,10 @@ calc_exp <- function(dataset,
   } else if (empty.expectation == 0) {
     # If 0, fill NAs with 0
     exp_matrix[is.na(exp_matrix)] <- 0
+  } else {
+    # If NULL, fill NAs with 1e-04
+    exp_matrix[is.na(exp_matrix)] <- 1e-4
   }
-  
-  
-  # if (calc.method == "simpleLag") {
-  #   ec_mat_lag <- as.matrix(ec_small[, -1])
-  #   
-  #   for (i in seq_len(ncol(ec_mat_lag))) {
-  #     ec_area <- ec_mat_lag[, i]
-  #     if (sum(!is.na(ec_area)) < 2) next
-  #     dwa_1 <- ec_area[-length(ec_area)]
-  #     dwa_2 <- ec_area[-1]
-  #     dwa_mod <- tryCatch(lm(dwa_1 ~ dwa_2), error = function(e) NULL)
-  #     if (!is.null(dwa_mod)) {
-  #       ec_mat_lag[, i] <- predict(dwa_mod, newdata = data.frame(dwa_2 = ec_area))
-  #     }
-  #   }
-  #   
-  #   ec_small[, (sort(altc_names)) := as.data.table(ec_mat_lag)]
-  # }
-  
-  # Finalize output
-  # occasions <- df[, .(occasion_id, dateFloor)]
-  
-  # if (dummy.exp) {
-  #   dum_dt <- data.table::copy(ec_small)
-  #   
-  #   for (col in altc_names) {
-  #     data.table::set(dum_dt, j = col, value = as.numeric(!is.na(dum_dt[[col]])))
-  #   }
-  #   
-  #   final_dummy <- dum_dt[occasions, on = "dateFloor"]
-  #   setkey(final_dummy, occasion_id)
-  #   dum_matrix <- as.matrix(final_dummy[, .SD, .SDcols = sort(altc_names)])
-  #   
-  # } else {
-  #   dum_matrix <- NULL
-  # }
-  
-  # setkey(ec_small, dateFloor)
-  # final_exp <- ec_small[occasions, on = "dateFloor"]
-  
-  
-  
-  # setkey(final_exp, occasion_id)
-  # exp_matrix <- as.matrix(final_exp[, .SD, .SDcols = sort(altc_names)])
 
   return(
     list(

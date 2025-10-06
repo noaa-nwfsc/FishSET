@@ -166,7 +166,6 @@ create_expectations <-
     }
     
     # Calculate expactations ----------------------------------------------------------------------
-    tic()
     user_exp <- calc_exp(dataset = dataset, 
                          catch = catch, 
                          price = price,
@@ -183,7 +182,6 @@ create_expectations <-
                          dummy.exp = dummy.exp, 
                          weight_avg = weight_avg, 
                          Alt = Alt)
-    toc()
     
     # Determine scaling factor for the results ----------------------------------------------------
     r <- nchar(sub("\\.[0-9]+", "", mean(as.matrix(user_exp$exp), na.rm = TRUE))) 
@@ -216,6 +214,12 @@ create_expectations <-
     # Connect to DB and save the results ----------------------------------------------------------
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    
+    # if(table_exists(single_sql, project)) {
+    #   # get existing list
+    #   ExpectedCatch_saved <- unserialize_table(single_sql, project)
+    #  
+    # }
     
     DBI::dbExecute(fishset_db, 
                    paste("CREATE TABLE IF NOT EXISTS", 
