@@ -7,7 +7,6 @@
 #' @param temp.var temporal variable
 #' @param temporal temporal 
 #' @param calc.method calculation method
-#' @param lag.method lag method
 #' @param empty.catch empty catch
 #' @param empty.expectation empty expectation
 #' @param temp.window temporal window
@@ -31,7 +30,6 @@ calc_exp <- function(dataset,
                      temp.var = NULL,
                      temporal = "daily",
                      calc.method = "standardAverage", 
-                     lag.method = "simple",
                      empty.catch = NULL,
                      empty.expectation = NULL,
                      temp.window = 7,
@@ -108,7 +106,6 @@ calc_exp <- function(dataset,
                                 "temp.var" = temp.var, 
                                 "temporal" = temporal, 
                                 "calc.method" = calc.method, 
-                                "lag.method" = lag.method, 
                                 "empty.catch" = empty.catch, 
                                 "empty.expectation" = empty.expectation, 
                                 "temp.window" = temp.window, 
@@ -254,7 +251,6 @@ calc_exp <- function(dataset,
                       "temp.var" = temp.var, 
                       "temporal" = temporal, 
                       "calc.method" = calc.method, 
-                      "lag.method" = lag.method, 
                       "empty.catch" = empty.catch, 
                       "empty.expectation" = empty.expectation, 
                       "temp.window" = temp.window, 

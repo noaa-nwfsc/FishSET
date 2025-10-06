@@ -26,8 +26,6 @@
 #' @param calc.method String, how catch values are average over window size. Select 
 #'   standard average (\code{"standardAverage"}), simple lag regression of means 
 #'   (\code{"simpleLag"}), or weights of regressed groups (\code{"weights"})
-#' @param lag.method  String, use regression over entire group (\code{"simple"}) 
-#'   or for grouped time periods (\code{"grouped"}).
 #' @param empty.catch String, replace empty catch with \code{NA}, \code{0}, mean 
 #'   of all catch (\code{"allCatch"}), or mean of grouped catch (\code{"groupCatch"}).
 #' @param empty.expectation Numeric, how to treat empty expectation values. Choices 
@@ -80,7 +78,7 @@
 #' \dontrun{
 #' create_expectations(pollockMainDataTable, "pollock", "exp1", "OFFICIAL_TOTAL_CATCH_MT",
 #'   price = NULL, defineGroup = "fleet", temp.var = "DATE_FISHING_BEGAN",
-#'   temporal = "daily", calc.method = "standardAverage", lag.method = "simple",
+#'   temporal = "daily", calc.method = "standardAverage", 
 #'   empty.catch = "allCatch", empty.expectation = 0.0001, temp.window = 4,
 #'   day.lag = 2, year.lag = 0, dummy.exp = FALSE, 
 #'   weight_avg = FALSE, outsample = FALSE
@@ -97,7 +95,6 @@ create_expectations <-
            temp.var = NULL,
            temporal = "daily",
            calc.method = "standardAverage",
-           lag.method = "simple",
            empty.catch = NULL,
            empty.expectation = 1e-04,
            temp.window = 7,
@@ -176,7 +173,6 @@ create_expectations <-
                          year.lag = year.lag, 
                          temporal = temporal, 
                          calc.method = calc.method, 
-                         lag.method = lag.method, 
                          empty.catch = empty.catch, 
                          empty.expectation = empty.expectation,
                          dummy.exp = dummy.exp, 
@@ -187,22 +183,6 @@ create_expectations <-
     r <- nchar(sub("\\.[0-9]+", "", mean(as.matrix(user_exp$exp), na.rm = TRUE))) 
     sscale <- 10^(r - 1)
     
-    # Assemble the expected catch list for storage ------------------------------------------------
-    ExpectedCatch <- list(
-      scale = sscale,
-      # TODO: Use alternative approach for determining units
-      units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS"), # catch units
-      exp1 = user_exp$exp,
-      exp1_dummy = user_exp$dummy,
-      exp1_settings = user_exp$settings
-    )
-    
-    # Rename elements in the list
-    names(ExpectedCatch)[which(names(ExpectedCatch) == "exp1")] <- name
-    names(ExpectedCatch)[which(names(ExpectedCatch) == "exp1_dummy")] <- paste0(name,"_dummy")
-    names(ExpectedCatch)[which(names(ExpectedCatch) == "exp1_settings")] <- 
-      paste0(name,"_settings")
-    
     # Define the SQL table name -------------------------------------------------------------------
     # Is this for testing out of sample data?
     if(!outsample){
@@ -211,15 +191,42 @@ create_expectations <-
       single_sql <- paste0(project, "ExpectedCatchOutSample")
     }
     
+    # Assemble the expected catch list for storage ------------------------------------------------
+    if (table_exists(single_sql, project)) {
+      # Get existing list
+      ExpectedCatch <- unserialize_table(single_sql, project)
+      
+      # Add new expected catch matrix
+      tmp_ExpectedCatch <- list(exptmp = user_exp$exp,
+                                exptmp_dummy = user_exp$dummy,
+                                exptmp_settings = user_exp$settings)
+      
+      # Combine the lists
+      ExpectedCatch <- c(ExpectedCatch, tmp_ExpectedCatch)
+      
+    } else {
+      ExpectedCatch <- list(
+        scale = sscale,
+        # TODO: Use alternative approach for determining units
+        units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS"), # catch units
+        exptmp = user_exp$exp,
+        exptmp_dummy = user_exp$dummy,
+        exptmp_settings = user_exp$settings
+      )  
+    }
+    
+    # Rename elements in the list
+    names(ExpectedCatch)[which(names(ExpectedCatch) == "exptmp")] <- name
+    names(ExpectedCatch)[which(names(ExpectedCatch) == "exptmp_dummy")] <- paste0(name,"_dummy")
+    names(ExpectedCatch)[which(names(ExpectedCatch) == "exptmp_settings")] <- 
+      paste0(name,"_settings")
+    
     # Connect to DB and save the results ----------------------------------------------------------
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
     
-    # if(table_exists(single_sql, project)) {
-    #   # get existing list
-    #   ExpectedCatch_saved <- unserialize_table(single_sql, project)
-    #  
-    # }
+    # Remove the table first then save again
+    table_remove(single_sql, project)
     
     DBI::dbExecute(fishset_db, 
                    paste("CREATE TABLE IF NOT EXISTS", 
@@ -253,7 +260,6 @@ create_expectations <-
            temp.var, 
            temporal, 
            calc.method, 
-           lag.method, 
            empty.catch, 
            empty.expectation, 
            temp.window, 
