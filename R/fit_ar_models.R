@@ -26,6 +26,8 @@
 #' @param obs_values A `numeric` vector containing the observation values.
 #' @param lag_p An `integer` specifying the order of the AR model (i.e., the
 #'   number of lags to use as predictors).
+#'   
+#' @keywords internal
 #'
 #' @return
 #' A `matrix` with dates as rownames and groups as colnames. Each cell contains

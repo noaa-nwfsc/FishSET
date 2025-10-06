@@ -3,6 +3,7 @@
 #' Create expected catch or expected revenue matrix. The matrix is required for 
 #' the \code{\link{logit_c}} model. Multiple matrices (with unique names) can be saved in a 
 #' project.
+#' 
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET 
 #'   database contains the string 'MainDataTable'.
 #' @param project String, name of project.
@@ -14,30 +15,30 @@
 #'   must be a vector of 1 of length equal to \code{dat}. Defaults to \code{NULL}.
 #' @param defineGroup Optional, variable from \code{dat} that defines how to split 
 #'   the fleet. Defaults to treating entire dataframe \code{dat} as a fleet.
+#' @param temp_var Optional, temporal variable from \code{dat}. Set to \code{NULL} 
+#'   if temporal patterns in catch should not be considered.
 #' @param temporal String, choices are \code{"daily"} or \code{"sequential"}. Should 
-#'   time, if \code{temp.var} is defined, be included as a daily timeline or sequential 
+#'   time, if \code{temp_var} is defined, be included as a daily timeline or sequential 
 #'   order of recorded dates. For daily, catch on dates with no record are filled 
 #'   with \code{NA}. The choice affects how the rolling average is calculated. If 
 #'   temporal is daily then the window size for average and the temporal lag are 
 #'   in days. If sequential, then averaging will occur over the specified number 
 #'   of observations, regardless of how many days they represent.
-#' @param temp.var Optional, temporal variable from \code{dat}. Set to \code{NULL} 
-#'   if temporal patterns in catch should not be considered.
-#' @param calc.method String, how catch values are average over window size. Select 
+#' @param calc_method String, how catch values are average over window size. Select 
 #'   standard average (\code{"standardAverage"}), simple lag regression of means 
 #'   (\code{"simpleLag"}), or weights of regressed groups (\code{"weights"})
-#' @param empty.catch String, replace empty catch with \code{NA}, \code{0}, mean 
-#'   of all catch (\code{"allCatch"}), or mean of grouped catch (\code{"groupCatch"}).
-#' @param empty.expectation Numeric, how to treat empty expectation values. Choices 
-#'   are to not replace (\code{NULL}) or replace with 0.0001 or 0.
-#' @param temp.window Numeric, temporal window size. If \code{temp.var} is not \code{NULL}, 
+#' @param temp_window Numeric, temporal window size. If \code{temp_var} is not \code{NULL}, 
 #'   set the window size to average catch over. Defaults to 14 (14 days if \code{temporal} 
 #'   is \code{"daily"}).
-#' @param day.lag Numeric, temporal lag time. If \code{temp.var} is not \code{NULL}, 
-#'   how far back to lag \code{temp.window}.
-#' @param year.lag If expected catch should be based on catch from previous year(s), 
-#'   set \code{year.lag} to the number of years to go back.
-#' @param dummy.exp Logical, should a dummy variable be created? If \code{TRUE}, 
+#' @param day_lag Numeric, temporal lag time. If \code{temp_var} is not \code{NULL}, 
+#'   how far back to lag \code{temp_window}.
+#' @param year_lag If expected catch should be based on catch from previous year(s), 
+#'   set \code{year_lag} to the number of years to go back.
+#' @param empty_catch String, replace empty catch with \code{NA}, \code{0}, mean 
+#'   of all catch (\code{"allCatch"}), or mean of grouped catch (\code{"groupCatch"}).
+#' @param empty_expectation Numeric, how to treat empty expectation values. Choices 
+#'   are to not replace (\code{NULL}) or replace with 0.0001 or 0.
+#' @param dummy_exp Logical, should a dummy variable be created? If \code{TRUE}, 
 #'   output dummy variable for originally missing value. If \code{FALSE}, no dummy 
 #'   variable is outputted. Defaults to \code{FALSE}.
 #' @param weight_avg Logical, if \code{TRUE} then all observations for a given zone on a 
@@ -63,24 +64,23 @@
 #'   The primary choices are whether to treat data as a fleet or to group the data 
 #'   (\code{defineGroup}) and the time frame of catch data for calculating expected catch. 
 #'   Catch is averaged along a daily or sequential timeline (\code{temporal}) using a rolling 
-#'   average. \code{temp.window} and \code{day.lag} determine the window size and temporal 
+#'   average. \code{temp_window} and \code{day_lag} determine the window size and temporal 
 #'   lag of the window for averaging. Use \code{\link{temp_obs_table}} before using 
 #'   this function to assess the availability of data for the desired temporal moving 
 #'   window size. Sparse data is not suited for shorter moving window sizes. For very 
-#'   sparse data, consider setting \code{temp.var} to \code{NULL} and excluding 
+#'   sparse data, consider setting \code{temp_var} to \code{NULL} and excluding 
 #'   temporal patterns in catch. \cr
 #'   Empty catch values are considered to be times of no fishing activity. Values 
 #'   of 0 in the catch variable are considered times when fishing activity occurred 
 #'   but with no catch. These points are included in the averaging and dummy creation 
 #'   as points in time when fishing occurred. \cr
-#' @return newGridVar,  newDumV
 #' @examples
 #' \dontrun{
 #' create_expectations(pollockMainDataTable, "pollock", "exp1", "OFFICIAL_TOTAL_CATCH_MT",
-#'   price = NULL, defineGroup = "fleet", temp.var = "DATE_FISHING_BEGAN",
-#'   temporal = "daily", calc.method = "standardAverage", 
-#'   empty.catch = "allCatch", empty.expectation = 0.0001, temp.window = 4,
-#'   day.lag = 2, year.lag = 0, dummy.exp = FALSE, 
+#'   price = NULL, defineGroup = "fleet", temp_var = "DATE_FISHING_BEGAN",
+#'   temporal = "daily", calc_method = "standardAverage", 
+#'   empty_catch = "allCatch", empty_expectation = 0.0001, temp_window = 4,
+#'   day_lag = 2, year_lag = 0, dummy_exp = FALSE, 
 #'   weight_avg = FALSE, outsample = FALSE
 #' )
 #' }
@@ -92,15 +92,15 @@ create_expectations <-
            catch,
            price = NULL,
            defineGroup = NULL,
-           temp.var = NULL,
+           temp_var = NULL,
            temporal = "daily",
-           calc.method = "standardAverage",
-           empty.catch = NULL,
-           empty.expectation = 1e-04,
-           temp.window = 7,
-           day.lag = 1,
-           year.lag = 0,
-           dummy.exp = FALSE,
+           calc_method = "standardAverage",
+           temp_window = 7,
+           day_lag = 1,
+           year_lag = 0,
+           empty_catch = NULL,
+           empty_expectation = 1e-04,
+           dummy_exp = FALSE,
            weight_avg = FALSE,
            outsample = FALSE) {
     
@@ -120,18 +120,15 @@ create_expectations <-
     dataset <- out$dataset
     
     # Determine if using in-sample or out-of-sample data ------------------------------------------
-    if(!outsample){ # in-sample
-      dat <- parse_data_name(dat, "main", project)  
-      Alt <- unserialize_table(paste0(project, "AltMatrix"), project)
-      
-    } else { # out-of-sample
-      dat <- parse_data_name(dat, "outsample", project)  
-      Alt <- unserialize_table(paste0(project, "AltMatrixOutSample"), project)
-      
-    }
+    # Set data source based on the outsample flag
+    data_type <- if (!outsample) "main" else "outsample"
+    alt_matrix_name <- if (!outsample) "AltMatrix" else "AltMatrixOutSample"
+    
+    dat <- parse_data_name(dat, data_type, project)
+    Alt <- unserialize_table(paste0(project, alt_matrix_name), project)
     
     # Perform initial data quality and parameter checks -------------------------------------------
-    column_check(dataset, c(catch, price, temp.var, defineGroup))
+    column_check(dataset, c(catch, price, temp_var, defineGroup))
     
     if (all(is_empty(date_cols(dataset)))) {
       warning("No time variable found, only averaging in groups and per zone is capable",
@@ -139,8 +136,8 @@ create_expectations <-
     }
     
     if (!is_value_empty(defineGroup)) {
-      if (any(is.null(dataset[[defineGroup]]))) { # Note: this won't work check for NAs instead?
-        stop("defineGroup not recognized. Check that parameter is correctly defined",
+      if (!all(defineGroup %in% names(dataset))) { # Check that groups exist in the dataset
+        stop("One or more values for defineGroup input not found in the main data table",
              call. = FALSE)
       }
     }
@@ -154,12 +151,12 @@ create_expectations <-
            call. = FALSE)
     }
     
-    # Ensure empty.expectation is numeric
-    stopifnot("empty.expectations must be numeric" = is.numeric(empty.expectation))
+    # Ensure empty_expectation is numeric
+    stopifnot("empty_expectations must be numeric" = is.numeric(empty_expectation))
     
     # Ensure the temporal variable is a Date type
-    if (class(dataset[[temp.var]]) != "Date") {
-      dataset[[temp.var]] <- as.Date(dataset[[temp.var]])
+    if (class(dataset[[temp_var]]) != "Date") {
+      dataset[[temp_var]] <- as.Date(dataset[[temp_var]])
     }
     
     # Calculate expactations ----------------------------------------------------------------------
@@ -167,15 +164,15 @@ create_expectations <-
                          catch = catch, 
                          price = price,
                          defineGroup = defineGroup, 
-                         temp.var = temp.var, 
-                         temp.window = temp.window, 
-                         day.lag = day.lag, 
-                         year.lag = year.lag, 
+                         temp_var = temp_var, 
+                         temp_window = temp_window, 
+                         day_lag = day_lag, 
+                         year_lag = year_lag, 
                          temporal = temporal, 
-                         calc.method = calc.method, 
-                         empty.catch = empty.catch, 
-                         empty.expectation = empty.expectation,
-                         dummy.exp = dummy.exp, 
+                         calc_method = calc_method, 
+                         empty_catch = empty_catch, 
+                         empty_expectation = empty_expectation,
+                         dummy_exp = dummy_exp, 
                          weight_avg = weight_avg, 
                          Alt = Alt)
     
@@ -257,15 +254,15 @@ create_expectations <-
            catch, 
            price, 
            defineGroup, 
-           temp.var, 
+           temp_var, 
            temporal, 
-           calc.method, 
-           empty.catch, 
-           empty.expectation, 
-           temp.window, 
-           day.lag, 
-           year.lag, 
-           dummy.exp, 
+           calc_method, 
+           empty_catch, 
+           empty_expectation, 
+           temp_window, 
+           day_lag, 
+           year_lag, 
+           dummy_exp, 
            weight_avg, 
            outsample
       )
