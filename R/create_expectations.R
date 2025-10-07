@@ -105,7 +105,7 @@ create_expectations <-
            outsample = FALSE) {
     
     # Check if expected matrix with this name already exists --------------------------------------
-    if (table_exists(paste0(project, "ExpectedCatch"), project)) {
+    if (!outsample && table_exists(paste0(project, "ExpectedCatch"), project)) {
       # get previous list
       exp_mats <- unserialize_table(paste0(project, "ExpectedCatch"), project)
       exp_names <- names(exp_mats)[!names(exp_mats) %in% c('scale', 'units')]
@@ -189,7 +189,7 @@ create_expectations <-
     }
     
     # Assemble the expected catch list for storage ------------------------------------------------
-    if (table_exists(single_sql, project)) {
+    if (!outsample && table_exists(single_sql, project)) {
       # Get existing list
       ExpectedCatch <- unserialize_table(single_sql, project)
       

@@ -60,7 +60,7 @@ calc_exp <- function(dataset,
                      day_lag = 1,
                      year_lag = 0,
                      empty_catch = NULL,
-                     empty_expectation = NULL,
+                     empty_expectation = 1e-4,
                      dummy_exp = FALSE,
                      weight_avg = FALSE,
                      Alt) {

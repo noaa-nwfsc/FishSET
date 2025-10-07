@@ -4,21 +4,21 @@
 #' The hold-out data can be out-of-sample data or subsetted data for k-fold cross validation.
 #' 
 #' @param project Name of project
-#' @param mod.name Name of saved model to use. Argument can be the name of the model or can pull 
-#'   the name of the saved "best" model. Leave \code{mod.name} empty to use the saved "best" 
-#'   model. If more than one model is saved, \code{mod.name} should be the numeric indicator of 
+#' @param mod_name Name of saved model to use. Argument can be the name of the model or can pull 
+#'   the name of the saved "best" model. Leave \code{mod_name} empty to use the saved "best" 
+#'   model. If more than one model is saved, \code{mod_name} should be the numeric indicator of 
 #'   which model to use. Use \code{table_view("modelChosen", project)} to view a table of 
 #'   saved models.
-#' @param outsample.mod.name Name assigned to out-of-sample model design. Must be unique and 
-#'   not already exist in model design list. If \code{outsample.mod.name = NULL} then a default 
-#'   name will be chosen based on mod.name, which is the default value. 
+#' @param outsample_mod_name Name assigned to out-of-sample model design. Must be unique and 
+#'   not already exist in model design list. If \code{outsample_mod_name = NULL} then a default 
+#'   name will be chosen based on mod_name, which is the default value. 
 #' @param CV Logical, Indicates whether the model design is being created for cross validation
 #'   \code{TRUE}, or for simple out-of-sample dataset. Defaults to \code{CV = TRUE}.
 #' @param CV_dat Training or testing dataset for k-fold cross validation.
-#' @param use.scalers Input for \code{create_model_input()}. Logical, should data be normalized? 
+#' @param use_scalers Input for \code{create_model_input()}. Logical, should data be normalized? 
 #'   Defaults to \code{FALSE}. Rescaling factors are the mean of the numeric vector unless 
-#'   specified with \code{scaler.func}.
-#' @param scaler.func Input for \code{create_model_input()}. Function to calculate 
+#'   specified with \code{scaler_func}.
+#' @param scaler_func Input for \code{create_model_input()}. Function to calculate 
 #'   rescaling factors.
 #' 
 #' @details
@@ -43,12 +43,12 @@
 #' }
 
 model_design_outsample <- function(project, 
-                                   mod.name, 
-                                   outsample.mod.name = NULL, 
+                                   mod_name, 
+                                   outsample_mod_name = NULL, 
                                    CV = FALSE, 
                                    CV_dat = NULL, 
-                                   use.scalers = FALSE, 
-                                   scaler.func = NULL){
+                                   use_scalers = FALSE, 
+                                   scaler_func = NULL){
   
   # Load outsample data ---------------------------------------------------------------------------
   flag <- 0
@@ -86,15 +86,16 @@ model_design_outsample <- function(project,
   mdf_n <- model_names(project)
   
   # Get only info for selected model
-  tryCatch(
-    {mdf <- mdf[[which(mdf_n == mod.name)]]},
-    error = function(e) {flag <<- 1}
-  )
+  tryCatch({
+    mdf <- mdf[[which(mdf_n == mod_name)]]
+  },
+  error = function(e) {
+    flag <<- 1
+  })
   
   if(flag == 1){
     stop('Model not found.')
   }
-  
   
   # Get info on expected catch/revenue ------------------------------------------------------------
   if(length(mdf$expectcatchmodels) > 0){
@@ -132,27 +133,6 @@ model_design_outsample <- function(project,
   # only generate the necessary catch matrices
   if(!is.null(e_settings)){
     
-    ## check for default matrices ----
-    defaults_opts <- c("recent","older","oldest","logbook")
-    defaults <- e_list[which(e_list %in% defaults_opts)]
-    
-    # remove defaults from e_list
-    e_list <- e_list[which(!(e_list %in% defaults))]
-    
-    if(is_empty(defaults)){ # no defaults
-      default.exp <- FALSE
-      
-    } else { # get the defaults
-      if(length(defaults) == 4){ # all default options
-        default.exp <- TRUE
-        
-      } else { # default options
-        default.exp <- defaults
-        
-      }
-    }
-    
-    
     # iterate through list and create expected catch matrices ----
     for(i in 1:length(e_list)){
       
@@ -162,10 +142,6 @@ model_design_outsample <- function(project,
       # set to NA if NULL, calc_exp() should do this, but just to be sure do it here.
       if(is.null(tmp_settings$empty_catch)){ 
         tmp_settings$empty_catch <- NA
-      }
-      
-      if(i > 1){ # only create defaults for the first iteration
-        default.exp <- FALSE
       }
       
       create_expectations(dat = outsample_dat, 
@@ -190,8 +166,8 @@ model_design_outsample <- function(project,
   
   
   # Make model design -----------------------------------------------------------------------------
-  if(is.null(outsample.mod.name) | is_empty(outsample.mod.name)){
-    outsample.mod.name <- paste0(mod.name,"_outsample")  
+  if(is.null(outsample_mod_name) | is_empty(outsample_mod_name)){
+    outsample_mod_name <- paste0(mod_name,"_outsample")  
   } # else do nothing and use the provided name
   
   make_model_design(project = project, 
@@ -200,7 +176,7 @@ model_design_outsample <- function(project,
                     initparams = mdf$initparams,
                     optimOpt = mdf$optimOpt, 
                     methodname = mdf$methodname, 
-                    mod.name = outsample.mod.name,
+                    mod_name = outsample_mod_name,
                     vars1 = mdf$vars1, 
                     vars2 = mdf$vars2, 
                     priceCol = mdf$priceCol, 

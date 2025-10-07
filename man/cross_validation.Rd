@@ -6,56 +6,66 @@
 \usage{
 cross_validation(
   project,
-  mod.name,
-  zone.dat,
+  mod_name,
+  zone_dat,
   groups,
-  k = NULL,
+  k = 5,
   time_var = NULL,
-  use.scalers = FALSE,
-  scaler.func = NULL
+  use_scalers = FALSE,
+  scaler_func = NULL
 )
 }
 \arguments{
 \item{project}{Name of project}
 
-\item{mod.name}{Name of saved model to use. Argument can be the name of the model or can pull the name 
-of the saved "best" model. Leave \code{mod.name} empty to use the saved "best" model. If more than
-one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
-Use \code{table_view("modelChosen", project)} to view a table of saved models.}
+\item{mod_name}{Name of saved model to use. Argument can be the name of the model or can pull 
+the name of the saved "best" model. Leave \code{mod_name} empty to use the saved "best" 
+model. If more than one model is saved, \code{mod_name} should be the numeric indicator of 
+which model to use. Use \code{table_view("modelChosen", project)} to view a table of 
+saved models.}
 
-\item{zone.dat}{Variable in primary data table that identifies the individual zones or areas.}
+\item{zone_dat}{String. Variable in primary data table that identifies the individual zones 
+or areas.}
 
-\item{groups}{Determine how to subset dataset into groups for training and testing}
+\item{groups}{String. Determines how to subset the dataset into groups for training and 
+testing. \code{groups = 'Observations'} randomly splits observations. \code{groups = 'Years'}
+splits data by year, which requires the \code{time_var} input to be specified. In addition,
+data can be split into groups based on a categorical variable using 
+\code{groups = 'variable_name'}.}
 
-\item{k}{Integer, value required if \code{groups = 'Observations'} to determine the number of groups for splitting data 
-into training and testing datasets. The value of \code{k} should be chosen to balance bias and variance and values of
-\code{k = 5 or 10} have been found to be efficient standard values in the literature. Note that higher k values will 
-increase runtime and the computational cost of \code{cross_validation}. Leave-on-out cross validation is a type of 
-k-fold cross validation in which \code{k = n} number of observations, which can be useful for small datasets.}
+\item{k}{Integer. Value required if \code{groups = 'Observations'} to determine the number 
+of groups for splitting data into training and testing datasets. The value of \code{k} 
+should be chosen to balance bias and variance and values of \code{k = 5 or 10} have been 
+found to be efficient standard values in the literature. Note that higher k values will 
+increase runtime and the computational cost of \code{cross_validation}. Leave-on-out cross
+validation is a type of k-fold cross validation in which \code{k = n} number of 
+observations, which can be useful for small datasets.}
 
 \item{time_var}{Name of column for time variable. Required if \code{groups = 'Years'}.}
 
-\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. 
-Rescaling factors are the mean of the numeric vector unless specified with \code{scaler.func}.}
+\item{use_scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? 
+Defaults to \code{FALSE}. Rescaling factors are the mean of the numeric vector unless
+specified with \code{scaler_func}.}
 
-\item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
+\item{scaler_func}{Input for \code{create_model_input()}. Function to calculate 
+rescaling factors.}
 }
 \description{
 K-fold cross validation for estimating model performance
 }
 \details{
-K-fold cross validation is a resampling procedure for evaluating the predictive performance of a model. First the data are split into k groups,
-which can be split randomly across observations (e.g., 5-fold cross validation where each group is randomly assigned across observations) 
-or split based on a particular variable (e.g., split groups based on gear type). Each group takes turn being the 'hold-out' or 'test' data set,
-while the remaining groups are the training dataset (parameters are estimated for the training dataset). Finally the predictive performance of
-each iteration is calculated as the percent absolute prediction error.
- s
+K-fold cross validation is a resampling procedure for evaluating the predictive 
+  performance of a model. First the data are split into k groups, which can be split randomly 
+  across observations (e.g., 5-fold cross validation where each group is randomly assigned 
+  across observations) or split based on a particular variable (e.g., split groups based on 
+  gear type). Each group takes turn being the 'hold-out' or 'test' data set, while the 
+  remaining groups are the training dataset (parameters are estimated for the training 
+  dataset). Finally the predictive performance of each iteration is calculated as the percent
+  absolute prediction error.
 }
 \examples{
 \dontrun{
-
 model_design_outsample("scallop", "scallopModName")
-
 }
 
 }

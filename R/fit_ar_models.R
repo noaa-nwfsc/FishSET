@@ -45,7 +45,7 @@ fit_ar_models <- function(unique_dates,
                           lag_p,
                           empty_catch = NA) {
   
-  # 1. Initialize the final output matrix with NAs
+  # Initialize the final output matrix with NAs ---------------------------------------------------
   # This creates the dense date x group structure.
   result_matrix <- matrix(
     NA_real_,
@@ -54,7 +54,7 @@ fit_ar_models <- function(unique_dates,
     dimnames = list(as.character(unique_dates), unique_groups)
   )
   
-  # 2. Aggregate raw observations to get daily averages for each group
+  # Aggregate raw observations to get daily averages for each group -------------------------------
   obs_dt <- data.table(
     date = obs_dates,
     group = obs_groups,
@@ -62,12 +62,12 @@ fit_ar_models <- function(unique_dates,
   )
   daily_avg <- obs_dt[, .(value = mean(value)), by = .(group, date)]
   
-  # Handle NAs
+  # Handle NAs ------------------------------------------------------------------------------------
   if (is.na(empty_catch)) {
     daily_avg <- na.omit(daily_avg)  
   }
   
-  # 3. Loop through each group to fit a separate AR model
+  # Loop through each group to fit a separate AR model --------------------------------------------
   for (current_group in unique_groups) {
     # Subset the data for the current group and ensure it's sorted by date
     group_dt <- daily_avg[group == current_group]
@@ -78,20 +78,20 @@ fit_ar_models <- function(unique_dates,
       next
     }
     
-    # 4. Create the lagged predictor columns using data.table's shift()
+    ## Create the lagged predictor columns using data.table's shift()
     lag_cols <- paste0("lag", 1:lag_p)
     group_dt[, (lag_cols) := data.table::shift(value, n = 1:lag_p, type = "lag")]
     
-    # 5. Build the regression formula dynamically
+    ## Build the regression formula dynamically
     # e.g., "value ~ lag1 + lag2 + lag3"
     formula_str <- paste("value ~", paste(lag_cols, collapse = " + "))
     ar_formula <- as.formula(formula_str)
     
-    # 6. Fit the linear model
+    ## Fit the linear model
     # na.action = na.omit automatically removes the starting rows with NA lags
     model <- lm(ar_formula, data = group_dt, na.action = na.omit)
     
-    # 7. Extract fitted values and their corresponding dates
+    ## Extract fitted values and their corresponding dates
     fitted_vals <- fitted(model)
     
     # To get the correct dates, we find which rows were NOT omitted
@@ -99,7 +99,7 @@ fit_ar_models <- function(unique_dates,
     # The dates for the fitted values are the ones *not* in that list.
     fitted_dates <- as.character(group_dt[-na.action(model), date])
     
-    # 8. Populate the result matrix with the fitted values
+    ## Populate the result matrix with the fitted values
     result_matrix[fitted_dates, current_group] <- fitted_vals
   }
   
