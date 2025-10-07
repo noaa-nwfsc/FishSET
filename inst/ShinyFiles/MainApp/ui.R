@@ -21,7 +21,6 @@ source("modules/select_variables_ui.R", local = TRUE) # Other actions in sidebar
 source("modules/qaqc_module.R", local = TRUE)
 source("modules/explore_data_module.R", local = TRUE)
 
-
 # UI function definition
 ui <- function(request){
   bslib::page_navbar(
@@ -166,7 +165,6 @@ ui <- function(request){
               checklist_ui("explore_data_checklist"),
               hr(),
               explore_data_sidebar_ui("explore_data"),
-
               other_actions_ui("explore_data_actions")
             ),
             

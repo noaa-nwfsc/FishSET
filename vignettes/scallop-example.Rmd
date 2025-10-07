@@ -5,15 +5,15 @@ output:
     fig_width: 6
     fig_height: 4
 vignette: >
-  %\VignetteIndexEntry{Scallop Example}
+%\VignetteIndexEntry{Scallop Example}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
----
-
-```{r, include = FALSE}
+  ---
+  
+  ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+collapse = TRUE,
+comment = "#>"
 )
 ```
 
@@ -446,7 +446,7 @@ agg_helper(scallopMainDataTable,
 Observations inside/outside closures by fleet. 
 ```{r}
 agg_helper(scallopMainDataTable, group = "fleet", 
-            value = "in_closure", count = TRUE, fun = NULL) %>% 
+           value = "in_closure", count = TRUE, fun = NULL) %>% 
   pivot_wider(names_from = "in_closure", values_from = "n") %>% 
   rename("Outside Closure(s)" = "FALSE", "Inside Closure(s)" = "TRUE") %>% 
   pretty_lab() %>% 
@@ -458,8 +458,8 @@ agg_helper(scallopMainDataTable, group = "fleet",
 Observations inside/outside closures by year. 
 ```{r}
 agg_helper(scallopMainDataTable, value = "in_closure", 
-            group = "DB_LANDING_YEAR", 
-            count = TRUE, fun = NULL) %>% 
+           group = "DB_LANDING_YEAR", 
+           count = TRUE, fun = NULL) %>% 
   pivot_wider(names_from = "in_closure", values_from = "n",
               values_fill = 0) %>% 
   arrange(DB_LANDING_YEAR) %>% 
@@ -473,8 +473,8 @@ agg_helper(scallopMainDataTable, value = "in_closure",
 Observations inside/outside closures by year and fleet. 
 ```{r}
 agg_helper(scallopMainDataTable, value = "in_closure", 
-            group = c("DB_LANDING_YEAR", "fleet"), 
-            count = TRUE, fun = NULL) %>% 
+           group = c("DB_LANDING_YEAR", "fleet"), 
+           count = TRUE, fun = NULL) %>% 
   pivot_wider(names_from = "in_closure", values_from = "n",
               values_fill = 0) %>% 
   arrange(DB_LANDING_YEAR) %>% 
@@ -498,8 +498,8 @@ zone_out <- zone_summary(scallopMainDataTable, project = proj,
                          spat = scallopTenMNSQRSpatTable,
                          zone.dat = "ZONE_ID",
                          zone.spat = "TEN_ID",
-    dat_lat = "DDLAT",
-  dat_lon = "DDLON",
+                         dat_lat = "DDLAT",
+                         dat_lon = "DDLON",
                          output = "tab_plot",
                          count = TRUE,
                          na.rm = TRUE)
@@ -539,16 +539,16 @@ summaries for just one fleet (Access Area fleet).
 ```{r}
 zone_out <- 
   scallopMainDataTable %>% 
-    dplyr::filter(fleet == "Access Area") %>% 
-    zone_summary(project = proj,
-                 spat = scallopTenMNSQRSpatTable, 
-                 zone.dat = "ZONE_ID",
-                 zone.spat = "TEN_ID",
-                 dat_lat = "DDLAT",
-                 dat_lon = "DDLON",
-                 output = "tab_plot",
-                 count = TRUE,
-                 na.rm = TRUE)
+  dplyr::filter(fleet == "Access Area") %>% 
+  zone_summary(project = proj,
+               spat = scallopTenMNSQRSpatTable, 
+               zone.dat = "ZONE_ID",
+               zone.spat = "TEN_ID",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
+               output = "tab_plot",
+               count = TRUE,
+               na.rm = TRUE)
 
 zone_out$plot
 zone_out$table %>% 
@@ -563,16 +563,16 @@ Zone frequency (Days at Sea fleet).
 ```{r}
 zone_out <- 
   scallopMainDataTable %>% 
-    dplyr::filter(fleet == "Days at Sea") %>% 
-    zone_summary(project = proj,
-                 spat = scallopTenMNSQRSpatTable,
-                 zone.dat = "ZONE_ID",
-                 zone.spat = "TEN_ID",
-                 dat_lat = "DDLAT",
-                 dat_lon = "DDLON",
-                 output = "tab_plot",
-                 count = TRUE,
-                 na.rm = TRUE)
+  dplyr::filter(fleet == "Days at Sea") %>% 
+  zone_summary(project = proj,
+               spat = scallopTenMNSQRSpatTable,
+               zone.dat = "ZONE_ID",
+               zone.spat = "TEN_ID",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
+               output = "tab_plot",
+               count = TRUE,
+               na.rm = TRUE)
 
 zone_out$plot
 zone_out$table %>% 
@@ -680,16 +680,16 @@ Average CPUE for Access Area and Days at Sea fleets combined
 ```{r}
 zone_out <- 
   scallopMainDataTable %>% 
-    filter(CPUE_p >= .025 & CPUE_p <= .975) %>%
-    zone_summary(project = proj,
-                 spat = scallopTenMNSQRSpatTable, 
-                 zone.dat = "ZONE_ID",
-                 zone.spat = "TEN_ID",
-                 dat_lat = "DDLAT",
-                 dat_lon = "DDLON",
-                 count = FALSE,
-                 var = "CPUE", fun = "mean",
-                 na.rm = TRUE, output = "tab_plot")
+  filter(CPUE_p >= .025 & CPUE_p <= .975) %>%
+  zone_summary(project = proj,
+               spat = scallopTenMNSQRSpatTable, 
+               zone.dat = "ZONE_ID",
+               zone.spat = "TEN_ID",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
+               count = FALSE,
+               var = "CPUE", fun = "mean",
+               na.rm = TRUE, output = "tab_plot")
 zone_out$plot
 zone_out$table %>% 
   pretty_lab(cols = "CPUE") %>%
@@ -704,7 +704,7 @@ zone_out$table %>%
 Average VPUE for Access Area and Days at Sea fleets combined
 ```{r}
 zone_out <- 
-scallopMainDataTable %>% 
+  scallopMainDataTable %>% 
   filter(VPUE_p >= .025 & VPUE_p <= .975) %>% 
   zone_summary(project = proj,
                spat = scallopTenMNSQRSpatTable, 
@@ -737,7 +737,7 @@ zone_out <-
                dat_lat = "DDLAT",
                dat_lon = "DDLON",
                count = TRUE,
-               na.rm = TRUE, dat.center = FALSE, 
+               na.rm = TRUE, dat_center = FALSE, 
                output = "tab_plot")
 
 zone_out$table %>% 
@@ -760,7 +760,7 @@ zone_out <-
                dat_lon = "DDLON",
                fun = "percent",
                count = TRUE,
-               na.rm = TRUE, dat.center = FALSE, 
+               na.rm = TRUE, dat_center = FALSE, 
                output = "tab_plot")
 
 zone_out$table %>% 
@@ -784,7 +784,7 @@ zone_out <-
                dat_lat = "DDLAT",
                dat_lon = "DDLON",
                count = FALSE, 
-               na.rm = TRUE, dat.center = FALSE,
+               na.rm = TRUE, dat_center = FALSE,
                output = "tab_plot")
 
 zone_out$table %>% 
@@ -809,7 +809,7 @@ zone_out <-
                dat_lat = "DDLAT",
                dat_lon = "DDLON",
                count = FALSE, 
-               na.rm = TRUE, dat.center = FALSE,
+               na.rm = TRUE, dat_center = FALSE,
                output = "tab_plot")
 
 zone_out$table %>% 
@@ -832,7 +832,7 @@ zone_out <-
                dat_lat = "DDLAT",
                dat_lon = "DDLON",
                count = FALSE,
-               na.rm = TRUE, dat.center = FALSE, 
+               na.rm = TRUE, dat_center = FALSE, 
                output = "tab_plot")
 
 zone_out$table %>% 
@@ -856,7 +856,7 @@ zone_out <-
                dat_lat = "DDLAT",
                dat_lon = "DDLON",
                count = FALSE,
-               na.rm = TRUE, dat.center = FALSE, 
+               na.rm = TRUE, dat_center = FALSE, 
                output = "tab_plot")
 
 zone_out$table %>% 
@@ -967,12 +967,12 @@ ves_out$plot
 Total meat catch by year. 
 ```{r}
 catch_out <- 
-species_catch(scallopMainDataTable, proj,
-              species = "LANDED_OBSCURED",
-              date = "DATE_TRIP", 
-              period = "year",
-              fun = "sum",
-              type = "line", format_lab = "decimal")
+  species_catch(scallopMainDataTable, proj,
+                species = "LANDED_OBSCURED",
+                date = "DATE_TRIP", 
+                period = "year",
+                fun = "sum",
+                type = "line", format_lab = "decimal")
 
 catch_out$table %>% 
   pretty_lab(cols = "LANDED_OBSCURED") %>%
@@ -1108,7 +1108,7 @@ vpue_out <-
                 fun = "mean", type = "line")
 
 vpue_out$table %>% 
-pretty_lab() %>%
+  pretty_lab() %>%
   pretty_tab()
 
 vpue_out$plot + angled_theme()

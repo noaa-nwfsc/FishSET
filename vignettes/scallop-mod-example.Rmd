@@ -7,10 +7,10 @@ output:
     fig_width: 6
     fig_height: 4
 vignette: >
-  %\VignetteIndexEntry{Scallop Conditional Logit Model Example}
+%\VignetteIndexEntry{Scallop Conditional Logit Model Example}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-editor_options: 
+  editor_options: 
   markdown: 
     wrap: 72
 ---
@@ -125,8 +125,8 @@ zone_summary(dat = scallopModMainDataTable,
              project = "scallopMod",
              zone.dat = "ZoneID",
              zone.spat = "TEN_ID",
-  dat_lat = "DDLAT",
-  dat_lon = "DDLON",
+             dat_lat = "DDLAT",
+             dat_lon = "DDLON",
              output = "tab_plot")
 ```
 
@@ -200,8 +200,8 @@ zOut <-
                project = "scallopMod",
                zone.dat = "ZoneID",
                zone.spat = "TEN_ID",
-      dat_lat = "DDLAT",
-  dat_lon = "DDLON",
+               dat_lat = "DDLAT",
+               dat_lon = "DDLON",
                output = "tab_plot")
 
 pretty_tab(zOut$tab)
@@ -281,7 +281,7 @@ make_model_design(project = "scallopMod",
                   vars2 = NULL,
                   mod.name = 'lz', 
                   expectcatchmodels = list('individual')
-                  )
+)
 ```
 
 <br>

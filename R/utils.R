@@ -12,7 +12,7 @@ choose_directory = function() {
     out <- rstudioapi::selectDirectory(caption = title)
     
   } else if (requireNamespace("utils", quietly = TRUE) & .Platform$OS.type == "windows") {
-  
+    
     out <- utils::choose.dir(caption = title)
     
   } else if (requireNamespace("tcltk", quietly = TRUE)) {
@@ -38,23 +38,23 @@ choose_directory = function() {
 }
 
 loc <- function() {
-    #' Define FishSETFolder location
-    #' @keywords internal
-    #' @export
+  #' Define FishSETFolder location
+  #' @keywords internal
+  #' @export
+  
+  newdir <- choose_directory()
+  
+  # If user is selecting the location to create the FSF
+  # TODO: check that chosen dir ends in 'FishSETFolder'
+  if (grepl('FishSETFolder', as.character(newdir)) == FALSE) {
     
-    newdir <- choose_directory()
-    
-    # If user is selecting the location to create the FSF
-    # TODO: check that chosen dir ends in 'FishSETFolder'
-    if (grepl('FishSETFolder', as.character(newdir)) == FALSE) {
-      
-      newdir <- paste0(newdir, '/FishSETFolder/')
-      # this will silently fail if dir already exists
-      dir.create(file.path(newdir), showWarnings = FALSE)
-    } 
-    # otherwise, return the loc of the existing FSF
-    return(newdir)
-  }
+    newdir <- paste0(newdir, '/FishSETFolder/')
+    # this will silently fail if dir already exists
+    dir.create(file.path(newdir), showWarnings = FALSE)
+  } 
+  # otherwise, return the loc of the existing FSF
+  return(newdir)
+}
 
 locproject <- function() {
   #' Define projects folder location
@@ -62,7 +62,7 @@ locproject <- function() {
   #' @export
   #' @keywords internal
   # TODO: change folderpath to fsfolderpath, or FSFolderpath?
-
+  
   # If running shiny tests - return path to main unit tests
   if (getOption("shiny.testmode", FALSE)){
     return(system.file("tests/testthat/testdata/FishSETFolder", package = "FishSET"))
@@ -73,37 +73,37 @@ locproject <- function() {
   if (!is.null(test_folderpath)) {
     return(test_folderpath)
   }
-
+  
   fp_exists <- exists("folderpath", where = ".GlobalEnv")
-
+  
   if (fp_exists) {
-
+    
     proj_dir <- get("folderpath", envir = as.environment(1L))
-
+    
     # Possible that user altered folderpath, check if valid
     if (!dir.exists(proj_dir)) {
-
+      
       stop("The folder in 'folderpath' does not exist. Delete 'folderpath' or run ",
            "update_folderpath() to select the location of the FishSET Folder.",
            call. = FALSE)
     }
-
+    
   } else {
     # have user select folder
     proj_dir <- loc()
   }
-
+  
   # add trailing slash
   proj_dir <- paste0(normalizePath(proj_dir), "/")
   
   # create the new path to FishSETFolder
   if (!fp_exists) {
-
+    
     pos <- 1
     envir = as.environment(pos)
     assign('folderpath', proj_dir, envir = envir)
   }
-
+  
   return(proj_dir)
 }
 
@@ -154,7 +154,7 @@ check_proj <- function(project = NULL) {
   #' @export
   
   if (!is.null(project)) {
-      
+    
     
     appDir <- system.file( "report", 'report_template.Rmd', package = "FishSET")
     # check if projects folder exists
@@ -253,7 +253,7 @@ erase_project <- function(project) {
     
     unlink(paste0(locproject(),  project), recursive = TRUE)
     message('Project ', project, ' deleted')
-  
+    
   } else {
     
     warning(paste0("Project \"", project, "\" does not exists"))
@@ -288,8 +288,8 @@ loclog <- function(project) {
   if(is.null(project)){
     warning('Project name must be supplied.')
   } else {
-      paste0(locproject(), project, "/src/")
-    } 
+    paste0(locproject(), project, "/src/")
+  } 
 }
 
 locoutput <- function(project) {
@@ -297,14 +297,14 @@ locoutput <- function(project) {
   #' @param project Project name
   #' @keywords internal
   #' @export
- 
+  
   if(is.null(project)){
     warning('Project name must be supplied.')
   } else {
-  
-  
-      file.path(locproject(), project, "/output", "/")
-  
+    
+    
+    file.path(locproject(), project, "/output", "/")
+    
   }
 }
 
@@ -321,11 +321,11 @@ loc_map <- function(project) {
   #' loc2 <- getwd()
   #' loc_map() #will return output folder location as within the working directory
   #' }
-
+  
   if(is.null(project)){
     warning('Project name must be supplied.')
   } else {
-      paste0(locproject(), project, "/MapViewer/")
+    paste0(locproject(), project, "/MapViewer/")
   }
 }
 
@@ -388,20 +388,20 @@ loc_doc <- function(project) {
 #}
 
 find_project <- function(dat, project=NULL){
-#' Find project
-#' @param dat Data table name
-#' @param project Project Name
-#' @export
-#' @keywords internal
-
+  #' Find project
+  #' @param dat Data table name
+  #' @param project Project Name
+  #' @export
+  #' @keywords internal
+  
   if(is.null(project)){
     if(grepl('MainDataTable', dat)){
-    project <- sub("\\MainDataTable", "", dat)
-    return(project)
+      project <- sub("\\MainDataTable", "", dat)
+      return(project)
     } else {
       "Project name must be supplied."
     }
-   
+    
   } else {
     project <- project
     return(project)
@@ -464,10 +464,10 @@ trim_space <- function(x, what = c("both", "leading", "trailing", "none"), space
     stop("nothing to trim spaces to =(")
   }
   re <- switch(match.arg(what), both = sprintf("^[%s]+|[%s]+$", space.regex, space.regex),
-    leading = sprintf("^[%s]+", space.regex), trailing = sprintf("[%s]+$", space.regex),
-    none = {
-      return(x)
-    }
+               leading = sprintf("^[%s]+", space.regex), trailing = sprintf("[%s]+$", space.regex),
+               none = {
+                 return(x)
+               }
   )
   vgsub(re, "", x, ...)
 }
@@ -541,7 +541,7 @@ find_last <- function(y) {
   #' @param y variable of interest
   #' @keywords internal
   #' @export
-
+  
   g <- y[which(grepl("date", names(y), ignore.case = TRUE) == TRUE)]
   if (all(g == "") == TRUE || all(is_empty(g) == TRUE) == TRUE) {
     warning("All date variables are empty")
@@ -612,13 +612,13 @@ qaqc_helper <-function(dat, fun, output = "logical") {
     
     out <- vapply(dat, qaqc_fun, FUN.VALUE = fun_value())
     
-   if (output == "names") {
+    if (output == "names") {
       
       names(which(out))
-     
-   } else {
       
-     out
+    } else {
+      
+      out
     }
   }
 }
@@ -696,7 +696,7 @@ accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
   #' @param fillval set to 0
   #' @keywords internal
   #' @export
-
+  
   stopifnot(is.numeric(subs), is.numeric(val))
   subs <- floor(subs)
   val <- c(val)
@@ -748,7 +748,7 @@ skewness <- function(x, na.rm = FALSE) {
   #' @param na.rm set to FALSE
   #' @keywords internal
   #' @export
-
+  
   if (na.rm == TRUE) {
     x <- x[is.na(x) == FALSE]
   } else {
@@ -792,7 +792,7 @@ date_parser <- function(dates, args=NULL) {
   #' @keywords internal
   #' @export
   #' @importFrom lubridate dym ymd myd ydm dmy mdy
-
+  
   dates <- trimws(dates)
   dates <- sub(" .*", "\\1", dates)
   if (!all(is.na(suppressWarnings(lubridate::mdy(dates))))) {
@@ -818,9 +818,9 @@ date_time_parser <- function(dates) {
   #' @keywords internal
   #' @export
   #' @importFrom lubridate mdy_hms mdy_hm dmy_hms dmy_hm ymd_hms ymd_hm ydm_hms ydm_hm
-
+  
   dates <- trimws(dates)
-
+  
   if (all(grepl("^.*\\s\\d{2}:\\d{2}:\\d{2}$", dates))) {
     if (all(!is.na(suppressWarnings(lubridate::mdy_hms(dates))))) {
       lubridate::mdy_hms(dates)
@@ -843,7 +843,7 @@ date_time_parser <- function(dates) {
     }
   } else {
     warning("Date-time format not recognized. Format date-time before proceeding")
-
+    
     dates
   }
 }
@@ -857,15 +857,15 @@ date_check <- function(dat, date) {
   #'  dataframe with converted variable.
   #' @importFrom lubridate is.POSIXt is.Date
   #' @export
-
+  
   end <- FALSE
-
+  
   if (lubridate::is.POSIXt(dat[[date]])) {
     dat[[date]] <- dat[[date]]
   } else if (lubridate::is.Date(dat[[date]])) {
     dat[[date]] <- dat[[date]]
   } else if (all(grepl("^.*\\s\\d{2}:\\d{2}:\\d{2}$", dat[[date]])) |
-    all(grepl("^.*\\s\\d{2}:\\d{2}$", dat[[date]]))) {
+             all(grepl("^.*\\s\\d{2}:\\d{2}$", dat[[date]]))) {
     dat[[date]] <- date_time_parser(dat[[date]])
   } else if (all(grepl("^\\d{4}-\\d{2}-\\d{2}$", dat[[date]]))) {
     dat[[date]] <- date_parser(dat[[date]])
@@ -873,7 +873,7 @@ date_check <- function(dat, date) {
     stop("Date format not recognized.", call. = FALSE)
     end <- TRUE
   }
-
+  
   if (end == FALSE) {
     dat
   }
@@ -938,36 +938,36 @@ parse_data_name <- function(dat, type, project) {
   
   
   if (shiny::isRunning()) {
-
+    
     p_set <- get_proj_settings(project)
     dat <- p_set$tables[[type]]
-
+    
   } else {
-
+    
     if (!is.character(dat)) {
-
+      
       if (type == "main") {
-
+        
         dat <- deparse(substitute(dat, rlang::caller_env()))
-
+        
       } else if (type == "aux") {
-
+        
         dat <- deparse(substitute(aux, rlang::caller_env()))
-
+        
       } else if (type == "grid") {
-
+        
         dat <- deparse(substitute(grid, rlang::caller_env()))
-
+        
       } else if (type == "port") {
-
+        
         dat <- deparse(substitute(port, rlang::caller_env()))
-
+        
       } else if (type == "spat") {
-
+        
         dat <- deparse(substitute(spat, rlang::caller_env()))
-
+        
       } else if (type == "outsample") {
-
+        
         dat <- deparse(substitute(outsample, rlang::caller_env()))
       }
     }
@@ -1090,7 +1090,7 @@ name_check <- function(dat, names, repair = FALSE) {
   #'   will check for unique column names and returns new column names that are
   #'   unique and syntactic (see \code{\link[vctrs]{vec_as_names}} for details).
   #' 
-
+  
   if (is_value_empty(names)) {
     
     stop("Name is missing.", call. = FALSE)
@@ -1192,11 +1192,11 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, within_group
   #' }
   
   . <- NULL
-
+  
   agg_cols <- unique(c(value, period, group))
   
   column_check(dataset, agg_cols)
-    
+  
   calc_perc <- FALSE
   
   # TODO: use !match.fun(fun) instead? 
@@ -1289,11 +1289,11 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, within_group
 }
 
 spars <- function(x, dname) {
-#' Helper function for sparsity functions
-#' @param x Name of table
-#' @param dname time period
-#' @export
-#' @keywords internal
+  #' Helper function for sparsity functions
+  #' @param x Name of table
+  #' @param dname time period
+  #' @export
+  #' @keywords internal
   if (dname == "1 weeks") {
     y <- lubridate::round_date(as.Date(rownames(x)), "1 weeks")
   } else if (dname == "2 weeks") {
@@ -1329,7 +1329,7 @@ perc_of_total <- function(dat, value_var, group = NULL, drop = FALSE,
   #' @keywords internal
   #' @export
   #' 
- 
+  
   . <- NULL
   
   val_total <- paste0(value_var, "_total") 
@@ -1388,9 +1388,9 @@ expand_data <- function(dataset, project, date = NULL, value, sub_date = NULL,
   #'   data. Only variables needed to aggregate the data are kept to minimize memory usage.
   #'   If confidentiality checks are turned on, the vessel ID column is included
   #'   as well.
-
-  if (!is.null(c(period, group, facet_by))) {
   
+  if (!is.null(c(period, group, facet_by))) {
+    
     # convert date col to date type (may be redundant)
     if (!is.null(date)) {
       
@@ -1426,7 +1426,7 @@ expand_data <- function(dataset, project, date = NULL, value, sub_date = NULL,
       to_date <- max(dataset[[date]], na.rm = TRUE)
       full_dates <- seq.Date(from = from_date, to = to_date, by = add_per)
     }
-
+    
     cols <- unique(c(date, group, facet_by))
     cols_exp <- unique(c(group, facet_by))
     
@@ -1441,7 +1441,7 @@ expand_data <- function(dataset, project, date = NULL, value, sub_date = NULL,
     }
     # Remove unnecessary cols
     dataset <- dataset[unique(c(cols, value))]
- 
+    
     # list of unique values for each grouping column
     unique_vals <- lapply(dataset[cols_exp], unique)
     
@@ -1526,7 +1526,7 @@ subset_date <- function(dataset, date, filter, value) {
   #' @keywords internal
   
   if (filter == "date_range") {
-      
+    
     dataset <- dataset[dataset[[date]] >= value[1] & dataset[[date]] <= value[2], ]
     
   } else {
@@ -1564,42 +1564,42 @@ subset_var <- function(dataset, filter_by = NULL, filter_value = NULL, filter_ex
   #' @export
   #' @keywords internal 
   #' @importFrom rlang parse_expr
-
+  
   if (!is.null(filter_by) & !is.null(filter_value)) {
-      
-      rows <- dataset[[filter_by]] %in% filter_value
-      
-      if (is.logical(rows)) {
-        
-        dataset <- dataset[rows, ]
-        
-      } else {
-        
-        stop("Invalid filter expression.", call. = FALSE)
-      }
-    } 
     
-    if (!is_empty(filter_expr)) {
+    rows <- dataset[[filter_by]] %in% filter_value
+    
+    if (is.logical(rows)) {
       
-      p_expr <- rlang::parse_expr(filter_expr)
+      dataset <- dataset[rows, ]
       
-      rows <- eval(p_expr, envir = dataset)
+    } else {
       
-      if (is.logical(rows)) {
-        
-        dataset <- dataset[rows, ]
-        
-      } else {
-        
-        stop("Invalid filter expression.", call. = FALSE)
-      }
+      stop("Invalid filter expression.", call. = FALSE)
     }
+  } 
+  
+  if (!is_empty(filter_expr)) {
+    
+    p_expr <- rlang::parse_expr(filter_expr)
+    
+    rows <- eval(p_expr, envir = dataset)
+    
+    if (is.logical(rows)) {
+      
+      dataset <- dataset[rows, ]
+      
+    } else {
+      
+      stop("Invalid filter expression.", call. = FALSE)
+    }
+  }
   
   if (nrow(dataset) == 0) {
     
     stop("Filtered data table has zero rows. Check filter parameters.", call. = FALSE)
   }
-
+  
   dataset
 } 
 
@@ -1638,19 +1638,19 @@ period_check <- function(period, date) {
 
 # Plotting helper functions ----
 fishset_theme <- function() {
-#' Default FishSET plot theme
-#' 
-#' @keywords internal
-#' @export
-#' @import ggplot2
-
+  #' Default FishSET plot theme
+  #' 
+  #' @keywords internal
+  #' @export
+  #' @import ggplot2
+  
   ggplot2::theme(
-  panel.grid.major = ggplot2::element_blank(),
-  panel.grid.minor = ggplot2::element_blank(),
-  panel.background = ggplot2::element_blank(),
-  axis.line = ggplot2::element_line(colour = "black"),
-  axis.text = ggplot2::element_text(size = 11),
-  axis.title = ggplot2::element_text(size = 11))
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.background = ggplot2::element_blank(),
+    axis.line = ggplot2::element_line(colour = "black"),
+    axis.text = ggplot2::element_text(size = 11),
+    axis.title = ggplot2::element_text(size = 11))
 }
 
 num_breaks <- function(per) {
@@ -1690,7 +1690,7 @@ n_breaks <- function(x) {
   #' @param x Value to determine breaks
   #' @export
   #' @keywords internal
-
+  
   i <- unique(x)
   len <- length(i)
   if (len <= 15) {
@@ -1756,7 +1756,7 @@ save_plot <- function(project, func_name, ...) {
   #' \dontrun{
   #' save_plot(project, "species_catch")
   #' }
-
+  
   p_set <- get_proj_settings(project)
   
   name <- paste0(project, "_", func_name, "_", Sys.Date())
@@ -1768,15 +1768,15 @@ save_plot <- function(project, func_name, ...) {
   } else {
     fname <- paste0(filename, ".png")
   }
-
+  
   if (!is.null(p_set$save_plot_rds) && p_set$save_plot_rds) {
-
+    
     fn_rds <- paste0(filename, ".RDS")
     saveRDS(object = ggplot2::last_plot(), file = fn_rds)
   }
-
+  
   p_size <- get_proj_settings(project)$plot_size
-
+  
   if("leaflet" %in% class(...)){
     saveRDS(..., fname)
   } else {
@@ -1801,8 +1801,8 @@ save_nplot <- function(project, func_name, plot_list, id = "num", ...) {
   else if (id == "name") vec <- names(plot_list)
   
   if("leaflet" %in% class(plot_list)){
-      fn <- paste0(func_name)
-      save_plot(project, func_name = fn, plot_list)
+    fn <- paste0(func_name)
+    save_plot(project, func_name = fn, plot_list)
   } else {
     lapply(vec, function(x) {
       fn <- paste0(func_name, "_", x)
@@ -1871,9 +1871,9 @@ date_title <- function(plot, filter_date, date_value) {
   #' @param filter_date The \code{filter_date} parameter in function.
   #' @param date_value The values used to filter the data table used in plot.
   #' @return A plot with the year, month, or year-month included in tittle.
-
+  
   fv_len <- length(date_value)
-
+  
   if (filter_date == "year") {
     if (fv_len == 1) {
       plot$labels$subtitle <- paste0("Year: ", date_value)
@@ -1888,7 +1888,7 @@ date_title <- function(plot, filter_date, date_value) {
     month <- switch(date_value, "1" = "Jan", "2" = "Feb", "3" = "Mar", "4" = "Apr",
                     "5" = "May", "6" = "Jun", "7" = "Jul", "8" = "Aug", "9" = "sep", 
                     "10" = "Oct", "11" = "Nov", "12" = "Dec")
-
+    
     if (fv_len == 1) {
       plot$labels$subtitle <- paste0(month)
     } else {
@@ -1903,7 +1903,7 @@ date_title <- function(plot, filter_date, date_value) {
     month <- switch(m_num, "1" = "Jan", "2" = "Feb", "3" = "Mar", "4" = "Apr",
                     "5" = "May", "6" = "Jun", "7" = "Jul", "8" = "Aug", "9" = "sep", 
                     "10" = "Oct", "11" = "Nov", "12" = "Dec")
-
+    
     if (y_len == 1 & m_len == 1) {
       plot$labels$subtitle <- paste(month, y_num)
     } else if (y_len > 1 & m_len == 1) {
@@ -1919,7 +1919,7 @@ date_title <- function(plot, filter_date, date_value) {
       warning("Invalid year-month length.")
     }
   }
-
+  
   plot
 }
 
@@ -1957,11 +1957,11 @@ order_factor <- function(dat, fac, val, rev = FALSE) {
   #'
   
   agg <- stats::aggregate(stats::reformulate(fac, val), dat, FUN = sum)
-
+  
   ord <- unique(agg[[fac]][order(agg[[val]], decreasing = rev)])
-
+  
   dat[[fac]] <- factor(dat[[fac]], levels = ord)
-
+  
   dat
 }
 
@@ -1972,29 +1972,29 @@ date_factorize <- function(dataset, date_col, date_code) {
   #' @param dataset data frame containing date variable.
   #' @param date_col date variable of type character to convert to ordered factor.
   #' @param date_code date code used to format date variable.
-
+  
   if (date_code %in% c("%Y-%m", "%a", "%A", "%b", "%B")) {
     if (date_code == "%b") {
       dataset[[date_col]] <- factor(dataset[[date_col]],
-        levels = month.abb,
-        ordered = TRUE)
+                                    levels = month.abb,
+                                    ordered = TRUE)
       
     } else if (date_code == "%B") {
       dataset[[date_col]] <- factor(dataset[[date_col]],
-        levels = month.name,
-        ordered = TRUE)
+                                    levels = month.name,
+                                    ordered = TRUE)
       
     } else if (date_code == "%a") {
       dataset[[date_col]] <- factor(dataset[[date_col]],
-        levels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"),
-        ordered = TRUE)
+                                    levels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"),
+                                    ordered = TRUE)
       
     } else if (date_code == "%A") {
       dataset[[date_col]] <- factor(dataset[[date_col]],
-        levels = c(
-          "Sunday", "Monday", "Tuesday", "Wednesday",
-          "Thursday", "Friday", "Saturday"),
-        ordered = TRUE)
+                                    levels = c(
+                                      "Sunday", "Monday", "Tuesday", "Wednesday",
+                                      "Thursday", "Friday", "Saturday"),
+                                    ordered = TRUE)
       
     } else if (date_code == "%Y-%m") {
       
@@ -2019,7 +2019,7 @@ text_filepath <- function(project, fun_name) {
   #' \dontrun{
   #' cat("message", file = text_filepath("my_project", "qaqc_output"))
   #' }
-
+  
   paste0(locoutput(project=project), project, "_", fun_name, Sys.Date(), ".txt")
 }
 
@@ -2082,10 +2082,10 @@ mvgrnd <- function(m,sigma,n){
   U = chol(sigma) #Cholesky decomposition. U is an upper triangular matrix
   
   d = length(m)
- 
-   y <- matrix(NA, nrow=n, ncol=d)
   
- 
+  y <- matrix(NA, nrow=n, ncol=d)
+  
+  
   for(i in 1:n){
     y[i,1:d] = t(m) + rnorm(d) %*% U
   }
@@ -2120,7 +2120,7 @@ gridcheck <- function(spatialdat, catdat, londat=NULL, latdat=NULL, lon.grid=NUL
     if(any(class(spatialdat) %in% c("sp", "SpatialPolygonsDataFrame"))) {
       spatialdat <- sf::st_as_sf(spatialdat)
       if(any(grepl('PROJCRS',  sf::st_crs(spatialdat)))){
-      spatialdat <- st_transform(spatialdat, "+proj=longlat +ellps=WGS84 +datum=WGS84")
+        spatialdat <- st_transform(spatialdat, "+proj=longlat +ellps=WGS84 +datum=WGS84")
       }
     } else {
       if (is_empty(lon.grid) | is_empty(lat.grid)) {
@@ -2161,13 +2161,13 @@ bbox <- function(dat, lon, lat, f = 0.05) {
 
 use_prompter <- function() {
   
-#' Wrapper for prompter::use_prompt()
-#' 
-#' @importFrom prompter use_prompt
-#' @export
-#' @keywords internal
-#' 
-
+  #' Wrapper for prompter::use_prompt()
+  #' 
+  #' @importFrom prompter use_prompt
+  #' @export
+  #' @keywords internal
+  #' 
+  
   prompter::use_prompt()
 }
 
@@ -2184,11 +2184,11 @@ add_prompter <- function(ui_element,
                          arrow = TRUE,
                          shadow = TRUE) {
   
-#' Wrapper for prompter::add_prompt()
-#' 
-#' @importFrom prompter add_prompt
-#' @export
-#' @keywords internal
+  #' Wrapper for prompter::add_prompt()
+  #' 
+  #' @importFrom prompter add_prompt
+  #' @export
+  #' @keywords internal
   
   prompter::add_prompt(ui_element, position = position, message = message,
                        type = type, size = size, permanent = permanent,
@@ -2223,10 +2223,10 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal",
   #'  sampled quantiles against theoretical quantiles.
   #'
   #' @return Plot of the data
-
-
+  
+  
   requireNamespace("ggplot2")
-
+  
   dataset <- dat
   x.name <- x
   
@@ -2245,32 +2245,32 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal",
                                    dataset[[x]] > (mean(dataset[[x]], na.rm = T) - dat_remove * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
       } else if (dat_remove == "5_95_quant") {
         dataset$Points <- ifelse(dataset[[x]] < stats::quantile(dataset[[x]], 0.95, na.rm = TRUE) &
-          dataset[[x]] > stats::quantile(dataset[[x]], 0.05, na.rm = TRUE), "Kept", "Removed")
+                                   dataset[[x]] > stats::quantile(dataset[[x]], 0.05, na.rm = TRUE), "Kept", "Removed")
       } else if (dat_remove == "25_75_quant") {
         dataset$Points <- ifelse(dataset[[x]] < stats::quantile(dataset[[x]], 0.75, na.rm = TRUE) &
-          dataset[[x]] > stats::quantile(dataset[[x]], 0.25, na.rm = TRUE), "Kept", "Removed")
+                                   dataset[[x]] > stats::quantile(dataset[[x]], 0.25, na.rm = TRUE), "Kept", "Removed")
       } else if (dat_remove == "mean_2SD") {
         dataset$Points <- ifelse(dataset[[x]] < (mean(dataset[[x]], na.rm = T) + 2 *
-          stats::sd(dataset[[x]], na.rm = T)) &
-          dataset[[x]] > (mean(dataset[[x]], na.rm = T) - 2 * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
+                                                   stats::sd(dataset[[x]], na.rm = T)) &
+                                   dataset[[x]] > (mean(dataset[[x]], na.rm = T) - 2 * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
       } else if (dat_remove == "median_2SD") {
         dataset$Points <- ifelse(dataset[[x]] < (stats::median(dataset[[x]], na.rm = T) + 2 * stats::sd(dataset[[x]], na.rm = T)) &
-          dataset[[x]] > (stats::median(dataset[[x]], na.rm = T) - 2 * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
+                                   dataset[[x]] > (stats::median(dataset[[x]], na.rm = T) - 2 * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
       } else if (dat_remove == "mean_3SD") {
         dataset$Points <- ifelse(dataset[[x]] < (mean(dataset[[x]], na.rm = T) + 3 * stats::sd(dataset[[x]], na.rm = T)) &
-          dataset[[x]] > (mean(dataset[[x]], na.rm = T) - 3 * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
+                                   dataset[[x]] > (mean(dataset[[x]], na.rm = T) - 3 * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
       } else if (dat_remove == "median_3SD") {
         dataset$Points <- ifelse(dataset[[x]] < (stats::median(dataset[[x]], na.rm = T) + 3 * stats::sd(dataset[[x]], na.rm = T)) &
-          dataset[[x]] > (stats::median(dataset[[x]], na.rm = T) - 3 * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
+                                   dataset[[x]] > (stats::median(dataset[[x]], na.rm = T) - 3 * stats::sd(dataset[[x]], na.rm = T)), "Kept", "Removed")
       }
     } # End Outlier mod
-
+    
     mytheme <- theme(
       panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
       panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text = element_text(size = 11),
       axis.title = element_text(size = 11)
     )
- 
+    
     # Hist
     # Plot 2!
     if (x_dist == "normal") {
@@ -2311,11 +2311,11 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal",
       arg.return <- stat_function(
         fun = dnbinom, colour = "blue",
         args = list(mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE)^2 / (var(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE) - mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE)),
-          mu = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE)
+                    mu = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE)
         )
       )
     }
-
+    
     # Plot3
     # Probability plot
     quants <- seq(0, 1, length = length(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)) + 2)[2:(length(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)) + 1)]
@@ -2331,8 +2331,8 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal",
     } else if (x_dist == "weibull") {
       # Weibull
       fit_quants <- stats::qweibull(quants,
-        shape = 1.2 / sqrt(var(log(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), na.rm = TRUE)),
-        scale = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE) + 0.572 / (1.2 / sqrt(var(log(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), na.rm = TRUE)))
+                                    shape = 1.2 / sqrt(var(log(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), na.rm = TRUE)),
+                                    scale = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE) + 0.572 / (1.2 / sqrt(var(log(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), na.rm = TRUE)))
       )
     } else if (x_dist == "poisson") {
       # Poisson
@@ -2340,11 +2340,11 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal",
     } else if (x_dist == "negative binomial") {
       # Negative Binomial
       fit_quants <- stats::qnbinom(quants,
-        size = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE)^2 / (var(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE) - mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE)),
-        mu = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE)
+                                   size = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE)^2 / (var(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE) - mean(dataset[dataset$Points == "Kept", x], na.rm = TRUE)),
+                                   mu = mean(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE), na.rm = TRUE)
       )
     }
-
+    
     data_quants <- stats::quantile(as.numeric(unlist(dataset[dataset$Points == "Kept", x], use.names = FALSE)), quants, na.rm = TRUE)
     # create Q-Q plot
     temp <- data.frame(fit_quants, data_quants)
@@ -2353,7 +2353,7 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal",
       geom_abline() +
       labs(x = "Theoretical Quantiles", y = "Sample Quantiles", title = paste("Q-Q plot of", x_dist, "fit against data")) +
       mytheme
-
+    
     if (plot_type == "1") {
       return(dataset)
     } else if (plot_type == "2") {
@@ -2392,13 +2392,13 @@ quietly_test <- function(.f, show_msg = FALSE, show_warning = FALSE) {
   #' @keywords internal
   #' @importFrom purrr quietly safely
   #
-
+  
   fun1 <- purrr::quietly(.f)
   fun <- purrr::safely(fun1)
   
   function(...) {
     res <- fun(...)
-
+    
     if (!is.null(res$error)) { # safely output
       
       showNotification(conditionMessage(res$error), duration = 60, type = "error")
@@ -2446,16 +2446,16 @@ quiet_safe_test <- function(.f) {
 
 
 deleteButtonColumn <- function(df, id, ...) {
-#' A column of delete buttons for each row in the data frame for the first column
-#'
-#' @param df data frame
-#' @param id id prefix to add to each actionButton. The buttons will be id'd as id_INDEX.
-#' @return A DT::datatable with escaping turned off that has the delete buttons in the first column 
-#'   and \code{df} in the other function to create one action button as string
-#' @importFrom DT datatable
-#' @keywords internal
-#' @export
-
+  #' A column of delete buttons for each row in the data frame for the first column
+  #'
+  #' @param df data frame
+  #' @param id id prefix to add to each actionButton. The buttons will be id'd as id_INDEX.
+  #' @return A DT::datatable with escaping turned off that has the delete buttons in the first column 
+  #'   and \code{df} in the other function to create one action button as string
+  #' @importFrom DT datatable
+  #' @keywords internal
+  #' @export
+  
   f <- function(i) {
     # https://shiny.rstudio.com/articles/communicating-with-js.html
     as.character(actionButton(paste(id, i, sep="_"), label = NULL, icon = icon('trash'),
@@ -2480,23 +2480,23 @@ deleteButtonColumn <- function(df, id, ...) {
 
 parseDeleteEvent <- function(idstr) {
   #' Extracts the row id number from the id string
-#' @param idstr the id string formated as id_INDEX
-#' @return INDEX from the id string id_INDEX
-#' @export
-#' @keywords internal
-
+  #' @param idstr the id string formated as id_INDEX
+  #' @return INDEX from the id string id_INDEX
+  #' @export
+  #' @keywords internal
+  
   res <- as.integer(sub(".*_([0-9]+)", "\\1", idstr))
   if (! is.na(res)) res
 }
 
 # Helper functions to find specific types of variables (date, port, catch, etc) ---- 
 find_lon <- function(dat) {
- #' Find columns that may be longitude data
- #' @param dat Data set to search over
- #' @keywords internal
- #' @importFrom stringi stri_count_regex
- #' @export
- 
+  #' Find columns that may be longitude data
+  #' @param dat Data set to search over
+  #' @keywords internal
+  #' @importFrom stringi stri_count_regex
+  #' @export
+  
   # if (all(is_empty(dat[1, ]))) return(NULL)
   
   cols <- colnames(dat)[grep('lon', colnames(dat), ignore.case = TRUE)]
@@ -2518,7 +2518,7 @@ find_lat <- function(dat) {
   #' @importFrom stringi stri_count_regex
   #' @export
   #' 
-
+  
   # if (all(is_empty(dat[1,]))) return()
   
   cols <- colnames(dat)[grep('lat', colnames(dat), ignore.case = TRUE)]
@@ -2728,12 +2728,12 @@ date_cols <- function(dat, out = "names", type = 'both') {
 # ----
 
 find_dev <- function(x, y){
-#'  
-#' Find how many standard deviations point \code{x} is from mean of \code{y}.
-#' @param x value to check
-#' @param y data vector. Must be numeric
-#' @export
-#' @keywords internal
+  #'  
+  #' Find how many standard deviations point \code{x} is from mean of \code{y}.
+  #' @param x value to check
+  #' @param y data vector. Must be numeric
+  #' @export
+  #' @keywords internal
   
   
   i <- 1  

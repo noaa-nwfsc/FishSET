@@ -25,9 +25,9 @@
 #'  percentage of observations in a given zone. Other options include "sum", 
 #'  "mean", "median", "min", and "max". 
 #'@param na.rm Logical, whether to remove zones with zero counts. 
-#'@param dat.center Logical, whether the plot should center on `dat` 
-#'  (`TRUE`) or `spat` (`FALSE`). Recommend `dat.center = TRUE`
-#'  when aggregating by regulatory zone and `dat.center = FALSE` when
+#'@param dat_center Logical, whether the plot should center on `dat` 
+#'  (`TRUE`) or `spat` (`FALSE`). Recommend `dat_center = TRUE`
+#'  when aggregating by regulatory zone and `dat_center = FALSE` when
 #'  aggregating by closure area. 
 #'@param output  Output a `"plot"`, `"table"`, or both (`"tab_plot"`).
 #'  Defaults to `"plot"`.
@@ -78,23 +78,23 @@
 #'}
 
 zone_summary <- function(dat,
-  spat,
-  project,
-  zone.dat,
-  zone.spat,
-  dat_lon,
-  dat_lat, 
-  count = TRUE,
-  var = NULL,
-  group = NULL,
-  fun = NULL,
-  na.rm = TRUE,
-  dat.center = TRUE,
-  plot_type = "dynamic",
-  output = "plot") {
-
+                         spat,
+                         project,
+                         zone.dat,
+                         zone.spat,
+                         dat_lon,
+                         dat_lat, 
+                         count = TRUE,
+                         var = NULL,
+                         group = NULL,
+                         fun = NULL,
+                         na.rm = TRUE,
+                         dat_center = TRUE,
+                         plot_type = "dynamic",
+                         output = "plot") {
   
-  # Call in datasets
+  
+  # Pull in datasets ------------------------------------------------------------------------------
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
@@ -107,12 +107,11 @@ zone_summary <- function(dat,
   
   # secondary column when fun = percent
   val_2 <- NULL
-
-  # summary table ----
   
+  # Summary table ---------------------------------------------------------------------------------
   if (count & !is.null(var)) {
     stop("Cannot use count with var. To count by group, add variable to 'group' argument.",
-      call. = FALSE)
+         call. = FALSE)
   }
   
   if (!is.null(group) && length(group) > 1) {
@@ -128,7 +127,7 @@ zone_summary <- function(dat,
   }
   
   zone_tab <- agg_helper(dataset, value = var, group = c(zone.dat, group),
-    fun = fun, count = count)
+                         fun = fun, count = count)
   
   # percent flag
   if (!is.null(fun) && fun == "percent"){
@@ -167,11 +166,11 @@ zone_summary <- function(dat,
     
     if (!calc_perc & is.null(var)) {
       stop("Invalid arguments. Set 'count = TRUE' or include a numeric variable",
-        " to aggregate by.", call. = FALSE)
+           " to aggregate by.", call. = FALSE)
       
     } else if (calc_perc & is.null(var)) {
       stop("Invalid arguments. Include a numeric variable to aggregate by.",
-        call. = FALSE)
+           call. = FALSE)
       
     } else if (!calc_perc & !is.null(var)) {
       # agg var by zone
@@ -189,7 +188,7 @@ zone_summary <- function(dat,
     if (!is.null(group)) multi_plot <- TRUE
   }
   
-  # confid check ----
+  # Confidential check ----------------------------------------------------------------------------
   # skip check if rule = "k" and count = TRUE
   cc_par <- get_confid_check(project)
   
@@ -199,14 +198,14 @@ zone_summary <- function(dat,
     
     check_out <-
       check_confidentiality(dataset, project, v_id = cc_par$v_id, value_var = var,
-        group = c(zone.dat, group), rule = cc_par$rule,
-        value = cc_par$value)
+                            group = c(zone.dat, group), rule = cc_par$rule,
+                            value = cc_par$value)
     
     if (any(check_out$suppress)) {
       
       zone_tab_c <-
         suppress_table(check_out$table, zone_tab, value_var = c(val_2, val_var),
-          group = c(zone.dat, group), rule = cc_par$rule, type = "code") %>% 
+                       group = c(zone.dat, group), rule = cc_par$rule, type = "code") %>% 
         mutate(zone.dat = as.character(zone.dat))
       
       save_table(zone_tab_c, project, "zone_summary_confid")
@@ -223,10 +222,10 @@ zone_summary <- function(dat,
       by_vec <- zone.dat
       names(by_vec) <- zone.spat
       # merge spatdat w/ zone summary
-
+      
       spat_join <- dplyr::left_join(spatdat[zone.spat], z_tab,
-
-        relationship = "many-to-many", by = by_vec)
+                                    
+                                    relationship = "many-to-many", by = by_vec)
       # use WGS 84 if crs is missing
       if (is.na(sf::st_crs(spatdat))) {
         spat_join <- sf::st_transform(spat_join, crs = 4326)
@@ -244,8 +243,8 @@ zone_summary <- function(dat,
     
     spat_join <- merge_spat(zone_tab)
     
-    # base map ----
-    if (dat.center)  {
+    # Base map ------------------------------------------------------------------------------------
+    if (dat_center)  {
       # create a bbox using zones that exist in dat
       z_ind <- spatdat[[zone.spat]] %in% unique(zone_tab[[zone.dat]])
       bbox <- sf::st_bbox(spatdat[z_ind, ]) # keeps shifted long
@@ -254,12 +253,12 @@ zone_summary <- function(dat,
     
     # world2 uses 0 - 360 lon format
     base_map <- ggplot2::map_data(map = ifelse(shift_long(spatdat), "world2", "world"),
-      xlim = c(bbox["xmin"], bbox["xmax"]),
-      ylim = c(bbox["ymin"], bbox["ymax"]))
+                                  xlim = c(bbox["xmin"], bbox["xmax"]),
+                                  ylim = c(bbox["ymin"], bbox["ymax"]))
     
     # convert data to sf for plotting purposes
     base_map <- sf::st_as_sf(base_map, coords = c("long", "lat"),
-      crs = sf::st_crs(spat_join))
+                             crs = sf::st_crs(spat_join))
     
     # convert points to polygon
     base_map <-
@@ -271,29 +270,29 @@ zone_summary <- function(dat,
     # plot ----
     var_sym <- rlang::sym(val_var)
     
-    ## function to plot ---------------------------------------------------------------------------
+    ## Function to plot ---------------------------------------------------------------------------
     z_plot_fun_static <- function(spatdat, legend_name) {
       full_data_range <- range(spatdat[[val_var]], na.rm = TRUE)
-
+      
       out <- ggplot2::ggplot() +
         ggplot2::geom_sf(data = base_map) +
         ggplot2::geom_sf(data = spatdat,
-          ggplot2::aes(fill = !!rlang::sym(val_var)),
-          color = "black", alpha = .8) +
+                         ggplot2::aes(fill = !!rlang::sym(val_var)),
+                         color = "black", alpha = .8) +
         ggplot2::scale_fill_viridis_c(
           name = legend_name,
           limits = full_data_range) +
         ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
-          expand = TRUE) +
+                          expand = TRUE) +
         fishset_theme() +
         ggplot2::theme(legend.key.size = unit(1, "cm"),
-          legend.background = ggplot2::element_rect(fill = "grey90"))
+                       legend.background = ggplot2::element_rect(fill = "grey90"))
       
       out
     }
     
     z_plot_fun_dynamic <- function(spatdat, legend_name) {
-    
+      
       spatdat <-  sf::st_transform(spatdat, "+proj=longlat +datum=WGS84")
       
       pal <- colorBin(
@@ -308,14 +307,14 @@ zone_summary <- function(dat,
       leaflet::leaflet() %>%
         leaflet::addProviderTiles("OpenStreetMap") %>%
         leaflet::addPolygons(data =  spatdat,
-          fillColor = ~fill_colors,
-          fillOpacity = 0.75,
-          color = "black",
-          stroke = TRUE,
-          weight = 0.5,
-          layerId = ~var_sym,
-          group = "Polygons",
-          label = ~paste0(val_var,": ", round(spatdat[[var_sym]],2))) %>%
+                             fillColor = ~fill_colors,
+                             fillOpacity = 0.75,
+                             color = "black",
+                             stroke = TRUE,
+                             weight = 0.5,
+                             layerId = ~var_sym,
+                             group = "Polygons",
+                             label = ~paste0(val_var,": ", round(spatdat[[var_sym]],2))) %>%
         addCircleMarkers(
           data = dataset,
           lng = ~dataset[[dat_lon]], lat = ~dataset[[dat_lat]],
@@ -332,9 +331,9 @@ zone_summary <- function(dat,
           options = layersControlOptions(collapsed = FALSE)
         ) %>% 
         leaflet::addLegend(pal = pal,
-          values = spatdat[[var_sym]],
-          position = "bottomright",
-          title = legend_name) %>% 
+                           values = spatdat[[var_sym]],
+                           position = "bottomright",
+                           title = legend_name) %>% 
         hideGroup("Points")
     }
     
@@ -344,16 +343,16 @@ zone_summary <- function(dat,
         
         multdat <-  sf::st_transform(multdat, "+proj=longlat +datum=WGS84")
         
-         if (count) {
-            # update legend to include group name
-            if (calc_perc) {legend_name <- paste0("% of total obs")
-            }else {legend_name <- paste("# of obs ")}
-            
-          } else {
-            
-            if (calc_perc) {legend_name <- paste0("% of ", var)
-            } else {legend_name <- paste0(fun, " ", var)}
-          }
+        if (count) {
+          # update legend to include group name
+          if (calc_perc) {legend_name <- paste0("% of total obs")
+          }else {legend_name <- paste("# of obs ")}
+          
+        } else {
+          
+          if (calc_perc) {legend_name <- paste0("% of ", var)
+          } else {legend_name <- paste0(fun, " ", var)}
+        }
         
         pal <- colorBin(
           palette = "viridis",
@@ -408,7 +407,7 @@ zone_summary <- function(dat,
         p_levels <- unique(spat_join[[group]]) # what if too many levels?
         z_plot <- lapply(p_levels, function(x) {
           dat <- dplyr::filter(spat_join, .data[[group]] == !!x)
-  
+          
           if (count) {
             # update legend to include group name
             if (calc_perc) {legend_name <- paste0("% of total obs: \n ", x)
@@ -420,9 +419,9 @@ zone_summary <- function(dat,
             } else {legend_name <- paste0(fun, " ", var, ": \n", x)}
           }
           
-            Zone <- dat[[zone.spat]] 
-           z_plot <-  suppressWarnings(z_plot_fun_static(dat,legend_name = legend_name))
-     
+          Zone <- dat[[zone.spat]] 
+          z_plot <-  suppressWarnings(z_plot_fun_static(dat,legend_name = legend_name))
+          
           
         })
         
@@ -430,7 +429,7 @@ zone_summary <- function(dat,
       } 
       # save plot
       save_nplot(project, "zone_summary", z_plot)
-     
+      
     } else {
       
       if(plot_type == "dynamic"){
@@ -439,7 +438,7 @@ zone_summary <- function(dat,
       } else{ 
         #static plot
         z_plot <- suppressWarnings(z_plot_fun_static(spat_join, legend_name = legend_name))
-
+        
       }    
       # save plot
       save_plot(project, "zone_summary", z_plot)
@@ -447,28 +446,28 @@ zone_summary <- function(dat,
     
     # confid plot ----
     if (check_c && any(check_out$suppress)) {
-
+      
       zone_tab_c[[zone.dat]] <- as.character(zone_tab_c[[zone.dat]])
       spatdat[[zone.spat]] <- as.character(spatdat[[zone.spat]])
       
       spat_join_c <- merge_spat(zone_tab_c)
       spat_join <- spat_join_c %>% dplyr::filter(.data[[val_var]] != -999)
       
-
+      
       if (multi_plot) {
         
-      z_plot <- create_layered_map(spat_join, group,legend_name = legend_name)
-
+        z_plot <- create_layered_map(spat_join, group,legend_name = legend_name)
+        
         # save plot
         save_nplot(project, "zone_summary_confid", z_plot)
         
       } else {
         if(plot_type == "dynamic"){
           z_plot <- suppressWarnings(z_plot_fun_dynamic(spat_join,
-            legend_name = legend_name))
+                                                        legend_name = legend_name))
         } else{
           z_plot <- suppressWarnings(z_plot_fun_static(spat_join, 
-            legend_name = legend_name))
+                                                       legend_name = legend_name))
         }
         # save plot
         save_plot(project, "zone_summary_confid", z_plot)
@@ -483,7 +482,7 @@ zone_summary <- function(dat,
   zone_summary_function <- list()
   zone_summary_function$functionID <- "zone_summary"
   zone_summary_function$args <- list(dat, spat, project, zone.dat, zone.spat,
-    count, var, group, fun, na.rm, dat.center, output)
+                                     count, var, group, fun, na.rm, dat_center, output)
   log_call(project, zone_summary_function)
   
   if (output == "plot") z_plot

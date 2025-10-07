@@ -1,6 +1,6 @@
 # =================================================================================================
 # File: explore_data_module.R
-# Description: This module defines the UI and server logic for the explore the data tab. 
+# Description: This module defines the UI and server logic for the explore the data tab.
 
 # Authors: Anna Abelman,  Paul Carvalho
 # Date created: 9/8/2025
@@ -82,7 +82,7 @@ explore_data_ui <- function(id){
   ns <- NS(id)
   
   tagList(
-
+    
     # Conditionally display the zone summary UI
     conditionalPanel(
       condition = "input.explore_data_options == 'zone_summary'",
