@@ -5,15 +5,15 @@ output:
     fig_width: 6
     fig_height: 4
 vignette: >
-%\VignetteIndexEntry{Scallop Example}
+  %\VignetteIndexEntry{Scallop Example}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  ---
+---
   
 ```{r, include = FALSE}
-  knitr::opts_chunk$set(
-collapse = TRUE,
-comment = "#>"
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
 )
 ```
 
@@ -208,6 +208,7 @@ na_filter(scallopMainDataTable,
           replace = FALSE, remove = FALSE, 
           rep.value = NA, over_write = FALSE)
 ```
+
 The ``na_filter()`` shows that some columns have missing values.  By setting 
 ``remove=TRUE,`` these can be dropped, although other methods of handling
 missing data may be better.
