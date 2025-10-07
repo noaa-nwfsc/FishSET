@@ -74,6 +74,7 @@ zone_summary_server <- function(id, rv_folderpath, rv_project_name, rv_data){
       selectizeInput(ns("zone_summ_value_input"), "Value",
                      choices = zs_unique_values(),
                      multiple = FALSE, 
+                     width = "100%",
                      options = list(maxOptions = 15, maxItems = 1,
                                     placeholder = "Select or type value name",
                                     create = TRUE))
@@ -219,6 +220,7 @@ zone_summary_server <- function(id, rv_folderpath, rv_project_name, rv_data){
 #'
 #' @return A tagList containing the UI elements for the module.
 #' 
+
 zone_summary_ui <- function(id){
   ns <- NS(id)
   
@@ -226,60 +228,79 @@ zone_summary_ui <- function(id){
     bslib::layout_column_wrap(
       width = 1/2,
       bslib::card(
-        selectInput(ns('zone_summ_var_input'), 
-                    'Select a variable to plot',
-                    choices = NULL,
-                    width = "100%")),
+        class="card-overflow", 
+        bslib::card_body(class="card-overflow", 
+                         selectInput(ns('zone_summ_var_input'), 
+                                     'Select a variable to plot',
+                                     choices = NULL,
+                                     width = "100%"))),
       bslib::card(
-        conditionalPanel(
-          condition = "input.zone_summ_var_input == 'observations'",
-          ns = ns,
-          selectizeInput(ns('zone_summ_obs_input'),
-                         'Select a function to summarize observations',
-                         choices = c("number of obs","percent"))
-        ),
-        conditionalPanel(
-          condition = "input.zone_summ_var_input != 'observations'",
-          ns = ns,
-          bslib::layout_column_wrap(
-            width = 1/2,
-            selectizeInput(ns('zone_summ_fun_input'),
-                           'Select a function to summarize variable',
-                           choices = c("sum","percent","mean","median","min","max")),
-            selectInput(ns('zone_summ_group_input'), 
-                        'Select a variable to group by',
-                        choices = NULL))
+        class="card-overflow", 
+        bslib::card_body(class="card-overflow", 
+                         
+                         conditionalPanel(
+                           condition = "input.zone_summ_var_input == 'observations'",
+                           ns = ns,
+                           selectizeInput(ns('zone_summ_obs_input'),
+                                          'Select a function to summarize observations',
+                                          choices = c("number of obs","percent"))
+                         ),
+                         conditionalPanel(
+                           condition = "input.zone_summ_var_input != 'observations'",
+                           ns = ns,
+                           bslib::layout_column_wrap(
+                             width = 1/2,
+                             selectizeInput(ns('zone_summ_fun_input'),
+                                            'Select a function to summarize variable',
+                                            choices = c("sum","percent","mean",
+                                                        "median","min","max")),
+                             selectInput(ns('zone_summ_group_input'), 
+                                         'Select a variable to group by',
+                                         choices = NULL)))
         ))),
+    bslib::layout_column_wrap(
+      width = 1/2,
+      bslib::card(
+        class="card-overflow", 
+        bslib::card_body(class="card-overflow", 
+                         selectInput(ns('zone_summ_filter_var_input'),
+                                     'Select a variable for filtering the dataset',
+                                     width = "100%",
+                                     choices = NULL))),
+      conditionalPanel("input.zone_summ_filter_var_input!='none'",
+                       ns = ns,
+                       bslib::card(
+                         class="card-overflow", 
+                         bslib::card_body(class="card-overflow",
+                                          bslib::layout_column_wrap(
+                                            width = 1/2,
+                                            selectizeInput(ns('zone_summ_operator_input'), 'Select an operator',
+                                                           choices = c("less than" = "<",
+                                                                       "greater than" = ">",
+                                                                       "less than or equal to" = "<=",
+                                                                       "greater than or equal to" = ">=",
+                                                                       "equal to" = "==", "not equal to" = "!=")),
+                                            uiOutput(ns("zone_summ_val_input"))))
+                       ))),
     
-    bslib::card(
-      bslib::layout_column_wrap(
-        width = 1/2,
-        selectInput(ns('zone_summ_filter_var_input'),
-                    'Select a variable for filtering the dataset',
-                    choices = NULL),
-        conditionalPanel("input.zone_summ_filter_var_input!='none'",
-                         ns = ns,
-                         bslib::layout_column_wrap(
-                           width = 1/2,
-                           selectizeInput(ns('zone_summ_operator_input'), 'Select an operator',
-                                          choices = c("less than" = "<",
-                                                      "greater than" = ">",
-                                                      "less than or equal to" = "<=",
-                                                      "greater than or equal to" = ">=",
-                                                      "equal to" = "==", "not equal to" = "!=")),
-                           uiOutput(ns("zone_summ_val_input")))))),
-    actionButton(ns("run_zone_summ_btn"), 
-                 "Run zone summary", width = "25%",
-                 class = "btn-secondary"),
     bslib::card(
       full_screen = TRUE,
       bslib::card_header(strong("Zone Summary"), class = "bg-info"), 
       bslib::card_body(
-        leaflet::leafletOutput(ns("plot_zone_summary"))) ),
-    actionButton(ns("show_modal_btn"),
-                 "Save as static map", 
-                 icon = icon("save"), 
-                 width = "25%"),
+        leaflet::leafletOutput(ns("plot_zone_summary"), height = "600px"))),
+    bslib::layout_columns(
+      col_widths = c(3, 3, 6), 
+      actionButton(ns("run_zone_summ_btn"), 
+                   "Run zone summary",
+                   class = "btn-secondary",
+                   width = "100%"),
+      actionButton(ns("show_modal_btn"),
+                   "Save as static map", 
+                   icon = icon("save"),
+                   width = "100%"),
+        NULL # Use NULL for an intentionally empty column
+
+    ),
     # Container for the loading spinner, shown while checks are running.
     div(id = ns("zone_summ_spinner_container"),
         style = "display: none;",

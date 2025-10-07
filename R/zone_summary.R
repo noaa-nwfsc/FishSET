@@ -13,6 +13,8 @@
 #'@param project Name of project.
 #'@param zone.dat Name of zone ID column in `dat`.
 #'@param zone.spat Name of zone ID column in `spat`.
+#'@param dat_lon Name of longitude column in `dat`.
+#'@param dat_lat Name of latitude column in `dat`.
 #'@param count Logical. if `TRUE`, then the number observations per zone 
 #'  will be returned. Can be paired with `fun = "percent"` and `group`.
 #'  `zone_summary` will return an error if `var` is include and 
@@ -29,6 +31,8 @@
 #'  (`TRUE`) or `spat` (`FALSE`). Recommend `dat_center = TRUE`
 #'  when aggregating by regulatory zone and `dat_center = FALSE` when
 #'  aggregating by closure area. 
+#'  @param plot_type Type of plot output; dynamic (`leaflet` object) or static
+#'    (`ggplot` object)
 #'@param output  Output a `"plot"`, `"table"`, or both (`"tab_plot"`).
 #'  Defaults to `"plot"`.
 #'@details Observations in `dat` must be assigned to regulatory zones to 
