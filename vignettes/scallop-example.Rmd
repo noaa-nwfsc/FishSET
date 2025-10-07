@@ -10,8 +10,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
   ---
   
-  ```{r, include = FALSE}
-knitr::opts_chunk$set(
+```{r, include = FALSE}
+  knitr::opts_chunk$set(
 collapse = TRUE,
 comment = "#>"
 )
@@ -737,7 +737,8 @@ zone_out <-
                dat_lat = "DDLAT",
                dat_lon = "DDLON",
                count = TRUE,
-               na.rm = TRUE, dat_center = FALSE, 
+               na.rm = TRUE, 
+               dat_center = FALSE, 
                output = "tab_plot")
 
 zone_out$table %>% 

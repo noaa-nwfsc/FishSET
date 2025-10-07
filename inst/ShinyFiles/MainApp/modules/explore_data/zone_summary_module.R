@@ -223,6 +223,8 @@ zone_summary_ui <- function(id){
   ns <- NS(id)
   
   tagList(
+    
+    
     bslib::layout_column_wrap(
       width = 1/2,
       bslib::card(
@@ -250,6 +252,7 @@ zone_summary_ui <- function(id){
                         'Select a variable to group by',
                         choices = NULL))
         ))),
+    
     bslib::card(
       bslib::layout_column_wrap(
         width = 1/2,

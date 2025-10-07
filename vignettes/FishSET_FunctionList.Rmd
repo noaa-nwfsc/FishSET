@@ -253,7 +253,6 @@ alternative fishing choices and is required.
   find_centroid()
   assignment_column()
   create_alternative_choice()
-
 ```
 
 ##Expected Catch/Revenue\
