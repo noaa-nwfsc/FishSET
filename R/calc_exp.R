@@ -239,11 +239,11 @@ calc_exp <- function(dataset,
     exp_df[missing_cols] = NA
   }
   
-  # Set the order of columns in the matrix
-  setcolorder(exp_df, sort(unique(df$ID)))
-  
-  # Change to matrix
+  # Change to matrix and reorder columns
   exp_matrix <- as.matrix(exp_df)
+  if (length(colnames(exp_matrix)) > 1) {
+    exp_matrix <- exp_matrix[, order(colnames(exp_matrix))]  
+  }
   
   # Dummy matrix for catch ------------------------------------------------------------------------
   if (dummy_exp) {
