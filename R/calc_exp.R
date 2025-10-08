@@ -164,19 +164,6 @@ calc_exp <- function(dataset,
   
   df[, ID := if (is_value_empty(defineGroup)) as.character(zones) else paste0(fleet, zones)]
   
-  # Check if fleet/group results in single observations per ID
-  if (any(table(df$ID) == 1)) {
-    total_single_obs <- sum(table(df$ID) == 1)
-    perc_single_obs <- (total_single_obs / length(table(df$ID) == 1)) * 100
-    
-    warning(paste0(
-      "The selected grouping variable results in ",
-      perc_single_obs,
-      "% group-zone combinations with a single value. Expected catch/revenue will be empty for 
-      these group-zone combinations."
-    ))
-  }
-  
   # Handle empty catch values with joins
   if (!is_value_empty(empty_catch) && anyNA(df$catch_val)) {
     if (empty_catch == 0) {
