@@ -21,6 +21,8 @@ source("modules/other_actions_server.R", local = TRUE) # Other actions in sideba
 source("modules/select_variables_server.R", local = TRUE) # Other actions in sidebar 
 source("modules/qaqc_module.R", local = TRUE)
 source("modules/explore_data_module.R", local = TRUE)
+source("modules/format_data_module.R", local = TRUE)
+
 
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
@@ -151,4 +153,18 @@ server <- function(input, output, session) {
                       rv_folderpath = rv_folderpath, 
                       rv_project_name = rv_project_name, 
                       rv_data = rv_data)
+  
+  # Format data -----------------------------------------------------------------------------------
+  ## Compute new variables ------------------------------------------------------------------------
+  
+  ### Sidebar
+  other_actions_server("compute_new_var_actions",
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
+  
+  ### Main panel
+  
 }
