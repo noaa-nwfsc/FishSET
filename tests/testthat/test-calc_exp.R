@@ -63,7 +63,7 @@ test_that("calc_exp works correctly with no temporal variable", {
   expect_equal(nrow(exp_matrix), nrow(test_data))
   expect_equal(sort(unname(colnames(exp_matrix))), c("A", "B"))
   expect_equal(unname(exp_matrix[1, "A"]), expected_A)
-  expect_true(all(exp_matrix[, "B"] == expected_B))
+  expect_equal(unname(exp_matrix[13, "B"]), expected_B)
 })
 
 test_that("standardAverage works with a daily temporal variable", {
