@@ -10,6 +10,7 @@
 # =================================================================================================
 
 # Source module scripts ---------------------------------------------------------------------------
+source("modules/format_data/compute_new_var_module.R", local = TRUE) # Compute new variables
 
 # Format data server -------------------------------------------------------------------------
 #' format_data_server

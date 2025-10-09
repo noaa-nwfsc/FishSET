@@ -177,7 +177,7 @@ ui <- function(request){
     ),
     # Format data ---------------------------------------------------------------------------------
     bslib::nav_menu(
-      title = "Format data",
+      title = "Format Data",
       
       ## Compute new variables subtab -------------------------------------------------------------
       bslib::nav_panel(
