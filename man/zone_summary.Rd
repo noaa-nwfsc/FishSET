@@ -10,15 +10,14 @@ zone_summary(
   project,
   zone.dat,
   zone.spat,
+  dat_lon,
+  dat_lat,
   count = TRUE,
   var = NULL,
   group = NULL,
   fun = NULL,
-  breaks = NULL,
-  n.breaks = 10,
-  bin_colors = NULL,
   na.rm = TRUE,
-  dat.center = TRUE,
+  dat_center = TRUE,
   plot_type = "dynamic",
   output = "plot"
 )
@@ -54,23 +53,12 @@ one variable is allowed.}
 percentage of observations in a given zone. Other options include "sum", 
 "mean", "median", "min", and "max".}
 
-\item{breaks}{A numeric vector of breaks to bin zone frequencies by. Overrides
-`n.breaks` if entered.}
-
-\item{n.breaks}{The number of break points to create if breaks are not given 
-directly. Defaults to 10.}
-
-\item{bin_colors}{Optional, a vector of colors to use in plot. Must be same length
-as breaks. Defaults to `fishset_viridis(10)`.}
-
 \item{na.rm}{Logical, whether to remove zones with zero counts.}
 
-\item{dat.center}{Logical, whether the plot should center on `dat` 
-(`TRUE`) or `spat` (`FALSE`). Recommend `dat.center = TRUE`
-when aggregating by regulatory zone and `dat.center = FALSE` when
+\item{dat_center}{Logical, whether the plot should center on `dat` 
+(`TRUE`) or `spat` (`FALSE`). Recommend `dat_center = TRUE`
+when aggregating by regulatory zone and `dat_center = FALSE` when
 aggregating by closure area.}
-
-\item{plot_type}{Character: "dynamic" for leaflet plot, "static" for ggplot}
 
 \item{output}{Output a `"plot"`, `"table"`, or both (`"tab_plot"`).
 Defaults to `"plot"`.}
