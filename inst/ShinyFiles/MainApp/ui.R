@@ -21,7 +21,6 @@ source("modules/select_variables_ui.R", local = TRUE) # Other actions in sidebar
 source("modules/qaqc_module.R", local = TRUE)
 source("modules/explore_data_module.R", local = TRUE)
 
-
 # UI function definition
 ui <- function(request){
   bslib::page_navbar(
