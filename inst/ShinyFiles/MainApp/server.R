@@ -24,6 +24,7 @@ source("modules/explore_data_module.R", local = TRUE)
 source("modules/format_data_module.R", local = TRUE)
 
 
+
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
 
@@ -137,9 +138,10 @@ server <- function(input, output, session) {
   ### Main panel
   qaqc_server("qaqc_checks", rv_project_name, rv_data, rv_folderpath)
   
+
   ## Explore data ---------------------------------------------------------------------------------
   ### Sidebar
-  checklist_server("explore_data_checklist", rv_project_name, rv_data, rv_qaqc)
+  checklist_server("explore_data_checklist", rv_project_name, rv_data, rv_folderpath)
   
   other_actions_server("explore_data_actions",
                        values = list(project_name = rv_project_name,

@@ -6,7 +6,7 @@ vignette: >
   %\VignetteIndexEntry{FishSET R package functions} 
   %\VignetteEncoding{UTF-8}  
   %\VignetteEngine{knitr::rmarkdown}  
-editor_options: 
+  editor_options: 
   markdown: 
     wrap: 72
 ---
@@ -72,10 +72,10 @@ Additional codes for working within the FishSET database:
 
 ```{r eval=FALSE}
 #Check whether a table exists in the database.
-  table_exists()      
+table_exists()      
 #Remove a table from the database.
- table_remove()     
-table_fields()      View column names of data table.
+table_remove()     
+table_fields() # View column names of data table.
 ```
 
 ##Data Quality FishSET has built-in functions to check for NAs, NaNs,
@@ -85,10 +85,10 @@ function checks for these potential issues. All messages returned to R
 console are also saved in the log file.
 
 ```{r  eval=FALSE}
-  data_verification()
-  # The following functions are contained in `data_verification` but can be run on their own too.
-    outlier_check()
-    nan_identify()
+data_verification()
+# The following functions are contained in `data_verification` but can be run on their own too.
+outlier_check()
+nan_identify()
 ```
 
 Functions also exist to view table or plot output of data quality
@@ -97,26 +97,27 @@ name to the `output` folder in the FishSET R package.
 
 ```{r  eval=FALSE}
 #Table output functions
-  summary_stats()
-  outlier_table() 
-  
+summary_stats()
+outlier_table() 
+
 #Plots output functions
-  outlier_plot()
+outlier_plot()
 ```
 
 Functions to correct data quality issues.
 
 ```{r  eval=FALSE}
-  na_filter()
-  nan_filter()
+na_filter()
 
-  outlier_remove()
+nan_filter()
 
-  unique_filter()
+outlier_remove()
 
-  empty_vars_filter()
+unique_filter()
 
-  degree()
+empty_vars_filter()
+
+degree()
 ```
 
 Data tables can be filtered using the `filter_table` and `filter_dat`
@@ -130,11 +131,12 @@ from the raw data set back into the working data set.
 
 ```{r  eval=FALSE}
 #Filter
-  filter_table()
-  filter_dat()
+filter_table()
+
+filter_dat()
 
 #Add variables back into the working data set
-  add_vars()
+add_vars()
 ```
 
 ##Data Exploration\
@@ -147,15 +149,15 @@ distribution function plot of the selected variable.
 ```{r  eval=FALSE}
 
 #Map
-  map_plot()
+map_plot()
 #map kernel
-  map_kernel()
+map_kernel()
 #Getis Ord
-  getis_ord_stats()
+getis_ord_stats()
 #Moran's I
-  moran_stats()
+moran_stats()
 #x-y plots
-  density_plot()
+density_plot()
 
 ```
 
@@ -168,29 +170,29 @@ plots and/or tables that are output to the R console and saved to the
 
 ```{r  eval=FALSE}
 #Define and store fleet expressions 
-  fleet_assign(dat, project, cond = NULL, fleet_val = NULL, table = NULL, save = TRUE)
+fleet_assign(dat, project, cond = NULL, fleet_val = NULL, table = NULL, save = TRUE)
 #Number of unique vessels by time period
-  vessel_count(dat, project, v, t, period = "month", group = NULL, 
-                         year = NULL, position = "stack", output = c("table", "plot"))
+vessel_count(dat, project, v, t, period = "month", group = NULL, 
+             year = NULL, position = "stack", output = c("table", "plot"))
 #Total species catch by period
-  species_catch(dat, project, species, date, period = "month_abv", fun = "sum", group = NULL, year = NULL, 
-                          convert_to_tons = TRUE, value = c("count", "percent"), 
-                          output = c("table", "plot"), position = "stack", format_tab = c("wide", "long"))
+species_catch(dat, project, species, date, period = "month_abv", fun = "sum", group = NULL, year = NULL, 
+              convert_to_tons = TRUE, value = c("count", "percent"), 
+              output = c("table", "plot"), position = "stack", format_tab = c("wide", "long"))
 #Compare bycatch to other species caught
-  bycatch(dat, project, cpue, catch = NULL , date, names = NULL, group = NULL, 
-                    year = NULL, period = "year", value = c("count", "stc"), 
-                    output = c("table", "plot"), format_tab = "wide")
+bycatch(dat, project, cpue, catch = NULL , date, names = NULL, group = NULL, 
+        year = NULL, period = "year", value = c("count", "stc"), 
+        output = c("table", "plot"), format_tab = "wide")
 #Aggregate species catch by unique vessel ID
-  sum_catch("MainDataTable", "myProject", "catch", "species == 'cod' & catch > .5", val = "per", out = "logical")
+sum_catch("MainDataTable", "myProject", "catch", "species == 'cod' & catch > .5", val = "per", out = "logical")
 #Catch total by week
-  weekly_catch(dat, project, species, date, year = NULL, group = NULL, fun = "sum", position = "stack",
-                         convert_to_tons = FALSE, value ="percent", output = c("plot", "table"))
+weekly_catch(dat, project, species, date, year = NULL, group = NULL, fun = "sum", position = "stack",
+             convert_to_tons = FALSE, value ="percent", output = c("plot", "table"))
 #Average CPUE by week
-  weekly_effort(dat, project, cpue, date, group = NULL, year = NULL, plot_type = "line_point", 
-                          output = c("plot", "table"), format_tab = "wide")
+weekly_effort(dat, project, cpue, date, group = NULL, year = NULL, plot_type = "line_point", 
+              output = c("plot", "table"), format_tab = "wide")
 #Create a plot or table of vessel trip length
-  trip_length(dat, project, start, end, units = "days", catch = NULL, 
-                        hauls = NULL, output = c("table", "plot"), haul_to_trip = FALSE)
+trip_length(dat, project, start, end, units = "days", catch = NULL, 
+            hauls = NULL, output = c("table", "plot"), haul_to_trip = FALSE)
 ```
 
 ##Compute New Variables\
@@ -204,40 +206,40 @@ collapsing haul to trip and identfiying trip centroid.
 
 ```{r  eval=FALSE}
 #Data Transformations
-  ##Change time unit
-  temporal_mod
-  ##Coded variable based on quantiles
-  set_quants()
+##Change time unit
+temporal_mod
+##Coded variable based on quantiles
+set_quants()
 #Nominal ID
-  #Haul or Trip ID
-  ID_var()
-  #Fishery Seasonal Identifier
-  create_seasonal_ID()
+#Haul or Trip ID
+ID_var()
+#Fishery Seasonal Identifier
+create_seasonal_ID()
 #Arithmetic and temporal
-  #Numeric functions
-  create_var_num()
-  #CPUE
-  cpue()
+#Numeric functions
+create_var_num()
+#CPUE
+cpue()
 #Dummy
-  #From variable
-  dummy_num()
-  dummy_matrix()
+#From variable
+dummy_num()
+dummy_matrix()
 #spatial
-  #Distance between two points
-  create_dist_between()
-  #Haul midpoint 
-  create_mid_haul()
-  #Duration of time
-  create_duration()
-  #Zone when choice where to go next was made
-  create_startingloc()
+#Distance between two points
+create_dist_between()
+#Haul midpoint 
+create_mid_haul()
+#Duration of time
+create_duration()
+#Zone when choice where to go next was made
+create_startingloc()
 #Trip-level Functions
-  #Collapse Haul to trip
-  haul_to_trip()
-  #Trip distance
-  create_trip_distance()
-  #Trip centroid
-  create_trip_centroid()
+#Collapse Haul to trip
+haul_to_trip()
+#Trip distance
+create_trip_distance()
+#Trip centroid
+create_trip_centroid()
 ```
 
 ##Zonal Definition\
@@ -250,10 +252,9 @@ set to zones. The `create_alternative_choice` function defines
 alternative fishing choices and is required.
 
 ```{r  eval=FALSE}
-  find_centroid()
-  assignment_column()
-  create_alternative_choice()
-
+find_centroid()
+assignment_column()
+create_alternative_choice()
 ```
 
 ##Expected Catch/Revenue\
@@ -273,8 +274,8 @@ defining the temporal moving window size in the `create_expectations`
 function. Sparse data is not suited for shorter moving window sizes.
 
 ```{r  eval=FALSE}
-  sparsetable()  
-  create_expectations()
+sparsetable()  
+create_expectations()
 ```
 
 ##Model design file and run The `make_model_design` function creates a
@@ -312,12 +313,12 @@ minutes to run. Model run status is returned to the R console. The
 subroutine function outputs model results in a list that can be
 summarized as:
 
-    errorExplain: If it exists, a description of the model error.
-    OutLogit: A matrix of coefficients, standard errors, and t-statistics
-    optoutput: Optimization information (such as number of function iterations)
-    seoutmat2: Standard errors
-    MCM: Model comparison metrics (e.g. AIC, BIC)
-    H1: The inverse hessian
+errorExplain: If it exists, a description of the model error.
+OutLogit: A matrix of coefficients, standard errors, and t-statistics
+optoutput: Optimization information (such as number of function iterations)
+seoutmat2: Standard errors
+MCM: Model comparison metrics (e.g. AIC, BIC)
+H1: The inverse hessian
 
 The output can be viewed using:
 
@@ -326,7 +327,6 @@ The output can be viewed using:
 globalcheck_view('pcodldglobalcheck20190604')
 #Display all other model output.
 model_out_view('pcod')
-
 ```
 
 ###Selecting models Model comparison metrics are conveniently saved in a
@@ -379,26 +379,24 @@ filter_table(dat = 'pcodmaindatatable', project = 'pcod', x = 'PERFORMANCE_Code'
 returns the following log entry:
 
 ```{r eval=FALSE}
-
-
- {
-          "functionID": "filter_table",
-          "args": [
-            "pcodMainDataTable",
-            "pcod",
-            "PERFORMANCE_Code",
-            "PERFORMANCE_Code==1"
-          ],
-          "kwargs": [],
-          "output": "",
-          "msg": [
-            {
-              "dataframe": "pcodMainDataTable",
-              "vector": "PERFORMANCE_Code",
-              "FilterFunction": "PERFORMANCE_Code==1"
-            }
-          ]
-        }
+{
+  "functionID": "filter_table",
+  "args": [
+    "pcodMainDataTable",
+    "pcod",
+    "PERFORMANCE_Code",
+    "PERFORMANCE_Code==1"
+  ],
+  "kwargs": [],
+  "output": "",
+  "msg": [
+    {
+      "dataframe": "pcodMainDataTable",
+      "vector": "PERFORMANCE_Code",
+      "FilterFunction": "PERFORMANCE_Code==1"
+    }
+  ]
+}
 ```
 
 Log entries are written in JSON. Future version of FishSET will include

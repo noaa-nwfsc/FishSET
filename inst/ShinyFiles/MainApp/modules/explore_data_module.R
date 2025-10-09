@@ -1,13 +1,14 @@
 # =================================================================================================
 # File: explore_data_module.R
 # Description: This module defines the UI and server logic for the explore the data tab.
-#
+
 # Authors: Anna Abelman,  Paul Carvalho
 # Date created: 9/8/2025
 # Dependencies: shiny, DT, leaflet, 
 # Notes: This module sources other explore the data modules saved in the /modules/explore_the_data/
 #        folder in FishSET.
 # =================================================================================================
+
 
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/explore_data/zone_summary_module.R", local = TRUE) # Zone summary
@@ -81,6 +82,7 @@ explore_data_ui <- function(id){
   ns <- NS(id)
   
   tagList(
+    
     # Conditionally display the zone summary UI
     conditionalPanel(
       condition = "input.explore_data_options == 'zone_summary'",
