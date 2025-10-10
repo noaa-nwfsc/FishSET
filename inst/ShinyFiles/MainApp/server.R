@@ -21,8 +21,7 @@ source("modules/other_actions_server.R", local = TRUE) # Other actions in sideba
 source("modules/select_variables_server.R", local = TRUE) # Other actions in sidebar 
 source("modules/qaqc_module.R", local = TRUE)
 source("modules/explore_data_module.R", local = TRUE)
-source("modules/format_data_module.R", local = TRUE)
-
+source("modules/format_data/compute_new_var_module.R", local = TRUE)
 
 
 # Server settings ---------------------------------------------------------------------------------
@@ -158,8 +157,8 @@ server <- function(input, output, session) {
   
   # Format data -----------------------------------------------------------------------------------
   ## Compute new variables ------------------------------------------------------------------------
-  
   ### Sidebar
+  
   other_actions_server("compute_new_var_actions",
                        values = list(project_name = rv_project_name,
                                      data = rv_data),
@@ -168,5 +167,8 @@ server <- function(input, output, session) {
                        current_tab = reactive(input$tabs))
   
   ### Main panel
-  
+  compute_new_var_server("compute_new_var",
+                         rv_folderpath = rv_folderpath, 
+                         rv_project_name = rv_project_name, 
+                         rv_data = rv_data)
 }
