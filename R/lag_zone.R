@@ -75,14 +75,36 @@ lag_zone <- function(dat,
   spatdat <- spat_out$dataset
   spat <- parse_data_name(spat, "spat", project)
   
-  # Make sure columns are present in primary data table
-  column_check(dataset, cols = c(trip_id, haul_order, starting_port, zoneID_dat))
+  # Input validation
+  required_dat_cols <- c(trip_id, haul_order, starting_port, zoneID_dat)
+  missing_dat_cols <- required_dat_cols[!required_dat_cols %in% names(dataset)]
+  if (length(missing_dat_cols) > 0) {
+    stop(paste0("The following required columns are missing from the main data ('dat'): ",
+                paste(missing_dat_cols, collapse = ", ")))
+  }
   
-  # Make sure columns are present in spat table
-  column_check(spatdat, cols = c(zoneID_spat))
+  # Check for required columns in the port table
+  required_port_cols <- c(port_name, port_lon, port_lat)
+  missing_port_cols <- required_port_cols[!required_port_cols %in% names(port_table)]
+  if (length(missing_port_cols) > 0) {
+    stop(paste0("The following required columns are missing from the port data ('port'): ",
+                paste(missing_port_cols, collapse = ", ")))
+  }
+  
+  # Check for required columns in the spatial data, if provided
+  if (!is.null(spatdat)) {
+    if (is.null(zoneID_spat) || !zoneID_spat %in% names(spatdat)) {
+      stop(paste0("The specified zone ID column '", 
+                  zoneID_spat, 
+                  "' is missing from the spatial data ('spat')."))
+    }
+  }
   
   # Make sure new column name is unique and doesn't already exist
-  name <- name_check(dataset, name, repair = TRUE)
+  if (name %in% names(dataset)) {
+    stop(paste0("The column name '", name, 
+                "' already exists in the data. Please choose a different name."))
+  }
   
   # Need to assign zones to ports
   port_table <- assignment_column(dat = port_table, 
@@ -100,17 +122,17 @@ lag_zone <- function(dat,
   new_col_name <- name
   
   port_to_join <- port_table %>%
-    select(all_of(port_name), port_zone)
+    select(all_of(port_name), "port_zone")
   
   dataset_lagged <- dataset %>%
     left_join(port_to_join, by = setNames(port_name, starting_port)) %>%
     group_by(!!sym(trip_id)) %>%
     arrange(!!sym(haul_order), .by_group = TRUE) %>%
     mutate(
-      "{new_col_name}" := coalesce(lag(!!sym(zoneID_dat)), port_zone)
+      "{new_col_name}" := coalesce(lag(!!sym(zoneID_dat)), .data[["port_zone"]])
     ) %>%
     ungroup() %>%
-    select(-port_zone)
+    select(-"port_zone")
   
   lag_zone_function <- list()
   lag_zone_function$functionID <- "lag_zone"

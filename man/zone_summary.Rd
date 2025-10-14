@@ -62,9 +62,10 @@ percentage of observations in a given zone. Other options include "sum",
 \item{dat_center}{Logical, whether the plot should center on `dat` 
 (`TRUE`) or `spat` (`FALSE`). Recommend `dat_center = TRUE`
 when aggregating by regulatory zone and `dat_center = FALSE` when
-aggregating by closure area. 
-@param plot_type Type of plot output; dynamic (`leaflet` object) or static
-  (`ggplot` object)}
+aggregating by closure area.}
+
+\item{plot_type}{Type of plot output; dynamic (`leaflet` object) or static
+(`ggplot` object)}
 
 \item{output}{Output a `"plot"`, `"table"`, or both (`"tab_plot"`).
 Defaults to `"plot"`.}

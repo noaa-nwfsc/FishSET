@@ -5,7 +5,7 @@
 #   function correctly generates a lagged zone variable. It confirms that the first haul of each
 #   trip is assigned the zone of the departure port and subsequent hauls are assigned the zone of
 #   the preceding haul. To create a controlled and isolated testing environment, the script mocks
-#   several functions (log_call, data_pull, parse_data_name, column_check, name_check, and
+#   several functions (log_call, data_pull, parse_data_name, and
 #   assignment_column) and uses self-contained, in-memory data frames.
 #
 # Scenarios tested:
@@ -28,8 +28,6 @@
 mock_log_call <- function(...) invisible(NULL)
 mock_data_pull <- function(dat, project) list(dataset = dat)
 mock_parse_data_name <- function(dat, type, project) dat
-mock_column_check <- function(...) invisible(NULL)
-mock_name_check <- function(dataset, name, repair) name
 mock_assignment_column <- function(dat, ...) {
   # This mock now robustly simulates the output of a spatial join.
   # It checks which port identifier is present and creates the port_zone
@@ -46,8 +44,6 @@ mock_assignment_column <- function(dat, ...) {
 original_log_call <- get("log_call", envir = as.environment("package:FishSET"))
 original_data_pull <- get("data_pull", envir = as.environment("package:FishSET"))
 original_parse_data_name <- get("parse_data_name", envir = as.environment("package:FishSET"))
-original_column_check <- get("column_check", envir = as.environment("package:FishSET"))
-original_name_check <- get("name_check", envir = as.environment("package:FishSET"))
 original_assignment_column <- get("assignment_column", envir = as.environment("package:FishSET"))
 
 # Schedule the restoration of all original functions.
@@ -56,8 +52,6 @@ on.exit({
   assignInNamespace("log_call", original_log_call, ns = "FishSET")
   assignInNamespace("data_pull", original_data_pull, ns = "FishSET")
   assignInNamespace("parse_data_name", original_parse_data_name, ns = "FishSET")
-  assignInNamespace("column_check", original_column_check, ns = "FishSET")
-  assignInNamespace("name_check", original_name_check, ns = "FishSET")
   assignInNamespace("assignment_column", original_assignment_column, ns = "FishSET")
 })
 
@@ -65,8 +59,6 @@ on.exit({
 assignInNamespace("log_call", mock_log_call, ns = "FishSET")
 assignInNamespace("data_pull", mock_data_pull, ns = "FishSET")
 assignInNamespace("parse_data_name", mock_parse_data_name, ns = "FishSET")
-assignInNamespace("column_check", mock_column_check, ns = "FishSET")
-assignInNamespace("name_check", mock_name_check, ns = "FishSET")
 assignInNamespace("assignment_column", mock_assignment_column, ns = "FishSET")
 
 # Create Mock Spatial Data ------------------------------------------------------------------------
@@ -151,7 +143,7 @@ test_that("lag_zone() works with different column names and single trips", {
   result <- lag_zone(
     dat = haul_data_alt,
     project = "test_proj",
-    spat = data.frame(), # Mocked
+    spat = NULL, # Mocked
     port = port_data_alt,
     port_name = "PORT_CODE",
     port_lon = "LON",
@@ -160,7 +152,7 @@ test_that("lag_zone() works with different column names and single trips", {
     haul_order = "HAUL_NUM",
     starting_port = "DEPARTURE_PORT",
     zoneID_dat = "AREA",
-    zoneID_spat = "zone_id", # Mocked
+    zoneID_spat = NULL, # Mocked
     name = "lagged_area"
   )
 
@@ -195,7 +187,7 @@ test_that("lag_zone() handles trips with only one haul", {
   result <- lag_zone(
     dat = haul_data_single,
     project = "test_proj",
-    spat = data.frame(), # Mocked
+    spat = NULL, # Mocked
     port = port_data,
     port_name = "port_name",
     port_lon = "port_lon",
@@ -204,7 +196,7 @@ test_that("lag_zone() handles trips with only one haul", {
     haul_order = "haul",
     starting_port = "port",
     zoneID_dat = "zone",
-    zoneID_spat = "zone_id", # Mocked
+    zoneID_spat = NULL, # Mocked
     name = "start_loc"
   )
 
