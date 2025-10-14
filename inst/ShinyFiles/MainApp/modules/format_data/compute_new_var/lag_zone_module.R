@@ -29,32 +29,18 @@ lag_zone_server <- function(id, rv_folderpath, rv_project_name, rv_data){
     
     # Reactive value to store the dataset with the new lagged variable for preview
     rv_lag_zone_dat <- reactiveVal()
+    rv_selected_vars <- reactiveValues(vars = NULL)
     
-    # Check for prerequisites (port data and selected port variables)
+    # Check for prerequisites (port data and selected port variables) 
     observe({
-      req(rv_project_name())
-      project_name <- rv_project_name()$value
-      
-      # Define the path for the saved variables file
-      saved_var_file <- file.path(loc_data(project_name),
-                                  paste0(project_name, "SavedVariables.rds"))
-      
-      # Check if port data is loaded and if essential port variables are saved
-      if (is.null(rv_data$port) || !file.exists(saved_var_file)) {
+      # Check if port data is loaded
+      if (is.null(rv_data$port)) {
         shinyjs::hide("main_container")
         shinyjs::show("port_error_msg")
+        
       } else {
-        saved_vars <- readRDS(saved_var_file)
-        # Check specifically for port name, longitude, and latitude variables
-        if (is.null(saved_vars$port$port_name) ||
-            is.null(saved_vars$port$port_lon) ||
-            is.null(saved_vars$port$port_lat)) {
-          shinyjs::hide("main_container")
-          shinyjs::show("port_error_msg")
-        } else {
-          shinyjs::show("main_container")
-          shinyjs::hide("port_error_msg")
-        }
+        shinyjs::show("main_container")
+        shinyjs::hide("port_error_msg")
       }
     })
     
@@ -67,14 +53,47 @@ lag_zone_server <- function(id, rv_folderpath, rv_project_name, rv_data){
       updateSelectInput(session, "starting_port_input", choices = choices)
     })
     
-    # Handle the 'Create lagged zone' button click
+    # Handle the 'Create lagged zone' button click 
     observeEvent(input$create_lag_zone_btn, {
       req(rv_project_name(), rv_data$main, rv_data$spat, rv_data$port)
+      req(rv_project_name())
+      project_name <- rv_project_name()$value
+      folderpath <- rv_folderpath()
       
       # Show spinner
       shinyjs::show("lag_zone_spinner_container")
+      on.exit(shinyjs::hide("lag_zone_spinner_container"), add = TRUE)
       
-      # --- Input Validation ---
+      # Load selected variables
+      selected_vars <- load_gui_variables(project_name, folderpath)
+      if (is.null(selected_vars)) {
+        # Handle the case where the RDS file does not exist.
+        shinyjs::hide("lag_zone_spinner_container")
+        showModal(modalDialog(
+          title = "Error: Missing Data",
+          "The selected variables file for the current project could not be found. 
+          Please ensure you have selected and saved variables in the previous tab.",
+          easyClose = TRUE
+        ))
+        return() # Stop execution of the observer
+      }
+      
+      # Check specifically for port name, longitude, and latitude variables
+      if (is.null(selected_vars$port$port_name) ||
+          is.null(selected_vars$port$port_lon) ||
+          is.null(selected_vars$port$port_lat)) {
+        # Handle the case where port variables have not been selected.
+        shinyjs::hide("lag_zone_spinner_container")
+        showModal(modalDialog(
+          title = "Error: Missing variables",
+          "The port-name, -latitude, or -longitude have not been identified in the select variables 
+          tab. Please ensure you have selected and saved variables in the port table.",
+          easyClose = TRUE
+        ))
+        return() # Stop execution of the observer
+      } 
+      
+      # Input validation
       if (input$lag_zone_name_input == "") {
         showNotification("Please provide a name for the new variable.", 
                          type = "error")
@@ -87,29 +106,22 @@ lag_zone_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         return()
       }
       
-      # --- Prepare function arguments ---
-      project_name <- rv_project_name()$value
-      saved_var_file <- file.path(loc_data(project_name), 
-                                  paste0(project_name, "SavedVariables.rds"))
-      saved_vars <- readRDS(saved_var_file)
-      
-      # --- Execute lag_zone function and show preview ---
+      # Run lag_zone function and show preview
       tryCatch({
         dat_with_lag <- lag_zone(
           dat = rv_data$main,
-          project = project_name,
+          project = rv_project_name()$value,
           spat = rv_data$spat,
           port = rv_data$port,
-          port_name = saved_vars$port$port_name,
-          port_lon = saved_vars$port$port_lon,
-          port_lat = saved_vars$port$port_lat,
+          port_name = selected_vars$port$port_name,
+          port_lon = selected_vars$port$port_lon,
+          port_lat = selected_vars$port$port_lat,
           trip_id = input$trip_id_input,
           haul_order = input$haul_order_input,
           starting_port = input$starting_port_input,
-          zoneID_dat = saved_vars$main$main_zone_id,
-          zoneID_spat = saved_vars$spat$spat_zone_id,
-          name = input$lag_zone_name_input
-        )
+          zoneID_dat = selected_vars$main$main_zone_id,
+          zoneID_spat = selected_vars$spat$spat_zone_id,
+          name = input$lag_zone_name_input)
         
         rv_lag_zone_dat(dat_with_lag)
         
@@ -127,7 +139,6 @@ lag_zone_server <- function(id, rv_folderpath, rv_project_name, rv_data){
           )
         ))
       }, error = function(e) {
-        shinyjs::hide("lag_zone_spinner_container")
         showNotification(paste("An error occurred:", e$message), type = "error", duration = 10)
       })
     })
@@ -143,6 +154,11 @@ lag_zone_server <- function(id, rv_folderpath, rv_project_name, rv_data){
     observeEvent(input$confirm_save_btn, {
       # Update the main reactive data frame
       rv_data$main <- rv_lag_zone_dat()
+      
+      # Save changes to SQLite database
+      table_save(table = rv_data$main,
+                 project = rv_project_name()$value,
+                 type = "main")
       
       # Remove the modal
       removeModal()
@@ -166,7 +182,6 @@ lag_zone_server <- function(id, rv_folderpath, rv_project_name, rv_data){
                       caption = "Summary: Observations per Starting Port")
       }
     })
-    
   })
 }
 
@@ -211,22 +226,61 @@ lag_zone_ui <- function(id){
                                value = "lagged_zone_id")
               ),
               column(6,
-                     selectInput(ns("trip_id_input"),
-                                 "2. Select the unique trip ID:",
-                                 choices = NULL)
+                     selectizeInput(
+                       ns("trip_id_input"),
+                       tagList(
+                         span(
+                           style = "white-space: wrap; display: inline-flex; align-items: center;",
+                           HTML("2. Select the unique trip ID: &nbsp;"),
+                           bslib::tooltip(
+                             shiny::icon("circle-info", `aria-label` = "More information"),
+                             HTML("Select the variable that identifies unique trips. Note
+                                  that hauls/sets within the same trip should share trips IDs."),
+                             options = list(delay = list(show = 0, hide = 850))
+                           )
+                         )
+                       ),
+                       choices = NULL, multiple = FALSE)
               )
             ),
             
             fluidRow(
               column(6,
-                     selectInput(ns("haul_order_input"),
-                                 "3. Select the haul order variable:",
-                                 choices = NULL)
+                     selectizeInput(
+                       ns("haul_order_input"),
+                       tagList(
+                         span(
+                           style = "white-space: wrap; display: inline-flex; align-items: center;",
+                           HTML("3. Select the haul order variable: &nbsp;"),
+                           bslib::tooltip(
+                             shiny::icon("circle-info", `aria-label` = "More information"),
+                             HTML("Select the variable that indicates the sequential order of
+                                  hauls/sets within a trip. If this is a haul ID variable, ensure
+                                  that haul order within trips are sorted correctly when 
+                                  lagging the zone ID."),
+                             options = list(delay = list(show = 0, hide = 850))
+                           )
+                         )
+                       ),
+                       choices = NULL, multiple = FALSE)
               ),
               column(6,
-                     selectInput(ns("starting_port_input"),
-                                 "4. Select the starting port variable:",
-                                 choices = NULL)
+                     selectizeInput(
+                       ns("starting_port_input"),
+                       tagList(
+                         span(
+                           style = "white-space: wrap; display: inline-flex; align-items: center;",
+                           HTML("4. Select the starting port variable: &nbsp;"),
+                           bslib::tooltip(
+                             shiny::icon("circle-info", `aria-label` = "More information"),
+                             HTML("Note: a port table is required to lag the zone ID variable. 
+                                  The starting port should represent a port name than can
+                                  be linked to the port table."),
+                             options = list(delay = list(show = 0, hide = 850))
+                           )
+                         )
+                       ),
+                       choices = NULL, multiple = FALSE)
               )
             ),
             
@@ -262,5 +316,4 @@ lag_zone_ui <- function(id){
       )
     )
   )
-  
 }

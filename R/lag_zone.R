@@ -59,7 +59,6 @@ lag_zone <- function(dat,
                      zoneID_spat = NULL, 
                      name = "startingloc") {
   
-  # TODO: consider removing assignment_column() functionality
   # Call in data sets
   out <- data_pull(dat, project)
   dataset <- out$dataset
