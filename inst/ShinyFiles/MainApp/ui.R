@@ -195,6 +195,7 @@ ui <- function(request){
               fill = TRUE, 
               width = 400,
               
+              checklist_ui("compute_new_var_checklist"),
               hr(),
               compute_new_var_sidebar_ui("compute_new_var"),
               other_actions_ui("compute_new_var_actions")

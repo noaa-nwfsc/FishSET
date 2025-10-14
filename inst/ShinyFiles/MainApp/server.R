@@ -137,7 +137,7 @@ server <- function(input, output, session) {
   ### Main panel
   qaqc_server("qaqc_checks", rv_project_name, rv_data, rv_folderpath)
   
-
+  
   ## Explore data ---------------------------------------------------------------------------------
   ### Sidebar
   checklist_server("explore_data_checklist", rv_project_name, rv_data, rv_folderpath)
@@ -158,6 +158,7 @@ server <- function(input, output, session) {
   # Format data -----------------------------------------------------------------------------------
   ## Compute new variables ------------------------------------------------------------------------
   ### Sidebar
+  checklist_server("compute_new_var_checklist", rv_project_name, rv_data, rv_folderpath)
   
   other_actions_server("compute_new_var_actions",
                        values = list(project_name = rv_project_name,

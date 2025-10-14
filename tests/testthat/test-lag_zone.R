@@ -130,14 +130,14 @@ test_that("lag_zone() works with different column names and single trips", {
     DEPARTURE_PORT = c("C", "C", "C"),
     AREA = c("A10", "A20", "A30")
   )
-
+  
   # Mock port data with different column names
   port_data_alt <- data.frame(
     PORT_CODE = c("C", "D"),
     LON = c(-123, -124),
     LAT = c(45, 46)
   )
-
+  
   # --- Execution ---
   # Run the function with the alternative data
   result <- lag_zone(
@@ -155,11 +155,11 @@ test_that("lag_zone() works with different column names and single trips", {
     zoneID_spat = NULL, # Mocked
     name = "lagged_area"
   )
-
+  
   # --- Expectations ---
   # Expected lagged zone vector for this single trip
   expected_lag <- c("zone_C", "A10", "A20")
-
+  
   # The new column should have the specified name
   expect_true("lagged_area" %in% names(result))
   # The values should be correctly lagged
@@ -175,13 +175,13 @@ test_that("lag_zone() handles trips with only one haul", {
     port = c("A", "B", "A"),
     zone = c("Z1", "Z3", "Z1")
   )
-
+  
   port_data <- data.frame(
     port_name = c("A", "B"),
     port_lon = c(-123, -124),
     port_lat = c(45, 46)
   )
-
+  
   # --- Execution ---
   # Run the function
   result <- lag_zone(
@@ -199,11 +199,11 @@ test_that("lag_zone() handles trips with only one haul", {
     zoneID_spat = NULL, # Mocked
     name = "start_loc"
   )
-
+  
   # --- Expectations ---
   # For single-haul trips, the lagged value should always be the port zone
   expected_lag <- c("zone_A", "zone_B", "zone_A")
-
+  
   # The new column should exist
   expect_true("start_loc" %in% names(result))
   # All values should be the port zones

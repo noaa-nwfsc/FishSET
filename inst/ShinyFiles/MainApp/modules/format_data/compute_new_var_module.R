@@ -12,7 +12,7 @@
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/format_data/compute_new_var/lag_zone_module.R", local = TRUE)
 
-# compute new variables server -------------------------------------------------------------------------
+# compute new variables server --------------------------------------------------------------------
 #' compute_new_var_server
 #'
 #' @description Defines the server-side logic for the compute new variables tab. It handles the
@@ -50,7 +50,6 @@ compute_new_var_sidebar_ui <- function(id) {
                  choices = c("Lag zone ID" = "lag_zone_id"),
                  selected = "")
   )
-  
   
 }
 
