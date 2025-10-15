@@ -1163,7 +1163,7 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, within_group
   #' \code{"scientific"}, and \code{"PrettyNum"} (rounds to two decimal places
   #'   and uses commas).
   #' @export
-  #' @import dplyr
+  #' @importFrom dplyr group_by across all_of count summarise ungroup mutate
   #' @examples 
   #' \dontrun{
   #' 
@@ -1321,7 +1321,7 @@ perc_of_total <- function(dat, value_var, group = NULL, drop = FALSE,
   #'   \code{"perc"} or proportion \code{"prop"}. 
   #' @param output String, whether to add new variables to dataset (\code{"dataset"})
   #'   or return a summary table (\code{"summary"})
-  #' @importFrom dplyr group_by across mutate ungroup select all_of %>%
+  #' @importFrom dplyr group_by across mutate ungroup select all_of %>% summarize 
   #' @importFrom purrr map2
   #' @keywords internal
   #' @export

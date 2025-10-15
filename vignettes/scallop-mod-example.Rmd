@@ -218,29 +218,27 @@ will be named `user1` and `user2` respectively.
 # user1 expected catch matrix
 create_expectations(dat = scallopModMainDataTable,
                     project = "scallopMod",
+                    name = "exp1",
                     catch = "LANDED_thousands", 
-                    temp.var = "DATE_TRIP",
-                    temp.window = 7,
-                    temp.lag = 1,
-                    year.lag = 0,
+                    temp_var = "DATE_TRIP",
+                    temp_window = 7,
+                    day_lag = 1,
+                    year_lag = 0,
                     temporal = 'daily',
-                    empty.catch = NA,
-                    empty.expectation = 1e-04,
-                    default.exp = FALSE,
-                    replace.output = TRUE)
+                    empty_catch = NA,
+                    empty_expectation = 1e-04)
 
 # user2 expected catch matrix
 create_expectations(dat = scallopModMainDataTable,
                     project = "scallopMod",
+                    name = "exp2",
                     catch = "LANDED_thousands", 
-                    temp.var = "DATE_TRIP",
+                    temp_var = "DATE_TRIP",
                     temporal = "daily",
-                    temp.window = 14,
-                    temp.lag = 2,
-                    empty.catch = NA,
-                    empty.expectation = 1e-04,
-                    default.exp = FALSE,
-                    replace.output = FALSE)
+                    temp_window = 14,
+                    day_lag = 2,
+                    empty_catch = NA,
+                    empty_expectation = 1e-04)
 ```
 
 <br>

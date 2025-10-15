@@ -65,6 +65,7 @@ Imports:
     plotly,
     prompter,
     purrr,
+    Rcpp,
     RCurl,
     readr,
     readxl,
@@ -85,8 +86,7 @@ Imports:
     vctrs,
     xml2,
     yaml,
-    zoo,
-    Rcpp
+    zoo
 Suggests:
     foreign,
     googlesheets4,
