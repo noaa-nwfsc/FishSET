@@ -10,6 +10,7 @@
 # =================================================================================================
 
 # Source module scripts ---------------------------------------------------------------------------
+source("modules/format_data/new_r_expression_module.R", local = TRUE) # R expression
 
 # compute new variables server -------------------------------------------------------------------------
 #' compute_new_var_server
@@ -22,11 +23,15 @@
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-compute_new_var_server <- function(id, rv_folderpath, rv_project_name, rv_data ){
+compute_new_var_server <- function(id, rv_data_load_error, values = NULL, rv_folderpath, rv_project_name, rv_data){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    
+    new_r_express_server("new_r_express",                         
+                         rv_data_load_error = reactive(rv_data_load_error()),
+                         values = list(project_name = rv_project_name,
+                                       data = rv_data),
+                         rv_project_name, rv_data)
     
   })
 }
@@ -44,6 +49,10 @@ compute_new_var_sidebar_ui <- function(id) {
   ns <- NS(id)
   tagList(
     
+     radioButtons(ns("comp_new_var_options"), 
+                 label = h6("Functions:"),
+                 choices = c("R expression" = "new_r_express"),
+                 selected = "")
     
   )
 }
@@ -62,6 +71,11 @@ compute_new_var_ui <- function(id){
   ns <- NS(id)
   
   tagList(
-    
+    # Conditionally display option to lag zone variable
+    conditionalPanel(
+      condition = "input.comp_new_var_options == 'new_r_express'",
+      ns = ns,
+      new_r_express_ui(ns("new_r_express"))
+    )
   )
 }
