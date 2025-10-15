@@ -66,13 +66,13 @@ zone_summary <- function(dat,
   #'  (`count = FALSE`, `var = "var"`, `fun = "percent"`, `group = NULL`), 
   #'  share (percentage) of a numeric variable by zone and group (`count = FALSE`, 
   #'  `var = "var"`, `fun = "percent"`, `group = "group"`).
-  #'@export
-  #'@import ggplot2
-  #'@import dplyr
-  #'@import sf
-  #'@importFrom plotly ggplotly style config plotly_build
-  #'@examples 
-  #'\dontrun{
+  #' @export
+  #' @import ggplot2
+  #' @import sf
+  #' @importFrom dplyr left_join group_by across all_of summarize filter
+  #' @importFrom plotly ggplotly style config plotly_build
+  #' @examples 
+  #' \dontrun{
   #'
   #'# count # of obs
   #'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
@@ -281,7 +281,7 @@ zone_summary <- function(dat,
     # convert points to polygon
     base_map <-
       base_map %>%
-      dplyr::group_by(across(all_of("group"))) %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of("group"))) %>%
       dplyr::summarize(do_union = FALSE) %>%
       sf::st_cast("POLYGON")
 
