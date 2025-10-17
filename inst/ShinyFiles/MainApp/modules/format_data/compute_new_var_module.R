@@ -11,6 +11,7 @@
 
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/format_data/compute_new_var/lag_zone_module.R", local = TRUE)
+source("modules/format_data/compute_new_var/haul_to_trip_module.R", local = TRUE)
 
 # compute new variables server --------------------------------------------------------------------
 #' compute_new_var_server
@@ -30,6 +31,9 @@ compute_new_var_server <- function(id, rv_folderpath, rv_project_name, rv_data){
     # lag zone
     lag_zone_server("lag_zone", rv_folderpath, rv_project_name, rv_data )
     
+    # haul to trip
+    haul_to_trip_server("haul_to_trip", rv_folderpath, rv_project_name, rv_data)
+    
   })
 }
 
@@ -47,7 +51,8 @@ compute_new_var_sidebar_ui <- function(id) {
   tagList(
     radioButtons(ns("comp_new_var_options"), 
                  label = h6("Functions:"),
-                 choices = c("Lag zone ID" = "lag_zone_id"),
+                 choices = c("Lag zone ID" = "lag_zone_id",
+                             "Haul to trip" = "haul_to_trip"),
                  selected = "")
   )
   
@@ -72,6 +77,13 @@ compute_new_var_ui <- function(id){
       condition = "input.comp_new_var_options == 'lag_zone_id'",
       ns = ns,
       lag_zone_ui(ns("lag_zone"))
+    ),
+    
+    # Conditionally display option to aggregate hauls to trips
+    conditionalPanel(
+      condition = "input.comp_new_var_options == 'haul_to_trip'", # <-- ADDED PANEL
+      ns = ns,
+      haul_to_trip_ui(ns("haul_to_trip"))
     )
   )
 }
