@@ -160,9 +160,16 @@ trip_dur_out <- function(dat,
   
   # convert hauls to trips
   if (!is.null(tripID)) {
-    dataset <- haul_to_trip(dataset, project = project, tripID = tripID, 
-                            fun.numeric = fun.numeric, fun.time = fun.time, 
-                            log_fun = FALSE)
+    # dataset <- haul_to_trip(dataset, 
+    #                         project,
+    #                         trip_id = tripID,
+    #                         zoneID_dat = ,
+    #                         zone_fun = "mode",
+    #                         date_fun = "min",
+    #                         num_fun = "mean", 
+    #                         char_fun = "mode",
+    #                         haul_count = TRUE, 
+    #                         log_fun = TRUE)
   }
   
   # cleaning dates ----
