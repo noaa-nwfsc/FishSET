@@ -1,4 +1,4 @@
-#' Create haul level trip distance variable
+#' Calculate haul level trip distance variable
 #'
 #' @param dat Primary data containing information on hauls or trips.
 #' Table in the FishSET database contains the string 'MainDataTable'.
@@ -16,7 +16,7 @@
 #' @param a  Numeric, major (equatorial) radius of the ellipsoid. The default value is for WGS84 ellipsoid.
 #' @param f  Numeric, ellipsoid flattening. The default value is for WGS84 ellipsoid.
 #' @importFrom geosphere distGeo
-#' @export create_trip_distance
+#' @export calc_trip_distance
 #' @return Returns the primary dataset with a trip distance variable added.
 #' @details Summation of distance across a trip based on starting and ending ports and hauls in between.
 #' The function uses \code{\link[geosphere]{distGeo}} from the geosphere package to calculate distances
@@ -26,14 +26,14 @@
 #'  (\url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}).
 #' @examples
 #' \dontrun{
-#' pcodMainDataTable <- create_trip_distance(pcodMainDataTable, "pcod", "pcodPortTable", 
+#' pcodMainDataTable <- calc_trip_distance(pcodMainDataTable, "pcod", "pcodPortTable", 
 #'   "TRIP_SEQ", "DISEMBARKED_PORT", c("LonLat_START_LON", "LonLat_START_LAT"),
 #'   c("LonLat_END_LON", "LonLat_END_LAT"), "EMBARKED_PORT", "HAUL_SEQ", "TripDistance"
 #' )
 #' }
 #'
 #' #
-create_trip_distance <- function(dat, project, port, trip_id, starting_port, starting_haul = c("Lon", "Lat"), ending_haul = c("Lon", "Lat"),
+calc_trip_distance <- function(dat, project, port, trip_id, starting_port, starting_haul = c("Lon", "Lat"), ending_haul = c("Lon", "Lat"),
                                  ending_port, haul_order, name = "TripDistance", a = 6378137, f = 1 / 298.257223563) {
 
   # Call in datasets
@@ -145,7 +145,7 @@ create_trip_distance <- function(dat, project, port, trip_id, starting_port, sta
     dataset[[name]] <- tripDist[C]
 
     create_TD_function <- list()
-    create_TD_function$functionID <- "create_trip_distance"
+    create_TD_function$functionID <- "calc_trip_distance"
     create_TD_function$args <- list(dat, project, port, trip_id, starting_port, starting_haul, 
                                     ending_haul, ending_port, haul_order, name, a, f)
     create_TD_function$output <- list(dat)

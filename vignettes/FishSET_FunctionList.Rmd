@@ -237,7 +237,7 @@ lag_zone()
 #Collapse Haul to trip
 haul_to_trip()
 #Trip distance
-create_trip_distance()
+calc_trip_distance()
 #Trip centroid
 create_trip_centroid()
 ```
