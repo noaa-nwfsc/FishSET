@@ -157,62 +157,66 @@ haul_to_trip_ui <- function(id){
       class = "card-overflow",
       bslib::card_header("Aggregate Hauls to Trips"),
       bslib::card_body(
+        height = 370,
         class = "card-overflow",
         p("This function collapses the main data from individual hauls (rows) to unique trips, 
           based on a trip identifier. Choose the aggregation method for each data type."),
         hr(),
         
-        h5(tagList(
-          "1. Select trip ID column(s)",
-          bslib::tooltip(
-            shiny::icon("circle-info"),
-            HTML("Select the variable(s) that identify unique trips. If multiple 
-                 variables are selected, a composite ID will be created.")
-          )
-        )),
-        
         fluidRow(
-          column(6,
+          column(5,
+                 h5(tagList(
+                   "1. Select Trip ID Column(s)",
+                   bslib::tooltip(
+                     shiny::icon("circle-info"),
+                     HTML("Select the variable(s) that identify unique trips. If multiple 
+                          variables are selected, a composite ID will be created.")
+                   )
+                 )),
+                 
                  selectizeInput(
                    ns("trip_id_input"),
                    label = NULL,
-                   choices = NULL, 
+                   choices = NULL,
                    multiple = TRUE
-                 )),
-          column(6,
-                 checkboxInput(ns("haul_count_input"), 
-                               "Include haul count per trip?", 
-                               value = TRUE))
-        ),
-        h5("2. Choose aggregation methods"),
-        fluidRow(
-          column(3,
-                 selectInput(ns("num_fun_input"), "For Numeric Data:",
-                             choices = c("mean", "median", "sum", "min", "max", "mode"),
-                             selected = "mean")),
-          column(3,
-                 selectInput(ns("char_fun_input"), "For Character Data:",
-                             choices = c("mode", "first", "last", "paste"),
-                             selected = "mode")),
-          column(3,
-                 selectInput(ns("date_fun_input"), "For Date/Time Data:",
-                             choices = c("min", "max", "mean", "median"),
-                             selected = "min")),
-          column(3,
-                 selectInput(ns("zone_fun_input"), "For Zone ID:",
-                             choices = c("mode", "first", "last"),
-                             selected = "mode"))
-        ),
-        fluidRow(
-          column(4,
-                 style = "margin-top: 25px;",
+                 ),
+                 
+                 checkboxInput(ns("haul_count_input"), "Include haul count per trip?", 
+                               value = TRUE),
+                 br(),
+                 
                  actionButton(ns("aggregate_btn"),
                               "Aggregate to Trips",
                               icon = icon("cogs"),
                               class = "btn-secondary",
-                              width = "100%")
+                              width = "50%")
+          ),
+          
+          column(7,
+                 h5("2. Choose Aggregation Methods"),
+                 fluidRow(
+                   column(6,
+                          selectInput(ns("num_fun_input"), "For Numeric Data:",
+                                      choices = c("mean", "median", "sum", "min", "max", "mode"),
+                                      selected = "mean"),
+                          
+                          selectInput(ns("char_fun_input"), "For Character Data:",
+                                      choices = c("mode", "first", "last", "paste"),
+                                      selected = "mode")
+                   ),
+                   
+                   column(6,
+                          selectInput(ns("date_fun_input"), "For Date/Time Data:",
+                                      choices = c("min", "max", "mean", "median"),
+                                      selected = "min"),
+                          
+                          selectInput(ns("zone_fun_input"), "For Zone ID:",
+                                      choices = c("mode", "first", "last"),
+                                      selected = "mode")
+                   )
+                 )
           )
-        ),
+        ), 
         
         # Spinner container
         div(id = ns("h2t_spinner_container"),
