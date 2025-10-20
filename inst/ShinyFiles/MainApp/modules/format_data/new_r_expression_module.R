@@ -1,32 +1,35 @@
 # =================================================================================================
 # File: new_r_expression_module.R
-# Description: This module displays 
+# Description: This module defines the UI and server logic for the R expression function for 
+# computing new variables. 
 #
 # Authors: Anna Abelman, Paul Carvalho
 # Date created: 8/11/2025
 # Dependencies: shiny, DT
-# Notes: This module is used within 
+# Notes: This module is used within compute_new_var_module.R
 # =================================================================================================
 
 # Server ------------------------------------------------------------------------------------------
 #' new_r_express_server
 #'
-#' @description Defines the server-side logic for the 
+#' @description Defines the server-side logic for the r expression radio button. It allows the 
+#' users to select the data frame they wish to manipulate and write the R code. The users then see
+#' a preview of the data with the changes and they can save the results.
 #'
 #' @param id A character string that is unique to this module instance.
+#' @param rv_data_load_error Tracking errors with loading data
+#' @param values List of RV objects that can be used in module
 #' @param rv_project_name A reactive value containing the current project name.
 #' @param rv_data A reactiveValues object containing the list of data frames to be displayed.
 #'
 #' @return This module does not return a value.
 #' 
-new_r_express_server <- function(id, rv_data_load_error, values = NULL, rv_project_name, rv_data){
+new_r_express_server <- function(id, rv_data_load_error, values = NULL, 
+                                 rv_project_name, rv_data){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
     # Initialize reactives
-    rv_r_expr <- reactiveValues(output = "")
-    rv_r_expr_output <- reactiveVal("")
-    rv_r_expr_status <- reactiveVal(FALSE)
     preview_data <- reactiveVal(NULL)
     
     # Dynamically create the dropdown based on available data frames
@@ -83,8 +86,12 @@ new_r_express_server <- function(id, rv_data_load_error, values = NULL, rv_proje
         DT::dataTableOutput(ns("preview_table")),
         div(
           style = "margin-top: 10px;",
-          actionButton(ns("save_changes_btn"), "Save", class = "btn-success"),
-          actionButton(ns("cancel_changes_btn"), "Cancel", class = "btn-danger")
+          actionButton(ns("save_changes_btn"), "Save",
+                       class = "btn-success", width = "25%",
+                       icon = icon(name="upload", 
+                                   lib="font-awesome")),
+          actionButton(ns("cancel_changes_btn"), "Cancel",
+                       class = "btn-danger", width = "25%")
         )
       )
     })
@@ -147,7 +154,9 @@ new_r_express_server <- function(id, rv_data_load_error, values = NULL, rv_proje
 # UI ----------------------------------------------------------------------------------------------
 #' new_r_expresss_ui
 #'
-#' @description Creates the user interface for the 
+#' @description Creates the main panel UI for the R expression radio button. It has the users select
+#' a data frame, write R code in a text box, and provides examples of fishset functions they can 
+#' use.
 #'
 #' @param id A character string that is unique to this module instance.
 #'
@@ -169,33 +178,49 @@ new_r_express_ui <- function(id){
             value = "df %>% ",   # The value now uses 'df' as the placeholder
             rows = 2, width = "100%"),
           actionButton(ns("run_r_expr_btn"), "Run", class = "btn-primary",
-                       width = "100%")
+                       width = "100%"),
+          shinyjs::hidden(
+            div(
+              id = ns("save_success_container"),
+              role = "alert",
+              style = "color: green; display: none; font-size: 20px;",
+              span(id = ns("success_text")) 
+            )
+          )
         )),
-          bslib::card(style = "border: none;",
-            bslib::card_header("Examples"),
-          bslib::accordion(
-            bslib::accordion_panel('Artithmetic functions',
-                                   tags$li("Numeric function: ",
-                                   code("df %>% mutate(new_variable = var1 + var2)")),
-                                   tags$li("CPUE: ", 
-                                   code("cpue(df, project_name, xWeight, xTime, name = 'cpue')"))),
-            bslib::accordion_panel( 'Dummy variables'), 
-            bslib::accordion_panel('Temporal variable')
+      bslib::card(
+        bslib::card_header("Examples"),
+        bslib::accordion(
+          class = "accordion-flush",
+          bslib::accordion_panel(
+            'Artithmetic functions',
+            tags$li(
+              "Numeric function: ",
+              code("df %>% mutate(new_variable = var1 + var2)")),
+            tags$li(
+              "CPUE: ",
+              code("cpue(df, project, xWeight, xTime, name = 'cpue')")),
+            tags$li(
+              "Scale variable :" ,
+              code("create_var_num(df, project, x, y , method = 'sum', name)"))),
+          bslib::accordion_panel(
+            'Dummy variables',
+            tags$li(
+              code('dummy_num(df, project, var, value, opts = "more_less", name = "dummy_num")'))), 
+          bslib::accordion_panel(
+            'Temporal variables',
+            tags$li(
+              "Transform date: ",
+              code('temporal_mod(df, project, x, define_format = "%Y%m%d", name)')),
+            tags$li(
+              "Duration of time variable: ",
+              code("create_duration(df, project, start, end, units = 'minute', name = 'TripDur')"))
           ))
-          
-        #))
+      )
     ),
     shinyjs::hidden(
       div(id = ns("preview_container"),
           bslib::card(uiOutput(ns("preview_ui")))
-      )
-    ),
-    shinyjs::hidden(
-      div(
-        id = ns("save_success_container"),
-        role = "alert",
-        style = "color: green; display: none; font-size: 20px;",
-        span(id = ns("success_text")) 
       )
     )
   )
