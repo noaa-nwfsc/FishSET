@@ -90,6 +90,12 @@ lag_zone <- function(dat,
                 paste(missing_port_cols, collapse = ", ")))
   }
   
+  # Check that names in the main data table are present in the port table
+  if(!(all(dataset[[starting_port]] %in% port_table[[port_name]]))) {
+    stop("The 'starting_port' column in the main data table contains one or more port names 
+         not found in the port table. Check port names in the the main and port data tables.")
+  }
+  
   # Check for required columns in the spatial data, if provided
   if (!is.null(spatdat)) {
     if (is.null(zoneID_spat) || !zoneID_spat %in% names(spatdat)) {

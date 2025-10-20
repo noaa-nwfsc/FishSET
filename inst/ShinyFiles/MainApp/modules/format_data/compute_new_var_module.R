@@ -30,10 +30,9 @@ compute_new_var_server <- function(id, rv_folderpath, rv_project_name, rv_data){
     
     # lag zone
     lag_zone_server("lag_zone", rv_folderpath, rv_project_name, rv_data )
-    
+
     # haul to trip
     haul_to_trip_server("haul_to_trip", rv_folderpath, rv_project_name, rv_data)
-    
   })
 }
 
