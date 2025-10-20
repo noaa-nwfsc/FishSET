@@ -10,8 +10,9 @@
 # =================================================================================================
 
 # Source module scripts ---------------------------------------------------------------------------
+source("modules/format_data/compute_new_var/lag_zone_module.R", local = TRUE)
 
-# compute new variables server -------------------------------------------------------------------------
+# compute new variables server --------------------------------------------------------------------
 #' compute_new_var_server
 #'
 #' @description Defines the server-side logic for the compute new variables tab. It handles the
@@ -22,11 +23,12 @@
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-compute_new_var_server <- function(id, rv_folderpath, rv_project_name, rv_data ){
+compute_new_var_server <- function(id, rv_folderpath, rv_project_name, rv_data){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    
+    # lag zone
+    lag_zone_server("lag_zone", rv_folderpath, rv_project_name, rv_data )
     
   })
 }
@@ -43,9 +45,12 @@ compute_new_var_server <- function(id, rv_folderpath, rv_project_name, rv_data )
 compute_new_var_sidebar_ui <- function(id) {
   ns <- NS(id)
   tagList(
-    
-    
+    radioButtons(ns("comp_new_var_options"), 
+                 label = h6("Functions:"),
+                 choices = c("Lag zone ID" = "lag_zone_id"),
+                 selected = "")
   )
+  
 }
 
 
@@ -62,6 +67,11 @@ compute_new_var_ui <- function(id){
   ns <- NS(id)
   
   tagList(
-    
+    # Conditionally display option to lag zone variable
+    conditionalPanel(
+      condition = "input.comp_new_var_options == 'lag_zone_id'",
+      ns = ns,
+      lag_zone_ui(ns("lag_zone"))
+    )
   )
 }

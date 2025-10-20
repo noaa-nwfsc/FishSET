@@ -524,9 +524,9 @@ create_zone_id_server <- function(id, rv_project_name, rv_data){
           dat = rv_data$main,
           project = project_name,
           spat = rv_data$spat,
-          lon.dat = input$modal_main_lon,
-          lat.dat = input$modal_main_lat,
-          cat = input$modal_spat_zone,
+          lon_dat = input$modal_main_lon,
+          lat_dat = input$modal_main_lat,
+          zoneID_spat = input$modal_spat_zone,
           name = input$modal_new_name,
         )
         

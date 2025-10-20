@@ -3,39 +3,39 @@
 #' `zone_summary` counts observations and aggregates values in `dat` 
 #' by regulatory zone or closure area.
 #' 
-#'@param dat Primary data containing information on hauls or trips. 
+#' @param dat Primary data containing information on hauls or trips. 
 #'  Table in FishSET database contains the string 'MainDataTable'.
-#'@param spat A spatial data file containing information on fishery management 
+#' @param spat A spatial data file containing information on fishery management 
 #'  or regulatory zones boundaries. `sf` objects are recommended, but `sp` objects 
 #'  can be used as well. See [dat_to_sf()] to convert a spatial table read from 
 #'  a csv file to an `sf` object. To upload your spatial data to the FishSETFolder 
 #'  see [load_spatial()].
-#'@param project Name of project.
-#'@param zone.dat Name of zone ID column in `dat`.
-#'@param zone.spat Name of zone ID column in `spat`.
-#'@param dat_lon Name of longitude column in `dat`.
-#'@param dat_lat Name of latitude column in `dat`.
-#'@param count Logical. if `TRUE`, then the number observations per zone 
+#' @param project Name of project.
+#' @param zone.dat Name of zone ID column in `dat`.
+#' @param zone.spat Name of zone ID column in `spat`.
+#' @param dat_lon Name of longitude column in `dat`.
+#' @param dat_lat Name of latitude column in `dat`.
+#' @param count Logical. if `TRUE`, then the number observations per zone 
 #'  will be returned. Can be paired with `fun = "percent"` and `group`.
 #'  `zone_summary` will return an error if `var` is include and 
 #'  `count = TRUE`.
-#'@param var Optional, name of numeric variable to aggregate by zone/closure
+#' @param var Optional, name of numeric variable to aggregate by zone/closure
 #'  area. 
-#'@param group Name of grouping variable to aggregate by zone/closure area. Only
+#' @param group Name of grouping variable to aggregate by zone/closure area. Only
 #'  one variable is allowed. 
-#'@param fun Function name (string) to aggregate by. `"percent"` the 
+#' @param fun Function name (string) to aggregate by. `"percent"` the 
 #'  percentage of observations in a given zone. Other options include "sum", 
 #'  "mean", "median", "min", and "max". 
-#'@param na.rm Logical, whether to remove zones with zero counts. 
-#'@param dat_center Logical, whether the plot should center on `dat` 
+#' @param na.rm Logical, whether to remove zones with zero counts. 
+#' @param dat_center Logical, whether the plot should center on `dat` 
 #'  (`TRUE`) or `spat` (`FALSE`). Recommend `dat_center = TRUE`
 #'  when aggregating by regulatory zone and `dat_center = FALSE` when
 #'  aggregating by closure area. 
-#'  @param plot_type Type of plot output; dynamic (`leaflet` object) or static
+#' @param plot_type Type of plot output; dynamic (`leaflet` object) or static
 #'    (`ggplot` object)
-#'@param output  Output a `"plot"`, `"table"`, or both (`"tab_plot"`).
+#' @param output  Output a `"plot"`, `"table"`, or both (`"tab_plot"`).
 #'  Defaults to `"plot"`.
-#'@details Observations in `dat` must be assigned to regulatory zones to 
+#' @details Observations in `dat` must be assigned to regulatory zones to 
 #'  use this function. See [assignment_column()] for details. 
 #'  `zone_summary` can return: the number of observations per zone 
 #'  (`count = TRUE`, `fun = NULL`, `group = NULL`), the percentage
@@ -49,12 +49,12 @@
 #'  (`count = FALSE`, `var = "var"`, `fun = "percent"`, `group = NULL`), 
 #'  share (percentage) of a numeric variable by zone and group (`count = FALSE`, 
 #'  `var = "var"`, `fun = "percent"`, `group = "group"`).
-#'@export
-#'@import ggplot2
-#'@import dplyr
-#'@import sf
-#'@importFrom plotly ggplotly style config plotly_build
-#'@examples 
+#' @export
+#' @import ggplot2
+#' @import dplyr
+#' @import sf
+#' @importFrom plotly ggplotly style config plotly_build
+#' @examples 
 #'\dontrun{
 #'
 #'# count # of obs
