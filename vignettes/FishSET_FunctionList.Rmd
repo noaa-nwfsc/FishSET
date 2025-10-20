@@ -232,7 +232,7 @@ create_mid_haul()
 #Duration of time
 create_duration()
 #Zone when choice where to go next was made
-create_startingloc()
+lag_zone()
 #Trip-level Functions
 #Collapse Haul to trip
 haul_to_trip()

@@ -11,8 +11,9 @@
 
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/format_data/new_r_expression_module.R", local = TRUE) # R expression
+source("modules/format_data/compute_new_var/lag_zone_module.R", local = TRUE)
 
-# compute new variables server -------------------------------------------------------------------------
+# compute new variables server --------------------------------------------------------------------
 #' compute_new_var_server
 #'
 #' @description Defines the server-side logic for the compute new variables tab. It handles the
@@ -33,6 +34,9 @@ compute_new_var_server <- function(id, rv_data_load_error, values = NULL, rv_fol
                                        data = rv_data),
                          rv_project_name, rv_data)
     
+    # lag zone
+    lag_zone_server("lag_zone", rv_folderpath, rv_project_name, rv_data )
+    
   })
 }
 
@@ -48,13 +52,13 @@ compute_new_var_server <- function(id, rv_data_load_error, values = NULL, rv_fol
 compute_new_var_sidebar_ui <- function(id) {
   ns <- NS(id)
   tagList(
-    
-     radioButtons(ns("comp_new_var_options"), 
+    radioButtons(ns("comp_new_var_options"), 
                  label = h6("Functions:"),
-                 choices = c("R expression" = "new_r_express"),
+                 choices = c("R expression" = "new_r_express",
+                             "Lag zone ID" = "lag_zone_id"),
                  selected = "")
-    
   )
+  
 }
 
 
@@ -76,6 +80,11 @@ compute_new_var_ui <- function(id){
       condition = "input.comp_new_var_options == 'new_r_express'",
       ns = ns,
       new_r_express_ui(ns("new_r_express"))
+    ),
+    conditionalPanel(
+      condition = "input.comp_new_var_options == 'lag_zone_id'",
+      ns = ns,
+      lag_zone_ui(ns("lag_zone"))
     )
   )
 }

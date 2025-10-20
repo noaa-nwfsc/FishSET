@@ -696,7 +696,7 @@ function_summary <- function(project, date = NULL, type = "dat_load", show = "al
     "temporal_mod", "ID_var", "create_seasonal_ID", "cpue", "dummy_var",
     "dummy_num", "dummy_matrix", "set_quants", "bin_var", "create_var_num",
     "create_mid_haul", "create_trip_centroid", "create_dist_between",
-    "create_duration", "create_startingloc", "haul_to_trip", 
+    "create_duration", "lag_zone", "haul_to_trip", 
     "randomize_value_row", "randomize_value_range", "jitter_lonlat", 
     "randomize_lonlat_zone", "lonlat_to_centroid", "assignment_column",
     "create_dist_between_for_gui", "group_perc", "group_diff", "group_cumsum",

@@ -24,9 +24,6 @@ source("modules/explore_data_module.R", local = TRUE)
 source("modules/format_data/compute_new_var_module.R", local = TRUE)
 
 
-
-
-
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
 
@@ -160,8 +157,9 @@ server <- function(input, output, session) {
   
   # Format data -----------------------------------------------------------------------------------
   ## Compute new variables ------------------------------------------------------------------------
-  
   ### Sidebar
+  checklist_server("compute_new_var_checklist", rv_project_name, rv_data, rv_folderpath)
+  
   other_actions_server("compute_new_var_actions",
                        values = list(project_name = rv_project_name,
                                      data = rv_data),
@@ -176,4 +174,6 @@ server <- function(input, output, session) {
                                        data = rv_data),
                          rv_folderpath = rv_folderpath, 
                          rv_project_name = rv_project_name, 
-                         rv_data = rv_data)}
+                         rv_data = rv_data)
+
+}

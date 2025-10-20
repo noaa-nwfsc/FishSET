@@ -1043,13 +1043,16 @@ create_dist_between <- function(dat, project, start, end,
       } else if(!is.null(zoneid) & zoneid %in% names(dataset)){
         colnames(dataset)[colnames(dataset)==zoneid] <- 'ZoneID'
       } else {
-        dataset <- assignment_column(
-          dat = dataset, project = project, spat = eval(parse(text = vars[1])), hull.polygon = FALSE, lon.spat = gsub("\"|'", "", vars[2]),
-          lat.spat = gsub("\"|'", "", vars[3]), lon.dat = gsub("\"|'", "", vars[4]), lat.dat = gsub("\"|'", "", vars[5]), cat = gsub(
-            "\"|'", "",
-            vars[6]
-          ), closest.pt = TRUE, log.fun = FALSE
-        )
+
+        dataset <- assignment_column(dat = dataset, 
+                                     project = project, 
+                                     spat = eval(parse(text = vars[1])), 
+                                     hull_polygon = FALSE, 
+                                     lon_dat = gsub("\"|'", "", vars[4]), 
+                                     lat_dat = gsub("\"|'", "", vars[5]), 
+                                     zoneID_spat = gsub("\"|'", "", vars[6]), 
+                                     closest_pt = TRUE, 
+                                     log_fun = FALSE)
       }
     }
     
