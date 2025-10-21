@@ -2,8 +2,8 @@
 # File: test-cpue.R
 # Purpose: To perform unit tests on the cpue() function.
 # Description: 
-#   This script tests the that `cpue()` function returns catch per unit effort (CPUE) or revenue per unit effort 
-#   variable to the primary dataset.
+#   This script tests the that `cpue()` function returns catch per unit effort (CPUE) or revenue 
+#   per unit effort variable to the primary dataset.
 #   
 # Scenarios tested:
 #   - CPUE is calculated

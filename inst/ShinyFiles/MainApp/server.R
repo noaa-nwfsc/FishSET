@@ -170,10 +170,8 @@ server <- function(input, output, session) {
   ### Main panel
   compute_new_var_server("compute_new_var",
                          rv_data_load_error = reactive(rv_data_load_error()),
-                         values = list(project_name = rv_project_name,
-                                       data = rv_data),
                          rv_folderpath = rv_folderpath, 
                          rv_project_name = rv_project_name, 
                          rv_data = rv_data)
-
+  
 }
