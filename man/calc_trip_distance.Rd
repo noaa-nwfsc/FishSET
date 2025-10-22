@@ -2,72 +2,99 @@
 % Please edit documentation in R/calc_trip_distance.R
 \name{calc_trip_distance}
 \alias{calc_trip_distance}
-\title{Calculate haul level trip distance variable}
+\title{Calculate Trip Distance}
 \usage{
 calc_trip_distance(
-  dat,
+  name = "trip_distance",
   project,
+  dat,
   port,
   trip_id,
-  starting_port,
-  starting_haul = c("Lon", "Lat"),
-  ending_haul = c("Lon", "Lat"),
-  ending_port,
   haul_order,
-  name = "TripDistance",
+  starting_port,
+  return_port,
+  start_haul_lat,
+  start_haul_lon,
+  end_haul_lat,
+  end_haul_lon,
+  distance_unit = "miles",
   a = 6378137,
   f = 1/298.257223563
 )
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips.
-Table in the FishSET database contains the string 'MainDataTable'.}
+\item{name}{String. Name of new variable for trip distance. Defaults to `trip_distance`.}
 
-\item{project}{Project name.}
+\item{project}{String. project name.}
 
-\item{port}{Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat.
-Table is generated using the \code{\link{load_port}} function and saved in the FishSET database as the project and port,
-for example 'pollockPortTable'.}
+\item{dat}{String or data frame. A string for the name of the main data table in the FishSET 
+database (contains 'MainDataTable' in the name). Or a data frame of the main data table.}
 
-\item{trip_id}{Unique trip identifier in \code{dat}.}
+\item{port}{String or data frame. A string for the name of the port table in the FishSET 
+project database. Or a data frame of the port table. Note that the port table must at least
+include a port name, port latitude and port longitude.}
 
-\item{starting_port}{Variable in \code{dat} containing ports at the start of the trip.}
+\item{trip_id}{String. Column name that represents the unique trip identifier in \code{dat}.}
 
-\item{starting_haul}{Character string, variables containing latitude and longitude at start of haul in \code{dat}.}
+\item{haul_order}{String. Column name in \code{dat} that identifies haul order within a trip. 
+Can be time, coded variable, etc.}
 
-\item{ending_haul}{Character string, variables containing latitude and longitude at end of haul in \code{dat}.}
+\item{starting_port}{String. Column name in \code{dat} containing departure port for each trip.}
 
-\item{ending_port}{Variable in \code{dat} containing ports at the end of the trip.}
+\item{return_port}{String. Column name in \code{dat} containing landing port for each trip.}
 
-\item{haul_order}{Variable in \code{dat} that identifies haul order within a trip. Can be time, coded variable, etc.}
+\item{start_haul_lat}{String. Column name in \code{dat} containing haul starting latitude.}
 
-\item{name}{String, name of created variable. Defaults to `TripDistance`.}
+\item{start_haul_lon}{String. Column name in \code{dat} containing haul starting longitude.}
 
-\item{a}{Numeric, major (equatorial) radius of the ellipsoid. The default value is for WGS84 ellipsoid.}
+\item{end_haul_lat}{String. Column name in \code{dat} containing haul end latitude.}
 
-\item{f}{Numeric, ellipsoid flattening. The default value is for WGS84 ellipsoid.}
+\item{end_haul_lon}{String. Column name in \code{dat} containing haul end longitude.}
+
+\item{distance_unit}{String. The desired unit for the output distance. Options are
+\code{"miles"} (default), \code{"kilometers"}, or \code{"meters"}. Aliases \code{"mi"} and
+\code{"km"} are also accepted.}
+
+\item{a}{Numeric. Major (equatorial) radius of the ellipsoid. The default value is for 
+WGS84 ellipsoid.}
+
+\item{f}{Numeric. Ellipsoid flattening. The default value is for WGS84 ellipsoid.}
 }
 \value{
-Returns the primary dataset with a trip distance variable added.
+Returns the main data table with a new variable for trip distance.
 }
 \description{
-Calculate haul level trip distance variable
+Calculates the total distance for a fishing trip and adds it as a new column to the dataset.
 }
 \details{
-Summation of distance across a trip based on starting and ending ports and hauls in between.
-The function uses \code{\link[geosphere]{distGeo}} from the geosphere package to calculate distances
- between hauls. Inputs are the trips, ports, and hauls from the primary dataset, and the latitude and
- longitude of ports from the \code{port}. The ellipsoid arguments, \code{a} and \code{f}, are numeric
- and can be changed if an ellipsoid other than WGS84 is appropriate. See the geosphere R package for more details
- (\url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}).
+This function calculates the total distance traveled during a fishing trip by summing its four
+key segments:
+1.  Distance from the departure port to the start of the first haul.
+2.  The cumulative distance covered *within* each haul.
+3.  The cumulative distance traveled *between* consecutive hauls.
+4.  The final distance from the end of the last haul to the return port.
+
+The function uses a vectorized approach with the `dplyr` package for efficiency and relies on
+`geosphere::distGeo` for accurate geodesic distance calculations based on the WGS84 
+ellipsoid model.
 }
 \examples{
 \dontrun{
-pcodMainDataTable <- calc_trip_distance(pcodMainDataTable, "pcod", "pcodPortTable", 
-  "TRIP_SEQ", "DISEMBARKED_PORT", c("LonLat_START_LON", "LonLat_START_LAT"),
-  c("LonLat_END_LON", "LonLat_END_LAT"), "EMBARKED_PORT", "HAUL_SEQ", "TripDistance"
+main_data_with_distance <- calc_trip_distance(
+  name = "total_trip_miles",
+  project = "my_project",
+  dat = main_data,
+  port = port_data,
+  trip_id = "TRIP_ID",
+  haul_order = "HAUL_NUMBER",
+  starting_port = "DEPARTURE_PORT_NAME",
+  return_port = "LANDING_PORT_NAME",
+  start_haul_lat = "START_LATITUDE",
+  start_haul_lon = "START_LONGITUDE",
+  end_haul_lat = "END_LATITUDE",
+  end_haul_lon = "END_LONGITUDE",
+  distance_unit = "miles"
 )
 }
 
-#
 }
