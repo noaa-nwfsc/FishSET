@@ -87,7 +87,7 @@ calc_trip_distance_server <- function(id, rv_folderpath, rv_project_name, rv_dat
         return()
       }
       
-      # UPDATED: Check only for required pre-selected port variables
+      # Check only for required pre-selected port variables
       required_vars <- with(selected_vars, c(port$port_name, port$port_lon, port$port_lat))
       if (any(sapply(required_vars, is.null))) {
         showModal(modalDialog(
