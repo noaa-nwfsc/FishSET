@@ -219,7 +219,7 @@ lag_zone_ui <- function(id){
           bslib::card_body(
             class="card-overflow", 
             p("The lagged zone function processes haul-level data to derive a new variable: the 
-              location of the immediately preceding fising event for each haul. For the first haul
+              location of the immediately preceding fishing event for each haul. For the first haul
               of every trip, the variable is assigned the location of the port of departure. This
               derived lagged variable then serves as the 'Starting location' when specifying the 
               set of alternatives in the 'Define alternatives' tab."),
