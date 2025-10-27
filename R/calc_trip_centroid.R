@@ -1,93 +1,93 @@
-#' Create trip centroid variable
+#' Calculate trip centroid variable
 #'
-#' Create latitude and longitude variables containing the centroid of each trip
+#' Calculate latitude and longitude variables (columns) containing the geographic
+#' centroid of each trip
 #'
-#' @param dat Primary data containing information on hauls or trips. Table in the FishSET database 
-#'   contains the string 'MainDataTable'.
-#' @param project Project name. 
-#' @param lat Variable in \code{dat} containing latitudinal data.
-#' @param lon Variable in \code{dat} containing longitudinal data.
-#' @param trip_id Variable in \code{dat} containing trip identifier. If trip identifier should be 
-#'   defined by more than one variable then list as \code{c('var1', 'var2')}.
-#' @param weight_var Variable in \code{dat} for computing the weighted average.
-#' @details Computes the average longitude and latitude for each trip. Specify \code{weight_var} 
-#'   to calculate the weighted centroid. Additional arguments can be added that define unique 
-#'   trips. If no additional arguments are added, each row will be treated as a unique trip.
-#' @return Returns the primary dataset with centroid latitude and centroid longitude variables 
-#'   added.
-#' @importFrom stats ave
+#' @param dat String or data frame. A string for the name of the main data table in the FishSET 
+#'   database (contains 'MainDataTable' in the name). Or a data frame of the main data table.
+#' @param project String. project name. 
+#' @param lat String. Column name in \code{dat} containing latitudinal data.
+#' @param lon String. Column name in \code{dat} containing longitudinal data.
+#' @param trip_id String. Column name that represents the unique trip identifier in \code{dat}.
+#' @param weight_var String. Optional. Column name in \code{dat} to use for computing a 
+#'   weighted weighted average centroid. If \code{NULL} (the default), an unweighted (simple)
+#'   average is calculated.
+#' @details This function computes the average longitude and latitude for each unique trip, as 
+#'   defined by the \code{trip_id} column. If \code{weight_var} is specified, the function 
+#'   calculates the weighted centroid.
+#' @return Returns the original data frame (\code{dataset}) with two new columns added: 
+#'   \code{cent_lon} (centroid longitude) and \code{cent_lat} (centroid latitude).
+#' @importFrom stats ave weighted.mean
 #' @export
 #' @examples
 #' \dontrun{
-#' pollockMainDataTable <- create_trip_centroid(pollockMainDataTable, 'pollock', 
-#'   'LonLat_START_LON', 'LonLat_START_LAT', weight_var = NULL, 'DISEMBARKED_PORT', 
-#'   'EMBARKED_PORT')
+#' # Assuming 'pollockMainDataTable' is a data frame
+#'
+#' pollockMainDataTable <- calc_trip_centroid(
+#'    dat = pollockMainDataTable, 
+#'    prpoject = 'pollock', 
+#'   lon = 'LonLat_START_LON',
+#'   lat = 'LonLat_START_LAT',
+#'   trip_id = "TRIP_ID",
+#'   weight_var = NULL
+#' )
 #' }
 
-create_trip_centroid <- function(dat, 
-                                 project, 
-                                 lon, 
-                                 lat, 
-                                 trip_id, 
-                                 weight_var = NULL) {
-
+calc_trip_centroid <- function(dat, 
+                               project, 
+                               lon, 
+                               lat, 
+                               trip_id, 
+                               weight_var = NULL) {
   
+  # Pull in data ----------------------------------------------------------------------------------
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  
   dat <- parse_data_name(dat, "main", project)
   
-  x <- 0
+  # Input validation ------------------------------------------------------------------------------
   if (any(abs(dataset[[lon]]) > 180)) {
-    stop("Longitude is not valid (outside -180:180). Function not run")
-    # stop('Longitude is not valid (outside -180:180.')
+    stop("Longitude is not valid (outside -180:180). Function aborted")
     
   }
   if (any(abs(dataset[[lat]]) > 90)) {
-    stop("Latitude is not valid (outside -90:90. Function not run")
-    
-    # stop('Latitude is not valid (outside -90:90.')
+    stop("Latitude is not valid (outside -90:90. Function aborted")
   }
   
-  
-  #    if (grepl("input", as.character(match.call(expand.dots = FALSE)$...)[1]) == TRUE) {
-  #      argList <- eval(...)
-  #    } else {
-  #     argList <- (as.character(match.call(expand.dots = FALSE)$...))
-  #   }
-  
-  
-  idmaker <- function(vec) {
-    return(paste(sort(vec), collapse = ""))
-  }
-  
-  
-  int <- as.data.frame(cbind(dataset, rowID = as.numeric(factor(apply(as.matrix(dataset[, trip_id]), 1, idmaker)))))
-  # int <- int[, c(colnames(sapply(dataindex[[varnameindex]], grepl, colnames(int))), 'rowID')]
-  cat(length(unique(int$rowID)), "unique trips were identified using", trip_id, "\n")
-  # Handling of empty variables
-  if (any(apply(int, 2, function(x) all(is.na(x))) == TRUE)) {
-    int <- int[, -which(apply(int, 2, function(x) all(is.na(x))) == TRUE)]
-  } else {
-    int <- int
-  }
+  # Calculate centroid ----------------------------------------------------------------------------
+  # Create the grouping factor
+  group_factor <- dataset[[trip_id]]
   
   if (is_empty(weight_var)) {
-    int$cent.lon <- stats::ave(int[[lon]], int[["rowID"]])
-    int$cent.lat <- stats::ave(int[[lat]], int[["rowID"]])
+    # Unweighted centroid (simple average)
+    dataset$cent_lon <- stats::ave(dataset[[lon]], group_factor)
+    dataset$cent_lat <- stats::ave(dataset[[lat]], group_factor)
+    
   } else {
-    # weighted centroid
-    int$cent.lon <- stats::ave(int[c(lon, weight_var)], int[["rowID"]], FUN = function(x) stats::weighted.mean(x[[lon]], x[[weight_var]]))[[1]]
-    int$cent.lat <- stats::ave(int[c(lat, weight_var)], int[["rowID"]], FUN = function(x) stats::weighted.mean(x[[lat]], x[[weight_var]]))[[1]]
+    # Weighted centroid
+    w <- dataset[[weight_var]]
+    lon_vec <- dataset[[lon]]
+    lat_vec <- dataset[[lat]]
+    
+    # Calculate sum of (value * weight) for each group
+    sum_lon_x_w <- stats::ave(lon_vec * w, group_factor, FUN = sum)
+    sum_lat_x_w <- stats::ave(lat_vec * w, group_factor, FUN = sum)
+    
+    # Calculate sum of weights for each group
+    sum_w <- stats::ave(w, group_factor, FUN = sum)
+    
+    # Compute the weighted average
+    dataset$cent_lon <- sum_lon_x_w / sum_w
+    dataset$cent_lat <- sum_lat_x_w / sum_w
   }
   
-  create_trip_centroid_function <- list()
-  create_trip_centroid_function$functionID <- "create_trip_centroid"
-  create_trip_centroid_function$args <- list(dat, project, lon, lat, trip_id, weight_var)
-  create_trip_centroid_function$kwargs <- list()
-  create_trip_centroid_function$output <- list(dat)
-  log_call(project, create_trip_centroid_function)
+  # Logging ---------------------------------------------------------------------------------------
+  calc_trip_centroid_function <- list()
+  calc_trip_centroid_function$functionID <- "calc_trip_centroid"
+  calc_trip_centroid_function$args <- list(dat, project, lon, lat, trip_id, weight_var)
+  calc_trip_centroid_function$kwargs <- list()
+  calc_trip_centroid_function$output <- list(dat)
+  log_call(project, calc_trip_centroid_function)
   
-  return(int)
-  
+  return(dataset)
 }
