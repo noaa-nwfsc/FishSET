@@ -53,7 +53,7 @@ other_actions_ui <- function(id){
                        tags$br(),
                        
                        # Run R expression ---------------------------------------------------------
-                       textInput(ns("r_expr_input"), 
+                       textAreaInput(ns("r_expr_input"), 
                                  label = "Enter an R expression",
                                  value = "values$data$main"),
                        
