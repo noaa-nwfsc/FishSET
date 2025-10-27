@@ -80,6 +80,8 @@ haul_to_trip_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         
         rv_trip_dat(dat_aggregated)
         
+        shinyjs::show("summary_card_wrapper")
+        
         # Show modal with preview
         showModal(modalDialog(
           title = "Preview: Aggregated Trip Data",
@@ -147,93 +149,101 @@ haul_to_trip_server <- function(id, rv_folderpath, rv_project_name, rv_data){
 #'
 #' @param id A character string that is unique to this module instance.
 #'
-#' @return A tagList containing the UI elements for the lag zone module.
+#' @return A tagList containing the UI elements for the haul-to-trip module.
 haul_to_trip_ui <- function(id){
   ns <- NS(id)
   
   tagList(
     shinyjs::useShinyjs(),
-    bslib::card(
-      class = "card-overflow",
-      bslib::card_header("Aggregate Hauls to Trips"),
-      bslib::card_body(
-        height = 370,
+    div(
+      id = ns("main_container"),
+      bslib::card(
         class = "card-overflow",
-        p("This function collapses the main data from individual hauls (rows) to unique trips, 
+        bslib::card_header("Aggregate Hauls to Trips"),
+        bslib::card_body(
+          class = "card-overflow",
+          p("This function collapses the main data from individual hauls (rows) to unique trips, 
           based on a trip identifier. Choose the aggregation method for each data type."),
-        hr(),
-        
-        fluidRow(
-          column(5,
-                 h5(tagList(
-                   "1. Select Trip ID Column(s)",
-                   bslib::tooltip(
-                     shiny::icon("circle-info"),
-                     HTML("Select the variable(s) that identify unique trips. If multiple 
-                          variables are selected, a composite ID will be created.")
-                   )
-                 )),
-                 
-                 selectizeInput(
-                   ns("trip_id_input"),
-                   label = NULL,
-                   choices = NULL,
-                   multiple = TRUE
-                 ),
-                 
-                 checkboxInput(ns("haul_count_input"), "Include haul count per trip?", 
-                               value = TRUE),
-                 br(),
-                 
-                 actionButton(ns("aggregate_btn"),
-                              "Aggregate to Trips",
-                              icon = icon("cogs"),
-                              class = "btn-secondary",
-                              width = "50%")
-          ),
+          hr(),
           
-          column(7,
-                 h5("2. Choose Aggregation Methods"),
-                 fluidRow(
-                   column(6,
-                          selectInput(ns("num_fun_input"), "For Numeric Data:",
-                                      choices = c("mean", "median", "sum", "min", "max", "mode"),
-                                      selected = "mean"),
-                          
-                          selectInput(ns("char_fun_input"), "For Character Data:",
-                                      choices = c("mode", "first", "last", "paste"),
-                                      selected = "mode")
+          fluidRow(
+            column(5,
+                   h5(tagList(
+                     "1. Select Trip ID Column(s)",
+                     bslib::tooltip(
+                       shiny::icon("circle-info"),
+                       HTML("Select the variable(s) that identify unique trips. If multiple
+                          variables are selected, a composite ID will be created.")
+                     )
+                   )),
+                   
+                   selectizeInput(
+                     ns("trip_id_input"),
+                     label = NULL,
+                     choices = NULL,
+                     multiple = TRUE
                    ),
                    
-                   column(6,
-                          selectInput(ns("date_fun_input"), "For Date/Time Data:",
-                                      choices = c("min", "max", "mean", "median"),
-                                      selected = "min"),
-                          
-                          selectInput(ns("zone_fun_input"), "For Zone ID:",
-                                      choices = c("mode", "first", "last"),
-                                      selected = "mode")
+                   checkboxInput(ns("haul_count_input"), 
+                                 "Include a column for haul count per trip?",
+                                 value = TRUE),
+                   br(),
+                   
+                   actionButton(ns("aggregate_btn"),
+                                "Aggregate to Trips",
+                                icon = icon("cogs"),
+                                class = "btn-secondary",
+                                width = "50%")
+            ),
+            
+            column(7,
+                   h5("2. Choose Aggregation Methods"),
+                   fluidRow(
+                     column(6,
+                            selectInput(ns("num_fun_input"), "For Numeric Data:",
+                                        choices = c("mean", "median", "sum", "min", "max", "mode"),
+                                        selected = "mean"),
+                            
+                            selectInput(ns("char_fun_input"), "For Character Data:",
+                                        choices = c("mode", "first", "last", "paste"),
+                                        selected = "mode")
+                     ),
+                     
+                     column(6,
+                            selectInput(ns("date_fun_input"), "For Date/Time Data:",
+                                        choices = c("min", "max", "mean", "median"),
+                                        selected = "min"),
+                            
+                            selectInput(ns("zone_fun_input"), "For Zone ID:",
+                                        choices = c("mode", "first", "last"),
+                                        selected = "mode")
+                     )
                    )
-                 )
+            )
+          ),
+          
+          # Spinner container
+          div(id = ns("h2t_spinner_container"),
+              style = "display: none;",
+              spinner_ui(ns("h2t_spinner"),
+                         spinner_type = "circle",
+                         size = "large",
+                         message = "Aggregating data...",
+                         overlay = TRUE)
           )
-        ), 
-        
-        # Spinner container
-        div(id = ns("h2t_spinner_container"),
-            style = "display: none;",
-            spinner_ui(ns("h2t_spinner"),
-                       spinner_type = "circle",
-                       size = "large",
-                       message = "Aggregating data...",
-                       overlay = TRUE)
         )
-      )
-    ),
-    
-    bslib::card(
-      bslib::card_header("Summary Output"),
-      bslib::card_body(
-        DT::dataTableOutput(ns("summary_table"))
+      ),
+      
+      shinyjs::hidden(
+        div(id = ns("summary_card_wrapper"),
+            bslib::card(
+              bslib::card_header("Summary Output"),
+              bslib::card_body(
+                DT::dataTableOutput(ns("summary_table")
+                )
+              )
+            )
+        )
       )
     )
   )

@@ -48,11 +48,11 @@ cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL)
   column_check(dataset, cols = c(xWeight, xTime, price))
   
   if (is_value_empty(name)) {
-
-   if (!is.null(price)) name = 'rpue'
-   else name = 'cpue'
-
-   warning("'name' empty, using '", name, "'.", call. = FALSE)
+    
+    if (!is.null(price)) name = 'rpue'
+    else name = 'cpue'
+    
+    cat("'name' empty, using '", name, "'.", call. = FALSE)
   }
   
   name <- name_check(dataset, name, repair = TRUE)
@@ -88,7 +88,7 @@ cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL)
     
     weight <- dataset[[xWeight]]
   }
-
+  
   stopifnot("xTime must be numeric" = is.numeric(dataset[[xTime]])) 
   
   # Check that Weight variable is indeed a weight variable
@@ -97,7 +97,7 @@ cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL)
     warning("xTime should be a measurement of time. Use the create_duration ", 
             "function. CPUE calculated.", call. = FALSE)
   }
-
+  
   # TODO: safely test
   dataset[[name]] <- weight / dataset[[xTime]]
   
@@ -111,7 +111,7 @@ cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL)
   cpue_function$args <- list(dat, project, xWeight, xTime, price, name)
   cpue_function$kwargs <- list()
   cpue_function$output <- list(dat)
-
+  
   log_call(project, cpue_function)
   
   return(dataset)
@@ -125,29 +125,35 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
   #' @param var Variable in \code{dat} to create dummy variable from.
-  #' @param value String, value to set dummy variable by. If \code{var} is a date, value should be a year,
-  #'   If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, value should be a single
-  #'   number or range of numbers [use c(1,5)].
-  #' @param opts String, how dummy variable should be defined. Choices are \code{"x_y"} and \code{"more_less’"}. For \code{"x_y"}, each
-  #'   element of \code{var} is set to 1 if the element matches \code{value}, otherwise 0.
-  #'   For \code{"more_less"}, each element of \code{var} less than \code{value} is set to 0 and all elements greater than
-  #'   \code{value} set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and all other
-  #'   elements set to 0. Default is set to \code{"more_less"}.
-  #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
+  #' @param value String, value to set dummy variable by. If \code{var} is a date, value should be 
+  #' a year,  If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, 
+  #' value should be a single  number or range of numbers [use c(1,5)].
+  #' @param opts String, how dummy variable should be defined. Choices are \code{"x_y"} and 
+  #' \code{"more_less’"}. For \code{"x_y"}, each element of \code{var} is set to 1 if the element 
+  #' matches \code{value}, otherwise 0. For \code{"more_less"}, each element of \code{var} less 
+  #' than \code{value} is set to 0 and all elements greater than \code{value} set to 1. If 
+  #' \code{var} is a factor, then elements that match value will be set to 1 and all other 
+  #' elements set to 0. Default is set to \code{"more_less"}.
+  #' @param name String, name of created dummy variable. Defaults to name of the function if 
+  #' not defined.
   #' @importFrom lubridate origin as_date
-  #' @details For date variables, the dummy variable is defined by a date (year) and may be either year \code{x} versus all
-  #'   other years (\code{"x_y"}) or before vs after year \code{x} (\code{"more_less"}). Use this function to create a variable defining whether
-  #'   or not a policy action had been implemented. \cr
+  #' @details For date variables, the dummy variable is defined by a date (year) and may be 
+  #' either year \code{x} versus all other years (\code{"x_y"}) or before vs after year \code{x} 
+  #' (\code{"more_less"}). Use this function to create a variable defining whether  or not a policy
+  #'  action had been implemented. \cr
   #'   Example: before vs. after a 2008 amendment: \cr
   #'   \code{dummy_num('pollockMainDataTable', 'Haul_date', 2008, 'more_less', 'amend08')} \cr\cr
   #'
-  #'  For factor variables, both choices in \code{opts} compare selected factor level(s) against all other factor levels.\cr
+  #'  For factor variables, both choices in \code{opts} compare selected factor level(s) against
+  #'   all other factor levels.\cr
   #'  Example: Fishers targeting pollock vs. another species:  \cr
-  #'  \code{dummy_num('pollockMainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 'Pollock - midwater'), 'x_y', 'pollock_target')}  \cr\cr
+  #'  \code{dummy_num('pollockMainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 
+  #'  'Pollock - midwater'), 'x_y', 'pollock_target')}  \cr\cr
   #'
-  #'  For numeric variables, \code{value} can be a single number or a range of numbers. The dummy variable is the
-  #'  selected value(s) against all others (\code{x_y}) or less than the selected value versus more than the selected value
-  #'  (\code{more_less}). For \code{more_less}, the mean is used as the critical value if a range of values is provided.
+  #'  For numeric variables, \code{value} can be a single number or a range of numbers. The dummy
+  #'   variable is the selected value(s) against all others (\code{x_y}) or less than the selected 
+  #'   value versus more than the selected value  (\code{more_less}). For \code{more_less}, the 
+  #'   mean is used as the critical value if a range of values is provided.
   #' @return Returns primary dataset with dummy variable added.
   #' @export
   #' @examples
@@ -155,8 +161,8 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   #' pollockMainDataTable <- dummy_num(pollockMainDataTable, 'pollock', 'Haul_date', 2008, 
   #'   'more_less', 'amend80')
   #' }
-
-
+  
+  
   # Pull in data
   out <- data_pull(dat, project)
   dataset <- out$dataset
@@ -165,81 +171,55 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   
   # name <- ifelse(is_empty(name), "dummy_num", name)
   name <- name_check(dataset, name, repair = TRUE)
+ # For demonstration, we'll assume 'dat' is already a data frame
+  dataset <- out$dataset 
   
-  if (grepl("dat|year", var, ignore.case = TRUE)) {
-    if (length(value) == 6) {
-      dataset[[var]] <- format(lubridate::as_date(dataset[[var]]), "%Y%m")
-    } else if (length(value) == 4) {
-      dataset[[var]] <- format(lubridate::as_date(dataset[[var]]), "%Y")
-    } else {
-      dataset[[var]] <- format(lubridate::as_date(dataset[[var]]), "%m")
-    }
-  } 
-
-  if (is.numeric(dataset[[var]])) {
-    if (opts == "x_y") {
-      newvar <- ifelse(dataset[[var]] >= min(value) & dataset[[var]] <= max(value), 0, 1)
-    } else {
-      newvar <- ifelse(dataset[[var]] < mean(value), 0, 1)
-    }
-  } else if (is.factor(dataset[[var]]) | is.character(dataset[[var]])) {
-    newvar <- ifelse(trimws(dataset[[var]], "both") == trimws(value, "both"), 0, 1)
-  } else {
-    (warning("variable is not recognized as being a date, factor, or numeric. Function not run."))
+  # Ensure the variable exists in the data
+  if (!var %in% names(dataset)) {
+    stop(paste0("Variable '", var, "' not found in the data frame."))
   }
-
-  g <- cbind(dataset, newvar)
-  colnames(g)[dim(g)[2]] = name
   
-  dummy_num_function <- list()
-  dummy_num_function$functionID <- "dummy_num"
-  dummy_num_function$args <- list(dat, project, var, value, opts, name)
-  dummy_num_function$kwargs <- list()
-  dummy_num_function$output <- list(dat)
-
-  log_call(project, dummy_num_function)
-  return(g)
+  # Extract the column as a vector for easier handling
+  column_vec <- dataset[[var]]
+  
+  # --- Main Logic: Determine the new binary vector ---
+  new_var <- NA # Initialize
+  
+  # 1. Handle Date or POSIXt (datetime) columns
+  if (inherits(column_vec, "Date") || inherits(column_vec, "POSIXt")) {
+    col_year <- lubridate::year(column_vec)
+    if (opts == "more_less") {
+      new_var <- as.integer(col_year >= value)
+    } else { # "x_y"
+      new_var <- as.integer(col_year %in% value)
+    }
+    
+  # 2. Handle Numeric columns
+  } else if (is.numeric(column_vec)) {
+    if (opts == "more_less") {
+      threshold <- mean(value)
+      new_var <- as.integer(column_vec >= threshold)
+    } else { # "x_y"
+      new_var <- as.integer(column_vec >= min(value) & column_vec <= max(value))
+    }
+    
+  # 3. Handle Character or Factor columns
+  } else if (is.character(column_vec) || is.factor(column_vec)) {
+    # For factors/characters, 'more_less' doesn't apply, so both opts do the same thing:
+    # check for membership in the `value` set.
+    new_var <- as.integer(trimws(column_vec) %in% trimws(value))
+    
+  # 4. Handle unrecognized types
+  } else {
+    stop(paste0("Variable '", var, "' is not a recognized type (Date, numeric, character, or factor)."))
+  }
+  
+  # --- Add the new column to the dataset using dplyr ---
+  dataset <- dplyr::mutate(dataset, !!name := new_var)
+  
+  return(dataset)
 }
 
-#' Create dummy variable
-dummy_var <- function(dat, project, DumFill = 1, name = "dummy_var") {
-  #' @param dat Primary data containing information on hauls or trips.
-  #' Table in the FishSET database contains the string 'MainDataTable'.
-  #' @param project Project name. 
-  #' @param DumFill Fill the dummy variable with 1 or 0
-  #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
-  #' @return Primary dataset with dummy variable added.
-  #' @export dummy_var
-  #' @details Creates a dummy variable of either 0 or 1 with length of the number of rows of the data set.
-  #' @examples
-  #' \dontrun{
-  #' pollockMainDataTable <- dummy_var(pollockMainDataTable, 'pollock', DumFill=1, 'dummyvar')
-  #' }
-
-  # Pull in data
-  out <- data_pull(dat, project)
-  dataset <- out$dataset
-  
-  dat <- parse_data_name(dat, "main", project)
-  
-  # name <- ifelse(is_empty(name), "dummy_var", name)
-  name <- name_check(dataset, name, repair = TRUE)
-
-  newvar <- as.vector(rep(DumFill, nrow(dataset)))
-  
-  g <- cbind(dataset, newvar)
-  colnames(g)[dim(g)[2]] = name
-  
-  dummy_var_function <- list()
-  dummy_var_function$functionID <- "dummy_var"
-  dummy_var_function$args <- list(dat, project, DumFill, name)
-  dummy_var_function$kwargs <- list()
-  dummy_var_function$output <- list(dat)
-
-  log_call(project, dummy_var_function)
-
-  return(g)
-}
 
 #' Create dummy matrix from a coded ID variable
 dummy_matrix <- function(dat, project, x) {
@@ -255,30 +235,30 @@ dummy_matrix <- function(dat, project, x) {
   #' \dontrun{
   #' PortMatrix <- dummy_matrix(pollockMainDataTable, 'pollock', 'PORT_CODE')
   #' }
-
-
+  
+  
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
-
+  
   
   # create the matrix
   factor.levels <- levels(as.factor(dataset[[x]]))
   int <- data.frame(matrix(rep(dataset[[x]], length(factor.levels)), ncol = length(factor.levels)))
   colnames(int) <- factor.levels
-
+  
   # change matrix to TRUE/FALSE
   int <- data.frame(lapply(1:length(factor.levels), function(x) ifelse(int[, x] == colnames(int)[x], 1, 0)))
   colnames(int) <- paste(x, "_", levels(as.factor(dataset[[x]])))
-
+  
   dummy_matrix_function <- list()
   dummy_matrix_function$functionID <- "dummy_matrix"
   dummy_matrix_function$args <- list(dat, project, x)
   dummy_matrix_function$kwargs <- list()
   dummy_matrix_function$output <- list()
   log_call(project, dummy_matrix_function)
-
+  
   return(int)
 }
 
@@ -315,16 +295,16 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
-
+  
   name <- ifelse(is_empty(name), "set_quants", name)
   
   tmp <- 0
-
+  
   if (!is.numeric(dataset[[x]])) {
     tmp <- 1
     warning("Variable must be numeric. Function not run.")
   }
-
+  
   if (tmp == 0) {
     if (quant.cat == 0.1) {
       prob.def <- seq(0, 1, by = .1)
@@ -346,13 +326,13 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
     
     g <- cbind(dataset, newvar)
     colnames(g)[dim(g)[2]] = name
-
+    
     set_quants_function <- list()
     set_quants_function$functionID <- "set_quants"
     set_quants_function$args <- list(dat, project, x, quant.cat, custom.quant, name)
     set_quants_function$kwargs <- list()
     set_quants_function$output <- list(dat)
-
+    
     log_call(project, set_quants_function)
     return(g)
   }
@@ -380,24 +360,24 @@ bin_var <- function(dat, project, var, br, name = "bin", labs = NULL, ...) {
   #'  pollockMainDataTable <- bin_var(pollockMainDataTable, 'pollock', 'HAUL', 10, 'HAULCAT')
   #'  pollockMainDataTable <- bin_var(pollockMainDataTable, 'pollock', 'HAUL', c(5,10), 'HAULCAT')
   #' }
-
+  
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
-
+  
   # name <- ifelse(is_empty(name), "bin", name)
   name <- name_check(dataset, name, repair = TRUE)
   
   tmp <- 0
-
+  
   if (!is.numeric(dataset[[var]])) {
     tmp <- 1
     warning("Variable must be numeric.")
   }
-
+  
   if (tmp == 0) {
     newvar <- cut(dataset[[var]], breaks = br, labels = labs, ...)
-
+    
     g <- cbind(dataset, newvar)
     colnames(g)[dim(g)[2]] = name
     
@@ -408,7 +388,7 @@ bin_var <- function(dat, project, var, br, name = "bin", labs = NULL, ...) {
     bin_var_function$kwargs <- list()
     bin_var_function$output <- list(dat)
     log_call(project, bin_var_function)
-
+    
     return(g)
   }
 }
@@ -464,14 +444,14 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   
   if (create_group_ID) dataset <- ID_var(dataset, project, vars = c(id_group, group), 
                                          log_fun = FALSE)
-
+  
   
   . <- group_total <- total_value <- NULL
   
   if (is.null(group)) {
     
     dataset <- 
-    dataset %>% 
+      dataset %>% 
       dplyr::group_by(dplyr::across(id_group)) %>% 
       dplyr::mutate(dplyr::across(value, sum, .names = "total_value")) %>% # calc. total value by id_group
       dplyr::ungroup() %>% 
@@ -479,9 +459,9 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
       { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
     
   } else {
-  
+    
     dataset <- 
-    dataset %>% 
+      dataset %>% 
       dplyr::group_by(dplyr::across(id_group)) %>% 
       dplyr::mutate(dplyr::across(value, sum, .names = "total_value")) %>% # calc. total value by id_group
       dplyr::group_by(dplyr::across(group), .add = TRUE) %>%
@@ -543,36 +523,36 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   
   
   . <- group_total <- NULL
-
+  
   
   if (create_group_ID) dataset <- ID_var(dataset, project, vars = group, 
                                          log_fun = FALSE)
   
-   alt_diff <- function(x, lag) c(0, diff(x, lag = lag))
-   
-   if (all(!(class(dataset[[sort_by]]) %in% c("Date","POSIXct", "POSIXt")))) {
-     
-     dataset[[sort_by]] <- date_parser(dataset[[sort_by]])
-   }
+  alt_diff <- function(x, lag) c(0, diff(x, lag = lag))
   
-   tab <- 
-     dataset %>% 
-     dplyr::arrange(dplyr::across(sort_by)) %>% 
-     dplyr::group_by(dplyr::across(group)) %>% 
-     { if (length(group) == 1)
-         dplyr::mutate(., dplyr::across(value, sum, .names = "group_total")) %>% 
-         dplyr::mutate(., dplyr::across(value, alt_diff, lag = lag, .names = name))
-       else 
-         dplyr::summarize(., dplyr::across(value, sum, .names = "group_total")) %>% 
-         dplyr::mutate(., !!name := alt_diff(group_total, lag = lag)) } %>% 
-     dplyr::ungroup() %>% 
-     { if (drop_total_col) dplyr::select(., -group_total) else . }
-   
-   if (length(group) > 1) {
-     dataset <- dplyr::left_join(dataset, tab, by = group)
-   } else { 
-     dataset <- tab 
-   }
+  if (all(!(class(dataset[[sort_by]]) %in% c("Date","POSIXct", "POSIXt")))) {
+    
+    dataset[[sort_by]] <- date_parser(dataset[[sort_by]])
+  }
+  
+  tab <- 
+    dataset %>% 
+    dplyr::arrange(dplyr::across(sort_by)) %>% 
+    dplyr::group_by(dplyr::across(group)) %>% 
+    { if (length(group) == 1)
+      dplyr::mutate(., dplyr::across(value, sum, .names = "group_total")) %>% 
+        dplyr::mutate(., dplyr::across(value, alt_diff, lag = lag, .names = name))
+      else 
+        dplyr::summarize(., dplyr::across(value, sum, .names = "group_total")) %>% 
+        dplyr::mutate(., !!name := alt_diff(group_total, lag = lag)) } %>% 
+    dplyr::ungroup() %>% 
+    { if (drop_total_col) dplyr::select(., -group_total) else . }
+  
+  if (length(group) > 1) {
+    dataset <- dplyr::left_join(dataset, tab, by = group)
+  } else { 
+    dataset <- tab 
+  }
   
   group_diff_function <- list()
   group_diff_function$functionID <- "group_diff"
@@ -616,7 +596,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   #' group_cumsum(pollockMainDataTable, "pollock", group = c("PERMIT", "TRIP_ID"),
   #'              sort_by = "HAUL_DATE", value = "OFFICIAL_TOTAL_CATCH")
   #' }
-
+  
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
@@ -639,7 +619,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
     dplyr::arrange(dplyr::across(sort_by)) %>% 
     dplyr::group_by(dplyr::across(group)) %>% 
     { if (length(group) == 1) 
-        dplyr::mutate(., dplyr::across(value, sum, .names = "group_total")) %>% 
+      dplyr::mutate(., dplyr::across(value, sum, .names = "group_total")) %>% 
         dplyr::mutate(., dplyr::across(value, cumsum, .names = name))
       else 
         dplyr::summarize(., dplyr::across(value, sum, .names = "group_total")) %>% 
@@ -649,7 +629,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   
   if (length(group) > 1) {
     dataset <- dplyr::left_join(dataset, tab, by = group)
-    } else { 
+  } else { 
     dataset <- tab 
   }
   
@@ -684,12 +664,12 @@ create_var_num <- function(dat, project, x, y, method, name = "create_var_num") 
   #' pollockMainDataTable <- create_var_num(pollockMainDataTable, 'pollock', x = 'HAUL_CHINOOK',
   #'     y = 'HAUL_CHUM', method = 'sum', name = 'tot_salmon')
   #' }
-
+  
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
-
+  
   # name <- ifelse(is_empty(name), "create_var_num", name)
   name <- name_check(dataset, name, repair = TRUE)
   
@@ -754,49 +734,49 @@ create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon"
   #'    end = c('LonLat_END_LON', 'LonLat_END_LAT'), name = 'mid_haul')
   #' }
   #
-
+  
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
-
+  
   # name <- ifelse(is_empty(name), "mid_haul" , name)
   name <- name_check(dataset, name, repair = TRUE)
-
+  
   if (is_empty(start) || is_empty(end)) {
     stop("Starting and end locations must both be specified. Function not run.")
   }
-
+  
   # this checks the length of the vars, but dataframes already must have same length
   # for each column. Not sure this check is fleshed out. 
   if (dim(dataset[, c(start)])[1] != dim(dataset[, c(end)])[1]) {
     stop("Starting and ending locations are of different lengths. Function not run.")
   }
-
+  
   if (any(abs(dataset[, c(start)][1]) > 180) | any(abs(dataset[, c(end)][1]) > 180)) {
     stop("Longitude is not valid (outside -180:180). Function not run")
     # stop('Longitude is not valid (outside -180:180.')
-   
+    
   }
   
   if (any(abs(dataset[, c(start)][2]) > 90) | any(abs(dataset[, c(end)][2]) > 90)) {
     stop("Latitude is not valid (outside -90:90. Function not run")
-   
+    
     # stop('Latitude is not valid (outside -90:90.')
   }
-
+  
   # TODO: check whether this can be done in sf; if so remove geosphere package
   distBetween <- geosphere::midPoint(dataset[, c(start)], dataset[, c(end)])
   colnames(distBetween) <- c(paste0(name, "Lon"), paste0(name, "Lat"))
   out <- cbind(dataset, distBetween)
-
+  
   create_mid_haul_function <- list()
   create_mid_haul_function$functionID <- "create_mid_haul"
   create_mid_haul_function$args <- list(dat, project, start, end, name)
   create_mid_haul_function$kwargs <- list()
   create_mid_haul_function$output <- list(dat)
   log_call(project, create_mid_haul_function)
-
+  
   return(out)
   
 }
@@ -823,64 +803,64 @@ create_trip_centroid <- function(dat, project, lon, lat, tripID, weight.var = NU
   #' pollockMainDataTable <- create_trip_centroid(pollockMainDataTable, 'pollock', 'LonLat_START_LON', 
   #'   'LonLat_START_LAT', weight.var = NULL, 'DISEMBARKED_PORT', 'EMBARKED_PORT')
   #' }
-
+  
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
-
+  
   x <- 0
   if (any(abs(dataset[[lon]]) > 180)) {
     stop("Longitude is not valid (outside -180:180). Function not run")
     # stop('Longitude is not valid (outside -180:180.')
-
+    
   }
   if (any(abs(dataset[[lat]]) > 90)) {
     stop("Latitude is not valid (outside -90:90. Function not run")
- 
+    
     # stop('Latitude is not valid (outside -90:90.')
   }
   
-
-#    if (grepl("input", as.character(match.call(expand.dots = FALSE)$...)[1]) == TRUE) {
-#      argList <- eval(...)
-#    } else {
- #     argList <- (as.character(match.call(expand.dots = FALSE)$...))
- #   }
-
   
-    idmaker <- function(vec) {
-      return(paste(sort(vec), collapse = ""))
-    }
-
-    
-    int <- as.data.frame(cbind(dataset, rowID = as.numeric(factor(apply(as.matrix(dataset[, tripID]), 1, idmaker)))))
-    # int <- int[, c(colnames(sapply(dataindex[[varnameindex]], grepl, colnames(int))), 'rowID')]
-    cat(length(unique(int$rowID)), "unique trips were identified using", tripID, "\n")
-    # Handling of empty variables
-    if (any(apply(int, 2, function(x) all(is.na(x))) == TRUE)) {
-      int <- int[, -which(apply(int, 2, function(x) all(is.na(x))) == TRUE)]
-    } else {
-      int <- int
-    }
-
-    if (is_empty(weight.var)) {
-      int$cent.lon <- stats::ave(int[[lon]], int[["rowID"]])
-      int$cent.lat <- stats::ave(int[[lat]], int[["rowID"]])
-    } else {
-      # weighted centroid
-      int$cent.lon <- stats::ave(int[c(lon, weight.var)], int[["rowID"]], FUN = function(x) stats::weighted.mean(x[[lon]], x[[weight.var]]))[[1]]
-      int$cent.lat <- stats::ave(int[c(lat, weight.var)], int[["rowID"]], FUN = function(x) stats::weighted.mean(x[[lat]], x[[weight.var]]))[[1]]
-    }
-
-    create_trip_centroid_function <- list()
-    create_trip_centroid_function$functionID <- "create_trip_centroid"
-    create_trip_centroid_function$args <- list(dat, project, lon, lat, tripID, weight.var)
-    create_trip_centroid_function$kwargs <- list()
-    create_trip_centroid_function$output <- list(dat)
-    log_call(project, create_trip_centroid_function)
-
-    return(int)
+  #    if (grepl("input", as.character(match.call(expand.dots = FALSE)$...)[1]) == TRUE) {
+  #      argList <- eval(...)
+  #    } else {
+  #     argList <- (as.character(match.call(expand.dots = FALSE)$...))
+  #   }
+  
+  
+  idmaker <- function(vec) {
+    return(paste(sort(vec), collapse = ""))
+  }
+  
+  
+  int <- as.data.frame(cbind(dataset, rowID = as.numeric(factor(apply(as.matrix(dataset[, tripID]), 1, idmaker)))))
+  # int <- int[, c(colnames(sapply(dataindex[[varnameindex]], grepl, colnames(int))), 'rowID')]
+  cat(length(unique(int$rowID)), "unique trips were identified using", tripID, "\n")
+  # Handling of empty variables
+  if (any(apply(int, 2, function(x) all(is.na(x))) == TRUE)) {
+    int <- int[, -which(apply(int, 2, function(x) all(is.na(x))) == TRUE)]
+  } else {
+    int <- int
+  }
+  
+  if (is_empty(weight.var)) {
+    int$cent.lon <- stats::ave(int[[lon]], int[["rowID"]])
+    int$cent.lat <- stats::ave(int[[lat]], int[["rowID"]])
+  } else {
+    # weighted centroid
+    int$cent.lon <- stats::ave(int[c(lon, weight.var)], int[["rowID"]], FUN = function(x) stats::weighted.mean(x[[lon]], x[[weight.var]]))[[1]]
+    int$cent.lat <- stats::ave(int[c(lat, weight.var)], int[["rowID"]], FUN = function(x) stats::weighted.mean(x[[lat]], x[[weight.var]]))[[1]]
+  }
+  
+  create_trip_centroid_function <- list()
+  create_trip_centroid_function$functionID <- "create_trip_centroid"
+  create_trip_centroid_function$args <- list(dat, project, lon, lat, tripID, weight.var)
+  create_trip_centroid_function$kwargs <- list()
+  create_trip_centroid_function$output <- list(dat)
+  log_call(project, create_trip_centroid_function)
+  
+  return(int)
   
 }
 
@@ -946,21 +926,21 @@ create_dist_between <- function(dat, project, start, end,
   #' lat.spat: \tab Variable or list from \code{spat} containing latitude data. Required if \code{start} or \code{end} is centroid. Leave as NULL if \code{spat} is a shape or json file. \cr
   #' cat: \tab Variable or list in \code{spat} that identifies the individual areas or zones. If \code{spat} is class sf, \code{cat} should be the name of list containing information on zones.
   #' }
-
-
+  
+  
   # \tabular{AddPromptparams}{
-
+  
   # head(create_dist_between(dat, 'pollock', 'centroid','EMBARKED_PORT', units='miles'))
   # head(create_dist_between(dat, 'pollock', c('LonLat_START_LON','LonLat_START_LAT'),c('LonLat_END_LON','LonLat_END_LAT'), units='midpoint'))
   # head(create_dist_between(dat, 'pollock', DISEMBARKED_PORT','EMBARKED_PORT', units='meters'))
-
+  
   # Call in data sets
   if (start[1] == end[1]) {
     warning("Starting and ending vectors are identical.")
   } else {
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-
+    
     # Call in data sets
     out <- data_pull(dat, project)
     dataset <- out$dataset
@@ -988,9 +968,9 @@ create_dist_between <- function(dat, project, start, end,
         port.table <- table_view(gsub("'|\"", "", vars[1]), project)
       }
     }
-
+    
     x <- 0
-
+    
     if (any(grepl("centroid", c(start[1], end[1]), ignore.case = TRUE))) {
       fun <- function() {
         spat <- readline("What is the name of the spatial data set? Can be shape file, data frame, or list?")
@@ -1004,16 +984,16 @@ create_dist_between <- function(dat, project, start, end,
       vars <- if (interactive()) {
         fun()
       }
-
+      
       ##Find centroid
-        if(table_exists('spatCentroid', project)){
-          int <- table_view('spatCentroid', project)
-        } else {
-          int <- find_centroid(spat = eval(parse(text = vars[1])), project=project, 
-                           spatID = gsub("\"|'", "", vars[6]), lon.spat = gsub("\"|'", "", vars[2]),
-                            lat.spat = gsub("\"|'", "", vars[3]), log.fun = FALSE)
-        }
-       
+      if(table_exists('spatCentroid', project)){
+        int <- table_view('spatCentroid', project)
+      } else {
+        int <- find_centroid(spat = eval(parse(text = vars[1])), project=project, 
+                             spatID = gsub("\"|'", "", vars[6]), lon.spat = gsub("\"|'", "", vars[2]),
+                             lat.spat = gsub("\"|'", "", vars[3]), log.fun = FALSE)
+      }
+      
       
       ##Assignment column
       if("ZoneID" %in% names(dataset) == TRUE){
@@ -1021,6 +1001,7 @@ create_dist_between <- function(dat, project, start, end,
       } else if(!is.null(zoneid) & zoneid %in% names(dataset)){
         colnames(dataset)[colnames(dataset)==zoneid] <- 'ZoneID'
       } else {
+
         dataset <- assignment_column(dat = dataset, 
                                      project = project, 
                                      spat = eval(parse(text = vars[1])), 
@@ -1032,10 +1013,10 @@ create_dist_between <- function(dat, project, start, end,
                                      log_fun = FALSE)
       }
     }
-
+    
     if (grepl("port", start[1], ignore.case = TRUE)) {
       start.lat <- as.numeric(sapply(trimws(dataset[[start]]), function(x) port.table[which(port.table[["Port_Name"]] == x), "Port_Lat"]))
-
+      
       start.long <- as.numeric(sapply(trimws(dataset[[start]]), function(x) port.table[which(port.table[["Port_Name"]] == x), "Port_Long"]))
     } else if (start[1] == "centroid") {
       start.lat <- as.numeric(sapply(trimws(dataset[["ZoneID"]]), function(x) int[which(int[["ZoneID"]] == x), "cent.lat"]))
@@ -1043,7 +1024,7 @@ create_dist_between <- function(dat, project, start, end,
     } else {
       start.long <- dataset[[start[1]]]
       start.lat <- dataset[[start[2]]]
-
+      
       if (any(abs(start.long) > 180)) {
         stop("Longitude is not valid (outside -180:180). Function not run")
       }
@@ -1051,7 +1032,7 @@ create_dist_between <- function(dat, project, start, end,
         stop("Latitude is not valid (outside -90:90. Function not run")
       }
     }
-
+    
     if (grepl("port", end[1], ignore.case = TRUE)) {
       end.lat <- as.numeric(sapply(trimws(dataset[[end]]), function(x) port.table[which(port.table[["Port_Name"]] == x), "Port_Lat"]))
       end.long <- as.numeric(sapply(trimws(dataset[[end]]), function(x) port.table[which(port.table[["Port_Name"]] == x), "Port_Long"]))
@@ -1068,33 +1049,33 @@ create_dist_between <- function(dat, project, start, end,
         stop("Latitude is not valid (outside -90:90. Function not run")
       }
     }
-
+    
     # Get distance between points
-      if (units == "midpoint") {
-        newvar <- geosphere::midPoint(cbind(start.long, start.lat), cbind(end.long, end.lat))
-      } else {
-        newvar <- geosphere::distGeo(cbind(start.long, start.lat), cbind(end.long, end.lat), a = 6378137, f = 1 / 298.257223563)
-      }
-
-      if (units == "miles") {
-        newvar <- newvar * 0.000621371192237334
-      } else if (units == "kilometers") {
-        newvar <- newvar / 1000
-      }
-
-      g <- cbind(dataset, newvar)
-      colnames(g)[dim(g)[2]] = name
-      
-      # Log the function
-      create_dist_between_function <- list()
-      create_dist_between_function$functionID <- "create_dist_between"
-      create_dist_between_function$args <- list(dat, project, start, end, units, zoneid, name)
-      create_dist_between_function$kwargs <- list(vars)
-      create_dist_between_function$output <- list(dat)
-
-      log_call(project, create_dist_between_function)
-      return(g)
-
+    if (units == "midpoint") {
+      newvar <- geosphere::midPoint(cbind(start.long, start.lat), cbind(end.long, end.lat))
+    } else {
+      newvar <- geosphere::distGeo(cbind(start.long, start.lat), cbind(end.long, end.lat), a = 6378137, f = 1 / 298.257223563)
+    }
+    
+    if (units == "miles") {
+      newvar <- newvar * 0.000621371192237334
+    } else if (units == "kilometers") {
+      newvar <- newvar / 1000
+    }
+    
+    g <- cbind(dataset, newvar)
+    colnames(g)[dim(g)[2]] = name
+    
+    # Log the function
+    create_dist_between_function <- list()
+    create_dist_between_function$functionID <- "create_dist_between"
+    create_dist_between_function$args <- list(dat, project, start, end, units, zoneid, name)
+    create_dist_between_function$kwargs <- list(vars)
+    create_dist_between_function$output <- list(dat)
+    
+    log_call(project, create_dist_between_function)
+    return(g)
+    
   }
 }
 
@@ -1122,16 +1103,16 @@ create_duration <- function(dat, project, start, end,
   #' pollockMainDataTable <- create_duration(pollockMainDataTable, 'pollock', 'TRIP_START', 'TRIP_END',
   #'   units = 'minute', name = 'TripDur')
   #' }
-
+  
   # Call in datasets
   out <- data_pull(dat, project = project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
-
+  
   # name <- if(is_empty(name)){ "create_duration" } else {name}
   name <- name_check(dataset, name, repair = TRUE)
-
+  
   if (any(grepl("date|min|hour|week|month|TRIP_START|TRIP_END", start, ignore.case = TRUE)) == FALSE) {
     warning("Function is designed for temporal variables")
   }
@@ -1139,28 +1120,39 @@ create_duration <- function(dat, project, start, end,
     warning("Function is designed for temporal variables")
   }
   
-  elapsed.time <- lubridate::interval(date_parser(dataset[[start]]), date_parser(dataset[[end]]))
+  elapsed.time <- lubridate::interval(dataset[[start]], dataset[[end]])
+  
   if (units == "week") {
+    
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::dweeks(1)
+    
   } else if (units == "day") {
+    
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::ddays(1)
+    
   } else if (units == "hour") {
+    
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::dhours(1)
+    
   } else if (units == "minute") {
+    elapsed.time <- lubridate::interval((dataset[[start]]), 
+                                        (dataset[[end]]))
+    
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::dminutes(1)
+    
   }
   
-   g <- cbind(dataset, newvar)
+  g <- cbind(dataset, newvar)
   colnames(g)[dim(g)[2]] = name
   
- 
+  
   create_duration_function <- list()
   create_duration_function$functionID <- "create_duration"
   create_duration_function$args <- list(dat, project, start, end, units, name)
   create_duration_function$kwargs <- list()
   create_duration_function$output <- list(dat)
   log_call(project, create_duration_function)
-
+  
   return(g)
 }
 
@@ -1232,7 +1224,7 @@ randomize_value_range <- function(dat, project, value, perc = NULL) {
   }
   
   if (end == FALSE) {
-  
+    
     if (is.null(perc)) perc <- seq(.05, .15, by = .01)
     
     r_val <- function(v, prc) {
@@ -1342,9 +1334,9 @@ randomize_lonlat_zone <- function(dat, project, spat, lon, lat, zone) {
   
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
-
+  
   spat <- parse_data_name(spat, 'spat', project)
- 
+  
   
   if (!("sf" %in% class(spatdat))) {
     spatdat <- sf::st_as_sf(x = spatdat, crs = "+proj=longlat +datum=WGS84")
