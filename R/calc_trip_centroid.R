@@ -5,12 +5,12 @@
 #'
 #' @param dat String or data frame. A string for the name of the main data table in the FishSET 
 #'   database (contains 'MainDataTable' in the name). Or a data frame of the main data table.
-#' @param project String. project name. 
+#' @param project String. Project name. 
 #' @param lat String. Column name in \code{dat} containing latitudinal data.
 #' @param lon String. Column name in \code{dat} containing longitudinal data.
 #' @param trip_id String. Column name that represents the unique trip identifier in \code{dat}.
 #' @param weight_var String. Optional. Column name in \code{dat} to use for computing a 
-#'   weighted weighted average centroid. If \code{NULL} (the default), an unweighted (simple)
+#'   weighted average centroid. If \code{NULL} (the default), an unweighted (simple)
 #'   average is calculated.
 #' @details This function computes the average longitude and latitude for each unique trip, as 
 #'   defined by the \code{trip_id} column. If \code{weight_var} is specified, the function 
@@ -24,8 +24,8 @@
 #' # Assuming 'pollockMainDataTable' is a data frame
 #'
 #' pollockMainDataTable <- calc_trip_centroid(
-#'    dat = pollockMainDataTable, 
-#'    prpoject = 'pollock', 
+#'   dat = pollockMainDataTable, 
+#'   project = 'pollock', 
 #'   lon = 'LonLat_START_LON',
 #'   lat = 'LonLat_START_LAT',
 #'   trip_id = "TRIP_ID",
@@ -46,11 +46,11 @@ calc_trip_centroid <- function(dat,
   dat <- parse_data_name(dat, "main", project)
   
   # Input validation ------------------------------------------------------------------------------
-  if (any(abs(dataset[[lon]]) > 180)) {
+  if (any(abs(dataset[[lon]]) > 180, na.rm = TRUE)) {
     stop("Longitude is not valid (outside -180:180). Function aborted")
     
   }
-  if (any(abs(dataset[[lat]]) > 90)) {
+  if (any(abs(dataset[[lat]]) > 90, na.rm = TRUE)) {
     stop("Latitude is not valid (outside -90:90. Function aborted")
   }
   

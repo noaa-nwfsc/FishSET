@@ -10,7 +10,7 @@ calc_trip_centroid(dat, project, lon, lat, trip_id, weight_var = NULL)
 \item{dat}{String or data frame. A string for the name of the main data table in the FishSET 
 database (contains 'MainDataTable' in the name). Or a data frame of the main data table.}
 
-\item{project}{String. project name.}
+\item{project}{String. Project name.}
 
 \item{lon}{String. Column name in \code{dat} containing longitudinal data.}
 
@@ -19,7 +19,7 @@ database (contains 'MainDataTable' in the name). Or a data frame of the main dat
 \item{trip_id}{String. Column name that represents the unique trip identifier in \code{dat}.}
 
 \item{weight_var}{String. Optional. Column name in \code{dat} to use for computing a 
-weighted weighted average centroid. If \code{NULL} (the default), an unweighted (simple)
+weighted average centroid. If \code{NULL} (the default), an unweighted (simple)
 average is calculated.}
 }
 \value{
@@ -40,8 +40,8 @@ This function computes the average longitude and latitude for each unique trip, 
 # Assuming 'pollockMainDataTable' is a data frame
 
 pollockMainDataTable <- calc_trip_centroid(
-   dat = pollockMainDataTable, 
-   prpoject = 'pollock', 
+  dat = pollockMainDataTable, 
+  project = 'pollock', 
   lon = 'LonLat_START_LON',
   lat = 'LonLat_START_LAT',
   trip_id = "TRIP_ID",
