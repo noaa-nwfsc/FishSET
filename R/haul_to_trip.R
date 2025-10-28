@@ -7,8 +7,7 @@
 #' @param dat String, the name of the main data containing information on hauls or trips. Note 
 #'   that this is the project 'MainDataTable' in the FishSET database.
 #' @param project String, name of project.
-#' @param trip_id A character vector of column name(s) that uniquely identify a trips.
-#'   If more than one column name is provided, a composite ID will be created.
+#' @param trip_id String. Column name that represents the unique trip identifier in \code{dat}.
 #' @param zoneID_dat String, the name of the column identifying fishing zones. This column is 
 #'   handled separately from other columns.
 #' @param zone_fun String, method for collapsing the 'zoneID_dat' variable.
@@ -27,20 +26,19 @@
 #'   specified methods.
 #'   
 #' @details 
-#' The function first identifies unique trips based on the 'trip_id' column(s). It then
-#' aggregates all other columns based on their data type. For columns that are not numeric,
-#' date, or character, the function defaults to taking the first observation for each trip.
+#'   The function aggregates columns based on their data type per unique trip ID. For columns that 
+#'   are not numeric, date, or character, the function defaults to taking the first observation 
+#'   for each trip.
 #' 
 #' @export haul_to_trip
 #'
 #' @examples
 #' \dontrun{
 #' # Collapse the data from haul to trip level
-#' # A trip is defined by a unique PERMIT and PORT combination
 #' trip_data <- haul_to_trip(
 #'   dat = "pollockMainDataTable",
 #'   project = "pollock",
-#'   trip_id = c("PERMIT", "PORT"),
+#'   trip_id = "tripID,
 #'   zone_col = "ZONE",
 #'   zone_fun = "mode", # Use the most common zone for the trip
 #'   date_fun = "min",   # Use the earliest haul date as the trip date
@@ -68,32 +66,9 @@ haul_to_trip <- function(dat,
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  # Create a single 'trip_id' column for grouping
-  if (length(trip_id) == 1) {
-    if ((trip_id != "trip_id")) {
-      dataset[["trip_id"]] <- dataset[[trip_id]]   
-    }
-    
-  } else if (length(trip_id) > 1) {
-    # Create trip_id using multiple columns combined
-    dataset <- ID_var(dataset, 
-                      project = project, 
-                      vars = trip_id, 
-                      type = "integer", 
-                      name = "trip_id", 
-                      drop = FALSE, 
-                      log_fun = FALSE)
-  }
-  
-  # Drop columns that contain only NA values
-  if (any(vapply(dataset, function(x) all(is.na(x)), logical(1)))) {
-    drop_empty <- names(dataset)[which(vapply(dataset, function(x) all(is.na(x)), logical(1)))]
-    if (length(drop_empty) > 0) dataset[drop_empty] <- NULL
-  }
-  
   # Identify columns by type, exclude the ID column -----------------------------------------------
   # Note: using base R in this function to limit dependencies
-  all_cols <- names(dataset)[(names(dataset) != "trip_id") &
+  all_cols <- names(dataset)[(names(dataset) != trip_id) &
                                (names(dataset) != zoneID_dat)] # EXCLUDE ZONE ID
   
   is_numeric_col <- sapply(dataset[all_cols], is.numeric)
@@ -113,7 +88,8 @@ haul_to_trip <- function(dat,
   aggregated_list <- list()
   
   # Base dataframe with just unique IDs
-  aggregated_list$ids <- data.frame(trip_id = unique(dataset[["trip_id"]]))
+  aggregated_list$ids <- data.frame(trip_id = unique(dataset[[trip_id]]))
+  names(aggregated_list$ids) <- trip_id
   
   # Helper function for aggregation
   get_mode <- function(x) {
@@ -122,22 +98,22 @@ haul_to_trip <- function(dat,
   }
   
   # Handle zone ID column separately
-  zone_formula <- as.formula(paste(". ~", "trip_id"))
+  zone_formula <- as.formula(paste(". ~", trip_id))
   zone_agg_fun <- switch(zone_fun,
                          "mode" = get_mode,
                          "first" = function(x) x[1],
                          "last" = function(x) x[length(x)])
   aggregated_list$zone <- aggregate(zone_formula, 
-                                    data = dataset[,c("trip_id", zoneID_dat)],
+                                    data = dataset[,c(trip_id, zoneID_dat)],
                                     FUN = zone_agg_fun)
   
   # Date aggregation
   if (length(date_cols) > 0) {
-    date_formula <- as.formula(paste(". ~", "trip_id"))
+    date_formula <- as.formula(paste(". ~", trip_id))
     date_agg_fun <- function(x) get(date_fun)(x, na.rm = TRUE)
     # Aggregate converts dates to numeric so need to convert back
     date_agg <- aggregate(date_formula,
-                          data = dataset[,c("trip_id", date_cols)],
+                          data = dataset[,c(trip_id, date_cols)],
                           FUN = date_agg_fun)
     original_classes <- sapply(dataset[date_cols], class)
     for (col in date_cols) {
@@ -154,16 +130,16 @@ haul_to_trip <- function(dat,
   
   # Numeric aggregation
   if (length(numeric_cols) > 0) {
-    num_formula <- as.formula(paste(". ~", "trip_id"))
+    num_formula <- as.formula(paste(". ~", trip_id))
     num_agg_fun <- function(x) get(num_fun)(x, na.rm = TRUE)
     aggregated_list$numeric <- aggregate(num_formula, 
-                                         data = dataset[,c("trip_id", numeric_cols)],
+                                         data = dataset[,c(trip_id, numeric_cols)],
                                          FUN = num_agg_fun)
   }
   
   # Character/factor aggregation
   if (length(char_cols) > 0) {
-    char_formula <- as.formula(paste(". ~", "trip_id"))
+    char_formula <- as.formula(paste(". ~", trip_id))
     char_agg_fun <- switch(char_fun,
                            "paste" = function(x) paste(unique(x), collapse = ","),
                            "mode" = get_mode,
@@ -171,21 +147,21 @@ haul_to_trip <- function(dat,
                            "last" = function(x) x[length(x)],
                            function(x) x[1])
     aggregated_list$character <- aggregate(char_formula, 
-                                           data = dataset[, c("trip_id", char_cols)], 
+                                           data = dataset[, c(trip_id, char_cols)], 
                                            FUN = char_agg_fun)
   }
   
   # Haul counter
   if (haul_count) {
-    haul_count_df <- data.frame(table(dataset$trip_id))
-    names(haul_count_df) <- c("trip_id","haul_count")
+    haul_count_df <- data.frame(table(dataset[[trip_id]]))
+    names(haul_count_df) <- c(trip_id, "haul_count")
     aggregated_list$haul_count <- haul_count_df
   }
   
   # Merge all data frames together ----------------------------------------------------------------
   aggregated_list <- aggregated_list[!sapply(aggregated_list, is.null)]
   
-  df_out <- Reduce(function(x, y) merge(x, y, by = "trip_id", all = TRUE), aggregated_list)
+  df_out <- Reduce(function(x, y) merge(x, y, by = trip_id, all = TRUE), aggregated_list)
   
   # Log function call -----------------------------------------------------------------------------
   if (log_fun) {
