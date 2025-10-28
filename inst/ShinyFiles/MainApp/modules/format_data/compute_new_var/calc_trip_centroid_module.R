@@ -178,7 +178,7 @@ calc_trip_centroid_server <- function(id, rv_folderpath, rv_project_name, rv_dat
       req(nrow(centroid_data) > 0)
       
       # Get world map data
-      world <- maps::map_data("world")
+      world <- ggplot2::map_data("world")
       
       # Calculate plot limits
       lon_range <- range(centroid_data$cent_lon, na.rm = TRUE) + c(-2, 2)
@@ -188,7 +188,7 @@ calc_trip_centroid_server <- function(id, rv_folderpath, rv_project_name, rv_dat
         ggplot2::geom_polygon(data = world, 
                               ggplot2::aes(x = long, y = lat, group = group),
                               fill = "grey80", color = "white", linewidth = 0.2) +
-        ggplot2::geom_point(data = centroid_data, 
+        ggplot2::geom_point(data = centroid_data,
                             ggplot2::aes(x = cent_lon, y = cent_lat),
                             color = "blue", alpha = 0.5, size = 2) +
         ggplot2::coord_quickmap(xlim = lon_range, ylim = lat_range) +
@@ -217,15 +217,15 @@ calc_trip_centroid_ui <- function(id){
     div(
       id = ns("main_container"),
       bslib::card(
-        class = "card_overflow",
+        class = "card-overflow",
         bslib::card_header("Calculate Trip Centroid"),
         bslib::card_body(
-          class = "card_overflow",
-          p("This function calculates the geographic centroid (average latitude and longitude) 
-            for each unique trip. It uses the 'Latitude' and 'Longitude' variables set in the 
-            'Select variables' tab. You must select the 'Trip ID' column below. You can also 
-            optionally select a numeric column (e.g., catch amount) to calculate a weighted 
-            centroid."),
+          class = "card-overflow",
+          p("This function calculates the geographic centroid (average latitude and longitude)
+             for each unique trip. It uses the 'Latitude' and 'Longitude' variables set in the
+             'Select variables' tab. You must select the 'Trip ID' column below. You can also
+             optionally select a numeric column (e.g., catch amount) to calculate a weighted
+             centroid."),
           hr(),
           
           fluidRow(
@@ -235,10 +235,10 @@ calc_trip_centroid_ui <- function(id){
                      bslib::tooltip(
                        shiny::icon("circle-info"),
                        HTML("Select the variable that identifies unique trips. Note
-                             that hauls/sets within the same trip should share trips IDs.")
+                            that hauls/sets within the same trip should share trips IDs.")
                      )
                    )),
-
+                   
                    selectizeInput(ns("trip_id_input"),
                                   label = NULL,
                                   choices = NULL,
@@ -248,8 +248,8 @@ calc_trip_centroid_ui <- function(id){
             column(4,
                    h5("2. Select Weight (Optional)"),
                    selectInput(ns("weight_var_input"),
-                               label = "Choose 'None' for a simple average:",
-                               choices = NULL, # Populated by server
+                               label = NULL,
+                               choices = NULL,
                                selected = "")
             ),
             
