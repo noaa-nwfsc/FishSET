@@ -26,8 +26,8 @@ assign_quantiles_server <- function(id, rv_project_name, rv_data){
     ns <- session$ns
     
     # Initialize reactives
-    temp_data <- reactiveVal(NULL) # Holds the temporary data for the preview modal
-    new_col_name <- reactiveVal(NULL) # Holds the name of the new column
+    rv_temp_data <- reactiveVal(NULL) # Holds the temporary data for the preview modal
+    rv_new_col_name <- reactiveVal(NULL) # Holds the name of the new column
     
     # Update 'select variable' choices based on numeric columns in main data
     observe({
@@ -61,13 +61,17 @@ assign_quantiles_server <- function(id, rv_project_name, rv_data){
         return(NULL) # Stop execution of this observer
       }
       
+      # Show spinner
+      shinyjs::show("assign_quant_spinner_container")
+      on.exit(shinyjs::hide("assign_quant_spinner_container"), add = TRUE)
+      
       # Run the function (with error handling)
       result_df <- tryCatch({
         set_quants(
           dat = rv_data$main,
           project = rv_project_name()$value,
           x = var_to_quant,
-          quant.cat = quant_cat,
+          quant_cat = quant_cat,
           name = col_name
         )
       }, error = function(e) {
@@ -75,10 +79,13 @@ assign_quantiles_server <- function(id, rv_project_name, rv_data){
         return(NULL)
       })
       
+       # Hide spinner and show modal
+        shinyjs::hide("assign_quant_spinner_container")
+        
       # If successful, show modal
       if (!is.null(result_df)) {
-        temp_data(result_df) # Store data in reactiveVal
-        new_col_name(col_name) # Store name
+        rv_temp_data(result_df) # Store data in reactiveVal
+        rv_new_col_name(col_name) # Store name
         
         # Show Modal Dialog
         showModal(modalDialog(
@@ -97,9 +104,9 @@ assign_quantiles_server <- function(id, rv_project_name, rv_data){
     
     # Render the data table *inside* the modal
     output$preview_table <- renderDT({
-      req(temp_data())
+      req(rv_temp_data())
       datatable(
-        head(temp_data(), 5), # Preview first 5 rows
+        head(rv_temp_data(), 5), # Preview first 5 rows
         options = list(scrollX = TRUE),
         caption = "Showing first 5 rows of preview."
       )
@@ -107,11 +114,11 @@ assign_quantiles_server <- function(id, rv_project_name, rv_data){
     
     
     observeEvent(input$save_btn, {
-      req(temp_data())
+      req(rv_temp_data())
       req(rv_project_name())
       
       # Save data to the main reactive value
-      rv_data$main <- temp_data()
+      rv_data$main <- rv_temp_data()
       
       # Save changes to SQLite database
       table_save(table = rv_data$main,
@@ -123,45 +130,23 @@ assign_quantiles_server <- function(id, rv_project_name, rv_data){
       
       # Show success notification
       showNotification(
-        paste("New column '", new_col_name(), "' saved successfully."),
+        paste("New column '", rv_new_col_name(), "' saved successfully."),
         type = "message"
       )
       shinyjs::show("summary_wrapper")
       
     })
-    
-    # Summary Plot
-    output$summary_plot <- renderPlot({
-      # Only run if the new column name is present in the main data
-      req(rv_data$main, new_col_name())
-      validate(
-        need(new_col_name() %in% names(rv_data$main), "Column not found. Please save first.")
-      )
-      
-      # Convert to factor for correct plotting
-      plot_data <- rv_data$main
-      plot_data[[new_col_name()]] <- as.factor(plot_data[[new_col_name()]])
-      
-      column_name <- new_col_name()
-      ggplot(plot_data, aes(x = .data[[column_name]])) +
-        geom_bar(fill = "darkred", color = "black") +
-        theme_minimal(base_size = 14) +
-        labs(
-          title = "Count per Quantile Category",
-          x = new_col_name(),
-          y = "Count"
-        )
-    })
+  
     
     # Summary Table
     output$summary_table <- DT::renderDataTable({
-      req(rv_data$main, new_col_name())
+      req(rv_data$main, rv_new_col_name())
       validate(
-        need(new_col_name() %in% names(rv_data$main), "Column not found.")
+        need(rv_new_col_name() %in% names(rv_data$main), "Column not found.")
       )
       
       summary_df <-rv_data$main %>%
-        count(!!sym(new_col_name())) %>%
+        count(!!sym(rv_new_col_name())) %>%
         rename("Quantile Category" = 1, Count = 2)
       
       DT::datatable(summary_df,
@@ -230,19 +215,22 @@ assign_quantiles_ui <- function(id){
       )),
     shinyjs::hidden(
       div(id = ns("summary_wrapper"),
-          bslib::layout_column_wrap(
-            fill = TRUE,
-            width = 1/2,
-            bslib::card(
-              bslib::card_header("Summary Plot"),
-              plotOutput(ns("summary_plot"))),
             bslib::card(
               bslib::card_header("Summary Table"),
               DT::DTOutput(ns("summary_table")))
-          )
+          
           
       )
-    )
+    ),
+     # Spinner container
+            div(id = ns("assign_quant_spinner_container"),
+                style = "display: none;",
+                spinner_ui(ns("assign_quant_spinner"),
+                           spinner_type = "circle",
+                           size = "large",
+                           message = "Assigning quantiles...",
+                           overlay = TRUE)
+            )
   )
   
 }
