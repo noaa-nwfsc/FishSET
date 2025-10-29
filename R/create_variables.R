@@ -52,7 +52,7 @@ cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL)
     if (!is.null(price)) name = 'rpue'
     else name = 'cpue'
     
-    warning("'name' empty, using '", name, "'.", call. = FALSE)
+    cat("'name' empty, using '", name, "'.", call. = FALSE)
   }
   
   name <- name_check(dataset, name, repair = TRUE)
@@ -125,29 +125,35 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
   #' @param var Variable in \code{dat} to create dummy variable from.
-  #' @param value String, value to set dummy variable by. If \code{var} is a date, value should be a year,
-  #'   If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, value should be a single
-  #'   number or range of numbers [use c(1,5)].
-  #' @param opts String, how dummy variable should be defined. Choices are \code{"x_y"} and \code{"more_less’"}. For \code{"x_y"}, each
-  #'   element of \code{var} is set to 1 if the element matches \code{value}, otherwise 0.
-  #'   For \code{"more_less"}, each element of \code{var} less than \code{value} is set to 0 and all elements greater than
-  #'   \code{value} set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and all other
-  #'   elements set to 0. Default is set to \code{"more_less"}.
-  #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
+  #' @param value String, value to set dummy variable by. If \code{var} is a date, value should be 
+  #' a year,  If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, 
+  #' value should be a single  number or range of numbers [use c(1,5)].
+  #' @param opts String, how dummy variable should be defined. Choices are \code{"x_y"} and 
+  #' \code{"more_less’"}. For \code{"x_y"}, each element of \code{var} is set to 1 if the element 
+  #' matches \code{value}, otherwise 0. For \code{"more_less"}, each element of \code{var} less 
+  #' than \code{value} is set to 0 and all elements greater than \code{value} set to 1. If 
+  #' \code{var} is a factor, then elements that match value will be set to 1 and all other 
+  #' elements set to 0. Default is set to \code{"more_less"}.
+  #' @param name String, name of created dummy variable. Defaults to name of the function if 
+  #' not defined.
   #' @importFrom lubridate origin as_date
-  #' @details For date variables, the dummy variable is defined by a date (year) and may be either year \code{x} versus all
-  #'   other years (\code{"x_y"}) or before vs after year \code{x} (\code{"more_less"}). Use this function to create a variable defining whether
-  #'   or not a policy action had been implemented. \cr
+  #' @details For date variables, the dummy variable is defined by a date (year) and may be 
+  #' either year \code{x} versus all other years (\code{"x_y"}) or before vs after year \code{x} 
+  #' (\code{"more_less"}). Use this function to create a variable defining whether  or not a policy
+  #'  action had been implemented. \cr
   #'   Example: before vs. after a 2008 amendment: \cr
   #'   \code{dummy_num('pollockMainDataTable', 'Haul_date', 2008, 'more_less', 'amend08')} \cr\cr
   #'
-  #'  For factor variables, both choices in \code{opts} compare selected factor level(s) against all other factor levels.\cr
+  #'  For factor variables, both choices in \code{opts} compare selected factor level(s) against
+  #'   all other factor levels.\cr
   #'  Example: Fishers targeting pollock vs. another species:  \cr
-  #'  \code{dummy_num('pollockMainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 'Pollock - midwater'), 'x_y', 'pollock_target')}  \cr\cr
+  #'  \code{dummy_num('pollockMainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 
+  #'  'Pollock - midwater'), 'x_y', 'pollock_target')}  \cr\cr
   #'
-  #'  For numeric variables, \code{value} can be a single number or a range of numbers. The dummy variable is the
-  #'  selected value(s) against all others (\code{x_y}) or less than the selected value versus more than the selected value
-  #'  (\code{more_less}). For \code{more_less}, the mean is used as the critical value if a range of values is provided.
+  #'  For numeric variables, \code{value} can be a single number or a range of numbers. The dummy
+  #'   variable is the selected value(s) against all others (\code{x_y}) or less than the selected 
+  #'   value versus more than the selected value  (\code{more_less}). For \code{more_less}, the 
+  #'   mean is used as the critical value if a range of values is provided.
   #' @return Returns primary dataset with dummy variable added.
   #' @export
   #' @examples
@@ -165,80 +171,53 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   
   # name <- ifelse(is_empty(name), "dummy_num", name)
   name <- name_check(dataset, name, repair = TRUE)
+  # For demonstration, we'll assume 'dat' is already a data frame
+  dataset <- out$dataset 
   
-  if (grepl("dat|year", var, ignore.case = TRUE)) {
-    if (length(value) == 6) {
-      dataset[[var]] <- format(lubridate::as_date(dataset[[var]]), "%Y%m")
-    } else if (length(value) == 4) {
-      dataset[[var]] <- format(lubridate::as_date(dataset[[var]]), "%Y")
-    } else {
-      dataset[[var]] <- format(lubridate::as_date(dataset[[var]]), "%m")
-    }
-  } 
-  
-  if (is.numeric(dataset[[var]])) {
-    if (opts == "x_y") {
-      newvar <- ifelse(dataset[[var]] >= min(value) & dataset[[var]] <= max(value), 0, 1)
-    } else {
-      newvar <- ifelse(dataset[[var]] < mean(value), 0, 1)
-    }
-  } else if (is.factor(dataset[[var]]) | is.character(dataset[[var]])) {
-    newvar <- ifelse(trimws(dataset[[var]], "both") == trimws(value, "both"), 0, 1)
-  } else {
-    (warning("variable is not recognized as being a date, factor, or numeric. Function not run."))
+  # Ensure the variable exists in the data
+  if (!var %in% names(dataset)) {
+    stop(paste0("Variable '", var, "' not found in the data frame."))
   }
   
-  g <- cbind(dataset, newvar)
-  colnames(g)[dim(g)[2]] = name
+  # Extract the column as a vector for easier handling
+  column_vec <- dataset[[var]]
   
-  dummy_num_function <- list()
-  dummy_num_function$functionID <- "dummy_num"
-  dummy_num_function$args <- list(dat, project, var, value, opts, name)
-  dummy_num_function$kwargs <- list()
-  dummy_num_function$output <- list(dat)
+  # --- Main Logic: Determine the new binary vector ---
+  new_var <- NA # Initialize
   
-  log_call(project, dummy_num_function)
-  return(g)
-}
-
-#' Create dummy variable
-dummy_var <- function(dat, project, DumFill = 1, name = "dummy_var") {
-  #' @param dat Primary data containing information on hauls or trips.
-  #' Table in the FishSET database contains the string 'MainDataTable'.
-  #' @param project Project name. 
-  #' @param DumFill Fill the dummy variable with 1 or 0
-  #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
-  #' @return Primary dataset with dummy variable added.
-  #' @export dummy_var
-  #' @details Creates a dummy variable of either 0 or 1 with length of the number of rows of the data set.
-  #' @examples
-  #' \dontrun{
-  #' pollockMainDataTable <- dummy_var(pollockMainDataTable, 'pollock', DumFill=1, 'dummyvar')
-  #' }
+  # 1. Handle Date or POSIXt (datetime) columns
+  if (inherits(column_vec, "Date") || inherits(column_vec, "POSIXt")) {
+    col_year <- lubridate::year(column_vec)
+    if (opts == "more_less") {
+      new_var <- as.integer(col_year >= value)
+    } else { # "x_y"
+      new_var <- as.integer(col_year %in% value)
+    }
+    
+    # 2. Handle Numeric columns
+  } else if (is.numeric(column_vec)) {
+    if (opts == "more_less") {
+      threshold <- mean(value)
+      new_var <- as.integer(column_vec >= threshold)
+    } else { # "x_y"
+      new_var <- as.integer(column_vec >= min(value) & column_vec <= max(value))
+    }
+    
+    # 3. Handle Character or Factor columns
+  } else if (is.character(column_vec) || is.factor(column_vec)) {
+    # For factors/characters, 'more_less' doesn't apply, so both opts do the same thing:
+    # check for membership in the `value` set.
+    new_var <- as.integer(trimws(column_vec) %in% trimws(value))
+    
+    # 4. Handle unrecognized types
+  } else {
+    stop(paste0("Variable '", var, "' is not a recognized type (Date, numeric, character, or factor)."))
+  }
   
-  # Pull in data
-  out <- data_pull(dat, project)
-  dataset <- out$dataset
+  # --- Add the new column to the dataset using dplyr ---
+  dataset <- dplyr::mutate(dataset, !!name := new_var)
   
-  dat <- parse_data_name(dat, "main", project)
-  
-  # name <- ifelse(is_empty(name), "dummy_var", name)
-  name <- name_check(dataset, name, repair = TRUE)
-  
-  newvar <- as.vector(rep(DumFill, nrow(dataset)))
-  
-  g <- cbind(dataset, newvar)
-  colnames(g)[dim(g)[2]] = name
-  
-  dummy_var_function <- list()
-  dummy_var_function$functionID <- "dummy_var"
-  dummy_var_function$args <- list(dat, project, DumFill, name)
-  dummy_var_function$kwargs <- list()
-  dummy_var_function$output <- list(dat)
-  
-  log_call(project, dummy_var_function)
-  
-  return(g)
+  return(dataset)
 }
 
 #' Create dummy matrix from a coded ID variable
@@ -467,23 +446,24 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   . <- group_total <- total_value <- NULL
   
   if (is.null(group)) {
-    
-    dataset <- dataset %>% 
-      dplyr::group_by(dplyr::across(dplyr::all_of(id_group))) %>% 
-      dplyr::mutate(dplyr::across(dplyr::all_of(value), sum, .names = "total_value")) %>% # calc. total value by id_group
+    dataset <- 
+      dataset %>% 
+      dplyr::group_by(dplyr::across(id_group)) %>% 
+      # calc. total value by id_group
+      dplyr::mutate(dplyr::across(value, sum, .names = "total_value")) %>% 
       dplyr::ungroup() %>% 
       dplyr::mutate(dplyr::across(dplyr::all_of(value), .fns = ~ (.x/total_value) * 100, .names = name)) %>% # calc. percent of total value
       { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
     
   } else {
-    
-    dataset <- dataset %>% 
-      dplyr::group_by(dplyr::across(dplyr::all_of(id_group))) %>% 
-      dplyr::mutate(dplyr::across(dplyr::all_of(value), sum, .names = "total_value")) %>% # calc. total value by id_group
-      dplyr::group_by(dplyr::across(dplyr::all_of(group)), .add = TRUE) %>%
-      dplyr::mutate(dplyr::across(dplyr::all_of(value), sum, .names = "group_total")) %>% # calc. group total
-      dplyr::mutate(temporary_col_name = (group_total/total_value) * 100) %>%
-      dplyr::rename_with(~ name, .cols = "temporary_col_name") %>%
+    dataset <- 
+      dataset %>% 
+      dplyr::group_by(dplyr::across(id_group)) %>% 
+      dplyr::mutate(dplyr::across(value, sum, .names = "total_value")) %>% # calc. total value by id_group
+      dplyr::group_by(dplyr::across(group), .add = TRUE) %>%
+      dplyr::mutate(dplyr::across(value, sum, .names = "group_total")) %>% # calc. group total
+      dplyr::mutate(!!name := (group_total/total_value) * 100) %>% # percent of total value
+      
       dplyr::ungroup() %>% 
       { if (drop_total_col) dplyr::select(., -c(group_total, total_value)) else . }
   }
@@ -551,17 +531,16 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
     dataset[[sort_by]] <- date_parser(dataset[[sort_by]])
   }
   
-  tab <- dataset %>% 
-    dplyr::arrange(dplyr::across(dplyr::all_of(sort_by))) %>% 
-    dplyr::group_by(dplyr::across(dplyr::all_of(group))) %>% 
+  tab <- 
+    dataset %>% 
+    dplyr::arrange(dplyr::across(sort_by)) %>% 
+    dplyr::group_by(dplyr::across(group)) %>% 
     { if (length(group) == 1)
-      dplyr::mutate(., dplyr::across(dplyr::all_of(value), sum, .names = "group_total")) %>% 
-        dplyr::mutate(., dplyr::across(dplyr::all_of(value), alt_diff, lag = lag, .names = name))
+      dplyr::mutate(., dplyr::across(value, sum, .names = "group_total")) %>% 
+        dplyr::mutate(., dplyr::across(value, alt_diff, lag = lag, .names = name))
       else 
-        dplyr::summarize(., dplyr::across(dplyr::all_of(value), sum, .names = "group_total")) %>% 
-        dplyr::mutate(., temporary_col_name = alt_diff(group_total, lag = lag)) } %>% 
-    
-    dplyr::rename_with(~ name, .cols = "temporary_col_name") %>%
+        dplyr::summarize(., dplyr::across(value, sum, .names = "group_total")) %>% 
+        dplyr::mutate(., !!name := alt_diff(group_total, lag = lag)) } %>% 
     dplyr::ungroup() %>% 
     { if (drop_total_col) dplyr::select(., -group_total) else . }
   
@@ -1019,13 +998,17 @@ create_dist_between <- function(dat, project, start, end,
       } else if(!is.null(zoneid) & zoneid %in% names(dataset)){
         colnames(dataset)[colnames(dataset)==zoneid] <- 'ZoneID'
       } else {
-        dataset <- assignment_column(
-          dat = dataset, project = project, spat = eval(parse(text = vars[1])), hull.polygon = FALSE, lon.spat = gsub("\"|'", "", vars[2]),
-          lat.spat = gsub("\"|'", "", vars[3]), lon.dat = gsub("\"|'", "", vars[4]), lat.dat = gsub("\"|'", "", vars[5]), cat = gsub(
-            "\"|'", "",
-            vars[6]
-          ), closest.pt = TRUE, log.fun = FALSE
-        )
+        
+        dataset <- assignment_column(dat = dataset, 
+                                     project = project, 
+                                     spat = eval(parse(text = vars[1])), 
+                                     hull_polygon = FALSE, 
+                                     lon_dat = gsub("\"|'", "", vars[4]), 
+                                     lat_dat = gsub("\"|'", "", vars[5]), 
+                                     zoneID_spat = gsub("\"|'", "", vars[6]), 
+                                     closest_pt = TRUE, 
+                                     log_fun = FALSE)
+        
       }
     }
     
@@ -1135,15 +1118,26 @@ create_duration <- function(dat, project, start, end,
     warning("Function is designed for temporal variables")
   }
   
-  elapsed.time <- lubridate::interval(date_parser(dataset[[start]]), date_parser(dataset[[end]]))
+  elapsed.time <- lubridate::interval(dataset[[start]], dataset[[end]])
+  
   if (units == "week") {
+    
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::dweeks(1)
+    
   } else if (units == "day") {
+    
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::ddays(1)
+    
   } else if (units == "hour") {
+    
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::dhours(1)
+    
   } else if (units == "minute") {
+    elapsed.time <- lubridate::interval((dataset[[start]]), 
+                                        (dataset[[end]]))
+    
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::dminutes(1)
+    
   }
   
   g <- cbind(dataset, newvar)

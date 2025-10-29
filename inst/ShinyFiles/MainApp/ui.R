@@ -20,6 +20,7 @@ source("modules/other_actions_ui.R", local = TRUE) # Other actions in sidebar
 source("modules/select_variables_ui.R", local = TRUE) # Other actions in sidebar 
 source("modules/qaqc_module.R", local = TRUE)
 source("modules/explore_data_module.R", local = TRUE)
+source("modules/format_data/compute_new_var_module.R", local = TRUE)
 
 # UI function definition
 ui <- function(request){
@@ -170,6 +171,39 @@ ui <- function(request){
             
             ### Main panel
             explore_data_ui("explore_data")    
+          )
+        )
+      )
+    ),
+    # Format data ---------------------------------------------------------------------------------
+    bslib::nav_menu(
+      title = "Format Data",
+      
+      ## Compute new variables subtab -------------------------------------------------------------
+      bslib::nav_panel(
+        title = "Compute new variables", 
+        id = "compute_new_variables",
+        value = "compute_new_variables",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE,
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+              
+              checklist_ui("compute_new_var_checklist"),
+              hr(),
+              compute_new_var_sidebar_ui("compute_new_var"),
+              other_actions_ui("compute_new_var_actions")
+            ),
+            
+            ### Main panel
+            compute_new_var_ui("compute_new_var")
+
           )
         )
       )

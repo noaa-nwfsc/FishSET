@@ -8,17 +8,17 @@ assignment_column(
   dat,
   project,
   spat,
-  lon.dat,
-  lat.dat,
-  cat,
+  lon_dat,
+  lat_dat,
+  zoneID_spat,
   name = "ZoneID",
-  closest.pt = FALSE,
+  closest_pt = FALSE,
   bufferval = NULL,
-  lon.spat = NULL,
-  lat.spat = NULL,
-  hull.polygon = FALSE,
+  lon_spat = NULL,
+  lat_spat = NULL,
+  hull_polygon = FALSE,
   epsg = NULL,
-  log.fun = TRUE
+  log_fun = TRUE
 )
 }
 \arguments{
@@ -30,36 +30,36 @@ FishSET database contains the string 'MainDataTable'.}
 \item{spat}{Spatial data containing information on fishery management or 
 regulatory zones. \code{sf} objects are recommended, but \code{sp} objects
 can be used as well. If using a spatial table read from a csv file, then
-arguments \code{lon.spat} and \code{lat.spat} are required. To upload your
+arguments \code{lon_spat} and \code{lat_spat} are required. To upload your
 spatial data to the FishSETFolder see \code{\link{load_spatial}}.}
 
-\item{lon.dat}{Longitude variable in \code{dat}.}
+\item{lon_dat}{Longitude variable in \code{dat}.}
 
-\item{lat.dat}{Latitude variable in \code{dat}.}
+\item{lat_dat}{Latitude variable in \code{dat}.}
 
-\item{cat}{Variable or list in \code{spat} that identifies the individual areas 
-or zones. If \code{spat} is class \code{sf}, \code{cat} should be name of list 
+\item{zoneID_spat}{Variable or list in \code{spat} that identifies the individual areas 
+or zones. If \code{spat} is class \code{sf}, \code{zoneID_spat} should be name of list 
 containing information on zones.}
 
 \item{name}{The name of the new assignment column. Defaults to \code{"ZoneID"}.}
 
-\item{closest.pt}{Logical, if \code{TRUE}, observations that fall outside 
+\item{closest_pt}{Logical, if \code{TRUE}, observations that fall outside 
 zones are classed as the closest zone polygon to the point.}
 
 \item{bufferval}{Maximum buffer distance, in meters, for assigning observations 
 to the closest zone polygon. If the observation is not within the defined 
 \code{bufferval}, then it will not be assigned to a zone polygon. 
-Required if \code{closest.pt = TRUE}.}
+Required if \code{closest_pt = TRUE}.}
 
-\item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
+\item{lon_spat}{Variable or list from \code{spat} containing longitude data. 
 Required for spatial tables read from csv files. Leave as \code{NULL} if 
 \code{spat} is an \code{sf} or \code{sp} object.}
 
-\item{lat.spat}{Variable or list from \code{spat} containing latitude data. 
+\item{lat_spat}{Variable or list from \code{spat} containing latitude data. 
 Required for spatial tables read from csv files. Leave as \code{NULL} if 
 \code{spat} is an \code{sf} or \code{sp} object.}
 
-\item{hull.polygon}{Logical, if \code{TRUE}, creates convex hull polygon. Use 
+\item{hull_polygon}{Logical, if \code{TRUE}, creates convex hull polygon. Use 
 if spatial data creating polygon are sparse or irregular.}
 
 \item{epsg}{EPSG code. Manually set the epsg code, which will be applied to 
@@ -69,7 +69,7 @@ if epsg is not specified and epsg is not defined for \code{spat}, then a default
 epsg value will be applied to \code{spat} and \code{dat} (\code{epsg = 4326}).
 See \url{http://spatialreference.org/} to help identify optimal epsg number.}
 
-\item{log.fun}{Logical, whether to log function call (for internal use).}
+\item{log_fun}{Logical, whether to log function call (for internal use).}
 }
 \value{
 Returns primary dataset with new assignment column.
@@ -82,7 +82,7 @@ require zone assignment but can also be used on its own.
 \details{
 Function uses the specified latitude and longitude from the primary 
   dataset to assign each row of the primary dataset to a zone. Zone polygons 
-  are defined by the spatial dataset. Set \code{hull.polygon} to \code{TRUE} 
+  are defined by the spatial dataset. Set \code{hull_polygon} to \code{TRUE} 
   if spatial data is sparse or irregular. Function is called by other functions 
   if a zone identifier does not exist in the primary dataset.
 }
@@ -90,7 +90,7 @@ Function uses the specified latitude and longitude from the primary
 \dontrun{
 pollockMainDataTable <- 
      assignment_column(pollockMainDataTable, "pollock", spat = pollockNMFSSpatTable,
-                       lon.dat = "LonLat_START_LON", lat.dat = "LonLat_START_LAT")
+                       lon_dat = "LonLat_START_LON", lat_dat = "LonLat_START_LAT")
 }
 }
 \keyword{polygon}
