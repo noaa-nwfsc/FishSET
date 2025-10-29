@@ -21,6 +21,7 @@ source("modules/select_variables_ui.R", local = TRUE) # Other actions in sidebar
 source("modules/qaqc_module.R", local = TRUE)
 source("modules/explore_data_module.R", local = TRUE)
 source("modules/format_data/compute_new_var_module.R", local = TRUE)
+source("modules/format_data/create_expectations_module.R", local = TRUE)
 
 # UI function definition
 ui <- function(request){
@@ -204,6 +205,35 @@ ui <- function(request){
             ### Main panel
             compute_new_var_ui("compute_new_var")
 
+          )
+        )
+      ),
+      
+      ## Create expectations subtab ---------------------------------------------------------------
+      bslib::nav_panel(
+        title = "Create expected catch matrix", 
+        id = "create_exp",
+        value = "create_exp",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE,
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+              
+              checklist_ui("create_expectations_checklist"),
+              hr(),
+              # compute_new_var_sidebar_ui("compute_new_var"),
+              other_actions_ui("create_expectations_actions")
+            ),
+            
+            ### Main panel
+            create_expectations_ui("create_expectations")
+            
           )
         )
       )
