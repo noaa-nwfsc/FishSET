@@ -187,8 +187,8 @@ assign_quantiles_ui <- function(id){
                 HTML("Name of new variable &nbsp;"),
                 bslib::tooltip(
                   shiny::icon("circle-info", `aria-label` = "More information"),
-                  HTML("Name for the new column. Defaults to name of the function if
-                                 not defined."),
+                  HTML("Name for the new column. Defaults to the selected variable name followed
+                       by '_quant'"),
                   options = list(delay = list(show = 0, hide = 850))
                 )
               )

@@ -10,8 +10,10 @@
 # =================================================================================================
 
 # Source module scripts ---------------------------------------------------------------------------
+source("modules/format_data/compute_new_var/new_r_expression_module.R", local = TRUE) # R expression
 source("modules/format_data/compute_new_var/lag_zone_module.R", local = TRUE)
 source("modules/format_data/compute_new_var/assign_quantiles_module.R", local = TRUE)
+source("modules/format_data/compute_new_var/haul_to_trip_module.R", local = TRUE)
 
 
 # compute new variables server --------------------------------------------------------------------
@@ -25,14 +27,25 @@ source("modules/format_data/compute_new_var/assign_quantiles_module.R", local = 
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-compute_new_var_server <- function(id, rv_folderpath, rv_project_name, rv_data){
+compute_new_var_server <- function(id, rv_data_load_error, #values = NULL,
+                                   rv_folderpath, 
+                                   rv_project_name, rv_data){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
+    new_r_express_server("new_r_express",                         
+                         rv_data_load_error = reactive(rv_data_load_error()),
+                         rv_project_name = rv_project_name,
+                         rv_data = rv_data)
+    
     # lag zone
     lag_zone_server("lag_zone", rv_folderpath, rv_project_name, rv_data )
-    
+
+    # assigning quantiles 
     assign_quantiles_server("assign_quantiles", rv_project_name, rv_data )
+
+    # haul to trip
+    haul_to_trip_server("haul_to_trip", rv_folderpath, rv_project_name, rv_data)
 
   })
 }
@@ -51,8 +64,10 @@ compute_new_var_sidebar_ui <- function(id) {
   tagList(
     radioButtons(ns("comp_new_var_options"), 
                  label = h6("Functions:"),
-                 choices = c("Lag zone ID" = "lag_zone_id",
-                             "Assign quantiles" = "assign_quantiles_id"),
+                 choices = c("R expression" = "new_r_express",
+                             "Lag zone ID" = "lag_zone_id",
+                             "Assign quantiles" = "assign_quantiles_id",
+                             "Haul to trip" = "haul_to_trip"),
                  selected = "")
   )
   
@@ -72,17 +87,30 @@ compute_new_var_ui <- function(id){
   ns <- NS(id)
   
   tagList(
+    # Conditionally display option to r expression
+    conditionalPanel(
+      condition = "input.comp_new_var_options == 'new_r_express'",
+      ns = ns,
+      new_r_express_ui(ns("new_r_express"))
+    ),
+    
     # Conditionally display option to lag zone variable
     conditionalPanel(
       condition = "input.comp_new_var_options == 'lag_zone_id'",
       ns = ns,
       lag_zone_ui(ns("lag_zone"))
     ),
-       # Conditionally display option to lag zone variable
+      # Conditionally display option to assign quantiles 
     conditionalPanel(
       condition = "input.comp_new_var_options == 'assign_quantiles_id'",
       ns = ns,
       assign_quantiles_ui(ns("assign_quantiles"))
+      ),
+    # Conditionally display option to aggregate hauls to trips
+    conditionalPanel(
+      condition = "input.comp_new_var_options == 'haul_to_trip'", # <-- ADDED PANEL
+      ns = ns,
+      haul_to_trip_ui(ns("haul_to_trip"))
     )
   )
 }
