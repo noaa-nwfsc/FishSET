@@ -10,6 +10,26 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// calculate_moving_avg
+NumericVector calculate_moving_avg(DateVector unique_dates, CharacterVector unique_groups, DateVector obs_dates, CharacterVector obs_groups, NumericVector obs_values, int window_size, int lag, int year_lag, bool temporal, bool weighted);
+RcppExport SEXP _FishSET_calculate_moving_avg(SEXP unique_datesSEXP, SEXP unique_groupsSEXP, SEXP obs_datesSEXP, SEXP obs_groupsSEXP, SEXP obs_valuesSEXP, SEXP window_sizeSEXP, SEXP lagSEXP, SEXP year_lagSEXP, SEXP temporalSEXP, SEXP weightedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< DateVector >::type unique_dates(unique_datesSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type unique_groups(unique_groupsSEXP);
+    Rcpp::traits::input_parameter< DateVector >::type obs_dates(obs_datesSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type obs_groups(obs_groupsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type obs_values(obs_valuesSEXP);
+    Rcpp::traits::input_parameter< int >::type window_size(window_sizeSEXP);
+    Rcpp::traits::input_parameter< int >::type lag(lagSEXP);
+    Rcpp::traits::input_parameter< int >::type year_lag(year_lagSEXP);
+    Rcpp::traits::input_parameter< bool >::type temporal(temporalSEXP);
+    Rcpp::traits::input_parameter< bool >::type weighted(weightedSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculate_moving_avg(unique_dates, unique_groups, obs_dates, obs_groups, obs_values, window_size, lag, year_lag, temporal, weighted));
+    return rcpp_result_gen;
+END_RCPP
+}
 // shift_sort_xcpp
 NumericMatrix shift_sort_xcpp(NumericMatrix x, NumericMatrix ch, NumericVector y, NumericMatrix distance, int alts, int ab);
 RcppExport SEXP _FishSET_shift_sort_xcpp(SEXP xSEXP, SEXP chSEXP, SEXP ySEXP, SEXP distanceSEXP, SEXP altsSEXP, SEXP abSEXP) {
@@ -28,6 +48,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_FishSET_calculate_moving_avg", (DL_FUNC) &_FishSET_calculate_moving_avg, 10},
     {"_FishSET_shift_sort_xcpp", (DL_FUNC) &_FishSET_shift_sort_xcpp, 6},
     {NULL, NULL, 0}
 };
