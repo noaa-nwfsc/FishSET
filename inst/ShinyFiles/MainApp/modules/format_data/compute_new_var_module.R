@@ -11,6 +11,8 @@
 
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/format_data/compute_new_var/lag_zone_module.R", local = TRUE)
+source("modules/format_data/compute_new_var/group_perc_module.R", local = TRUE)
+
 
 # compute new variables server --------------------------------------------------------------------
 #' compute_new_var_server
@@ -30,6 +32,9 @@ compute_new_var_server <- function(id, rv_folderpath, rv_project_name, rv_data){
     # lag zone
     lag_zone_server("lag_zone", rv_folderpath, rv_project_name, rv_data )
     
+    
+    group_perc_server("group_perc", rv_project_name, rv_data )
+
   })
 }
 
@@ -47,7 +52,8 @@ compute_new_var_sidebar_ui <- function(id) {
   tagList(
     radioButtons(ns("comp_new_var_options"), 
                  label = h6("Functions:"),
-                 choices = c("Lag zone ID" = "lag_zone_id"),
+                 choices = c("Lag zone ID" = "lag_zone_id",
+                             "Group Percentages" = "group_perc_id"),
                  selected = "")
   )
   
@@ -72,6 +78,12 @@ compute_new_var_ui <- function(id){
       condition = "input.comp_new_var_options == 'lag_zone_id'",
       ns = ns,
       lag_zone_ui(ns("lag_zone"))
-    )
+    ),
+     # Conditionally display option to group percentage variable
+    conditionalPanel(
+      condition = "input.comp_new_var_options == 'group_perc_id'",
+      ns = ns,
+       group_perc_ui(ns("group_perc" ))
+  )
   )
 }

@@ -430,10 +430,11 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   #'   is calculated by dividing "group_total" by "total_value". Defaults to \code{NULL}.
   #' @param value String, the value variable used to calculate percentage. Must be numeric. 
   #' @param name String, the name for the new variable. Defaults to "group_perc". 
-  #' @param create_group_ID Logical, whether to create a group ID variable using \code{\link{ID_var}}.
+  #' @param create_group_ID Logical, whether to create a group ID variable using 
+  #' \code{\link{ID_var}}.
   #'   Defaults to \code{FALSE}.
-  #' @param drop_total_col Logical, whether to remove the "total_value" and "group_total" variables
-  #'   created to calculate percentage. Defaults to \code{FALSE}.
+  #' @param drop_total_col Logical, whether to remove the "total_value" and "group_total"
+  #'  variables created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
   #' @importFrom dplyr across mutate group_by select ungroup
   #' @importFrom shiny isRunning
@@ -441,9 +442,9 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   #'   group ID (\code{id_group}) and secondary group (\code{group}). The total value of 
   #'   \code{id_group} is stored in the "total_value" variable, and the within-group total
   #'   stored in "group_total". The group percentage is calculated using these two function-created
-  #'   variables. "total_value" and "group_total" can be dropped by setting \code{drop_total_col = TRUE}.
-  #'   A group ID column can be created using the variables in\code{id_group} and \code{group} by setting 
-  #'   \code{create_group_ID = TRUE}. 
+  #'   variables. "total_value" and "group_total" can be dropped by setting
+  #'    \code{drop_total_col = TRUE}. A group ID column can be created using the variables
+  #'     in\code{id_group} and \code{group} by setting \code{create_group_ID = TRUE}. 
   #' @examples
   #' \dontrun{
   #' group_perc(pollockMainDataTable, "pollock", id_group = "PERMIT", group = NULL, 
@@ -472,10 +473,15 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
     
     dataset <- 
     dataset %>% 
-      dplyr::group_by(dplyr::across(id_group)) %>% 
-      dplyr::mutate(dplyr::across(value, sum, .names = "total_value")) %>% # calc. total value by id_group
+      dplyr::group_by(
+        dplyr::across(id_group)) %>% 
+      dplyr::mutate(
+        dplyr::across(value, sum, .names = "total_value")) %>% # calc. total value by id_group
       dplyr::ungroup() %>% 
-      dplyr::mutate(dplyr::across(value, .fns = ~ (.x/total_value) * 100, .names = name)) %>% # calc. percent of total value
+      dplyr::mutate(
+        dplyr::across(value,
+                      .fns = ~ (.x/total_value) * 100,
+                      .names = name)) %>% # calc. percent of total value
       { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
     
   } else {
@@ -483,7 +489,8 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
     dataset <- 
     dataset %>% 
       dplyr::group_by(dplyr::across(id_group)) %>% 
-      dplyr::mutate(dplyr::across(value, sum, .names = "total_value")) %>% # calc. total value by id_group
+      dplyr::mutate(
+        dplyr::across(value, sum, .names = "total_value")) %>% # calc. total value by id_group
       dplyr::group_by(dplyr::across(group), .add = TRUE) %>%
       dplyr::mutate(dplyr::across(value, sum, .names = "group_total")) %>% # calc. group total
       dplyr::mutate(!!name := (group_total/total_value) * 100) %>% # percent of total value
