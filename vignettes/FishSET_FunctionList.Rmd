@@ -239,7 +239,7 @@ haul_to_trip()
 #Trip distance
 calc_trip_distance()
 #Trip centroid
-create_trip_centroid()
+calc_trip_centroid()
 ```
 
 ##Zonal Definition\
