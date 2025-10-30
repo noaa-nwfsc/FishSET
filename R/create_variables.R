@@ -167,14 +167,11 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   # Pull in data
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  
   dat <- parse_data_name(dat, "main", project)
   
   # name <- ifelse(is_empty(name), "dummy_num", name)
   name <- name_check(dataset, name, repair = TRUE)
- # For demonstration, we'll assume 'dat' is already a data frame
-  dataset <- out$dataset 
-
+  
   # Ensure the variable exists in the data
   if (!var %in% names(dataset)) {
     stop(paste0("Variable '", var, "' not found in the data frame."))
@@ -195,7 +192,7 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
       new_var <- as.integer(col_year %in% value)
     }
     
-  # 2. Handle Numeric columns
+    # 2. Handle Numeric columns
   } else if (is.numeric(column_vec)) {
     if (opts == "more_less") {
       threshold <- mean(value)
@@ -204,13 +201,13 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
       new_var <- as.integer(column_vec >= min(value) & column_vec <= max(value))
     }
     
-  # 3. Handle Character or Factor columns
+    # 3. Handle Character or Factor columns
   } else if (is.character(column_vec) || is.factor(column_vec)) {
     # For factors/characters, 'more_less' doesn't apply, so both opts do the same thing:
     # check for membership in the `value` set.
     new_var <- as.integer(trimws(column_vec) %in% trimws(value))
     
-  # 4. Handle unrecognized types
+    # 4. Handle unrecognized types
   } else {
     stop(paste0("Variable '", var, "' is not a recognized type (Date, numeric, character, or factor)."))
   }
@@ -306,7 +303,7 @@ set_quants <- function(dat, project, x, quant_cat = 0.25,
   if (!is.numeric(dataset[[x]])) {
     stop("Variable must be numeric. Function not run.")
   }
- 
+  
   if (!is.null(custom_quant) & is.numeric(custom_quant)) {
     prob_def <- custom_quant
   }else if (quant_cat == 0.1) {
@@ -320,23 +317,23 @@ set_quants <- function(dat, project, x, quant_cat = 0.25,
   }  else if (quant_cat == 0.4) {
     prob_def <- c(0, 0.1, 0.5, 0.9, 1)
   }
-
-    breaks <- quantile(dataset[[x]], probs = prob_def, na.rm = TRUE)
-    quantile_labels <- prob_def[-1] 
-    factor_var <- cut(dataset[[x]], breaks = breaks, labels = quantile_labels, include.lowest = TRUE)
-    newvar <- as.numeric(as.character(factor_var))
-
-    g <- cbind(dataset, newvar)
-    colnames(g)[dim(g)[2]] = name
-    
-    set_quants_function <- list()
-    set_quants_function$functionID <- "set_quants"
-    set_quants_function$args <- list(dat, project, x, quant_cat, custom_quant, name)
-    set_quants_function$kwargs <- list()
-    set_quants_function$output <- list(dat)
-    
-    log_call(project, set_quants_function)
-    return(g)
+  
+  breaks <- quantile(dataset[[x]], probs = prob_def, na.rm = TRUE)
+  quantile_labels <- prob_def[-1] 
+  factor_var <- cut(dataset[[x]], breaks = breaks, labels = quantile_labels, include.lowest = TRUE)
+  newvar <- as.numeric(as.character(factor_var))
+  
+  g <- cbind(dataset, newvar)
+  colnames(g)[dim(g)[2]] = name
+  
+  set_quants_function <- list()
+  set_quants_function$functionID <- "set_quants"
+  set_quants_function$args <- list(dat, project, x, quant_cat, custom_quant, name)
+  set_quants_function$kwargs <- list()
+  set_quants_function$output <- list(dat)
+  
+  log_call(project, set_quants_function)
+  return(g)
   
 }
 
@@ -418,7 +415,7 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   #' @param drop_total_col Logical, whether to remove the "total_value" and "group_total"
   #'  variables created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
-  #' @importFrom dplyr across mutate group_by select ungroup
+  #' @importFrom dplyr across mutate group_by select ungroup rename_with
   #' @importFrom shiny isRunning
   #' @details \code{group_perc} creates a within-group percentage variable using a primary
   #'   group ID (\code{id_group}) and secondary group (\code{group}). The total value of 
@@ -444,15 +441,12 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   # name <- ifelse(is_empty(name), "group_perc", name)
   name <- name_check(dataset, name, repair = TRUE)
   
-  
   if (create_group_ID) dataset <- ID_var(dataset, project, vars = c(id_group, group), 
                                          log_fun = FALSE)
-  
   
   . <- group_total <- total_value <- NULL
   
   if (is.null(group)) {
-    
     dataset <- 
       dataset %>% 
       dplyr::group_by(
@@ -464,6 +458,7 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
         dplyr::across(value,
                       .fns = ~ (.x/total_value) * 100,
                       .names = name)) %>% # calc. percent of total value
+      
       { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
     
   } else {
@@ -508,9 +503,8 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   #' @param drop_total_col Logical, whether to remove the "group_total" variable
   #'   created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
-  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup
+  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup rename_with
   #' @importFrom shiny isRunning
-  #' @importFrom rlang :=
   #' @details \code{group_diff} creates a grouped lagged difference variable. \code{value}
   #'   is first summed by the variable(s) in \code{group}, then the difference within-group is 
   #'   calculated. The "group_total" variable gives the total value by group and can
@@ -589,7 +583,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   #' @param drop_total_col Logical, whether to remove the "group_total" variable
   #'   created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
-  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup %>%
+  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup %>% rename_with
   #' @importFrom shiny isRunning
   #' @details \code{group_cumsum} sums \code{value} by \code{group}, then cumulatively
   #'   sums within groups. For example, a running sum by trip variable can be made 
@@ -632,7 +626,8 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
         dplyr::mutate(., dplyr::across(value, cumsum, .names = name))
       else 
         dplyr::summarize(., dplyr::across(value, sum, .names = "group_total")) %>% 
-        dplyr::mutate(., !!name := cumsum(group_total)) } %>% 
+        dplyr::mutate(., temporary_col_name = cumsum(group_total)) } %>% 
+    dplyr::rename_with(~ name, .cols = "temporary_col_name") %>%
     dplyr::ungroup() %>% 
     { if (drop_total_col) dplyr::select(., -group_total) else . }
   
@@ -790,7 +785,6 @@ create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon"
   
 }
 
-
 #' Interactive application to create distance between points variable
 create_dist_between <- function(dat, project, start, end, 
                                 units = c("miles", "meters", "km", "midpoint"), 
@@ -927,7 +921,6 @@ create_dist_between <- function(dat, project, start, end,
       } else if(!is.null(zoneid) & zoneid %in% names(dataset)){
         colnames(dataset)[colnames(dataset)==zoneid] <- 'ZoneID'
       } else {
-
         dataset <- assignment_column(dat = dataset, 
                                      project = project, 
                                      spat = eval(parse(text = vars[1])), 

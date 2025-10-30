@@ -18,8 +18,8 @@
 #'   stats as percentages, and (5) dataframe with welfare details such as number of trips, mean loss per trip, and mean of 
 #'   the total welfare loss across all trips.
 #' 
-#' @import dplyr
 #' @import ggplot2
+#' @importFrom dplyr filter select mutate_at group_by summarise ungroup
 #' @importFrom DBI dbConnect dbDisconnect dbGetQuery
 #' @importFrom RSQLite SQLite
 #' @importFrom data.table fread

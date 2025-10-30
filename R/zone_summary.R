@@ -97,7 +97,6 @@ zone_summary <- function(dat,
                          plot_type = "dynamic",
                          output = "plot") {
   
-  
   # Pull in datasets ------------------------------------------------------------------------------
   out <- data_pull(dat, project)
   dataset <- out$dataset
@@ -267,7 +266,7 @@ zone_summary <- function(dat,
     # convert points to polygon
     base_map <-
       base_map %>%
-      dplyr::group_by(across(all_of("group"))) %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of("group"))) %>%
       dplyr::summarize(do_union = FALSE) %>%
       sf::st_cast("POLYGON")
     

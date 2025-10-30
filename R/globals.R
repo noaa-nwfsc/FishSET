@@ -1,3 +1,4 @@
+
 utils::globalVariables(c(
   '.',
   'occasion_id',
