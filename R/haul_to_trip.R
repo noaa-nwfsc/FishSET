@@ -38,7 +38,7 @@
 #' trip_data <- haul_to_trip(
 #'   dat = "pollockMainDataTable",
 #'   project = "pollock",
-#'   trip_id = "tripID,
+#'   trip_id = "tripID",
 #'   zone_col = "ZONE",
 #'   zone_fun = "mode", # Use the most common zone for the trip
 #'   date_fun = "min",   # Use the earliest haul date as the trip date

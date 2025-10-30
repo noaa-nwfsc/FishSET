@@ -23,8 +23,7 @@ that this is the project 'MainDataTable' in the FishSET database.}
 
 \item{project}{String, name of project.}
 
-\item{trip_id}{A character vector of column name(s) that uniquely identify a trips.
-If more than one column name is provided, a composite ID will be created.}
+\item{trip_id}{String. Column name that represents the unique trip identifier in \code{dat}.}
 
 \item{zoneID_dat}{String, the name of the column identifying fishing zones. This column is 
 handled separately from other columns.}
@@ -55,18 +54,17 @@ Aggregates a data frame from individual observations (hauls) to a summary level 
 It provides flexible methods for collapsing numeric, character, and temporal data.
 }
 \details{
-The function first identifies unique trips based on the 'trip_id' column(s). It then
-aggregates all other columns based on their data type. For columns that are not numeric,
-date, or character, the function defaults to taking the first observation for each trip.
+The function aggregates columns based on their data type per unique trip ID. For columns that 
+  are not numeric, date, or character, the function defaults to taking the first observation 
+  for each trip.
 }
 \examples{
 \dontrun{
 # Collapse the data from haul to trip level
-# A trip is defined by a unique PERMIT and PORT combination
 trip_data <- haul_to_trip(
   dat = "pollockMainDataTable",
   project = "pollock",
-  trip_id = c("PERMIT", "PORT"),
+  trip_id = "tripID",
   zone_col = "ZONE",
   zone_fun = "mode", # Use the most common zone for the trip
   date_fun = "min",   # Use the earliest haul date as the trip date

@@ -11,11 +11,8 @@ export(assignment_column)
 export(bbox)
 export(bin_var)
 export(bycatch)
-<<<<<<< HEAD
 export(calc_trip_centroid)
-=======
 export(calc_trip_distance)
->>>>>>> 8c37bed2dbe9ec40bbdfd323576353709fa0a519
 export(catch_lm)
 export(category_cols)
 export(centroid_to_fsdb)
@@ -44,11 +41,6 @@ export(create_mid_haul)
 export(create_model_input)
 export(create_proj_settings)
 export(create_seasonal_ID)
-<<<<<<< HEAD
-export(create_trip_distance)
-=======
-export(create_trip_centroid)
->>>>>>> 8c37bed2dbe9ec40bbdfd323576353709fa0a519
 export(create_var_num)
 export(cross_validation)
 export(current_db_table)
