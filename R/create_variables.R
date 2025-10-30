@@ -121,39 +121,41 @@ cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL)
 # dummy_num
 dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dummy_num") {
   #' Create a binary vector from numeric, date, and character or factor vectors.
+  #' 
   #' @param dat Primary data containing information on hauls or trips. Table in the FishSET 
-  #'  database contains the string 'MainDataTable'.
+  #'   database contains the string 'MainDataTable'.
   #' @param project Project name. 
   #' @param var Variable in \code{dat} to create dummy variable from.
   #' @param value String, value to set dummy variable by. If \code{var} is a date, value should be
-  #'  a year, If \code{var} is a factor, value should be a factor level. If \code{var} is numeric,
-  #'  value should be a single number or range of numbers [use c(1,5)].
+  #'   a year, If \code{var} is a factor, value should be a factor level. If \code{var} is 
+  #'   numeric, value should be a single number or range of numbers [use c(1,5)].
   #' @param opts String, how dummy variable should be defined. Choices are \code{"x_y"} and 
-  #'  \code{"more_less’"}. For \code{"x_y"}, each element of \code{var} is set to 1 if the element 
-  #'  matches \code{value}, otherwise 0. For \code{"more_less"}, each element of \code{var} less 
-  #'  than \code{value} is set to 0 and all elements greater than \code{value} set to 1. If 
-  #'  \code{var} is a factor, then elements that match value will be set to 1 and all other elements
-  #'  set to 0. Default is set to \code{"more_less"}.
+  #'   \code{"more_less’"}. For \code{"x_y"}, each element of \code{var} is set to 1 if the 
+  #'   element matches \code{value}, otherwise 0. For \code{"more_less"}, each element of 
+  #'   \code{var} less than \code{value} is set to 0 and all elements greater than \code{value} 
+  #'   set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and 
+  #'   all other elements set to 0. Default is set to \code{"more_less"}.
   #' @param name String, name of created dummy variable. Defaults to name of the function if not
-  #'  defined.
+  #'   defined.
   #' @importFrom lubridate origin as_date
   #' @details For date variables, the dummy variable is defined by a date (year) and may be either 
-  #'  year \code{x} versus all other years (\code{"x_y"}) or before vs after year \code{x} 
-  #'  (\code{"more_less"}). Use this function to create a variable defining whether or not a policy 
-  #'  action had been implemented. \cr
-  #'  Example: before vs. after a 2008 amendment: \cr
-  #'  \code{dummy_num('pollockMainDataTable', 'Haul_date', 2008, 'more_less', 'amend08')} \cr\cr
+  #'   year \code{x} versus all other years (\code{"x_y"}) or before vs after year \code{x} 
+  #'   (\code{"more_less"}). Use this function to create a variable defining whether or not a 
+  #'   policy action had been implemented. \cr
+  #'   Example: before vs. after a 2008 amendment: \cr
+  #'   \code{dummy_num('pollockMainDataTable', 'Haul_date', 2008, 'more_less', 'amend08')} \cr\cr
   #'
-  #'  For factor variables, both choices in \code{opts} compare selected factor level(s) against
-  #'  all other factor levels.\cr
-  #'  Example: Fishers targeting pollock vs. another species:  \cr
-  #'  \code{dummy_num('pollockMainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 
+  #'   For factor variables, both choices in \code{opts} compare selected factor level(s) against
+  #'   all other factor levels.\cr
+  #'   Example: Fishers targeting pollock vs. another species:  \cr
+  #'   \code{dummy_num('pollockMainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 
   #'                  'Pollock - midwater'), 'x_y', 'pollock_target')}  \cr\cr
   #'
-  #'  For numeric variables, \code{value} can be a single number or a range of numbers. The dummy 
-  #'  variable is the selected value(s) against all others (\code{x_y}) or less than the selected 
-  #'  value versus more than the selected value (\code{more_less}). For \code{more_less}, the mean 
-  #'  is used as the critical value if a range of values is provided.
+  #'   For numeric variables, \code{value} can be a single number or a range of numbers. The dummy 
+  #'   variable is the selected value(s) against all others (\code{x_y}) or less than the selected 
+  #'   value versus more than the selected value (\code{more_less}). For \code{more_less}, the 
+  #'   mean is used as the critical value if a range of values is provided.
+  #'    
   #' @return Returns primary dataset with dummy variable added.
   #' @export
   #' @examples
@@ -161,7 +163,6 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   #' pollockMainDataTable <- dummy_num(pollockMainDataTable, 'pollock', 'Haul_date', 2008, 
   #'   'more_less', 'amend80')
   #' }
-  
   
   # Pull in data
   out <- data_pull(dat, project)
@@ -223,14 +224,14 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
 #' Create dummy matrix from a coded ID variable
 dummy_matrix <- function(dat, project, x) {
   #' @param dat Primary data containing information on hauls or trips.
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param project Project name.
   #' @param x Variable in \code{dat} used to generate dummy matrix.
   #' @export dummy_matrix
   #' @details Creates a dummy matrix of 1/0 with dimensions 
-  #'  \emph{[(number of observations in dataset) x (number of factors in x)]}
-  #'  where each column is a unique factor level. Values are 1 if the 
-  #'  value in the column matches the column factor level and 0 otherwise.
+  #'   \emph{[(number of observations in dataset) x (number of factors in x)]}
+  #'   where each column is a unique factor level. Values are 1 if the 
+  #'   value in the column matches the column factor level and 0 otherwise.
   #' @examples
   #' \dontrun{
   #' PortMatrix <- dummy_matrix(pollockMainDataTable, 'pollock', 'PORT_CODE')

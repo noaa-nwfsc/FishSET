@@ -19,9 +19,9 @@ Create dummy matrix from a coded ID variable
 }
 \details{
 Creates a dummy matrix of 1/0 with dimensions 
- \emph{[(number of observations in dataset) x (number of factors in x)]}
- where each column is a unique factor level. Values are 1 if the 
- value in the column matches the column factor level and 0 otherwise.
+  \emph{[(number of observations in dataset) x (number of factors in x)]}
+  where each column is a unique factor level. Values are 1 if the 
+  value in the column matches the column factor level and 0 otherwise.
 }
 \examples{
 \dontrun{
