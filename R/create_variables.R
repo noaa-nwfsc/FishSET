@@ -121,39 +121,41 @@ cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL)
 # dummy_num
 dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dummy_num") {
   #' Create a binary vector from numeric, date, and character or factor vectors.
-  #' @param dat Primary data containing information on hauls or trips.
-  #'   Table in the FishSET database contains the string 'MainDataTable'.
+  #' 
+  #' @param dat Primary data containing information on hauls or trips. Table in the FishSET 
+  #'   database contains the string 'MainDataTable'.
   #' @param project Project name. 
   #' @param var Variable in \code{dat} to create dummy variable from.
-  #' @param value String, value to set dummy variable by. If \code{var} is a date, value should be 
-  #' a year,  If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, 
-  #' value should be a single  number or range of numbers [use c(1,5)].
+  #' @param value String, value to set dummy variable by. If \code{var} is a date, value should be
+  #'   a year, If \code{var} is a factor, value should be a factor level. If \code{var} is 
+  #'   numeric, value should be a single number or range of numbers [use c(1,5)].
   #' @param opts String, how dummy variable should be defined. Choices are \code{"x_y"} and 
-  #' \code{"more_less’"}. For \code{"x_y"}, each element of \code{var} is set to 1 if the element 
-  #' matches \code{value}, otherwise 0. For \code{"more_less"}, each element of \code{var} less 
-  #' than \code{value} is set to 0 and all elements greater than \code{value} set to 1. If 
-  #' \code{var} is a factor, then elements that match value will be set to 1 and all other 
-  #' elements set to 0. Default is set to \code{"more_less"}.
-  #' @param name String, name of created dummy variable. Defaults to name of the function if 
-  #' not defined.
+  #'   \code{"more_less’"}. For \code{"x_y"}, each element of \code{var} is set to 1 if the 
+  #'   element matches \code{value}, otherwise 0. For \code{"more_less"}, each element of 
+  #'   \code{var} less than \code{value} is set to 0 and all elements greater than \code{value} 
+  #'   set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and 
+  #'   all other elements set to 0. Default is set to \code{"more_less"}.
+  #' @param name String, name of created dummy variable. Defaults to name of the function if not
+  #'   defined.
   #' @importFrom lubridate origin as_date
-  #' @details For date variables, the dummy variable is defined by a date (year) and may be 
-  #' either year \code{x} versus all other years (\code{"x_y"}) or before vs after year \code{x} 
-  #' (\code{"more_less"}). Use this function to create a variable defining whether  or not a policy
-  #'  action had been implemented. \cr
+  #' @details For date variables, the dummy variable is defined by a date (year) and may be either 
+  #'   year \code{x} versus all other years (\code{"x_y"}) or before vs after year \code{x} 
+  #'   (\code{"more_less"}). Use this function to create a variable defining whether or not a 
+  #'   policy action had been implemented. \cr
   #'   Example: before vs. after a 2008 amendment: \cr
   #'   \code{dummy_num('pollockMainDataTable', 'Haul_date', 2008, 'more_less', 'amend08')} \cr\cr
   #'
-  #'  For factor variables, both choices in \code{opts} compare selected factor level(s) against
+  #'   For factor variables, both choices in \code{opts} compare selected factor level(s) against
   #'   all other factor levels.\cr
-  #'  Example: Fishers targeting pollock vs. another species:  \cr
-  #'  \code{dummy_num('pollockMainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 
-  #'  'Pollock - midwater'), 'x_y', 'pollock_target')}  \cr\cr
+  #'   Example: Fishers targeting pollock vs. another species:  \cr
+  #'   \code{dummy_num('pollockMainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 
+  #'                  'Pollock - midwater'), 'x_y', 'pollock_target')}  \cr\cr
   #'
-  #'  For numeric variables, \code{value} can be a single number or a range of numbers. The dummy
+  #'   For numeric variables, \code{value} can be a single number or a range of numbers. The dummy 
   #'   variable is the selected value(s) against all others (\code{x_y}) or less than the selected 
-  #'   value versus more than the selected value  (\code{more_less}). For \code{more_less}, the 
+  #'   value versus more than the selected value (\code{more_less}). For \code{more_less}, the 
   #'   mean is used as the critical value if a range of values is provided.
+  #'    
   #' @return Returns primary dataset with dummy variable added.
   #' @export
   #' @examples
@@ -161,7 +163,6 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   #' pollockMainDataTable <- dummy_num(pollockMainDataTable, 'pollock', 'Haul_date', 2008, 
   #'   'more_less', 'amend80')
   #' }
-  
   
   # Pull in data
   out <- data_pull(dat, project)
@@ -173,7 +174,7 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   name <- name_check(dataset, name, repair = TRUE)
  # For demonstration, we'll assume 'dat' is already a data frame
   dataset <- out$dataset 
-  
+
   # Ensure the variable exists in the data
   if (!var %in% names(dataset)) {
     stop(paste0("Variable '", var, "' not found in the data frame."))
@@ -220,17 +221,17 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   return(dataset)
 }
 
-
 #' Create dummy matrix from a coded ID variable
 dummy_matrix <- function(dat, project, x) {
   #' @param dat Primary data containing information on hauls or trips.
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param project Project name.
   #' @param x Variable in \code{dat} used to generate dummy matrix.
   #' @export dummy_matrix
-  #' @details Creates a dummy matrix of 1/0 with dimensions \emph{[(number of observations in dataset) x
-  #' (number of factors in x)]} where each column is a unique factor level. Values are 1 if the value in the
-  #' column matches the column factor level and 0 otherwise.
+  #' @details Creates a dummy matrix of 1/0 with dimensions 
+  #'   \emph{[(number of observations in dataset) x (number of factors in x)]}
+  #'   where each column is a unique factor level. Values are 1 if the 
+  #'   value in the column matches the column factor level and 0 otherwise.
   #' @examples
   #' \dontrun{
   #' PortMatrix <- dummy_matrix(pollockMainDataTable, 'pollock', 'PORT_CODE')
@@ -249,7 +250,8 @@ dummy_matrix <- function(dat, project, x) {
   colnames(int) <- factor.levels
   
   # change matrix to TRUE/FALSE
-  int <- data.frame(lapply(1:length(factor.levels), function(x) ifelse(int[, x] == colnames(int)[x], 1, 0)))
+  int <- data.frame(lapply(1:length(factor.levels), 
+                           function(x) ifelse(int[, x] == colnames(int)[x], 1, 0)))
   colnames(int) <- paste(x, "_", levels(as.factor(dataset[[x]])))
   
   dummy_matrix_function <- list()
@@ -265,14 +267,17 @@ dummy_matrix <- function(dat, project, x) {
 ## ---- Coded variables ----##
 #' Create factor variable from quantiles
 #'
-#' Create a factor variable from numeric data.  Numeric variable is split into categories based on quantile categories.
+#' Create a factor variable from numeric data.  Numeric variable is split into categories based 
+#' on quantile categories.
 #'
-set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4), custom.quant = NULL, name = "set_quants") {
+set_quants <- function(dat, project, x, quant_cat = 0.25, 
+                       custom_quant = NULL, name = "set_quants") {
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in FishSET database contains the string 'MainDataTable'.
   #' @param project Project name.
   #' @param x Variable to transform into quantiles.
-  #' @param quant.cat Quantile options: \code{"0.2"}, \code{"0.25"}, \code{"0.33"}, and \code{"0.4"}
+  #' @param quant_cat Quantile options: \code{0.1} \code{0.2}, \code{0.25}, \code{0.33}, and 
+  #'  \code{0.4}
   #' \itemize{
   #'   \item{0.1:  (0\%, 10\%, 20\%, 30\%, 40\%, 50\%, 60\%, 70\%, 80\%, 90\%, 100\%)}
   #'   \item{0.2:  (0\%, 20\%, 40\%, 60\%, 80\%, 100\%)}
@@ -280,7 +285,7 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
   #'   \item{0.33: (0\%, 33\%, 66\%, 100\%)}
   #'   \item{0.4:  (0\%, 10\%, 50\%, 90\%, 100\%)}
   #'   }
-  #' @param custom.quant Vector, user defined quantiles.
+  #' @param custom_quant Vector, user defined quantiles (between 0-1)
   #' @param name String, name of created vector. Defaults to name of the function if not defined.
   #' @return Primary dataset with quantile variable added.
   #' @export set_quants  
@@ -288,7 +293,7 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
   #' @examples
   #' \dontrun{
   #' pollockMainDataTable <- set_quants(pollockMainDataTable, 'pollock', 'HAUL', 
-  #'    quant.cat=.2, 'haul.quant')
+  #'    quant_cat=.2, 'haul.quant')
   #' }
   #
   out <- data_pull(dat, project)
@@ -298,44 +303,41 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
   
   name <- ifelse(is_empty(name), "set_quants", name)
   
-  tmp <- 0
-  
   if (!is.numeric(dataset[[x]])) {
-    tmp <- 1
-    warning("Variable must be numeric. Function not run.")
+    stop("Variable must be numeric. Function not run.")
   }
-  
-  if (tmp == 0) {
-    if (quant.cat == 0.1) {
-      prob.def <- seq(0, 1, by = .1)
-    } else if (quant.cat == 0.2) {
-      prob.def <- seq(0, 1, by = .2)
-    } else if (quant.cat == 0.25) {
-      prob.def <- seq(0, 1, by = .25)
-    } else if(quant.cat == 0.33) {
-      prob.def <- c(0, .33, .66, 1)
-    }  else if (quant.cat == 0.4) {
-      prob.def <- c(0, 0.1, 0.5, 0.9, 1)
-    }
-    
-    if (!is.null(custom.quant) & is.numeric(custom.quant)) {
-      prob.def <- custom.quant
-    }
-    # var.name <- paste('TRIP_OTC_MT', 'quantile', sep = '.')
-    newvar <- as.integer(cut(dataset[[x]], quantile(dataset[[x]], probs = prob.def), include.lowest = TRUE))
-    
+ 
+  if (!is.null(custom_quant) & is.numeric(custom_quant)) {
+    prob_def <- custom_quant
+  }else if (quant_cat == 0.1) {
+    prob_def <- seq(0, 1, by = .1)
+  } else if (quant_cat == 0.2) {
+    prob_def <- seq(0, 1, by = .2)
+  } else if (quant_cat == 0.25) {
+    prob_def <- seq(0, 1, by = .25)
+  } else if(quant_cat == 0.33) {
+    prob_def <- c(0, .33, .66, 1)
+  }  else if (quant_cat == 0.4) {
+    prob_def <- c(0, 0.1, 0.5, 0.9, 1)
+  }
+
+    breaks <- quantile(dataset[[x]], probs = prob_def, na.rm = TRUE)
+    quantile_labels <- prob_def[-1] 
+    factor_var <- cut(dataset[[x]], breaks = breaks, labels = quantile_labels, include.lowest = TRUE)
+    newvar <- as.numeric(as.character(factor_var))
+
     g <- cbind(dataset, newvar)
     colnames(g)[dim(g)[2]] = name
     
     set_quants_function <- list()
     set_quants_function$functionID <- "set_quants"
-    set_quants_function$args <- list(dat, project, x, quant.cat, custom.quant, name)
+    set_quants_function$args <- list(dat, project, x, quant_cat, custom_quant, name)
     set_quants_function$kwargs <- list()
     set_quants_function$output <- list(dat)
     
     log_call(project, set_quants_function)
     return(g)
-  }
+  
 }
 
 
@@ -410,10 +412,11 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   #'   is calculated by dividing "group_total" by "total_value". Defaults to \code{NULL}.
   #' @param value String, the value variable used to calculate percentage. Must be numeric. 
   #' @param name String, the name for the new variable. Defaults to "group_perc". 
-  #' @param create_group_ID Logical, whether to create a group ID variable using \code{\link{ID_var}}.
+  #' @param create_group_ID Logical, whether to create a group ID variable using 
+  #' \code{\link{ID_var}}.
   #'   Defaults to \code{FALSE}.
-  #' @param drop_total_col Logical, whether to remove the "total_value" and "group_total" variables
-  #'   created to calculate percentage. Defaults to \code{FALSE}.
+  #' @param drop_total_col Logical, whether to remove the "total_value" and "group_total"
+  #'  variables created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
   #' @importFrom dplyr across mutate group_by select ungroup
   #' @importFrom shiny isRunning
@@ -421,9 +424,9 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   #'   group ID (\code{id_group}) and secondary group (\code{group}). The total value of 
   #'   \code{id_group} is stored in the "total_value" variable, and the within-group total
   #'   stored in "group_total". The group percentage is calculated using these two function-created
-  #'   variables. "total_value" and "group_total" can be dropped by setting \code{drop_total_col = TRUE}.
-  #'   A group ID column can be created using the variables in\code{id_group} and \code{group} by setting 
-  #'   \code{create_group_ID = TRUE}. 
+  #'   variables. "total_value" and "group_total" can be dropped by setting
+  #'    \code{drop_total_col = TRUE}. A group ID column can be created using the variables
+  #'     in\code{id_group} and \code{group} by setting \code{create_group_ID = TRUE}. 
   #' @examples
   #' \dontrun{
   #' group_perc(pollockMainDataTable, "pollock", id_group = "PERMIT", group = NULL, 
@@ -452,10 +455,15 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
     
     dataset <- 
       dataset %>% 
-      dplyr::group_by(dplyr::across(id_group)) %>% 
-      dplyr::mutate(dplyr::across(value, sum, .names = "total_value")) %>% # calc. total value by id_group
+      dplyr::group_by(
+        dplyr::across(id_group)) %>% 
+      dplyr::mutate(
+        dplyr::across(value, sum, .names = "total_value")) %>% # calc. total value by id_group
       dplyr::ungroup() %>% 
-      dplyr::mutate(dplyr::across(value, .fns = ~ (.x/total_value) * 100, .names = name)) %>% # calc. percent of total value
+      dplyr::mutate(
+        dplyr::across(value,
+                      .fns = ~ (.x/total_value) * 100,
+                      .names = name)) %>% # calc. percent of total value
       { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
     
   } else {
@@ -463,7 +471,8 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
     dataset <- 
       dataset %>% 
       dplyr::group_by(dplyr::across(id_group)) %>% 
-      dplyr::mutate(dplyr::across(value, sum, .names = "total_value")) %>% # calc. total value by id_group
+      dplyr::mutate(
+        dplyr::across(value, sum, .names = "total_value")) %>% # calc. total value by id_group
       dplyr::group_by(dplyr::across(group), .add = TRUE) %>%
       dplyr::mutate(dplyr::across(value, sum, .names = "group_total")) %>% # calc. group total
       dplyr::mutate(!!name := (group_total/total_value) * 100) %>% # percent of total value

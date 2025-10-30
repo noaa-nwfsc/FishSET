@@ -15,6 +15,8 @@ source("modules/format_data/compute_new_var/lag_zone_module.R", local = TRUE)
 source("modules/format_data/compute_new_var/haul_to_trip_module.R", local = TRUE)
 source("modules/format_data/compute_new_var/calc_trip_distance_module.R", local = TRUE)
 source("modules/format_data/compute_new_var/calc_trip_centroid_module.R", local = TRUE)
+source("modules/format_data/compute_new_var/assign_quantiles_module.R", local = TRUE)
+
 
 # compute new variables server --------------------------------------------------------------------
 #' compute_new_var_server
@@ -49,6 +51,9 @@ compute_new_var_server <- function(id, rv_data_load_error, #values = NULL,
     
     # Calculate trip centroid
     calc_trip_centroid_server("calc_trip_cent", rv_folderpath, rv_project_name, rv_data)
+    
+    # assigning quantiles 
+    assign_quantiles_server("assign_quantiles", rv_project_name, rv_data )
   })
 }
 
@@ -70,7 +75,8 @@ compute_new_var_sidebar_ui <- function(id) {
                              "Lag zone ID" = "lag_zone_id",
                              "Haul to trip" = "haul_to_trip",
                              "Calculate trip distance" = "calc_trip_dist",
-                             "Calculate trip centroid" = "calc_trip_centroid"),
+                             "Calculate trip centroid" = "calc_trip_centroid",
+                             "Assign quantiles" = "assign_quantiles_id"),
                  selected = "")
   )
   
@@ -123,6 +129,13 @@ compute_new_var_ui <- function(id){
       condition = "input.comp_new_var_options == 'calc_trip_centroid'", 
       ns = ns,
       calc_trip_centroid_ui(ns("calc_trip_cent"))
+    ),
+    
+    # Conditionally display option to assign quantiles 
+    conditionalPanel(
+      condition = "input.comp_new_var_options == 'assign_quantiles_id'",
+      ns = ns,
+      assign_quantiles_ui(ns("assign_quantiles"))
     )
   )
 }
