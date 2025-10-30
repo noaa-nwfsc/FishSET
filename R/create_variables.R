@@ -167,13 +167,10 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   # Pull in data
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  
   dat <- parse_data_name(dat, "main", project)
   
   # name <- ifelse(is_empty(name), "dummy_num", name)
   name <- name_check(dataset, name, repair = TRUE)
-  # For demonstration, we'll assume 'dat' is already a data frame
-  dataset <- out$dataset 
   
   # Ensure the variable exists in the data
   if (!var %in% names(dataset)) {
@@ -461,9 +458,11 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
         dplyr::across(value,
                       .fns = ~ (.x/total_value) * 100,
                       .names = name)) %>% # calc. percent of total value
+      
       { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
     
   } else {
+    
     dataset <- 
       dataset %>% 
       dplyr::group_by(dplyr::across(id_group)) %>% 
@@ -472,7 +471,6 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
       dplyr::group_by(dplyr::across(group), .add = TRUE) %>%
       dplyr::mutate(dplyr::across(value, sum, .names = "group_total")) %>% # calc. group total
       dplyr::mutate(!!name := (group_total/total_value) * 100) %>% # percent of total value
-      
       dplyr::ungroup() %>% 
       { if (drop_total_col) dplyr::select(., -c(group_total, total_value)) else . }
   }
@@ -787,7 +785,6 @@ create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon"
   
 }
 
-
 #' Interactive application to create distance between points variable
 create_dist_between <- function(dat, project, start, end, 
                                 units = c("miles", "meters", "km", "midpoint"), 
@@ -934,7 +931,6 @@ create_dist_between <- function(dat, project, start, end,
                                      zoneID_spat = gsub("\"|'", "", vars[6]), 
                                      closest_pt = TRUE, 
                                      log_fun = FALSE)
-        
       }
     }
     
