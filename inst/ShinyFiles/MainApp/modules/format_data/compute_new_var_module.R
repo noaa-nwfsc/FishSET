@@ -49,7 +49,6 @@ compute_new_var_server <- function(id, rv_data_load_error, #values = NULL,
     
     # Calculate trip centroid
     calc_trip_centroid_server("calc_trip_cent", rv_folderpath, rv_project_name, rv_data)
-    
   })
 }
 
@@ -112,12 +111,11 @@ compute_new_var_ui <- function(id){
       haul_to_trip_ui(ns("haul_to_trip"))
     ),
     
-    # Conditionally display option to calculate total trip distance
+    # Conditionally display option to calculate trip distance
     conditionalPanel(
       condition = "input.comp_new_var_options == 'calc_trip_dist'", 
       ns = ns,
       calc_trip_distance_ui(ns("calc_trip_dist"))
-      
     ),
     
     # Conditionally display option to calculate trip centroid
