@@ -700,7 +700,7 @@ function_summary <- function(project, date = NULL, type = "dat_load", show = "al
     "randomize_value_row", "randomize_value_range", "jitter_lonlat", 
     "randomize_lonlat_zone", "lonlat_to_centroid", "assignment_column",
     "create_dist_between_for_gui", "group_perc", "group_diff", "group_cumsum",
-    "create_trip_distance" 
+    "calc_trip_distance" 
   )
 
   dat_exploration <- c(
