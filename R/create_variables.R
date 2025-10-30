@@ -415,43 +415,33 @@ bin_var <- function(dat, project, var, br, name = "bin", labs = NULL, ...) {
 
 # within group ----
 
-group_perc <- function(dat, project, id_group, group = NULL, value, name = "group_perc", 
-                       create_group_ID = FALSE, drop_total_col = FALSE) {
+group_perc <- function(dat, project,group = NULL, value, name = "group_perc", 
+                       drop_total_col = FALSE) {
   #' Create a within-group percentage variable 
   #'
   #' @param dat Primary data frame over which to apply function. Table in FishSET 
   #'   database should contain the string `MainDataTable`.
   #' @param project String, project name.
-  #' @param id_group String, primary grouping variable(s). Used to create the "total_value" 
-  #'   variable which sums \code{value} by \code{id_group}. If \code{group = NULL}, then 
-  #'   \code{value} is divided by "total_value".
-  #' @param group String, secondary grouping variable(s). Used to create the "group_total" 
-  #'   variable which sums \code{value} by \code{id_group} and \code{group}. Percentage 
-  #'   is calculated by dividing "group_total" by "total_value". Defaults to \code{NULL}.
+  #' @param group String, primary grouping variable(s). Used to create the "total_value" 
+  #'   variable which sums \code{value} by \code{group}. 
   #' @param value String, the value variable used to calculate percentage. Must be numeric. 
   #' @param name String, the name for the new variable. Defaults to "group_perc". 
-  #' @param create_group_ID Logical, whether to create a group ID variable using 
-  #' \code{\link{ID_var}}.
-  #'   Defaults to \code{FALSE}.
   #' @param drop_total_col Logical, whether to remove the "total_value" and "group_total"
   #'  variables created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
   #' @importFrom dplyr across mutate group_by select ungroup
   #' @importFrom shiny isRunning
   #' @details \code{group_perc} creates a within-group percentage variable using a primary
-  #'   group ID (\code{id_group}) and secondary group (\code{group}). The total value of 
-  #'   \code{id_group} is stored in the "total_value" variable, and the within-group total
-  #'   stored in "group_total". The group percentage is calculated using these two function-created
-  #'   variables. "total_value" and "group_total" can be dropped by setting
-  #'    \code{drop_total_col = TRUE}. A group ID column can be created using the variables
-  #'     in\code{id_group} and \code{group} by setting \code{create_group_ID = TRUE}. 
+  #'   group (\code{group}). The total value of \code{group} is stored in the "total_value" 
+  #'   variable, and the within-group total stored in "group_total". The group percentage is 
+  #'   calculated using these two function-created variables. "total_value" and "group_total" can
+  #'    be dropped by setting \code{drop_total_col = TRUE}.
   #' @examples
   #' \dontrun{
-  #' group_perc(pollockMainDataTable, "pollock", id_group = "PERMIT", group = NULL, 
+  #' group_perc(pollockMainDataTable, "pollock", group = "PERMIT",
   #'            value = "OFFICIAL_TOTAL_CATCH_MT")
   #'            
-  #' group_perc(pollockMainDataTable, "pollock", id_group = "PERMIT",
-  #'            group = "DISEMBARKED_PORT", value = "HAUL")
+  #' group_perc(pollockMainDataTable, "pollock", group = "DISEMBARKED_PORT", value = "HAUL")
   #' }
   
   out <- data_pull(dat, project)
@@ -459,49 +449,39 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   
   dat <- parse_data_name(dat, "main", project)
   
-  # name <- ifelse(is_empty(name), "group_perc", name)
   name <- name_check(dataset, name, repair = TRUE)
   
-  
-  if (create_group_ID) dataset <- ID_var(dataset, project, vars = c(id_group, group), 
-                                         log_fun = FALSE)
-
-  
-  . <- group_total <- total_value <- NULL
+  #. <- group_total <- total_value <- NULL
   
   if (is.null(group)) {
     
-    dataset <- 
-    dataset %>% 
-      dplyr::group_by(
-        dplyr::across(id_group)) %>% 
+    dataset <- dataset %>% 
       dplyr::mutate(
-        dplyr::across(value, sum, .names = "total_value")) %>% # calc. total value by id_group
-      dplyr::ungroup() %>% 
+        dplyr::across(all_of(value), sum, .names = "total_value")) %>% # calc. total value by id_group
       dplyr::mutate(
-        dplyr::across(value,
+        dplyr::across(all_of(value),
                       .fns = ~ (.x/total_value) * 100,
                       .names = name)) %>% # calc. percent of total value
       { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
     
   } else {
   
-    dataset <- 
-    dataset %>% 
-      dplyr::group_by(dplyr::across(id_group)) %>% 
+    dataset <- dataset %>% 
+      dplyr::group_by(
+        dplyr::across(all_of(group))) %>% 
       dplyr::mutate(
-        dplyr::across(value, sum, .names = "total_value")) %>% # calc. total value by id_group
-      dplyr::group_by(dplyr::across(group), .add = TRUE) %>%
-      dplyr::mutate(dplyr::across(value, sum, .names = "group_total")) %>% # calc. group total
-      dplyr::mutate(!!name := (group_total/total_value) * 100) %>% # percent of total value
+        dplyr::across(all_of(value), sum, .names = "total_value")) %>% # calc. total value by id_group
       dplyr::ungroup() %>% 
-      { if (drop_total_col) dplyr::select(., -c(group_total, total_value)) else . }
+      dplyr::mutate(
+        dplyr::across(all_of(value),
+                      .fns = ~ (.x/total_value) * 100,
+                      .names = name)) %>% # calc. percent of total value
+      { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
   }
   
   group_perc_function <- list()
   group_perc_function$functionID <- "group_perc"
-  group_perc_function$args <- list(dat, project, id_group, group, value, name, 
-                                   create_group_ID, drop_total_col) 
+  group_perc_function$args <- list(dat, project, group, value, name, drop_total_col) 
   log_call(project, group_perc_function)
   
   dataset
