@@ -51,7 +51,9 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       rv_existing_matrix_data(exp_mats)
       
       # ALSO update the remove dropdown
-      mat_names <- names(exp_mats)[!names(exp_mats) %in% c('scale', 'units') & !grepl("_dummy|_settings", names(exp_mats))]
+      mat_names <- names(exp_mats)[!names(exp_mats) %in% 
+                                     c('scale', 'units') & 
+                                     !grepl("_dummy|_settings", names(exp_mats))]
       updateSelectizeInput(session, "matrix_to_remove", choices = mat_names, selected = "")
     }
     
@@ -70,13 +72,18 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
     observe({
       req(rv_data$main)
       choices <- colnames(rv_data$main)
-      date_choices <- c("None", choices[sapply(rv_data$main, function(x) inherits(x, c("Date", "POSIXt")))])
+      date_choices <- c("None", choices[sapply(rv_data$main, 
+                                               function(x) inherits(x, c("Date", "POSIXt")))])
       numeric_choices <- c("None", choices[sapply(rv_data$main, is.numeric)])
       
-      updateSelectizeInput(session, "catch_input", choices = choices)
-      updateSelectizeInput(session, "price_input", choices = numeric_choices, selected = "None")
-      updateSelectizeInput(session, "defineGroup_input", choices = c("None", choices), selected = "None")
-      updateSelectizeInput(session, "temp_var_input", choices = date_choices, selected = "None")
+      updateSelectizeInput(session, "catch_input", 
+                           choices = choices)
+      updateSelectizeInput(session, "price_input", 
+                           choices = numeric_choices, selected = "None")
+      updateSelectizeInput(session, "defineGroup_input", 
+                           choices = c("None", choices), selected = "None")
+      updateSelectizeInput(session, "temp_var_input", 
+                           choices = date_choices, selected = "None")
     })
     
     # Handle the 'Create Expectations Matrix' button click
@@ -155,7 +162,8 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
     output$existing_matrices_table <- DT::renderDataTable({
       mats <- rv_existing_matrix_data()
       # Get only the base names of the matrices
-      mat_names <- names(mats)[!names(mats) %in% c('scale', 'units') & !grepl("_dummy|_settings", names(mats))]
+      mat_names <- names(mats)[!names(mats) %in% c('scale', 'units') & 
+                                 !grepl("_dummy|_settings", names(mats))]
       
       if (length(mat_names) == 0) {
         return(DT::datatable(data.frame(Name = character(0), Settings = character(0)), 
@@ -196,7 +204,8 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       
       # Get the matrix names
       mats <- rv_existing_matrix_data()
-      mat_names <- names(mats)[!names(mats) %in% c('scale', 'units') & !grepl("_dummy|_settings", names(mats))]
+      mat_names <- names(mats)[!names(mats) %in% c('scale', 'units') & 
+                                 !grepl("_dummy|_settings", names(mats))]
       
       # Get the name from the clicked row
       name <- mat_names[info$row]
@@ -243,8 +252,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       ))
     })
     
-    
-    # --- ADDED: Observe "Remove" button click (shows modal) ---
+    # --- Observe "Remove" button click (shows modal) ---
     observeEvent(input$remove_matrix_btn, {
       matrix_name <- input$matrix_to_remove
       if (is.null(matrix_name) || matrix_name == "") {
@@ -262,7 +270,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       ))
     })
     
-    # --- ADDED: Observe "Confirm Remove" button click (does the work) ---
+    # --- Observe "Confirm Remove" button click (does the work) ---
     observeEvent(input$confirm_remove_btn, {
       matrix_name <- input$matrix_to_remove
       project_name <- rv_project_name()$value
@@ -288,7 +296,8 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
         table_remove(table_name, project_name)
         
         # Only re-create the table if there's still data left (i.e., not just 'scale' and 'units')
-        if (length(names(mats_new)) > 2 || (!"scale" %in% names(mats_new) && length(names(mats_new)) > 0)) {
+        if (length(names(mats_new)) > 2 || 
+            (!"scale" %in% names(mats_new) && length(names(mats_new)) > 0)) {
           DBI::dbExecute(fishset_db, 
                          paste("CREATE TABLE IF NOT EXISTS", 
                                table_name, 
@@ -363,11 +372,27 @@ create_expectations_ui <- function(id){
                                                choices = NULL, multiple = FALSE)
                          )
                        ),
+                       
                        fluidRow(
-                         column(6,
-                                selectizeInput(ns("price_input"),
-                                               "Price variable (optional):",
-                                               choices = NULL, multiple = FALSE)
+                         column(
+                           6,
+                           selectizeInput(
+                             ns("price_input"),
+                             tagList(
+                               span(
+                                 style = 
+                                   "white-space: wrap; display: inline-flex; align-items: center;",
+                                 HTML("Price variable (optional): &nbsp;"),
+                                 bslib::tooltip(
+                                   shiny::icon("circle-info", `aria-label` = "More information"),
+                                   HTML("This input is optional and used to calculate 
+                                        expected revenue (price*catch). If revenue is included in
+                                        the main data table, input a column of ones for catch."),
+                                   options = list(delay = list(show = 0, hide = 850))
+                                 )
+                               )
+                             ),
+                             choices = NULL, multiple = FALSE)
                          )
                        )
                      )
@@ -435,10 +460,28 @@ create_expectations_ui <- function(id){
                                             choices = c("standardAverage", "simpleLag", "weights"),
                                             selected = "standardAverage")
                          ),
-                         column(6,
-                                selectizeInput(ns("defineGroup_input"),
-                                               "Fleet grouping variable (optional):",
-                                               choices = NULL, multiple = FALSE)
+                         column(
+                           6,
+                           selectizeInput(
+                             ns("defineGroup_input"),
+                             tagList(
+                               span(
+                                 style = 
+                                   "white-space: wrap; display: inline-flex; align-items: center;",
+                                 HTML("Fleet grouping variable (optional): &nbsp;"),
+                                 bslib::tooltip(
+                                   shiny::icon("circle-info", `aria-label` = "More information"),
+                                   HTML("Optional input variable from main data table that defines 
+                                        how to split the fleet when calculating expected catch or 
+                                        revenue. Selecting a grouping variable would result in
+                                        expected catch or revenue for each zone, fleet combination. 
+                                        The function defaults to treating entire table as a 
+                                        single fleet."),
+                                   options = list(delay = list(show = 0, hide = 850))
+                                 )
+                               )
+                             ),
+                             choices = NULL, multiple = FALSE)
                          )
                        )
                      )
@@ -479,11 +522,28 @@ create_expectations_ui <- function(id){
                                               "Weight daily avg?", 
                                               value = FALSE)
                          ),
-                         column(6,
-                                style = "margin-top: 15px;",
-                                checkboxInput(ns("dummy_exp_input"), 
-                                              "Create dummy?", 
-                                              value = FALSE)
+                         column(
+                           6,
+                           style = "margin-top: 15px;",
+                           checkboxInput(
+                             ns("dummy_exp_input"),
+                             tagList(
+                               span(
+                                 style = 
+                                   "white-space: wrap; display: inline-flex; align-items: center;",
+                                 HTML("Create dummy? &nbsp;"),
+                                 bslib::tooltip(
+                                   shiny::icon("circle-info", `aria-label` = "More information"),
+                                   HTML("If selected (TRUE), the function adds a dummy variable
+                                         indicating empty expectation values (1 if the expectation 
+                                         is not empty, and 0 if empty). If not selected
+                                         (default, FALSE), the dummy variable is not 
+                                         generated."),
+                                   options = list(delay = list(show = 0, hide = 850))
+                                 )
+                               )
+                             ),
+                             value = FALSE)
                          )
                        )
                      )
