@@ -6,46 +6,53 @@
 \usage{
 model_design_outsample(
   project,
-  mod.name,
-  outsample.mod.name = NULL,
+  mod_name,
+  outsample_mod_name = NULL,
   CV = FALSE,
   CV_dat = NULL,
-  use.scalers = FALSE,
-  scaler.func = NULL
+  use_scalers = FALSE,
+  scaler_func = NULL
 )
 }
 \arguments{
 \item{project}{Name of project}
 
-\item{mod.name}{Name of saved model to use. Argument can be the name of the model or can pull the name 
-of the saved "best" model. Leave \code{mod.name} empty to use the saved "best" model. If more than
-one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
-Use \code{table_view("modelChosen", project)} to view a table of saved models.}
+\item{mod_name}{Name of saved model to use. Argument can be the name of the model or can pull 
+the name of the saved "best" model. Leave \code{mod_name} empty to use the saved "best" 
+model. If more than one model is saved, \code{mod_name} should be the numeric indicator of 
+which model to use. Use \code{table_view("modelChosen", project)} to view a table of 
+saved models.}
 
-\item{outsample.mod.name}{Name assigned to out-of-sample model design. Must be unique and not already exist in model design list.
-If \code{outsample.mod.name = NULL} then a default name will be chosen based on mod.name, which is the default value.}
+\item{outsample_mod_name}{Name assigned to out-of-sample model design. Must be unique and 
+not already exist in model design list. If \code{outsample_mod_name = NULL} then a default 
+name will be chosen based on mod_name, which is the default value.}
 
-\item{CV}{Logical, Indicates whether the model design is being created for cross validation \code{TRUE}, or for simple out-
-of-sample dataset. Defaults to \code{CV = TRUE}.}
+\item{CV}{Logical, Indicates whether the model design is being created for cross validation
+\code{TRUE}, or for simple out-of-sample dataset. Defaults to \code{CV = TRUE}.}
 
 \item{CV_dat}{Training or testing dataset for k-fold cross validation.}
 
-\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
-numeric vector unless specified with \code{scaler.func}.}
+\item{use_scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? 
+Defaults to \code{FALSE}. Rescaling factors are the mean of the numeric vector unless 
+specified with \code{scaler_func}.}
 
-\item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
+\item{scaler_func}{Input for \code{create_model_input()}. Function to calculate 
+rescaling factors.}
 }
 \description{
-Use selected model design settings to create a model design for hold-out data. The hold-out data can be 
-out-of-sample data or subsetted data for k-fold cross validation.
+Use selected model design settings to create a model design for hold-out data. 
+The hold-out data can be out-of-sample data or subsetted data for k-fold cross validation.
 }
 \details{
-This function automatically pulls model settings from the selected model and creates an alternative choice matrix, expected catch/revenue matrices, 
-and model design for a hold-out dataset. The hold-out data set can be an out-of-sample dataset or subset of primary data for cross validation.
-If running out-of-sample data, this function requires that a filtered out-of-sample data file (.rds file) exists in the output folder. For cross
-validation, this function is called in the \code{cross_validation()} function.
-Note: the out-of-sample functions only work with a single selected model at a time. To run out-of-sample functions on a new
-out-of-sample dataset, start with load_outsample() if an entirely new dataset or filter_outsample().
+This function automatically pulls model settings from the selected model and creates an 
+alternative choice matrix, expected catch/revenue matrices, and model design for a hold-out
+dataset. The hold-out data set can be an out-of-sample dataset or subset of primary data for 
+cross validation. If running out-of-sample data, this function requires that a filtered 
+out-of-sample data file (.rds file) exists in the output folder. For cross validation, this 
+function is called in the \code{cross_validation()} function.
+Note: the out-of-sample functions only work with a single selected model at a time. To run 
+out-of-sample functions on a new out-of-sample dataset, start with load_outsample() if 
+an entirely new dataset or filter_outsample().
 }
 \examples{
 \dontrun{

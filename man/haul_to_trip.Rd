@@ -2,53 +2,76 @@
 % Please edit documentation in R/haul_to_trip.R
 \name{haul_to_trip}
 \alias{haul_to_trip}
-\title{Collapse data frame from haul to trip}
+\title{Collapse a data frame from haul-level to trip-level}
 \usage{
 haul_to_trip(
   dat,
   project,
-  fun.numeric = mean,
-  fun.time = mean,
-  tripID,
+  trip_id,
+  zoneID_dat,
+  zone_fun = "mode",
+  date_fun = "min",
+  num_fun = "mean",
+  char_fun = "mode",
   haul_count = TRUE,
   log_fun = TRUE
 )
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips.
-Table in the FishSET database contains the string 'MainDataTable'.}
+\item{dat}{String, the name of the main data containing information on hauls or trips. Note 
+that this is the project 'MainDataTable' in the FishSET database.}
 
 \item{project}{String, name of project.}
 
-\item{fun.numeric}{How to collapse numeric or temporal data. For example, \code{min}, \code{mean}, 
-\code{max}, \code{sum}. Defaults to \code{mean}.}
+\item{trip_id}{String. Column name that represents the unique trip identifier in \code{dat}.}
 
-\item{fun.time}{How to collapse temporal data. For example, \code{min}, \code{mean}, \code{max}. 
-Cannot be \code{sum} for temporal variables.}
+\item{zoneID_dat}{String, the name of the column identifying fishing zones. This column is 
+handled separately from other columns.}
 
-\item{tripID}{Column(s) that identify the individual trip.}
+\item{zone_fun}{String, method for collapsing the 'zoneID_dat' variable.
+Options are \code{"first"}, \code{"last"}, or \code{"mode"}.}
 
-\item{haul_count}{Logical, whether to return a column of the number of hauls per trip.}
+\item{date_fun}{String, method for collapsing temporal columns. Options are \code{"mean"}, 
+\code{"median"}, \code{"min"}, or \code{"max"}.}
 
-\item{log_fun}{Logical, whether to log function call (for internal use).}
+\item{num_fun}{String, method for collapsing numeric columns. Options are \code{"mean"}, 
+\code{"median"}, \code{"mode"}, \code{"min"}, \code{"max"}, or \code{"sum"}.}
+
+\item{char_fun}{String, method for collapsing character or factor columns. Options are 
+\code{"first"}, \code{"last"}, \code{"paste"}, or \code{"mode"}.}
+
+\item{haul_count}{Logical, If \code{TRUE}, a column name "haul_count" is added,
+showing the number of hauls (rows) per trip in the original data.}
+
+\item{log_fun}{Logical, If \code{TRUE}, the function call is logged for tracking.}
 }
 \value{
-Returns the primary dataset where each row is a trip.
+A data frame where each row represents a single trip, aggregated according to the 
+  specified methods.
 }
 \description{
-Collapse data frame from haul to trip
+Aggregates a data frame from individual observations (hauls) to a summary level (trips).
+It provides flexible methods for collapsing numeric, character, and temporal data.
 }
 \details{
-Collapses primary dataset from haul to trip level. Unique trips are defined based on selected column(s), for 
-  example, landing permit number and disembarked port. This id column is used to collapse the
-  data to trip level.  \code{fun.numeric} and \code{fun.time} define how multiple observations for a trip
-  are collapsed. For variables that are not numeric or dates, the first observation is used.
+The function aggregates columns based on their data type per unique trip ID. For columns that 
+  are not numeric, date, or character, the function defaults to taking the first observation 
+  for each trip.
 }
 \examples{
 \dontrun{
-pollockMainDataTable <- haul_to_trip("pollockMainDataTable","pollock",
-    min, mean, "PERMIT", "DISEMBARKED_PORT"
-    )
+# Collapse the data from haul to trip level
+trip_data <- haul_to_trip(
+  dat = "pollockMainDataTable",
+  project = "pollock",
+  trip_id = "tripID",
+  zone_col = "ZONE",
+  zone_fun = "mode", # Use the most common zone for the trip
+  date_fun = "min",   # Use the earliest haul date as the trip date
+  num_fun = "sum",    # Sum the fish weight for the trip
+  char_fun = "first", # Use the first vessel name recorded
+  haul_count = TRUE
+)
 }
 
 }

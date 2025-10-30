@@ -203,6 +203,7 @@ ui <- function(request){
             
             ### Main panel
             compute_new_var_ui("compute_new_var")
+
           )
         )
       )

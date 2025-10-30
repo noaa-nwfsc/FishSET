@@ -1,4 +1,3 @@
-
 # =================================================================================================
 # File: group_perc_module.R
 # Description: This module provides the UI and server logic for creating a within-group
@@ -10,7 +9,6 @@
 # Notes: This module interacts with the main reactive data values (rv_data) and saved
 #        project variables.
 # =================================================================================================
-
 
 # Server ------------------------------------------------------------------------------------------
 #' group_perc_server
@@ -38,14 +36,12 @@ group_perc_server <- function(id, rv_project_name, rv_data){
       all_cols <- colnames(rv_data$main)
       num_cols <- numeric_cols(rv_data$main) 
       
-      
       # Pass the valid selections back to the `selected` argument
       updateSelectInput(session, "perc_grp_input", 
                         choices = c("None", all_cols))
       
       updateSelectInput(session, "perc_value_input", 
                         choices = num_cols)
-      
     })
     
     # Triggered when the "Run & Preview" button is clicked
@@ -360,10 +356,10 @@ group_perc_ui <- function(id){
             min_height= "600px",
             bslib::card(
               bslib::card_header("Summary Plot"),
-              plotOutput(ns("summary_plot"))),
+              shinycssloaders::withSpinner(plotOutput(ns("summary_plot")))),
             bslib::card(
               bslib::card_header("Summary Table"),
-              DT::DTOutput(ns("summary_table")))
+              shinycssloaders::withSpinner(DT::DTOutput(ns("summary_table"))))
           )
           
       )

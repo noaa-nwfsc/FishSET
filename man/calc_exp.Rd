@@ -9,56 +9,79 @@ calc_exp(
   catch,
   price = NULL,
   defineGroup = NULL,
-  temp.var = NULL,
+  temp_var = NULL,
   temporal = "daily",
-  calc.method = "standardAverage",
-  lag.method = "simple",
-  empty.catch = NULL,
-  empty.expectation = NULL,
-  temp.window = 7,
-  temp.lag = 0,
-  year.lag = 0,
-  dummy.exp = FALSE,
+  calc_method = "standardAverage",
+  temp_window = 7,
+  day_lag = 1,
+  year_lag = 0,
+  empty_catch = NULL,
+  empty_expectation = 1e-04,
+  dummy_exp = FALSE,
   weight_avg = FALSE,
   Alt
 )
 }
 \arguments{
-\item{dataset}{Data}
+\item{dataset}{Primary data containing information on hauls or trips. Table in FishSET 
+database contains the string 'MainDataTable'.}
 
-\item{catch}{catch}
+\item{catch}{Variable from \code{dat} containing catch data.}
 
-\item{price}{price}
+\item{price}{Optional, variable from \code{dat} containing price/value data.
+Price is multiplied against \code{catch} to generated revenue. If revenue exists 
+in \code{dat} and you wish to use this revenue instead of price, then \code{catch} 
+must be a vector of 1 of length equal to \code{dat}. Defaults to \code{NULL}.}
 
-\item{defineGroup}{define group}
+\item{defineGroup}{Optional, variable from \code{dat} that defines how to split 
+the fleet. Defaults to treating entire dataframe \code{dat} as a fleet.}
 
-\item{temp.var}{temporal variable}
+\item{temp_var}{Optional, temporal variable from \code{dat}. Set to \code{NULL} 
+if temporal patterns in catch should not be considered.}
 
-\item{temporal}{temporal}
+\item{temporal}{String, choices are \code{"daily"} or \code{"sequential"}. Should 
+time, if \code{temp_var} is defined, be included as a daily timeline or sequential 
+order of recorded dates. For daily, catch on dates with no record are filled 
+with \code{NA}. The choice affects how the rolling average is calculated. If 
+temporal is daily then the window size for average and the temporal lag are 
+in days. If sequential, then averaging will occur over the specified number 
+of observations, regardless of how many days they represent.}
 
-\item{calc.method}{calculation method}
+\item{calc_method}{String, how catch values are average over window size. Select 
+standard average (\code{"standardAverage"}), simple lag regression of means 
+(\code{"simpleLag"}), or weights of regressed groups (\code{"weights"})}
 
-\item{lag.method}{lag method}
+\item{temp_window}{Numeric, temporal window size. If \code{temp_var} is not \code{NULL}, 
+set the window size to average catch over. Defaults to 14 (14 days if \code{temporal} 
+is \code{"daily"}).}
 
-\item{empty.catch}{empty catch}
+\item{day_lag}{Numeric, temporal lag time. If \code{temp_var} is not \code{NULL}, 
+how far back to lag \code{temp_window}.}
 
-\item{empty.expectation}{empty expectation}
+\item{year_lag}{If expected catch should be based on catch from previous year(s), 
+set \code{year_lag} to the number of years to go back.}
 
-\item{temp.window}{temporal window}
+\item{empty_catch}{String, replace empty catch with \code{NA}, \code{0}, mean 
+of all catch (\code{"allCatch"}), or mean of grouped catch (\code{"groupCatch"}).}
 
-\item{temp.lag}{temporal lag}
+\item{empty_expectation}{Numeric, how to treat empty expectation values. Choices 
+are to not replace (\code{NULL}) or replace with 0.0001 or 0.}
 
-\item{year.lag}{year lag}
+\item{dummy_exp}{Logical, should a dummy variable be created? If \code{TRUE}, 
+output dummy variable for originally missing value. If \code{FALSE}, no dummy 
+variable is outputted. Defaults to \code{FALSE}.}
 
-\item{dummy.exp}{dummy matrix}
+\item{weight_avg}{Logical, if \code{TRUE} then all observations for a given zone on a 
+given date will be included when calculating the mean, thus giving more 
+weight to days with more observations in a given zone. If \code{FALSE}, then the 
+daily mean for a zone will be calculated prior to calculating the mean across the
+time window.}
 
-\item{weight_avg}{weighted average}
-
-\item{Alt}{Alternative choice list}
+\item{Alt}{Alternative choice list loaded from the FishSET database.}
 }
 \value{
 Returns a list containing the expected catch/revenue matrix, 
-  dummy matrix (if \code{dummy.exp = TRUE}), and list of input args.
+  dummy matrix (if \code{dummy_exp = TRUE}), and list of input args.
 }
 \description{
 Calculate expected catch/revenue
