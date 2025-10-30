@@ -57,7 +57,6 @@ calc_trip_distance_server <- function(id, rv_folderpath, rv_project_name, rv_dat
     
     # Handle the 'Calculate Trip Distance' button click
     observeEvent(input$calculate_dist_btn, {
-      # UPDATED: Add new coordinate inputs to req()
       req(rv_project_name(), rv_data$main, rv_data$port,
           input$trip_id_input,
           input$haul_order_input,
@@ -238,10 +237,10 @@ calc_trip_distance_ui <- function(id){
             ),
             fluidRow(
               column(4, 
-                     selectizeInput(ns("starting_port_input"), "4. Starting port:", 
+                     selectizeInput(ns("starting_port_input"), "4. Starting port name:", 
                                     choices = NULL)),
               column(4, 
-                     selectizeInput(ns("return_port_input"), "5. Return port:", 
+                     selectizeInput(ns("return_port_input"), "5. Return port name:", 
                                     choices = NULL)),
               column(4, 
                      selectizeInput(ns("start_haul_lat_input"), "6. Start Haul Latitude:", 

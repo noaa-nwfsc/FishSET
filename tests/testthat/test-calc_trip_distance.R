@@ -116,6 +116,7 @@ test_that("calc_trip_distance calculates correctly with defaults (miles)", {
   expect_equal(dist_202, expected_dist_202_m / 1609.34, tolerance = 1e-3)
 })
 
+# Test calc_trip_distance() unit conversions ------------------------------------------------------
 test_that("calc_trip_distance handles unit conversions (km, meters)", {
   # --- Execution for Kilometers ---
   result_km <- calc_trip_distance(
@@ -158,6 +159,7 @@ test_that("calc_trip_distance handles unit conversions (km, meters)", {
   expect_equal(result_m$trip_distance[3], expected_dist_202_m, tolerance = 1e-3)
 })
 
+# Test calc_trip_distance() custom column, output names -------------------------------------------
 test_that("calc_trip_distance works with custom column and output names", {
   # --- Setup ---
   # Create a copy with different column names
@@ -188,6 +190,7 @@ test_that("calc_trip_distance works with custom column and output names", {
   expect_equal(result$Total_Dist_KM[1], expected_dist_101_m / 1000, tolerance = 1e-3)
 })
 
+# Test calc_trip_distance() warnings --------------------------------------------------------------
 test_that("calc_trip_distance warns on invalid unit and defaults to meters", {
   # --- Execution and Expectations ---
   expect_warning(

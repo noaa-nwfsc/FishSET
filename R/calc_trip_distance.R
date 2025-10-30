@@ -33,7 +33,7 @@
 #' @return Returns the main data table with a new variable for trip distance.
 #' 
 #' @details 
- #' This function calculates the total distance traveled during a fishing trip by summing its four
+#' This function calculates the total distance traveled during a fishing trip by summing its four
 #' key segments:
 #' 1.  Distance from the departure port to the start of the first haul.
 #' 2.  The cumulative distance covered *within* each haul.
