@@ -33,11 +33,12 @@ is calculated by dividing "group_total" by "total_value". Defaults to \code{NULL
 
 \item{name}{String, the name for the new variable. Defaults to "group_perc".}
 
-\item{create_group_ID}{Logical, whether to create a group ID variable using \code{\link{ID_var}}.
-Defaults to \code{FALSE}.}
+\item{create_group_ID}{Logical, whether to create a group ID variable using 
+\code{\link{ID_var}}.
+  Defaults to \code{FALSE}.}
 
-\item{drop_total_col}{Logical, whether to remove the "total_value" and "group_total" variables
-created to calculate percentage. Defaults to \code{FALSE}.}
+\item{drop_total_col}{Logical, whether to remove the "total_value" and "group_total"
+variables created to calculate percentage. Defaults to \code{FALSE}.}
 }
 \description{
 Create a within-group percentage variable
@@ -47,9 +48,9 @@ Create a within-group percentage variable
   group ID (\code{id_group}) and secondary group (\code{group}). The total value of 
   \code{id_group} is stored in the "total_value" variable, and the within-group total
   stored in "group_total". The group percentage is calculated using these two function-created
-  variables. "total_value" and "group_total" can be dropped by setting \code{drop_total_col = TRUE}.
-  A group ID column can be created using the variables in\code{id_group} and \code{group} by setting 
-  \code{create_group_ID = TRUE}.
+  variables. "total_value" and "group_total" can be dropped by setting
+   \code{drop_total_col = TRUE}. A group ID column can be created using the variables
+    in\code{id_group} and \code{group} by setting \code{create_group_ID = TRUE}.
 }
 \examples{
 \dontrun{

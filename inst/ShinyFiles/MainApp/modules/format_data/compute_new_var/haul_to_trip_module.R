@@ -169,11 +169,11 @@ haul_to_trip_ui <- function(id){
           fluidRow(
             column(5,
                    h5(tagList(
-                     "1. Select Trip ID Column(s)",
+                     "1. Select Trip ID",
                      bslib::tooltip(
                        shiny::icon("circle-info"),
-                       HTML("Select the variable(s) that identify unique trips. If multiple
-                          variables are selected, a composite ID will be created.")
+                       HTML("Select the variable that identifies unique trips. Note
+                             that hauls/sets within the same trip should share trips IDs.")
                      )
                    )),
                    
@@ -181,7 +181,7 @@ haul_to_trip_ui <- function(id){
                      ns("trip_id_input"),
                      label = NULL,
                      choices = NULL,
-                     multiple = TRUE
+                     multiple = FALSE
                    ),
                    
                    checkboxInput(ns("haul_count_input"), 

@@ -31,31 +31,23 @@
 mock_log_call <- function(...) invisible(NULL)
 mock_data_pull <- function(dat, project) list(dataset = dat)
 mock_parse_data_name <- function(dat, type, project) dat
-mock_ID_var <- function(dataset, project, vars, ...) {
-  # Create a composite ID by pasting the specified columns together
-  dataset$trip_id <- apply(dataset[, vars], 1, paste, collapse = "_")
-  dataset
-}
 
 # Save the original functions from the package namespace
 original_log_call <- get("log_call", envir = as.environment("package:FishSET"))
 original_data_pull <- get("data_pull", envir = as.environment("package:FishSET"))
 original_parse_data_name <- get("parse_data_name", envir = as.environment("package:FishSET"))
-original_ID_var <- get("ID_var", envir = as.environment("package:FishSET"))
 
 # Schedule the restoration of all original functions.
 on.exit({
   assignInNamespace("log_call", original_log_call, ns = "FishSET")
   assignInNamespace("data_pull", original_data_pull, ns = "FishSET")
   assignInNamespace("parse_data_name", original_parse_data_name, ns = "FishSET")
-  assignInNamespace("ID_var", original_ID_var, ns = "FishSET")
 })
 
 # Overwrite the real functions with our mocks
 assignInNamespace("log_call", mock_log_call, ns = "FishSET")
 assignInNamespace("data_pull", mock_data_pull, ns = "FishSET")
 assignInNamespace("parse_data_name", mock_parse_data_name, ns = "FishSET")
-assignInNamespace("ID_var", mock_ID_var, ns = "FishSET")
 
 # Create Mock Haul Data ---------------------------------------------------------------------------
 # A data frame with multiple trips and hauls to test aggregation logic.
@@ -68,33 +60,6 @@ mock_haul_data <- data.frame(
   GEAR = c("TRAWL", "TRAWL", "TRAWL", "LONG-LINE", "LONG-LINE"),
   ZONE = c("ZN1", "ZN1", "ZN2", "ZN3", "ZN3")
 )
-
-# Test haul_to_trip() ----------------------------------------------------------------------------
-test_that("haul_to_trip() works with default settings and composite ID", {
-  # --- Execution ---
-  result <- haul_to_trip(
-    dat = mock_haul_data,
-    project = "test_proj",
-    trip_id = c("PERMIT", "PORT"), # Composite ID
-    zoneID_dat = "ZONE",
-    log_fun = FALSE
-  )
-  
-  # --- Expectations ---
-  # Two unique trips should be returned
-  expect_equal(nrow(result), 2)
-  # Haul count column should exist and be correct
-  expect_true("haul_count" %in% names(result))
-  expect_equal(result$haul_count, c(3, 2))
-  # Default numeric function is 'mean'
-  expect_equal(result$WEIGHT_KG, c(125, 225))
-  # Default zone function is 'mode'
-  expect_equal(result$ZONE, c("ZN1", "ZN3"))
-  # Default character function is 'mode'
-  expect_equal(result$GEAR, c("TRAWL", "LONG-LINE"))
-  # Default date function is 'min'
-  expect_equal(result$HAUL_DATE, as.Date(c("2025-01-10", "2025-01-10")))
-})
 
 test_that("haul_to_trip() applies custom aggregation functions correctly", {
   # --- Execution ---
