@@ -5205,7 +5205,7 @@ heavy_server <- function(input, output, session) {
       
     } else if (input$VarCreateTop == 'Trip-level functions' & input$trip == 'trip_distance') {
       
-      q_test <- quietly_test(create_trip_distance)
+      q_test <- quietly_test(calc_trip_distance)
       output <-  q_test(values$dataset, project = project$name, 
                         PortTable = input$port_dat_dist, trip_id = input$trip_ID, 
                         staring_port = input$starting_port, 
