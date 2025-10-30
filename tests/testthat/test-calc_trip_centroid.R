@@ -98,6 +98,7 @@ test_that("calc_trip_centroid() computes unweighted centroid (default)", {
   expect_equal(result$cent_lat, expected_lat)
 })
 
+# Test calc_trip_centroid() weighted --------------------------------------------------------------
 test_that("calc_trip_centroid() computes weighted centroid correctly", {
   # --- Execution ---
   result <- calc_trip_centroid(
@@ -108,20 +109,21 @@ test_that("calc_trip_centroid() computes weighted centroid correctly", {
     trip_id = "TRIP_ID",
     weight_var = "CATCH_KG" # Specify weight
   )
-
+  
   # --- Expectations ---
   expect_equal(nrow(result), 5)
   expect_true(all(c("cent_lon", "cent_lat") %in% names(result)))
-
+  
   # Check calculated values for each group
   expected_lon <- c(11.3333333, 11.3333333, 11.3333333, -51.5, -51.5)
   expected_lat <- c(46.3333333, 46.3333333, 46.3333333, 60.75, 60.75)
-
+  
   # Use tolerance for floating point comparisons
   expect_equal(result$cent_lon, expected_lon, tolerance = 1e-6)
   expect_equal(result$cent_lat, expected_lat, tolerance = 1e-6)
 })
 
+# Test calc_trip_centroid() NA handling -----------------------------------------------------------
 test_that("calc_trip_centroid() propagates NA values (default R behavior)", {
   # --- Setup ---
   mock_na_data <- data.frame(
@@ -130,7 +132,7 @@ test_that("calc_trip_centroid() propagates NA values (default R behavior)", {
     START_LAT = c(5, 10, 15),
     CATCH_KG = c(100, 100, NA) # NA in weight
   )
-
+  
   # --- Execution (Unweighted) ---
   # mean(10, 20, NA) -> NA (since default is na.rm = FALSE)
   # mean(5, 10, 15) -> 10
@@ -138,7 +140,7 @@ test_that("calc_trip_centroid() propagates NA values (default R behavior)", {
     dat = mock_na_data, project = "test_proj", lon = "START_LON",
     lat = "START_LAT", trip_id = "TRIP_ID"
   )
-
+  
   # --- Execution (Weighted) ---
   # The function uses sum(), which defaults to na.rm = FALSE.
   # sum(c(10*100, 20*100, NA*NA)) -> NA
@@ -147,20 +149,21 @@ test_that("calc_trip_centroid() propagates NA values (default R behavior)", {
     dat = mock_na_data, project = "test_proj", lon = "START_LON",
     lat = "START_LAT", trip_id = "TRIP_ID", weight_var = "CATCH_KG"
   )
-
+  
   # --- Expectations ---
   expect_equal(result_unweighted$cent_lon, as.numeric(c(NA, NA, NA)))
   expect_equal(result_unweighted$cent_lat, c(10, 10, 10))
-
+  
   expect_equal(result_weighted$cent_lon, as.numeric(c(NA, NA, NA)))
   expect_equal(result_weighted$cent_lat, as.numeric(c(NA, NA, NA)))
 })
 
+# Test calc_trip_centroid() invalid coords --------------------------------------------------------
 test_that("calc_trip_centroid() throws errors for invalid coordinates", {
   # --- Setup ---
   bad_lon_data <- data.frame(TRIP_ID = 1, START_LON = 200, START_LAT = 45)
   bad_lat_data <- data.frame(TRIP_ID = 1, START_LON = 170, START_LAT = -95)
-
+  
   # --- Expectations ---
   expect_error(
     calc_trip_centroid(
@@ -169,7 +172,7 @@ test_that("calc_trip_centroid() throws errors for invalid coordinates", {
     ),
     "Longitude is not valid"
   )
-
+  
   expect_error(
     calc_trip_centroid(
       dat = bad_lat_data, project = "test_proj", lon = "START_LON",
@@ -179,6 +182,7 @@ test_that("calc_trip_centroid() throws errors for invalid coordinates", {
   )
 })
 
+# Test calc_trip_centroid() single haul -----------------------------------------------------------
 test_that("calc_trip_centroid() handles trips with a single record", {
   # --- Setup ---
   mock_single_record_data <- data.frame(
@@ -187,27 +191,27 @@ test_that("calc_trip_centroid() handles trips with a single record", {
     START_LAT = c(45, 60),
     CATCH_KG = c(100, 200)
   )
-
+  
   # --- Execution (Unweighted) ---
   result_unweighted <- calc_trip_centroid(
     dat = mock_single_record_data, project = "test_proj", lon = "START_LON",
     lat = "START_LAT", trip_id = "TRIP_ID"
   )
-
+  
   # --- Execution (Weighted) ---
   result_weighted <- calc_trip_centroid(
     dat = mock_single_record_data, project = "test_proj", lon = "START_LON",
     lat = "START_LAT", trip_id = "TRIP_ID", weight_var = "CATCH_KG"
   )
-
+  
   # --- Expectations ---
   # The centroid of a single point is the point itself, weighted or not
   expected_lon <- c(10, -50)
   expected_lat <- c(45, 60)
-
+  
   expect_equal(result_unweighted$cent_lon, expected_lon)
   expect_equal(result_unweighted$cent_lat, expected_lat)
-
+  
   expect_equal(result_weighted$cent_lon, expected_lon)
   expect_equal(result_weighted$cent_lat, expected_lat)
 })
