@@ -349,7 +349,8 @@ create_expectations_ui <- function(id){
           p("This function creates an expectation of catch or revenue for alternative fishing
              zones. The expectation matrix is saved to the FishSET project database and 
              multiple matrices can be saved (must have different names). An expected catch matrix 
-             is required for the conditional logit model."),
+             is required for the conditional logit model. For more information on calculating
+             expected catch and revenue matrices, see section 8.2.3 in the FishSET User Manual"),
           
           fluidRow(
             # --- Group 1: Core Inputs ---
@@ -408,16 +409,49 @@ create_expectations_ui <- function(id){
                      bslib::card_body(
                        class="card-overflow d-flex flex-column",
                        fluidRow(
-                         column(6,
-                                selectizeInput(ns("temp_var_input"),
-                                               "Temporal variable (optional):",
-                                               choices = NULL, multiple = FALSE)
+                         column(
+                           6,
+                           selectizeInput(
+                             ns("temp_var_input"),
+                             tagList(
+                               span(
+                                 style = 
+                                   "white-space: wrap; display: inline-flex; align-items: center;",
+                                 HTML("Temporal variable: &nbsp;"),
+                                 bslib::tooltip(
+                                   shiny::icon("circle-info", `aria-label` = "More information"),
+                                   HTML("If NONE is selected, the expected catch will be set to
+                                        the overall mean catch or revenue for each zone."),
+                                   options = list(delay = list(show = 0, hide = 850))
+                                 )
+                               )
+                             ),
+                             choices = NULL, multiple = FALSE)
                          ),
-                         column(6,
-                                selectInput(ns("temporal_input"), 
-                                            "Temporal method:",
-                                            choices = c("daily", "sequential"),
-                                            selected = "daily")
+                         column(
+                           6,
+                           selectizeInput(
+                             ns("temporal_input"),
+                             tagList(
+                               span(
+                                 style = 
+                                   "white-space: wrap; display: inline-flex; align-items: center;",
+                                 HTML("Temporal method: &nbsp;"),
+                                 bslib::tooltip(
+                                   shiny::icon("circle-info", `aria-label` = "More information"),
+                                   HTML("The choice affects how the moving average is calculated.
+                                        If 'daily', then the window size for the average and 
+                                        temporal lag are in days (catch on dates wihtout fishing
+                                        activity will be filled in with NAs, which will be ignored
+                                        in the calculation of the average). If 'sequential',
+                                        then averaging will occur over the specified number of 
+                                        observations (dates with fishing activity). See Figure 8.1
+                                        in the user manual for an example."),
+                                   options = list(delay = list(show = 0, hide = 850))
+                                 )
+                               )
+                             ),
+                             choices = c("daily", "sequential"), selected = "daily")
                          )
                        ),
                        fluidRow(
@@ -426,17 +460,55 @@ create_expectations_ui <- function(id){
                                              "Temporal window size (days/obs):",
                                              value = 7, min = 1)
                          ),
-                         column(6,
-                                numericInput(ns("day_lag_input"),
-                                             "Temporal lag (days/obs):",
-                                             value = 1, min = 0)
+                         column(
+                           6,
+                           numericInput(
+                             ns("day_lag_input"),
+                             tagList(
+                               span(
+                                 style = 
+                                   "white-space: wrap; display: inline-flex; align-items: center;",
+                                 HTML("Temporal lag (days/obs): &nbsp;"),
+                                 bslib::tooltip(
+                                   shiny::icon("circle-info", `aria-label` = "More information"),
+                                   HTML("The number of days (temporal method = 'daily') or
+                                        observations (temporal method = 'sequential') to offset
+                                        before the moving-window average is calculated, which 
+                                        defines the position of the window average relative to the 
+                                        current day/observation. For example, a zero-day lag will 
+                                        include the current day/observation in the moving average 
+                                        calculation, while a one-day lag defines a window
+                                        where the last day/observation used in calculating the 
+                                        average is the day/observation prior to the current one."),
+                                   options = list(delay = list(show = 0, hide = 850))
+                                 )
+                               )
+                             ),
+                             value = 1, min = 0)
                          )
                        ),
                        fluidRow(
-                         column(6,
-                                numericInput(ns("year_lag_input"),
-                                             "Year lag:",
-                                             value = 0, min = 0)
+                         column(
+                           6,
+                           numericInput(
+                             ns("year_lag_input"),
+                             tagList(
+                               span(
+                                 style = 
+                                   "white-space: wrap; display: inline-flex; align-items: center;",
+                                 HTML("Year lag: &nbsp;"),
+                                 bslib::tooltip(
+                                   shiny::icon("circle-info", `aria-label` = "More information"),
+                                   HTML("This input shifts the time window for averaging by 
+                                        years. For example, if the current day/observation is 
+                                        2024-01-03, year lag = 1 makes the base date 2023-01-03.
+                                        Thus, a window size = 2, day lag = 0 calculates the average
+                                        for the dates [2023-01-02, 2023-01-03]."),
+                                   options = list(delay = list(show = 0, hide = 850))
+                                 )
+                               )
+                             ),
+                             value = 0, min = 0)
                          )
                        )
                      )
@@ -454,11 +526,33 @@ create_expectations_ui <- function(id){
                      bslib::card_body(
                        class="card-overflow d-flex flex-column",
                        fluidRow(
-                         column(6,
-                                selectInput(ns("calc_method_input"), 
-                                            "Calculation method:",
-                                            choices = c("standardAverage", "simpleLag", "weights"),
-                                            selected = "standardAverage")
+                         column(
+                           6,
+                           selectizeInput(
+                             ns("calc_method_input"),
+                             tagList(
+                               span(
+                                 style = 
+                                   "white-space: wrap; display: inline-flex; align-items: center;",
+                                 HTML("Calculation method: &nbsp;"),
+                                 bslib::tooltip(
+                                   shiny::icon("circle-info", `aria-label` = "More information"),
+                                   HTML("Method = 'standardAverage' calculates the simple 
+                                        moving-window average for the specified time window. 
+                                        Method = 'simpleLag' fits an autoregressive (AR) model for 
+                                        catch or revenue of the specified window size. The AR model
+                                        returns expected values over time by assuming the 
+                                        expected current value is dependent on past values. When
+                                        using the AR model, only the temporal variable, window
+                                        size, and day lag inputs are required. The window size
+                                        determines the number of previous days to include in 
+                                        the regression."),
+                                   options = list(delay = list(show = 0, hide = 850))
+                                 )
+                               )
+                             ),
+                             choices = c("standardAverage", "simpleLag"),
+                             selected = "standardAverage")
                          ),
                          column(
                            6,
@@ -497,30 +591,81 @@ create_expectations_ui <- function(id){
                      bslib::card_body(
                        class="card-overflow d-flex flex-column",
                        fluidRow(
-                         column(6,
-                                selectInput(ns("empty_catch_input"), 
-                                            "Replace empty catch with:",
-                                            choices = c("None (NA)" = "None", 
-                                                        "0" = "0", 
-                                                        "Mean of all catch" = "allCatch", 
-                                                        "Mean of grouped catch" = "groupCatch"),
-                                            selected = "None")
+                         column(
+                           6,
+                           selectInput(
+                             ns("empty_catch_input"),
+                             tagList(
+                               span(
+                                 style = 
+                                   "white-space: wrap; display: inline-flex; align-items: center;",
+                                 HTML("Replace empty catch with: &nbsp;"),
+                                 bslib::tooltip(
+                                   shiny::icon("circle-info", `aria-label` = "More information"),
+                                   HTML("This determines how empty catch should be handled. Note
+                                        that NA values will be ignored in calculated expected
+                                        values."),
+                                   options = list(delay = list(show = 0, hide = 850))
+                                 )
+                               )
+                             ),
+                             choices = c("None (NA)" = "None", 
+                                         "0" = "0", 
+                                         "Mean of all catch" = "allCatch", 
+                                         "Mean of grouped catch" = "groupCatch"),
+                             selected = "None")
                          ),
-                         column(6,
-                                selectInput(ns("empty_expectation_input"), 
-                                            "Replace empty expectations with:",
-                                            choices = c("0.0001 (1e-4)" = "0.0001", 
-                                                        "0" = "0", 
-                                                        "Do not replace" = "NULL"),
-                                            selected = "0.0001")
+                         column(
+                           6,
+                           selectInput(
+                             ns("empty_expectation_input"),
+                             tagList(
+                               span(
+                                 style = 
+                                   "white-space: wrap; display: inline-flex; align-items: center;",
+                                 HTML("Replace empty expectations with: &nbsp;"),
+                                 bslib::tooltip(
+                                   shiny::icon("circle-info", `aria-label` = "More information"),
+                                   HTML("This determines how to handle empty expectations when
+                                        there is no data within a time window for calculating
+                                        the expectation. The default value 1e-4 is recommended
+                                        for successful logit model estimation in the modelling
+                                        tab."),
+                                   options = list(delay = list(show = 0, hide = 850))
+                                 )
+                               )
+                             ),
+                             choices = c("0.0001 (1e-4)" = "0.0001", 
+                                         "0" = "0", 
+                                         "Do not replace" = "NULL"),
+                             selected = "0.0001")
                          )
                        ),
                        fluidRow(
-                         column(6,
-                                style = "margin-top: 15px;",
-                                checkboxInput(ns("weight_avg_input"), 
-                                              "Weight daily avg?", 
-                                              value = FALSE)
+                         column(
+                           6,
+                           style = "margin-top: 15px;",
+                           checkboxInput(
+                             ns("weight_avg_input"),
+                             tagList(
+                               span(
+                                 style = 
+                                   "white-space: wrap; display: inline-flex; align-items: center;",
+                                 HTML("Weight daily avg? &nbsp;"),
+                                 bslib::tooltip(
+                                   shiny::icon("circle-info", `aria-label` = "More information"),
+                                   HTML("Should the expected values be weighted by the number of
+                                        observations on a given day? Selecting this option will
+                                        include all observations for a given zone on a given day,
+                                        thus giving more weight to days with more observations.
+                                        If not selected (default) then the daily mean for each zone
+                                        will be calculated prior to calculating the moving-window
+                                        average."),
+                                   options = list(delay = list(show = 0, hide = 850))
+                                 )
+                               )
+                             ),
+                             value = FALSE)
                          ),
                          column(
                            6,

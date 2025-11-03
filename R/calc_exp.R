@@ -253,7 +253,7 @@ calc_exp <- function(dataset,
     # If NULL, fill NAs with 1e-04
     exp_matrix[is.na(exp_matrix)] <- 1e-4
   }
-
+  
   return(
     list(
       exp = exp_matrix,

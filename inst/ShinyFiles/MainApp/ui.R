@@ -226,7 +226,6 @@ ui <- function(request){
               width = 400,
               
               checklist_ui("create_expectations_checklist"),
-              hr(),
               # compute_new_var_sidebar_ui("compute_new_var"),
               other_actions_ui("create_expectations_actions")
             ),
