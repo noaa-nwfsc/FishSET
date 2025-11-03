@@ -16,6 +16,8 @@ source("modules/format_data/compute_new_var/haul_to_trip_module.R", local = TRUE
 source("modules/format_data/compute_new_var/calc_trip_distance_module.R", local = TRUE)
 source("modules/format_data/compute_new_var/calc_trip_centroid_module.R", local = TRUE)
 source("modules/format_data/compute_new_var/assign_quantiles_module.R", local = TRUE)
+source("modules/format_data/compute_new_var/group_diff_module.R", local = TRUE)
+
 
 
 # compute new variables server --------------------------------------------------------------------
@@ -54,6 +56,9 @@ compute_new_var_server <- function(id, rv_data_load_error, #values = NULL,
     
     # assigning quantiles 
     assign_quantiles_server("assign_quantiles", rv_project_name, rv_data )
+    
+    # assigning quantiles 
+    group_diff_server("group_diff", rv_project_name, rv_data )
   })
 }
 
@@ -76,7 +81,8 @@ compute_new_var_sidebar_ui <- function(id) {
                              "Haul to trip" = "haul_to_trip",
                              "Calculate trip distance" = "calc_trip_dist",
                              "Calculate trip centroid" = "calc_trip_centroid",
-                             "Assign quantiles" = "assign_quantiles_id"),
+                             "Assign quantiles" = "assign_quantiles_id",
+                             "Within-group lagged difference" = "group_diff"),
                  selected = "")
   )
   
@@ -136,6 +142,12 @@ compute_new_var_ui <- function(id){
       condition = "input.comp_new_var_options == 'assign_quantiles_id'",
       ns = ns,
       assign_quantiles_ui(ns("assign_quantiles"))
+    ),
+    # Conditionally display option to assign quantiles 
+    conditionalPanel(
+      condition = "input.comp_new_var_options == 'group_diff'",
+      ns = ns,
+      group_diff_ui(ns("group_diff"))
     )
   )
 }

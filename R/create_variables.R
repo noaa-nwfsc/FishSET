@@ -485,32 +485,30 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
 }
 
 
-group_diff <- function(dat, project, group, sort_by, value, name = "group_diff", 
-                       lag = 1, create_group_ID = FALSE, drop_total_col = FALSE) {
+group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
+                       lag = 1, drop_total_col = FALSE) {
   #' Create a within-group lagged difference variable
-  #' 
-  #' @param dat Primary data frame over which to apply function. Table in FishSET 
+  #'
+  #' @param dat Primary data frame over which to apply function. Table in FishSET
   #'   database should contain the string `MainDataTable`.
   #' @param project String, project name.
-  #' @param group String, the grouping variable(s) to sum \code{value} by. Used to create the 
-  #'   "group_total" variable.  
-  #' @param sort_by String, a date variable to order `MainDataTable` by. 
-  #' @param value String, the value variable used to calculate lagged difference. Must be numeric. 
-  #' @param name String, the name for the new variable. Defaults to "group_diff". 
-  #' @param lag Integer, adjusts lag length. Defaults to 1. 
-  #' @param create_group_ID Logical, whether to create a group ID variable using \code{\link{ID_var}}.
-  #'   Defaults to \code{FALSE}.
+  #' @param group String, the grouping variable(s) to sum \code{value} by. Used to create the
+  #'   "group_total" variable.
+  #' @param sort_by String, a date variable to order `MainDataTable` by.
+  #' @param value String, the value variable used to calculate lagged difference. Must be numeric.
+  #' @param name String, the name for the new variable. Defaults to "group_diff".
+  #' @param lag Integer, adjusts lag length. Defaults to 1.
   #' @param drop_total_col Logical, whether to remove the "group_total" variable
   #'   created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
-  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup rename_with
+  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup
+  #'   rename_with
   #' @importFrom shiny isRunning
   #' @details \code{group_diff} creates a grouped lagged difference variable. \code{value}
-  #'   is first summed by the variable(s) in \code{group}, then the difference within-group is 
+  #'   is first summed by the variable(s) in \code{group}, then the difference within-group is
   #'   calculated. The "group_total" variable gives the total value by group and can
-  #'   be dropped by setting \code{drop_total_col = TRUE}. A group ID column can be 
-  #'   created using the variables in \code{group} by setting \code{create_group_ID = TRUE}. 
-  #' @examples 
+  #'   be dropped by setting \code{drop_total_col = TRUE}.
+  #' @examples
   #' \dontrun{
   #' group_diff(pollockMainDataTable, "pollock", group = c("PERMIT", "TRIP_ID"),
   #'            sort_by = "HAUL_DATE", value = "HAUL")
@@ -520,47 +518,48 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
-  
-  # name <- ifelse(is_empty(name), "group_diff", name)
   name <- name_check(dataset, name, repair = TRUE)
-  
-  
   . <- group_total <- NULL
   
-  
-  if (create_group_ID) dataset <- ID_var(dataset, project, vars = group, 
-                                         log_fun = FALSE)
-  
-  alt_diff <- function(x, lag) c(0, diff(x, lag = lag))
-  
   if (all(!(class(dataset[[sort_by]]) %in% c("Date","POSIXct", "POSIXt")))) {
-    
     dataset[[sort_by]] <- date_parser(dataset[[sort_by]])
   }
   
+  #  Define all grouping/joining columns ---
+  group_vars <- c(group, sort_by)
+  
+  # This summarizes data to the level of group(s) + sort_by date
   tab <- 
     dataset %>% 
-    dplyr::arrange(dplyr::across(sort_by)) %>% 
-    dplyr::group_by(dplyr::across(group)) %>% 
-    { if (length(group) == 1)
-      dplyr::mutate(., dplyr::across(value, sum, .names = "group_total")) %>% 
-        dplyr::mutate(., dplyr::across(value, alt_diff, lag = lag, .names = name))
-      else 
-        dplyr::summarize(., dplyr::across(value, sum, .names = "group_total")) %>% 
-        dplyr::mutate(., !!name := alt_diff(group_total, lag = lag)) } %>% 
-    dplyr::ungroup() %>% 
-    { if (drop_total_col) dplyr::select(., -group_total) else . }
+    # Group by all keys
+    dplyr::group_by(dplyr::across(all_of(group_vars))) %>% 
+    # Sum the value for that specific group/date
+    dplyr::summarize(group_total = sum(.data[[value]], na.rm = TRUE),
+                     .groups = "drop_last") %>% 
+    # .groups = "drop_last" removes 'sort_by' from grouping,
+    # so we are now grouped only by 'group' and arranged by 'sort_by'
+    
+    dplyr::mutate(
+      # Calculate the difference (x - x_lag).
+      # This produces NA for the first 'lag' rows in each group.
+      diff_val = group_total - dplyr::lag(group_total, n = lag),
+      # Use coalesce to replace those NAs with 0
+      !!name := dplyr::coalesce(diff_val, 0)
+    ) %>%
+    dplyr::select(-diff_val) %>% # Clean up intermediate column
+    dplyr::ungroup()
+
+  # The 'by' key MUST include all 'group_vars' to match rows correctly.
+  dataset <- dplyr::left_join(dataset, tab, by = group_vars)
   
-  if (length(group) > 1) {
-    dataset <- dplyr::left_join(dataset, tab, by = group)
-  } else { 
-    dataset <- tab 
+  if (drop_total_col) {
+    dataset <- dplyr::select(dataset, -group_total)
   }
   
   group_diff_function <- list()
   group_diff_function$functionID <- "group_diff"
   group_diff_function$args <- list(dat, project, group, sort_by, value, name, lag,
-                                   create_group_ID, drop_total_col) 
+                                   drop_total_col)
   log_call(project, group_diff_function)
   
   dataset
