@@ -82,7 +82,7 @@ compute_new_var_sidebar_ui <- function(id) {
                              "Calculate trip centroid" = "calc_trip_centroid",
                              "Assign quantiles" = "assign_quantiles_id",
                              "Group Percentages" = "group_perc_id"),
-                 selected = "")
+                 selected = "new_r_express")
   )
   
 }

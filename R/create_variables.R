@@ -394,7 +394,7 @@ bin_var <- function(dat, project, var, br, name = "bin", labs = NULL, ...) {
 
 # within group ----
 
-group_perc <- function(dat, project,group = NULL, value, name = "group_perc", 
+group_perc <- function(dat, project, group = NULL, value, name = "group_perc", 
                        drop_total_col = FALSE) {
   #' Create a within-group percentage variable 
   #'
@@ -406,7 +406,7 @@ group_perc <- function(dat, project,group = NULL, value, name = "group_perc",
   #' @param value String, the value variable used to calculate percentage. Must be numeric. 
   #' @param name String, the name for the new variable. Defaults to "group_perc". 
   #' @param drop_total_col Logical, whether to remove the "total_value" and "group_total"
-  #'  variables created to calculate percentage. Defaults to \code{FALSE}.
+  #'   variables created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
   #' @importFrom dplyr across mutate group_by select ungroup rename_with
   #' @importFrom shiny isRunning
@@ -414,7 +414,7 @@ group_perc <- function(dat, project,group = NULL, value, name = "group_perc",
   #'   group (\code{group}). The total value of \code{group} is stored in the "total_value" 
   #'   variable, and the within-group total stored in "group_total". The group percentage is 
   #'   calculated using these two function-created variables. "total_value" and "group_total" can
-  #'    be dropped by setting \code{drop_total_col = TRUE}.
+  #'   be dropped by setting \code{drop_total_col = TRUE}.
   #' @examples
   #' \dontrun{
   #' group_perc(pollockMainDataTable, "pollock", group = "PERMIT",
@@ -429,15 +429,14 @@ group_perc <- function(dat, project,group = NULL, value, name = "group_perc",
   dat <- parse_data_name(dat, "main", project)
   
   .  <- total_value <- NULL
-
   
   name <- name_check(dataset, name, repair = TRUE)
   
   if (is.null(group)) {
-    
     dataset <- dataset %>% 
       dplyr::mutate(
-        dplyr::across(all_of(value), sum, .names = "total_value")) %>% # calc. total value by id_group
+        # calc total value by id_group
+        dplyr::across(all_of(value), sum, .names = "total_value")) %>% 
       dplyr::mutate(
         dplyr::across(all_of(value),
                       .fns = ~ (.x/total_value) * 100,
@@ -445,12 +444,12 @@ group_perc <- function(dat, project,group = NULL, value, name = "group_perc",
       { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
     
   } else {
-  
     dataset <- dataset %>% 
       dplyr::group_by(
         dplyr::across(all_of(group))) %>% 
       dplyr::mutate(
-        dplyr::across(all_of(value), sum, .names = "total_value")) %>% # calc. total value by id_group
+        # calc. total value by id_group
+        dplyr::across(all_of(value), sum, .names = "total_value")) %>% 
       dplyr::ungroup() %>% 
       dplyr::mutate(
         dplyr::across(all_of(value),

@@ -37,7 +37,7 @@ Create a within-group percentage variable
   group (\code{group}). The total value of \code{group} is stored in the "total_value" 
   variable, and the within-group total stored in "group_total". The group percentage is 
   calculated using these two function-created variables. "total_value" and "group_total" can
-   be dropped by setting \code{drop_total_col = TRUE}.
+  be dropped by setting \code{drop_total_col = TRUE}.
 }
 \examples{
 \dontrun{

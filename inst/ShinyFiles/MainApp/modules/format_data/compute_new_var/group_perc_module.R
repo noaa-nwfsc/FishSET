@@ -319,6 +319,11 @@ group_perc_ui <- function(id){
       class="card-overflow", 
       bslib::card_body(
         class="card-overflow", 
+        p("This function calculates a new column representing the within-group percentage for each
+          observation (row) in the main data table. It is used to determine what portion of a 
+          group's total a single row's value represents. Use the checkbox below to also include
+          a column for each groups total value."),
+        hr(),
         bslib::layout_column_wrap(
           fill = TRUE,
           width = 1/3,
