@@ -395,7 +395,7 @@ bin_var <- function(dat, project, var, br, name = "bin", labs = NULL, ...) {
 # within group ----
 
 group_perc <- function(dat, project, group = NULL, value, name = "group_perc", 
-                       drop_total_col = FALSE) {
+                       include_total_col = FALSE) {
   #' Create a within-group percentage variable 
   #'
   #' @param dat Primary data frame over which to apply function. Table in FishSET 
@@ -405,7 +405,7 @@ group_perc <- function(dat, project, group = NULL, value, name = "group_perc",
   #'   variable which sums \code{value} by \code{group}. 
   #' @param value String, the value variable used to calculate percentage. Must be numeric. 
   #' @param name String, the name for the new variable. Defaults to "group_perc". 
-  #' @param drop_total_col Logical, whether to remove the "total_value" and "group_total"
+  #' @param include_total_col Logical, whether to remove the "total_value" 
   #'   variables created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
   #' @importFrom dplyr across mutate group_by select ungroup rename_with
@@ -413,8 +413,8 @@ group_perc <- function(dat, project, group = NULL, value, name = "group_perc",
   #' @details \code{group_perc} creates a within-group percentage variable using a primary
   #'   group (\code{group}). The total value of \code{group} is stored in the "total_value" 
   #'   variable, and the within-group total stored in "group_total". The group percentage is 
-  #'   calculated using these two function-created variables. "total_value" and "group_total" can
-  #'   be dropped by setting \code{drop_total_col = TRUE}.
+  #'   calculated using these two function-created variables. "total_value" can
+  #'   be dropped by setting \code{include_total_col = TRUE}.
   #' @examples
   #' \dontrun{
   #' group_perc(pollockMainDataTable, "pollock", group = "PERMIT",
@@ -441,7 +441,8 @@ group_perc <- function(dat, project, group = NULL, value, name = "group_perc",
         dplyr::across(all_of(value),
                       .fns = ~ (.x/total_value) * 100,
                       .names = name)) %>% # calc. percent of total value
-      { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
+      # drop total column if desired
+      { if (include_total_col == FALSE) dplyr::select(., -total_value) else . } 
     
   } else {
     dataset <- dataset %>% 
@@ -455,12 +456,13 @@ group_perc <- function(dat, project, group = NULL, value, name = "group_perc",
         dplyr::across(all_of(value),
                       .fns = ~ (.x/total_value) * 100,
                       .names = name)) %>% # calc. percent of total value
-      { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
+      # drop total column if desired
+      { if (include_total_col== FALSE) dplyr::select(., -total_value) else . } 
   }
   
   group_perc_function <- list()
   group_perc_function$functionID <- "group_perc"
-  group_perc_function$args <- list(dat, project, group, value, name, drop_total_col) 
+  group_perc_function$args <- list(dat, project, group, value, name, include_total_col) 
   log_call(project, group_perc_function)
   
   dataset
@@ -549,7 +551,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
 }
 
 group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cumsum",
-                         drop_total_col = FALSE) {
+                         include_total_col = FALSE) {
   #' Create a within-group running sum variable
   #'
   #' @param dat Primary data frame over which to apply function. Table in FishSET
@@ -560,7 +562,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   #' @param sort_by String, a date variable (or variables) to order `MainDataTable` by.
   #' @param value String, the value variable used to calculate cumulative sum. Must be numeric.
   #' @param name String, the name for the new variable. Defaults to "group_cumsum".
-  #' @param drop_total_col Logical, whether to remove the "group_total" variable
+  #' @param include_total_col Logical, whether to remove the "group_total" variable
   #'   created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
   #' @importFrom dplyr across all_of arrange left_join mutate group_by select summarize ungroup %>%
@@ -574,7 +576,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   #'   variables that identify unique vessels and trips into \code{group} and a numeric
   #'   variable (such as catch or # of hauls) into \code{value}. Each vessel's
   #'   trip total is calculated then cumulatively summed. The "group_total" variable
-  #'   gives the total value by group and can be dropped by setting \code{drop_total_col = TRUE}.
+  #'   gives the total value by group and can be dropped by setting \code{include_total_col = TRUE}.
   #' @examples
   #' \dontrun{
   #' group_cumsum(pollockMainDataTable, "pollock", group = c("PERMIT", "TRIP_ID"),
@@ -609,14 +611,14 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
       !!name := cumsum(tidyr::replace_na(!!rlang::sym(value), 0))
     ) %>%
     dplyr::ungroup() %>%
-    { if (drop_total_col) dplyr::select(., -group_total) else . }
+    { if (include_total_col==FALSE) dplyr::select(., -group_total) else . }
   
   # The 'tab' object is now the complete, mutated dataset.
   dataset <- tab
   
   group_cumsum_function <- list()
   group_cumsum_function$functionID <- "group_cumsum"
-  group_cumsum_function$args <- list(dat, project, group, sort_by, value, name, drop_total_col)
+  group_cumsum_function$args <- list(dat, project, group, sort_by, value, name, include_total_col)
   log_call(project, group_cumsum_function)
   
   dataset

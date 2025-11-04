@@ -72,7 +72,12 @@ assignInNamespace("parse_data_name", mock_parse_data_name, ns = "FishSET")
 
 # Calculate percentage with one group -------------------------------------------------------------
 test_that("calculates percentage correctly with one group", {
-  result <- group_perc(data_simple, "proj", group = "region", value = "catch")
+  
+  result <- group_perc(data_simple, 
+                       "proj",
+                       group = "region",
+                       value = "catch",
+                       include_total_col= TRUE)
   
   expected_perc <- c(
     (10 / 30) * 100,  # North
@@ -90,7 +95,9 @@ test_that("calculates percentage correctly with one group", {
 # Calculate percentage with multiple group --------------------------------------------------------
 test_that("calculates percentage correctly with multiple groups", {
   # Each row is its own group, so all percentages should be 100
-  result <- group_perc(data_simple, "proj", group = c("region", "sector"), value = "catch")
+  result <- group_perc(data_simple, "proj", group = c("region", "sector"),
+                       value = "catch",
+                       include_total_col= TRUE)
   
   expect_equal(result$group_perc, rep(100, 5))
   expect_equal(result$total_value, c(10, 20, 30, 40, 50))
@@ -99,7 +106,8 @@ test_that("calculates percentage correctly with multiple groups", {
 # Calculate percentage with group = NULL ----------------------------------------------------------
 test_that("calculates percentage correctly with group = NULL", {
   # Calculates percentage of the grand total (150)
-  result <- group_perc(data_simple, "proj", group = NULL, value = "catch")
+  result <- group_perc(data_simple, "proj", group = NULL, value = "catch",
+                       include_total_col= TRUE)
   
   expected_perc <- c(
     (10 / 150) * 100,
@@ -113,16 +121,16 @@ test_that("calculates percentage correctly with group = NULL", {
 })
 
 # Test if total column is properly removed --------------------------------------------------------
-test_that("drop_total_col = TRUE removes the total column", {
+test_that("include_total_col = FALSE removes the total column", {
   # Test with a group
-  res_group <- group_perc(data_simple, "proj", group = "region", value = "catch", 
-                          drop_total_col = TRUE)
+  res_group <- group_perc(data_simple, "proj", group = "region", value = "catch",
+                       include_total_col= FALSE)
   expect_false("total_value" %in% names(res_group))
   expect_true("group_perc" %in% names(res_group))
   
   # Test with group = NULL
-  res_null <- group_perc(data_simple, "proj", group = NULL, value = "catch", 
-                         drop_total_col = TRUE)
+  res_null <- group_perc(data_simple, "proj", group = NULL, value = "catch",
+                       include_total_col= FALSE)
   expect_false("total_value" %in% names(res_null))
   expect_true("group_perc" %in% names(res_null))
 })
@@ -142,7 +150,8 @@ test_that("handles NAs correctly (group = region)", {
   # This results in NaN (NA / NA) for the percentage.
   
   # Mock data_pull to return the NA data
-  result <- group_perc(data_na, "proj", group = "region", value = "catch")
+  result <- group_perc(data_na, "proj", group = "region", value = "catch",
+                       include_total_col= TRUE)
   
   expected_perc <- c(
     (10 / 30) * 100,  # North
@@ -160,7 +169,8 @@ test_that("handles NAs correctly (group = region)", {
 test_that("handles NAs correctly (group = NULL)", {
   # Grand total is NA, so all percentages are NaN (x / NA)
   
-  result <- group_perc(data_na, "proj", group = NULL, value = "catch")
+  result <- group_perc(data_na, "proj", group = NULL, value = "catch",
+                       include_total_col= TRUE)
   
   expect_equal(result$group_perc, rep(NaN, 4))
   expect_equal(result$total_value, rep(NA_real_, 4))
@@ -173,7 +183,8 @@ test_that("handles zero-sum groups correctly", {
   # -10 / 0 = -Inf
   # 0 / 0 = NaN
   
-  result <- group_perc(data_zero, "proj", group = "region", value = "catch")
+  result <- group_perc(data_zero, "proj", group = "region", value = "catch",
+                       include_total_col= TRUE)
   
   expected_perc <- c(Inf, -Inf, NaN, NaN)
   

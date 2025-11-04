@@ -76,14 +76,14 @@ test_that("it correctly calculates cumsum, group_total, and handles NAs", {
     sort_by = "date_col", 
     value = "val",
     name = "group_cumsum",
-    drop_total_col = FALSE
+    include_total_col = TRUE
   )
   
   expect_equal(result, expected_result)
   
 })
 # Drops the group_total column --------------------------------------------------------------------
-test_that("it drops the group_total column when drop_total_col = TRUE", {
+test_that("it drops the group_total column when include_total_col = FALSE", {
   
   result <- group_cumsum(
     dat = test_data,
@@ -91,7 +91,7 @@ test_that("it drops the group_total column when drop_total_col = TRUE", {
     group = "grp",
     sort_by = "date_col", 
     value = "val",
-    drop_total_col = TRUE # Key argument being tested
+    include_total_col = FALSE # Key argument being tested
   )
   
   expect_false("group_total" %in% names(result))
@@ -146,7 +146,8 @@ test_that("it works correctly with multiple grouping columns", {
     project = "test_proj",
     group = c("grp1", "grp2"), # Key argument being tested
     sort_by = "date_col",
-    value = "val"
+    value = "val",
+    include_total_col = TRUE
   )
   
   expect_equal(result, expected_result)
@@ -178,7 +179,8 @@ test_that("it works correctly with multiple sorting date columns", {
     project = "test_proj",
     group = "grp",
     sort_by = c("date1", "date2"), # Key argument being tested
-    value = "val"
+    value = "val",
+    include_total_col = TRUE
   )
   
   expect_equal(result, expected_result)

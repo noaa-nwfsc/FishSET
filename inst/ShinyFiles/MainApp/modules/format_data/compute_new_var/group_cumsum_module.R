@@ -13,7 +13,7 @@
 # Server ------------------------------------------------------------------------------------------
 #' group_cumsum_server
 #'
-#' @description Server logic for the group cumulative sum module.
+#' @description Server logic for the within-group cumulative sum module.
 #'
 #' @param id id A character string that is unique to this module instance.
 #' @param rv_project_name A reactive value containing the current project name.
@@ -88,7 +88,7 @@ group_cumsum_server <- function(id, rv_project_name, rv_data){
           sort_by = sort_name, 
           value = input$cumsum_value_input,
           name = col_name, 
-          drop_total_col = input$cumsum_drop_input
+          include_total_col = input$cumsum_drop_input
         )
         
       }, error = function(e) {
@@ -127,7 +127,7 @@ group_cumsum_server <- function(id, rv_project_name, rv_data){
       req(rv_temp_data())
       datatable(
         rv_temp_data(), # Preview data frame
-        options = list(scrollX = TRUE)
+        options = list(scrollX = TRUE, pageLength = 5)
       )
     })
     
@@ -301,19 +301,19 @@ group_cumsum_ui <- function(id){
         bslib::card_body(
           class="card-overflow", 
           p("This function calculates a new column representing the within-group cumulative sum
-          (or 'running total') for each observation. It requires a sorting variable (a date) to
+          (or 'running total') for each group. It requires a date variable to
           define the order of the sum. It is used to see how a value accumulates
           within a group over time or another ordered variable."),
           hr(),
           bslib::layout_column_wrap(
             fill = TRUE,
             width = 1/3,
+            selectInput(ns('cumsum_sort_input'), 
+                        'Select date variable',
+                        choices = NULL),
             selectInput(ns('cumsum_grp_input'), 
                         'Select grouping variable',
                         choices = NULL, multiple = FALSE),
-            selectInput(ns('cumsum_sort_input'), 
-                        'Select sorting variable',
-                        choices = NULL),
             selectInput(ns('cumsum_value_input'), 
                         'Select numeric variable',
                         choices = NULL)
@@ -326,44 +326,53 @@ group_cumsum_ui <- function(id){
                       value = "group_cumsum"),
             tags$div(class = "form-group",
                      tags$label(HTML("&nbsp;")), # Empty label for spacing
-                     checkboxInput(ns('cumsum_drop_input'), 
-                                   'Drop total columns', 
-                                   value = TRUE)),
-            actionButton(ns("cumsum_grp_btn"),
-                         "Run & Preview",
-                         icon = icon("chart-simple"),
-                         class = "btn-primary",
-                         width = "100%")
+                     checkboxInput(
+                       ns('cumsum_drop_input'), 
+                       span(
+                         style = "white-space: wrap; display: inline-flex; align-items: center;",
+                         HTML('Include total column &nbsp;'),
+                         bslib::tooltip(
+                           shiny::icon("circle-info", `aria-label` = "More information"),
+                           HTML("The 'group_total' variable gives the total value by group."),
+                           options = list(delay = list(show = 0, hide = 850))
+                         ), 
+                         value = FALSE))
+                     ),
+                     actionButton(ns("cumsum_grp_btn"),
+                                  "Run & Preview",
+                                  icon = icon("chart-simple"),
+                                  class = "btn-primary",
+                                  width = "100%")
+            )
+          ),
+        ),
+        shinyjs::hidden(
+          div(id = ns("summary_wrapper"),
+              bslib::layout_column_wrap(
+                fill = TRUE,
+                width = 1/2,
+                heights_equal= "row",
+                min_height= "600px",
+                bslib::card(
+                  bslib::card_header("Summary Plot"),
+                  shinycssloaders::withSpinner(plotOutput(ns("summary_plot")))),
+                bslib::card(
+                  bslib::card_header("Summary Table"),
+                  shinycssloaders::withSpinner(DT::DTOutput(ns("summary_table"))))
+              )
+              
           )
         ),
-      ),
-      shinyjs::hidden(
-        div(id = ns("summary_wrapper"),
-            bslib::layout_column_wrap(
-              fill = TRUE,
-              width = 1/2,
-              heights_equal= "row",
-              min_height= "600px",
-              bslib::card(
-                bslib::card_header("Summary Plot"),
-                shinycssloaders::withSpinner(plotOutput(ns("summary_plot")))),
-              bslib::card(
-                bslib::card_header("Summary Table"),
-                shinycssloaders::withSpinner(DT::DTOutput(ns("summary_table"))))
-            )
-            
+        # Spinner container
+        div(id = ns("group_cumsum_spinner_container"),
+            style = "display: none;",
+            spinner_ui(ns("group_cumsum_spinner"),
+                       spinner_type = "circle",
+                       size = "large",
+                       message = "Calculating cumulative sum variable...",
+                       overlay = TRUE)
         )
-      ),
-      # Spinner container
-      div(id = ns("group_cumsum_spinner_container"),
-          style = "display: none;",
-          spinner_ui(ns("group_cumsum_spinner"),
-                     spinner_type = "circle",
-                     size = "large",
-                     message = "Calculating cumulative sum variable...",
-                     overlay = TRUE)
       )
     )
-  )
-  
-}
+    
+    }
