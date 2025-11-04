@@ -468,7 +468,7 @@ group_perc <- function(dat, project, group = NULL, value, name = "group_perc",
 
 
 group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
-                       lag = 1, drop_total_col = FALSE) {
+                       lag = 1, include_total_col = FALSE) {
   #' Create a within-group lagged difference variable
   #'
   #' @param dat Primary data frame over which to apply function. Table in FishSET
@@ -480,7 +480,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   #' @param value String, the value variable used to calculate lagged difference. Must be numeric.
   #' @param name String, the name for the new variable. Defaults to "group_diff".
   #' @param lag Integer, adjusts lag length. Defaults to 1.
-  #' @param drop_total_col Logical, whether to remove the "group_total" variable
+  #' @param include_total_col Logical, whether to remove the "group_total" variable
   #'   created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
   #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup
@@ -489,7 +489,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   #' @details \code{group_diff} creates a grouped lagged difference variable. \code{value}
   #'   is first summed by the variable(s) in \code{group}, then the difference within-group is
   #'   calculated. The "group_total" variable gives the total value by group and can
-  #'   be dropped by setting \code{drop_total_col = TRUE}.
+  #'   be dropped by setting \code{include_total_col = FALSE}.
   #' @examples
   #' \dontrun{
   #' group_diff(pollockMainDataTable, "pollock", group = c("PERMIT", "TRIP_ID"),
@@ -534,14 +534,14 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   # The 'by' key MUST include all 'group_vars' to match rows correctly.
   dataset <- dplyr::left_join(dataset, tab, by = group_vars)
   
-  if (drop_total_col) {
+  if (include_total_col== FALSE) {
     dataset <- dplyr::select(dataset, -group_total)
   }
   
   group_diff_function <- list()
   group_diff_function$functionID <- "group_diff"
   group_diff_function$args <- list(dat, project, group, sort_by, value, name, lag,
-                                   drop_total_col)
+                                   include_total_col)
   log_call(project, group_diff_function)
   
   dataset

@@ -84,7 +84,7 @@ compute_new_var_sidebar_ui <- function(id) {
                              "Calculate trip distance" = "calc_trip_dist",
                              "Calculate trip centroid" = "calc_trip_centroid",
                              "Assign quantiles" = "assign_quantiles_id",
-                             "Group Percentages" = "group_perc_id",
+                             "Within-group percentages" = "group_perc_id",
                              "Within-group lagged difference" = "group_diff"),
                  selected = "new_r_express")
   )
@@ -147,7 +147,7 @@ compute_new_var_ui <- function(id){
       ns = ns,
       group_perc_ui(ns("group_perc" ))
       ),
-      # Conditionally display option to assign quantiles 
+      # Conditionally display option: within group lagged difference
     conditionalPanel(
       condition = "input.comp_new_var_options == 'group_diff'",
       ns = ns,

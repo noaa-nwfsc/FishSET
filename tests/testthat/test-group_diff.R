@@ -75,7 +75,8 @@ test_that("group_diff works with default parameters (lag=1)", {
     project = "test_proj",
     group = "group_var",
     sort_by = "sort_var",
-    value = "value_var"
+    value = "value_var",
+    include_total_col = TRUE
   )
   
   # Manually calculated expected values
@@ -107,7 +108,8 @@ test_that("group_diff respects custom 'name' parameter", {
     group = "group_var",
     sort_by = "sort_var",
     value = "value_var",
-    name = "my_custom_diff"
+    name = "my_custom_diff",
+    include_total_col = TRUE
   )
   
   # Check: Custom name is used and default is not
@@ -142,7 +144,7 @@ test_that("group_diff respects 'lag' parameter (lag=2)", {
 })
 
 # Drop total column correctly ---------------------------------------------------------------------
-test_that("group_diff respects 'drop_total_col = TRUE'", {
+test_that("group_diff respects 'include_total_col = FALSE'", {
   
   result <- group_diff(
     dat = test_data,
@@ -150,7 +152,7 @@ test_that("group_diff respects 'drop_total_col = TRUE'", {
     group = "group_var",
     sort_by = "sort_var",
     value = "value_var",
-    drop_total_col = TRUE
+    include_total_col = FALSE
   )
   
   # Check: 'group_total' is gone, 'group_diff' remains
@@ -166,7 +168,8 @@ test_that("group_diff works with multiple grouping variables", {
     project = "test_proj",
     group = c("group_1", "group_2"), # <-- Vector of group names
     sort_by = "sort_var",
-    value = "value_var"
+    value = "value_var",
+    include_total_col = TRUE
   )
   
   # Manually calculated expected values

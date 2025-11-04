@@ -13,7 +13,7 @@
 # Server ------------------------------------------------------------------------------------------
 #' group_diff_server
 #'
-#' @description Server logic for the group difference module.
+#' @description Server logic for the within-group difference module.
 #'
 #' @param id id A character string that is unique to this module instance.
 #' @param rv_project_name A reactive value containing the current project name.
@@ -76,7 +76,7 @@ group_diff_server <- function(id, rv_project_name, rv_data){
           value = input$diff_value_input,
           name = col_name,
           lag = input$diff_lag_input, 
-          drop_total_col = input$diff_drop_input
+          include_total_col = input$diff_drop_input
         )
         
       }, error = function(e) {
@@ -175,7 +175,7 @@ group_diff_server <- function(id, rv_project_name, rv_data){
         # Filter row 1 *within each group* to remove padding
         dplyr::filter(dplyr::row_number() > 1) %>%
         dplyr::summarise(
-          n_changes = dplyr::n(),
+          n_observations = dplyr::n(),
           mean_diff = mean(.data[[col_name]], na.rm = TRUE),
           median_diff = median(.data[[col_name]], na.rm = TRUE),
           std_dev_diff = sd(.data[[col_name]], na.rm = TRUE),
@@ -223,10 +223,16 @@ group_diff_ui <- function(id){
         class="card-overflow",
         bslib::card_body(
           class="card-overflow",
+          p("This function calculates the lagged difference of a variable for specified groups. 
+            First the function sums the numeric variable for each unique date/group combination.
+            Then within each group, the difference between the current summed value and the summed 
+            value from the previous date is calculated. Use the checkbox below to return a column 
+            for date/group sums in addition to the lagged difference column."),
+          hr(),
           bslib::layout_column_wrap(
             fill = TRUE,
             width = 1/3,
-            selectInput(ns('diff_sort_input'), 'Sort table by (Date)',
+            selectInput(ns('diff_sort_input'), 'Sort date variable',
                         choices = NULL),
             selectInput(ns('diff_grp_input'), 'Select grouping variable',
                         choices = NULL, multiple = FALSE),
@@ -239,11 +245,29 @@ group_diff_ui <- function(id){
             textInput(ns('diff_name_input'),
                       'New variable name',
                       value = "group_diff"),
-            numericInput(ns('diff_lag_input'), 'Lag length',
+            numericInput(ns('diff_lag_input'), 
+                         span(
+                           style = "white-space: wrap; display: inline-flex; align-items: center;",
+                           HTML('Lag length &nbsp;'),
+                           bslib::tooltip(
+                             shiny::icon("circle-info", `aria-label` = "More information"),
+                             HTML("Increasing the lag length changes the calculation to find the
+                                  difference between the current date/group sum value and the value
+                                  from X rows prior (based on dates in the dataset)."))),
                          value = 1, min = 1, step = 1),
             tags$div(class = "form-group",
-                     tags$label(HTML("&nbsp;&nbsp;")), # Empty label for spacing
-                     checkboxInput(ns('diff_drop_input'), 'Drop total column', value = TRUE))
+                     tags$label(HTML("&nbsp;")), # Empty label for spacing
+                     checkboxInput(
+                       ns('diff_drop_input'), 
+                       span(
+                         style = "white-space: wrap; display: inline-flex; align-items: center;",
+                         HTML('Include total column &nbsp;'),
+                         bslib::tooltip(
+                           shiny::icon("circle-info", `aria-label` = "More information"),
+                           HTML("The 'group_total' variable gives the total value by group."),
+                           options = list(delay = list(show = 0, hide = 850))
+                         ), 
+                         value = FALSE)))
           ),
           actionButton(ns("run_diff_btn"),
                        "Run & Preview",
