@@ -10,7 +10,6 @@
 #        project variables.
 # =================================================================================================
 
-
 # Server ------------------------------------------------------------------------------------------
 #' group_perc_server
 #'
@@ -316,63 +315,70 @@ group_perc_ui <- function(id){
   
   tagList(
     shinyjs::useShinyjs(), 
-    bslib::card(
-      class="card-overflow", 
-      bslib::card_body(
+    div(
+      bslib::card(
         class="card-overflow", 
-        bslib::layout_column_wrap(
-          fill = TRUE,
-          width = 1/3,
-          selectInput(ns('perc_grp_input'), 
-                      'Select grouping variable',
-                      choices = NULL, multiple = FALSE),
-          selectInput(ns('perc_value_input'), 
-                      'Select numeric variable',
-                      choices = NULL),
-          textInput(ns('perc_name_input'), 
-                    'New variable name',
-                    value = "group_perc"),
-        ),
-        bslib::layout_column_wrap(
-          fill = TRUE,
-          width = 1/3,
-          actionButton(ns("perc_grp_btn"),
-                       "Run & Preview",
-                       icon = icon("chart-simple"),
-                       class = "btn-primary",
-                       width = "100%"),
-          checkboxInput(ns('perc_drop_input'), 
-                        'Drop total columns', 
-                        value = TRUE),
-          
-        )
-      ),
-    ),
-    shinyjs::hidden(
-      div(id = ns("summary_wrapper"),
+        bslib::card_body(
+          class="card-overflow", 
+          p("This function calculates a new column representing the within-group percentage for each
+          observation (row) in the main data table. It is used to determine what portion of a 
+          group's total a single row's value represents. Use the checkbox below to also include
+          a column for each groups total value."),
+          hr(),
           bslib::layout_column_wrap(
             fill = TRUE,
-            width = 1/2,
-            heights_equal= "row",
-            min_height= "600px",
-            bslib::card(
-              bslib::card_header("Summary Plot"),
-              shinycssloaders::withSpinner(plotOutput(ns("summary_plot")))),
-            bslib::card(
-              bslib::card_header("Summary Table"),
-              shinycssloaders::withSpinner(DT::DTOutput(ns("summary_table"))))
+            width = 1/3,
+            selectInput(ns('perc_grp_input'), 
+                        'Select grouping variable',
+                        choices = NULL, multiple = FALSE),
+            selectInput(ns('perc_value_input'), 
+                        'Select numeric variable',
+                        choices = NULL),
+            textInput(ns('perc_name_input'), 
+                      'New variable name',
+                      value = "group_perc"),
+          ),
+          bslib::layout_column_wrap(
+            fill = TRUE,
+            width = 1/3,
+            actionButton(ns("perc_grp_btn"),
+                         "Run & Preview",
+                         icon = icon("chart-simple"),
+                         class = "btn-primary",
+                         width = "100%"),
+            checkboxInput(ns('perc_drop_input'), 
+                          'Drop total columns', 
+                          value = TRUE),
+            
           )
-          
+        ),
+      ),
+      shinyjs::hidden(
+        div(id = ns("summary_wrapper"),
+            bslib::layout_column_wrap(
+              fill = TRUE,
+              width = 1/2,
+              heights_equal= "row",
+              min_height= "600px",
+              bslib::card(
+                bslib::card_header("Summary Plot"),
+                shinycssloaders::withSpinner(plotOutput(ns("summary_plot")))),
+              bslib::card(
+                bslib::card_header("Summary Table"),
+                shinycssloaders::withSpinner(DT::DTOutput(ns("summary_table"))))
+            )
+            
+        )
+      ),
+      # Spinner container
+      div(id = ns("group_perc_spinner_container"),
+          style = "display: none;",
+          spinner_ui(ns("group_perc_spinner"),
+                     spinner_type = "circle",
+                     size = "large",
+                     message = "Calculating group percentage variable...",
+                     overlay = TRUE)
       )
-    ),
-    # Spinner container
-    div(id = ns("group_perc_spinner_container"),
-        style = "display: none;",
-        spinner_ui(ns("group_perc_spinner"),
-                   spinner_type = "circle",
-                   size = "large",
-                   message = "Calculating group percentage variable...",
-                   overlay = TRUE)
     )
   )
   
