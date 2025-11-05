@@ -50,7 +50,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       # Update the reactive value
       rv_existing_matrix_data(exp_mats)
       
-      # ALSO update the remove dropdown
+      # Update the remove dropdown
       mat_names <- names(exp_mats)[!names(exp_mats) %in% 
                                      c('scale', 'units') & 
                                      !grepl("_dummy|_settings", names(exp_mats))]
@@ -59,7 +59,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
     
     # Load matrix data once when main data is first loaded
     observeEvent(rv_data$main, {
-      req(rv_data$spat) # Ensure all project data is available
+      req(rv_data$spat) # Ensure spatial data is available
       load_matrix_data()
     }, once = TRUE) # Only run this observer one time
     
@@ -343,7 +343,7 @@ create_expectations_ui <- function(id){
       id = ns("main_container"),
       bslib::card(
         class="card-overflow", 
-        bslib::card_header("Create Expected Catch/Revenue Matrix"),
+        bslib::card_header("Create Expected Catch or Revenue Matrix"),
         bslib::card_body(
           class="card-overflow", 
           p("This function creates an expectation of catch or revenue for alternative fishing
@@ -439,7 +439,7 @@ create_expectations_ui <- function(id){
                                  HTML("Temporal method: &nbsp;"),
                                  bslib::tooltip(
                                    shiny::icon("circle-info", `aria-label` = "More information"),
-                                   HTML("The choice affects how the moving average is calculated.
+                                   HTML("This choice affects how the moving average is calculated.
                                         If 'daily', then the window size for the average and 
                                         temporal lag are in days (catch on dates wihtout fishing
                                         activity will be filled in with NAs, which will be ignored
@@ -629,8 +629,7 @@ create_expectations_ui <- function(id){
                                    HTML("This determines how to handle empty expectations when
                                         there is no data within a time window for calculating
                                         the expectation. The default value 1e-4 is recommended
-                                        for successful logit model estimation in the modelling
-                                        tab."),
+                                        for successful estimation in the modelling tab."),
                                    options = list(delay = list(show = 0, hide = 850))
                                  )
                                )
