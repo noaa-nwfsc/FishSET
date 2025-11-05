@@ -17,8 +17,8 @@ source("modules/format_data/compute_new_var/calc_trip_distance_module.R", local 
 source("modules/format_data/compute_new_var/calc_trip_centroid_module.R", local = TRUE)
 source("modules/format_data/compute_new_var/assign_quantiles_module.R", local = TRUE)
 source("modules/format_data/compute_new_var/group_perc_module.R", local = TRUE)
+source("modules/format_data/compute_new_var/group_diff_module.R", local = TRUE)
 source("modules/format_data/compute_new_var/group_cumsum_module.R", local = TRUE)
-
 
 # compute new variables server --------------------------------------------------------------------
 #' compute_new_var_server
@@ -55,14 +55,16 @@ compute_new_var_server <- function(id, rv_data_load_error, #values = NULL,
     calc_trip_centroid_server("calc_trip_cent", rv_folderpath, rv_project_name, rv_data)
     
     # Assigning quantiles 
-    assign_quantiles_server("assign_quantiles", rv_project_name, rv_data )
+    assign_quantiles_server("assign_quantiles", rv_project_name, rv_data)
     
     # Calculate within-group percentage
-    group_perc_server("group_perc", rv_project_name, rv_data )
+    group_perc_server("group_perc", rv_project_name, rv_data)
+    
+    # Within group lagged difference
+    group_diff_server("group_diff", rv_project_name, rv_data)
     
     # Calculate within-group cumulative sum
-    group_cumsum_server("group_cumsum", rv_project_name, rv_data )
-
+    group_cumsum_server("group_cumsum", rv_project_name, rv_data)
   })
 }
 
@@ -87,10 +89,10 @@ compute_new_var_sidebar_ui <- function(id) {
                              "Calculate trip centroid" = "calc_trip_centroid",
                              "Assign quantiles" = "assign_quantiles_id",
                              "Within-group percentages" = "group_perc_id",
+                             "Within-group lagged difference" = "group_diff",
                              "Within-group cumulative sum" = "group_cumsum_id"),
                  selected = "new_r_express")
   )
-  
 }
 
 
@@ -148,6 +150,12 @@ compute_new_var_ui <- function(id){
       condition = "input.comp_new_var_options == 'group_perc_id'",
       ns = ns,
       group_perc_ui(ns("group_perc" ))
+    ),
+    # Conditionally display option: within group lagged difference
+    conditionalPanel(
+      condition = "input.comp_new_var_options == 'group_diff'",
+      ns = ns,
+      group_diff_ui(ns("group_diff"))
     ),
     # Conditionally display option: within group cumulative sum
     conditionalPanel(

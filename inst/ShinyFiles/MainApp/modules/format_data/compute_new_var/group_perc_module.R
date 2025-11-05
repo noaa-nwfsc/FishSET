@@ -357,7 +357,6 @@ group_perc_ui <- function(id){
                             ), 
                             value = FALSE)
             ),
-            
           )
         ),
       ),
