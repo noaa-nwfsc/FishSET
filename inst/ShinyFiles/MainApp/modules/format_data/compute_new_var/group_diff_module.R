@@ -232,7 +232,7 @@ group_diff_ui <- function(id){
           bslib::layout_column_wrap(
             fill = TRUE,
             width = 1/3,
-            selectInput(ns('diff_sort_input'), 'Sort date variable',
+            selectInput(ns('diff_sort_input'), 'Date variable',
                         choices = NULL),
             selectInput(ns('diff_grp_input'), 'Select grouping variable',
                         choices = NULL, multiple = FALSE),
@@ -264,7 +264,9 @@ group_diff_ui <- function(id){
                          HTML('Include total column &nbsp;'),
                          bslib::tooltip(
                            shiny::icon("circle-info", `aria-label` = "More information"),
-                           HTML("The 'group_total' variable gives the total value by group."),
+                           HTML("Selecting this option will add a 'group_total' column to the 
+                                main data table. This column represents the summed variable
+                                for each date/group combination."),
                            options = list(delay = list(show = 0, hide = 850))
                          ), 
                          value = FALSE)))
