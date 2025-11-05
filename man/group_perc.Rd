@@ -10,7 +10,7 @@ group_perc(
   group = NULL,
   value,
   name = "group_perc",
-  drop_total_col = FALSE
+  include_total_col = FALSE
 )
 }
 \arguments{
@@ -26,7 +26,7 @@ variable which sums \code{value} by \code{group}.}
 
 \item{name}{String, the name for the new variable. Defaults to "group_perc".}
 
-\item{drop_total_col}{Logical, whether to remove the "total_value" and "group_total"
+\item{include_total_col}{Logical, whether to remove the "total_value" 
 variables created to calculate percentage. Defaults to \code{FALSE}.}
 }
 \description{
@@ -36,8 +36,8 @@ Create a within-group percentage variable
 \code{group_perc} creates a within-group percentage variable using a primary
   group (\code{group}). The total value of \code{group} is stored in the "total_value" 
   variable, and the within-group total stored in "group_total". The group percentage is 
-  calculated using these two function-created variables. "total_value" and "group_total" can
-  be dropped by setting \code{drop_total_col = TRUE}.
+  calculated using these two function-created variables. "total_value" can
+  be dropped by setting \code{include_total_col = TRUE}.
 }
 \examples{
 \dontrun{

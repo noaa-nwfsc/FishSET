@@ -13,7 +13,7 @@
 # Server ------------------------------------------------------------------------------------------
 #' group_perc_server
 #'
-#' @description Server logic for the group percentage module.
+#' @description Server logic for the within-group percentage module.
 #'
 #' @param id id A character string that is unique to this module instance.
 #' @param rv_project_name A reactive value containing the current project name.
@@ -81,7 +81,7 @@ group_perc_server <- function(id, rv_project_name, rv_data){
           group = grp_name,
           value = input$perc_value_input,
           name = col_name, 
-          drop_total_col = input$perc_drop_input
+          include_total_col = input$perc_drop_input
         )
         
       }, error = function(e) {
@@ -347,9 +347,16 @@ group_perc_ui <- function(id){
                          class = "btn-primary",
                          width = "100%"),
             checkboxInput(ns('perc_drop_input'), 
-                          'Drop total columns', 
-                          value = TRUE),
-            
+                          span(
+                            style = "white-space: wrap; display: inline-flex; align-items: center;",
+                            HTML('Include total column &nbsp;'),
+                            bslib::tooltip(
+                              shiny::icon("circle-info", `aria-label` = "More information"),
+                              HTML("The 'total_value' variable gives the total value by group."),
+                              options = list(delay = list(show = 0, hide = 850))
+                            ), 
+                            value = FALSE)
+            ),
           )
         ),
       ),

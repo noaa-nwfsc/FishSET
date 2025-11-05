@@ -11,29 +11,25 @@ group_cumsum(
   sort_by,
   value,
   name = "group_cumsum",
-  create_group_ID = FALSE,
-  drop_total_col = FALSE
+  include_total_col = FALSE
 )
 }
 \arguments{
-\item{dat}{Primaryy data frame over which to apply function. Table in FishSET 
+\item{dat}{Primary data frame over which to apply function. Table in FishSET
 database should contain the string `MainDataTable`.}
 
 \item{project}{String, project name.}
 
-\item{group}{String, the grouping variable(s) to sum \code{value} by. Used to create the 
+\item{group}{String, the grouping variable(s) to sum \code{value} by. Used to create the
 "group_total" variable.}
 
-\item{sort_by}{String, a date variable to order `MainDataTable` by.}
+\item{sort_by}{String, a date variable (or variables) to order `MainDataTable` by.}
 
 \item{value}{String, the value variable used to calculate cumulative sum. Must be numeric.}
 
 \item{name}{String, the name for the new variable. Defaults to "group_cumsum".}
 
-\item{create_group_ID}{Logical, whether to create a group ID variable using \code{\link{ID_var}}.
-Defaults to \code{FALSE}.}
-
-\item{drop_total_col}{Logical, whether to remove the "group_total" variable
+\item{include_total_col}{Logical, whether to remove the "group_total" variable
 created to calculate percentage. Defaults to \code{FALSE}.}
 }
 \description{
@@ -41,14 +37,12 @@ Create a within-group running sum variable
 }
 \details{
 \code{group_cumsum} sums \code{value} by \code{group}, then cumulatively
-  sums within groups. For example, a running sum by trip variable can be made 
+  sums within groups. For example, a running sum by trip variable can be made
   by entering
   variables that identify unique vessels and trips into \code{group} and a numeric
   variable (such as catch or # of hauls) into \code{value}. Each vessel's
-  trip total is calculated then cumulatively summed. The "group_total" variable 
-  gives the total value by group and can be dropped by setting \code{drop_total_col = TRUE}.
-  A group ID column can be created using the variables in \code{group} by setting
-  \code{create_group_ID = TRUE}.
+  trip total is calculated then cumulatively summed. The "group_total" variable
+  gives the total value by group and can be dropped by setting \code{include_total_col = TRUE}.
 }
 \examples{
 \dontrun{

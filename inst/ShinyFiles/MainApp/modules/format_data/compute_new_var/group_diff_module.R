@@ -232,7 +232,7 @@ group_diff_ui <- function(id){
           bslib::layout_column_wrap(
             fill = TRUE,
             width = 1/3,
-            selectInput(ns('diff_sort_input'), 'Date variable',
+            selectInput(ns('diff_sort_input'), 'Select date variable',
                         choices = NULL),
             selectInput(ns('diff_grp_input'), 'Select grouping variable',
                         choices = NULL, multiple = FALSE),
