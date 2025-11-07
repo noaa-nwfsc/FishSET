@@ -128,7 +128,7 @@ create_expectations <-
     Alt <- unserialize_table(paste0(project, alt_matrix_name), project)
     
     # Perform initial data quality and parameter checks -------------------------------------------
-    column_check(dataset, c(catch, price, temp_var, defineGroup))
+    column_check(dataset, c(catch, price, defineGroup))
     
     if (all(is_empty(date_cols(dataset)))) {
       warning("No time variable found, only averaging in groups and per zone is capable",
@@ -155,9 +155,11 @@ create_expectations <-
     stopifnot("empty_expectations must be numeric" = is.numeric(empty_expectation))
     
     # Ensure the temporal variable is a Date type
-    var_class <- class(dataset[[temp_var]])
-    if (!("Date" %in% var_class || any(grepl("POSIX", var_class)))) {
-      dataset[[temp_var]] <- as.Date(dataset[[temp_var]])
+    if (temp_var != "None"){
+      var_class <- class(dataset[[temp_var]])
+      if (!("Date" %in% var_class || any(grepl("POSIX", var_class)))) {
+        dataset[[temp_var]] <- as.Date(dataset[[temp_var]])
+      }  
     }
     
     # Calculate expactations ----------------------------------------------------------------------

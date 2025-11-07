@@ -87,7 +87,7 @@ calc_exp <- function(dataset,
   z_ind <- which(dataZoneTrue == 1)
   
   # Non temporal ----------------------------------------------------------------------------------
-  if (is_value_empty(temp_var) || temp_var == "none") {
+  if (is_value_empty(temp_var) || temp_var == "None") {
     # Select columns
     df_no_temp <- dt[z_ind, c("fleet", catch), with = FALSE]
     
@@ -99,7 +99,7 @@ calc_exp <- function(dataset,
     )]
     
     # Handle revenue calculation
-    if (!is_value_empty(price) && price != "none") {
+    if (!is_value_empty(price) && price != "None") {
       price_vec <- as.numeric(dataset[[price]][z_ind])
       df_no_temp[, catch_val := catch_val * price_vec]
     }
