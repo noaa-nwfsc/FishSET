@@ -25,7 +25,7 @@
 #'   in days. If sequential, then averaging will occur over the specified number 
 #'   of observations, regardless of how many days they represent.
 #' @param calc_method String, how catch values are average over window size. Select 
-#'   standard average (\code{"standardAverage"}), simple lag regression of means 
+#'   standard average (\code{"standardAverage"}), simple lag regression (autoregressive) of catch 
 #'   (\code{"simpleLag"}), or weights of regressed groups (\code{"weights"})
 #' @param temp_window Numeric, temporal window size. If \code{temp_var} is not \code{NULL}, 
 #'   set the window size to average catch over. Defaults to 14 (14 days if \code{temporal} 
@@ -128,7 +128,7 @@ create_expectations <-
     Alt <- unserialize_table(paste0(project, alt_matrix_name), project)
     
     # Perform initial data quality and parameter checks -------------------------------------------
-    column_check(dataset, c(catch, price, temp_var, defineGroup))
+    column_check(dataset, c(catch, price, defineGroup))
     
     if (all(is_empty(date_cols(dataset)))) {
       warning("No time variable found, only averaging in groups and per zone is capable",
@@ -155,9 +155,11 @@ create_expectations <-
     stopifnot("empty_expectations must be numeric" = is.numeric(empty_expectation))
     
     # Ensure the temporal variable is a Date type
-    var_class <- class(dataset[[temp_var]])
-    if (!("Date" %in% var_class || any(grepl("POSIX", var_class)))) {
-      dataset[[temp_var]] <- as.Date(dataset[[temp_var]])
+    if (tolower(temp_var) != "none"){
+      var_class <- class(dataset[[temp_var]])
+      if (!("Date" %in% var_class || any(grepl("POSIX", var_class)))) {
+        dataset[[temp_var]] <- as.Date(dataset[[temp_var]])
+      }  
     }
     
     # Calculate expactations ----------------------------------------------------------------------

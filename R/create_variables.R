@@ -898,6 +898,7 @@ create_dist_between <- function(dat, project, start, end,
       } else if(!is.null(zoneid) & zoneid %in% names(dataset)){
         colnames(dataset)[colnames(dataset)==zoneid] <- 'ZoneID'
       } else {
+        
         dataset <- assignment_column(dat = dataset, 
                                      project = project, 
                                      spat = eval(parse(text = vars[1])), 

@@ -54,7 +54,7 @@ in days. If sequential, then averaging will occur over the specified number
 of observations, regardless of how many days they represent.}
 
 \item{calc_method}{String, how catch values are average over window size. Select 
-standard average (\code{"standardAverage"}), simple lag regression of means 
+standard average (\code{"standardAverage"}), simple lag regression (autoregressive) of catch 
 (\code{"simpleLag"}), or weights of regressed groups (\code{"weights"})}
 
 \item{temp_window}{Numeric, temporal window size. If \code{temp_var} is not \code{NULL}, 
