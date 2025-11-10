@@ -63,11 +63,6 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       load_matrix_data()
     }, once = TRUE) # Only run this observer one time
     
-    # Handle manual refresh button click
-    observeEvent(input$refresh_matrices_btn, {
-      load_matrix_data()
-    })
-    
     # Update input choices based on the main data
     observe({
       req(rv_data$main)
@@ -122,8 +117,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       # Handle numeric/NULL conversion for empty_expectation
       empty_exp_val <- switch(input$empty_expectation_input,
                               "0.0001" = 1e-4,
-                              "0" = 0,
-                              "NULL" = NULL)
+                              "0" = 0)
       
       # --- Call create_expectations function ---
       tryCatch({
@@ -177,7 +171,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
           as.character(
             actionButton(ns(paste0("view_settings_", name)), 
                          "View Settings", 
-                         class = "btn-sm btn-light")
+                         class = "btn-sm btn-secondary")
           )
         }, FUN.VALUE = character(1))
       )
@@ -350,7 +344,11 @@ create_expectations_ui <- function(id){
              zones. The expectation matrix is saved to the FishSET project database and 
              multiple matrices can be saved (must have different names). An expected catch matrix 
              is required for the conditional logit model. For more information on calculating
-             expected catch and revenue matrices, see section 8.2.3 in the FishSET User Manual"),
+             expected catch and revenue matrices, see ",
+            tags$a(
+              href = "https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html",
+              "section 8.2.3"),
+            "in the FishSET User Manual"),
           
           fluidRow(
             # --- Group 1: Core Inputs ---
@@ -635,8 +633,7 @@ create_expectations_ui <- function(id){
                                )
                              ),
                              choices = c("0.0001 (1e-4)" = "0.0001", 
-                                         "0" = "0", 
-                                         "Do not replace" = "NULL"),
+                                         "0" = "0"),
                              selected = "0.0001")
                          )
                        ),
@@ -722,10 +719,6 @@ create_expectations_ui <- function(id){
       bslib::card(
         bslib::card_header(
           "Manage Expected Catch/Revenue Matrices",
-          actionButton(ns("refresh_matrices_btn"), 
-                       "Refresh", 
-                       icon = icon("sync"), 
-                       class = "btn-sm btn-light float-end")
         ),
         bslib::card_body(
           class="card-overflow",
