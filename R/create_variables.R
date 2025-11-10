@@ -395,7 +395,7 @@ bin_var <- function(dat, project, var, br, name = "bin", labs = NULL, ...) {
 # within group ----
 
 group_perc <- function(dat, project, group = NULL, value, name = "group_perc", 
-                       drop_total_col = FALSE) {
+                       include_total_col = FALSE) {
   #' Create a within-group percentage variable 
   #'
   #' @param dat Primary data frame over which to apply function. Table in FishSET 
@@ -405,7 +405,7 @@ group_perc <- function(dat, project, group = NULL, value, name = "group_perc",
   #'   variable which sums \code{value} by \code{group}. 
   #' @param value String, the value variable used to calculate percentage. Must be numeric. 
   #' @param name String, the name for the new variable. Defaults to "group_perc". 
-  #' @param drop_total_col Logical, whether to remove the "total_value" and "group_total"
+  #' @param include_total_col Logical, whether to remove the "total_value" 
   #'   variables created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
   #' @importFrom dplyr across mutate group_by select ungroup rename_with
@@ -413,8 +413,8 @@ group_perc <- function(dat, project, group = NULL, value, name = "group_perc",
   #' @details \code{group_perc} creates a within-group percentage variable using a primary
   #'   group (\code{group}). The total value of \code{group} is stored in the "total_value" 
   #'   variable, and the within-group total stored in "group_total". The group percentage is 
-  #'   calculated using these two function-created variables. "total_value" and "group_total" can
-  #'   be dropped by setting \code{drop_total_col = TRUE}.
+  #'   calculated using these two function-created variables. "total_value" can
+  #'   be dropped by setting \code{include_total_col = TRUE}.
   #' @examples
   #' \dontrun{
   #' group_perc(pollockMainDataTable, "pollock", group = "PERMIT",
@@ -441,7 +441,8 @@ group_perc <- function(dat, project, group = NULL, value, name = "group_perc",
         dplyr::across(all_of(value),
                       .fns = ~ (.x/total_value) * 100,
                       .names = name)) %>% # calc. percent of total value
-      { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
+      # drop total column if desired
+      { if (include_total_col == FALSE) dplyr::select(., -total_value) else . } 
     
   } else {
     dataset <- dataset %>% 
@@ -455,44 +456,43 @@ group_perc <- function(dat, project, group = NULL, value, name = "group_perc",
         dplyr::across(all_of(value),
                       .fns = ~ (.x/total_value) * 100,
                       .names = name)) %>% # calc. percent of total value
-      { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
+      # drop total column if desired
+      { if (include_total_col== FALSE) dplyr::select(., -total_value) else . } 
   }
   
   group_perc_function <- list()
   group_perc_function$functionID <- "group_perc"
-  group_perc_function$args <- list(dat, project, group, value, name, drop_total_col) 
+  group_perc_function$args <- list(dat, project, group, value, name, include_total_col) 
   log_call(project, group_perc_function)
   
   dataset
 }
 
 
-group_diff <- function(dat, project, group, sort_by, value, name = "group_diff", 
-                       lag = 1, create_group_ID = FALSE, drop_total_col = FALSE) {
+group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
+                       lag = 1, include_total_col = FALSE) {
   #' Create a within-group lagged difference variable
-  #' 
-  #' @param dat Primary data frame over which to apply function. Table in FishSET 
+  #'
+  #' @param dat Primary data frame over which to apply function. Table in FishSET
   #'   database should contain the string `MainDataTable`.
   #' @param project String, project name.
-  #' @param group String, the grouping variable(s) to sum \code{value} by. Used to create the 
-  #'   "group_total" variable.  
-  #' @param sort_by String, a date variable to order `MainDataTable` by. 
-  #' @param value String, the value variable used to calculate lagged difference. Must be numeric. 
-  #' @param name String, the name for the new variable. Defaults to "group_diff". 
-  #' @param lag Integer, adjusts lag length. Defaults to 1. 
-  #' @param create_group_ID Logical, whether to create a group ID variable using \code{\link{ID_var}}.
-  #'   Defaults to \code{FALSE}.
-  #' @param drop_total_col Logical, whether to remove the "group_total" variable
+  #' @param group String, the grouping variable(s) to sum \code{value} by. Used to create the
+  #'   "group_total" variable.
+  #' @param sort_by String, a date variable to order `MainDataTable` by.
+  #' @param value String, the value variable used to calculate lagged difference. Must be numeric.
+  #' @param name String, the name for the new variable. Defaults to "group_diff".
+  #' @param lag Integer, adjusts lag length. Defaults to 1.
+  #' @param include_total_col Logical, whether to remove the "group_total" variable
   #'   created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
-  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup rename_with
+  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup
+  #'   rename_with
   #' @importFrom shiny isRunning
   #' @details \code{group_diff} creates a grouped lagged difference variable. \code{value}
-  #'   is first summed by the variable(s) in \code{group}, then the difference within-group is 
+  #'   is first summed by the variable(s) in \code{group}, then the difference within-group is
   #'   calculated. The "group_total" variable gives the total value by group and can
-  #'   be dropped by setting \code{drop_total_col = TRUE}. A group ID column can be 
-  #'   created using the variables in \code{group} by setting \code{create_group_ID = TRUE}. 
-  #' @examples 
+  #'   be dropped by setting \code{include_total_col = FALSE}.
+  #' @examples
   #' \dontrun{
   #' group_diff(pollockMainDataTable, "pollock", group = c("PERMIT", "TRIP_ID"),
   #'            sort_by = "HAUL_DATE", value = "HAUL")
@@ -502,81 +502,81 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
-  
-  # name <- ifelse(is_empty(name), "group_diff", name)
   name <- name_check(dataset, name, repair = TRUE)
-  
-  
   . <- group_total <- NULL
   
-  
-  if (create_group_ID) dataset <- ID_var(dataset, project, vars = group, 
-                                         log_fun = FALSE)
-  
-  alt_diff <- function(x, lag) c(0, diff(x, lag = lag))
-  
   if (all(!(class(dataset[[sort_by]]) %in% c("Date","POSIXct", "POSIXt")))) {
-    
     dataset[[sort_by]] <- date_parser(dataset[[sort_by]])
   }
   
+  #  Define all grouping/joining columns ---
+  group_vars <- c(group, sort_by)
+  
+  # This summarizes data to the level of group(s) + sort_by date
   tab <- 
     dataset %>% 
-    dplyr::arrange(dplyr::across(sort_by)) %>% 
-    dplyr::group_by(dplyr::across(group)) %>% 
-    { if (length(group) == 1)
-      dplyr::mutate(., dplyr::across(value, sum, .names = "group_total")) %>% 
-        dplyr::mutate(., dplyr::across(value, alt_diff, lag = lag, .names = name))
-      else 
-        dplyr::summarize(., dplyr::across(value, sum, .names = "group_total")) %>% 
-        dplyr::mutate(., !!name := alt_diff(group_total, lag = lag)) } %>% 
-    dplyr::ungroup() %>% 
-    { if (drop_total_col) dplyr::select(., -group_total) else . }
+    # Group by all keys
+    dplyr::group_by(dplyr::across(all_of(group_vars))) %>% 
+    # Sum the value for that specific group/date
+    dplyr::summarize(group_total = sum(.data[[value]], na.rm = TRUE),
+                     .groups = "drop_last") %>% 
+    # .groups = "drop_last" removes 'sort_by' from grouping,
+    # so we are now grouped only by 'group' and arranged by 'sort_by'
+    
+    dplyr::mutate(
+      # Calculate the difference (x - x_lag).
+      # This produces NA for the first 'lag' rows in each group.
+      diff_val = group_total - dplyr::lag(group_total, n = lag),
+      # Use coalesce to replace those NAs with 0
+      !!name := dplyr::coalesce(diff_val, 0)
+    ) %>%
+    dplyr::select(-diff_val) %>% # Clean up intermediate column
+    dplyr::ungroup()
+
+  # The 'by' key MUST include all 'group_vars' to match rows correctly.
+  dataset <- dplyr::left_join(dataset, tab, by = group_vars)
   
-  if (length(group) > 1) {
-    dataset <- dplyr::left_join(dataset, tab, by = group)
-  } else { 
-    dataset <- tab 
+  if (include_total_col== FALSE) {
+    dataset <- dplyr::select(dataset, -group_total)
   }
   
   group_diff_function <- list()
   group_diff_function$functionID <- "group_diff"
   group_diff_function$args <- list(dat, project, group, sort_by, value, name, lag,
-                                   create_group_ID, drop_total_col) 
+                                   include_total_col)
   log_call(project, group_diff_function)
   
   dataset
 }
 
-group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cumsum", 
-                         create_group_ID = FALSE, drop_total_col = FALSE) {
+group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cumsum",
+                         include_total_col = FALSE) {
   #' Create a within-group running sum variable
-  #' 
-  #' @param dat Primaryy data frame over which to apply function. Table in FishSET 
+  #'
+  #' @param dat Primary data frame over which to apply function. Table in FishSET
   #'   database should contain the string `MainDataTable`.
   #' @param project String, project name.
-  #' @param group String, the grouping variable(s) to sum \code{value} by. Used to create the 
-  #'   "group_total" variable.  
-  #' @param sort_by String, a date variable to order `MainDataTable` by. 
-  #' @param value String, the value variable used to calculate cumulative sum. Must be numeric. 
-  #' @param name String, the name for the new variable. Defaults to "group_cumsum". 
-  #' @param create_group_ID Logical, whether to create a group ID variable using \code{\link{ID_var}}.
-  #'   Defaults to \code{FALSE}.
-  #' @param drop_total_col Logical, whether to remove the "group_total" variable
+  #' @param group String, the grouping variable(s) to sum \code{value} by. Used to create the
+  #'   "group_total" variable.
+  #' @param sort_by String, a date variable (or variables) to order `MainDataTable` by.
+  #' @param value String, the value variable used to calculate cumulative sum. Must be numeric.
+  #' @param name String, the name for the new variable. Defaults to "group_cumsum".
+  #' @param include_total_col Logical, whether to remove the "group_total" variable
   #'   created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
-  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup %>% rename_with
+  #' @importFrom dplyr across all_of arrange left_join mutate group_by select summarize ungroup %>%
+  #'   rename_with
   #' @importFrom shiny isRunning
+  #' @importFrom tidyr replace_na
+  #' @importFrom rlang sym !!
   #' @details \code{group_cumsum} sums \code{value} by \code{group}, then cumulatively
-  #'   sums within groups. For example, a running sum by trip variable can be made 
+  #'   sums within groups. For example, a running sum by trip variable can be made
   #'   by entering
   #'   variables that identify unique vessels and trips into \code{group} and a numeric
   #'   variable (such as catch or # of hauls) into \code{value}. Each vessel's
-  #'   trip total is calculated then cumulatively summed. The "group_total" variable 
-  #'   gives the total value by group and can be dropped by setting \code{drop_total_col = TRUE}.
-  #'   A group ID column can be created using the variables in \code{group} by setting
-  #'   \code{create_group_ID = TRUE}. 
-  #' @examples 
+  #'   trip total is calculated then cumulatively summed. The "group_total" variable
+  #'   gives the total value by group and can be dropped by setting \code{include_total_col = TRUE}.
+  #' @examples
   #' \dontrun{
   #' group_cumsum(pollockMainDataTable, "pollock", group = c("PERMIT", "TRIP_ID"),
   #'              sort_by = "HAUL_DATE", value = "OFFICIAL_TOTAL_CATCH")
@@ -586,43 +586,38 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  # name <- ifelse(is_empty(name), "group_cumsum", name)
   name <- name_check(dataset, name, repair = TRUE)
   
   . <- group_total <- NULL
   
-  if (create_group_ID) dataset <- ID_var(dataset, project, vars = group, 
-                                         log_fun = FALSE)
-  
-  if (all(!(class(dataset[[sort_by]]) %in% c("Date","POSIXct", "POSIXt")))) {
-    
-    dataset[[sort_by]] <- date_parser(dataset[[sort_by]])
+  # This loop is now safe for one or more sort_by columns
+  for (col in sort_by) {
+    if (all(!(class(dataset[[col]]) %in% c("Date","POSIXct", "POSIXt")))) {
+      dataset[[col]] <- date_parser(dataset[[col]])
+    }
   }
   
-  tab <- 
-    dataset %>% 
-    dplyr::arrange(dplyr::across(sort_by)) %>% 
-    dplyr::group_by(dplyr::across(group)) %>% 
-    { if (length(group) == 1) 
-      dplyr::mutate(., dplyr::across(value, sum, .names = "group_total")) %>% 
-        dplyr::mutate(., dplyr::across(value, cumsum, .names = name))
-      else 
-        dplyr::summarize(., dplyr::across(value, sum, .names = "group_total")) %>% 
-        dplyr::mutate(., temporary_col_name = cumsum(group_total)) } %>% 
-    dplyr::rename_with(~ name, .cols = "temporary_col_name") %>%
-    dplyr::ungroup() %>% 
-    { if (drop_total_col) dplyr::select(., -group_total) else . }
+  tab <-
+    dataset %>%
+    # Use all_of() to correctly handle single or multiple sorting columns
+    dplyr::arrange(dplyr::across(dplyr::all_of(c(group, sort_by)))) %>%    
+    dplyr::group_by(dplyr::across(dplyr::all_of(group))) %>%
+    dplyr::mutate(
+      # Calculate group total, adding na.rm = TRUE for robustness
+      group_total = sum(!!rlang::sym(value), na.rm = TRUE),
+      # Use !!name := to create the new column with a dynamic name
+      # Use replace_na to prevent cumsum from propagating NAs
+      !!name := cumsum(tidyr::replace_na(!!rlang::sym(value), 0))
+    ) %>%
+    dplyr::ungroup() %>%
+    { if (include_total_col==FALSE) dplyr::select(., -group_total) else . }
   
-  if (length(group) > 1) {
-    dataset <- dplyr::left_join(dataset, tab, by = group)
-  } else { 
-    dataset <- tab 
-  }
+  # The 'tab' object is now the complete, mutated dataset.
+  dataset <- tab
   
   group_cumsum_function <- list()
   group_cumsum_function$functionID <- "group_cumsum"
-  group_cumsum_function$args <- list(dat, project, group, sort_by, value, name,
-                                     create_group_ID, drop_total_col) 
+  group_cumsum_function$args <- list(dat, project, group, sort_by, value, name, include_total_col)
   log_call(project, group_cumsum_function)
   
   dataset
