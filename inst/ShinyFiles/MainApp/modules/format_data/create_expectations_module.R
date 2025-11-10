@@ -111,7 +111,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       # --- Prepare Function Arguments ---
       # Helper to convert "None" string to NULL
       to_null <- function(val) {
-        if (is.null(val) || val == "None" || is.na(val)) NULL else val
+        if (is.null(val) || tolower(val) == "none" || is.na(val)) NULL else val
       }
       
       # Handle numeric/NULL conversion for empty_expectation
@@ -128,7 +128,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
           catch = input$catch_input,
           price = to_null(input$price_input),
           defineGroup = to_null(input$defineGroup_input),
-          temp_var = to_null(input$temp_var_input),
+          temp_var = input$temp_var_input,
           temporal = input$temporal_input,
           calc_method = input$calc_method_input,
           temp_window = input$temp_window_input,
