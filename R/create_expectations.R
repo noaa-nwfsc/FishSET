@@ -155,7 +155,7 @@ create_expectations <-
     stopifnot("empty_expectations must be numeric" = is.numeric(empty_expectation))
     
     # Ensure the temporal variable is a Date type
-    if (temp_var != "None"){
+    if (tolower(temp_var) != "none"){
       var_class <- class(dataset[[temp_var]])
       if (!("Date" %in% var_class || any(grepl("POSIX", var_class)))) {
         dataset[[temp_var]] <- as.Date(dataset[[temp_var]])
