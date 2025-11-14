@@ -1,15 +1,17 @@
 
 
-format_model_data <- function(project,
-                              name,
+format_model_data <- function(project, # project <- "sc_haul1"
+                              name, # name <- "TEST1"
                               alt_name,
-                              zone_id,
-                              unique_obs_id,
-                              select_vars = NULL, # Recommended or else this will reformat entire dataset could take a while
-                                                  # IMPORTANT NOTE: remember to included lagged zone ID var
-                              aux_data = NULL,
-                              gridded_data = NULL,
-                              expectations = NULL, # Need to explicitly add dummy
+                              zone_id, # zone_id <- "ZoneID"
+                              unique_obs_id, # unique_obs_id <- "unique_row_id"
+                              select_vars = NULL, # select_vars <- c("TRIPID","DATE_TRIP","GEARCODE","landed_thousands","lagged_zone_id")
+                              # Recommended or else this will reformat entire dataset could take a while
+                              # IMPORTANT NOTE: remember to included lagged zone ID var
+                              aux_data = NULL, # aux_data <- "sc_haul1haul_vessel_charsAuxTable"
+                              gridded_data = NULL, # gridded_data <- "sc_haul1haul_swell_heightGridTable"
+                              expectations = NULL, # expectations <- "exp_matrix_1"
+                              # Need to explicitly add dummy
                               distance = TRUE,
                               crs = NULL, # Only used if distance = TRUE
                               impute = NULL){
@@ -101,9 +103,22 @@ format_model_data <- function(project,
       spatID <- NULL
     }
     
+    # Need to check if occasion_var is numeric
+    if(alt_list$occasion %in% c("zonal centroid", "fishing centroid", "port")){
+      if(is.numeric(original_dataset[[alt_list$occasion_var]])) {
+        original_dataset[[alt_list$occasion_var]] <- 
+          as.character(original_dataset[[alt_list$occasion_var]])
+      }  
+    }
+    
+    
+    # TODO: should add unique row id, this allows us to be sure that the rows of 
+    # dist_out matrix match order in the dataset when merging
     dist_out <- create_dist_matrix(dataset = original_dataset,
+                                   unique_obs_id = unique_obs_id,
                                    spat = spatdat,
                                    spatID = spatID,
+                                   port = port, 
                                    alt_var = alt_list$alt_var, 
                                    occasion = alt_list$occasion, 
                                    occasion_var = alt_list$occasion_var,
@@ -112,21 +127,32 @@ format_model_data <- function(project,
                                    fish_cent = alt_list$fish_cent, 
                                    choice = alt_list$choice, 
                                    units = alt_list$altChoiceUnits, 
-                                   port = port, 
                                    zoneRow = alt_list$zoneRow, 
                                    zoneID = alt_list$zoneID, 
                                    crs = crs)
+    
+    
+    # I thing this only works for haul level data with lagged_zone_id
+    distance_wide <- as.data.frame(dist_out$distMatrix)
+    dist_row_names <- gsub("^X|\\.\\d+$", "", rownames(distance_wide))
+    distance_wide$previous_zone <- dist_row_names 
+    distance_long <- distance_wide %>%
+      pivot_longer(
+        cols = -c(previous_zone),
+        names_to = "chosen_zone",
+        values_to = "distance")
+    
+    # When it's haul level data, merge by previous_zone = lagged_zone_id, chosen_zone = zones
+    
+    
   }
+  
+  
   
   # Reshape matrices to long format and join ------------------------------------------------------
   
   
-  distance_long <- as.data.frame(mdf$distance) %>%
-    mutate(haul_id = main_data$haul_id) %>%
-    pivot_longer(
-      cols = -c(haul_id),
-      names_to = "zones",
-      values_to = "distance_from_port")
+  
   
   exp_catch_long <- as.data.frame(mdf$gridVaryingVariables$exp1) %>%
     mutate(haul_id = main_data$haul_id) %>%

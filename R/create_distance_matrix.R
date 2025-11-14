@@ -27,6 +27,7 @@
 
 create_dist_matrix <-
   function(dataset,
+           unique_obs_id,
            spat = NULL, 
            spatID = NULL,
            alt_var,
@@ -42,18 +43,18 @@ create_dist_matrix <-
            zoneID,
            crs = NULL) {
     
-    # index of zones that meet min haul requirement
+    # Index of zones that meet min haul requirement -----------------------------------------------
     zone_ind <- which(dataZoneTrue == 1)
     o_var <- NULL
     
+    # Set the coordinate reference system (CRS)
     if (is.null(crs) | is_empty(crs)) {
       crs <- 4326
       warning("CRS is not specfied, distance matrix will be created using WGS 84 (4326).",
               call. = FALSE)
     }
     
-    # Occasion --------------------------------------------------------------------------------------
-    
+    # Occasion ------------------------------------------------------------------------------------
     ## Centroid ----
     if (occasion %in% c("zonal centroid", "fishing centroid")) {
       if (is_value_empty(occasion_var)) {
@@ -99,8 +100,9 @@ create_dist_matrix <-
       
       fromXY <- fromXY[, c("cent.lon", "cent.lat")]
       
-    } else if (occasion == "port") {
       ## port ----
+    } else if (occasion == "port") {
+      
       fromXY <- dataset[zone_ind, occasion_var] 
       
       # if this will determine whether port lon-lats need to be merged or exist in
@@ -124,7 +126,7 @@ create_dist_matrix <-
       
       ## Lon-Lat ----
       # occasion_var should be names of lon-lat cols
-      fromXY <- dataset[zone_ind, occasion_var]
+      fromXY <- dataset[zone_ind, c(unique_obs_id, occasion_var)]
     }
     
     
@@ -137,7 +139,6 @@ create_dist_matrix <-
       else if (alt_var == "fishing centroid") cent_tab <- fish_cent 
       
       if (!any(cent_tab$ZoneID %in% unique(choice[zone_ind]))) {
-        
         stop('Name of zones in centroid table do not match choice zones. Rerun ',
              'find_centroid()', call. = FALSE)
       }
@@ -181,7 +182,6 @@ create_dist_matrix <-
     # Distance Matrix ----
     # Test for potential issues with data
     if (any(qaqc_helper(fromXY, "NaN"))) {
-      
       stop(paste("NaN found in ", occasion, ". Design file aborted."), 
            call. = FALSE)
     }
@@ -213,7 +213,6 @@ create_dist_matrix <-
     } else {
       
       if (any(qaqc_helper(toXY, "NaN"))) {
-        
         stop(paste("NaN found in ", alt_var, ". Design file aborted."), 
              call. = FALSE)
       }
@@ -227,7 +226,6 @@ create_dist_matrix <-
     }
     
     if (any(is_value_empty(fromXY) | is_value_empty(toXY))) {
-      
       stop("Error in creating distance matrix: empty spatial table", call. = FALSE)
     }
     
@@ -237,7 +235,7 @@ create_dist_matrix <-
     
     if (is.null(o_var)) o_var <- occasion_var
     
-    if (occasion == "lon-lat") r_nms <- NULL
+    if (occasion == "lon-lat") r_nms <- fromXY[[unique_obs_id]]
     else r_nms <- dataset[[o_var]][zone_ind]
     
     dimnames(distMatrix) <- list(r_nms, z_nms)
