@@ -90,7 +90,7 @@ format_model_data <- function(project, # project <- "sc_haul1"
     tryCatch({
       pt <- data_pull(paste0(project, 'PortTable'), project)
       ptname <- pt$dat # Note: ptname not used 
-      port <- pt$dataset # used in create_distance_matrix()
+      port <- pt$dataset # used in create_dist_matrix()
     }, error = function(cond){
       message("Port table not used.")
     })
