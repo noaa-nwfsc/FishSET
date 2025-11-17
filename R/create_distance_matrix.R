@@ -2,6 +2,7 @@
 #'
 #' @param dataset Primary data set
 #' @param unique_obs_id Column name in 'dataset' that represents unique observation (row) id.
+#' @param zoneID Column name in 'dataset' for the zone identifier.
 #' @param spat Spatial table (sf object) containing polygons or points for locations. 
 #' @param spatID Column name in 'spat' for the Zone/area ID. 
 #' @param alt_var Defines the alternative choice location. One of c("zonal centroid", "fishing
@@ -20,7 +21,6 @@
 #' @param choice Vector of observed choice zones, same length as 'dataset'.
 #' @param units Distance units (e.g., "km", "mi", "nm"). Passed to 'sf::st_distance'.
 #' @param port Port table (data.frame with Port_Name, Port_Long, Port_Lat).
-#' @param zoneID Column name in 'dataset' for the zone identifier.
 #' @param crs Coordinate reference system (numeric EPSG code or PROJ string).
 #' 
 #' @importFrom sf st_as_sf st_distance st_crs st_transform
@@ -45,6 +45,7 @@
 create_dist_matrix <-
   function(dataset,
            unique_obs_id,
+           zoneID,
            spat = NULL, 
            spatID = NULL,
            alt_var,
@@ -56,7 +57,6 @@ create_dist_matrix <-
            choice,
            units,
            port = NULL,
-           zoneID,
            crs = NULL) {
     
     # Index of zones that meet min haul requirement 
@@ -83,7 +83,7 @@ create_dist_matrix <-
         o_var <- occasion_var
       }
       
-      fromXY <- dataset[zone_ind, o_var]
+      fromXY <- dataset[zone_ind, c(unique_obs_id, o_var)]
       
       if (occasion == "zonal centroid") {
         cent_tab <- zone_cent
@@ -121,11 +121,11 @@ create_dist_matrix <-
         fromXY <- dplyr::left_join(fromXY, area_tab, by = o_var)
       }
       
-      fromXY <- fromXY[, c("cent.lon", "cent.lat")]
+      fromXY <- fromXY[, c(unique_obs_id, "cent.lon", "cent.lat")]
       
     } else if (occasion == "port") {
       ### Port ------------------------------------------------------------------------------------
-      fromXY <- dataset[zone_ind, occasion_var] 
+      fromXY <- dataset[zone_ind, c(unique_obs_id, occasion_var)] 
       
       if (length(occasion_var) == 1) { # merge port table w/ primary
         fromXY[[occasion_var]] <- trimws(fromXY[[occasion_var]])
@@ -139,11 +139,11 @@ create_dist_matrix <-
         
         join_by <- stats::setNames("Port_Name", occasion_var)
         fromXY <- dplyr::left_join(fromXY, port, by = join_by)
-        fromXY <- fromXY[, c("Port_Long", "Port_Lat")] # Use port coords
+        fromXY <- fromXY[, c(unique_obs_id, "Port_Long", "Port_Lat")] # Use port coords
         
       } else{
         # Assume occasion_var = c(lon, lat) and columns already in dataset
-        fromXY <- fromXY[, occasion_var]
+        fromXY <- fromXY[, c(unique_obs_id, occasion_var)]
       }
       
     } else if (occasion == 'lon-lat') {
@@ -170,9 +170,8 @@ create_dist_matrix <-
       }
       
       # Filter centroid table to include only relevant choices
-      cent_tab <- cent_tab[cent_tab$ZoneID %in% unique(choice[zone_ind]),] 
+      cent_tab <- cent_tab[cent_tab$ZoneID %in% unique(choice[zone_ind]),]
       cent_tab <- cent_tab[order(cent_tab$ZoneID), ] # Ensure consistent order
-      
       toXY <- cent_tab[, c("cent.lon", "cent.lat")]
       z_nms <- cent_tab$ZoneID # Column names for matrix
       
@@ -183,12 +182,10 @@ create_dist_matrix <-
              call. = FALSE)
       }
       
-      column_check(spat, spatID)
       # TODO: check whether shift_long() affects distance matrix
+      column_check(spat, spatID)
       spat <- check_spatdat(spat)
-      
       spat <- sf::st_transform(spat, crs = crs)
-      
       
       if (all(unique(choice) %in% spat[[spatID]]) == FALSE) {
         missing_zones <- setdiff(unique(choice[zone_ind]), spat[[spatID]])
@@ -199,7 +196,6 @@ create_dist_matrix <-
       # Filter and reorder sf object
       toXY <- spat[spat[[spatID]] %in% unique(choice[zone_ind]), spatID]
       toXY <- toXY[order(toXY[[spatID]]), ]
-      
       z_nms <- toXY[[spatID]] # Column names for matrix
       
     } else {
@@ -214,9 +210,9 @@ create_dist_matrix <-
     }
     
     # Convert fromXY to sf object
-    fromXY[seq_along(fromXY)] <- lapply(fromXY, as.numeric)
-    
-    # Find lon/lat columns
+    lon_name <- find_lon(fromXY)
+    lat_name <- find_lat(fromXY)
+    fromXY[c(lon_name,lat_name)] <- lapply(fromXY[c(lon_name,lat_name)], as.numeric)
     fromXY <- sf::st_as_sf(fromXY, 
                            coords = c(find_lon(fromXY), find_lat(fromXY)),
                            crs = crs)
@@ -247,20 +243,15 @@ create_dist_matrix <-
     units(dist_matrix) <- units
     
     ## Format and return output -------------------------------------------------------------------
-    # Set row names
-    if (occasion == "lon-lat") {
-      r_nms <- fromXY[[unique_obs_id]]
-    } else {
-      r_nms <- dataset[[o_var]][zone_ind]
-    }
-    
+    # Set matrix names
+    r_nms <- fromXY[[unique_obs_id]]
     dimnames(dist_matrix) <- list(r_nms, z_nms)
     
     # Store occasion_var for return list
     if (is.null(o_var)) o_var <- occasion_var
     
     return(list(dist_matrix = dist_matrix, 
-                alt_choice_units = alt_choice_units, 
+                alt_choice_units = units, 
                 alt_choice_type = "distance", 
                 occasion = occasion,
                 occasion_var = o_var,
