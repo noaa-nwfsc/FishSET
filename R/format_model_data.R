@@ -57,7 +57,7 @@ format_model_data <- function(project, # project <- "sc_haul1"
   n_obs <- nrow(dataset)
   
   # Long format of zones
-  zones_lf = rep(unique_zones, n_obs)
+  zones_lf = as.character(rep(unique_zones, n_obs))
   
   # Long format for observation ID and other selected vars
   if(length(select_vars) > 0){
@@ -85,7 +85,7 @@ format_model_data <- function(project, # project <- "sc_haul1"
   df$zone_obs <- NULL # Clean up the helper column
   
   # Generate distance matrix ----------------------------------------------------------------------
-  if(distance){
+  if (distance) {
     port <- NULL #initialize to NULL if no port included
     tryCatch({
       pt <- data_pull(paste0(project, 'PortTable'), project)
@@ -111,9 +111,6 @@ format_model_data <- function(project, # project <- "sc_haul1"
       }  
     }
     
-    
-    # TODO: should add unique row id, this allows us to be sure that the rows of 
-    # dist_out matrix match order in the dataset when merging
     dist_out <- create_dist_matrix(dataset = original_dataset,
                                    unique_obs_id = unique_obs_id,
                                    spat = spatdat,
@@ -127,34 +124,31 @@ format_model_data <- function(project, # project <- "sc_haul1"
                                    fish_cent = alt_list$fish_cent, 
                                    choice = alt_list$choice, 
                                    units = alt_list$altChoiceUnits, 
-                                   zoneRow = alt_list$zoneRow, 
                                    zoneID = alt_list$zoneID, 
                                    crs = crs)
     
-    
-    # I thing this only works for haul level data with lagged_zone_id
-    distance_wide <- as.data.frame(dist_out$distMatrix)
+    distance_wide <- as.data.frame(dist_out$dist_matrix)
     dist_row_names <- gsub("^X|\\.\\d+$", "", rownames(distance_wide))
-    distance_wide$previous_zone <- dist_row_names 
+    distance_wide$unique_obs_id <- dist_row_names
     distance_long <- distance_wide %>%
       pivot_longer(
-        cols = -c(previous_zone),
+        cols = -c(unique_obs_id),
         names_to = "chosen_zone",
         values_to = "distance")
     
-    # When it's haul level data, merge by previous_zone = lagged_zone_id, chosen_zone = zones
-    
-    
+    df <- merge(
+      x = df,
+      y = distance_long,
+      by.x = c("zones", unique_obs_id),
+      by.y = c("chosen_zone", "unique_obs_id"),
+      all.x = TRUE, # all.x and sort keep data in same order as original df
+      sort = FALSE)
   }
   
+  # Reshape and join expectation matrix -----------------------------------------------------------
+  exp_catch_long <- as.data.frame(mdf$gridVaryingVariables$exp1) 
   
-  
-  # Reshape matrices to long format and join ------------------------------------------------------
-  
-  
-  
-  
-  exp_catch_long <- as.data.frame(mdf$gridVaryingVariables$exp1) %>%
+  %>%
     mutate(haul_id = main_data$haul_id) %>%
     pivot_longer(
       cols = -c(haul_id),
