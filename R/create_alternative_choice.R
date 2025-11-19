@@ -16,7 +16,7 @@
 #'   to create the distance matrix. Possible options depend on the value of 
 #'   `occasion`: 
 #'   \describe{
-#'     \item{Centroid}{When `occasion = zonal/fishing centroid` the possible 
+#'     \item{Centroid}{When `occasion = zonal centroid` the possible 
 #'       options are `NULL`, the name of a zone ID variable, or a set coordinate 
 #'       variables (in Lon-Lat order).
 #'       \describe{
@@ -160,28 +160,22 @@ create_alternative_choice <-
   
   
   if (occasion == "zonal centroid") {
-    
     if (o_len != 2 & is_value_empty(zone.cent.name)) {
-      
       stop("'zone.cent.name' is required.", call. = FALSE)
     }
   }
   
   if (occasion == "fishing centroid") {
-    
     if (o_len != 2 & is_value_empty(fish.cent.name)) {
-      
       stop("'fish.cent.name' is required.", call. = FALSE)
     }
   }
   
   if (alt_var == "zonal centroid" & is_value_empty(zone.cent.name)) {
-    
     stop("'zone.cent.name' is required.", call. = FALSE)
   }
-  
+
   if (alt_var == "fishing centroid" & is_value_empty(fish.cent.name)) {
-    
     stop("'fish.cent.name' is required.", call. = FALSE)
   }
  
@@ -190,30 +184,27 @@ create_alternative_choice <-
   
   # check args ----
   
-  occasion_opts <- c("zonal centroid", "fishing centroid", "port", "lon-lat")
-  alt_opts <- c("zonal centroid", "fishing centroid", "nearest point")
+  occasion_opts <- c("zonal centroid", "fishing centroid",
+                     "port", "lon-lat")
+  
+ alt_opts <- c("zonal centroid", "fishing centroid", "nearest point")
   
   if (o_len > 2) stop("Invalid values for 'occasion_var'.", call. = FALSE)
   
   if (!occasion %in% occasion_opts) {
-    
     stop("Invalid option for 'occasion'. Options are ", 
          paste0(occasion_opts, collapse = ", "), ".", call. = FALSE)
   }
   
   if (!alt_var %in% alt_opts) {
-    
     stop("Invalid option for 'alt_var'. Options are ", 
          paste0(alt_opts, collapse = ", "), ".", call. = FALSE)
   }
   
   # check occasion_var for lon-lat string match
   ll_occ_check <- function(occ) {
-    
     ll_check <- grepl("lon|lat", occ, ignore.case = TRUE)
-    
     if (!any(ll_check)) {
-      
       warning("Check that 'occasion_var' contains longitude and latitude ",
               "variables: ", paste0(occ, collapse = ", "), 
               call. = FALSE)
@@ -221,13 +212,9 @@ create_alternative_choice <-
   }
   
   cent_check <- function(project, cent.tab, type = "zone") {
-    
     cent_type <- switch(type, zone = "Zonal", fish = "Fishing")
-    
     cent_exists <- table_exists(cent.tab, project)
-    
     if (!cent_exists) {
-      
       stop(cent_type, " centroid table must be saved to FishSET Database. Run ", 
            "create_centroid().", call. = FALSE)
     }
@@ -235,51 +222,41 @@ create_alternative_choice <-
     cent_tab <- table_view(cent.tab, project)
    
     if (!any(cent_tab$ZoneID %in% unique(dataset[[zoneID]]))) {
-      
       stop('Zones do not match between centroid table and zonal assignments ',
            'in primary data table. Rerun find_centroid() using same spatial data file ',
            'as was using with the assignment_column() function.', call. = FALSE)
     }
-    
     cent_tab
   }
   
   ## units ----
-  valid_units <- c('m','meter', 'meters', 'km', 'kilometer', 'kilometers', 
-                  'mile', 'miles', 'nmile', 'nmiles')
-  
-  if (!dist.unit %in% valid_units) {
-    
-    stop(dist.unit, " is not an available unit. Unit options are: ", 
-         paste0(valid_units, collapse = ", "), call. = FALSE)
-  }
+  # valid_units <- c('m','meter', 'meters', 'km', 'kilometer', 'kilometers', 
+  #                 'mile', 'miles', 'nmile', 'nmiles')
+  # 
+  # if (!dist.unit %in% valid_units) {
+  #   stop(dist.unit, " is not an available unit. Unit options are: ", 
+  #        paste0(valid_units, collapse = ", "), call. = FALSE)
+  # }
   
   # alt_var ----
   ## zonal centroid ----
-  
   if (alt_var == "zonal centroid") {
-    
     zone_cent <- cent_check(project, zone.cent.name, "zone")
   }
   
-  ## fishing centroid ----
-  
+  # fishing centroid ----
   if (alt_var == "fishing centroid") {
-  
     fish_cent <- cent_check(project, fish.cent.name, "fish")
   }
   
   ## nearest point ----
   if (alt_var == "nearest point") {
-    
     if (is_value_empty(spatdat) | is_value_empty(spatID)) {
-      
       stop("'spat' and 'spatID' are required for alt_var = 'nearest point'",
            call. = FALSE)
     }
     
     if (!any(unique(spatdat[[spatID]]) %in% unique(dataset[[zoneID]]))) {
-      
       stop("There are no shared zones between dat and spat. Check that 'spatID' ",
            "and 'zoneID' are correct, or rerun assignment_column().", call. = FALSE)
     }
@@ -288,65 +265,42 @@ create_alternative_choice <-
   # occasion ----
   ## zonal centroid ----
   if (occasion == "zonal centroid") {
-    
     if (is_value_empty(occasion_var) | o_len == 1) {
-      
       if (is.null(zone_cent)) {
-        
         zone_cent <- cent_check(project, zone.cent.name, "zone")
       }
-      
     } else if (o_len == 2) {
-      
       ll_occ_check(occasion_var)
-      
     } else {
-      
       stop("Invalid 'occasion_var'.", call. = FALSE)
     }
   ## fishing centroid ----
   } else if (occasion == "fishing centroid") {
-    
     if (is_value_empty(occasion_var) | o_len == 1) {
-      
       if (is.null(fish_cent)) {
-        
         fish_cent <- cent_check(project, fish.cent.name, "fish")
       }
-      
     } else if (o_len == 2) {
-      
       ll_occ_check(occasion_var)
-      
     } else {
-      
       stop("Invalid 'occasion_var'.", call. = FALSE)
-    } ## port ----
-    
+    } 
+    ## port ----
   } else if (occasion == "port") {
-    
     if (is_value_empty(occasion_var)) {
-      
       stop("Port column name required for 'occasion = port'.", call. = FALSE)
     }
-    
     if (o_len == 2) {
-      
       ll_occ_check(occasion_var)
     }
   ## lon-lat ----
   } else if (occasion == "lon-lat") {
-    
     if (o_len != 2) {
-      
       stop("'occasion_var' must contain a longitude and latitude column.", 
            call. = FALSE)
     }
-    
     ll_occ_check(occasion_var)
-    
   } else {
-    
     stop("Invalid 'occasion' option.", call. = FALSE)
   }
   
@@ -354,7 +308,6 @@ create_alternative_choice <-
   choice <- dataset[[zoneID]]
   
   if (anyNA(choice) == TRUE) {
-    
     warning("No zone identified for ", sum(is.na(choice)), " observations. These ", 
             "observations will be removed in future analyses.", call. = FALSE)
   }
@@ -366,7 +319,6 @@ create_alternative_choice <-
   zoneCount[zoneCount$n < min.haul, zoneID] <- NA
 
   if (all(is.na(zoneCount[[zoneID]]))) {
-    
     stop("No zones meet criteria. No data will be included in further analyses.",
          " Check the 'min.haul' parameter or zone identification.", call. = FALSE)
   }
@@ -396,7 +348,7 @@ create_alternative_choice <-
     greaterNZ = greaterNZ,
     numOfNecessary = min.haul,
     choice = choice,
-    altChoiceUnits = dist.unit,
+   # altChoiceUnits = dist.unit,
     altChoiceType = "distance",
     occasion = occasion, 
     occasion_var = occasion_var,
@@ -427,12 +379,10 @@ create_alternative_choice <-
   
   # Remove existing tables
   if (table_exists(single_sql, project)) {
-    
     table_remove(single_sql, project)
   }
   
   if (table_exists(date_sql, project)) {
-    
     table_remove(date_sql, project)
   }
   
@@ -451,13 +401,12 @@ create_alternative_choice <-
     message('Out-of-sample alternative choice list saved to FishSET database')  
   }
   
-  # TODO: return TRUE invisibly if successful, FALSE if not (for testing and app)
-
   create_alternative_choice_function <- list()
   create_alternative_choice_function$functionID <- "create_alternative_choice"
   create_alternative_choice_function$args <- 
     list(dat, project, occasion, occasion_var, alt_var, 
-         dist.unit, min.haul, zoneID, zone.cent.name, 
+       #  dist.unit,
+         min.haul, zoneID, zone.cent.name, 
          fish.cent.name, spatname, spatID)
   
   create_alternative_choice_function$kwargs <- list()
