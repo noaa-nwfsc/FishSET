@@ -23,7 +23,7 @@ source("modules/qaqc_module.R", local = TRUE)
 source("modules/explore_data_module.R", local = TRUE)
 source("modules/format_data/compute_new_var_module.R", local = TRUE)
 source("modules/format_data/define_alternatives_module.R", local = TRUE)
-
+source("modules/format_data/create_expectations_module.R", local = TRUE)
 
 
 # Server settings ---------------------------------------------------------------------------------
@@ -180,16 +180,35 @@ server <- function(input, output, session) {
   ## Define alternatives  -------------------------------------------------------------------------
   ### Sidebar
   checklist_server("define_alt_checklist", rv_project_name, rv_data, rv_folderpath)
-
+  
   other_actions_server("define_alt_actions",
                        values = list(project_name = rv_project_name,
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
-
+  
   ### Main panel
   define_alt_server("define_alternatives",
+                    rv_folderpath = rv_folderpath, 
+                    rv_project_name = rv_project_name, 
+                    rv_data = rv_data)
+  
+  
+  ## Create expectations --------------------------------------------------------------------------
+  ### Sidebar
+  checklist_server("create_expectations_checklist", rv_project_name, rv_data, rv_folderpath)
+  
+  other_actions_server("create_expectations_actions",
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
+  
+  
+  ### Main panel
+  create_expectations_server("create_expectations",
                              rv_folderpath = rv_folderpath, 
                              rv_project_name = rv_project_name, 
                              rv_data = rv_data)

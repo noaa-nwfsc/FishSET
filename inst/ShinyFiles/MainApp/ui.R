@@ -22,7 +22,7 @@ source("modules/qaqc_module.R", local = TRUE)
 source("modules/explore_data_module.R", local = TRUE)
 source("modules/format_data/compute_new_var_module.R", local = TRUE)
 source("modules/format_data/define_alternatives_module.R", local = TRUE)
-
+source("modules/format_data/create_expectations_module.R", local = TRUE)
 
 # UI function definition
 ui <- function(request){
@@ -213,7 +213,7 @@ ui <- function(request){
         title = "Define alternative fishing choices", 
         id = "define_alternatives_id",
         value = "define_alternatives_id",
-        bslib::page_fillable(
+          bslib::page_fillable(
           bslib::layout_sidebar(
             fillable = TRUE,
             fill = TRUE,
@@ -224,13 +224,41 @@ ui <- function(request){
               fill = TRUE, 
               width = 400,
               
-              checklist_ui("define_alt_checklist"),
+          checklist_ui("define_alt_checklist"),
               hr(),
               other_actions_ui("define_alt_actions")
             ),
             
             ### Main panel
             define_alt_ui("define_alternatives")
+            
+          )
+        )
+      ),
+      
+      ## Create expectations subtab ---------------------------------------------------------------
+      bslib::nav_panel(
+        title = "Create expected catch matrix", 
+        id = "create_exp",
+        value = "create_exp",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE,
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+
+              checklist_ui("create_expectations_checklist"),
+              other_actions_ui("create_expectations_actions")
+            ),
+            
+            ### Main panel
+            create_expectations_ui("create_expectations")
+            
           )
         )
       )
