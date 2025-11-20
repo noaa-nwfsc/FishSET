@@ -35,7 +35,18 @@ fishset_design <- function(project,
   
   
   
-  
+  # # Convert data from long to wide matrix format for the model
+  # model_matrices <- pivot_to_wide_matrices(
+  #   data = df_long,
+  #   id_col = "haul_id",
+  #   names_from_col = "ZoneID",
+  #   values_to_spread = c("chosen", "expected_catch", "distance_from_port")
+  # )
+  # 
+  # Y <- model_matrices$chosen
+  # catch <- model_matrices$expected_catch
+  # distance <- model_matrices$distance_from_port
+  # 
   
   
   
