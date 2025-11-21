@@ -1,67 +1,116 @@
-
+#' Format Model Data
+#' 
+#' Reshapes the project datasets into a single long format suitable for discrete choice modeling
+#' using RTMB. This function integrates various data sources-including distance matrices,
+#' expectation (catch and/or revenue) matrices, auxiliary data, and gridded environmental data-
+#' and performs optional missing data imputation.
+#' 
+#' The resulting formatted data is serialized and stored in the FishSET project database within a
+#' table namned '[project_name]LongFormatData'.
+#' 
+#' @param project Name of the project.
+#' @param name Name for this specific formatted model data instance. Must be unique within the 
+#'   project's formatted data list.
+#' @param alt_name Name of the alternative choice matrix. 
+#' @param zone_id Variable name in the dataset representing the zone identifier.
+#' @param unique_obs_id Variable name in the dataset representing the unique observation
+#'   identifier (unique rows in the main data table).
+#' @param select_vars Character vector of variable names to retain from the main data table.
+#'   Although this input is optional, it is recommended to limit the final format to necessary
+#'   variables for computational efficiency. IMPORTANT NOTE: if modeling multi-haul data, 
+#'   be sure to include the lagged zone ID (previous location) in this vector.
+#' @param aux_data Name of the auxiliary data table to join. Use \code{\link{list_tables}}
+#'   function to view the table name.
+#' @param aux_key Variable name used to join the main data table with the auxiliary data.
+#' @param gridded_data Name of the gridded data table to join. Use \code{\link{list_tables}}
+#'   function to view the table name.
+#' @param grid_var_name Name to use for the new variable representing the value in the gridded
+#'   data.
+#' @param grid_time_var Variable name representing the time dimension for joining gridded data.
+#'   Only use this input if the gridded data varies by space and time.
+#' @param expectations Character vector containing the names of expected catch or revenue matrices
+#'   to merge into the dataset.
+#' @param distance Logical. If 'TRUE', calculates and merges a distance matrix between obervations
+#'   and zones. Defaults to 'TRUE'.
+#' @param crs Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
+#'   are required.
+#' @param impute Method for imputing missing values (NAs). Options are `"mean"`, 
+#'   `"median"`, `"mode"`, or `"remove"`. `"Remove"` will completely remove zones from the dataset
+#'   that contain any NAs in corresponding data. If NULL, the function stops if NAs are detected.
+#'  
+#' @return A list containing the formatted data frame and the input settings. The list is saved to
+#'  the project database.
+#'  
+#'  @export
+#' @importFrom dplyr %>% filter select all_of mutate rename left_join pivot_longer sym
+#' @importFrom DBI dbConnect dbDisconnect dbExecute
+#' @importFrom RSQLite SQLite
 
 format_model_data <- function(project, # project <- "sc_haul1"
                               name, # name <- "TEST1"
                               alt_name = NULL, # Temp default to NULL, but this should be included
                               zone_id, # zone_id <- "ZoneID"
                               unique_obs_id, # unique_obs_id <- "unique_row_id"
-                              select_vars = NULL, # select_vars <- c("TRIPID","DATE_TRIP","GEARCODE","landed_thousands","lagged_zone_id")
-                              # Recommended or else this will reformat entire dataset could take a while
-                              # IMPORTANT NOTE: remember to included lagged zone ID var
+                              select_vars = NULL, # select_vars <- c("TRIPID", "DATE_TRIP", "GEARCODE","landed_thousands","lagged_zone_id")
                               aux_data = NULL, # aux_data <- "sc_haul1haul_vessel_charsAuxTable"
+                              aux_key = NULL, # aux_key <- "PERMIT.y" does not need to be included in select vars
                               gridded_data = NULL, # gridded_data <- "sc_haul1haul_swell_heightGridTable"
+                              grid_var_name = NULL, # grid_var_name <- "swell_height"
+                              grid_time_var = NULL, # grid_time_var <- "DATE_TRIP"
                               expectations = NULL, # expectations <- c("exp_matrix_1","exp_matrix_2")
-                              # Need to explicitly add dummy
                               distance = TRUE,
                               crs = NULL, # Only used if distance = TRUE
                               impute = NULL){ # mean, median, mode, remove (removes zones with NA values). Mode is automatically used for non-numeric data
   
-  # First check if formatted table exists 
+  #TODO: Improvements
+  # 1. lapply vs cross_join. tidyr::expand_grid or dplyr::cross_join is faster than using rep and lapply
+  # 2. Use left_join instead of merge
+  # 3. Move all argument validation to the very top of the function.
+  # 4, Try df <- df %>% mutate(chosen = as.integer(zones == !!sym(zone_id)))
+  
+  # Check name of new formatted model -------------------------------------------------------------
+  table_name <- paste0(project, "LongFormatData")
   if (table_exists(table_name, project)) {
     # load data and check names
-    tmp_data <- unserialize_table(paste0(project, "LongFormatData"), project)
+    tmp_data <- unserialize_table(table_name, project)
     names_tmp_data <- names(tmp_data)
     if (name %in% names_tmp_data) {
       stop(paste0("Formatted data with the name '", name, "' already exists. Enter a new name."))
     }
+    rm(tmp_data)
   }
   
-  # Load data -------------------------------------------------------------------------------------
+  # Format main data ------------------------------------------------------------------------------
   # Load main data table
   original_dataset <- table_view(paste0(project, "MainDataTable"), project)
-  
   # Load alternative choice list
   alt_list <- unserialize_table(paste0(project, "AltMatrix"), project)
   
-  # Load aux_data
-  if(!is_empty(aux_data)){
-    aux_df <- table_view(aux_data, project)
-  }
-  
-  # Load gridded_data
-  if(!is_empty(gridded_data)){
-    gridded_df <- table_view(gridded_data, project)
-  }
-  
-  # Load expectations
-  if(!is.null(expectations) & length(expectations) > 0){
-    expect_list <- unserialize_table(paste0(project,"ExpectedCatch"), project)
-  }
-  
-  # Select variables and filter main data ---------------------------------------------------------
+  # Select variables and filter main data
   unique_zones <- unique(alt_list$greaterNZ)
   dataset <- original_dataset %>% filter(!!sym(zone_id) %in% unique_zones)
   
-  if(length(select_vars) > 0){
+  # Check that select_vars columns are in the dataset and filter
+  if (length(select_vars) > 0) {
     column_check(dataset, select_vars) # Check that columns are in the dataset
+    select_vars_combined <- c(select_vars, zone_id, unique_obs_id)
     
-    dataset <- dataset %>% select(all_of(c(select_vars, zone_id, unique_obs_id)))
+    # Check if aux_key is in the dataset and add to columns to filter
+    if (!is_empty(aux_key) & !(aux_key %in% select_vars_combined)) {
+      column_check(dataset, aux_key)
+      select_vars_combined <- c(select_vars_combined, aux_key)
+    }
+    
+    # Check if grid_time_var is in the dataset and add to columns to filter
+    if (!is_empty(grid_time_var) & !(grid_time_var %in% select_vars_combined)) {
+      column_check(dataset, grid_time_var)
+      select_vars_combined <- c(select_vars_combined, grid_time_var)
+    }
+    
+    dataset <- dataset %>% select(all_of(select_vars_combined))
   }
   
-  # Filter expect_list ----------------------------------------------------------------------------
-  exp_mats <- expect_list[which(names(expect_list) %in% expectations)]
-  
-  # Create a long format data frame for all possible choices --------------------------------------
+  ## Create a long format data frame for all possible choices ----
   # Save number of zones and observations (rows)
   n_zones <- length(unique_zones)
   n_obs <- nrow(dataset)
@@ -70,12 +119,7 @@ format_model_data <- function(project, # project <- "sc_haul1"
   zones_lf = as.character(rep(unique_zones, n_obs))
   
   # Long format for observation ID and other selected vars
-  if(length(select_vars) > 0){
-    dataset_names <- c(unique_obs_id, select_vars)
-  } else {
-    dataset_names <- names(dataset)
-  }
-  
+  dataset_names <- names(dataset)[names(dataset) != zone_id]
   dataset_lf <- lapply(dataset_names, 
                        function(var_name){
                          rep(dataset[[var_name]], each = n_zones)})
@@ -83,11 +127,10 @@ format_model_data <- function(project, # project <- "sc_haul1"
   # Convert list to a data frame and set names
   dataset_lf <- as.data.frame(dataset_lf)
   names(dataset_lf) <- dataset_names
-  
   # Combine with zones
   df <- cbind(zones = zones_lf, dataset_lf)
   
-  # Identify the chosen zone for each trip/haul/observation ---------------------------------------
+  ## Identify the chosen zone for each trip/haul/observation ----
   df$zone_obs <- paste0(df$zones, df[[unique_obs_id]])
   chosen <- paste0(dataset[[zone_id]], dataset[[unique_obs_id]])
   df$chosen <- 0
@@ -156,30 +199,54 @@ format_model_data <- function(project, # project <- "sc_haul1"
   }
   
   # Reshape and join expectation matrix -----------------------------------------------------------
+  # Load expectations
+  if(!is.null(expectations) & length(expectations) > 0){
+    expect_list <- unserialize_table(paste0(project,"ExpectedCatch"), project)
+  }
+  # Filter expectation matrices
+  exp_mats <- expect_list[which(names(expect_list) %in% expectations)]
+  
   for (i in 1:length(exp_mats)) {
     new_col_name <- expectations[i]
     
     tmp_df <- as.data.frame(exp_mats[[i]]) %>%
       mutate(unique_obs_id = dataset[[unique_obs_id]]) %>%
-      pivot_longer(
-        cols = -c(unique_obs_id),
-        names_to = "zones",
-        values_to = new_col_name
-      )
+      pivot_longer(cols = -c(unique_obs_id),
+                   names_to = "zones",
+                   values_to = new_col_name)
     
-    df <- merge(
-      x = df,
-      y = tmp_df,
-      by.x = c("zones", unique_obs_id),
-      by.y = c("zones", "unique_obs_id"),
-      all.x = TRUE,
-      sort = FALSE
-    )
+    df <- merge(x = df,
+                y = tmp_df,
+                by.x = c("zones", unique_obs_id),
+                by.y = c("zones", "unique_obs_id"),
+                all.x = TRUE,
+                sort = FALSE)
   }
   
   # Add aux data ----------------------------------------------------------------------------------
+  if (!is_empty(aux_data)) {
+    # Load aux data and check the aux_key
+    aux_df <- table_view(aux_data, project)
+    column_check(aux_df, aux_key)
+    df <- left_join(df, aux_df, by = aux_key)
+  }
   
   # Add gridded data ------------------------------------------------------------------------------
+  # Load gridded_data
+  if(!is_empty(gridded_data)){
+    gridded_df <- table_view(gridded_data, project)
+    column_check(gridded_df, grid_time_var)
+    
+    # Pivot to long format
+    gridded_df <- gridded_df %>%
+      pivot_longer(cols = -all_of(grid_time_var),
+                   names_to = "zones",
+                   values_to = grid_var_name)
+    
+    df <- left_join(df,
+                    gridded_df,
+                    by = c("zones",grid_time_var))
+  }
   
   # Check NAs and impute --------------------------------------------------------------------------
   if (any(is.na(df))) {
