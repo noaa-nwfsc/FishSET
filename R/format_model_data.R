@@ -41,8 +41,9 @@
 #' @return A list containing the formatted data frame and the input settings. The list is saved to
 #'  the project database.
 #'  
-#'  @export
-#' @importFrom dplyr %>% filter select all_of mutate rename left_join pivot_longer sym
+#' @export
+#' @importFrom dplyr %>% filter select all_of mutate rename left_join sym
+#' @importFrom tidyr pivot_longer
 #' @importFrom DBI dbConnect dbDisconnect dbExecute
 #' @importFrom RSQLite SQLite
 
@@ -53,22 +54,17 @@ format_model_data <- function(project, # project <- "sc_haul1"
                               unique_obs_id, # unique_obs_id <- "unique_row_id"
                               select_vars = NULL, # select_vars <- c("TRIPID", "DATE_TRIP", "GEARCODE","landed_thousands","lagged_zone_id")
                               aux_data = NULL, # aux_data <- "sc_haul1haul_vessel_charsAuxTable"
-                              aux_key = NULL, # aux_key <- "PERMIT.y" does not need to be included in select vars
+                              aux_key = NULL, # aux_key <- "PERMIT.y" 
                               gridded_data = NULL, # gridded_data <- "sc_haul1haul_swell_heightGridTable"
                               grid_var_name = NULL, # grid_var_name <- "swell_height"
                               grid_time_var = NULL, # grid_time_var <- "DATE_TRIP"
                               expectations = NULL, # expectations <- c("exp_matrix_1","exp_matrix_2")
                               distance = TRUE,
-                              crs = NULL, # Only used if distance = TRUE
-                              impute = NULL){ # mean, median, mode, remove (removes zones with NA values). Mode is automatically used for non-numeric data
+                              crs = NULL, 
+                              impute = NULL){ 
   
-  #TODO: Improvements
-  # 1. lapply vs cross_join. tidyr::expand_grid or dplyr::cross_join is faster than using rep and lapply
-  # 2. Use left_join instead of merge
-  # 3. Move all argument validation to the very top of the function.
-  # 4, Try df <- df %>% mutate(chosen = as.integer(zones == !!sym(zone_id)))
-  
-  # Check name of new formatted model -------------------------------------------------------------
+  # Input argument validation ---------------------------------------------------------------------
+  # Check name uniqueness in database
   table_name <- paste0(project, "LongFormatData")
   if (table_exists(table_name, project)) {
     # load data and check names
@@ -78,6 +74,11 @@ format_model_data <- function(project, # project <- "sc_haul1"
       stop(paste0("Formatted data with the name '", name, "' already exists. Enter a new name."))
     }
     rm(tmp_data)
+  }
+  
+  # Check impute method
+  if (!is.null(impute) && !(impute %in% c("mean", "median", "mode", "remove"))){
+    stop(paste0("Impute method must be one of 'mean', 'median', or 'mode'."))
   }
   
   # Format main data ------------------------------------------------------------------------------
@@ -96,13 +97,13 @@ format_model_data <- function(project, # project <- "sc_haul1"
     select_vars_combined <- c(select_vars, zone_id, unique_obs_id)
     
     # Check if aux_key is in the dataset and add to columns to filter
-    if (!is_empty(aux_key) & !(aux_key %in% select_vars_combined)) {
+    if (!is_empty(aux_key) && !(aux_key %in% select_vars_combined)) {
       column_check(dataset, aux_key)
       select_vars_combined <- c(select_vars_combined, aux_key)
     }
     
     # Check if grid_time_var is in the dataset and add to columns to filter
-    if (!is_empty(grid_time_var) & !(grid_time_var %in% select_vars_combined)) {
+    if (!is_empty(grid_time_var) && !(grid_time_var %in% select_vars_combined)) {
       column_check(dataset, grid_time_var)
       select_vars_combined <- c(select_vars_combined, grid_time_var)
     }
@@ -111,31 +112,15 @@ format_model_data <- function(project, # project <- "sc_haul1"
   }
   
   ## Create a long format data frame for all possible choices ----
-  # Save number of zones and observations (rows)
-  n_zones <- length(unique_zones)
-  n_obs <- nrow(dataset)
-  
-  # Long format of zones
-  zones_lf = as.character(rep(unique_zones, n_obs))
-  
-  # Long format for observation ID and other selected vars
-  dataset_names <- names(dataset)[names(dataset) != zone_id]
-  dataset_lf <- lapply(dataset_names, 
-                       function(var_name){
-                         rep(dataset[[var_name]], each = n_zones)})
-  
-  # Convert list to a data frame and set names
-  dataset_lf <- as.data.frame(dataset_lf)
-  names(dataset_lf) <- dataset_names
-  # Combine with zones
-  df <- cbind(zones = zones_lf, dataset_lf)
-  
-  ## Identify the chosen zone for each trip/haul/observation ----
-  df$zone_obs <- paste0(df$zones, df[[unique_obs_id]])
-  chosen <- paste0(dataset[[zone_id]], dataset[[unique_obs_id]])
-  df$chosen <- 0
-  df$chosen[which(df$zone_obs %in% chosen)] <- 1
-  df$zone_obs <- NULL # Clean up the helper column
+  # Data frame of unique zones
+  zones_df <- dplyr::tibble(zones = unique_zones)
+  # Cross join to create Cartesian product of dataset and zones
+  df <- dplyr::cross_join(dataset, zones_df)
+  # Identify chosen zone and remove original zone_id column
+  df <- df %>%
+    mutate(chosen = as.integer(!!sym(zone_id) == zones)) %>%
+    mutate(zones = as.character(zones)) %>%
+    select(-all_of(zone_id))
   
   # Generate distance matrix ----------------------------------------------------------------------
   if (distance) {
@@ -149,8 +134,8 @@ format_model_data <- function(project, # project <- "sc_haul1"
     })
     
     if(alt_list$alt_var == "nearest point"){
-      spatdat <- Alt$spat
-      spatID <- Alt$spatID
+      spatdat <- alt_list$spat
+      spatID <- alt_list$spatID
     } else {
       spatdat <- NULL
       spatID <- NULL
@@ -182,45 +167,36 @@ format_model_data <- function(project, # project <- "sc_haul1"
     
     distance_wide <- as.data.frame(dist_out$dist_matrix)
     dist_row_names <- gsub("^X|\\.\\d+$", "", rownames(distance_wide))
-    distance_wide$unique_obs_id <- dist_row_names
+    distance_wide[[unique_obs_id]] <- dist_row_names
+    
     distance_long <- distance_wide %>%
       pivot_longer(
-        cols = -c(unique_obs_id),
-        names_to = "chosen_zone",
+        cols = -all_of(unique_obs_id),
+        names_to = "zones",
         values_to = "distance")
     
-    df <- merge(
-      x = df,
-      y = distance_long,
-      by.x = c("zones", unique_obs_id),
-      by.y = c("chosen_zone", "unique_obs_id"),
-      all.x = TRUE, # all.x and sort keep data in same order as original df
-      sort = FALSE)
+    df <- left_join(df, distance_long, by = c("zones", unique_obs_id))
   }
   
   # Reshape and join expectation matrix -----------------------------------------------------------
   # Load expectations
   if(!is.null(expectations) & length(expectations) > 0){
     expect_list <- unserialize_table(paste0(project,"ExpectedCatch"), project)
-  }
-  # Filter expectation matrices
-  exp_mats <- expect_list[which(names(expect_list) %in% expectations)]
-  
-  for (i in 1:length(exp_mats)) {
-    new_col_name <- expectations[i]
     
-    tmp_df <- as.data.frame(exp_mats[[i]]) %>%
-      mutate(unique_obs_id = dataset[[unique_obs_id]]) %>%
-      pivot_longer(cols = -c(unique_obs_id),
-                   names_to = "zones",
-                   values_to = new_col_name)
+    # Filter expectation matrices
+    exp_mats <- expect_list[which(names(expect_list) %in% expectations)]
     
-    df <- merge(x = df,
-                y = tmp_df,
-                by.x = c("zones", unique_obs_id),
-                by.y = c("zones", "unique_obs_id"),
-                all.x = TRUE,
-                sort = FALSE)
+    for (i in 1:length(exp_mats)) {
+      new_col_name <- expectations[i]
+      
+      tmp_df <- as.data.frame(exp_mats[[i]]) %>%
+        mutate(!!unique_obs_id := dataset[[unique_obs_id]]) %>%
+        pivot_longer(cols = -c(unique_obs_id),
+                     names_to = "zones",
+                     values_to = new_col_name)
+      
+      df <- left_join(df, tmp_df, by = c("zones", unique_obs_id))
+    }
   }
   
   # Add aux data ----------------------------------------------------------------------------------
@@ -262,10 +238,6 @@ format_model_data <- function(project, # project <- "sc_haul1"
                columns_w_na, 
                ". Remove column(s) or specify method to impute data. If 'distance' contains NAs ",
                "the impute='remove' option will remove the zone(s) that contain missing values."))  
-    }
-    
-    if (!impute %in% c("mean", "median", "mode", "remove")){
-      stop(paste0("Impute method must be one of 'mean', 'median', or 'mode'."))
     }
     
     if (impute %in% c("mean", "median", "mode")) {
