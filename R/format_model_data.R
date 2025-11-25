@@ -47,18 +47,18 @@
 #' @importFrom DBI dbConnect dbDisconnect dbExecute
 #' @importFrom RSQLite SQLite
 
-format_model_data <- function(project, # project <- "sc_haul1"
-                              name, # name <- "TEST1"
-                              alt_name = NULL, # Temp default to NULL, but this should be included
-                              zone_id, # zone_id <- "ZoneID"
-                              unique_obs_id, # unique_obs_id <- "unique_row_id"
-                              select_vars = NULL, # select_vars <- c("TRIPID", "DATE_TRIP", "GEARCODE","landed_thousands","lagged_zone_id")
-                              aux_data = NULL, # aux_data <- "sc_haul1haul_vessel_charsAuxTable"
-                              aux_key = NULL, # aux_key <- "PERMIT.y" 
-                              gridded_data = NULL, # gridded_data <- "sc_haul1haul_swell_heightGridTable"
-                              grid_var_name = NULL, # grid_var_name <- "swell_height"
-                              grid_time_var = NULL, # grid_time_var <- "DATE_TRIP"
-                              expectations = NULL, # expectations <- c("exp_matrix_1","exp_matrix_2")
+format_model_data <- function(project, 
+                              name, 
+                              alt_name = NULL, 
+                              zone_id, 
+                              unique_obs_id, 
+                              select_vars = NULL,
+                              aux_data = NULL, 
+                              aux_key = NULL, 
+                              gridded_data = NULL, 
+                              grid_var_name = NULL, 
+                              grid_time_var = NULL, 
+                              expectations = NULL, 
                               distance = TRUE,
                               crs = NULL, 
                               impute = NULL){ 
