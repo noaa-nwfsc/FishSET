@@ -42,7 +42,9 @@ A list object of class 'fishset_design' containing the design matrices, choice v
 Constructs the design object required for discrete choice modeling within the FishSET framework.
 This function parses the model formula, validates the formatted data, and generates the design
 matrices (X) and choice vector (y). It handles both alternative-specific variables and 
-individual-specific variables (automatically creating interactions with zone constants).
+individual-specific variables (automatically creating interactions with zone constants). The 
+resulting design object is the primary input for the fishset_fit() function, which performs
+the actual parameter estimation.
 }
 \details{
 The resulting design object is serialized and stored in the FishSET project database within a

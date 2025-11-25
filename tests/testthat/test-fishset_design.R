@@ -16,6 +16,26 @@
 # -------------------------------------------------------------------------------------------------
 
 # Test Data Setup ---------------------------------------------------------------------------------
+# Capture Original Functions
+orig_functions <- list(
+  unserialize_table = getFromNamespace("unserialize_table", "FishSET"),
+  table_exists = getFromNamespace("table_exists", "FishSET"),
+  table_remove = getFromNamespace("table_remove", "FishSET"),
+  log_call = getFromNamespace("log_call", "FishSET"),
+  locdatabase = getFromNamespace("locdatabase", "FishSET"),
+  dbExecute = DBI::dbExecute # DBI is exported, so direct access is fine
+)
+
+# Restore these functions at the end of the test file
+on.exit({
+  assignInNamespace("unserialize_table", orig_functions$unserialize_table, ns = "FishSET")
+  assignInNamespace("table_exists", orig_functions$table_exists, ns = "FishSET")
+  assignInNamespace("table_remove", orig_functions$table_remove, ns = "FishSET")
+  assignInNamespace("log_call", orig_functions$log_call, ns = "FishSET")
+  assignInNamespace("locdatabase", orig_functions$locdatabase, ns = "FishSET")
+  assignInNamespace("dbExecute", orig_functions$dbExecute, ns = "DBI")
+})
+
 # Mock Long Format Data
 # We intentionally scramble the order to test if fishset_design() sorts correctly
 # Structure: 2 Trips (T1, T2), 2 Zones (A, B)
@@ -62,7 +82,7 @@ setup_mocks <- function() {
 # Standard Conditional Logit ----------------------------------------------------------------------
 test_that("fishset_design handles standard clogit formulas and sorting", {
   setup_mocks()
-  
+
   # Mock DB Save Capture
   captured_design <- NULL
   mock_dbExecute <- function(conn, statement, params = NULL, ...) {
@@ -70,7 +90,7 @@ test_that("fishset_design handles standard clogit formulas and sorting", {
     return(invisible(TRUE))
   }
   assignInNamespace("dbExecute", mock_dbExecute, ns = "DBI")
-  
+
   fishset_design(
     formula = chosen ~ catch + dist,
     project = "TEST_PROJ",
@@ -79,23 +99,23 @@ test_that("fishset_design handles standard clogit formulas and sorting", {
     unique_obs_id = "trip_id",
     zone_id = "zone_id"
   )
-  
+
   # Extract result from the capture wrapper
   res <- captured_design$MODEL_CLOGIT
-  
+
   # Class Check
   expect_s3_class(res, "fishset_design")
-  
+
   # Dimensions Check
   # Data has 4 rows. X should have 4 rows.
   expect_equal(length(res$y), 4)
   expect_equal(nrow(res$X), 4)
-  
+
   # Variable Check
   # Formula was `~ catch + dist`. X should have columns "catch" and "dist".
   expect_true(all(c("catch", "dist") %in% colnames(res$X)))
   expect_false("(Intercept)" %in% colnames(res$X)) # Should be removed
-  
+
   # 4. Sorting Check
   # Original data was T2, T1, T2, T1.
   # Function should sort by ID then Zone -> T1(A), T1(B), T2(A), T2(B)

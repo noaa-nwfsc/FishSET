@@ -46,6 +46,7 @@
 #' @importFrom tidyr pivot_longer
 #' @importFrom DBI dbConnect dbDisconnect dbExecute
 #' @importFrom RSQLite SQLite
+#' @importFrom stats complete.cases
 
 format_model_data <- function(project, 
                               name, 
@@ -191,7 +192,7 @@ format_model_data <- function(project,
       
       tmp_df <- as.data.frame(exp_mats[[i]]) %>%
         mutate(!!unique_obs_id := dataset[[unique_obs_id]]) %>%
-        pivot_longer(cols = -c(unique_obs_id),
+        pivot_longer(cols = -all_of(unique_obs_id),
                      names_to = "zones",
                      values_to = new_col_name)
       
@@ -274,7 +275,7 @@ format_model_data <- function(project,
       } 
       
     } else if (impute == "remove") {
-      zones_to_remove <- df$zones[which(!complete.cases(df))]
+      zones_to_remove <- df$zones[which(!stats::complete.cases(df))]
       df <- df %>%
         filter(!(zones %in% zones_to_remove))
     }

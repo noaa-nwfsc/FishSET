@@ -17,6 +17,32 @@
 # -------------------------------------------------------------------------------------------------
 
 # Test Data Setup ---------------------------------------------------------------------------------
+# Capture Original Functions
+orig_functions <- list(
+  table_exists = getFromNamespace("table_exists", "FishSET"),
+  table_view   = getFromNamespace("table_view", "FishSET"),
+  unserialize_table = getFromNamespace("unserialize_table", "FishSET"),
+  create_dist_matrix = getFromNamespace("create_dist_matrix", "FishSET"),
+  column_check = getFromNamespace("column_check", "FishSET"),
+  log_call = getFromNamespace("log_call", "FishSET"),
+  locdatabase = getFromNamespace("locdatabase", "FishSET"),
+  data_pull = getFromNamespace("data_pull", "FishSET"),
+  dbExecute = DBI::dbExecute # DBI is usually exported, so :: is fine
+)
+
+# Restore these functions at the end of the test file
+on.exit({
+  assignInNamespace("table_exists", orig_functions$table_exists, ns = "FishSET")
+  assignInNamespace("table_view", orig_functions$table_view, ns = "FishSET")
+  assignInNamespace("unserialize_table", orig_functions$unserialize_table, ns = "FishSET")
+  assignInNamespace("create_dist_matrix", orig_functions$create_dist_matrix, ns = "FishSET")
+  assignInNamespace("column_check", orig_functions$column_check, ns = "FishSET")
+  assignInNamespace("log_call", orig_functions$log_call, ns = "FishSET")
+  assignInNamespace("locdatabase", orig_functions$locdatabase, ns = "FishSET")
+  assignInNamespace("data_pull", orig_functions$data_pull, ns = "FishSET")
+  assignInNamespace("dbExecute", orig_functions$dbExecute, ns = "DBI")
+})
+
 # Mock Main Data
 main_data <- data.frame(
   unique_row_id = c("1", "2", "3"),
@@ -95,14 +121,14 @@ setup_mocks <- function() {
 # Reshape and assign choices correctly ------------------------------------------------------------
 test_that("format_model_data reshapes and assigns choices correctly", {
   setup_mocks()
-  
+
   captured_data <- NULL
   mock_dbExecute <- function(conn, statement, params = NULL, ...) {
     if (!is.null(params)) captured_data <<- unserialize(params$data[[1]])
     return(invisible(TRUE))
   }
   assignInNamespace("dbExecute", mock_dbExecute, ns = "DBI")
-  
+
   format_model_data(
     project = "TEST_PROJECT",
     name = "TEST_MODEL",
@@ -111,7 +137,7 @@ test_that("format_model_data reshapes and assigns choices correctly", {
     select_vars = c("other_var"),
     distance = TRUE
   )
-  
+
   df_out <- captured_data$TEST_MODEL
   expect_equal(nrow(df_out), 6)
   expect_true(all(c("distance", "chosen", "other_var", "ZoneID") %in% names(df_out)))
@@ -141,11 +167,11 @@ test_that("format_model_data handles imputation correctly", {
   assignInNamespace("table_view", mock_table_view_na, ns = "FishSET")
 
   format_model_data(
-    project = "TEST_PROJECT", 
+    project = "TEST_PROJECT",
     name = "TEST_MEAN",
-    zone_id = "ZoneID", 
+    zone_id = "ZoneID",
     unique_obs_id = "unique_row_id",
-    select_vars = c("other_var"), 
+    select_vars = c("other_var"),
     distance = FALSE,
     impute = "mean"
   )
@@ -168,11 +194,11 @@ test_that("format_model_data handles imputation correctly", {
   assignInNamespace("create_dist_matrix", mock_create_dist_na, ns = "FishSET")
 
   format_model_data(
-    project = "TEST_PROJECT", 
+    project = "TEST_PROJECT",
     name = "TEST_REMOVE",
-    zone_id = "ZoneID", 
+    zone_id = "ZoneID",
     unique_obs_id = "unique_row_id",
-    select_vars = c("other_var"), 
+    select_vars = c("other_var"),
     distance = TRUE,
     impute = "remove"
   )
@@ -191,7 +217,7 @@ test_that("format_model_data handles imputation correctly", {
 # Test merging expectations -----------------------------------------------------------------------
 test_that("format_model_data merges expectations correctly", {
   setup_mocks()
-  
+
   captured_data <- NULL
   mock_dbExecute <- function(conn, statement, params = NULL, ...) {
     if (!is.null(params)) captured_data <<- unserialize(params$data[[1]])
@@ -200,9 +226,9 @@ test_that("format_model_data merges expectations correctly", {
   assignInNamespace("dbExecute", mock_dbExecute, ns = "DBI")
 
   format_model_data(
-    project = "TEST_PROJECT", 
+    project = "TEST_PROJECT",
     name = "TEST_EXP",
-    zone_id = "ZoneID", 
+    zone_id = "ZoneID",
     unique_obs_id = "unique_row_id",
     distance = FALSE,
     expectations = c("catch_exp")
