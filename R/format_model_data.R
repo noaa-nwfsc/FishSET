@@ -322,6 +322,8 @@ format_model_data <- function(project, # project <- "sc_haul1"
   format_model_data_function$kwargs <- list()
   
   log_call(project, format_model_data_function)
+  
+  return(df)
 }
 
 
