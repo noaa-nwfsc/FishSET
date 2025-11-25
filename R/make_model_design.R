@@ -700,13 +700,20 @@ make_model_design <-
   
     
   # Distance Matrix ----
-  dist_out <- create_dist_matrix(dataset = dataset, spat = spatdat,
-                                 spatID = spatID,  alt_var = alt_var, 
-                                 occasion = occasion, occasion_var = occasion_var,
-                                 dataZoneTrue = dataZoneTrue, zone_cent = zone_cent, 
-                                 fish_cent = fish_cent, choice = choice_raw, 
-                                 units = units, port = port,
-                                 zoneID = zoneID, crs = crs)
+  dist_out <- create_dist_matrix(dataset = dataset,
+                                 spat = spatdat,
+                                 spatID = spatID,  
+                                 alt_var = alt_var, 
+                                 occasion = occasion, 
+                                 occasion_var = occasion_var,
+                                 dataZoneTrue = dataZoneTrue, 
+                                 zone_cent = zone_cent, 
+                                 fish_cent = fish_cent, 
+                                 choice = choice_raw, 
+                                 units = units, 
+                                 port = port,
+                                 zoneID = zoneID, 
+                                 crs = crs)
   
   if (is.null(dist_out)) {
     
