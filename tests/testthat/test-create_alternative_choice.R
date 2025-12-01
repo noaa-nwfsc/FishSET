@@ -50,7 +50,7 @@ test_that("Standard run: Zonal Centroid succeeds with valid inputs", {
   old_option <- getOption("test_folder_path")
   options(test_folder_path = test_folder)
   
-#  table_remove("s1AltMatrix","s1")
+  table_remove("s1AltMatrix","s1")
   
   test_df <- table_view("s1MainDataTable", "s1")
   
@@ -63,7 +63,7 @@ test_that("Standard run: Zonal Centroid succeeds with valid inputs", {
       zoneID = "ZoneID",
       spatname = "s1spatSpatTable",
       zone_cent_name = "s1_ZoneCentroid",
-      alt_name = "MyAltChoice2"
+      alt_name = "MyAltChoice"
     ),
     "saved to FishSET database"
   )
