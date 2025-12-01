@@ -18,7 +18,8 @@
 #'     the number of predictors in the design matrix.
 #'   }
 #'
-#' @return A list object of class \code{"fishset_fit"} containing:
+#' @return A list object of class \code{"fishset_fit"} containing, this list is also saved in 
+#'   the project database:
 #' \describe{
 #'   \item{coefficients}{Named vector of estimated parameters.}
 #'   \item{coef_table}{Data frame with Estimates, Std. Errors, Z-values, and P-values.}
@@ -295,6 +296,46 @@ fishset_fit <- function(project,
   )
   
   class(result) <- "fishset_fit"
+  
+  # Save to database ------------------------------------------------------------------------------
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
+  # Save this into a new table or append to a designs list
+  table_name <- paste0(project, "ModelFit")
+  
+  # Create a named list wrapper
+  fit_wrapper <- list()
+  fit_wrapper[[fit_name]] <- result
+  
+  # Append or create a new table
+  if (table_exists(table_name, project)) {
+    existing_fits <- unserialize_table(table_name, project)
+    # Remove if exists to overwrite
+    if (fit_name %in% names(existing_fits)) {
+      existing_fits[[fit_name]] <- NULL
+    }
+    table_remove(table_name, project)
+    fit_wrapper <- c(existing_fits, fit_wrapper)
+  }
+  
+  DBI::dbExecute(fishset_db, 
+                 paste("CREATE TABLE IF NOT EXISTS", 
+                       table_name, 
+                       "(data fit_wrapper)"))
+  DBI::dbExecute(fishset_db, 
+                 paste("INSERT INTO", 
+                       table_name, 
+                       "VALUES (:data)"),
+                 params = list(data = list(serialize(fit_wrapper, NULL))))
+  
+  # Log the function call -------------------------------------------------------------------------
+  fishset_fit_function <- list()
+  fishset_fit_function$functionID <- "fishset_fit"
+  fishset_fit_function$args <- as.list(match.call())[-1]
+  fishset_fit_function$kwargs <- list()
+  
+  log_call(project, fishset_fit_function)
   
   return(result)
 }
