@@ -181,8 +181,10 @@ create_alternative_choice(dat = scallopModMainDataTable,
                           occasion_var = c("previous_port_lon", "previous_port_lat"),
                           alt_var = "zonal centroid",
                           zoneID = "ZoneID",
-                          zone.cent.name = "scallopModZoneCentroid",
-                          min.haul = 90)
+                          zone_cent_name = "scallopModZoneCentroid",
+                          min_haul = 90
+                          )
+
 ```
 
 <br>
@@ -192,7 +194,7 @@ The plot below visualizes zone frequency after accounting for the
 minimum haul requirement from the alternative choice list.
 
 ```{r}
-z_ind <- which(alt_choice_list('scallopMod')$dataZoneTrue == 1)
+z_ind <- which(alt_choice_list('scallopMod')[[1]]$dataZoneTrue == 1)
 
 zOut <- 
   zone_summary(scallopModMainDataTable[z_ind, ], 
