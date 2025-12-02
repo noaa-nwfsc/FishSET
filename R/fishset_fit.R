@@ -31,7 +31,7 @@
 #'   \item{AIC, AICc, BIC}{Information criteria for model comparison.}
 #'   \item{accuracy}{The proportion of observations where the model assigned the highest 
 #'     probability to the actual choice.}
-#'   \item{fitted.values}{Vector of predicted probabilities for the chosen alternatives.}
+#'   \item{fitted_values}{Vector of predicted probabilities for the chosen alternatives.}
 #'   \item{prob_matrix}{Matrix of predicted probabilities for all alternatives (N_obs x J_alts).}
 #'   \item{diagnostics}{A list containing the Hessian, gradients, eigenvalues, and 
 #'     condition number.}
@@ -280,7 +280,7 @@ fishset_fit <- function(project,
     accuracy = accuracy,
     
     # Predictions
-    fitted.values = chosen_probs,
+    fitted_values = chosen_probs,
     prob_matrix = prob_matrix,
     residuals = 1 - chosen_probs,
     

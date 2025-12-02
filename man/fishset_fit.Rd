@@ -24,7 +24,8 @@ in the database. Defaults to \code{paste0(model_name, "_fit")}.}
 }}
 }
 \value{
-A list object of class \code{"fishset_fit"} containing:
+A list object of class \code{"fishset_fit"} containing, this list is also saved in 
+  the project database:
 \describe{
   \item{coefficients}{Named vector of estimated parameters.}
   \item{coef_table}{Data frame with Estimates, Std. Errors, Z-values, and P-values.}
@@ -36,7 +37,7 @@ A list object of class \code{"fishset_fit"} containing:
   \item{AIC, AICc, BIC}{Information criteria for model comparison.}
   \item{accuracy}{The proportion of observations where the model assigned the highest 
     probability to the actual choice.}
-  \item{fitted.values}{Vector of predicted probabilities for the chosen alternatives.}
+  \item{fitted_values}{Vector of predicted probabilities for the chosen alternatives.}
   \item{prob_matrix}{Matrix of predicted probabilities for all alternatives (N_obs x J_alts).}
   \item{diagnostics}{A list containing the Hessian, gradients, eigenvalues, and 
     condition number.}
