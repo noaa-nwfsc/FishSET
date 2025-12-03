@@ -16,15 +16,15 @@
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
+define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data, rv_alt_matrix){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
     # Reactive value to store strictly the NAMES (Character Vector)
     rv_existing_matrix_names <- reactiveVal(character(0))
     rv_selected_vars <- reactiveValues(vars = NULL)
-    
-    # --- Helper: Load List Names from DB ---
+
+    # Load List Names from DB ---
     load_alt_data <- function() {
       req(rv_project_name())
       project <- rv_project_name()$value
@@ -51,6 +51,7 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
       
       # 3. Update reactive value with NAMES only
       rv_existing_matrix_names(just_names)
+      rv_alt_matrix(just_names)
       
       # Update removal dropdown
       updateSelectizeInput(session, "matrix_to_remove", choices = just_names, selected = "")
@@ -72,18 +73,19 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
       
     })
     
-    # save choice set
+
+    # Save choice set
     observeEvent(input$altc_save_btn, {
       project_name <- rv_project_name()$value
       folderpath <- rv_folderpath()
       req(rv_data$main)
       req(rv_data$spat)
-      
+
       alt_name_input <- input$altc_name_input
-      
+
       # Validation
       if (alt_name_input == "") {
-        showNotification("Please provide a name for the new Alternative Choice matrices", 
+        showNotification("Please provide a name for the new Alternative Choice matrices",
                          type = "error")
         return()
       }
@@ -91,12 +93,12 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         showNotification("Name already exists. Please choose a unique name.", type = "error")
         return()
       }
-      
+
       # Show Spinner
       shinyjs::show("define_alt_spinner_container")
       on.exit(shinyjs::hide("define_alt_spinner_container"), add = TRUE)
-      
-      
+
+
       # Load selected variables
       selected_vars <- load_gui_variables(project_name, folderpath)
       if (is.null(selected_vars)) {
@@ -104,29 +106,29 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         shinyjs::hide("define_alt_spinner_container")
         showModal(modalDialog(
           title = "Error: Missing Data",
-          "The selected variables file for the current project could not be found. 
+          "The selected variables file for the current project could not be found.
           Please ensure you have selected and saved variables in the 'Select variables' tab.",
           easyClose = TRUE
         ))
         return() # Stop execution of the observer
       }
       rv_selected_vars$vars <- selected_vars
-      
+
       cent_table_name <- paste0(project_name, "_ZoneCentroid")
       if (!table_exists(cent_table_name, project_name)) {
         showNotification("Error: Missing zonal centroid table.", type = "error")
         return()
       }
-      
+
       # Helper for occasion type mapping
       occ_type <- switch(input$altc_occasion_input,
                          'port' = 'port',
                          'zonal centroid' = 'zonal centroid',
                          'lon-lat' = 'lon-lat')
-      
+
       # Run Function Wrapper
       q_test <- quietly_test(create_alternative_choice, show_msg = TRUE)
-      
+
       # Build Arguments List
       args <- list(
         dat = rv_data$main,
@@ -137,9 +139,9 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         zoneID = rv_selected_vars$vars$main$main_zone_id,
         spatID = rv_selected_vars$vars$spat$spat_zone_id,
         zone_cent_name = cent_table_name,
-        alt_name = alt_name_input 
+        alt_name = alt_name_input
       )
-      
+
       # Add specific occasion variables based on selection
       if(input$altc_occasion_input == "zonal centroid"){
         args$occasion_var <- input$occ_lag_zone_id_input
@@ -148,22 +150,22 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
       } else if(input$altc_occasion_input == "port"){
         args$occasion_var <- input$occ_port_name_input
       }
-      
+
       # Execute Function
       run_result <- do.call(q_test, args)
-      
+
       # Check for errors
       if (!is.null(run_result) && (!is.null(run_result$error) || length(run_result$warnings) > 0)) {
         return()
       }
-      
+
       # Refresh UI (reloads names from DB)
       load_alt_data()
-      
+
       # Reveal the hidden plot container
       shinyjs::show("altc_zone_plot_wrapper")
     })
-    
+
     # zone freq table
     zone_freq <- reactive({
       req(input$altc_save_btn)
@@ -190,23 +192,29 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
       
       tmp <- dat[which(dat$include),]
       
+      # Sort by 'n' in descending order
+      tmp <- tmp[order(tmp$n, decreasing = TRUE), ]
+      
+      # Slice the top 20 (head handles cases < 20 gracefully)
+      tmp <- head(tmp, 20)
+      
       ggplot2::ggplot(tmp) +
         ggplot2::geom_col(ggplot2::aes(x=stats::reorder(as.factor(!!z_sym), n), y = n),
                           fill = "darkgreen") +
         ggplot2::labs(x = "Zone ID", y = "n") +
         ggplot2::scale_y_continuous(expand = c(0,0)) +
         fishset_theme() +
-        coord_flip()
+        ggplot2::coord_flip()
     })
     
     output$altc_zone_plot <- renderPlot(zoneIDNumbers_dat())
     
     # render table with names of choice sets 
     output$existing_matrices_table <- DT::renderDataTable({
-      # 1. Retrieve the character vector of names
+      # 1. Retrieve the character vector of names ---------------
       alt_names <- rv_existing_matrix_names()
       
-      # 2. Handle Empty Case
+      # 2. Handle Empty Case ----------------------
       if (length(alt_names) == 0) {
         return(DT::datatable(
           data.frame(Name = character(0), Actions = character(0)),
@@ -214,7 +222,7 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         ))
       }
       
-      # 3. Create buttons with embedded JS onclick events
+      # 3. Create buttons with embedded JS onclick events ----------------
       # We send the specific 'name' to input$view_settings_trigger
       actions <- sapply(alt_names, function(name) {
         as.character(
@@ -227,7 +235,7 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         )
       })
       
-      # 4. Force structure into a Data Frame
+      # 4. Force structure into a Data Frame -----------
       # This ensures 'Name' is a column, preventing the list-display bug
       df <- data.frame(
         Name = alt_names,
@@ -235,7 +243,7 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         stringsAsFactors = FALSE
       )
       
-      # 5. Render
+      # 5. Render ----------
       DT::datatable(df,
                     options = list(pageLength = 3, searching = TRUE, dom = 'tp',
                                    scrollX = TRUE,
@@ -263,10 +271,10 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         return()
       }
       
-      # 2. Extract specific sub-list
+      # 2. Extract specific sub-list ---------------------
       settings_list <- master_list[[selected_name]]
       
-      # 3. Format values for display (handle lists/dfs/vectors)
+      # 3. Format values for display (handle lists/dfs/vectors) --------------------
       format_val <- function(x) {
         if (is.data.frame(x)) {
           return(paste0("[Data Frame] ", nrow(x), " rows"))
@@ -281,7 +289,7 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         }
       }
       
-      # 4. Construct Table UI
+      # 4. Construct Table UI ------------------------
       settings_ui <- tags$div(
         style = "overflow-x: auto;",
         tags$table(class = "table table-sm table-striped",
@@ -298,7 +306,7 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         )
       )
       
-      # 5. Show Modal
+      # 5. Show Modal ----------------
       showModal(modalDialog(
         title = paste("Settings for:", selected_name),
         settings_ui,
@@ -375,9 +383,9 @@ define_alt_ui <- function(id) {
         bslib::card(
           class="card-overflow", 
           bslib::card_header('Create Alternative Fishing Choices'),
-          card_body(
+          bslib::card_body(
             class="card-overflow", 
-            p("For more information on calculating alternative location matrices, see ",
+            p("For more information on defining alternative location matrices, see ",
               tags$a(
                 href = "https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html",
                 "section 8.2.2"),
@@ -456,7 +464,7 @@ define_alt_ui <- function(id) {
             )
           ),
           
-          # --- Save Section ---
+          # Save Section ---
           bslib::layout_column_wrap( 
             width = 1/2,
             textInput(ns("altc_name_input"), 
@@ -472,13 +480,12 @@ define_alt_ui <- function(id) {
           )
           
         )
-        
-        
     ),
-    # --- Manage Table Card ---
+    #  Manage Table Card -----------
     bslib::layout_column_wrap(
       width = 1/2,
       bslib::card(
+        class="card-overflow",
         bslib::card_header("Manage Alternative Choice Matrices"),
         bslib::card_body(
           class="card-overflow",
@@ -493,7 +500,6 @@ define_alt_ui <- function(id) {
                                 "Remove Selected", class = "btn-danger w-100"))
           )
         )
-        
       ),
       div(id = ns("altc_zone_plot_wrapper"), style = "display: none;",
           bslib::card(

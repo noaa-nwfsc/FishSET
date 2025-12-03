@@ -177,6 +177,7 @@ is set to 90.
 ```{r}
 create_alternative_choice(dat = scallopModMainDataTable,
                           project = "scallopMod",
+                          alt_name = "alt1",
                           occasion = "lon-lat",
                           occasion_var = c("previous_port_lon", "previous_port_lat"),
                           alt_var = "zonal centroid",
@@ -222,29 +223,31 @@ will be named `user1` and `user2` respectively.
 
 ```{r}
 # user1 expected catch matrix
-# create_expectations(dat = scallopModMainDataTable,
-#                     project = "scallopMod",
-#                     name = "exp1",
-#                     catch = "LANDED_thousands", 
-#                     temp_var = "DATE_TRIP",
-#                     temp_window = 7,
-#                     day_lag = 1,
-#                     year_lag = 0,
-#                     temporal = 'daily',
-#                     empty_catch = NA,
-#                     empty_expectation = 1e-04)
-# 
+create_expectations(dat = scallopModMainDataTable,
+                    project = "scallopMod",
+                    name = "exp1",
+                    alt_name = "alt1",
+                    catch = "LANDED_thousands",
+                    temp_var = "DATE_TRIP",
+                    temp_window = 7,
+                    day_lag = 1,
+                    year_lag = 0,
+                    temporal = 'daily',
+                    empty_catch = NA,
+                    empty_expectation = 1e-04)
+
 # # user2 expected catch matrix
-# create_expectations(dat = scallopModMainDataTable,
-#                     project = "scallopMod",
-#                     name = "exp2",
-#                     catch = "LANDED_thousands", 
-#                     temp_var = "DATE_TRIP",
-#                     temporal = "daily",
-#                     temp_window = 14,
-#                     day_lag = 2,
-#                     empty_catch = NA,
-#                     empty_expectation = 1e-04)
+create_expectations(dat = scallopModMainDataTable,
+                    project = "scallopMod",
+                    name = "exp2",
+                    alt_name= "alt1",
+                    catch = "LANDED_thousands",
+                    temp_var = "DATE_TRIP",
+                    temporal = "daily",
+                    temp_window = 14,
+                    day_lag = 2,
+                    empty_catch = NA,
+                    empty_expectation = 1e-04)
 ```
 
 <br>

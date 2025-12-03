@@ -23,7 +23,7 @@
 #'
 #' @return This module does not return a value but saves an expectations matrix
 #'         to the project's database.
-create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_data){
+create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_data, rv_alt_matrix){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -71,6 +71,15 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
                                                function(x) inherits(x, c("Date", "POSIXt")))])
       numeric_choices <- c("None", choices[sapply(rv_data$main, is.numeric)])
       
+      new_choices <- rv_alt_matrix()
+      
+      # Handle NULL/Empty case
+      if (is.null(new_choices)) new_choices <- character(0)
+      
+      updateSelectizeInput(session, "alt_name_input", 
+                           choices = new_choices, 
+                           selected = input$alt_name_input)
+      
       updateSelectizeInput(session, "catch_input", 
                            choices = choices)
       updateSelectizeInput(session, "price_input", 
@@ -81,6 +90,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
                            choices = date_choices, selected = "None")
     })
     
+
     # Handle the 'Create Expectations Matrix' button click
     observeEvent(input$create_exp_btn, {
       req(rv_project_name(), rv_data$main)
@@ -89,6 +99,10 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       # --- Input Validation ---
       if (input$name_input == "") {
         showNotification("Please provide a name for the new matrix.", type = "error")
+        return()
+      }
+      if (is.null(input$alt_name_input) || input$alt_name_input == "") {
+        showNotification("Please select an Alternative Matrix (alt_name).", type = "error")
         return()
       }
       
@@ -125,6 +139,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
           dat = rv_data$main,
           project = project_name,
           name = input$name_input,
+          alt_name = input$alt_name_input, 
           catch = input$catch_input,
           price = to_null(input$price_input),
           defineGroup = to_null(input$defineGroup_input),
@@ -372,7 +387,24 @@ create_expectations_ui <- function(id){
                          )
                        ),
                        
+                       
                        fluidRow(
+                         column(6,
+                                selectizeInput(ns("alt_name_input"),
+                                               tagList(
+                                                 span(
+                                                   style = 
+                                                     "white-space: wrap; display: inline-flex; align-items: center;",
+                                                   HTML("Alternative Matrix (alt_name): &nbsp;"),
+                                                   bslib::tooltip(
+                                                     shiny::icon("circle-info", `aria-label` = "More information"),
+                                                     HTML("Select the specific Alternative Choice matrix to match against."),
+                                                     options = list(delay = list(show = 0, hide = 850))
+                                                   )
+                                                 )
+                                               ),
+                                               choices = NULL, multiple = FALSE)
+                         ),
                          column(
                            6,
                            selectizeInput(

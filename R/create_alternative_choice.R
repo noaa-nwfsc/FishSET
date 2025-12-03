@@ -7,109 +7,109 @@
 #' the FishSET Database, see `occasion_var` for details.
 #'
 #' @param dat Required, Primary data frame containing data on hauls or trips.
-#' Table in FishSET database should contain the string `MainDataTable`.
+#'  Table in FishSET database should contain the string `MainDataTable`.
 #' @param project Required, name of project.
 #' @param occasion String, determines the starting point when calculating the
-#' distance matrix. Options are `"zonal centroid"`, `"fishing centroid"`,
-#' `"port"`, or `"lon-lat"`. See `occasion_var` for requirements.
+#'  distance matrix. Options are `"zonal centroid"`, `"fishing centroid"`,
+#'  `"port"`, or `"lon-lat"`. See `occasion_var` for requirements.
 #' @param occasion_var Identifies an ID column or set of lon-lat variables needed
-#' to create the distance matrix. Possible options depend on the value of
-#' `occasion`:
-#'  \describe{
-#'    \item{Centroid}{When `occasion = zonal centroid` the possible
-#'    options are `NULL`, the name of a zone ID variable, or a set coordinate
-#'    variables (in Lon-Lat order).
-#'      \describe{
-#'        \item{NULL}{This will merge centroid lon-lat data to the primary table
-#'        using the column enter in `zoneID`. A centroid table must be saved
-#'        to the FishSET Database.}
-#'        \item{Zone ID}{This option specifies the zone ID variable to merge the
-#'        centroid table to. For example, a column containing the previous zonal
-#'        area. A centroid table must be saved to the FishSET Database.}
-#'        \item{Lon-Lat}{A string vector of length two containing the longitude
-#'        and latitude of an existing set centroid variables in `dat`.}
-#'     }
-#'    }
+#'   to create the distance matrix. Possible options depend on the value of
+#'  `occasion`:
+#'   \describe{
+#'     \item{Centroid}{When `occasion = zonal centroid` the possible
+#'       options are `NULL`, the name of a zone ID variable, or a set coordinate
+#'       variables (in Lon-Lat order).
+#'        \describe{
+#'          \item{NULL}{This will merge centroid lon-lat data to the primary table
+#'            using the column enter in `zoneID`. A centroid table must be saved
+#'            to the FishSET Database.}
+#'         \item{Zone ID}{This option specifies the zone ID variable to merge the
+#'            centroid table to. For example, a column containing the previous zonal
+#'            area. A centroid table must be saved to the FishSET Database.}
+#'          \item{Lon-Lat}{A string vector of length two containing the longitude
+#'            and latitude of an existing set centroid variables in `dat`.}
+#'         }
+#'      }
 #'    \item{Port}{When `occasion = port` the possible options include the name
-#'    of a port ID variable or a set of lon-lat variables describing the
-#'    location of the port. A value of `NULL` will return an error.
-#'      \describe{
-#'        \item{Port ID}{The name of a port ID variable in `dat` that will be
-#'        used to join the port table to the primary table. A port table
-#'        is required (see [load_port()]) which contains the port name and
-#'        the longitude and latitude of each port.}
-#'        \item{Lon-Lat}{A string vector of length two containing a port's
-#'        longitude and latitude in `dat`.}
+#'      of a port ID variable or a set of lon-lat variables describing the
+#'      location of the port. A value of `NULL` will return an error.
+#'       \describe{
+#'          \item{Port ID}{The name of a port ID variable in `dat` that will be
+#'            used to join the port table to the primary table. A port table
+#'            is required (see [load_port()]) which contains the port name and
+#'            the longitude and latitude of each port.}
+#'         \item{Lon-Lat}{A string vector of length two containing a port's
+#'            longitude and latitude in `dat`.}
 #'      }
 #'   }
 #'    \item{Lon-Lat}{When `occasion = lon-lat`, `occasion_var` must contain a
-#'    string vector of length two containing the longitude and latitude of a
-#'    vessel's location in the `dat`. For example, the current or previous
-#'    haul location.}
+#'      string vector of length two containing the longitude and latitude of a
+#'      vessel's location in the `dat`. For example, the current or previous
+#'      haul location.}
 #' }
 #' @param alt_var Determines the alternative choices used to calculate the distance
-#' matrix. `alt_var` may be the centroid of zonal assignment (`"zonal centroid"`),
-#' `"fishing centroid"`, or the closest point in fishing zone
-#' (`"nearest point"`). The centroid options require that the appropriate
-#' centroid table has been saved to the project's FishSET Database. See
-#' [create_centroid()] to create and save centroids. List existing centroid
-#' tables by running `list_tables("project", type = "centroid")`.
+#'  matrix. `alt_var` may be the centroid of zonal assignment (`"zonal centroid"`),
+#'  `"fishing centroid"`, or the closest point in fishing zone
+#'  (`"nearest point"`). The centroid options require that the appropriate
+#'  centroid table has been saved to the project's FishSET Database. See
+#'  [create_centroid()] to create and save centroids. List existing centroid
+#'  tables by running `list_tables("project", type = "centroid")`.
 #' @param min_haul Required, numeric, minimum number of hauls. Zones with fewer
-#' hauls than the `min_haul` value will not be included in model data.
+#'  hauls than the `min_haul` value will not be included in model data.
 #' @param zoneID Variable in `dat` that identifies the individual zones or
-#' areas.
+#'  areas.
 #' @param zone_cent_name The name of the zonal centroid table to use when
-#' `occasion` or `alt_var` is set to `zonal centroid`. Use
-#' `list_tables("project", type = "centroid")` to view existing centroid tables.
-#' See [create_centroid()] to create centroid tables or [centroid_to_fsdb()] to
-#' create a centroid table from columns found in `dat`.
+#'  `occasion` or `alt_var` is set to `zonal centroid`. Use
+#'  `list_tables("project", type = "centroid")` to view existing centroid tables.
+#'  See [create_centroid()] to create centroid tables or [centroid_to_fsdb()] to
+#'  create a centroid table from columns found in `dat`.
 #' @param fish_cent_name The name of the fishing centroid table to use when
-#' `occasion` or `alt_var` is set to `fishing centroid`. Use
-#' `list_tables("project", type = "centroid")` to view existing centroid tables.
-#' See [create_centroid()] to create centroid tables or [centroid_to_fsdb()] to
-#' create a centroid table from columns found in `dat`.
+#'  `occasion` or `alt_var` is set to `fishing centroid`. Use
+#'  `list_tables("project", type = "centroid")` to view existing centroid tables.
+#'  See [create_centroid()] to create centroid tables or [centroid_to_fsdb()] to
+#'  create a centroid table from columns found in `dat`.
 #' @param spatname Required when `alt_var = 'nearest point'`. `spat` is a spatial
-#' data file containing information on fishery management or regulatory zones
-#' boundaries. `sf` objects are recommended, but `sp` objects can be used as
-#' well. See [dat_to_sf()] to convert a spatial table read from a csv file to
-#' an `sf` object. To upload your spatial data to the FishSETFolder see
-#' [load_spatial()].If `spat` should come from the FishSET database, it should
-#' be the name of the original file name, in quotes. For example,
-#' `"pollockNMFSZonesSpatTable"`. Use [tables_database()] or
-#' `list_tables("project", type = "spat")` to view the names of spatial tables
-#' in the FishSET database.
+#'  data file containing information on fishery management or regulatory zones
+#'  boundaries. `sf` objects are recommended, but `sp` objects can be used as
+#'  well. See [dat_to_sf()] to convert a spatial table read from a csv file to
+#'  an `sf` object. To upload your spatial data to the FishSETFolder see
+#'  [load_spatial()].If `spat` should come from the FishSET database, it should
+#'  be the name of the original file name, in quotes. For example,
+#'  `"pollockNMFSZonesSpatTable"`. Use [tables_database()] or
+#'  `list_tables("project", type = "spat")` to view the names of spatial tables
+#'  in the FishSET database.
 #' @param spatID Required when `alt_var = 'nearest point'`. Variable in `spat`
-#' that identifies the individual zones or areas.
+#'  that identifies the individual zones or areas.
 #' @param outsample Logical, indicating whether this is for primary data or out-of
-#' sample data.
+#'  sample data.
 #' @param alt_name String, **Required**. The name to be assigned to this
-#' alternative choice list within the FishSET database. If a list with this name
-#' already exists, the function will stop.
+#'  alternative choice list within the FishSET database. If a list with this name
+#'  already exists, the function will stop.
 #' @importFrom DBI dbExecute
 #' @export create_alternative_choice
 #' @md
 #' @details Defines the alternative fishing choices. These choices are used to develop
-#' the matrix of distances between observed and alternative fishing choices (where
-#' they could have fished but did not). The distance matrix is calculated by the
-#' [make_model_design()] function. `occasion` defines the observed fishing
-#' location and `alt_var` the alternative fishing location. `occasion_var`
-#' identifies an ID column or set of lon-lat variables needed to create the
-#' distance matrix.
+#'  the matrix of distances between observed and alternative fishing choices (where
+#'  they could have fished but did not). The distance matrix is calculated by the
+#'  [make_model_design()] function. `occasion` defines the observed fishing
+#'  location and `alt_var` the alternative fishing location. `occasion_var`
+#'  identifies an ID column or set of lon-lat variables needed to create the
+#'  distance matrix.
 #'
-#' Parts of the alternative choice list are pulled by [create_expectations()],
-#' [make_model_design()], and the model run [discretefish_subroutine()])
-#' functions. These output include choices of which variable to use for catch and
-#' which zones to include in analyses based on a minimum number of hauls per trip
-#' within a zone. Note that if the alternative choice list is modified, the
-#' [create_expectations()] and [make_model_design()] functions
-#' should also be updated before rerunning models.
+#'  Parts of the alternative choice list are pulled by [create_expectations()],
+#'  [make_model_design()], and the model run [discretefish_subroutine()])
+#'  functions. These output include choices of which variable to use for catch and
+#'  which zones to include in analyses based on a minimum number of hauls per trip
+#'  within a zone. Note that if the alternative choice list is modified, the
+#'  [create_expectations()] and [make_model_design()] functions
+#'  should also be updated before rerunning models.
 #' 
 #' @return Function saves a list of alternative choice matrices to the FishSET
-#' database as `projectAlternativeChoice`. The list includes
-#' the alternative choice list from the user-defined choices. Multiple alternative
-#' choice cases can be added to the list by specifying unique names. The list is
-#' automatically saved to the FishSET database and is called in
-#' `make_model_design`.
+#'  database as `projectAlternativeChoice`. The list includes
+#'  the alternative choice list from the user-defined choices. Multiple alternative
+#'  choice cases can be added to the list by specifying unique names. The list is
+#'  automatically saved to the FishSET database and is called in
+#'  `make_model_design`.
 
 create_alternative_choice <- function(dat,
                                       project,
@@ -125,7 +125,7 @@ create_alternative_choice <- function(dat,
                                       outsample = FALSE,
                                       alt_name = NULL) {
   
-  # --- 1. Setup and Naming ---
+  # Setup and Naming -----------------------------------------------------------------------------
   # Define the SQL table name based on whether this is in-sample or out-of-sample
   single_sql <- paste0(project, if (!outsample) "AltMatrix" else "OutSample")
   
@@ -134,27 +134,8 @@ create_alternative_choice <- function(dat,
     alt_name <- paste0("AltMatrix_", format(Sys.Date(), format = "%Y%m%d"))
     warning("No 'alt_name' provided. Using default name: '", alt_name, "'.", call. = FALSE)
   }
-  
-  # --- 2. Database Connection and Existing List Retrieval ---
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-  # Ensure DB disconnects even if function crashes later
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-  
-  AltList <- list()
-  
-  # If the table exists, load it first to preserve existing lists
-  if (table_exists(single_sql, project)) {
-    AltList <- unserialize_table(single_sql, project)
-    
-    # Prevent overwriting an existing named list accidentally
-    if (alt_name %in% names(AltList)) {
-      stop("An alternative choice list with the name '", alt_name, 
-           "' already exists in the database table '", single_sql,
-           "'. Please enter a new unique name.", call. = FALSE)
-    }
-  }
-  
-  # --- 3. Data Loading and parsing ---
+ 
+  # Data Loading and parsing ---------------------------------------------------------------------
   # Pull the main dataset
   out <- data_pull(dat, project)
   dataset <- out$dataset
@@ -175,7 +156,7 @@ create_alternative_choice <- function(dat,
   column_check(dataset, cols = c(zoneID, occasion_var))
   o_len <- length(occasion_var)
   
-  # --- 4. Argument Validation (Pre-check) ---
+  # Argument Validation --------------------------------------------------------------------------
   # Check if centroid names are provided when the specific occasion/alt_var type requires them
   if (occasion == "zonal centroid") {
     if (o_len != 2 & is_value_empty(zone_cent_name)) {
@@ -217,7 +198,7 @@ create_alternative_choice <- function(dat,
          paste0(alt_opts, collapse = ", "), ".", call. = FALSE)
   }
   
-  # --- 5. Internal Helper Functions ---
+  # Internal Helper Functions --------------------------------------------------------------------
   # Helper to ensure lat/lon strings appear in variable names
   ll_occ_check <- function(occ) {
     ll_check <- grepl("lon|lat", occ, ignore.case = TRUE)
@@ -246,17 +227,15 @@ create_alternative_choice <- function(dat,
     cent_tab
   }
   
-  # --- 6. Alternative Variable Configuration (alt_var) ---
+  # Alternative Variable Configuration (alt_var) --------------------------------------------------
   # Load and validate the specific centroid/spatial tables requested
   if (alt_var == "zonal centroid") {
     zone_cent <- cent_check(project, zone_cent_name, "zone")
-  }
-  
-  if (alt_var == "fishing centroid") {
+    
+  }else if (alt_var == "fishing centroid") {
     fish_cent <- cent_check(project, fish_cent_name, "fish")
-  }
-  
-  if (alt_var == "nearest point") {
+    
+  }else if (alt_var == "nearest point") {
     if (is_value_empty(spatdat) | is_value_empty(spatID)) {
       stop("'spat' and 'spatID' are required for alt_var = 'nearest point'", call. = FALSE)
     }
@@ -267,7 +246,7 @@ create_alternative_choice <- function(dat,
     }
   }
   
-  # --- 7. Occasion Variable Configuration ---
+  # Occasion Variable Configuration --------------------------------------------------------------
   # Validate logic based on the 'occasion' type (zonal vs fishing vs port vs lon-lat)
   if (occasion == "zonal centroid") {
     if (is_value_empty(occasion_var) | o_len == 1) {
@@ -279,6 +258,7 @@ create_alternative_choice <- function(dat,
     } else {
       stop("Invalid 'occasion_var'.", call. = FALSE)
     }
+    
   } else if (occasion == "fishing centroid") {
     if (is_value_empty(occasion_var) | o_len == 1) {
       if (is.null(fish_cent)) {
@@ -289,6 +269,7 @@ create_alternative_choice <- function(dat,
     } else {
       stop("Invalid 'occasion_var'.", call. = FALSE)
     }
+    
   } else if (occasion == "port") {
     if (is_value_empty(occasion_var)) {
       stop("Port column name required for 'occasion = port'.", call. = FALSE)
@@ -296,16 +277,18 @@ create_alternative_choice <- function(dat,
     if (o_len == 2) {
       ll_occ_check(occasion_var)
     }
+    
   } else if (occasion == "lon-lat") {
     if (o_len != 2) {
       stop("'occasion_var' must contain a longitude and latitude column.", call. = FALSE)
     }
     ll_occ_check(occasion_var)
+    
   } else {
     stop("Invalid 'occasion' option.", call. = FALSE)
   }
   
-  # --- 8. Data Filtering (Minimum Hauls) ---
+  # Data Filtering (Minimum Hauls) ----------------------------------------------------------------
   choice <- dataset[[zoneID]]
   
   if (anyNA(choice) == TRUE) {
@@ -340,7 +323,7 @@ create_alternative_choice <- function(dat,
     spat_out_name <- spat
   }
   
-  # --- 9. Construct the Alternative Choice List ---
+  # Construct the Alternative Choice List --------------------------------------------------------
   Alt_current <- list(
     dataZoneTrue = dataZoneTrue, # Index for model inclusions
     greaterNZ = greaterNZ,       # Zones meeting min_haul criteria
@@ -362,12 +345,34 @@ create_alternative_choice <- function(dat,
     spatname = spat_out_name
   )
   
+  # Database Connection --------------------------------------------------------------------------
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+  # Ensure DB disconnects even if function crashes later
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
+   AltList <- list()
+
+   # If the table exists, load it first to preserve existing lists
+  if (table_exists(single_sql, project)) {
+    
+    AltList <- unserialize_table(single_sql, project)
+
+    # Prevent overwriting an existing named list accidentally
+    if (alt_name %in% names(AltList)) {
+      stop("An alternative choice list with the name '", alt_name, 
+           "' already exists in the database table '", single_sql,
+           "'. Please enter a new unique name.", call. = FALSE)
+    }
+  }
+  
+  # Safely Remove Old Table if it existed
+ if (table_exists(single_sql, project)) {
+   table_remove(single_sql, project)
+ }
+  
   # Append this run's configuration to the main list using the unique alt_name
   AltList[[alt_name]] <- Alt_current
   
-  # --- 10. Save to Database (Fixed Section) ---
-  # Remove the existing table to allow a clean rewrite
-  table_remove(single_sql, project)
   
   # Create table with specific column name 'AlternativeMatrix' and type BLOB
   DBI::dbExecute(fishset_db,
@@ -385,12 +390,7 @@ create_alternative_choice <- function(dat,
                  params = list(AlternativeMatrix = list(serialize(AltList, NULL)))
   )
   
-   # Creates a dated alt matrix table
-  # DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(AlternativeMatrix BLOB)"))
-  # DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:AlternativeMatrix)"),
-  #                params = list(AlternativeMatrix = list(serialize(AltList, NULL))))
-  
-  # --- 11. User Feedback and Logging ---
+  # User Feedback and Logging ---------------------------------------------------------------------
   if(!outsample){
     message("Alternative choice list '", alt_name,
             "' saved to FishSET database under table ", single_sql)
@@ -402,10 +402,7 @@ create_alternative_choice <- function(dat,
   # Log arguments for reproducibility
   create_alternative_choice_function <- list()
   create_alternative_choice_function$functionID <- "create_alternative_choice"
-  create_alternative_choice_function$args <-
-    list(dat, project, occasion, occasion_var, alt_var,
-         min_haul, zoneID, zone_cent_name, 
-         fish_cent_name, spatname, spatID, outsample, alt_name)
+  create_alternative_choice_function$args <- as.list(match.call())[-1]
   create_alternative_choice_function$kwargs <- list()
   create_alternative_choice_function$output <- list()
   

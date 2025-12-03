@@ -62,6 +62,7 @@ server <- function(input, output, session) {
                                    v_id = NULL, 
                                    rule = "n", 
                                    value = 3) # basic default
+  rv_alt_matrix <- reactiveVal() 
   
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
@@ -192,7 +193,8 @@ server <- function(input, output, session) {
   define_alt_server("define_alternatives",
                     rv_folderpath = rv_folderpath, 
                     rv_project_name = rv_project_name, 
-                    rv_data = rv_data)
+                    rv_data = rv_data, 
+                    rv_alt_matrix = rv_alt_matrix)
   
   
   ## Create expectations --------------------------------------------------------------------------
@@ -211,6 +213,7 @@ server <- function(input, output, session) {
   create_expectations_server("create_expectations",
                              rv_folderpath = rv_folderpath, 
                              rv_project_name = rv_project_name, 
-                             rv_data = rv_data)
+                             rv_data = rv_data,
+                             rv_alt_matrix= rv_alt_matrix)
   
 }

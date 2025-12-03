@@ -8,6 +8,7 @@
 #'   database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param name Name of the expected matrix to be saved
+#' @param alt_name Name of the alternative choice matrix. 
 #' @param catch Variable from \code{dat} containing catch data.
 #' @param price Optional, variable from \code{dat} containing price/value data.  
 #'   Price is multiplied against \code{catch} to generated revenue. If revenue exists 
@@ -89,6 +90,7 @@ create_expectations <-
   function(dat,
            project,
            name,
+           alt_name = NULL,
            catch,
            price = NULL,
            defineGroup = NULL,
@@ -124,8 +126,21 @@ create_expectations <-
     data_type <- if (!outsample) "main" else "outsample"
     alt_matrix_name <- if (!outsample) "AltMatrix" else "AltMatrixOutSample"
     
+
     dat <- parse_data_name(dat, data_type, project)
     Alt <- unserialize_table(paste0(project, alt_matrix_name), project)
+    
+    
+    # Filter Alt Matrix based on alt_name ---------------------------------------------------------
+    # Update: Filter Alt to only include the specific alt_name requested
+    if (!is.null(alt_name)) {
+      if (alt_name %in% names(Alt)) {
+        Alt <- Alt[[alt_name]]
+      } else {
+        stop(paste0("The alt_name '", alt_name, "' was not found in the stored Alternative
+                    Matrix list."))
+      }
+    }
     
     # Perform initial data quality and parameter checks -------------------------------------------
     column_check(dataset, c(catch, price, defineGroup))
@@ -254,6 +269,7 @@ create_expectations <-
       list(dat, 
            project, 
            name,
+           alt_name,
            catch, 
            price, 
            defineGroup, 
