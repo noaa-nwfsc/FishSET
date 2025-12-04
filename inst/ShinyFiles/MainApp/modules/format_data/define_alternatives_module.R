@@ -14,9 +14,11 @@
 #' @param id A character string that is unique to this module instance.
 #' @param rv_project_name A reactive value containing the current project name.
 #' @param rv_data A reactiveValues object containing the loaded data frames.
+#' @param shared_alt_names A reactiveVal passed from the main server to share alt matrix names.
 #'
 #' @return This module does not return a value.
-define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data, rv_alt_matrix){
+define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data, 
+                              shared_alt_names = NULL){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -34,7 +36,7 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data, rv_al
       just_names <- character(0)
       
       if (table_exists(table_name, project)) {
-        # 1. Load the object from DB
+        # Load the object from DB
         full_data <- tryCatch({
           unserialize_table(table_name, project)
         }, error = function(e) {
@@ -43,23 +45,26 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data, rv_al
           return(list()) 
         })
         
-        # 2. Extract NAMES only
+        # Extract NAMES only
         if (length(full_data) > 0) {
           just_names <- names(full_data)
         }
       }
       
-      # 3. Update reactive value with NAMES only
+      # Update reactive value with NAMES only
       rv_existing_matrix_names(just_names)
-      rv_alt_matrix(just_names)
       
+      # Update SHARED value (for the other module)
+      if (!is.null(shared_alt_names)) {
+        shared_alt_names(just_names) 
+      }
+
       # Update removal dropdown
       updateSelectizeInput(session, "matrix_to_remove", choices = just_names, selected = "")
     }
     
     # Load data on init
     observeEvent(rv_data$main, {
-      req(rv_data$spat)
       load_alt_data()
     }, once = TRUE)
     
@@ -129,36 +134,27 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data, rv_al
       # Run Function Wrapper
       q_test <- quietly_test(create_alternative_choice, show_msg = TRUE)
 
-      # Build Arguments List
-      args <- list(
+      # Add specific occasion variables based on selection
+      if(input$altc_occasion_input == "zonal centroid"){
+       occasion_var_input <- input$occ_lag_zone_id_input
+      } else if(input$altc_occasion_input == "lon-lat"){
+       occasion_var_input <- c(input$occ_lon_input, input$occ_lat_input)
+      } else if(input$altc_occasion_input == "port"){
+       occasion_var_input <- input$occ_port_name_input
+      }
+      
+      q_test(
         dat = rv_data$main,
         project = project_name,
         occasion = occ_type,
+        occasion_var=occasion_var_input,
         alt_var = "zonal centroid",
         min_haul = input$altc_min_haul_input,
         zoneID = rv_selected_vars$vars$main$main_zone_id,
         spatID = rv_selected_vars$vars$spat$spat_zone_id,
         zone_cent_name = cent_table_name,
-        alt_name = alt_name_input
-      )
-
-      # Add specific occasion variables based on selection
-      if(input$altc_occasion_input == "zonal centroid"){
-        args$occasion_var <- input$occ_lag_zone_id_input
-      } else if(input$altc_occasion_input == "lon-lat"){
-        args$occasion_var <- c(input$occ_lon_input, input$occ_lat_input)
-      } else if(input$altc_occasion_input == "port"){
-        args$occasion_var <- input$occ_port_name_input
-      }
-
-      # Execute Function
-      run_result <- do.call(q_test, args)
-
-      # Check for errors
-      if (!is.null(run_result) && (!is.null(run_result$error) || length(run_result$warnings) > 0)) {
-        return()
-      }
-
+        alt_name = alt_name_input)
+      
       # Refresh UI (reloads names from DB)
       load_alt_data()
 
@@ -198,13 +194,17 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data, rv_al
       # Slice the top 20 (head handles cases < 20 gracefully)
       tmp <- head(tmp, 20)
       
+
       ggplot2::ggplot(tmp) +
         ggplot2::geom_col(ggplot2::aes(x=stats::reorder(as.factor(!!z_sym), n), y = n),
                           fill = "darkgreen") +
         ggplot2::labs(x = "Zone ID", y = "n") +
         ggplot2::scale_y_continuous(expand = c(0,0)) +
         fishset_theme() +
-        ggplot2::coord_flip()
+        ggplot2::coord_flip()+
+         ggplot2::labs(
+           caption= paste0("Only showing the 20 largest groups.")
+           )
     })
     
     output$altc_zone_plot <- renderPlot(zoneIDNumbers_dat())

@@ -20,16 +20,18 @@
 #' @param rv_folderpath A reactive value containing the path to the project folder.
 #' @param rv_project_name A reactive value containing the current project name.
 #' @param rv_data A reactiveValues object containing the loaded data frames.
+#' @param shared_alt_names A reactiveVal passed from the main server to share alt matrix names.
 #'
 #' @return This module does not return a value but saves an expectations matrix
 #'         to the project's database.
-create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_data, rv_alt_matrix){
+create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_data,
+                                       shared_alt_names = NULL){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
     # Reactive value to store the full list of existing matrix data (names, settings, etc.)
     rv_existing_matrix_data <- reactiveVal(list())
-    
+
     # Function to load existing matrix data
     load_matrix_data <- function() {
       req(rv_project_name())
@@ -49,13 +51,27 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       
       # Update the reactive value
       rv_existing_matrix_data(exp_mats)
-      
+
       # Update the remove dropdown
-      mat_names <- names(exp_mats)[!names(exp_mats) %in% 
-                                     c('scale', 'units') & 
+      mat_names <- names(exp_mats)[!names(exp_mats) %in%
+                                     c('scale', 'units') &
                                      !grepl("_dummy|_settings", names(exp_mats))]
       updateSelectizeInput(session, "matrix_to_remove", choices = mat_names, selected = "")
+     
     }
+    
+    # Instead of querying the DB for alt names, we listen to the shared list
+    observe({
+      req(shared_alt_names)
+      
+      # Get the names directly from the shared reactive
+      current_names <- shared_alt_names()
+      
+      # Update the dropdown immediately
+      updateSelectizeInput(session, "alt_name_input", 
+                           choices = current_names,
+                           selected = input$alt_name_input)
+    })
     
     # Load matrix data once when main data is first loaded
     observeEvent(rv_data$main, {
@@ -70,16 +86,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       date_choices <- c("None", choices[sapply(rv_data$main, 
                                                function(x) inherits(x, c("Date", "POSIXt")))])
       numeric_choices <- c("None", choices[sapply(rv_data$main, is.numeric)])
-      
-      new_choices <- rv_alt_matrix()
-      
-      # Handle NULL/Empty case
-      if (is.null(new_choices)) new_choices <- character(0)
-      
-      updateSelectizeInput(session, "alt_name_input", 
-                           choices = new_choices, 
-                           selected = input$alt_name_input)
-      
+
       updateSelectizeInput(session, "catch_input", 
                            choices = choices)
       updateSelectizeInput(session, "price_input", 
@@ -155,7 +162,6 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
           weight_avg = input$weight_avg_input,
           outsample = FALSE
         )
-        
         # --- Handle Success ---
         showNotification("Expected catch/revenue matrix saved successfully.", type = "message")
         # Refresh the full list of matrix data
@@ -403,7 +409,7 @@ create_expectations_ui <- function(id){
                                                    )
                                                  )
                                                ),
-                                               choices = NULL, multiple = FALSE)
+                                               choices =NULL, multiple = FALSE)
                          ),
                          column(
                            6,

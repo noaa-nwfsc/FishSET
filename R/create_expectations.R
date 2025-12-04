@@ -179,6 +179,7 @@ create_expectations <-
     
     # Calculate expactations ----------------------------------------------------------------------
     user_exp <- calc_exp(dataset = dataset, 
+                         alt_name = alt_name,
                          catch = catch, 
                          price = price,
                          defineGroup = defineGroup, 

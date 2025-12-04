@@ -62,8 +62,8 @@ server <- function(input, output, session) {
                                    v_id = NULL, 
                                    rule = "n", 
                                    value = 3) # basic default
-  rv_alt_matrix <- reactiveVal() 
-  
+  rv_alt_names <- reactiveVal(character(0))
+
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
@@ -193,8 +193,8 @@ server <- function(input, output, session) {
   define_alt_server("define_alternatives",
                     rv_folderpath = rv_folderpath, 
                     rv_project_name = rv_project_name, 
-                    rv_data = rv_data, 
-                    rv_alt_matrix = rv_alt_matrix)
+                    rv_data = rv_data,
+                    shared_alt_names = rv_alt_names)
   
   
   ## Create expectations --------------------------------------------------------------------------
@@ -214,6 +214,6 @@ server <- function(input, output, session) {
                              rv_folderpath = rv_folderpath, 
                              rv_project_name = rv_project_name, 
                              rv_data = rv_data,
-                             rv_alt_matrix= rv_alt_matrix)
+                             shared_alt_names = rv_alt_names)
   
 }
