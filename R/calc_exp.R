@@ -50,7 +50,7 @@
 #'   dummy matrix (if \code{dummy_exp = TRUE}), and list of input args. 
 #' 
 calc_exp <- function(dataset,
-                     alt_name = alt_name,
+                     alt_name = NULL,
                      catch,
                      price = NULL,
                      defineGroup = NULL,
