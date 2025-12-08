@@ -62,7 +62,6 @@ test_that("Standard run: Zonal Centroid succeeds with valid inputs", {
       alt_var = "zonal centroid",
       zoneID = "ZoneID",
       spatname = "s1spatSpatTable",
-      zone_cent_name = "s1_ZoneCentroid",
       alt_name = "MyAltChoice"
     ),
     "saved to FishSET database"
@@ -92,41 +91,13 @@ test_that("Error: Duplicate alt_name throws error", {
       alt_var = "zonal centroid",
       zoneID = "ZoneID",
       spatname = "s1spatSpatTable",
-      zone_cent_name = "s1_ZoneCentroid",
+      
       alt_name = "MyAltChoice"
     ),
     "already exists in the database"
   )
 })
 
-# Missing zone_cent_name throws error -------------------------------------------------------------
-test_that("Error: Missing zone_cent_name when occasion is zonal centroid", {
-  
-  # This folder should contain the subfolder named "s1" to pass the test
-  test_folder <- testthat::test_path("testdata/FishSETFolder")
-  
-  # Override the folder path used by locproject() which is nested within projects()
-  # This isolates the test env from the default paths
-  # withr::local_options(list(test_folder_path = test_folder))
-  old_option <- getOption("test_folder_path")
-  options(test_folder_path = test_folder)
-  
-  test_df <- table_view("s1MainDataTable", "s1")
-  
-  expect_error(
-    create_alternative_choice(
-      dat = test_df,
-      project = "s1",
-      occasion = "zonal centroid",
-      alt_var = "zonal centroid",
-      zoneID = "ZoneID",
-      spatname = "s1spatSpatTable",
-      zone_cent_name = NULL, # This should trigger the error
-      alt_name = "NewName"
-    ),
-    "'zone_cent_name' is required"
-  )
-})
 
 # Port occasion requires occasion_var -------------------------------------------------------------
 test_that("Logic: Occasion = 'port' requires occasion_var", {
@@ -150,7 +121,6 @@ test_that("Logic: Occasion = 'port' requires occasion_var", {
       occasion_var = NULL, # Missing
       zoneID = "ZoneID",
       spatname = "s1spatSpatTable",
-      zone_cent_name = "s1_ZoneCentroid",
       alt_name = "NewName2"
     ),
     "Port column name required"
@@ -180,7 +150,7 @@ test_that("Logic: alt_var = 'nearest point' requires spatial data", {
       alt_var = "nearest point",
       spatname = NULL, # Missing
       zoneID = "ZoneID",
-      zone_cent_name = "s1_ZoneCentroid",
+      
       alt_name = "NewName"
     ),
     "'spat' and 'spatID' are required"

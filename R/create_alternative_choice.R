@@ -58,16 +58,6 @@
 #'  hauls than the `min_haul` value will not be included in model data.
 #' @param zoneID Variable in `dat` that identifies the individual zones or
 #'  areas.
-#' @param zone_cent_name The name of the zonal centroid table to use when
-#'  `occasion` or `alt_var` is set to `zonal centroid`. Use
-#'  `list_tables("project", type = "centroid")` to view existing centroid tables.
-#'  See [create_centroid()] to create centroid tables or [centroid_to_fsdb()] to
-#'  create a centroid table from columns found in `dat`.
-#' @param fish_cent_name The name of the fishing centroid table to use when
-#'  `occasion` or `alt_var` is set to `fishing centroid`. Use
-#'  `list_tables("project", type = "centroid")` to view existing centroid tables.
-#'  See [create_centroid()] to create centroid tables or [centroid_to_fsdb()] to
-#'  create a centroid table from columns found in `dat`.
 #' @param spatname Required when `alt_var = 'nearest point'`. `spat` is a spatial
 #'  data file containing information on fishery management or regulatory zones
 #'  boundaries. `sf` objects are recommended, but `sp` objects can be used as
@@ -118,8 +108,6 @@ create_alternative_choice <- function(dat,
                                       alt_var = 'zonal centroid',
                                       min_haul = 0,
                                       zoneID,
-                                      zone_cent_name = NULL,
-                                      fish_cent_name = NULL,
                                       spatname = NULL,
                                       spatID = NULL,
                                       outsample = FALSE,
@@ -134,7 +122,7 @@ create_alternative_choice <- function(dat,
     alt_name <- paste0("AltMatrix_", format(Sys.Date(), format = "%Y%m%d"))
     warning("No 'alt_name' provided. Using default name: '", alt_name, "'.", call. = FALSE)
   }
- 
+  
   # Data Loading and parsing ---------------------------------------------------------------------
   # Pull the main dataset
   out <- data_pull(dat, project)
@@ -155,31 +143,6 @@ create_alternative_choice <- function(dat,
   # Ensure required columns exist in the loaded dataset
   column_check(dataset, cols = c(zoneID, occasion_var))
   o_len <- length(occasion_var)
-  
-  # Argument Validation --------------------------------------------------------------------------
-  # Check if centroid names are provided when the specific occasion/alt_var type requires them
-  if (occasion == "zonal centroid") {
-    if (o_len != 2 & is_value_empty(zone_cent_name)) {
-      stop("'zone_cent_name' is required.", call. = FALSE)
-    }
-  }
-  
-  if (occasion == "fishing centroid") {
-    if (o_len != 2 & is_value_empty(fish_cent_name)) {
-      stop("'fish_cent_name' is required.", call. = FALSE)
-    }
-  }
-  
-  if (alt_var == "zonal centroid" & is_value_empty(zone_cent_name)) {
-    stop("'zone_cent_name' is required.", call. = FALSE)
-  }
-  
-  if (alt_var == "fishing centroid" & is_value_empty(fish_cent_name)) {
-    stop("'fish_cent_name' is required.", call. = FALSE)
-  }
-  
-  zone_cent <- NULL
-  fish_cent <- NULL
   
   # Define allowed options
   occasion_opts <- c("zonal centroid", "fishing centroid", "port", "lon-lat")
@@ -209,15 +172,15 @@ create_alternative_choice <- function(dat,
   }
   
   # Helper to verify centroid tables exist and match the zones in the data
-  cent_check <- function(project, cent.tab, type = "zone") {
-    cent_type <- switch(type, zone = "Zonal", fish = "Fishing")
-    cent_exists <- table_exists(cent.tab, project)
+  cent_check <- function(project, type = "zone") {
+    cent_type <- switch(type, zone = "Zone", fish = "Fishing")
+    cent_exists <- table_exists(paste0(project, cent_type, "Centroid"), project)
     if (!cent_exists) {
       stop(cent_type, " centroid table must be saved to FishSET Database. Run ",
            "create_centroid().", call. = FALSE)
     }
     
-    cent_tab <- table_view(cent.tab, project)
+    cent_tab <- table_view(paste0(project, cent_type, "Centroid"), project)
     
     if (!any(cent_tab$ZoneID %in% unique(dataset[[zoneID]]))) {
       stop('Zones do not match between centroid table and zonal assignments ',
@@ -227,13 +190,17 @@ create_alternative_choice <- function(dat,
     cent_tab
   }
   
+  # Empty tables to hold centroid tables
+  zone_cent <- NULL
+  fish_cent <- NULL
+  
   # Alternative Variable Configuration (alt_var) --------------------------------------------------
   # Load and validate the specific centroid/spatial tables requested
   if (alt_var == "zonal centroid") {
-    zone_cent <- cent_check(project, zone_cent_name, "zone")
+    zone_cent <- cent_check(project,"zone")
     
   }else if (alt_var == "fishing centroid") {
-    fish_cent <- cent_check(project, fish_cent_name, "fish")
+    fish_cent <- cent_check(project, "fish")
     
   }else if (alt_var == "nearest point") {
     if (is_value_empty(spatdat) | is_value_empty(spatID)) {
@@ -251,7 +218,7 @@ create_alternative_choice <- function(dat,
   if (occasion == "zonal centroid") {
     if (is_value_empty(occasion_var) | o_len == 1) {
       if (is.null(zone_cent)) {
-        zone_cent <- cent_check(project, zone_cent_name, "zone")
+        zone_cent <- cent_check(project, "zone")
       }
     } else if (o_len == 2) {
       ll_occ_check(occasion_var)
@@ -262,7 +229,7 @@ create_alternative_choice <- function(dat,
   } else if (occasion == "fishing centroid") {
     if (is_value_empty(occasion_var) | o_len == 1) {
       if (is.null(fish_cent)) {
-        fish_cent <- cent_check(project, fish_cent_name, "fish")
+        fish_cent <- cent_check(project, "fish")
       }
     } else if (o_len == 2) {
       ll_occ_check(occasion_var)
@@ -338,8 +305,6 @@ create_alternative_choice <- function(dat,
     zoneID = zoneID,
     zone_cent = zone_cent,
     fish_cent = fish_cent,
-    zone_cent_name = zone_cent_name,
-    fish_cent_name = fish_cent_name,
     spat = spatdat,
     spatID = spatID,
     spatname = spat_out_name
@@ -350,25 +315,24 @@ create_alternative_choice <- function(dat,
   # Ensure DB disconnects even if function crashes later
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-   AltList <- list()
-
-   # If the table exists, load it first to preserve existing lists
+  AltList <- list()
+  
+  # If the table exists, load it first to preserve existing lists
   if (table_exists(single_sql, project)) {
     
     AltList <- unserialize_table(single_sql, project)
-
+    
     # Prevent overwriting an existing named list accidentally
     if (alt_name %in% names(AltList)) {
       stop("An alternative choice list with the name '", alt_name, 
            "' already exists in the database table '", single_sql,
            "'. Please enter a new unique name.", call. = FALSE)
     }
+    # Safely Remove Old Table if it existed
+    table_remove(single_sql, project)
+    
   }
   
-  # Safely Remove Old Table if it existed
- if (table_exists(single_sql, project)) {
-   table_remove(single_sql, project)
- }
   
   # Append this run's configuration to the main list using the unique alt_name
   AltList[[alt_name]] <- Alt_current

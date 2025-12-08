@@ -119,11 +119,11 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       }
       rv_selected_vars$vars <- selected_vars
 
-      cent_table_name <- paste0(project_name, "_ZoneCentroid")
-      if (!table_exists(cent_table_name, project_name)) {
-        showNotification("Error: Missing zonal centroid table.", type = "error")
-        return()
-      }
+      # cent_table_name <- paste0(project_name, "_ZoneCentroid")
+      # if (!table_exists(cent_table_name, project_name)) {
+      #   showNotification("Error: Missing zonal centroid table.", type = "error")
+      #   return()
+      # }
 
       # Helper for occasion type mapping
       occ_type <- switch(input$altc_occasion_input,
@@ -152,7 +152,6 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         min_haul = input$altc_min_haul_input,
         zoneID = rv_selected_vars$vars$main$main_zone_id,
         spatID = rv_selected_vars$vars$spat$spat_zone_id,
-        zone_cent_name = cent_table_name,
         alt_name = alt_name_input)
       
       # Refresh UI (reloads names from DB)
@@ -484,30 +483,56 @@ define_alt_ui <- function(id) {
     #  Manage Table Card -----------
     bslib::layout_column_wrap(
       width = 1/2,
+      heights_equal = "row", # Keeps left and right cards the same height
       bslib::card(
-        class="card-overflow",
+        full_screen = TRUE, 
         bslib::card_header("Manage Alternative Choice Matrices"),
+        
+        # Explicit CSS max-height and scrolling on the BODY only.
+        # This cages the table so it cannot grow over the footer.
         bslib::card_body(
-          class="card-overflow",
-          DT::dataTableOutput(ns("existing_matrices_table")),
-          hr(),
-          fluidRow(
-            column(8, selectizeInput(ns("matrix_to_remove"), 
-                                     "Select matrix to remove:", choices = NULL)),
-            column(4, style = "margin-top: 25px;", 
-                   actionButton(ns("remove_matrix_btn"), 
-                                icon = icon("trash"),
-                                "Remove Selected", class = "btn-danger w-100"))
+          style = "max-height: 800px; overflow-y: auto; min-height: 300px;",
+          
+          # Set fill = FALSE. Let the div above handle the scrollbar, not the JS.
+          DT::dataTableOutput(ns("existing_matrices_table"), fill = FALSE)
+        ),
+        # Footer stays legally outside the scrollable body area
+        bslib::card_footer(
+          bslib::layout_columns(
+            col_widths = c(8, 4),
+            gap = "10px",
+            selectizeInput(
+              ns("matrix_to_remove"), 
+              "Select matrix to remove:", 
+              choices = NULL, 
+              width = "100%"
+            ),
+            div(
+              style = "margin-top: 25px;",
+              actionButton(
+                ns("remove_matrix_btn"), 
+                icon = icon("trash"),
+                "Remove Selected", 
+                class = "btn-danger w-100"
+              )
+            )
           )
         )
       ),
-      div(id = ns("altc_zone_plot_wrapper"), style = "display: none;",
-          bslib::card(
-            # Wrapped the plot in a hidden div
-            bslib::card_header("Analysis of Saved Matrix"),
-            plotOutput(ns('altc_zone_plot'))
+      div(
+        id = ns("altc_zone_plot_wrapper"), 
+        style = "display: none; height: 100%;", 
+        bslib::card(
+          full_screen = TRUE,
+          height = "100%", 
+          bslib::card_header("Analysis of Saved Matrix"),
+          bslib::card_body(
+            # Standard plot output
+            plotOutput(ns('altc_zone_plot'), height = "800px")
           )
-      )),
+        )
+      )
+    ),
     # Spinner container
     div(id = ns("define_alt_spinner_container"),
         style = "display: none;",

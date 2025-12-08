@@ -182,7 +182,6 @@ create_alternative_choice(dat = scallopModMainDataTable,
                           occasion_var = c("previous_port_lon", "previous_port_lat"),
                           alt_var = "zonal centroid",
                           zoneID = "ZoneID",
-                          zone_cent_name = "scallopModZoneCentroid",
                           min_haul = 90
                           )
 

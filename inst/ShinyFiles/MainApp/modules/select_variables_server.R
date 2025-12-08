@@ -639,7 +639,7 @@ save_var_server <- function(id, rv_project_name, rv_data, parent_session){
                           dat = rv_data$main,
                           project = project_name,
                           spatID = saved_variables_spat$spat_zone_id,
-                          cent.name = "_",
+                          cent.name = "",
                           output = "centroid table")
         }
         
