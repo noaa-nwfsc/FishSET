@@ -253,6 +253,8 @@ fishset_fit <- function(project,
   
   # Compile Result List ---------------------------------------------------------------------------
   result <- list(
+    design_name = model_name,
+    
     # Core Objects
     opt = opt,
     obj = obj,
@@ -336,6 +338,4 @@ fishset_fit <- function(project,
   fishset_fit_function$kwargs <- list()
   
   log_call(project, fishset_fit_function)
-  
-  return(result)
 }
