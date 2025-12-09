@@ -9,6 +9,11 @@
 #' @param dat Required, Primary data frame containing data on hauls or trips.
 #'  Table in FishSET database should contain the string `MainDataTable`.
 #' @param project Required, name of project.
+#' @param alt_name String, **Required**. The name to be assigned to this
+#'  alternative choice list within the FishSET database. If a list with this name
+#'  already exists, the function will stop.
+#' @param zoneID Variable in `dat` that identifies the individual zones or
+#'  areas.
 #' @param occasion String, determines the starting point when calculating the
 #'  distance matrix. Options are `"zonal centroid"`, `"fishing centroid"`,
 #'  `"port"`, or `"lon-lat"`. See `occasion_var` for requirements.
@@ -56,8 +61,6 @@
 #'  tables by running `list_tables("project", type = "centroid")`.
 #' @param min_haul Required, numeric, minimum number of hauls. Zones with fewer
 #'  hauls than the `min_haul` value will not be included in model data.
-#' @param zoneID Variable in `dat` that identifies the individual zones or
-#'  areas.
 #' @param spatname Required when `alt_var = 'nearest point'`. `spat` is a spatial
 #'  data file containing information on fishery management or regulatory zones
 #'  boundaries. `sf` objects are recommended, but `sp` objects can be used as
@@ -72,9 +75,6 @@
 #'  that identifies the individual zones or areas.
 #' @param outsample Logical, indicating whether this is for primary data or out-of
 #'  sample data.
-#' @param alt_name String, **Required**. The name to be assigned to this
-#'  alternative choice list within the FishSET database. If a list with this name
-#'  already exists, the function will stop.
 #' @importFrom DBI dbExecute
 #' @export create_alternative_choice
 #' @md
@@ -103,15 +103,15 @@
 
 create_alternative_choice <- function(dat,
                                       project,
+                                      alt_name = NULL,
+                                      zoneID,
                                       occasion = 'zonal centroid',
                                       occasion_var = NULL,
                                       alt_var = 'zonal centroid',
                                       min_haul = 0,
-                                      zoneID,
                                       spatname = NULL,
                                       spatID = NULL,
-                                      outsample = FALSE,
-                                      alt_name = NULL) {
+                                      outsample = FALSE) {
   
   # Setup and Naming -----------------------------------------------------------------------------
   # Define the SQL table name based on whether this is in-sample or out-of-sample
@@ -319,7 +319,6 @@ create_alternative_choice <- function(dat,
   
   # If the table exists, load it first to preserve existing lists
   if (table_exists(single_sql, project)) {
-    
     AltList <- unserialize_table(single_sql, project)
     
     # Prevent overwriting an existing named list accidentally
@@ -328,9 +327,9 @@ create_alternative_choice <- function(dat,
            "' already exists in the database table '", single_sql,
            "'. Please enter a new unique name.", call. = FALSE)
     }
+    
     # Safely Remove Old Table if it existed
     table_remove(single_sql, project)
-    
   }
   
   

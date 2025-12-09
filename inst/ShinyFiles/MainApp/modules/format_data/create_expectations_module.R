@@ -31,7 +31,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
     
     # Reactive value to store the full list of existing matrix data (names, settings, etc.)
     rv_existing_matrix_data <- reactiveVal(list())
-
+    
     # Function to load existing matrix data
     load_matrix_data <- function() {
       req(rv_project_name())
@@ -51,13 +51,13 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       
       # Update the reactive value
       rv_existing_matrix_data(exp_mats)
-
+      
       # Update the remove dropdown
       mat_names <- names(exp_mats)[!names(exp_mats) %in%
                                      c('scale', 'units') &
                                      !grepl("_dummy|_settings", names(exp_mats))]
       updateSelectizeInput(session, "matrix_to_remove", choices = mat_names, selected = "")
-     
+      
     }
     
     # Instead of querying the DB for alt names, we listen to the shared list
@@ -86,7 +86,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       date_choices <- c("None", choices[sapply(rv_data$main, 
                                                function(x) inherits(x, c("Date", "POSIXt")))])
       numeric_choices <- c("None", choices[sapply(rv_data$main, is.numeric)])
-
+      
       updateSelectizeInput(session, "catch_input", 
                            choices = choices)
       updateSelectizeInput(session, "price_input", 
@@ -97,7 +97,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
                            choices = date_choices, selected = "None")
     })
     
-
+    
     # Handle the 'Create Expectations Matrix' button click
     observeEvent(input$create_exp_btn, {
       req(rv_project_name(), rv_data$main)
@@ -373,67 +373,71 @@ create_expectations_ui <- function(id){
           
           fluidRow(
             # --- Group 1: Core Inputs ---
-            column(6,
-                   bslib::card(
-                     class="card-overflow",
-                     height = "100%", # Make card fill its parent column
-                     bslib::card_header(h5("1. Core Inputs", class = "mb-0")),
-                     bslib::card_body(
-                       class="card-overflow d-flex flex-column",
-                       fluidRow(
-                         column(6,
-                                textInput(ns("name_input"),
-                                          "Name for new matrix:",
-                                          value = "exp_matrix_1")
-                         ),
-                         column(6,
-                                selectizeInput(ns("catch_input"),
-                                               "Catch variable:",
-                                               choices = NULL, multiple = FALSE)
-                         )
-                       ),
-                       
-                       
-                       fluidRow(
-                         column(6,
-                                selectizeInput(ns("alt_name_input"),
-                                               tagList(
-                                                 span(
-                                                   style = 
-                                                     "white-space: wrap; display: inline-flex; align-items: center;",
-                                                   HTML("Alternative Matrix (alt_name): &nbsp;"),
-                                                   bslib::tooltip(
-                                                     shiny::icon("circle-info", `aria-label` = "More information"),
-                                                     HTML("Select the specific Alternative Choice matrix to match against."),
-                                                     options = list(delay = list(show = 0, hide = 850))
-                                                   )
-                                                 )
-                                               ),
-                                               choices =NULL, multiple = FALSE)
-                         ),
-                         column(
-                           6,
-                           selectizeInput(
-                             ns("price_input"),
-                             tagList(
-                               span(
-                                 style = 
-                                   "white-space: wrap; display: inline-flex; align-items: center;",
-                                 HTML("Price variable (optional): &nbsp;"),
-                                 bslib::tooltip(
-                                   shiny::icon("circle-info", `aria-label` = "More information"),
-                                   HTML("This input is optional and used to calculate 
+            column(
+              6,
+              bslib::card(
+                class="card-overflow",
+                height = "100%", # Make card fill its parent column
+                bslib::card_header(h5("1. Core Inputs", class = "mb-0")),
+                bslib::card_body(
+                  class="card-overflow d-flex flex-column",
+                  fluidRow(
+                    column(6,
+                           textInput(ns("name_input"),
+                                     "Name for new matrix:",
+                                     value = "exp_matrix_1")
+                    ),
+                    column(6,
+                           selectizeInput(ns("catch_input"),
+                                          "Catch variable:",
+                                          choices = NULL, multiple = FALSE)
+                    )
+                  ),
+                  
+                  
+                  fluidRow(
+                    column(
+                      6,
+                      selectizeInput(
+                        ns("alt_name_input"),
+                        tagList(
+                          span(
+                            style = 
+                              "white-space: wrap; display: inline-flex; align-items: center;",
+                            HTML("Alternative Matrix (alt_name): &nbsp;"),
+                            bslib::tooltip(
+                              shiny::icon("circle-info", `aria-label` = "More information"),
+                              HTML("Select the specific Alternative Choice matrix to match 
+                                   against."),
+                              options = list(delay = list(show = 0, hide = 850))
+                            )
+                          )
+                        ),
+                        choices =NULL, multiple = FALSE)
+                    ),
+                    column(
+                      6,
+                      selectizeInput(
+                        ns("price_input"),
+                        tagList(
+                          span(
+                            style = 
+                              "white-space: wrap; display: inline-flex; align-items: center;",
+                            HTML("Price variable (optional): &nbsp;"),
+                            bslib::tooltip(
+                              shiny::icon("circle-info", `aria-label` = "More information"),
+                              HTML("This input is optional and used to calculate 
                                         expected revenue (price*catch). If revenue is included in
                                         the main data table, input a column of ones for catch."),
-                                   options = list(delay = list(show = 0, hide = 850))
-                                 )
-                               )
-                             ),
-                             choices = NULL, multiple = FALSE)
-                         )
-                       )
-                     )
-                   )
+                              options = list(delay = list(show = 0, hide = 850))
+                            )
+                          )
+                        ),
+                        choices = NULL, multiple = FALSE)
+                    )
+                  )
+                )
+              )
             ),
             
             # --- Group 2: Temporal Settings ---

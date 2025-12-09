@@ -8,7 +8,7 @@
 # Dependencies: shiny, DT, RSQLite, DBI, shinyjs, bslib
 # =================================================================================================
 
-# define alternatives server --------------------------------------------------------------------
+# define alternatives server ----------------------------------------------------------------------
 #' define_alt_server
 #'
 #' @param id A character string that is unique to this module instance.
@@ -25,7 +25,7 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     # Reactive value to store strictly the NAMES (Character Vector)
     rv_existing_matrix_names <- reactiveVal(character(0))
     rv_selected_vars <- reactiveValues(vars = NULL)
-
+    
     # Load List Names from DB ---
     load_alt_data <- function() {
       req(rv_project_name())
@@ -58,7 +58,7 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       if (!is.null(shared_alt_names)) {
         shared_alt_names(just_names) 
       }
-
+      
       # Update removal dropdown
       updateSelectizeInput(session, "matrix_to_remove", choices = just_names, selected = "")
     }
@@ -78,16 +78,16 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       
     })
     
-
+    
     # Save choice set
     observeEvent(input$altc_save_btn, {
       project_name <- rv_project_name()$value
       folderpath <- rv_folderpath()
       req(rv_data$main)
       req(rv_data$spat)
-
+      
       alt_name_input <- input$altc_name_input
-
+      
       # Validation
       if (alt_name_input == "") {
         showNotification("Please provide a name for the new Alternative Choice matrices",
@@ -98,12 +98,12 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         showNotification("Name already exists. Please choose a unique name.", type = "error")
         return()
       }
-
+      
       # Show Spinner
       shinyjs::show("define_alt_spinner_container")
       on.exit(shinyjs::hide("define_alt_spinner_container"), add = TRUE)
-
-
+      
+      
       # Load selected variables
       selected_vars <- load_gui_variables(project_name, folderpath)
       if (is.null(selected_vars)) {
@@ -118,49 +118,43 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         return() # Stop execution of the observer
       }
       rv_selected_vars$vars <- selected_vars
-
-      # cent_table_name <- paste0(project_name, "_ZoneCentroid")
-      # if (!table_exists(cent_table_name, project_name)) {
-      #   showNotification("Error: Missing zonal centroid table.", type = "error")
-      #   return()
-      # }
-
+      
       # Helper for occasion type mapping
       occ_type <- switch(input$altc_occasion_input,
                          'port' = 'port',
                          'zonal centroid' = 'zonal centroid',
                          'lon-lat' = 'lon-lat')
-
+      
       # Run Function Wrapper
       q_test <- quietly_test(create_alternative_choice, show_msg = TRUE)
-
+      
       # Add specific occasion variables based on selection
       if(input$altc_occasion_input == "zonal centroid"){
-       occasion_var_input <- input$occ_lag_zone_id_input
+        occasion_var_input <- input$occ_lag_zone_id_input
       } else if(input$altc_occasion_input == "lon-lat"){
-       occasion_var_input <- c(input$occ_lon_input, input$occ_lat_input)
+        occasion_var_input <- c(input$occ_lon_input, input$occ_lat_input)
       } else if(input$altc_occasion_input == "port"){
-       occasion_var_input <- input$occ_port_name_input
+        occasion_var_input <- input$occ_port_name_input
       }
       
       q_test(
         dat = rv_data$main,
         project = project_name,
+        alt_name = alt_name_input,
+        zoneID = rv_selected_vars$vars$main$main_zone_id,
         occasion = occ_type,
         occasion_var=occasion_var_input,
         alt_var = "zonal centroid",
         min_haul = input$altc_min_haul_input,
-        zoneID = rv_selected_vars$vars$main$main_zone_id,
-        spatID = rv_selected_vars$vars$spat$spat_zone_id,
-        alt_name = alt_name_input)
+        spatID = rv_selected_vars$vars$spat$spat_zone_id)
       
       # Refresh UI (reloads names from DB)
       load_alt_data()
-
+      
       # Reveal the hidden plot container
       shinyjs::show("altc_zone_plot_wrapper")
     })
-
+    
     # zone freq table
     zone_freq <- reactive({
       req(input$altc_save_btn)
@@ -193,7 +187,7 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       # Slice the top 20 (head handles cases < 20 gracefully)
       tmp <- head(tmp, 20)
       
-
+      
       ggplot2::ggplot(tmp) +
         ggplot2::geom_col(ggplot2::aes(x=stats::reorder(as.factor(!!z_sym), n), y = n),
                           fill = "darkgreen") +
@@ -201,9 +195,9 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         ggplot2::scale_y_continuous(expand = c(0,0)) +
         fishset_theme() +
         ggplot2::coord_flip()+
-         ggplot2::labs(
-           caption= paste0("Only showing the 20 largest groups.")
-           )
+        ggplot2::labs(
+          caption= paste0("Only showing the 20 largest groups.")
+        )
     })
     
     output$altc_zone_plot <- renderPlot(zoneIDNumbers_dat())
@@ -247,7 +241,7 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data,
                     options = list(pageLength = 3, searching = TRUE, dom = 'tp',
                                    scrollX = TRUE,
                                    columnDefs = list(list(orderable = FALSE, targets = 1))
-                                   ),
+                    ),
                     rownames = FALSE,
                     escape = FALSE, # Essential for HTML buttons
                     selection = 'none',
@@ -260,7 +254,7 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       project_name <- rv_project_name()$value
       table_name_db <- paste0(project_name, "AltMatrix")
       
-      # 1. Load the master list from DB
+      # 1. Load the master list from DB  ---------------------
       master_list <- tryCatch({
         unserialize_table(table_name_db, project_name)
       }, error = function(e) return(NULL))
@@ -389,6 +383,7 @@ define_alt_ui <- function(id) {
                 href = "https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html",
                 "section 8.2.2"),
               "in the FishSET User Manual."),
+            
             # --- Inputs Card ---
             bslib::layout_column_wrap( 
               width = 1/2,
@@ -419,15 +414,18 @@ define_alt_ui <- function(id) {
                     choices=c('Port' = 'port', 
                               'Lagged haul location' = 'zonal centroid', 
                               'Lon-Lat Coordinates' = 'lon-lat')),
+                  
                   conditionalPanel("input.altc_occasion_input=='lon-lat'", ns = ns,
                                    selectInput(ns("occ_lon_input"), "Select longitude:", 
                                                choices = NULL),
                                    selectInput(ns("occ_lat_input"), "Select latitude:", 
                                                choices = NULL)),
+                  
                   conditionalPanel("input.altc_occasion_input=='zonal centroid'", ns = ns,
                                    selectInput(ns("occ_lag_zone_id_input"), 
                                                "Select lagged zone ID:",
                                                choices = NULL)),
+                  
                   conditionalPanel(
                     "input.altc_occasion_input=='port'", ns = ns,
                     selectInput(
@@ -448,6 +446,7 @@ define_alt_ui <- function(id) {
                       choices = NULL))
                 )
               ),
+              
               bslib::card(
                 class="card-overflow",
                 height = "100%", # Make card fill its parent column
@@ -469,6 +468,7 @@ define_alt_ui <- function(id) {
             textInput(ns("altc_name_input"), 
                       "Name for new Alternative Choice Matrix:",
                       placeholder = "e.g., Alt_Run1"),
+            
             tags$div(class = "form-group",
                      tags$label(HTML("&nbsp;")), # Empty label for spacing
                      actionButton(ns('altc_save_btn'), 'Create alternative location matrix',
@@ -480,6 +480,7 @@ define_alt_ui <- function(id) {
           
         )
     ),
+    
     #  Manage Table Card -----------
     bslib::layout_column_wrap(
       width = 1/2,
@@ -496,6 +497,7 @@ define_alt_ui <- function(id) {
           # Set fill = FALSE. Let the div above handle the scrollbar, not the JS.
           DT::dataTableOutput(ns("existing_matrices_table"), fill = FALSE)
         ),
+        
         # Footer stays legally outside the scrollable body area
         bslib::card_footer(
           bslib::layout_columns(
@@ -507,6 +509,7 @@ define_alt_ui <- function(id) {
               choices = NULL, 
               width = "100%"
             ),
+            
             div(
               style = "margin-top: 25px;",
               actionButton(
@@ -519,6 +522,7 @@ define_alt_ui <- function(id) {
           )
         )
       ),
+      
       div(
         id = ns("altc_zone_plot_wrapper"), 
         style = "display: none; height: 100%;", 
@@ -533,6 +537,7 @@ define_alt_ui <- function(id) {
         )
       )
     ),
+    
     # Spinner container
     div(id = ns("define_alt_spinner_container"),
         style = "display: none;",

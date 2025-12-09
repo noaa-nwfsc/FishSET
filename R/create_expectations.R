@@ -86,207 +86,206 @@
 #' )
 #' }
 #'
-create_expectations <-
-  function(dat,
-           project,
-           name,
-           alt_name = NULL,
-           catch,
-           price = NULL,
-           defineGroup = NULL,
-           temp_var = NULL,
-           temporal = "daily",
-           calc_method = "standardAverage",
-           temp_window = 7,
-           day_lag = 1,
-           year_lag = 0,
-           empty_catch = NULL,
-           empty_expectation = 1e-04,
-           dummy_exp = FALSE,
-           weight_avg = FALSE,
-           outsample = FALSE) {
-    
-    # Check if expected matrix with this name already exists --------------------------------------
-    if (!outsample && table_exists(paste0(project, "ExpectedCatch"), project)) {
-      # get previous list
-      exp_mats <- unserialize_table(paste0(project, "ExpectedCatch"), project)
-      exp_names <- names(exp_mats)[!names(exp_mats) %in% c('scale', 'units')]
-      if (name %in% exp_names) {
-        stop("An expected catch matrix with this name already exist. Please enter a new name for
+create_expectations <- function(dat,
+                                project,
+                                name,
+                                alt_name = NULL,
+                                catch,
+                                price = NULL,
+                                defineGroup = NULL,
+                                temp_var = NULL,
+                                temporal = "daily",
+                                calc_method = "standardAverage",
+                                temp_window = 7,
+                                day_lag = 1,
+                                year_lag = 0,
+                                empty_catch = NULL,
+                                empty_expectation = 1e-04,
+                                dummy_exp = FALSE,
+                                weight_avg = FALSE,
+                                outsample = FALSE) {
+  
+  # Check if expected matrix with this name already exists --------------------------------------
+  if (!outsample && table_exists(paste0(project, "ExpectedCatch"), project)) {
+    # get previous list
+    exp_mats <- unserialize_table(paste0(project, "ExpectedCatch"), project)
+    exp_names <- names(exp_mats)[!names(exp_mats) %in% c('scale', 'units')]
+    if (name %in% exp_names) {
+      stop("An expected catch matrix with this name already exist. Please enter a new name for
            this expected catch matrix.")
-      }
     }
-    
-    # Pull and prepare data -----------------------------------------------------------------------
-    out <- data_pull(dat, project = project)
-    dataset <- out$dataset
-    
-    # Determine if using in-sample or out-of-sample data ------------------------------------------
-    # Set data source based on the outsample flag
-    data_type <- if (!outsample) "main" else "outsample"
-    alt_matrix_name <- if (!outsample) "AltMatrix" else "AltMatrixOutSample"
-    
-
-    dat <- parse_data_name(dat, data_type, project)
-    Alt <- unserialize_table(paste0(project, alt_matrix_name), project)
-    
-    
-    # Filter Alt Matrix based on alt_name ---------------------------------------------------------
-    # Update: Filter Alt to only include the specific alt_name requested
-    if (!is.null(alt_name)) {
-      if (alt_name %in% names(Alt)) {
-        Alt <- Alt[[alt_name]]
-      } else {
-        stop(paste0("The alt_name '", alt_name, "' was not found in the stored Alternative
+  }
+  
+  # Pull and prepare data -----------------------------------------------------------------------
+  out <- data_pull(dat, project = project)
+  dataset <- out$dataset
+  
+  # Determine if using in-sample or out-of-sample data ------------------------------------------
+  # Set data source based on the outsample flag
+  data_type <- if (!outsample) "main" else "outsample"
+  alt_matrix_name <- if (!outsample) "AltMatrix" else "AltMatrixOutSample"
+  
+  
+  dat <- parse_data_name(dat, data_type, project)
+  Alt <- unserialize_table(paste0(project, alt_matrix_name), project)
+  
+  
+  # Filter Alt Matrix based on alt_name ---------------------------------------------------------
+  # Update: Filter Alt to only include the specific alt_name requested
+  if (!is.null(alt_name)) {
+    if (alt_name %in% names(Alt)) {
+      Alt <- Alt[[alt_name]]
+    } else {
+      stop(paste0("The alt_name '", alt_name, "' was not found in the stored Alternative
                     Matrix list."))
-      }
     }
-    
-    # Perform initial data quality and parameter checks -------------------------------------------
-    column_check(dataset, c(catch, price, defineGroup))
-    
-    if (all(is_empty(date_cols(dataset)))) {
-      warning("No time variable found, only averaging in groups and per zone is capable",
-              call. = FALSE)
-    }
-    
-    if (!is_value_empty(defineGroup)) {
-      if (!all(defineGroup %in% names(dataset))) { # Check that groups exist in the dataset
-        stop("One or more values for defineGroup input not found in the main data table",
-             call. = FALSE)
-      }
-    }
-    
-    if (qaqc_helper(dataset[catch], "NaN")) {
-      stop("NaNs detected in catch variable. Use nan_filter() to remove.", call. = FALSE)
-    }
-    
-    if (qaqc_helper(dataset[catch], "Inf")) {
-      stop("Inf/-Infs detected in catch variable. Remove before running `create_expectations()`.", 
+  }
+  
+  # Perform initial data quality and parameter checks -------------------------------------------
+  column_check(dataset, c(catch, price, defineGroup))
+  
+  if (all(is_empty(date_cols(dataset)))) {
+    warning("No time variable found, only averaging in groups and per zone is capable",
+            call. = FALSE)
+  }
+  
+  if (!is_value_empty(defineGroup)) {
+    if (!all(defineGroup %in% names(dataset))) { # Check that groups exist in the dataset
+      stop("One or more values for defineGroup input not found in the main data table",
            call. = FALSE)
     }
-    
-    # Ensure empty_expectation is numeric
-    stopifnot("empty_expectations must be numeric" = is.numeric(empty_expectation))
-    
-    # Ensure the temporal variable is a Date type
-    if (tolower(temp_var) != "none"){
-      var_class <- class(dataset[[temp_var]])
-      if (!("Date" %in% var_class || any(grepl("POSIX", var_class)))) {
-        dataset[[temp_var]] <- as.Date(dataset[[temp_var]])
-      }  
-    }
-    
-    # Calculate expactations ----------------------------------------------------------------------
-    user_exp <- calc_exp(dataset = dataset, 
-                         alt_name = alt_name,
-                         catch = catch, 
-                         price = price,
-                         defineGroup = defineGroup, 
-                         temp_var = temp_var, 
-                         temp_window = temp_window, 
-                         day_lag = day_lag, 
-                         year_lag = year_lag, 
-                         temporal = temporal, 
-                         calc_method = calc_method, 
-                         empty_catch = empty_catch, 
-                         empty_expectation = empty_expectation,
-                         dummy_exp = dummy_exp, 
-                         weight_avg = weight_avg, 
-                         Alt = Alt)
-    
-    # Determine scaling factor for the results ----------------------------------------------------
-    r <- nchar(sub("\\.[0-9]+", "", mean(as.matrix(user_exp$exp), na.rm = TRUE))) 
-    sscale <- 10^(r - 1)
-    
-    # Define the SQL table name -------------------------------------------------------------------
-    # Is this for testing out of sample data?
-    if(!outsample){
-      single_sql <- paste0(project, "ExpectedCatch")
-    } else {
-      single_sql <- paste0(project, "ExpectedCatchOutSample")
-    }
-    
-    # Assemble the expected catch list for storage ------------------------------------------------
-    if (!outsample && table_exists(single_sql, project)) {
-      # Get existing list
-      ExpectedCatch <- unserialize_table(single_sql, project)
-      
-      # Add new expected catch matrix
-      tmp_ExpectedCatch <- list(exptmp = user_exp$exp,
-                                exptmp_dummy = user_exp$dummy,
-                                exptmp_settings = user_exp$settings)
-      
-      # Combine the lists
-      ExpectedCatch <- c(ExpectedCatch, tmp_ExpectedCatch)
-      
-    } else {
-      ExpectedCatch <- list(
-        scale = sscale,
-        # TODO: Use alternative approach for determining units
-        units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS"), # catch units
-        exptmp = user_exp$exp,
-        exptmp_dummy = user_exp$dummy,
-        exptmp_settings = user_exp$settings
-      )  
-    }
-    
-    # Rename elements in the list
-    names(ExpectedCatch)[which(names(ExpectedCatch) == "exptmp")] <- name
-    names(ExpectedCatch)[which(names(ExpectedCatch) == "exptmp_dummy")] <- paste0(name,"_dummy")
-    names(ExpectedCatch)[which(names(ExpectedCatch) == "exptmp_settings")] <- 
-      paste0(name,"_settings")
-    
-    # Connect to DB and save the results ----------------------------------------------------------
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-    
-    # Remove the table first then save again
-    table_remove(single_sql, project)
-    
-    DBI::dbExecute(fishset_db, 
-                   paste("CREATE TABLE IF NOT EXISTS", 
-                         single_sql, 
-                         "(data ExpectedCatch)")
-    )
-    DBI::dbExecute(fishset_db, 
-                   paste("INSERT INTO", 
-                         single_sql, 
-                         "VALUES (:data)"),
-                   params = list(data = list(serialize(ExpectedCatch, NULL)))
-    )
-    
-    # Display confirmation message ----------------------------------------------------------------
-    if(!outsample){
-      message('Expected catch/revenue matrix saved to FishSET database')  
-    } else {
-      message('Out-of-sample expected catch/revenue matrix saved to FishSET database')  
-    }
-    
-    # Log the function call -----------------------------------------------------------------------
-    create_expectations_function <- list()
-    create_expectations_function$functionID <- "create_expectations"
-    create_expectations_function$args <- 
-      list(dat, 
-           project, 
-           name,
-           alt_name,
-           catch, 
-           price, 
-           defineGroup, 
-           temp_var, 
-           temporal, 
-           calc_method, 
-           empty_catch, 
-           empty_expectation, 
-           temp_window, 
-           day_lag, 
-           year_lag, 
-           dummy_exp, 
-           weight_avg, 
-           outsample
-      )
-    create_expectations_function$kwargs <- list()
-    
-    log_call(project, create_expectations_function)
   }
+  
+  if (qaqc_helper(dataset[catch], "NaN")) {
+    stop("NaNs detected in catch variable. Use nan_filter() to remove.", call. = FALSE)
+  }
+  
+  if (qaqc_helper(dataset[catch], "Inf")) {
+    stop("Inf/-Infs detected in catch variable. Remove before running `create_expectations()`.", 
+         call. = FALSE)
+  }
+  
+  # Ensure empty_expectation is numeric
+  stopifnot("empty_expectations must be numeric" = is.numeric(empty_expectation))
+  
+  # Ensure the temporal variable is a Date type
+  if (tolower(temp_var) != "none"){
+    var_class <- class(dataset[[temp_var]])
+    if (!("Date" %in% var_class || any(grepl("POSIX", var_class)))) {
+      dataset[[temp_var]] <- as.Date(dataset[[temp_var]])
+    }  
+  }
+  
+  # Calculate expactations ----------------------------------------------------------------------
+  user_exp <- calc_exp(dataset = dataset, 
+                       alt_name = alt_name,
+                       catch = catch, 
+                       price = price,
+                       defineGroup = defineGroup, 
+                       temp_var = temp_var, 
+                       temp_window = temp_window, 
+                       day_lag = day_lag, 
+                       year_lag = year_lag, 
+                       temporal = temporal, 
+                       calc_method = calc_method, 
+                       empty_catch = empty_catch, 
+                       empty_expectation = empty_expectation,
+                       dummy_exp = dummy_exp, 
+                       weight_avg = weight_avg, 
+                       Alt = Alt)
+  
+  # Determine scaling factor for the results ----------------------------------------------------
+  r <- nchar(sub("\\.[0-9]+", "", mean(as.matrix(user_exp$exp), na.rm = TRUE))) 
+  sscale <- 10^(r - 1)
+  
+  # Define the SQL table name -------------------------------------------------------------------
+  # Is this for testing out of sample data?
+  if(!outsample){
+    single_sql <- paste0(project, "ExpectedCatch")
+  } else {
+    single_sql <- paste0(project, "ExpectedCatchOutSample")
+  }
+  
+  # Assemble the expected catch list for storage ------------------------------------------------
+  if (!outsample && table_exists(single_sql, project)) {
+    # Get existing list
+    ExpectedCatch <- unserialize_table(single_sql, project)
+    
+    # Add new expected catch matrix
+    tmp_ExpectedCatch <- list(exptmp = user_exp$exp,
+                              exptmp_dummy = user_exp$dummy,
+                              exptmp_settings = user_exp$settings)
+    
+    # Combine the lists
+    ExpectedCatch <- c(ExpectedCatch, tmp_ExpectedCatch)
+    
+  } else {
+    ExpectedCatch <- list(
+      scale = sscale,
+      # TODO: Use alternative approach for determining units
+      units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS"), # catch units
+      exptmp = user_exp$exp,
+      exptmp_dummy = user_exp$dummy,
+      exptmp_settings = user_exp$settings
+    )  
+  }
+  
+  # Rename elements in the list
+  names(ExpectedCatch)[which(names(ExpectedCatch) == "exptmp")] <- name
+  names(ExpectedCatch)[which(names(ExpectedCatch) == "exptmp_dummy")] <- paste0(name,"_dummy")
+  names(ExpectedCatch)[which(names(ExpectedCatch) == "exptmp_settings")] <- 
+    paste0(name,"_settings")
+  
+  # Connect to DB and save the results ----------------------------------------------------------
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
+  # Remove the table first then save again
+  table_remove(single_sql, project)
+  
+  DBI::dbExecute(fishset_db, 
+                 paste("CREATE TABLE IF NOT EXISTS", 
+                       single_sql, 
+                       "(data ExpectedCatch)")
+  )
+  DBI::dbExecute(fishset_db, 
+                 paste("INSERT INTO", 
+                       single_sql, 
+                       "VALUES (:data)"),
+                 params = list(data = list(serialize(ExpectedCatch, NULL)))
+  )
+  
+  # Display confirmation message ----------------------------------------------------------------
+  if(!outsample){
+    message('Expected catch/revenue matrix saved to FishSET database')  
+  } else {
+    message('Out-of-sample expected catch/revenue matrix saved to FishSET database')  
+  }
+  
+  # Log the function call -----------------------------------------------------------------------
+  create_expectations_function <- list()
+  create_expectations_function$functionID <- "create_expectations"
+  create_expectations_function$args <- 
+    list(dat, 
+         project, 
+         name,
+         alt_name,
+         catch, 
+         price, 
+         defineGroup, 
+         temp_var, 
+         temporal, 
+         calc_method, 
+         empty_catch, 
+         empty_expectation, 
+         temp_window, 
+         day_lag, 
+         year_lag, 
+         dummy_exp, 
+         weight_avg, 
+         outsample
+    )
+  create_expectations_function$kwargs <- list()
+  
+  log_call(project, create_expectations_function)
+}

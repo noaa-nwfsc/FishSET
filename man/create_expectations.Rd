@@ -8,6 +8,7 @@ create_expectations(
   dat,
   project,
   name,
+  alt_name = NULL,
   catch,
   price = NULL,
   defineGroup = NULL,
@@ -31,6 +32,8 @@ database contains the string 'MainDataTable'.}
 \item{project}{String, name of project.}
 
 \item{name}{Name of the expected matrix to be saved}
+
+\item{alt_name}{Name of the alternative choice matrix.}
 
 \item{catch}{Variable from \code{dat} containing catch data.}
 
