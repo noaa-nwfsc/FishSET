@@ -338,4 +338,6 @@ fishset_fit <- function(project,
   fishset_fit_function$kwargs <- list()
   
   log_call(project, fishset_fit_function)
+  
+  return(result)
 }

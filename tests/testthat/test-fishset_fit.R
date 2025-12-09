@@ -144,37 +144,37 @@ test_that("fishset_fit runs optimization and returns correct structure", {
 # Post-Estimation Statistics ----------------------------------------------------------------------
 test_that("fishset_fit calculates correct post-estimation statistics", {
   setup_fit_mocks()
-  
+
   # Mock DB Save Capture
   mock_dbExecute <- function(conn, statement, params = NULL, ...) { return(invisible(TRUE)) }
   assignInNamespace("dbExecute", mock_dbExecute, ns = "DBI")
-  
+
   res <- fishset_fit(
     project = "TEST_PROJ",
     model_name = "TEST_MODEL_DESIGN"
   )
-  
+
   # 1. Prediction Accuracy
   # We have 4 observations.
   # Obs 1, 2, 3 follow the "High Catch" rule -> Predicted Correctly.
   # Obs 4 violates the rule (chose low catch) -> Predicted Incorrectly.
   # Expected Accuracy = 3 / 4 = 0.75
   expect_equal(res$accuracy, 0.75)
-  
+
   # 2. Pseudo R2
   # Should be between 0 and 1
   expect_gte(res$pseudo_R2, 0)
   expect_lte(res$pseudo_R2, 1)
-  
+
   # 3. Prob Matrix Dimensions
   # Should be N_obs_mock (4) x J_alts_mock (2)
   expect_equal(nrow(res$prob_matrix), N_obs_mock)
   expect_equal(ncol(res$prob_matrix), J_alts_mock)
-  
+
   # 4. Global Test
   expect_true(!is.null(res$LR_stat))
   expect_true(!is.null(res$LR_p_value))
-  
+
   # 5. Diagnostics exists
   expect_true(is.list(res$diagnostics))
   expect_true("eigenvalues" %in% names(res$diagnostics))

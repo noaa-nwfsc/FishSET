@@ -33,7 +33,7 @@
 #'
 #' @export
 #' @importFrom RTMB MakeADFun sdreport
-#' @importFrom stats pchisq nlminb modifyList
+#' @importFrom stats pchisq nlminb
 #' @importFrom DBI dbConnect dbDisconnect dbExecute
 #' @importFrom RSQLite SQLite
 
@@ -219,7 +219,7 @@ fishset_iia_test <- function(project,
   
   H_stat <- as.numeric(t(b_diff) %*% V_diff_inv %*% b_diff)
   df <- length(b_diff)
-  p_val <- 1 - pchisq(H_stat, df)
+  p_val <- pchisq(H_stat, df, lower.tail = FALSE)
   
   # Log function call -----------------------------------------------------------------------------
   fishset_iia_function <- list()
