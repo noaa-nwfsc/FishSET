@@ -22,6 +22,7 @@ source("modules/select_variables_server.R", local = TRUE) # Other actions in sid
 source("modules/qaqc_module.R", local = TRUE)
 source("modules/explore_data_module.R", local = TRUE)
 source("modules/format_data/compute_new_var_module.R", local = TRUE)
+source("modules/format_data/define_alternatives_module.R", local = TRUE)
 source("modules/format_data/create_expectations_module.R", local = TRUE)
 
 
@@ -61,7 +62,8 @@ server <- function(input, output, session) {
                                    v_id = NULL, 
                                    rule = "n", 
                                    value = 3) # basic default
-  
+  rv_alt_names <- reactiveVal(character(0))
+
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
@@ -175,6 +177,26 @@ server <- function(input, output, session) {
                          rv_project_name = rv_project_name, 
                          rv_data = rv_data)
   
+  
+  ## Define alternatives  -------------------------------------------------------------------------
+  ### Sidebar
+  checklist_server("define_alt_checklist", rv_project_name, rv_data, rv_folderpath)
+  
+  other_actions_server("define_alt_actions",
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
+  
+  ### Main panel
+  define_alt_server("define_alternatives",
+                    rv_folderpath = rv_folderpath, 
+                    rv_project_name = rv_project_name, 
+                    rv_data = rv_data,
+                    shared_alt_names = rv_alt_names)
+  
+  
   ## Create expectations --------------------------------------------------------------------------
   ### Sidebar
   checklist_server("create_expectations_checklist", rv_project_name, rv_data, rv_folderpath)
@@ -186,10 +208,12 @@ server <- function(input, output, session) {
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
   
+  
   ### Main panel
   create_expectations_server("create_expectations",
                              rv_folderpath = rv_folderpath, 
                              rv_project_name = rv_project_name, 
-                             rv_data = rv_data)
+                             rv_data = rv_data,
+                             shared_alt_names = rv_alt_names)
   
 }

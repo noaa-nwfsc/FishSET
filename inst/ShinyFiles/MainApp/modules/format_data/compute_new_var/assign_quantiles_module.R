@@ -174,8 +174,11 @@ assign_quantiles_ui <- function(id){
     shinyjs::useShinyjs(), 
     bslib::card(
       class="card-overflow", 
+      card_header("Assign Quantiles"),
       bslib::card_body(
         class="card-overflow", 
+        p("This function creates fields that assign a variable to quantiles selected from the
+          available quantile options."),
         bslib::layout_column_wrap(
           fill = TRUE,
           width = 1/4,

@@ -221,16 +221,13 @@ new_r_express_ui <- function(id){
               code("df %>% dplyr::mutate(new_variable = var1 + var2)")),
             h6("CPUE: "),
             tags$li(
-              code("cpue(df, project, xWeight, xTime, name = 'cpue')")),
-            tags$li(
               code("df %>% dplyr::mutate(cpue = (catch_variable/time_variable))")
             )),
           bslib::accordion_panel(
-            'Dummy variables',
+            'Categorical variables',
+            h6("Dummy variables: "),
             p("A dummy variable is a numerical variable that uses 0 or 1 to represent the 
               presence (1) or absence (0) of a categorical quality."),
-            tags$li(
-              code('dummy_num(df, project, var, value, opts = "more_less", name = "dummy_var")')),
             tags$li(
               code("df %>% dplyr::mutate(dummy_var = ifelse(year == 2009, 1,0))")
             ),
@@ -239,6 +236,10 @@ new_r_express_ui <- function(id){
             )), 
           bslib::accordion_panel(
             'Temporal variables',
+            p("For more information of fishset temporal functions, check out the ",
+              tags$a("reference page.",
+                     href = "https://noaa-nwfsc.github.io/FishSET/reference/index.html",
+                     target = "_blank")),
             h6("Transform date: "),
             tags$li(
               code('temporal_mod(df, project, x, define_format = "%Y%m%d", name)')),

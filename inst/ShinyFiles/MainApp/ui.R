@@ -21,6 +21,7 @@ source("modules/select_variables_ui.R", local = TRUE) # Other actions in sidebar
 source("modules/qaqc_module.R", local = TRUE)
 source("modules/explore_data_module.R", local = TRUE)
 source("modules/format_data/compute_new_var_module.R", local = TRUE)
+source("modules/format_data/define_alternatives_module.R", local = TRUE)
 source("modules/format_data/create_expectations_module.R", local = TRUE)
 
 # UI function definition
@@ -204,6 +205,32 @@ ui <- function(request){
             
             ### Main panel
             compute_new_var_ui("compute_new_var")
+          )
+        )
+      ),
+     ## Define alternatives subtab -------------------------------------------------------------
+      bslib::nav_panel(
+        title = "Define alternative fishing choices", 
+        id = "define_alternatives_id",
+        value = "define_alternatives_id",
+          bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE,
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+              
+          checklist_ui("define_alt_checklist"),
+              hr(),
+              other_actions_ui("define_alt_actions")
+            ),
+            
+            ### Main panel
+            define_alt_ui("define_alternatives")
             
           )
         )
@@ -224,7 +251,7 @@ ui <- function(request){
               fillable = TRUE, 
               fill = TRUE, 
               width = 400,
-              
+
               checklist_ui("create_expectations_checklist"),
               other_actions_ui("create_expectations_actions")
             ),
