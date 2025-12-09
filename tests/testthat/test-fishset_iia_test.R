@@ -39,6 +39,7 @@ J_alts_mock <- 3
 
 # X matrix: Just one variable "catch"
 # 3 obs * 3 alts = 9 rows
+set.seed(42)
 X_mock <- matrix(rnorm(9, mean = 10), ncol = 1)
 colnames(X_mock) <- "catch"
 
@@ -120,10 +121,52 @@ test_that("fishset_iia_test runs successfully on valid inputs", {
   expect_equal(length(res$restricted_coefs), 1)
 })
 
+# IIA supported scenario --------------------------------------------------------------------------
+test_that("fishset_iia_test returns 'IIA Supported' when coefficients match", {
+  setup_iia_mocks()
+  
+  # Setup Data that produces a specific beta
+  # X=10 for chosen, X=0 for unchosen. The optimizer will find a positive beta.
+  # Let's assume the optimizer finds beta approx 1.0 to 2.0.
+  
+  # Create a "Full Fit" Mock that MATCHES this expectation
+  # We set the coefficient to 1.5 (a reasonable guess for this data)
+  # We set a tiny variance (1e-6) to ensure V_diff is positive definite
+  match_fit_obj <- list(
+    design_name = "TEST_MODEL_DESIGN",
+    opt = list(par = c(catch = 1.5)), 
+    vcov = matrix(1e-6, 1, 1, dimnames = list("catch", "catch")),
+    coefficients = c(catch = 1.5)
+  )
+  
+  # Override the unserialize mock locally for this test
+  local_mock_db <- list(TEST_FULL_FIT = match_fit_obj)
+  
+  mock_unserialize_local <- function(table_name, project) {
+    if (grepl("ModelFit", table_name)) return(local_mock_db)
+    if (grepl("ModelDesigns", table_name)) return(mock_design_db) # Use global design mock
+    return(NULL)
+  }
+  assignInNamespace("unserialize_table", mock_unserialize_local, ns = "FishSET")
+  
+  # Run Test
+  # We use the X_mock/y_mock from the global setup which has a clear preference structure
+  res <- fishset_iia_test(
+    project = "TEST_PROJ",
+    fit_name = "TEST_FULL_FIT",
+    omitted_zones = "ZoneB",
+    start_values = c(1.5) # Help optimizer find the same spot
+  )
+  
+  # Since coefficients are similar, P-value should be high
+  expect_gt(res$p_value, 0.05)
+  expect_match(res$description, "IIA Supported")
+})
+
 # Test invalid inputs -----------------------------------------------------------------------------
 test_that("fishset_iia_test validates input zones correctly", {
   setup_iia_mocks()
-
+  
   # Invalid omitted zone
   expect_error(
     fishset_iia_test(
@@ -133,7 +176,7 @@ test_that("fishset_iia_test validates input zones correctly", {
     ),
     "One or more 'omitted_zones' not found"
   )
-
+  
   # Removing too many zones (Leaves 1, need at least 2)
   # We have 3 zones (A, B, C). Removing A and B leaves only C.
   expect_error(
@@ -149,19 +192,19 @@ test_that("fishset_iia_test validates input zones correctly", {
 # Handles error in model designs ------------------------------------------------------------------
 test_that("fishset_iia_test correctly handles mismatched designs", {
   setup_iia_mocks()
-
+  
   # Create a fit object pointing to a ghost design
   bad_fit_db <- list(
     BAD_FIT = list(design_name = "GHOST_DESIGN")
   )
-
+  
   mock_unserialize_bad <- function(table_name, project) {
     if (grepl("ModelFit", table_name)) return(bad_fit_db)
     if (grepl("ModelDesigns", table_name)) return(mock_design_db)
     return(NULL)
   }
   assignInNamespace("unserialize_table", mock_unserialize_bad, ns = "FishSET")
-
+  
   expect_error(
     fishset_iia_test(
       project = "TEST_PROJ",
