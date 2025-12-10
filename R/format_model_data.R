@@ -176,6 +176,10 @@ format_model_data <- function(project,
         names_to = "zones",
         values_to = "distance")
     
+    if(!class(df[[unique_obs_id]]) == class(distance_long[[unique_obs_id]])) {
+      class(distance_long[[unique_obs_id]]) <- class(df[[unique_obs_id]])
+    }
+    
     df <- left_join(df, distance_long, by = c("zones", unique_obs_id))
   }
   
