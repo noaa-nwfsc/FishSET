@@ -50,7 +50,7 @@
 
 format_model_data <- function(project, 
                               name, 
-                              alt_name = NULL, 
+                              alt_name, 
                               zone_id, 
                               unique_obs_id, 
                               select_vars = NULL,
@@ -327,8 +327,6 @@ format_model_data <- function(project,
   format_model_data_function$kwargs <- list()
   
   log_call(project, format_model_data_function)
-  
-  return(df)
 }
 
 
