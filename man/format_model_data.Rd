@@ -7,7 +7,7 @@
 format_model_data(
   project,
   name,
-  alt_name = NULL,
+  alt_name,
   zone_id,
   unique_obs_id,
   select_vars = NULL,

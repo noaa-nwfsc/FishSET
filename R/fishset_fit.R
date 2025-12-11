@@ -69,7 +69,7 @@ fishset_fit <- function(project,
   
   default_control <- list(eval.max = 1000, iter.max = 1000)
   if ("control" %in% names(dots)) {
-    control_list <- modifyList(default_control, dots$control)
+    control_list <- utils::modifyList(default_control, dots$control)
   } else {
     control_list <- default_control
   }
@@ -338,4 +338,57 @@ fishset_fit <- function(project,
   log_call(project, fishset_fit_function)
   
   return(result)
+}
+
+#' @export
+print.fishset_fit <- function(x, digits = 4, ...) {
+  
+  # Helper for formatting stats
+  fmt <- function(n, d=2) format(round(n, d), nsmall=d)
+  
+  # Header
+  cat("\nFishSET Model Fit\n")
+  cat("========================================================\n")
+  
+  # Metadata (if available in settings, otherwise check formula)
+  if (!is.null(x$formula)) {
+    cat("Formula:      ", deparse(x$formula), "\n")
+  }
+  
+  # Coefficients table
+  cat("\nCoefficients:\n")
+  cat("--------------------------------------------------------\n")
+  if (!is.null(x$coef_table)) {
+    stats::printCoefmat(x$coef_table, 
+                        digits = digits, 
+                        signif.stars = TRUE, 
+                        P.values = TRUE, 
+                        has.Pvalue = TRUE)
+  } else {
+    print(x$coefficients)
+  }
+  cat("--------------------------------------------------------\n")
+  cat("Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
+  
+  # Fit statistics table
+  cat("\nModel Statistics:\n")
+  cat("--------------------------------------------------------\n")
+  cat("Log-Likelihood: ", fmt(x$logLik, 2), "  (Null: ", fmt(x$null_logLik, 2), ")\n", sep="")
+  cat("AIC:            ", fmt(x$AIC, 2),    "  (BIC:  ", fmt(x$BIC, 2), ")\n", sep="")
+  cat("Pseudo R2:      ", fmt(x$pseudo_R2, 3), "\n", sep="")
+  cat("Accuracy:       ", fmt(x$accuracy * 100, 1), "%\n", sep="")
+  
+  # LR Test
+  sig_star <- ""
+  if (!is.null(x$LR_p_value)) {
+    if (x$LR_p_value < 0.001) sig_star <- "***"
+    else if (x$LR_p_value < 0.01) sig_star <- "**"
+    else if (x$LR_p_value < 0.05) sig_star <- "*"
+    else if (x$LR_p_value < 0.1) sig_star <- "."
+    
+    p_val_str <- format.pval(x$LR_p_value, eps = 0.001)
+    cat("LR Test:        Chi2 =", fmt(x$LR_stat, 2), ", p =", p_val_str, sig_star, "\n")
+  }
+
+  invisible(x)
 }
