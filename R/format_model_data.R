@@ -6,7 +6,7 @@
 #' and performs optional missing data imputation.
 #' 
 #' The resulting formatted data is serialized and stored in the FishSET project database within a
-#' table namned '[project_name]LongFormatData'.
+#' table named '[project_name]LongFormatData'.
 #' 
 #' @param project Name of the project.
 #' @param name Name for this specific formatted model data instance. Must be unique within the 
@@ -30,7 +30,7 @@
 #'   Only use this input if the gridded data varies by space and time.
 #' @param expectations Character vector containing the names of expected catch or revenue matrices
 #'   to merge into the dataset.
-#' @param distance Logical. If 'TRUE', calculates and merges a distance matrix between obervations
+#' @param distance Logical. If 'TRUE', calculates and merges a distance matrix between observations
 #'   and zones. Defaults to 'TRUE'.
 #' @param crs Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
 #'   are required.
@@ -41,6 +41,37 @@
 #' @return A list containing the formatted data frame and the input settings. The list is saved to
 #'  the project database.
 #'  
+#' @examples
+#' \dontrun{
+#'   # Basic usage: Formatting data with simple mean imputation for missing values
+#'   format_model_data(
+#'     project = "NewEnglandCod",
+#'     name = "ModelData_Run1",
+#'     alt_name = "altname_1",
+#'     zone_id = "zone_code",
+#'     unique_obs_id = "trip_id",
+#'     select_vars = c("vessel_length", "month", "permit_type"),
+#'     impute = "mean"
+#'   )
+#'
+#'   # Advanced usage: Including distance calculations, auxiliary economic data, 
+#'   # and revenue expectations
+#'   format_model_data(
+#'     project = "WestCoastGroundfish",
+#'     name = "ModelData_Spatial",
+#'     alt_name = "altname_1",
+#'     zone_id = "grid_id",
+#'     unique_obs_id = "haul_id",
+#'     select_vars = c("vessel_len", "month", "fuel_price"),
+#'     aux_data = "FuelCostIndex",
+#'     aux_key = "year",
+#'     expectations = c("ExpectedRevenue_2023"),
+#'     distance = TRUE,
+#'     crs = 4326,
+#'     impute = "remove"
+#'   )
+#' }
+#'
 #' @export
 #' @importFrom dplyr %>% filter select all_of mutate rename left_join sym
 #' @importFrom tidyr pivot_longer
@@ -86,7 +117,13 @@ format_model_data <- function(project,
   # Load main data table
   original_dataset <- table_view(paste0(project, "MainDataTable"), project)
   # Load alternative choice list
-  alt_list <- unserialize_table(paste0(project, "AltMatrix"), project)
+  alt_list_all <- unserialize_table(paste0(project, "AltMatrix"), project)
+  
+  if (all(!(names(alt_list_all) %in% alt_name))) {
+    stop("The 'alt_name' specified does not exist in the 'AltMatrix' table.")
+  }
+  
+  alt_list <- alt_list_all[[which(names(alt_list_all) == alt_name)]]
   
   # Select variables and filter main data
   unique_zones <- unique(alt_list$greaterNZ)
@@ -125,7 +162,7 @@ format_model_data <- function(project,
   
   # Generate distance matrix ----------------------------------------------------------------------
   if (distance) {
-    port <- NULL #initialize to NULL if no port included
+    port <- NULL # initialize to NULL if no port included
     tryCatch({
       pt <- data_pull(paste0(project, 'PortTable'), project)
       ptname <- pt$dat # Note: ptname not used 

@@ -7,7 +7,7 @@
 format_model_data(
   project,
   name,
-  alt_name = NULL,
+  alt_name,
   zone_id,
   unique_obs_id,
   select_vars = NULL,
@@ -80,4 +80,36 @@ and performs optional missing data imputation.
 \details{
 The resulting formatted data is serialized and stored in the FishSET project database within a
 table namned '[project_name]LongFormatData'.
+}
+\examples{
+\dontrun{
+  # Basic usage: Formatting data with simple mean imputation for missing values
+  format_model_data(
+    project = "NewEnglandCod",
+    name = "ModelData_Run1",
+    alt_name = "altname_1",
+    zone_id = "zone_code",
+    unique_obs_id = "trip_id",
+    select_vars = c("vessel_length", "month", "permit_type"),
+    impute = "mean"
+  )
+
+  # Advanced usage: Including distance calculations, auxiliary economic data, 
+  # and revenue expectations
+  format_model_data(
+    project = "WestCoastGroundfish",
+    name = "ModelData_Spatial",
+    alt_name = "altname_1",
+    zone_id = "grid_id",
+    unique_obs_id = "haul_id",
+    select_vars = c("vessel_len", "month", "fuel_price"),
+    aux_data = "FuelCostIndex",
+    aux_key = "year",
+    expectations = c("ExpectedRevenue_2023"),
+    distance = TRUE,
+    crs = 4326,
+    impute = "remove"
+  )
+}
+
 }
