@@ -60,9 +60,9 @@ test_that("test assignment_column() works", {
       dat = "s1MainDataTable",
       project = "s1",
       spat = "s1spatSpatTable",
-      lon.dat = "DDLON",
-      lat.dat = "DDLAT",
-      cat = "TEN_ID",
+      lon_dat = "DDLON",
+      lat_dat = "DDLAT",
+      zoneID_spat = "TEN_ID",
       name = "test_zoneID"
     )
   )
@@ -99,10 +99,10 @@ test_that("function stops with invalid coordinate values", {
       dat = point_data_bad_lon, 
       project = "s1", 
       spat = spat_data, 
-      lon.dat = "lon", 
-      lat.dat = "lat", 
-      cat = "zone_id", 
-      log.fun = FALSE
+      lon_dat = "lon", 
+      lat_dat = "lat", 
+      zoneID_spat = "zone_id", 
+      log_fun = FALSE
     )
   )
   
@@ -111,10 +111,10 @@ test_that("function stops with invalid coordinate values", {
       dat = point_data_bad_lat, 
       project = "s1", 
       spat = spat_data,
-      lon.dat = "lon", 
-      lat.dat = "lat", 
-      cat = "zone_id", 
-      log.fun = FALSE
+      lon_dat = "lon", 
+      lat_dat = "lat", 
+      zoneID_spat = "zone_id", 
+      log_fun = FALSE
     )
   )
   
@@ -123,10 +123,10 @@ test_that("function stops with invalid coordinate values", {
       dat = point_data_na, 
       project = "s1", 
       spat = spat_data,
-      lon.dat = "lon", 
-      lat.dat = "lat", 
-      cat = "zone_id", 
-      log.fun = FALSE
+      lon_dat = "lon", 
+      lat_dat = "lat", 
+      zoneID_spat = "zone_id", 
+      log_fun = FALSE
     )
   )
 })
