@@ -423,7 +423,7 @@ define_alt_ui <- function(id) {
                   
                   conditionalPanel("input.altc_occasion_input=='zonal centroid'", ns = ns,
                                    selectInput(ns("occ_lag_zone_id_input"), 
-                                               "Select lagged zone ID:",
+                                               "Select lagged location for multi-haul trips:",
                                                choices = NULL)),
                   
                   conditionalPanel(
