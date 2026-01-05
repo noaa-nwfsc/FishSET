@@ -66,6 +66,11 @@ alt_matrix <- list(
   spatID = NULL
 )
 
+# The unserialize_table returns a LIST of these matrices
+alt_matrix_list <- list(
+  test_alt_1 = alt_matrix
+)
+
 # Mock Distance Matrix Output
 dist_mat_mock <- matrix(
   c(5, 10,  
@@ -96,7 +101,7 @@ clean_mock_create_dist <- function(...) return(dist_out_mock)
 clean_mock_table_exists <- function(table_name, project) return(FALSE)
 
 clean_mock_unserialize <- function(table_name, project) {
-  if (grepl("AltMatrix", table_name)) return(alt_matrix)
+  if (grepl("AltMatrix", table_name)) return(alt_matrix_list)
   if (grepl("ExpectedCatch", table_name)) return(exp_list_mock)
   return(list())
 }
@@ -132,6 +137,7 @@ test_that("format_model_data reshapes and assigns choices correctly", {
   format_model_data(
     project = "TEST_PROJECT",
     name = "TEST_MODEL",
+    alt_name = "test_alt_1",
     zone_id = "ZoneID",
     unique_obs_id = "unique_row_id",
     select_vars = c("other_var"),
@@ -169,6 +175,7 @@ test_that("format_model_data handles imputation correctly", {
   format_model_data(
     project = "TEST_PROJECT",
     name = "TEST_MEAN",
+    alt_name = "test_alt_1",
     zone_id = "ZoneID",
     unique_obs_id = "unique_row_id",
     select_vars = c("other_var"),
@@ -196,6 +203,7 @@ test_that("format_model_data handles imputation correctly", {
   format_model_data(
     project = "TEST_PROJECT",
     name = "TEST_REMOVE",
+    alt_name = "test_alt_1",
     zone_id = "ZoneID",
     unique_obs_id = "unique_row_id",
     select_vars = c("other_var"),
@@ -228,6 +236,7 @@ test_that("format_model_data merges expectations correctly", {
   format_model_data(
     project = "TEST_PROJECT",
     name = "TEST_EXP",
+    alt_name = "test_alt_1",
     zone_id = "ZoneID",
     unique_obs_id = "unique_row_id",
     distance = FALSE,
@@ -245,8 +254,11 @@ test_that("format_model_data fails fast on invalid inputs", {
   setup_mocks()
   expect_error(
     format_model_data(
-      project = "TEST_PROJECT", name = "FAIL",
-      zone_id = "ZoneID", unique_obs_id = "unique_row_id",
+      project = "TEST_PROJECT", 
+      name = "FAIL",
+      alt_name = "test_alt_1",
+      zone_id = "ZoneID", 
+      unique_obs_id = "unique_row_id",
       impute = "magic_wand"
     ),
     "Impute method must be one of"

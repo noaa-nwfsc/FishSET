@@ -8,6 +8,7 @@ create_expectations(
   dat,
   project,
   name,
+  alt_name = NULL,
   catch,
   price = NULL,
   defineGroup = NULL,
@@ -32,6 +33,8 @@ database contains the string 'MainDataTable'.}
 
 \item{name}{Name of the expected matrix to be saved}
 
+\item{alt_name}{Name of the alternative choice matrix.}
+
 \item{catch}{Variable from \code{dat} containing catch data.}
 
 \item{price}{Optional, variable from \code{dat} containing price/value data.
@@ -54,7 +57,7 @@ in days. If sequential, then averaging will occur over the specified number
 of observations, regardless of how many days they represent.}
 
 \item{calc_method}{String, how catch values are average over window size. Select 
-standard average (\code{"standardAverage"}), simple lag regression of means 
+standard average (\code{"standardAverage"}), simple lag regression (autoregressive) of catch 
 (\code{"simpleLag"}), or weights of regressed groups (\code{"weights"})}
 
 \item{temp_window}{Numeric, temporal window size. If \code{temp_var} is not \code{NULL}, 

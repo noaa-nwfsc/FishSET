@@ -7,14 +7,12 @@
 create_alternative_choice(
   dat,
   project,
+  alt_name = NULL,
+  zoneID,
   occasion = "zonal centroid",
   occasion_var = NULL,
   alt_var = "zonal centroid",
-  dist.unit = "miles",
-  min.haul = 0,
-  zoneID,
-  zone.cent.name = NULL,
-  fish.cent.name = NULL,
+  min_haul = 0,
   spatname = NULL,
   spatID = NULL,
   outsample = FALSE
@@ -26,6 +24,13 @@ Table in FishSET database should contain the string \code{MainDataTable}.}
 
 \item{project}{Required, name of project.}
 
+\item{alt_name}{String, \strong{Required}. The name to be assigned to this
+alternative choice list within the FishSET database. If a list with this name
+already exists, the function will stop.}
+
+\item{zoneID}{Variable in \code{dat} that identifies the individual zones or
+areas.}
+
 \item{occasion}{String, determines the starting point when calculating the
 distance matrix. Options are \code{"zonal centroid"}, \code{"fishing centroid"},
 \code{"port"}, or \code{"lon-lat"}. See \code{occasion_var} for requirements.}
@@ -34,7 +39,7 @@ distance matrix. Options are \code{"zonal centroid"}, \code{"fishing centroid"},
 to create the distance matrix. Possible options depend on the value of
 \code{occasion}:
 \describe{
-\item{Centroid}{When \verb{occasion = zonal/fishing centroid} the possible
+\item{Centroid}{When \verb{occasion = zonal centroid} the possible
 options are \code{NULL}, the name of a zone ID variable, or a set coordinate
 variables (in Lon-Lat order).
 \describe{
@@ -72,32 +77,13 @@ matrix. \code{alt_var} may be the centroid of zonal assignment (\code{"zonal cen
 (\code{"nearest point"}). The centroid options require that the appropriate
 centroid table has been saved to the project's FishSET Database. See
 \code{\link[=create_centroid]{create_centroid()}} to create and save centroids. List existing centroid
-tables  by running \code{list_tables("project", type = "centroid")}.}
+tables by running \code{list_tables("project", type = "centroid")}.}
 
-\item{dist.unit}{String, how distance measure should be returned. Choices are
-\code{"meters"} or \code{"m"}, \code{"kilometers"} or \code{"km"}, \code{"miles"}, or \code{"nmiles"}
-(nautical miles). Defaults to \code{"miles"}.}
-
-\item{min.haul}{Required, numeric, minimum number of hauls. Zones with fewer
-hauls than the \code{min.haul} value will not be included in model data.}
-
-\item{zoneID}{Variable in \code{dat} that identifies the individual zones or
-areas.}
-
-\item{zone.cent.name}{The name of the zonal centroid table to use when
-\code{occasion} or \code{alt_var} is set to \verb{zonal centroid}. Use
-\code{list_tables("project", type = "centroid")} to view existing centroid tables.
-See \code{\link[=create_centroid]{create_centroid()}} to create centroid tables or \code{\link[=centroid_to_fsdb]{centroid_to_fsdb()}} to
-create a centroid table from columns found in \code{dat}.}
-
-\item{fish.cent.name}{The name of the fishing centroid table to use when
-\code{occasion} or \code{alt_var} is set to \verb{fishing centroid}. Use
-\code{list_tables("project", type = "centroid")} to view existing centroid tables.
-See \code{\link[=create_centroid]{create_centroid()}} to create centroid tables or \code{\link[=centroid_to_fsdb]{centroid_to_fsdb()}} to
-create a centroid table from columns found in \code{dat}.}
+\item{min_haul}{Required, numeric, minimum number of hauls. Zones with fewer
+hauls than the \code{min_haul} value will not be included in model data.}
 
 \item{spatname}{Required when \code{alt_var = 'nearest point'}. \code{spat} is a spatial
-data file  containing information on fishery management or regulatory zones
+data file containing information on fishery management or regulatory zones
 boundaries. \code{sf} objects are recommended, but \code{sp} objects can be used as
 well. See \code{\link[=dat_to_sf]{dat_to_sf()}} to convert a spatial table read from a csv file to
 an \code{sf} object. To upload your spatial data to the FishSETFolder see
@@ -114,26 +100,12 @@ that identifies the individual zones or areas.}
 sample data.}
 }
 \value{
-Saves the alternative choice list to the FishSET database as a list.
-Output includes: \cr
-\tabular{rlll}{
-dataZoneTrue: \tab Vector of 0/1 indicating whether the data from that
-zone is to be included in the model\cr
-greaterNZ: \tab Zones which pass numofNecessary test\cr
-numOfNecessary: \tab Minimum number of hauls for zone to be included\cr
-altChoiceUnits: \tab Set to miles\cr
-altChoiceType: \tab Set to distance\cr
-occasion: \tab Identifies how to find latitude and longitude for starting point\cr
-occasion_var: \tab Identifies how to find latitude and longitude for starting point\cr
-alt_var: \tab Identifies how to find latitude and longitude for alternative choice \cr
-zoneRow: \tab Zones and choices array\cr
-zone_cent: \tab Geographic centroid for each zone. Generated from \code{\link[=find_centroid]{find_centroid()}}\cr
-fish_cent: \tab Fishing centroid for each zone. Generated from \code{\link[=find_fishing_centroid]{find_fishing_centroid()}}\cr
-zone_cent_name: \tab Name of the zonal centroid table\cr
-fish_cent_name: \tab Name of the fishing centroid table\cr
-spat: \tab Spatial data object\cr
-spatID: \tab Variable in spat that identifies individuals zones
-}
+Function saves a list of alternative choice matrices to the FishSET
+database as \code{projectAlternativeChoice}. The list includes
+the alternative choice list from the user-defined choices. Multiple alternative
+choice cases can be added to the list by specifying unique names. The list is
+automatically saved to the FishSET database and is called in
+\code{make_model_design}.
 }
 \description{
 Required step. Creates a list identifying how alternative fishing choices should
