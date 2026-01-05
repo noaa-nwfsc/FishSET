@@ -87,9 +87,18 @@ getis_ord_stats <- function(dat, project, varofint, zoneid, spat, cat, lon.dat =
         stop("Latitude is not valid (outside -90:90. Function not run")
       }
       
-      dataset <- suppressWarnings(assignment_column(dat=dataset, project=project, spat=spatdat, hull.polygon = TRUE, 
-                                                    lon.dat=lon.dat, lat.dat=lat.dat, cat=cat, closest.pt = TRUE, 
-                                                    lon.spat=lon.spat, lat.spat=lat.spat, epsg = NULL, log.fun = FALSE))
+      dataset <- suppressWarnings(assignment_column(dat=dataset, 
+                                                    project=project, 
+                                                    spat=spatdat, 
+                                                    hull_polygon = TRUE, 
+                                                    lon_dat=lon.dat, 
+                                                    lat_dat=lat.dat, 
+                                                    zoneID_spat=cat, 
+                                                    closest_pt = TRUE, 
+                                                    lon_spat=lon.spat, 
+                                                    lat_spat=lat.spat, 
+                                                    epsg = NULL, 
+                                                    log_fun = FALSE))
     }
   }
 

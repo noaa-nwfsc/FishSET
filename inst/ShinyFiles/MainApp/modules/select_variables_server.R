@@ -524,9 +524,9 @@ create_zone_id_server <- function(id, rv_project_name, rv_data){
           dat = rv_data$main,
           project = project_name,
           spat = rv_data$spat,
-          lon.dat = input$modal_main_lon,
-          lat.dat = input$modal_main_lat,
-          cat = input$modal_spat_zone,
+          lon_dat = input$modal_main_lon,
+          lat_dat = input$modal_main_lat,
+          zoneID_spat = input$modal_spat_zone,
           name = input$modal_new_name,
         )
         
@@ -630,7 +630,7 @@ save_var_server <- function(id, rv_project_name, rv_data, parent_session){
         shinyjs::hide("var_error_message")
         
         ### Zonal centroid ------------------------------------------------------------------------
-        cent_table_name <- paste0(project_name, "_ZoneCentroid")
+        cent_table_name <- paste0(project_name, "ZoneCentroid")
         
         # Create centroid table if it does not exist
         if (!table_exists(cent_table_name, project_name)) {
@@ -639,7 +639,7 @@ save_var_server <- function(id, rv_project_name, rv_data, parent_session){
                           dat = rv_data$main,
                           project = project_name,
                           spatID = saved_variables_spat$spat_zone_id,
-                          cent.name = "_",
+                          cent.name = "",
                           output = "centroid table")
         }
         

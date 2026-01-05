@@ -102,11 +102,11 @@ previous_loc <- function(dat,
     
     port <- assignment_column(port, project, 
                               spat = spatdat, 
-                              lon.dat = find_lon(port), 
-                              lat.dat = find_lat(port),
+                              lon_dat = find_lon(port), 
+                              lat_dat = find_lat(port),
                               name = zoneID,
-                              cat = spatID, 
-                              log.fun = FALSE)
+                              zoneID_spat = spatID, 
+                              log_fun = FALSE)
     
     p_ind <- which(is.na(dataset[[prev_name]]))
     

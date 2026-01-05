@@ -89,10 +89,15 @@ create_dist_between_for_gui <- function(dat, project, start=c('lat','lon'), end=
         dat2 <- dataset
         colnames(dat2)[colnames(dat2)==zoneid] <- 'ZoneID'
       } else {
-        dat2 <- assignment_column(
-        dat = dataset, project=project, spat = spatdat, hull.polygon = FALSE, lon.spat = lon.spat, lat.spat = lat.spat, lon.dat = lon.dat,
-        lat.dat = lat.dat, cat = cat, closest.pt = TRUE, log.fun = FALSE
-      )
+        dat2 <- assignment_column(dat = dataset, 
+                                  project=project, 
+                                  spat = spatdat, 
+                                  hull_polygon = FALSE, 
+                                  lon_dat = lon.dat,
+                                  lat_dat = lat.dat, 
+                                  zoneID_spat = cat, 
+                                  closest_pt = TRUE, 
+                                  log_fun = FALSE)
       }
     }
     

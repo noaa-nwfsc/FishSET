@@ -120,11 +120,16 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
   
   
   if ("ZoneID" %in% names(dataset) == FALSE) {
-    dataset <- assignment_column(
-      dat = dataset, project=project, spat = spatdat, hull.polygon = TRUE, 
-      lon.spat = lon.spat, lat.spat = lat.spat, lon.dat = lon.dat, lat.dat = lat.dat, 
-      cat = cat, closest.pt = TRUE, epsg = NULL, log.fun = FALSE
-    )
+    dataset <- assignment_column(dat = dataset, 
+                                 project=project, 
+                                 spat = spatdat, 
+                                 hull_polygon = TRUE,
+                                 lon_dat = lon.dat, 
+                                 lat_dat = lat.dat, 
+                                 zoneID_spat = cat, 
+                                 closest_pt = TRUE, 
+                                 epsg = NULL, 
+                                 log_fun = FALSE)
   }
 
   date.var <- grep("date", names(dataset), ignore.case = TRUE)[1]

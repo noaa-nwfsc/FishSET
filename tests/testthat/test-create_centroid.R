@@ -87,7 +87,7 @@ test_that("test create_centroid() zonal centroid for -180 to 180 bbox", {
       project = "s1",
       spatID = "TEN_ID",
       type = "zonal centroid",
-      cent.name = "_",
+      cent.name = "",
       output = "centroid table"
     )
   ))
@@ -122,7 +122,7 @@ test_that("test create_centroid() zonal centroid for 0 to 360 bbox", {
       project = "s1",
       spatID = "TEN_ID",
       type = "zonal centroid",
-      cent.name = "_",
+      cent.name = "",
       output = "centroid table"
     )
   ))

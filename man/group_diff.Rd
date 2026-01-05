@@ -12,17 +12,16 @@ group_diff(
   value,
   name = "group_diff",
   lag = 1,
-  create_group_ID = FALSE,
-  drop_total_col = FALSE
+  include_total_col = FALSE
 )
 }
 \arguments{
-\item{dat}{Primary data frame over which to apply function. Table in FishSET 
+\item{dat}{Primary data frame over which to apply function. Table in FishSET
 database should contain the string `MainDataTable`.}
 
 \item{project}{String, project name.}
 
-\item{group}{String, the grouping variable(s) to sum \code{value} by. Used to create the 
+\item{group}{String, the grouping variable(s) to sum \code{value} by. Used to create the
 "group_total" variable.}
 
 \item{sort_by}{String, a date variable to order `MainDataTable` by.}
@@ -33,10 +32,7 @@ database should contain the string `MainDataTable`.}
 
 \item{lag}{Integer, adjusts lag length. Defaults to 1.}
 
-\item{create_group_ID}{Logical, whether to create a group ID variable using \code{\link{ID_var}}.
-Defaults to \code{FALSE}.}
-
-\item{drop_total_col}{Logical, whether to remove the "group_total" variable
+\item{include_total_col}{Logical, whether to remove the "group_total" variable
 created to calculate percentage. Defaults to \code{FALSE}.}
 }
 \description{
@@ -44,10 +40,9 @@ Create a within-group lagged difference variable
 }
 \details{
 \code{group_diff} creates a grouped lagged difference variable. \code{value}
-  is first summed by the variable(s) in \code{group}, then the difference within-group is 
+  is first summed by the variable(s) in \code{group}, then the difference within-group is
   calculated. The "group_total" variable gives the total value by group and can
-  be dropped by setting \code{drop_total_col = TRUE}. A group ID column can be 
-  created using the variables in \code{group} by setting \code{create_group_ID = TRUE}.
+  be dropped by setting \code{include_total_col = FALSE}.
 }
 \examples{
 \dontrun{

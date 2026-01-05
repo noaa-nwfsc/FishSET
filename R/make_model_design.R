@@ -56,7 +56,7 @@
 #'   option is to select one more expected catch matrices to run jointly.
 #' @param startloc Variable in `dat` identifying the location when choice 
 #'   of where to fish next was made. Required for logit_correction likelihood.
-#'   Use the [create_startingloc()] function to create the starting 
+#'   Use the [lag_zone()] function to create the starting 
 #'   location vector.
 #' @param polyn Numeric, correction polynomial degree. Required for 
 #'   [logit_correction()] likelihood.
