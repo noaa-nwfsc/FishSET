@@ -1,173 +1,185 @@
-#' Collapse data frame from haul to trip
-#'
-#' @param dat Primary data containing information on hauls or trips.
-#' Table in the FishSET database contains the string 'MainDataTable'.
+#' Collapse a data frame from haul-level to trip-level
+#' 
+#' @description
+#' Aggregates a data frame from individual observations (hauls) to a summary level (trips).
+#' It provides flexible methods for collapsing numeric, character, and temporal data.
+#' 
+#' @param dat String, the name of the main data containing information on hauls or trips. Note 
+#'   that this is the project 'MainDataTable' in the FishSET database.
 #' @param project String, name of project.
-#' @param fun.time How to collapse temporal data. For example, \code{min}, \code{mean}, \code{max}. 
-#'   Cannot be \code{sum} for temporal variables.
-#' @param fun.numeric How to collapse numeric or temporal data. For example, \code{min}, \code{mean}, 
-#'    \code{max}, \code{sum}. Defaults to \code{mean}.
-#' @param tripID Column(s) that identify the individual trip.
-#' @param haul_count Logical, whether to return a column of the number of hauls per trip. 
-#' @param log_fun Logical, whether to log function call (for internal use).
+#' @param trip_id String. Column name that represents the unique trip identifier in \code{dat}.
+#' @param zoneID_dat String, the name of the column identifying fishing zones. This column is 
+#'   handled separately from other columns.
+#' @param zone_fun String, method for collapsing the 'zoneID_dat' variable.
+#'   Options are \code{"first"}, \code{"last"}, or \code{"mode"}.
+#' @param date_fun String, method for collapsing temporal columns. Options are \code{"mean"}, 
+#'   \code{"median"}, \code{"min"}, or \code{"max"}.
+#' @param num_fun String, method for collapsing numeric columns. Options are \code{"mean"}, 
+#'   \code{"median"}, \code{"mode"}, \code{"min"}, \code{"max"}, or \code{"sum"}.
+#' @param char_fun String, method for collapsing character or factor columns. Options are 
+#'   \code{"first"}, \code{"last"}, \code{"paste"}, or \code{"mode"}.
+#' @param haul_count Logical, If \code{TRUE}, a column name "haul_count" is added,
+#'   showing the number of hauls (rows) per trip in the original data.
+#' @param log_fun Logical, If \code{TRUE}, the function call is logged for tracking.
+#' 
+#' @return A data frame where each row represents a single trip, aggregated according to the 
+#'   specified methods.
+#'   
+#' @details 
+#'   The function aggregates columns based on their data type per unique trip ID. For columns that 
+#'   are not numeric, date, or character, the function defaults to taking the first observation 
+#'   for each trip.
+#' 
 #' @export haul_to_trip
-#' @return Returns the primary dataset where each row is a trip.
-#' @details Collapses primary dataset from haul to trip level. Unique trips are defined based on selected column(s), for 
-#'   example, landing permit number and disembarked port. This id column is used to collapse the
-#'   data to trip level.  \code{fun.numeric} and \code{fun.time} define how multiple observations for a trip
-#'   are collapsed. For variables that are not numeric or dates, the first observation is used.
 #'
 #' @examples
 #' \dontrun{
-#' pollockMainDataTable <- haul_to_trip("pollockMainDataTable","pollock",
-#'     min, mean, "PERMIT", "DISEMBARKED_PORT"
-#'     )
+#' # Collapse the data from haul to trip level
+#' trip_data <- haul_to_trip(
+#'   dat = "pollockMainDataTable",
+#'   project = "pollock",
+#'   trip_id = "tripID",
+#'   zone_col = "ZONE",
+#'   zone_fun = "mode", # Use the most common zone for the trip
+#'   date_fun = "min",   # Use the earliest haul date as the trip date
+#'   num_fun = "sum",    # Sum the fish weight for the trip
+#'   char_fun = "first", # Use the first vessel name recorded
+#'   haul_count = TRUE
+#' )
 #' }
 #'
-haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, tripID, 
-                         haul_count = TRUE, log_fun = TRUE) {
-  # fun.time = min, Create a column that indicates unique trip levels
-
+haul_to_trip <- function(dat, 
+                         project, 
+                         trip_id,
+                         zoneID_dat,
+                         zone_fun = "mode",
+                         date_fun = "min",
+                         num_fun = "mean", 
+                         char_fun = "mode",
+                         haul_count = TRUE, 
+                         log_fun = TRUE) {
+  
+  # Data setup and prep ---------------------------------------------------------------------------
+  
+  # Pull in dataset
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  # Load in dataindex
-  #dataIndex <- dataindex_update(dataset, pull_info_data(project))
+  # Identify columns by type, exclude the ID column -----------------------------------------------
+  # Note: using base R in this function to limit dependencies
+  all_cols <- names(dataset)[(names(dataset) != trip_id) &
+                               (names(dataset) != zoneID_dat)] # EXCLUDE ZONE ID
   
-  # create rowID variable
-  int <- ID_var(dataset, project = project, vars = tripID, type = "integer", name = "rowID", 
-                drop = FALSE, log_fun = FALSE)
+  is_numeric_col <- sapply(dataset[all_cols], is.numeric)
+  numeric_cols <- all_cols[is_numeric_col]
   
-  cat(length(unique(int$rowID)), "unique trips were identified using", tripID, "\n")
+  is_char_or_factor <- sapply(dataset[all_cols], 
+                              function(c) is.character(c) || is.factor(c))
+  char_cols <- all_cols[is_char_or_factor]
   
-  # Handling of empty variables
-  if (any(vapply(int, function(x) all(is.na(x)), logical(1)))) {
-    
-    drop_empty <- names(int)[which(vapply(int, function(x) all(is.na(x)), logical(1)))]
-    if (length(drop_empty) > 0) int[drop_empty] <- NULL
+  is_date_or_time <- sapply(dataset[all_cols], 
+                            function(c) inherits(c, "Date") || inherits(c, "POSIXt") )
+  date_cols <- all_cols[is_date_or_time]
+  
+  # Aggregate each datatype separately ------------------------------------------------------------
+  
+  # List to hold the aggregated dataframes
+  aggregated_list <- list()
+  
+  # Base dataframe with just unique IDs
+  aggregated_list$ids <- data.frame(trip_id = unique(dataset[[trip_id]]))
+  names(aggregated_list$ids) <- trip_id
+  
+  # Helper function for aggregation
+  get_mode <- function(x) {
+    ux <- unique(na.omit(x))
+    ux[which.max(tabulate(match(x, ux)))]
   }
   
-  row_ind <- which(colnames(int) == "rowID")
+  # Handle zone ID column separately
+  zone_formula <- as.formula(paste(". ~", trip_id))
+  zone_agg_fun <- switch(zone_fun,
+                         "mode" = get_mode,
+                         "first" = function(x) x[1],
+                         "last" = function(x) x[length(x)])
+  aggregated_list$zone <- aggregate(zone_formula, 
+                                    data = dataset[,c(trip_id, zoneID_dat)],
+                                    FUN = zone_agg_fun)
   
-#  if (length(drop_empty) > 0) {
-    
-#    DI_mod <- dataIndex[!(dataIndex$variable_name %in% drop_empty), 
-#                        c("variable_name", "generalType")] 
-    
-#  } else {
-    
-     
-#  }
-  
-  DI_var <-  colnames(dataset)
-  DI_type <- c(ifelse(grepl("DATE|MIN", colnames(dataset), ignore.case = TRUE), "Time", 
-                      ifelse(grepl("IFQ", colnames(dataset), ignore.case = TRUE), "Flag", 
-                             ifelse(grepl("ID", colnames(dataset),ignore.case = TRUE), "Code", 
-                                    ifelse(grepl("Long|Lat", colnames(dataset), ignore.case = TRUE), "Latitude", 
-                                           ifelse(grepl("TYPE|PROCESSOR|LOCATION|METHOD",colnames(dataset), ignore.case = TRUE), "Code String", 
-                                                  ifelse(grepl("CHINOOK|CHUM|FATHOMS|DOLLARS|LBS|PROPORTION|VALUE|PERCENT|MT", colnames(dataset), ignore.case = TRUE), "Other Numeric", 
-                                                         ifelse(grepl("HAUL|AREA|PERFORMANCE|PERMIT", colnames(dataset), ignore.case = TRUE), "Code Numeric", NA)
-                                                  )))))))
-  
-  # Collapse data based on rowID and defined function
-  out <- data.frame(drop = rep(0, length(unique(int$rowID))))
-  
-  # Nothing listed (grab first value)
-  na_type <- DI_var[is.na(DI_type)]
-  
-  if (length(na_type) > 0) {
-    
-    out[na_type] <- aggregate(int[na_type], by = list(int$rowID), 
-                              FUN = head, 1)[, -1] #remove Group.1
-  }
-  # recode NAs as character (makes searching by name easier)
-  DI_type[is.na(DI_type)] <- "NA"
-  
-  # Time - not duration
-  dur_type <- grep("DUR", DI_var[DI_type %in% "Time"], ignore.case = TRUE, value = TRUE)
-  
-  if (length(which(DI_type == "Time")) > 0) {
-    
-    time_vars <- DI_var[DI_type == "Time"]
-    time_drop <- which(time_vars %in% dur_type)
-    
-    if (length(time_drop) > 0) time_vars <- time_vars[-time_drop]
-    
-    int[time_vars] <- lapply(int[time_vars], date_parser)
-    out[time_vars] <- aggregate(int[time_vars], by = list(int$rowID), 
-                                FUN = match.fun(fun.time), na.rm = TRUE)[, -1]
+  # Date aggregation
+  if (length(date_cols) > 0) {
+    date_formula <- as.formula(paste(". ~", trip_id))
+    date_agg_fun <- function(x) get(date_fun)(x, na.rm = TRUE)
+    # Aggregate converts dates to numeric so need to convert back
+    date_agg <- aggregate(date_formula,
+                          data = dataset[,c(trip_id, date_cols)],
+                          FUN = date_agg_fun)
+    original_classes <- sapply(dataset[date_cols], class)
+    for (col in date_cols) {
+      # Handles both Date and POSIX format
+      if (unname(unlist(original_classes[col][1])[1]) == "Date") {
+        date_agg[[col]] <- as.Date(date_agg[[col]])
+        
+      } else if (grepl("POSIX", unname(unlist(original_classes[col][1])[1]))) {
+        date_agg[[col]] <- as.POSIXct(date_agg[[col]])
+      }
+    }
+    aggregated_list$date <- date_agg
   }
   
-  # Time - duration
-  if (length(dur_type) > 0) {
-    
-    out[dur_type] <- aggregate(int[dur_type], by = list(int$rowID), 
-                               FUN = match.fun(fun.numeric), na.rm = TRUE)[, -1]
+  # Numeric aggregation
+  if (length(numeric_cols) > 0) {
+    num_formula <- as.formula(paste(". ~", trip_id))
+    num_agg_fun <- function(x) get(num_fun)(x, na.rm = TRUE)
+    aggregated_list$numeric <- aggregate(num_formula, 
+                                         data = dataset[,c(trip_id, numeric_cols)],
+                                         FUN = num_agg_fun)
   }
   
-  # Other numeric
-  if (sum(DI_type == "Other Numeric") > 0) {
-    
-    other_num_vars <- DI_var[DI_type == "Other Numeric"]
-    out[other_num_vars] <- aggregate(int[other_num_vars], by = list(int$rowID), 
-                                     FUN = match.fun(fun.numeric), na.rm = TRUE)[, -1]
+  # Character/factor aggregation
+  if (length(char_cols) > 0) {
+    char_formula <- as.formula(paste(". ~", trip_id))
+    char_agg_fun <- switch(char_fun,
+                           "paste" = function(x) paste(unique(x), collapse = ","),
+                           "mode" = get_mode,
+                           "first" = function(x) x[1],
+                           "last" = function(x) x[length(x)],
+                           function(x) x[1])
+    aggregated_list$character <- aggregate(char_formula, 
+                                           data = dataset[, c(trip_id, char_cols)], 
+                                           FUN = char_agg_fun)
   }
   
-  # Latitude
-  if (sum(DI_type == "Latitude") > 0) {
-    
-    lat_vars <- DI_var[DI_type == "Latitude"]
-    out[lat_vars] <- aggregate(int[lat_vars], by = list(int$rowID), FUN = head, 1)[, -1]
-  }
-  
-  # Code numeric
-  if (sum(DI_type == "Code Numeric") > 0) {
-    
-    cn_vars <- DI_var[DI_type == "Code Numeric"]
-    out[cn_vars] <- aggregate(int[cn_vars], by = list(int$rowID), FUN = head, 1)[, -1]
-  }
-  
-  # Coded
-  if (sum(DI_type == "Code") > 0) {
-    
-    c_vars <- DI_var[DI_type == "Code"]
-    out[c_vars] <- aggregate(int[c_vars], by = list(int$rowID), FUN = head, 1)[, -1]
-  }
- 
-  # Code string
-  if (sum(DI_type == "Code String") > 0) {
-    
-    cs_vars <- DI_var[DI_type == "Code String"]
-    out[cs_vars] <- aggregate(int[cs_vars], by = list(int$rowID), FUN = head, 1)[, -1]
-  }
-  
-  # Not in the dataIndex file
-#  not_in_DI <- names(int)[!(names(int)[-row_ind] %in% dataIndex$variable_name)]
-  
-#  if (length(not_in_DI) > 0) {
-#    out[not_in_DI] <- aggregate(int[not_in_DI], by = list(int$rowID), FUN = head, 1)[, -1]
-#  }
-  
-  # Add hauls per trip 
+  # Haul counter
   if (haul_count) {
-    
-    out$HAUL_COUNT <- agg_helper(int, value = "rowID", group = tripID, fun = length)$rowID
+    haul_count_df <- data.frame(table(dataset[[trip_id]]))
+    names(haul_count_df) <- c(trip_id, "haul_count")
+    aggregated_list$haul_count <- haul_count_df
   }
   
-  # remove "drop" column
-  out$drop <- NULL
+  # Merge all data frames together ----------------------------------------------------------------
+  aggregated_list <- aggregated_list[!sapply(aggregated_list, is.null)]
   
+  df_out <- Reduce(function(x, y) merge(x, y, by = trip_id, all = TRUE), aggregated_list)
+  
+  # Log function call -----------------------------------------------------------------------------
   if (log_fun) {
-    
     haul_to_trip_function <- list()
     haul_to_trip_function$functionID <- "haul_to_trip"
-    haul_to_trip_function$args <- list(dat, project, deparse(substitute(fun.numeric)), 
-                                       deparse(substitute(fun.time)), tripID, haul_count, 
+    haul_to_trip_function$args <- list(dat, 
+                                       project, 
+                                       trip_id,
+                                       zoneID_dat,
+                                       zone_fun,
+                                       num_fun, 
+                                       char_fun,
+                                       date_fun,
+                                       haul_count, 
                                        log_fun)
-    haul_to_trip_function$output <- list(dat)
+    haul_to_trip_function$output <- list(df_out)
     log_call(project, haul_to_trip_function)
   }
-
-  return(out)
+  
+  return(df_out)
 }

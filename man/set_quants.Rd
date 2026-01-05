@@ -8,8 +8,8 @@ set_quants(
   dat,
   project,
   x,
-  quant.cat = c(0.1, 0.2, 0.25, 0.33, 0.4),
-  custom.quant = NULL,
+  quant_cat = 0.25,
+  custom_quant = NULL,
   name = "set_quants"
 )
 }
@@ -21,7 +21,8 @@ Table in FishSET database contains the string 'MainDataTable'.}
 
 \item{x}{Variable to transform into quantiles.}
 
-\item{quant.cat}{Quantile options: \code{"0.2"}, \code{"0.25"}, \code{"0.33"}, and \code{"0.4"}
+\item{quant_cat}{Quantile options: \code{0.1} \code{0.2}, \code{0.25}, \code{0.33}, and 
+ \code{0.4}
 \itemize{
   \item{0.1:  (0\%, 10\%, 20\%, 30\%, 40\%, 50\%, 60\%, 70\%, 80\%, 90\%, 100\%)}
   \item{0.2:  (0\%, 20\%, 40\%, 60\%, 80\%, 100\%)}
@@ -30,7 +31,7 @@ Table in FishSET database contains the string 'MainDataTable'.}
   \item{0.4:  (0\%, 10\%, 50\%, 90\%, 100\%)}
   }}
 
-\item{custom.quant}{Vector, user defined quantiles.}
+\item{custom_quant}{Vector, user defined quantiles (between 0-1)}
 
 \item{name}{String, name of created vector. Defaults to name of the function if not defined.}
 }
@@ -38,11 +39,12 @@ Table in FishSET database contains the string 'MainDataTable'.}
 Primary dataset with quantile variable added.
 }
 \description{
-Create a factor variable from numeric data.  Numeric variable is split into categories based on quantile categories.
+Create a factor variable from numeric data.  Numeric variable is split into categories based 
+on quantile categories.
 }
 \examples{
 \dontrun{
 pollockMainDataTable <- set_quants(pollockMainDataTable, 'pollock', 'HAUL', 
-   quant.cat=.2, 'haul.quant')
+   quant_cat=.2, 'haul.quant')
 }
 }

@@ -6,6 +6,7 @@
 \usage{
 calc_exp(
   dataset,
+  alt_name = NULL,
   catch,
   price = NULL,
   defineGroup = NULL,

@@ -8,7 +8,7 @@ temporal_mod(
   dat,
   project,
   x,
-  define.format = NULL,
+  define_format = NULL,
   timezone = NULL,
   name = NULL,
   log_fun = TRUE,
@@ -23,8 +23,10 @@ Table in FishSET database contains the string 'MainDataTable'.}
 
 \item{x}{Time variable to modify from \code{dat}.}
 
-\item{define.format}{Format of temporal data. \code{define.format} should be NULL if converting timezone for \code{x} but not
-  changing format. Format can be user-defined or from pre-defined choices. Format follows \code{\link{as.Date}} format.
+\item{define_format}{Format of temporal data. \code{define_format} should be NULL if converting 
+timezone for \code{x} but not
+  changing format. Format can be user-defined or from pre-defined choices. Format follows 
+  \code{\link{as.Date}} format.
 See Details for more information.}
 
 \item{timezone}{String, defaults to NULL. Returns the date-time in the specified time zone. 
@@ -44,27 +46,32 @@ Creates a new temporal variable by extracting temporal unit, such as year, month
 from a date variable.
 }
 \details{
-Converts a date variable to desired timezone or units using \code{\link[base]{as.Date}}. \code{\link{date_parser}} is
-also called to ensure the date variable is in an acceptable format for \code{\link[base]{as.Date}}.
- \code{define.format} defines the format that the variable should take on. Examples include \code{"\%Y\%m\%d"}, \code{"\%Y-\%m-\%d \%H:\%M:\%S"}.
+Converts a date variable to desired timezone or units using \code{\link[base]{as.Date}}.
+ \code{\link{date_parser}} is
+also called to ensure the date variable is in an acceptable format for
+ \code{\link[base]{as.Date}}.
+ \code{define_format} defines the format that the variable should take on. Examples include 
+ \code{"\%Y\%m\%d"}, \code{"\%Y-\%m-\%d \%H:\%M:\%S"}.
    Users can define their own format or use one of the predefined ones. Hours is 0-23. 
-   To return a list of time-zone name in the Olson/IANA database paste \code{OlsonNames()} to the console.
+   To return a list of time-zone name in the Olson/IANA database paste \code{OlsonNames()} 
+   to the console.
 \itemize{
 Predefined formats:
 \item{year: Takes on the format \code{"\%Y"} and returns the year.}
 \item{month: Takes on the format \code{"\%Y/\%m"} and returns the year and month.}
 \item{day: Takes on the format \code{"\%Y/\%m/\%d"} and returns the year, month, and day.}
 \item{hour: Takes on the format \code{"\%Y/\%m/\%d \%H"} and returns the year, month, day and hour.}
-\item{minute: Takes on the format \code{"\%Y/\%m/\%d \%H:\%M"} and returns the year, month, day, hour, and minute.}
+\item{minute: Takes on the format \code{"\%Y/\%m/\%d \%H:\%M"} and returns the year, 
+month, day, hour, and minute.}
 }
 For more information on formats, see \url{https://www.stat.berkeley.edu/~s133/dates.html}.
 }
 \examples{
 \dontrun{
 pcodMainDataTable <- temporal_mod(pcodMainDataTable, "pcod", 
-   "DATE_LANDED", define.format = "\%Y\%m\%d")
+   "DATE_LANDED", define_format = "\%Y\%m\%d")
 pcodMainDataTable <- temporal_mod(pcodMainDataTable, "pcod", 
-   "DATE_LANDED", define.format = "year")
+   "DATE_LANDED", define_format = "year")
 }
 
 

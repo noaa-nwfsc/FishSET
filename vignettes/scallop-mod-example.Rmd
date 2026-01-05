@@ -177,12 +177,14 @@ is set to 90.
 ```{r}
 create_alternative_choice(dat = scallopModMainDataTable,
                           project = "scallopMod",
+                          alt_name = "alt1",
                           occasion = "lon-lat",
                           occasion_var = c("previous_port_lon", "previous_port_lat"),
                           alt_var = "zonal centroid",
                           zoneID = "ZoneID",
-                          zone.cent.name = "scallopModZoneCentroid",
-                          min.haul = 90)
+                          min_haul = 90
+                          )
+
 ```
 
 <br>
@@ -192,7 +194,7 @@ The plot below visualizes zone frequency after accounting for the
 minimum haul requirement from the alternative choice list.
 
 ```{r}
-z_ind <- which(alt_choice_list('scallopMod')$dataZoneTrue == 1)
+z_ind <- which(alt_choice_list('scallopMod')[[1]]$dataZoneTrue == 1)
 
 zOut <- 
   zone_summary(scallopModMainDataTable[z_ind, ], 
@@ -223,7 +225,8 @@ will be named `user1` and `user2` respectively.
 create_expectations(dat = scallopModMainDataTable,
                     project = "scallopMod",
                     name = "exp1",
-                    catch = "LANDED_thousands", 
+                    alt_name = "alt1",
+                    catch = "LANDED_thousands",
                     temp_var = "DATE_TRIP",
                     temp_window = 7,
                     day_lag = 1,
@@ -232,11 +235,12 @@ create_expectations(dat = scallopModMainDataTable,
                     empty_catch = NA,
                     empty_expectation = 1e-04)
 
-# user2 expected catch matrix
+# # user2 expected catch matrix
 create_expectations(dat = scallopModMainDataTable,
                     project = "scallopMod",
                     name = "exp2",
-                    catch = "LANDED_thousands", 
+                    alt_name= "alt1",
+                    catch = "LANDED_thousands",
                     temp_var = "DATE_TRIP",
                     temporal = "daily",
                     temp_window = 14,
@@ -255,10 +259,10 @@ of the primary data with the suffix `_final` added to indicate that the
 table is in its "final" state and ready to be used for modeling.
 
 ```{r}
-check_model_data(scallopModMainDataTable, 
-                 project = "scallopMod", 
-                 uniqueID = "TRIPID",
-                 latlon = c("DDLON","DDLAT"))
+# check_model_data(scallopModMainDataTable, 
+#                  project = "scallopMod", 
+#                  uniqueID = "TRIPID",
+#                  latlon = c("DDLON","DDLAT"))
 ```
 
 <br>
@@ -271,15 +275,15 @@ using one of the expected catch matrices created earlier (this is
 specified by using `'individual'` in the `expectcatchmodels` argument).
 
 ```{r}
-make_model_design(project = "scallopMod",
-                  catchID = "LANDED_thousands",
-                  likelihood = "logit_c",
-                  initparams = c(0, 0),
-                  vars1 = NULL,
-                  vars2 = NULL,
-                  mod.name = 'lz', 
-                  expectcatchmodels = list('individual')
-)
+# make_model_design(project = "scallopMod",
+#                   catchID = "LANDED_thousands",
+#                   likelihood = "logit_c",
+#                   initparams = c(0, 0),
+#                   vars1 = NULL,
+#                   vars2 = NULL,
+#                   mod.name = 'lz', 
+#                   expectcatchmodels = list('individual')
+# )
 ```
 
 <br>
@@ -291,7 +295,7 @@ Use `discretefish_subroutine()` to run all models in the model design
 file.
 
 ```{r}
-discretefish_subroutine(project = "scallopMod", explorestarts = FALSE)
+# discretefish_subroutine(project = "scallopMod", explorestarts = FALSE)
 ```
 
 <br>
@@ -303,7 +307,7 @@ specified model should find positive coefficients for `user1` and `user2` and
 negative coefficiencts for `V1`.
 
 ```{r}
-model_params("scallopMod", output = 'print')
+# model_params("scallopMod", output = 'print')
 ```
 
 <br>
@@ -312,7 +316,7 @@ model_params("scallopMod", output = 'print')
 Compare model fit.
 
 ```{r}
-model_fit_summary("scallopMod")
+# model_fit_su"mmary("scallopMod")
 ```
 
 ```{r eval=TRUE, echo=FALSE}

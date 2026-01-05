@@ -271,16 +271,17 @@ zone_summary_ui <- function(id){
                        ns = ns,
                        bslib::card(
                          class="card-overflow", 
-                         bslib::card_body(class="card-overflow",
-                                          bslib::layout_column_wrap(
-                                            width = 1/2,
-                                            selectizeInput(ns('zone_summ_operator_input'), 'Select an operator',
-                                                           choices = c("less than" = "<",
-                                                                       "greater than" = ">",
-                                                                       "less than or equal to" = "<=",
-                                                                       "greater than or equal to" = ">=",
-                                                                       "equal to" = "==", "not equal to" = "!=")),
-                                            uiOutput(ns("zone_summ_val_input"))))
+                         bslib::card_body(
+                           class="card-overflow",
+                           bslib::layout_column_wrap(
+                             width = 1/2,
+                             selectizeInput(ns('zone_summ_operator_input'), 'Select an operator',
+                                            choices = c("less than" = "<",
+                                                        "greater than" = ">",
+                                                        "less than or equal to" = "<=",
+                                                        "greater than or equal to" = ">=",
+                                                        "equal to" = "==", "not equal to" = "!=")),
+                             uiOutput(ns("zone_summ_val_input"))))
                        ))),
     
     bslib::card(
@@ -298,8 +299,8 @@ zone_summary_ui <- function(id){
                    "Save as static map", 
                    icon = icon("save"),
                    width = "100%"),
-        NULL # Use NULL for an intentionally empty column
-
+      NULL # Use NULL for an intentionally empty column
+      
     ),
     # Container for the loading spinner, shown while checks are running.
     div(id = ns("zone_summ_spinner_container"),
