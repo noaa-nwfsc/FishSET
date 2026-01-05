@@ -88,7 +88,7 @@ option is to select one more expected catch matrices to run jointly.}
 
 \item{startloc}{Variable in \code{dat} identifying the location when choice
 of where to fish next was made. Required for logit_correction likelihood.
-Use the \code{\link[=create_startingloc]{create_startingloc()}} function to create the starting
+Use the \code{\link[=lag_zone]{lag_zone()}} function to create the starting
 location vector.}
 
 \item{polyn}{Numeric, correction polynomial degree. Required for

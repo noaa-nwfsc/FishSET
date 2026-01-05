@@ -161,7 +161,7 @@ cross_validation <- function(project,
   
   # create list with each element containing the training and testing names
   cv_pred <- lapply(split(cbind(train_mods,test_mods), seq(length(train_mods))), function(x){
-    predict_outsample(project, mod_name = x[[1]], outsample_mod_name = x[[2]])
+    predict_outsample(project, mod.name = x[[1]], outsample.mod.name = x[[2]])
   })
   
   # get the percent absolute prediction error for each group

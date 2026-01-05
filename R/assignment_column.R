@@ -11,20 +11,20 @@
 #' @param spat Spatial data containing information on fishery management or 
 #'   regulatory zones. \code{sf} objects are recommended, but \code{sp} objects
 #'   can be used as well. If using a spatial table read from a csv file, then
-#'   arguments \code{lon.spat} and \code{lat.spat} are required. To upload your
+#'   arguments \code{lon_spat} and \code{lat_spat} are required. To upload your
 #'   spatial data to the FishSETFolder see \code{\link{load_spatial}}.
-#' @param hull.polygon Logical, if \code{TRUE}, creates convex hull polygon. Use 
+#' @param hull_polygon Logical, if \code{TRUE}, creates convex hull polygon. Use 
 #'   if spatial data creating polygon are sparse or irregular.
-#' @param lon.dat Longitude variable in \code{dat}.
-#' @param lat.dat Latitude variable in \code{dat}.
-#' @param lon.spat Variable or list from \code{spat} containing longitude data. 
+#' @param lon_dat Longitude variable in \code{dat}.
+#' @param lat_dat Latitude variable in \code{dat}.
+#' @param lon_spat Variable or list from \code{spat} containing longitude data. 
 #'    Required for spatial tables read from csv files. Leave as \code{NULL} if 
 #'    \code{spat} is an \code{sf} or \code{sp} object.
-#' @param lat.spat Variable or list from \code{spat} containing latitude data. 
+#' @param lat_spat Variable or list from \code{spat} containing latitude data. 
 #'   Required for spatial tables read from csv files. Leave as \code{NULL} if 
 #'   \code{spat} is an \code{sf} or \code{sp} object.
-#' @param cat Variable or list in \code{spat} that identifies the individual areas 
-#'   or zones. If \code{spat} is class \code{sf}, \code{cat} should be name of list 
+#' @param zoneID_spat Variable or list in \code{spat} that identifies the individual areas 
+#'   or zones. If \code{spat} is class \code{sf}, \code{zoneID_spat} should be name of list 
 #'   containing information on zones.
 #' @param name The name of the new assignment column. Defaults to \code{"ZoneID"}. 
 #' @param epsg EPSG code. Manually set the epsg code, which will be applied to 
@@ -33,17 +33,17 @@
 #'   if epsg is not specified and epsg is not defined for \code{spat}, then a default
 #'   epsg value will be applied to \code{spat} and \code{dat} (\code{epsg = 4326}).
 #'   See \url{http://spatialreference.org/} to help identify optimal epsg number.
-#' @param closest.pt  Logical, if \code{TRUE}, observations that fall outside 
+#' @param closest_pt  Logical, if \code{TRUE}, observations that fall outside 
 #'   zones are classed as the closest zone polygon to the point.
 #' @param bufferval Maximum buffer distance, in meters, for assigning observations 
 #'   to the closest zone polygon. If the observation is not within the defined 
 #'   \code{bufferval}, then it will not be assigned to a zone polygon. 
-#'   Required if \code{closest.pt = TRUE}. 
-#' @param log.fun Logical, whether to log function call (for internal use).
+#'   Required if \code{closest_pt = TRUE}. 
+#' @param log_fun Logical, whether to log function call (for internal use).
 #' @importFrom sf st_transform st_as_sf
 #' @details  Function uses the specified latitude and longitude from the primary 
 #'   dataset to assign each row of the primary dataset to a zone. Zone polygons 
-#'   are defined by the spatial dataset. Set \code{hull.polygon} to \code{TRUE} 
+#'   are defined by the spatial dataset. Set \code{hull_polygon} to \code{TRUE} 
 #'   if spatial data is sparse or irregular. Function is called by other functions 
 #'   if a zone identifier does not exist in the primary dataset.
 #' @keywords  zone, polygon
@@ -53,13 +53,23 @@
 #' \dontrun{
 #' pollockMainDataTable <- 
 #'      assignment_column(pollockMainDataTable, "pollock", spat = pollockNMFSSpatTable,
-#'                        lon.dat = "LonLat_START_LON", lat.dat = "LonLat_START_LAT")
+#'                        lon_dat = "LonLat_START_LON", lat_dat = "LonLat_START_LAT")
 #' }
 
-assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = "ZoneID", 
-                              closest.pt = FALSE, bufferval = NULL, lon.spat = NULL, 
-                              lat.spat = NULL, hull.polygon = FALSE, epsg = NULL,
-                              log.fun = TRUE) {
+assignment_column <- function(dat, 
+                              project, 
+                              spat, 
+                              lon_dat, 
+                              lat_dat, 
+                              zoneID_spat, 
+                              name = "ZoneID", 
+                              closest_pt = FALSE, 
+                              bufferval = NULL, 
+                              lon_spat = NULL, 
+                              lat_spat = NULL, 
+                              hull_polygon = FALSE, 
+                              epsg = NULL,
+                              log_fun = TRUE) {
   
   # Call in data sets
   out <- data_pull(dat, project)
@@ -70,34 +80,34 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
   spatdat <- spat_out$dataset
   spat <- parse_data_name(dat, "spat", project)
   
-  column_check(dataset, cols = c(lon.dat, lat.dat))
-  column_check(spatdat, cols = c(cat, lon.spat, lat.spat))
+  column_check(dataset, cols = c(lon_dat, lat_dat))
+  column_check(spatdat, cols = c(zoneID_spat, lon_spat, lat_spat))
   
   name_check(dataset, names = name)
   
   # why use as.vector? 
-  dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
-  dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
+  dataset[[lat_dat]] <- as.numeric(as.vector(dataset[[lat_dat]]))
+  dataset[[lon_dat]] <- as.numeric(as.vector(dataset[[lon_dat]]))
   
-  if(anyNA(dataset[[lat.dat]])|| anyNA(dataset[[lon.dat]])) {
+  if(anyNA(dataset[[lat_dat]])|| anyNA(dataset[[lon_dat]])) {
     
     stop('Missing values in coordinates not allowed. Areas not assigned.', call. = FALSE)
   }
   
-  if (any(abs(dataset[[lon.dat]]) > 180, na.rm = TRUE)) {
+  if (any(abs(dataset[[lon_dat]]) > 180, na.rm = TRUE)) {
     
     stop("Longitude is not valid (outside -180:180). Areas not assigned.", call. = FALSE)
   }
   
-  if (any(abs(dataset[[lat.dat]]) > 90, na.rm = TRUE)) {
+  if (any(abs(dataset[[lat_dat]]) > 90, na.rm = TRUE)) {
     
     stop("Latitude is not valid (outside -90:90). Areas not assigned.", call. = FALSE)
   }
   
   # convert dat to sf object
-  dat_sf <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = 4326)
+  dat_sf <- sf::st_as_sf(x = dataset, coords = c(lon_dat, lat_dat), crs = 4326)
   
-  spatdat <- check_spatdat(spatdat, lon = lon.spat, lat = lat.spat, id = cat)
+  spatdat <- check_spatdat(spatdat, lon = lon_spat, lat = lat_spat, id = zoneID_spat)
   
   if (sf::st_crs(spatdat) != sf::st_crs(dat_sf)) {
     
@@ -145,7 +155,7 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
     inter[dub] <- sf::st_nearest_feature(dat_sf[dub, ], spatdat)
   }
   
-  if (closest.pt) {
+  if (closest_pt) {
     
     if (any(lengths(inter) == 0)) { 
       
@@ -177,16 +187,16 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
   
   # create new assignment column
   pts <- as.numeric(inter)
-  dataset[[name]] <- spatdat[[cat]][pts]
+  dataset[[name]] <- spatdat[[zoneID_spat]][pts]
   
-  if (log.fun) {
+  if (log_fun) {
     
     assignment_column_function <- list()
     assignment_column_function$functionID <- "assignment_column"
-    assignment_column_function$args <- list(dat, project, spat, lon.dat, lat.dat, 
-                                            cat, name, closest.pt,  bufferval, 
-                                            lon.spat, lat.spat, hull.polygon, epsg, 
-                                            log.fun)
+    assignment_column_function$args <- list(dat, project, spat, lon_dat, lat_dat, 
+                                            zoneID_spat, name, closest_pt,  bufferval, 
+                                            lon_spat, lat_spat, hull_polygon, epsg, 
+                                            log_fun)
     log_call(project, assignment_column_function)
   }
   

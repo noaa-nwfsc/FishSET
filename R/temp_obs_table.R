@@ -49,9 +49,16 @@ temp_obs_table <- function(dat, project, x, zoneid=NULL, spat=NULL, lon.dat=NULL
     out <- dataset
     colnames(out)[colnames(out)==zoneid] <- 'ZoneID'
   } else {
-    out <- assignment_column(dataset, project=project, spat = spatdat, 
-     lon.spat = lon.spat, lat.spat = lat.dat, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat,
-      closest.pt = FALSE, hull.polygon = TRUE, epsg = NULL, log.fun = FALSE
+    out <- assignment_column(dataset, 
+                             project=project, 
+                             spat = spatdat, 
+                             lon_dat = lon.dat, 
+                             lat_dat = lat.dat, 
+                             zoneID_spat = cat,
+                             closest_pt = FALSE, 
+                             hull_polygon = TRUE, 
+                             epsg = NULL, 
+                             log_fun = FALSE
     )
   }
 

@@ -50,6 +50,7 @@
 #'   dummy matrix (if \code{dummy_exp = TRUE}), and list of input args. 
 #' 
 calc_exp <- function(dataset,
+                     alt_name = NULL,
                      catch,
                      price = NULL,
                      defineGroup = NULL,
@@ -87,7 +88,7 @@ calc_exp <- function(dataset,
   z_ind <- which(dataZoneTrue == 1)
   
   # Non temporal ----------------------------------------------------------------------------------
-  if (is_value_empty(temp_var) || temp_var == "none") {
+  if (is_value_empty(temp_var) || tolower(temp_var) == "none") {
     # Select columns
     df_no_temp <- dt[z_ind, c("fleet", catch), with = FALSE]
     
@@ -99,7 +100,7 @@ calc_exp <- function(dataset,
     )]
     
     # Handle revenue calculation
-    if (!is_value_empty(price) && price != "none") {
+    if (!is_value_empty(price) && tolower(price) != "none") {
       price_vec <- as.numeric(dataset[[price]][z_ind])
       df_no_temp[, catch_val := catch_val * price_vec]
     }
@@ -155,7 +156,7 @@ calc_exp <- function(dataset,
   )]
   
   # Handle revenue calculation
-  if (!is_value_empty(price) && price != "none") {
+  if (!is_value_empty(price) && tolower(price) != "none") {
     price_vec <- as.numeric(dataset[[price]][z_ind])
     df[, catch_val := catch_val * price_vec]
   }
@@ -253,12 +254,13 @@ calc_exp <- function(dataset,
     # If NULL, fill NAs with 1e-04
     exp_matrix[is.na(exp_matrix)] <- 1e-4
   }
-
+  
   return(
     list(
       exp = exp_matrix,
       dummy = get0("dum_matrix"),
       settings = list("catch" = catch_name, 
+                      "alt_name" = alt_name,
                       "price" = price, 
                       "defineGroup" = defineGroup, 
                       "temp_var" = temp_var, 

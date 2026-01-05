@@ -52,7 +52,7 @@ cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL)
     if (!is.null(price)) name = 'rpue'
     else name = 'cpue'
     
-    warning("'name' empty, using '", name, "'.", call. = FALSE)
+    cat("'name' empty, using '", name, "'.", call. = FALSE)
   }
   
   name <- name_check(dataset, name, repair = TRUE)
@@ -121,33 +121,41 @@ cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL)
 # dummy_num
 dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dummy_num") {
   #' Create a binary vector from numeric, date, and character or factor vectors.
-  #' @param dat Primary data containing information on hauls or trips.
-  #'   Table in the FishSET database contains the string 'MainDataTable'.
+  #' 
+  #' @param dat Primary data containing information on hauls or trips. Table in the FishSET 
+  #'   database contains the string 'MainDataTable'.
   #' @param project Project name. 
   #' @param var Variable in \code{dat} to create dummy variable from.
-  #' @param value String, value to set dummy variable by. If \code{var} is a date, value should be a year,
-  #'   If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, value should be a single
-  #'   number or range of numbers [use c(1,5)].
-  #' @param opts String, how dummy variable should be defined. Choices are \code{"x_y"} and \code{"more_less’"}. For \code{"x_y"}, each
-  #'   element of \code{var} is set to 1 if the element matches \code{value}, otherwise 0.
-  #'   For \code{"more_less"}, each element of \code{var} less than \code{value} is set to 0 and all elements greater than
-  #'   \code{value} set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and all other
-  #'   elements set to 0. Default is set to \code{"more_less"}.
-  #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
+  #' @param value String, value to set dummy variable by. If \code{var} is a date, value should be
+  #'   a year, If \code{var} is a factor, value should be a factor level. If \code{var} is 
+  #'   numeric, value should be a single number or range of numbers [use c(1,5)].
+  #' @param opts String, how dummy variable should be defined. Choices are \code{"x_y"} and 
+  #'   \code{"more_less’"}. For \code{"x_y"}, each element of \code{var} is set to 1 if the 
+  #'   element matches \code{value}, otherwise 0. For \code{"more_less"}, each element of 
+  #'   \code{var} less than \code{value} is set to 0 and all elements greater than \code{value} 
+  #'   set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and 
+  #'   all other elements set to 0. Default is set to \code{"more_less"}.
+  #' @param name String, name of created dummy variable. Defaults to name of the function if not
+  #'   defined.
   #' @importFrom lubridate origin as_date
-  #' @details For date variables, the dummy variable is defined by a date (year) and may be either year \code{x} versus all
-  #'   other years (\code{"x_y"}) or before vs after year \code{x} (\code{"more_less"}). Use this function to create a variable defining whether
-  #'   or not a policy action had been implemented. \cr
+  #' @details For date variables, the dummy variable is defined by a date (year) and may be either 
+  #'   year \code{x} versus all other years (\code{"x_y"}) or before vs after year \code{x} 
+  #'   (\code{"more_less"}). Use this function to create a variable defining whether or not a 
+  #'   policy action had been implemented. \cr
   #'   Example: before vs. after a 2008 amendment: \cr
   #'   \code{dummy_num('pollockMainDataTable', 'Haul_date', 2008, 'more_less', 'amend08')} \cr\cr
   #'
-  #'  For factor variables, both choices in \code{opts} compare selected factor level(s) against all other factor levels.\cr
-  #'  Example: Fishers targeting pollock vs. another species:  \cr
-  #'  \code{dummy_num('pollockMainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 'Pollock - midwater'), 'x_y', 'pollock_target')}  \cr\cr
+  #'   For factor variables, both choices in \code{opts} compare selected factor level(s) against
+  #'   all other factor levels.\cr
+  #'   Example: Fishers targeting pollock vs. another species:  \cr
+  #'   \code{dummy_num('pollockMainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 
+  #'                  'Pollock - midwater'), 'x_y', 'pollock_target')}  \cr\cr
   #'
-  #'  For numeric variables, \code{value} can be a single number or a range of numbers. The dummy variable is the
-  #'  selected value(s) against all others (\code{x_y}) or less than the selected value versus more than the selected value
-  #'  (\code{more_less}). For \code{more_less}, the mean is used as the critical value if a range of values is provided.
+  #'   For numeric variables, \code{value} can be a single number or a range of numbers. The dummy 
+  #'   variable is the selected value(s) against all others (\code{x_y}) or less than the selected 
+  #'   value versus more than the selected value (\code{more_less}). For \code{more_less}, the 
+  #'   mean is used as the critical value if a range of values is provided.
+  #'    
   #' @return Returns primary dataset with dummy variable added.
   #' @export
   #' @examples
@@ -156,101 +164,71 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   #'   'more_less', 'amend80')
   #' }
   
-  
   # Pull in data
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  
   dat <- parse_data_name(dat, "main", project)
   
   # name <- ifelse(is_empty(name), "dummy_num", name)
   name <- name_check(dataset, name, repair = TRUE)
   
-  if (grepl("dat|year", var, ignore.case = TRUE)) {
-    if (length(value) == 6) {
-      dataset[[var]] <- format(lubridate::as_date(dataset[[var]]), "%Y%m")
-    } else if (length(value) == 4) {
-      dataset[[var]] <- format(lubridate::as_date(dataset[[var]]), "%Y")
-    } else {
-      dataset[[var]] <- format(lubridate::as_date(dataset[[var]]), "%m")
-    }
-  } 
-  
-  if (is.numeric(dataset[[var]])) {
-    if (opts == "x_y") {
-      newvar <- ifelse(dataset[[var]] >= min(value) & dataset[[var]] <= max(value), 0, 1)
-    } else {
-      newvar <- ifelse(dataset[[var]] < mean(value), 0, 1)
-    }
-  } else if (is.factor(dataset[[var]]) | is.character(dataset[[var]])) {
-    newvar <- ifelse(trimws(dataset[[var]], "both") == trimws(value, "both"), 0, 1)
-  } else {
-    (warning("variable is not recognized as being a date, factor, or numeric. Function not run."))
+  # Ensure the variable exists in the data
+  if (!var %in% names(dataset)) {
+    stop(paste0("Variable '", var, "' not found in the data frame."))
   }
   
-  g <- cbind(dataset, newvar)
-  colnames(g)[dim(g)[2]] = name
+  # Extract the column as a vector for easier handling
+  column_vec <- dataset[[var]]
   
-  dummy_num_function <- list()
-  dummy_num_function$functionID <- "dummy_num"
-  dummy_num_function$args <- list(dat, project, var, value, opts, name)
-  dummy_num_function$kwargs <- list()
-  dummy_num_function$output <- list(dat)
+  # --- Main Logic: Determine the new binary vector ---
+  new_var <- NA # Initialize
   
-  log_call(project, dummy_num_function)
-  return(g)
-}
-
-#' Create dummy variable
-dummy_var <- function(dat, project, DumFill = 1, name = "dummy_var") {
-  #' @param dat Primary data containing information on hauls or trips.
-  #' Table in the FishSET database contains the string 'MainDataTable'.
-  #' @param project Project name. 
-  #' @param DumFill Fill the dummy variable with 1 or 0
-  #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
-  #' @return Primary dataset with dummy variable added.
-  #' @export dummy_var
-  #' @details Creates a dummy variable of either 0 or 1 with length of the number of rows of the data set.
-  #' @examples
-  #' \dontrun{
-  #' pollockMainDataTable <- dummy_var(pollockMainDataTable, 'pollock', DumFill=1, 'dummyvar')
-  #' }
+  # 1. Handle Date or POSIXt (datetime) columns
+  if (inherits(column_vec, "Date") || inherits(column_vec, "POSIXt")) {
+    col_year <- lubridate::year(column_vec)
+    if (opts == "more_less") {
+      new_var <- as.integer(col_year >= value)
+    } else { # "x_y"
+      new_var <- as.integer(col_year %in% value)
+    }
+    
+    # 2. Handle Numeric columns
+  } else if (is.numeric(column_vec)) {
+    if (opts == "more_less") {
+      threshold <- mean(value)
+      new_var <- as.integer(column_vec >= threshold)
+    } else { # "x_y"
+      new_var <- as.integer(column_vec >= min(value) & column_vec <= max(value))
+    }
+    
+    # 3. Handle Character or Factor columns
+  } else if (is.character(column_vec) || is.factor(column_vec)) {
+    # For factors/characters, 'more_less' doesn't apply, so both opts do the same thing:
+    # check for membership in the `value` set.
+    new_var <- as.integer(trimws(column_vec) %in% trimws(value))
+    
+    # 4. Handle unrecognized types
+  } else {
+    stop(paste0("Variable '", var, "' is not a recognized type (Date, numeric, character, or factor)."))
+  }
   
-  # Pull in data
-  out <- data_pull(dat, project)
-  dataset <- out$dataset
+  # --- Add the new column to the dataset using dplyr ---
+  dataset <- dplyr::mutate(dataset, !!name := new_var)
   
-  dat <- parse_data_name(dat, "main", project)
-  
-  # name <- ifelse(is_empty(name), "dummy_var", name)
-  name <- name_check(dataset, name, repair = TRUE)
-  
-  newvar <- as.vector(rep(DumFill, nrow(dataset)))
-  
-  g <- cbind(dataset, newvar)
-  colnames(g)[dim(g)[2]] = name
-  
-  dummy_var_function <- list()
-  dummy_var_function$functionID <- "dummy_var"
-  dummy_var_function$args <- list(dat, project, DumFill, name)
-  dummy_var_function$kwargs <- list()
-  dummy_var_function$output <- list(dat)
-  
-  log_call(project, dummy_var_function)
-  
-  return(g)
+  return(dataset)
 }
 
 #' Create dummy matrix from a coded ID variable
 dummy_matrix <- function(dat, project, x) {
   #' @param dat Primary data containing information on hauls or trips.
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param project Project name.
   #' @param x Variable in \code{dat} used to generate dummy matrix.
   #' @export dummy_matrix
-  #' @details Creates a dummy matrix of 1/0 with dimensions \emph{[(number of observations in dataset) x
-  #' (number of factors in x)]} where each column is a unique factor level. Values are 1 if the value in the
-  #' column matches the column factor level and 0 otherwise.
+  #' @details Creates a dummy matrix of 1/0 with dimensions 
+  #'   \emph{[(number of observations in dataset) x (number of factors in x)]}
+  #'   where each column is a unique factor level. Values are 1 if the 
+  #'   value in the column matches the column factor level and 0 otherwise.
   #' @examples
   #' \dontrun{
   #' PortMatrix <- dummy_matrix(pollockMainDataTable, 'pollock', 'PORT_CODE')
@@ -269,7 +247,8 @@ dummy_matrix <- function(dat, project, x) {
   colnames(int) <- factor.levels
   
   # change matrix to TRUE/FALSE
-  int <- data.frame(lapply(1:length(factor.levels), function(x) ifelse(int[, x] == colnames(int)[x], 1, 0)))
+  int <- data.frame(lapply(1:length(factor.levels), 
+                           function(x) ifelse(int[, x] == colnames(int)[x], 1, 0)))
   colnames(int) <- paste(x, "_", levels(as.factor(dataset[[x]])))
   
   dummy_matrix_function <- list()
@@ -285,14 +264,17 @@ dummy_matrix <- function(dat, project, x) {
 ## ---- Coded variables ----##
 #' Create factor variable from quantiles
 #'
-#' Create a factor variable from numeric data.  Numeric variable is split into categories based on quantile categories.
+#' Create a factor variable from numeric data.  Numeric variable is split into categories based 
+#' on quantile categories.
 #'
-set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4), custom.quant = NULL, name = "set_quants") {
+set_quants <- function(dat, project, x, quant_cat = 0.25, 
+                       custom_quant = NULL, name = "set_quants") {
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in FishSET database contains the string 'MainDataTable'.
   #' @param project Project name.
   #' @param x Variable to transform into quantiles.
-  #' @param quant.cat Quantile options: \code{"0.2"}, \code{"0.25"}, \code{"0.33"}, and \code{"0.4"}
+  #' @param quant_cat Quantile options: \code{0.1} \code{0.2}, \code{0.25}, \code{0.33}, and 
+  #'  \code{0.4}
   #' \itemize{
   #'   \item{0.1:  (0\%, 10\%, 20\%, 30\%, 40\%, 50\%, 60\%, 70\%, 80\%, 90\%, 100\%)}
   #'   \item{0.2:  (0\%, 20\%, 40\%, 60\%, 80\%, 100\%)}
@@ -300,7 +282,7 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
   #'   \item{0.33: (0\%, 33\%, 66\%, 100\%)}
   #'   \item{0.4:  (0\%, 10\%, 50\%, 90\%, 100\%)}
   #'   }
-  #' @param custom.quant Vector, user defined quantiles.
+  #' @param custom_quant Vector, user defined quantiles (between 0-1)
   #' @param name String, name of created vector. Defaults to name of the function if not defined.
   #' @return Primary dataset with quantile variable added.
   #' @export set_quants  
@@ -308,7 +290,7 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
   #' @examples
   #' \dontrun{
   #' pollockMainDataTable <- set_quants(pollockMainDataTable, 'pollock', 'HAUL', 
-  #'    quant.cat=.2, 'haul.quant')
+  #'    quant_cat=.2, 'haul.quant')
   #' }
   #
   out <- data_pull(dat, project)
@@ -318,44 +300,41 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
   
   name <- ifelse(is_empty(name), "set_quants", name)
   
-  tmp <- 0
-  
   if (!is.numeric(dataset[[x]])) {
-    tmp <- 1
-    warning("Variable must be numeric. Function not run.")
+    stop("Variable must be numeric. Function not run.")
   }
   
-  if (tmp == 0) {
-    if (quant.cat == 0.1) {
-      prob.def <- seq(0, 1, by = .1)
-    } else if (quant.cat == 0.2) {
-      prob.def <- seq(0, 1, by = .2)
-    } else if (quant.cat == 0.25) {
-      prob.def <- seq(0, 1, by = .25)
-    } else if(quant.cat == 0.33) {
-      prob.def <- c(0, .33, .66, 1)
-    }  else if (quant.cat == 0.4) {
-      prob.def <- c(0, 0.1, 0.5, 0.9, 1)
-    }
-    
-    if (!is.null(custom.quant) & is.numeric(custom.quant)) {
-      prob.def <- custom.quant
-    }
-    # var.name <- paste('TRIP_OTC_MT', 'quantile', sep = '.')
-    newvar <- as.integer(cut(dataset[[x]], quantile(dataset[[x]], probs = prob.def), include.lowest = TRUE))
-    
-    g <- cbind(dataset, newvar)
-    colnames(g)[dim(g)[2]] = name
-    
-    set_quants_function <- list()
-    set_quants_function$functionID <- "set_quants"
-    set_quants_function$args <- list(dat, project, x, quant.cat, custom.quant, name)
-    set_quants_function$kwargs <- list()
-    set_quants_function$output <- list(dat)
-    
-    log_call(project, set_quants_function)
-    return(g)
+  if (!is.null(custom_quant) & is.numeric(custom_quant)) {
+    prob_def <- custom_quant
+  }else if (quant_cat == 0.1) {
+    prob_def <- seq(0, 1, by = .1)
+  } else if (quant_cat == 0.2) {
+    prob_def <- seq(0, 1, by = .2)
+  } else if (quant_cat == 0.25) {
+    prob_def <- seq(0, 1, by = .25)
+  } else if(quant_cat == 0.33) {
+    prob_def <- c(0, .33, .66, 1)
+  }  else if (quant_cat == 0.4) {
+    prob_def <- c(0, 0.1, 0.5, 0.9, 1)
   }
+  
+  breaks <- quantile(dataset[[x]], probs = prob_def, na.rm = TRUE)
+  quantile_labels <- prob_def[-1] 
+  factor_var <- cut(dataset[[x]], breaks = breaks, labels = quantile_labels, include.lowest = TRUE)
+  newvar <- as.numeric(as.character(factor_var))
+  
+  g <- cbind(dataset, newvar)
+  colnames(g)[dim(g)[2]] = name
+  
+  set_quants_function <- list()
+  set_quants_function$functionID <- "set_quants"
+  set_quants_function$args <- list(dat, project, x, quant_cat, custom_quant, name)
+  set_quants_function$kwargs <- list()
+  set_quants_function$output <- list(dat)
+  
+  log_call(project, set_quants_function)
+  return(g)
+  
 }
 
 
@@ -415,42 +394,33 @@ bin_var <- function(dat, project, var, br, name = "bin", labs = NULL, ...) {
 
 # within group ----
 
-group_perc <- function(dat, project, id_group, group = NULL, value, name = "group_perc", 
-                       create_group_ID = FALSE, drop_total_col = FALSE) {
+group_perc <- function(dat, project, group = NULL, value, name = "group_perc", 
+                       include_total_col = FALSE) {
   #' Create a within-group percentage variable 
   #'
   #' @param dat Primary data frame over which to apply function. Table in FishSET 
   #'   database should contain the string `MainDataTable`.
   #' @param project String, project name.
-  #' @param id_group String, primary grouping variable(s). Used to create the "total_value" 
-  #'   variable which sums \code{value} by \code{id_group}. If \code{group = NULL}, then 
-  #'   \code{value} is divided by "total_value".
-  #' @param group String, secondary grouping variable(s). Used to create the "group_total" 
-  #'   variable which sums \code{value} by \code{id_group} and \code{group}. Percentage 
-  #'   is calculated by dividing "group_total" by "total_value". Defaults to \code{NULL}.
+  #' @param group String, primary grouping variable(s). Used to create the "total_value" 
+  #'   variable which sums \code{value} by \code{group}. 
   #' @param value String, the value variable used to calculate percentage. Must be numeric. 
   #' @param name String, the name for the new variable. Defaults to "group_perc". 
-  #' @param create_group_ID Logical, whether to create a group ID variable using \code{\link{ID_var}}.
-  #'   Defaults to \code{FALSE}.
-  #' @param drop_total_col Logical, whether to remove the "total_value" and "group_total" variables
-  #'   created to calculate percentage. Defaults to \code{FALSE}.
+  #' @param include_total_col Logical, whether to remove the "total_value" 
+  #'   variables created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
   #' @importFrom dplyr across mutate group_by select ungroup rename_with
   #' @importFrom shiny isRunning
   #' @details \code{group_perc} creates a within-group percentage variable using a primary
-  #'   group ID (\code{id_group}) and secondary group (\code{group}). The total value of 
-  #'   \code{id_group} is stored in the "total_value" variable, and the within-group total
-  #'   stored in "group_total". The group percentage is calculated using these two function-created
-  #'   variables. "total_value" and "group_total" can be dropped by setting \code{drop_total_col = TRUE}.
-  #'   A group ID column can be created using the variables in\code{id_group} and \code{group} by setting 
-  #'   \code{create_group_ID = TRUE}. 
+  #'   group (\code{group}). The total value of \code{group} is stored in the "total_value" 
+  #'   variable, and the within-group total stored in "group_total". The group percentage is 
+  #'   calculated using these two function-created variables. "total_value" can
+  #'   be dropped by setting \code{include_total_col = TRUE}.
   #' @examples
   #' \dontrun{
-  #' group_perc(pollockMainDataTable, "pollock", id_group = "PERMIT", group = NULL, 
+  #' group_perc(pollockMainDataTable, "pollock", group = "PERMIT",
   #'            value = "OFFICIAL_TOTAL_CATCH_MT")
   #'            
-  #' group_perc(pollockMainDataTable, "pollock", id_group = "PERMIT",
-  #'            group = "DISEMBARKED_PORT", value = "HAUL")
+  #' group_perc(pollockMainDataTable, "pollock", group = "DISEMBARKED_PORT", value = "HAUL")
   #' }
   
   out <- data_pull(dat, project)
@@ -458,72 +428,71 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   
   dat <- parse_data_name(dat, "main", project)
   
-  # name <- ifelse(is_empty(name), "group_perc", name)
+  .  <- total_value <- NULL
+  
   name <- name_check(dataset, name, repair = TRUE)
   
-  if (create_group_ID) dataset <- ID_var(dataset, project, vars = c(id_group, group), 
-                                         log_fun = FALSE)
-  
-  . <- group_total <- total_value <- NULL
-  
   if (is.null(group)) {
-    
     dataset <- dataset %>% 
-      dplyr::group_by(dplyr::across(dplyr::all_of(id_group))) %>% 
-      dplyr::mutate(dplyr::across(dplyr::all_of(value), sum, .names = "total_value")) %>% # calc. total value by id_group
-      dplyr::ungroup() %>% 
-      dplyr::mutate(dplyr::across(dplyr::all_of(value), .fns = ~ (.x/total_value) * 100, .names = name)) %>% # calc. percent of total value
-      { if (drop_total_col) dplyr::select(., -total_value) else . } # drop total column if desired
+      dplyr::mutate(
+        # calc total value by id_group
+        dplyr::across(all_of(value), sum, .names = "total_value")) %>% 
+      dplyr::mutate(
+        dplyr::across(all_of(value),
+                      .fns = ~ (.x/total_value) * 100,
+                      .names = name)) %>% # calc. percent of total value
+      # drop total column if desired
+      { if (include_total_col == FALSE) dplyr::select(., -total_value) else . } 
     
   } else {
-    
     dataset <- dataset %>% 
-      dplyr::group_by(dplyr::across(dplyr::all_of(id_group))) %>% 
-      dplyr::mutate(dplyr::across(dplyr::all_of(value), sum, .names = "total_value")) %>% # calc. total value by id_group
-      dplyr::group_by(dplyr::across(dplyr::all_of(group)), .add = TRUE) %>%
-      dplyr::mutate(dplyr::across(dplyr::all_of(value), sum, .names = "group_total")) %>% # calc. group total
-      dplyr::mutate(temporary_col_name = (group_total/total_value) * 100) %>%
-      dplyr::rename_with(~ name, .cols = "temporary_col_name") %>%
+      dplyr::group_by(
+        dplyr::across(all_of(group))) %>% 
+      dplyr::mutate(
+        # calc. total value by id_group
+        dplyr::across(all_of(value), sum, .names = "total_value")) %>% 
       dplyr::ungroup() %>% 
-      { if (drop_total_col) dplyr::select(., -c(group_total, total_value)) else . }
+      dplyr::mutate(
+        dplyr::across(all_of(value),
+                      .fns = ~ (.x/total_value) * 100,
+                      .names = name)) %>% # calc. percent of total value
+      # drop total column if desired
+      { if (include_total_col== FALSE) dplyr::select(., -total_value) else . } 
   }
   
   group_perc_function <- list()
   group_perc_function$functionID <- "group_perc"
-  group_perc_function$args <- list(dat, project, id_group, group, value, name, 
-                                   create_group_ID, drop_total_col) 
+  group_perc_function$args <- list(dat, project, group, value, name, include_total_col) 
   log_call(project, group_perc_function)
   
   dataset
 }
 
 
-group_diff <- function(dat, project, group, sort_by, value, name = "group_diff", 
-                       lag = 1, create_group_ID = FALSE, drop_total_col = FALSE) {
+group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
+                       lag = 1, include_total_col = FALSE) {
   #' Create a within-group lagged difference variable
-  #' 
-  #' @param dat Primary data frame over which to apply function. Table in FishSET 
+  #'
+  #' @param dat Primary data frame over which to apply function. Table in FishSET
   #'   database should contain the string `MainDataTable`.
   #' @param project String, project name.
-  #' @param group String, the grouping variable(s) to sum \code{value} by. Used to create the 
-  #'   "group_total" variable.  
-  #' @param sort_by String, a date variable to order `MainDataTable` by. 
-  #' @param value String, the value variable used to calculate lagged difference. Must be numeric. 
-  #' @param name String, the name for the new variable. Defaults to "group_diff". 
-  #' @param lag Integer, adjusts lag length. Defaults to 1. 
-  #' @param create_group_ID Logical, whether to create a group ID variable using \code{\link{ID_var}}.
-  #'   Defaults to \code{FALSE}.
-  #' @param drop_total_col Logical, whether to remove the "group_total" variable
+  #' @param group String, the grouping variable(s) to sum \code{value} by. Used to create the
+  #'   "group_total" variable.
+  #' @param sort_by String, a date variable to order `MainDataTable` by.
+  #' @param value String, the value variable used to calculate lagged difference. Must be numeric.
+  #' @param name String, the name for the new variable. Defaults to "group_diff".
+  #' @param lag Integer, adjusts lag length. Defaults to 1.
+  #' @param include_total_col Logical, whether to remove the "group_total" variable
   #'   created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
-  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup rename_with
+  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup
+  #'   rename_with
   #' @importFrom shiny isRunning
   #' @details \code{group_diff} creates a grouped lagged difference variable. \code{value}
-  #'   is first summed by the variable(s) in \code{group}, then the difference within-group is 
+  #'   is first summed by the variable(s) in \code{group}, then the difference within-group is
   #'   calculated. The "group_total" variable gives the total value by group and can
-  #'   be dropped by setting \code{drop_total_col = TRUE}. A group ID column can be 
-  #'   created using the variables in \code{group} by setting \code{create_group_ID = TRUE}. 
-  #' @examples 
+  #'   be dropped by setting \code{include_total_col = FALSE}.
+  #' @examples
   #' \dontrun{
   #' group_diff(pollockMainDataTable, "pollock", group = c("PERMIT", "TRIP_ID"),
   #'            sort_by = "HAUL_DATE", value = "HAUL")
@@ -533,82 +502,81 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
-  
-  # name <- ifelse(is_empty(name), "group_diff", name)
   name <- name_check(dataset, name, repair = TRUE)
-  
-  
   . <- group_total <- NULL
   
-  
-  if (create_group_ID) dataset <- ID_var(dataset, project, vars = group, 
-                                         log_fun = FALSE)
-  
-  alt_diff <- function(x, lag) c(0, diff(x, lag = lag))
-  
   if (all(!(class(dataset[[sort_by]]) %in% c("Date","POSIXct", "POSIXt")))) {
-    
     dataset[[sort_by]] <- date_parser(dataset[[sort_by]])
   }
   
-  tab <- dataset %>% 
-    dplyr::arrange(dplyr::across(dplyr::all_of(sort_by))) %>% 
-    dplyr::group_by(dplyr::across(dplyr::all_of(group))) %>% 
-    { if (length(group) == 1)
-      dplyr::mutate(., dplyr::across(dplyr::all_of(value), sum, .names = "group_total")) %>% 
-        dplyr::mutate(., dplyr::across(dplyr::all_of(value), alt_diff, lag = lag, .names = name))
-      else 
-        dplyr::summarize(., dplyr::across(dplyr::all_of(value), sum, .names = "group_total")) %>% 
-        dplyr::mutate(., temporary_col_name = alt_diff(group_total, lag = lag)) } %>% 
-    
-    dplyr::rename_with(~ name, .cols = "temporary_col_name") %>%
-    dplyr::ungroup() %>% 
-    { if (drop_total_col) dplyr::select(., -group_total) else . }
+  #  Define all grouping/joining columns ---
+  group_vars <- c(group, sort_by)
   
-  if (length(group) > 1) {
-    dataset <- dplyr::left_join(dataset, tab, by = group)
-  } else { 
-    dataset <- tab 
+  # This summarizes data to the level of group(s) + sort_by date
+  tab <- 
+    dataset %>% 
+    # Group by all keys
+    dplyr::group_by(dplyr::across(all_of(group_vars))) %>% 
+    # Sum the value for that specific group/date
+    dplyr::summarize(group_total = sum(.data[[value]], na.rm = TRUE),
+                     .groups = "drop_last") %>% 
+    # .groups = "drop_last" removes 'sort_by' from grouping,
+    # so we are now grouped only by 'group' and arranged by 'sort_by'
+    
+    dplyr::mutate(
+      # Calculate the difference (x - x_lag).
+      # This produces NA for the first 'lag' rows in each group.
+      diff_val = group_total - dplyr::lag(group_total, n = lag),
+      # Use coalesce to replace those NAs with 0
+      !!name := dplyr::coalesce(diff_val, 0)
+    ) %>%
+    dplyr::select(-diff_val) %>% # Clean up intermediate column
+    dplyr::ungroup()
+
+  # The 'by' key MUST include all 'group_vars' to match rows correctly.
+  dataset <- dplyr::left_join(dataset, tab, by = group_vars)
+  
+  if (include_total_col== FALSE) {
+    dataset <- dplyr::select(dataset, -group_total)
   }
   
   group_diff_function <- list()
   group_diff_function$functionID <- "group_diff"
   group_diff_function$args <- list(dat, project, group, sort_by, value, name, lag,
-                                   create_group_ID, drop_total_col) 
+                                   include_total_col)
   log_call(project, group_diff_function)
   
   dataset
 }
 
-group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cumsum", 
-                         create_group_ID = FALSE, drop_total_col = FALSE) {
+group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cumsum",
+                         include_total_col = FALSE) {
   #' Create a within-group running sum variable
-  #' 
-  #' @param dat Primaryy data frame over which to apply function. Table in FishSET 
+  #'
+  #' @param dat Primary data frame over which to apply function. Table in FishSET
   #'   database should contain the string `MainDataTable`.
   #' @param project String, project name.
-  #' @param group String, the grouping variable(s) to sum \code{value} by. Used to create the 
-  #'   "group_total" variable.  
-  #' @param sort_by String, a date variable to order `MainDataTable` by. 
-  #' @param value String, the value variable used to calculate cumulative sum. Must be numeric. 
-  #' @param name String, the name for the new variable. Defaults to "group_cumsum". 
-  #' @param create_group_ID Logical, whether to create a group ID variable using \code{\link{ID_var}}.
-  #'   Defaults to \code{FALSE}.
-  #' @param drop_total_col Logical, whether to remove the "group_total" variable
+  #' @param group String, the grouping variable(s) to sum \code{value} by. Used to create the
+  #'   "group_total" variable.
+  #' @param sort_by String, a date variable (or variables) to order `MainDataTable` by.
+  #' @param value String, the value variable used to calculate cumulative sum. Must be numeric.
+  #' @param name String, the name for the new variable. Defaults to "group_cumsum".
+  #' @param include_total_col Logical, whether to remove the "group_total" variable
   #'   created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
-  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup %>% rename_with
+  #' @importFrom dplyr across all_of arrange left_join mutate group_by select summarize ungroup %>%
+  #'   rename_with
   #' @importFrom shiny isRunning
+  #' @importFrom tidyr replace_na
+  #' @importFrom rlang sym !!
   #' @details \code{group_cumsum} sums \code{value} by \code{group}, then cumulatively
-  #'   sums within groups. For example, a running sum by trip variable can be made 
+  #'   sums within groups. For example, a running sum by trip variable can be made
   #'   by entering
   #'   variables that identify unique vessels and trips into \code{group} and a numeric
   #'   variable (such as catch or # of hauls) into \code{value}. Each vessel's
-  #'   trip total is calculated then cumulatively summed. The "group_total" variable 
-  #'   gives the total value by group and can be dropped by setting \code{drop_total_col = TRUE}.
-  #'   A group ID column can be created using the variables in \code{group} by setting
-  #'   \code{create_group_ID = TRUE}. 
-  #' @examples 
+  #'   trip total is calculated then cumulatively summed. The "group_total" variable
+  #'   gives the total value by group and can be dropped by setting \code{include_total_col = TRUE}.
+  #' @examples
   #' \dontrun{
   #' group_cumsum(pollockMainDataTable, "pollock", group = c("PERMIT", "TRIP_ID"),
   #'              sort_by = "HAUL_DATE", value = "OFFICIAL_TOTAL_CATCH")
@@ -618,43 +586,38 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  # name <- ifelse(is_empty(name), "group_cumsum", name)
   name <- name_check(dataset, name, repair = TRUE)
   
   . <- group_total <- NULL
   
-  if (create_group_ID) dataset <- ID_var(dataset, project, vars = group, 
-                                         log_fun = FALSE)
-  
-  if (all(!(class(dataset[[sort_by]]) %in% c("Date","POSIXct", "POSIXt")))) {
-    
-    dataset[[sort_by]] <- date_parser(dataset[[sort_by]])
+  # This loop is now safe for one or more sort_by columns
+  for (col in sort_by) {
+    if (all(!(class(dataset[[col]]) %in% c("Date","POSIXct", "POSIXt")))) {
+      dataset[[col]] <- date_parser(dataset[[col]])
+    }
   }
   
-  tab <- 
-    dataset %>% 
-    dplyr::arrange(dplyr::across(sort_by)) %>% 
-    dplyr::group_by(dplyr::across(group)) %>% 
-    { if (length(group) == 1) 
-      dplyr::mutate(., dplyr::across(value, sum, .names = "group_total")) %>% 
-        dplyr::mutate(., dplyr::across(value, cumsum, .names = name))
-      else 
-        dplyr::summarize(., dplyr::across(value, sum, .names = "group_total")) %>% 
-        dplyr::mutate(., temporary_col_name = cumsum(group_total)) } %>% 
-    dplyr::rename_with(~ name, .cols = "temporary_col_name") %>%
-    dplyr::ungroup() %>% 
-    { if (drop_total_col) dplyr::select(., -group_total) else . }
+  tab <-
+    dataset %>%
+    # Use all_of() to correctly handle single or multiple sorting columns
+    dplyr::arrange(dplyr::across(dplyr::all_of(c(group, sort_by)))) %>%    
+    dplyr::group_by(dplyr::across(dplyr::all_of(group))) %>%
+    dplyr::mutate(
+      # Calculate group total, adding na.rm = TRUE for robustness
+      group_total = sum(!!rlang::sym(value), na.rm = TRUE),
+      # Use !!name := to create the new column with a dynamic name
+      # Use replace_na to prevent cumsum from propagating NAs
+      !!name := cumsum(tidyr::replace_na(!!rlang::sym(value), 0))
+    ) %>%
+    dplyr::ungroup() %>%
+    { if (include_total_col==FALSE) dplyr::select(., -group_total) else . }
   
-  if (length(group) > 1) {
-    dataset <- dplyr::left_join(dataset, tab, by = group)
-  } else { 
-    dataset <- tab 
-  }
+  # The 'tab' object is now the complete, mutated dataset.
+  dataset <- tab
   
   group_cumsum_function <- list()
   group_cumsum_function$functionID <- "group_cumsum"
-  group_cumsum_function$args <- list(dat, project, group, sort_by, value, name,
-                                     create_group_ID, drop_total_col) 
+  group_cumsum_function$args <- list(dat, project, group, sort_by, value, name, include_total_col)
   log_call(project, group_cumsum_function)
   
   dataset
@@ -799,90 +762,6 @@ create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon"
   
 }
 
-create_trip_centroid <- function(dat, project, lon, lat, tripID, weight.var = NULL) {
-  ## ----trip centroid-----#
-  #' Create trip centroid variable
-  #'
-  #' Create latitude and longitude variables containing the centroid of each trip
-  #'
-  #' @param dat Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.
-  #' @param project Project name. 
-  #' @param lat Variable in \code{dat} containing latitudinal data.
-  #' @param lon Variable in \code{dat} containing longitudinal data.
-  #' @param tripID Variable in \code{dat} containing trip identifier. If trip identifier should be defined by more than one variable then list as \code{c('var1', 'var2')}.
-  #' @param weight.var Variable in \code{dat} for computing the weighted average.
-  #' @details Computes the average longitude and latitude for each trip. Specify \code{weight.var} to calculate the weighted centroid.
-  #'   Additional arguments can be added that define unique trips. If no additional arguments are added, each row will be treated as a unique trip.
-  #' @return Returns the primary dataset with centroid latitude and centroid longitude variables added.
-  #' @importFrom stats ave
-  #' @export
-  #' @examples
-  #' \dontrun{
-  #' pollockMainDataTable <- create_trip_centroid(pollockMainDataTable, 'pollock', 'LonLat_START_LON', 
-  #'   'LonLat_START_LAT', weight.var = NULL, 'DISEMBARKED_PORT', 'EMBARKED_PORT')
-  #' }
-  
-  out <- data_pull(dat, project)
-  dataset <- out$dataset
-  
-  dat <- parse_data_name(dat, "main", project)
-  
-  x <- 0
-  if (any(abs(dataset[[lon]]) > 180)) {
-    stop("Longitude is not valid (outside -180:180). Function not run")
-    # stop('Longitude is not valid (outside -180:180.')
-    
-  }
-  if (any(abs(dataset[[lat]]) > 90)) {
-    stop("Latitude is not valid (outside -90:90. Function not run")
-    
-    # stop('Latitude is not valid (outside -90:90.')
-  }
-  
-  
-  #    if (grepl("input", as.character(match.call(expand.dots = FALSE)$...)[1]) == TRUE) {
-  #      argList <- eval(...)
-  #    } else {
-  #     argList <- (as.character(match.call(expand.dots = FALSE)$...))
-  #   }
-  
-  
-  idmaker <- function(vec) {
-    return(paste(sort(vec), collapse = ""))
-  }
-  
-  
-  int <- as.data.frame(cbind(dataset, rowID = as.numeric(factor(apply(as.matrix(dataset[, tripID]), 1, idmaker)))))
-  # int <- int[, c(colnames(sapply(dataindex[[varnameindex]], grepl, colnames(int))), 'rowID')]
-  cat(length(unique(int$rowID)), "unique trips were identified using", tripID, "\n")
-  # Handling of empty variables
-  if (any(apply(int, 2, function(x) all(is.na(x))) == TRUE)) {
-    int <- int[, -which(apply(int, 2, function(x) all(is.na(x))) == TRUE)]
-  } else {
-    int <- int
-  }
-  
-  if (is_empty(weight.var)) {
-    int$cent.lon <- stats::ave(int[[lon]], int[["rowID"]])
-    int$cent.lat <- stats::ave(int[[lat]], int[["rowID"]])
-  } else {
-    # weighted centroid
-    int$cent.lon <- stats::ave(int[c(lon, weight.var)], int[["rowID"]], FUN = function(x) stats::weighted.mean(x[[lon]], x[[weight.var]]))[[1]]
-    int$cent.lat <- stats::ave(int[c(lat, weight.var)], int[["rowID"]], FUN = function(x) stats::weighted.mean(x[[lat]], x[[weight.var]]))[[1]]
-  }
-  
-  create_trip_centroid_function <- list()
-  create_trip_centroid_function$functionID <- "create_trip_centroid"
-  create_trip_centroid_function$args <- list(dat, project, lon, lat, tripID, weight.var)
-  create_trip_centroid_function$kwargs <- list()
-  create_trip_centroid_function$output <- list(dat)
-  log_call(project, create_trip_centroid_function)
-  
-  return(int)
-  
-}
-
-
 #' Interactive application to create distance between points variable
 create_dist_between <- function(dat, project, start, end, 
                                 units = c("miles", "meters", "km", "midpoint"), 
@@ -1019,13 +898,16 @@ create_dist_between <- function(dat, project, start, end,
       } else if(!is.null(zoneid) & zoneid %in% names(dataset)){
         colnames(dataset)[colnames(dataset)==zoneid] <- 'ZoneID'
       } else {
-        dataset <- assignment_column(
-          dat = dataset, project = project, spat = eval(parse(text = vars[1])), hull.polygon = FALSE, lon.spat = gsub("\"|'", "", vars[2]),
-          lat.spat = gsub("\"|'", "", vars[3]), lon.dat = gsub("\"|'", "", vars[4]), lat.dat = gsub("\"|'", "", vars[5]), cat = gsub(
-            "\"|'", "",
-            vars[6]
-          ), closest.pt = TRUE, log.fun = FALSE
-        )
+        
+        dataset <- assignment_column(dat = dataset, 
+                                     project = project, 
+                                     spat = eval(parse(text = vars[1])), 
+                                     hull_polygon = FALSE, 
+                                     lon_dat = gsub("\"|'", "", vars[4]), 
+                                     lat_dat = gsub("\"|'", "", vars[5]), 
+                                     zoneID_spat = gsub("\"|'", "", vars[6]), 
+                                     closest_pt = TRUE, 
+                                     log_fun = FALSE)
       }
     }
     
@@ -1135,15 +1017,26 @@ create_duration <- function(dat, project, start, end,
     warning("Function is designed for temporal variables")
   }
   
-  elapsed.time <- lubridate::interval(date_parser(dataset[[start]]), date_parser(dataset[[end]]))
+  elapsed.time <- lubridate::interval(dataset[[start]], dataset[[end]])
+  
   if (units == "week") {
+    
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::dweeks(1)
+    
   } else if (units == "day") {
+    
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::ddays(1)
+    
   } else if (units == "hour") {
+    
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::dhours(1)
+    
   } else if (units == "minute") {
+    elapsed.time <- lubridate::interval((dataset[[start]]), 
+                                        (dataset[[end]]))
+    
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::dminutes(1)
+    
   }
   
   g <- cbind(dataset, newvar)

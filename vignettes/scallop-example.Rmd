@@ -396,14 +396,15 @@ scallopMainDataTable %>%
 Assign each observation to a ten minute square. 
 ```{r}
 scallopMainDataTable <- 
-  assignment_column(scallopMainDataTable, project = proj,
+  assignment_column(scallopMainDataTable, 
+                    project = proj,
                     spat = scallopTenMNSQRSpatTable, 
-                    lon.dat = "DDLON",
-                    lat.dat = "DDLAT", 
-                    cat = "TEN_ID",
+                    lon_dat = "DDLON",
+                    lat_dat = "DDLAT", 
+                    zoneID_spat = "TEN_ID",
                     name = "ZONE_ID",
-                    closest.pt = FALSE,
-                    hull.polygon = FALSE)
+                    closest_pt = FALSE,
+                    hull_polygon = FALSE)
 ```
 
 <br>
@@ -415,12 +416,12 @@ it  does not occur within a closure area.
 scallopMainDataTable <- 
   assignment_column(scallopMainDataTable, project = proj,
                     spat = scallopWindCloseSpatTable, 
-                    lon.dat = "DDLON",
-                    lat.dat = "DDLAT", 
-                    cat = "NAME",
+                    lon_dat = "DDLON",
+                    lat_dat = "DDLAT", 
+                    zoneID_spat = "NAME",
                     name = "closeID",
-                    closest.pt = FALSE,
-                    hull.polygon = FALSE) 
+                    closest_pt = FALSE,
+                    hull_polygon = FALSE) 
 
 scallopMainDataTable <- 
   scallopMainDataTable %>% 
