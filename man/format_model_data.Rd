@@ -57,7 +57,7 @@ Only use this input if the gridded data varies by space and time.}
 \item{expectations}{Character vector containing the names of expected catch or revenue matrices
 to merge into the dataset.}
 
-\item{distance}{Logical. If 'TRUE', calculates and merges a distance matrix between obervations
+\item{distance}{Logical. If 'TRUE', calculates and merges a distance matrix between observations
 and zones. Defaults to 'TRUE'.}
 
 \item{crs}{Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
@@ -79,7 +79,7 @@ and performs optional missing data imputation.
 }
 \details{
 The resulting formatted data is serialized and stored in the FishSET project database within a
-table namned '[project_name]LongFormatData'.
+table named '[project_name]LongFormatData'.
 }
 \examples{
 \dontrun{
