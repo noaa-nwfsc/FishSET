@@ -76,7 +76,7 @@ test_that("test tables_database() works", {
   result <- tables_database("s1")
 
   # Check the result
-  expect_equal(length(result), 20)
+  expect_equal(length(result), 21)
   expect_equal(result[1], "s1AltMatrix")
 })
 

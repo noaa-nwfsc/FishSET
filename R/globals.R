@@ -27,5 +27,21 @@ utils::globalVariables(c(
   'policy_name',
   'rename',
   'V1',
+<<<<<<< HEAD
   'betas'
+=======
+  'Port_Name',
+  'Port_Long',
+  'Port_Lat',
+  'start_port_lon',
+  'start_port_lat',
+  'prev_end_lon',
+  'prev_end_lat',
+  'return_port_lon',
+  'return_port_lat',
+  'within_haul_dist',
+  'between_haul_dist',
+  'as.formula',
+  'final_dist'
+>>>>>>> a02dffe700434d23dde729492b015ee2c1f61b9c
 ))
