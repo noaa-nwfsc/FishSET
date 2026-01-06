@@ -47,6 +47,6 @@ user manual.
 \url{https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.gh3zw8f9nsdi}
 }
 \details{
-This function is called in \code{\link{discretefish_subroutine}} when running an EPM model with
+This function is called in \code{discretefish_subroutine} when running an EPM model with
     a Weibull catch function.
 }

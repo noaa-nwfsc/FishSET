@@ -40,5 +40,10 @@ utils::globalVariables(c(
   'within_haul_dist',
   'between_haul_dist',
   'as.formula',
-  'final_dist'
+  'final_dist',
+  'X',
+  'J_alts',
+  'N_obs',
+  'choice_idx',
+  'modifyList'
 ))
