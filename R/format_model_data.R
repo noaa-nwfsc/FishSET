@@ -32,6 +32,7 @@
 #'   to merge into the dataset.
 #' @param distance Logical. If 'TRUE', calculates and merges a distance matrix between observations
 #'   and zones. Defaults to 'TRUE'.
+#' @param distance_units String representing the units of measurement for distance. 
 #' @param crs Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
 #'   are required.
 #' @param impute Method for imputing missing values (NAs). Options are `"mean"`, 
@@ -92,6 +93,7 @@ format_model_data <- function(project,
                               grid_time_var = NULL, 
                               expectations = NULL, 
                               distance = TRUE,
+                              distance_units = NULL,
                               crs = NULL, 
                               impute = NULL){ 
   
@@ -206,7 +208,7 @@ format_model_data <- function(project,
                                    zone_cent = alt_list$zone_cent, 
                                    fish_cent = alt_list$fish_cent, 
                                    choice = alt_list$choice, 
-                                   units = alt_list$altChoiceUnits, 
+                                   units = distance_units, 
                                    zoneID = alt_list$zoneID, 
                                    crs = crs)
     

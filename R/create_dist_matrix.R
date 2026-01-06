@@ -251,7 +251,7 @@ create_dist_matrix <-
     if (is.null(o_var)) o_var <- occasion_var
     
     return(list(dist_matrix = dist_matrix, 
-                alt_choice_units = units, 
+                dist_units = units, 
                 alt_choice_type = "distance", 
                 occasion = occasion,
                 occasion_var = o_var,
