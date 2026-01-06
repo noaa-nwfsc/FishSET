@@ -18,6 +18,7 @@ format_model_data(
   grid_time_var = NULL,
   expectations = NULL,
   distance = TRUE,
+  distance_units = NULL,
   crs = NULL,
   impute = NULL
 )
@@ -57,12 +58,10 @@ Only use this input if the gridded data varies by space and time.}
 \item{expectations}{Character vector containing the names of expected catch or revenue matrices
 to merge into the dataset.}
 
-<<<<<<< HEAD
-\item{distance}{Logical. If 'TRUE', calculates and merges a distance matrix between obervations
-=======
 \item{distance}{Logical. If 'TRUE', calculates and merges a distance matrix between observations
->>>>>>> 88893a85297e9405cd353acc6c0594b1c8c964b3
 and zones. Defaults to 'TRUE'.}
+
+\item{distance_units}{String representing the units of measurement for distance ("km" or "mi").}
 
 \item{crs}{Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
 are required.}
@@ -83,11 +82,7 @@ and performs optional missing data imputation.
 }
 \details{
 The resulting formatted data is serialized and stored in the FishSET project database within a
-<<<<<<< HEAD
-table namned '[project_name]LongFormatData'.
-=======
 table named '[project_name]LongFormatData'.
->>>>>>> 88893a85297e9405cd353acc6c0594b1c8c964b3
 }
 \examples{
 \dontrun{
