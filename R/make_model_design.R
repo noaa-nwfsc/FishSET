@@ -278,7 +278,7 @@ make_model_design <-
   tryCatch({
     pt <- data_pull(paste0(project, 'PortTable'), project)
     ptname <- pt$dat # Note: ptname not used 
-    port <- pt$dataset # used in create_distance_matrix()
+    port <- pt$dataset # used in create_dist_matrix()
   }, error = function(cond){
     message("Port table not used.")
   })
@@ -550,7 +550,7 @@ make_model_design <-
   #     
   #     pt <- data_pull(paste0(project, 'PortTable'), project)
   #     ptname <- pt$dat # Note: ptname not used 
-  #     port <- pt$dataset # used in create_distance_matrix()
+  #     port <- pt$dataset # used in create_dist_matrix()
   #     
   #   # } else {
   #   #  
@@ -700,13 +700,20 @@ make_model_design <-
   
     
   # Distance Matrix ----
-  dist_out <- create_dist_matrix(dataset = dataset, spat = spatdat,
-                                 spatID = spatID,  alt_var = alt_var, 
-                                 occasion = occasion, occasion_var = occasion_var,
-                                 dataZoneTrue = dataZoneTrue, zone_cent = zone_cent, 
-                                 fish_cent = fish_cent, choice = choice_raw, 
-                                 units = units, port = port, zoneRow = zoneRow, 
-                                 zoneID = zoneID, crs = crs)
+  dist_out <- create_dist_matrix(dataset = dataset,
+                                 spat = spatdat,
+                                 spatID = spatID,  
+                                 alt_var = alt_var, 
+                                 occasion = occasion, 
+                                 occasion_var = occasion_var,
+                                 dataZoneTrue = dataZoneTrue, 
+                                 zone_cent = zone_cent, 
+                                 fish_cent = fish_cent, 
+                                 choice = choice_raw, 
+                                 units = units, 
+                                 port = port,
+                                 zoneID = zoneID, 
+                                 crs = crs)
   
   if (is.null(dist_out)) {
     

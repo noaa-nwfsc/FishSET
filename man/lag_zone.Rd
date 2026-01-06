@@ -17,7 +17,8 @@ lag_zone(
   starting_port,
   zoneID_dat,
   zoneID_spat = NULL,
-  name = "startingloc"
+  name = "startingloc",
+  db_save = FALSE
 )
 }
 \arguments{
@@ -54,6 +55,9 @@ areas.}
 
 \item{name}{String, name of created variable. Defaults to name of the function 
 if not defined.}
+
+\item{db_save}{Default = FALSE and only returns the dataframe without saving the the database.
+\code{db_save = TRUE} will save the dataframe with the lagged variable to the database.}
 }
 \value{
 Primary data set with starting location variable added.
