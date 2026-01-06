@@ -8,7 +8,7 @@ create_expectations(
   dat,
   project,
   name,
-  alt_name = NULL,
+  alt_name,
   catch,
   price = NULL,
   defineGroup = NULL,
