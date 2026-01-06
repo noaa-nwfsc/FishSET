@@ -26,6 +26,8 @@
 #'   areas.
 #' @param name String, name of created variable. Defaults to name of the function 
 #'   if not defined.
+#' @param db_save Default = FALSE and only returns the dataframe without saving the the database.
+#'   \code{db_save = TRUE} will save the dataframe with the lagged variable to the database.
 #' @importFrom DBI dbExecute
 #' @export lag_zone
 #' @return Primary data set with starting location variable added.
@@ -57,7 +59,8 @@ lag_zone <- function(dat,
                      starting_port,
                      zoneID_dat,
                      zoneID_spat = NULL, 
-                     name = "startingloc") {
+                     name = "startingloc",
+                     db_save = FALSE) {
   
   # Call in data sets
   out <- data_pull(dat, project)
@@ -153,5 +156,12 @@ lag_zone <- function(dat,
                                  name)
   
   log_call(project, lag_zone_function)
-  return(dataset_lagged)
+  
+  if (db_save == TRUE) {
+    table_save(dataset_lagged, 
+               project = project,
+               type = "main")
+  } else {
+    return(dataset_lagged)  
+  }
 }
