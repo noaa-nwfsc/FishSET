@@ -316,7 +316,7 @@ negative coefficiencts for `V1`.
 Compare model fit.
 
 ```{r}
-# model_fit_su"mmary("scallopMod")
+# model_fit_summary("scallopMod")
 ```
 
 ```{r eval=TRUE, echo=FALSE}
