@@ -747,6 +747,9 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
             )
             shinyjs::show("load_error_message")
           }
+          
+          # Need to use table_view because load_port overwrites column names
+          data_out <- table_view(table_name, project_name)
 
         } else if (data_type == "aux") {
           pass <- q_test(dat = data_out,

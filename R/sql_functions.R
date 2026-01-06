@@ -246,8 +246,8 @@ unserialize_table <- function(table, project) {
   
   tab_type <- table_type(table)
   
-  serial_tabs <- c("alt choice matrix", "expected catch matrix", "model data", 
-                   "predict output", "global check", "model output")
+  serial_tabs <- c("alt choice matrix", "expected catch matrix", "model data", "model designs",
+                   "predict output", "global check", "model output", "long format data")
   
   if (!tab_type %in% serial_tabs) {
     
@@ -261,7 +261,9 @@ unserialize_table <- function(table, project) {
                     "model output" = "data",
                     "model data" = "ModelInputData", # Note: check for consistency, seen lowercase version 
                                                      # (depends on whether created in app or console)
-                    "predict output" = "PredictOutput")
+                    "predict output" = "PredictOutput",
+                    "long format data" = "data",
+                    "model designs" = "data")
   
   sql_qry <- paste0("SELECT ", tab_qry, " FROM ", table, " LIMIT 1")
   

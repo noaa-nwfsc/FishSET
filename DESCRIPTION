@@ -46,6 +46,7 @@ Imports:
     DBI,
     dplyr,
     DT,
+    Formula,
     geosphere,
     ggplot2,
     grDevices,

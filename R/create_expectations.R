@@ -89,7 +89,7 @@
 create_expectations <- function(dat,
                                 project,
                                 name,
-                                alt_name = NULL,
+                                alt_name,
                                 catch,
                                 price = NULL,
                                 defineGroup = NULL,
@@ -105,7 +105,7 @@ create_expectations <- function(dat,
                                 weight_avg = FALSE,
                                 outsample = FALSE) {
   
-  # Check if expected matrix with this name already exists --------------------------------------
+  # Check if expected matrix with this name already exists ----------------------------------------
   if (!outsample && table_exists(paste0(project, "ExpectedCatch"), project)) {
     # get previous list
     exp_mats <- unserialize_table(paste0(project, "ExpectedCatch"), project)
@@ -116,22 +116,19 @@ create_expectations <- function(dat,
     }
   }
   
-  # Pull and prepare data -----------------------------------------------------------------------
+  # Pull and prepare data -------------------------------------------------------------------------
   out <- data_pull(dat, project = project)
   dataset <- out$dataset
   
-  # Determine if using in-sample or out-of-sample data ------------------------------------------
+  # Determine if using in-sample or out-of-sample data --------------------------------------------
   # Set data source based on the outsample flag
   data_type <- if (!outsample) "main" else "outsample"
   alt_matrix_name <- if (!outsample) "AltMatrix" else "AltMatrixOutSample"
   
-  
   dat <- parse_data_name(dat, data_type, project)
   Alt <- unserialize_table(paste0(project, alt_matrix_name), project)
   
-  
-  # Filter Alt Matrix based on alt_name ---------------------------------------------------------
-  # Update: Filter Alt to only include the specific alt_name requested
+  # Filter Alt Matrix based on alt_name -----------------------------------------------------------
   if (!is.null(alt_name)) {
     if (alt_name %in% names(Alt)) {
       Alt <- Alt[[alt_name]]
@@ -141,7 +138,7 @@ create_expectations <- function(dat,
     }
   }
   
-  # Perform initial data quality and parameter checks -------------------------------------------
+  # Perform initial data quality and parameter checks ---------------------------------------------
   column_check(dataset, c(catch, price, defineGroup))
   
   if (all(is_empty(date_cols(dataset)))) {
@@ -176,7 +173,7 @@ create_expectations <- function(dat,
     }  
   }
   
-  # Calculate expactations ----------------------------------------------------------------------
+  # Calculate expactations ------------------------------------------------------------------------
   user_exp <- calc_exp(dataset = dataset, 
                        alt_name = alt_name,
                        catch = catch, 
@@ -194,11 +191,11 @@ create_expectations <- function(dat,
                        weight_avg = weight_avg, 
                        Alt = Alt)
   
-  # Determine scaling factor for the results ----------------------------------------------------
+  # Determine scaling factor for the results ------------------------------------------------------
   r <- nchar(sub("\\.[0-9]+", "", mean(as.matrix(user_exp$exp), na.rm = TRUE))) 
   sscale <- 10^(r - 1)
   
-  # Define the SQL table name -------------------------------------------------------------------
+  # Define the SQL table name ---------------------------------------------------------------------
   # Is this for testing out of sample data?
   if(!outsample){
     single_sql <- paste0(project, "ExpectedCatch")
@@ -206,7 +203,7 @@ create_expectations <- function(dat,
     single_sql <- paste0(project, "ExpectedCatchOutSample")
   }
   
-  # Assemble the expected catch list for storage ------------------------------------------------
+  # Assemble the expected catch list for storage --------------------------------------------------
   if (!outsample && table_exists(single_sql, project)) {
     # Get existing list
     ExpectedCatch <- unserialize_table(single_sql, project)
@@ -236,7 +233,7 @@ create_expectations <- function(dat,
   names(ExpectedCatch)[which(names(ExpectedCatch) == "exptmp_settings")] <- 
     paste0(name,"_settings")
   
-  # Connect to DB and save the results ----------------------------------------------------------
+  # Connect to DB and save the results ------------------------------------------------------------
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
@@ -255,14 +252,14 @@ create_expectations <- function(dat,
                  params = list(data = list(serialize(ExpectedCatch, NULL)))
   )
   
-  # Display confirmation message ----------------------------------------------------------------
+  # Display confirmation message ------------------------------------------------------------------
   if(!outsample){
     message('Expected catch/revenue matrix saved to FishSET database')  
   } else {
     message('Out-of-sample expected catch/revenue matrix saved to FishSET database')  
   }
   
-  # Log the function call -----------------------------------------------------------------------
+  # Log the function call -------------------------------------------------------------------------
   create_expectations_function <- list()
   create_expectations_function$functionID <- "create_expectations"
   create_expectations_function$args <- 

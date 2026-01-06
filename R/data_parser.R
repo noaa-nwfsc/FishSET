@@ -857,7 +857,9 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
     check <- FALSE
   }
   
-  if (is.na(table(grepl("Lon", names(x), ignore.case = TRUE))[2]) == FALSE & table(grepl("Lon", names(x), ignore.case = TRUE))[2] > 1) {
+  if (is.na(
+    table(grepl("Lon", names(x), ignore.case = TRUE))[2]) == FALSE & 
+    table(grepl("Lon", names(x), ignore.case = TRUE))[2] > 1) {
     warning("Multiple latitude or longitude columns. Only one allowed.")
     check <- FALSE
   }
@@ -872,7 +874,7 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
   } else {
     colnames(x)[port_name] <- "Port_Name"
   }
-  
+
   colnames(x)[grep("LON", colnames(x), ignore.case = TRUE)] <- "Port_Long"
   colnames(x)[grep("LAT", colnames(x), ignore.case = TRUE)] <- "Port_Lat"
   
