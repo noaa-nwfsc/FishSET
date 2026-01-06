@@ -83,7 +83,7 @@ format_model_data <- function(project,
                               name, 
                               alt_name, 
                               zone_id, 
-                              unique_obs_id, 
+                              unique_obs_id, # ADD ERROR CHECK
                               select_vars = NULL,
                               aux_data = NULL, 
                               aux_key = NULL, 
@@ -116,6 +116,13 @@ format_model_data <- function(project,
   # Format main data ------------------------------------------------------------------------------
   # Load main data table
   original_dataset <- table_view(paste0(project, "MainDataTable"), project)
+  
+  # Check unique_obs_id 
+  if (!(nrow(unique(original_dataset[unique_obs_id])) == nrow(original_dataset))) {
+    stop("The unique_obs_id is not unique for each observation (row). Select a new variable
+         or create a new ID variable unique to each observation.")
+  }
+  
   # Load alternative choice list
   alt_list_all <- unserialize_table(paste0(project, "AltMatrix"), project)
   
