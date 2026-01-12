@@ -105,7 +105,7 @@ database as \code{projectAlternativeChoice}. The list includes
 the alternative choice list from the user-defined choices. Multiple alternative
 choice cases can be added to the list by specifying unique names. The list is
 automatically saved to the FishSET database and is called in
-\code{make_model_design}.
+\code{format_model_data}.
 }
 \description{
 Required step. Creates a list identifying how alternative fishing choices should
@@ -118,16 +118,16 @@ the FishSET Database, see \code{occasion_var} for details.
 Defines the alternative fishing choices. These choices are used to develop
 the matrix of distances between observed and alternative fishing choices (where
 they could have fished but did not). The distance matrix is calculated by the
-\code{\link[=make_model_design]{make_model_design()}} function. \code{occasion} defines the observed fishing
+\code{\link[=format_model_data]{format_model_data()}} function. \code{occasion} defines the observed fishing
 location and \code{alt_var} the alternative fishing location. \code{occasion_var}
 identifies an ID column or set of lon-lat variables needed to create the
 distance matrix.
 
 Parts of the alternative choice list are pulled by \code{\link[=create_expectations]{create_expectations()}},
-\code{\link[=make_model_design]{make_model_design()}}, and the model run \code{\link[=discretefish_subroutine]{discretefish_subroutine()}})
+\code{\link[=format_model_data]{format_model_data()}}, and the model run \code{\link[=fishset_fit]{fishset_fit()}})
 functions. These output include choices of which variable to use for catch and
 which zones to include in analyses based on a minimum number of hauls per trip
 within a zone. Note that if the alternative choice list is modified, the
-\code{\link[=create_expectations]{create_expectations()}} and \code{\link[=make_model_design]{make_model_design()}} functions
+\code{\link[=create_expectations]{create_expectations()}} and \code{\link[=format_model_data]{format_model_data()}} functions
 should also be updated before rerunning models.
 }

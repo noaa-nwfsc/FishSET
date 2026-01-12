@@ -49,6 +49,31 @@ framework. This function takes a design object created by \code{\link{fishset_de
 optimizes the negative log-likelihood, and returns a comprehensive list of model results, 
 fit statistics, and diagnostics.
 }
+\examples{
+\dontrun{
+  # 1. Standard fit using default settings
+  # This uses the design object named "clogit_design" saved in "MyProject"
+  fit_result <- fishset_fit(
+    project = "MyProject",
+    model_name = "clogit_design"
+  )
+  
+  # 2. Advanced fit with custom optimization settings and start values
+  # 'control' and 'start_values' are passed via the '...' argument
+  fit_custom <- fishset_fit(
+    project = "MyProject",
+    model_name = "clogit_design",
+    fit_name = "clogit_custom_fit",
+    
+    # Pass control list to nlminb (e.g., increase max iterations, turn on tracing)
+    control = list(eval.max = 5000, iter.max = 5000, trace = 1),
+    
+    # Pass initial start values for the parameters (e.g., for 2 predictors)
+    start_values = c(0.5, -0.2)
+  )
+}
+
+}
 \seealso{
 \code{\link{fishset_design}} for creating the input design object.
 }

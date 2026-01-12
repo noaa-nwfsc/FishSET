@@ -18,7 +18,7 @@
 #' @importFrom yaml read_yaml
 #' @importFrom DBI dbConnect dbDisconnect dbGetQuery
 #' @importFrom RSQLite SQLite
-#' @details Calls \code{\link{logit_predict}}, \code{\link{epm_predict}}, and 
+#' @details Calls \code{logit_predict}, \code{epm_predict}, and 
 #'    \code{\link{predict_probability}}. Closure scenarios and TAC must be define using 
 #'    \code{\link{zone_closure}} function before function can be run. 
 #' @export

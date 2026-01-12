@@ -81,17 +81,17 @@
 #' @details Defines the alternative fishing choices. These choices are used to develop
 #'  the matrix of distances between observed and alternative fishing choices (where
 #'  they could have fished but did not). The distance matrix is calculated by the
-#'  [make_model_design()] function. `occasion` defines the observed fishing
+#'  [format_model_data()] function. `occasion` defines the observed fishing
 #'  location and `alt_var` the alternative fishing location. `occasion_var`
 #'  identifies an ID column or set of lon-lat variables needed to create the
 #'  distance matrix.
 #'
 #'  Parts of the alternative choice list are pulled by [create_expectations()],
-#'  [make_model_design()], and the model run [discretefish_subroutine()])
+#'  [format_model_data()], and the model run [fishset_fit()])
 #'  functions. These output include choices of which variable to use for catch and
 #'  which zones to include in analyses based on a minimum number of hauls per trip
 #'  within a zone. Note that if the alternative choice list is modified, the
-#'  [create_expectations()] and [make_model_design()] functions
+#'  [create_expectations()] and [format_model_data()] functions
 #'  should also be updated before rerunning models.
 #' 
 #' @return Function saves a list of alternative choice matrices to the FishSET
@@ -99,7 +99,7 @@
 #'  the alternative choice list from the user-defined choices. Multiple alternative
 #'  choice cases can be added to the list by specifying unique names. The list is
 #'  automatically saved to the FishSET database and is called in
-#'  `make_model_design`.
+#'  `format_model_data`.
 
 create_alternative_choice <- function(dat,
                                       project,

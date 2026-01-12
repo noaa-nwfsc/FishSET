@@ -46,6 +46,6 @@ user manual.
 \url{https://docs.google.com/document/d/1p8mK65uG8yp-HbzCeBgtO0q6DSpKV1Zyk_ucNskt5ug/edit#heading=h.mrt9b1ee2yb8}
 }
 \details{
-This function is called in \code{\link{discretefish_subroutine}} when running an EPM model with
+This function is called in \code{discretefish_subroutine} when running an EPM model with
     a normal catch function.
 }

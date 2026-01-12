@@ -30,7 +30,7 @@ epm_weibull <- function(starts3, dat, otherdat, alts, project, expname, mod.name
   #' @param expname Expected catch table (optional)
   #' @param mod.name Name of model run for model result output table
   #' @return ld: negative log likelihood
-  #' @details This function is called in \code{\link{discretefish_subroutine}} when running an EPM model with
+  #' @details This function is called in \code{discretefish_subroutine} when running an EPM model with
   #'     a Weibull catch function.
   #' @export
   

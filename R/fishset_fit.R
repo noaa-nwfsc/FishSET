@@ -36,6 +36,30 @@
 #'   \item{diagnostics}{A list containing the Hessian, gradients, eigenvalues, and 
 #'     condition number.}
 #' }
+#' 
+#' @examples
+#' \dontrun{
+#'   # 1. Standard fit using default settings
+#'   # This uses the design object named "clogit_design" saved in "MyProject"
+#'   fit_result <- fishset_fit(
+#'     project = "MyProject",
+#'     model_name = "clogit_design"
+#'   )
+#'   
+#'   # 2. Advanced fit with custom optimization settings and start values
+#'   # 'control' and 'start_values' are passed via the '...' argument
+#'   fit_custom <- fishset_fit(
+#'     project = "MyProject",
+#'     model_name = "clogit_design",
+#'     fit_name = "clogit_custom_fit",
+#'     
+#'     # Pass control list to nlminb (e.g., increase max iterations, turn on tracing)
+#'     control = list(eval.max = 5000, iter.max = 5000, trace = 1),
+#'     
+#'     # Pass initial start values for the parameters (e.g., for 2 predictors)
+#'     start_values = c(0.5, -0.2)
+#'   )
+#' }
 #'
 #' @seealso \code{\link{fishset_design}} for creating the input design object.
 #'
@@ -62,7 +86,16 @@ fishset_fit <- function(project,
   
   design <- full_design_list[[model_name]]
   
-  if (is_empty(fit_name)) fit_name <- paste0(model_name, "_fit")
+  # Load model fit list and check fit_name input
+  full_fit_list <- unserialize_table(paste0(project, "ModelFit"), project)
+
+  if (is_empty(fit_name)) {
+    fit_name <- paste0(model_name, "_fit")
+  }
+  
+  if (fit_name %in% names(full_fit_list)) {
+    stop(paste0("Model fit '", fit_name, "' already exists. Enter a new fit_name."))
+  }
   
   # Extract "..." arguments -----------------------------------------------------------------------
   dots <- list(...)
@@ -298,6 +331,7 @@ fishset_fit <- function(project,
   class(result) <- "fishset_fit"
   
   # Save to database ------------------------------------------------------------------------------
+  # Check if fit_name exists
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
@@ -389,6 +423,6 @@ print.fishset_fit <- function(x, digits = 4, ...) {
     p_val_str <- format.pval(x$LR_p_value, eps = 0.001)
     cat("LR Test:        Chi2 =", fmt(x$LR_stat, 2), ", p =", p_val_str, sig_star, "\n")
   }
-
+  
   invisible(x)
 }

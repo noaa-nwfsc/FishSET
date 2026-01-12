@@ -11,7 +11,7 @@ check_exp(ec, ec_names)
 
 \item{ec_names}{The names of the expected catch matrices to include in the
 model and how they are used (i.e. used together or separately). See the
-\code{expectcatchmodels} argument in \code{\link{make_model_design}}.}
+\code{expectcatchmodels} argument in \code{make_model_design}.}
 }
 \value{
 Returns a list containing the filtered expected catch list and specified
@@ -19,7 +19,7 @@ Returns a list containing the filtered expected catch list and specified
 }
 \description{
 Checks that specified expected catch matrices exists and is formatted correctly
-when \code{\link{make_model_design}} is called.
+when \code{make_model_design} is called.
 }
 \details{
 Checks that \code{ec_names} is specified properly by identifying 
