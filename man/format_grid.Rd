@@ -59,7 +59,7 @@ on the value of \code{to.format}.}
 \description{
 Change the format of a gridded dataset from wide to long (or vice versa)
 and remove any unmatched area/zones from \code{grid}. This is a necessary step
-for including gridded variables in the conditional logit (\code{\link[=logit_c]{logit_c()}}) model.
+for including gridded variables in the conditional logit model.
 }
 \seealso{
 \code{\link[=merge_dat]{merge_dat()}}

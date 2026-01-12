@@ -37,7 +37,7 @@ Estimate redistributed fishing effort following policy change or change in other
 influence fisher location choice.
 }
 \details{
-Calls \code{\link{logit_predict}}, \code{\link{epm_predict}}, and 
+Calls \code{logit_predict}, \code{epm_predict}, and 
    \code{\link{predict_probability}}. Closure scenarios and TAC must be define using 
    \code{\link{zone_closure}} function before function can be run.
 }

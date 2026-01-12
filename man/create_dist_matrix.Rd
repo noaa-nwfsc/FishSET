@@ -75,7 +75,7 @@ A list containing:
 Create the distance matrix
 }
 \details{
-Function is called by \code{\link{make_model_design}} to generate the
+Function is called by \code{\link{format_model_data}} to generate the
   distance matrix. Alternative fishing options come from the Alternative Choice
   list, generated from the \code{\link{create_alternative_choice}} function.
 }

@@ -18,6 +18,7 @@ format_model_data(
   grid_time_var = NULL,
   expectations = NULL,
   distance = TRUE,
+  distance_units = NULL,
   crs = NULL,
   impute = NULL
 )
@@ -59,6 +60,8 @@ to merge into the dataset.}
 
 \item{distance}{Logical. If 'TRUE', calculates and merges a distance matrix between observations
 and zones. Defaults to 'TRUE'.}
+
+\item{distance_units}{String representing the units of measurement for distance ("km" or "mi").}
 
 \item{crs}{Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
 are required.}

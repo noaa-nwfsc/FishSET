@@ -27,6 +27,7 @@ utils::globalVariables(c(
   'policy_name',
   'rename',
   'V1',
+  'betas',
   'Port_Name',
   'Port_Long',
   'Port_Lat',

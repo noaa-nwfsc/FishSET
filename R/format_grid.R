@@ -2,7 +2,7 @@
 #' 
 #' Change the format of a gridded dataset from wide to long (or vice versa) 
 #' and remove any unmatched area/zones from `grid`. This is a necessary step
-#' for including gridded variables in the conditional logit ([logit_c()]) model.
+#' for including gridded variables in the conditional logit model.
 #' 
 #' @param grid Gridded dataset to format.
 #' @param dat Primary data containing information on hauls or trips. Table in 

@@ -18,7 +18,7 @@ Returns parameter estimates, standard errors, and t-statistic
  be the full name of the table name in the FishSET database.
 }
 \details{
-Returns parameter estimates from running \code{\link{discretefish_subroutine}}. 
+Returns parameter estimates from running \code{discretefish_subroutine}. 
 The table argument must be the full name of the table name in the FishSET 
 database.
 }
