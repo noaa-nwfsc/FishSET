@@ -13,7 +13,7 @@ model_fit(project, CV = FALSE)
 }
 \description{
 Load model comparison metrics to console. Metrics are displayed for each 
-model that was fun. Metrics produced by \code{\link{discretefish_subroutine}}.
+model that was fun. Metrics produced by \code{discretefish_subroutine}.
 }
 \examples{
 \dontrun{

@@ -16,7 +16,7 @@ Returns output from running the discretefish_subroutine function.
   The table parameter must be the full name of the table name in the FishSET database.
 }
 \details{
-Returns output from running \code{\link{discretefish_subroutine}}. The table 
+Returns output from running \code{discretefish_subroutine}. The table 
 argument must be the full name of the table name in the FishSET database. 
 Output includes information on model convergence, standard errors, t-stats, etc.
 }

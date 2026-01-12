@@ -1,7 +1,7 @@
 #' Create expected catch/expected revenue matrix
 #'
 #' Create expected catch or expected revenue matrix. The matrix is required for 
-#' the \code{\link{logit_c}} model. Multiple matrices (with unique names) can be saved in a 
+#' the conditional logit model. Multiple matrices (with unique names) can be saved in a 
 #' project.
 #' 
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET 
@@ -55,11 +55,11 @@
 #'   as \code{projectExpectedCatch}. The list includes 
 #'   the expected catch matrix from the user-defined choices. Multiple expected catch cases 
 #'   can be added to the list by specifying unique names. The list is automatically saved to 
-#'   the FishSET database and is called in \code{\link{make_model_design}}. The expected catch 
+#'   the FishSET database and is called in \code{\link{format_model_data}}. The expected catch 
 #'   output does not need to be loaded when defining or running the model.
 #' @details Function creates an expectation of catch or revenue for alternative 
 #'   fishing zones (zones where they could have fished but did not). The output is 
-#'   saved to the FishSET database and called by the \code{\link{make_model_design}} 
+#'   saved to the FishSET database and called by the \code{\link{format_model_data}} 
 #'   function. \code{\link{create_alternative_choice}} must be called first as observed 
 #'   catch and zone inclusion requirements are defined there.\cr 
 #'   The primary choices are whether to treat data as a fleet or to group the data 

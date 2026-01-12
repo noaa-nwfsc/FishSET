@@ -15,7 +15,7 @@
 #'   in the FishSET database. The name of this table should contain the string 'out.mod'. Users can delete models from the table and select the
 #'   preferred model by checking the \code{"selected"} box. The table is then saved to the FishSET database with two new columns added, a TRUE/FALSE
 #'   selected column and the date it was selected. The table is saved with the phrase 'modelChosen' in the FishSET database. The function can
-#'   also be called indirectly in the \code{\link{discretefish_subroutine}} by specifying the \code{select.model} argument as TRUE.
+#'   also be called indirectly in the \code{discretefish_subroutine} by specifying the \code{select.model} argument as TRUE.
 #'   The 'modelChosen' table is not used in any functions. The purpose of this function and the 'modelChosen' table is to save a reference of the preferred model.
 #' @examples
 #' \dontrun{

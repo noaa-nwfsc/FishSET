@@ -2,12 +2,12 @@ check_exp <- function(ec, ec_names) {
 #' Prepare expected catch matrix
 #' 
 #' Checks that specified expected catch matrices exists and is formatted correctly
-#' when \code{\link{make_model_design}} is called.
+#' when \code{make_model_design} is called.
 #' 
 #' @param ec Expected catch list created by \code{\link{create_expectations}}.
 #' @param ec_names The names of the expected catch matrices to include in the
 #'   model and how they are used (i.e. used together or separately). See the
-#'   \code{expectcatchmodels} argument in \code{\link{make_model_design}}.
+#'   \code{expectcatchmodels} argument in \code{make_model_design}.
 #' @returns Returns a list containing the filtered expected catch list and specified
 #'   matrices to include in model.
 #' @details Checks that \code{ec_names} is specified properly by identifying 

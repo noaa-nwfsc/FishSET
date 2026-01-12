@@ -14,7 +14,7 @@ Table name must be in quotes.}
 \item{project}{Name of project}
 }
 \description{
-Returns error output from running the \code{\link{discretefish_subroutine}} 
+Returns error output from running the \code{discretefish_subroutine} 
 function. The table argument must be the full name of the table name in the 
 FishSET database. Use \code{\link{tables_database}}to view table names in 
 FishSET database.

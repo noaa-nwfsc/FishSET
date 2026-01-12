@@ -141,7 +141,8 @@ test_that("format_model_data reshapes and assigns choices correctly", {
     zone_id = "ZoneID",
     unique_obs_id = "unique_row_id",
     select_vars = c("other_var"),
-    distance = TRUE
+    distance = TRUE,
+    distance_units = "mi"
   )
 
   df_out <- captured_data$TEST_MODEL
@@ -208,6 +209,7 @@ test_that("format_model_data handles imputation correctly", {
     unique_obs_id = "unique_row_id",
     select_vars = c("other_var"),
     distance = TRUE,
+    distance_units = "mi",
     impute = "remove"
   )
 
@@ -259,6 +261,7 @@ test_that("format_model_data fails fast on invalid inputs", {
       alt_name = "test_alt_1",
       zone_id = "ZoneID", 
       unique_obs_id = "unique_row_id",
+      distance = FALSE,
       impute = "magic_wand"
     ),
     "Impute method must be one of"

@@ -247,7 +247,8 @@ unserialize_table <- function(table, project) {
   tab_type <- table_type(table)
   
   serial_tabs <- c("alt choice matrix", "expected catch matrix", "model data", "model designs",
-                   "predict output", "global check", "model output", "long format data")
+                   "model fit", "predict output", "global check", "model output", 
+                   "long format data")
   
   if (!tab_type %in% serial_tabs) {
     
@@ -259,6 +260,7 @@ unserialize_table <- function(table, project) {
                     "expected catch matrix" = "data",
                     "global check" = "data",
                     "model output" = "data",
+                    "model fit" = "data",
                     "model data" = "ModelInputData", # Note: check for consistency, seen lowercase version 
                                                      # (depends on whether created in app or console)
                     "predict output" = "PredictOutput",
@@ -362,7 +364,7 @@ table_exists <- function(table, project) {
 model_out_view <- function(project, CV = FALSE) {
   #' Load discrete choice model output to console for the defined project
   #'
-  #' Returns output from running \code{\link{discretefish_subroutine}}. The table 
+  #' Returns output from running \code{discretefish_subroutine}. The table 
   #' argument must be the full name of the table name in the FishSET database. 
   #' Output includes information on model convergence, standard errors, t-stats, etc.
   #' @param project Name of project
@@ -400,7 +402,7 @@ model_params <- function(project, output = 'list') {
   #' Load model parameter estimates, standard errors, and t-statistic to console 
   #' for the defined project
   #'
-  #' Returns parameter estimates from running \code{\link{discretefish_subroutine}}. 
+  #' Returns parameter estimates from running \code{discretefish_subroutine}. 
   #' The table argument must be the full name of the table name in the FishSET 
   #' database. 
   #' 
@@ -445,7 +447,7 @@ model_params <- function(project, output = 'list') {
 globalcheck_view <- function(table, project) {
   #' View error output from discrete choice model for the defined project
   #'
-  #' Returns error output from running the \code{\link{discretefish_subroutine}} 
+  #' Returns error output from running the \code{discretefish_subroutine} 
   #' function. The table argument must be the full name of the table name in the 
   #' FishSET database. Use \code{\link{tables_database}}to view table names in 
   #' FishSET database.
@@ -478,7 +480,7 @@ model_fit <- function(project, CV = FALSE) {
   #' Load model comparison metrics to console for the defined project
   #'
   #' Load model comparison metrics to console. Metrics are displayed for each 
-  #' model that was fun. Metrics produced by \code{\link{discretefish_subroutine}}.
+  #' model that was fun. Metrics produced by \code{discretefish_subroutine}.
   #' @param project String, name of project.
   #' @param CV Logical, \code{CV = TRUE} to get model fit for training data in k-fold cross validation routine.
   #' @export
