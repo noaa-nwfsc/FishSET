@@ -66,7 +66,6 @@ test_that("Standard run: Zonal Centroid succeeds with valid inputs", {
     ),
     "saved to FishSET database"
   )
-  
 })
 
 # Duplicate alt_name throws error -----------------------------------------------------------------

@@ -30,7 +30,7 @@ epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.na
   #' @param expname Expected catch table (optional)
   #' @param mod.name Name of model run for model result output table
   #' @return ld: negative log likelihood
-  #' @details This function is called in \code{\link{discretefish_subroutine}} when running an EPM model with
+  #' @details This function is called in \code{discretefish_subroutine} when running an EPM model with
   #'     a log-normal catch function.
   #' @export
   

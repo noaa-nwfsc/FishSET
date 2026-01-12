@@ -28,7 +28,7 @@
 #' @importFrom stats setNames
 #' @export 
 #' @keywords internal
-#' @details Function is called by \code{\link{make_model_design}} to generate the
+#' @details Function is called by \code{\link{format_model_data}} to generate the
 #'   distance matrix. Alternative fishing options come from the Alternative Choice
 #'   list, generated from the \code{\link{create_alternative_choice}} function.
 #' @return
@@ -251,7 +251,7 @@ create_dist_matrix <-
     if (is.null(o_var)) o_var <- occasion_var
     
     return(list(dist_matrix = dist_matrix, 
-                alt_choice_units = units, 
+                dist_units = units, 
                 alt_choice_type = "distance", 
                 occasion = occasion,
                 occasion_var = o_var,
