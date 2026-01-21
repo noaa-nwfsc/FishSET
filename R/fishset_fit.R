@@ -86,17 +86,21 @@ fishset_fit <- function(project,
   
   design <- full_design_list[[model_name]]
   
+  # Check if this is an EPM
+  is_epm <- isTRUE(design$epm$is_epm)
+  
   # Load model fit list and check fit_name input
-  full_fit_list <- unserialize_table(paste0(project, "ModelFit"), project)
-
   if (is_empty(fit_name)) {
     fit_name <- paste0(model_name, "_fit")
   }
   
-  if (fit_name %in% names(full_fit_list)) {
-    stop(paste0("Model fit '", fit_name, "' already exists. Enter a new fit_name."))
+  if (table_exists(paste0(project, "ModelFit"), project)) {
+    full_fit_list <- unserialize_table(paste0(project, "ModelFit"), project)  
+    if (fit_name %in% names(full_fit_list)) {
+      stop(paste0("Model fit '", fit_name, "' already exists. Enter a new fit_name."))
+    }
   }
-  
+    
   # Extract "..." arguments -----------------------------------------------------------------------
   dots <- list(...)
   

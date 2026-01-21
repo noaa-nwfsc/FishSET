@@ -7,6 +7,7 @@
 #' resulting design object is the primary input for the fishset_fit() function, which performs
 #' the actual parameter estimation.
 #' 
+#' 
 #' The resulting design object is serialized and stored in the FishSET project database within a
 #' table named '[project_name]ModelDesigns'.
 #' 
@@ -64,7 +65,9 @@ fishset_design <- function(formula,
                            model_name,
                            formatted_data_name,
                            unique_obs_id,
-                           zone_id){
+                           zone_id,
+                           catch_formula,
+                           price_var){
   
   # Load data -------------------------------------------------------------------------------------
   tryCatch({
@@ -158,11 +161,62 @@ fishset_design <- function(formula,
     X_final <- X1
   }
   
+  # Process EPM components ------------------------------------------------------------------------
+  epm_components <- list()
+  
+  if (!is.null(catch_formula)) {
+    if (is.null(price_var)) stop(paste("If 'catch_formula' is provided, 'price_var' must also be",
+                                       "specified"))
+    if (!(price_var %in% names(data))) stop(paste("Price variable '", price_var, 
+                                                  "' not found in data."))
+    
+    # Parse catch formula
+    if (!inherits(catch_formula, "formula")) {
+      catch_formula <- as.formula(catch_formula)
+    }
+    
+    # Validation check: ensure catch predictors are in the main formula
+    catch_rhs_vars <- all.vars(catch_formula[[3]])
+    # Extract RHS from utility formula
+    util_rhs_vars <- all.vars(formula[[3]])
+    # Check for missing variables
+    missing_vars <- setdiff(catch_rhs_vars, util_rhs_vars)
+    if (length(missing_vars) > 0) {
+      stop(paste("EPM Validation Error: The following predictor(s) in 'catch_formula' are missing",
+                  "from the main 'formula': ", paste(missing_vars, collapse = ", "), 
+                  ". \nIn EPMs, the expected catch component must be included in both formulas."))
+    }
+    
+    # Extract continuous response (actual catch)
+    tmp_catch <- model.frame(catch_formula, data = data, na.action = na.pass)
+    Y_catch <- model.response(tmp_catch)
+    
+    # Extract catch predictors
+    X_catch <- model.matrix(catch_formula, data = tmp_catch)
+    if ("(Intercept)" %in% colnames(X_catch)) {
+      X_catch <- X_catch[, -which(colnames(X_catch) == "(Intercept)"), drop = FALSE]
+    }
+    
+    # Extract price vector
+    price_vec <- data[[price_var]]
+    
+    epm_components <- list(
+      Y_catch = Y_catch,
+      X_catch = X_catch,
+      price_vec = price_vec,
+      is_epm = TRUE
+    )
+    
+  } else {
+    epm_components <- list(is_epm = FALSE)
+  }
+  
   # Package results -------------------------------------------------------------------------------
   design_obj <- list(
     y = y,
     X = X_final,
     formula = F_formula,
+    epm = epm_components,
     # Metadata used by the fit function
     settings = list(
       project = project,

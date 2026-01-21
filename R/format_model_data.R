@@ -18,7 +18,10 @@
 #' @param select_vars Character vector of variable names to retain from the main data table.
 #'   Although this input is optional, it is recommended to limit the final format to necessary
 #'   variables for computational efficiency. IMPORTANT NOTE: if modeling multi-haul data, 
-#'   be sure to include the lagged zone ID (previous location) in this vector.
+#'   be sure to include the lagged zone ID (previous location) in this vector. 
+#'   
+#'   *IMPORTANT NOTE*: for expected profit models, the price and actual catch variables
+#'   must be included here.
 #' @param aux_data Name of the auxiliary data table to join. Use \code{\link{list_tables}}
 #'   function to view the table name.
 #' @param aux_key Variable name used to join the main data table with the auxiliary data.
