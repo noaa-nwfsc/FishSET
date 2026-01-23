@@ -10,6 +10,8 @@
 #'   Must match a name saved in the project's 'ModelDesigns' table.
 #' @param fit_name Character string (Optional). Name to assign to the resulting fit object 
 #'   in the database. Defaults to \code{paste0(model_name, "_fit")}.
+#' @param distribution Character string. Distribution for the continuous catch component in EPMs.
+#'   Options: \code{"normal"} (default), \code{"lognormal"}, \code{"weibull"}.
 #' @param ... Additional arguments passed to the optimization control.
 #'   \itemize{
 #'     \item \code{control}: A list of control parameters passed to \code{\link[stats]{nlminb}} 
@@ -64,15 +66,16 @@
 #' @seealso \code{\link{fishset_design}} for creating the input design object.
 #'
 #' @export
-#' @importFrom RTMB MakeADFun sdreport getAll REPORT
+#' @importFrom RTMB MakeADFun sdreport getAll REPORT dnorm
 #' @importFrom stats nlminb cov2cor pnorm pchisq
 
 fishset_fit <- function(project,
                         model_name,
                         fit_name = NULL,
+                        distribution = "normal",
                         ...) {
   
-  # Load design object ----------------------------------------------------------------------------
+  # Load and validate -----------------------------------------------------------------------------
   tryCatch({
     full_design_list <- unserialize_table(paste0(project, "ModelDesigns"), project)
   }, error = function(cond) {
@@ -100,7 +103,10 @@ fishset_fit <- function(project,
       stop(paste0("Model fit '", fit_name, "' already exists. Enter a new fit_name."))
     }
   }
-    
+  
+  valid_dists <- c("normal", "lognormal", "weibull")
+  distribution <- match.arg(distribution, valid_dists)  
+  
   # Extract "..." arguments -----------------------------------------------------------------------
   dots <- list(...)
   
@@ -111,21 +117,12 @@ fishset_fit <- function(project,
     control_list <- default_control
   }
   
-  # Prep data for RTMB ----------------------------------------------------------------------------
-  # Force X to a clean matrix (strip all attributes/dimnames)
-  X <- as.matrix(design$X)
-  storage.mode(X) <- "double"
-  attr(X, "dimnames") <- NULL
-  
+  # General data prep -----------------------------------------------------------------------------
   # Dimensions
   N_obs <- as.integer(design$settings$N_obs)
   J_alts <- as.integer(design$settings$J_alts)
-  K_vars <- design$settings$K_vars
   
-  if (nrow(X) != (N_obs * J_alts)) {
-    stop("Design matrix dimensions do not match N_obs * J_alts.")
-  }
-  
+  # Choice index
   # Save the choice index
   y_clean <- as.vector(as.numeric(design$y)) # Strip names/attributes
   y_mat_temp <- matrix(y_clean, nrow = N_obs, ncol = J_alts, byrow = TRUE)
@@ -133,46 +130,169 @@ fishset_fit <- function(project,
   # Create an integer vector (1 to J) indicating which alternative was chosen per row
   choice_idx <- max.col(y_mat_temp, ties.method = "first")
   
-  # Handle start values
-  if ("start_values" %in% names(dots)) {
-    init_beta <- dots$start_values
-    if(length(init_beta) != K_vars) stop(paste0("Start values length (", length(init_beta), 
-                                                ") does not match parameters (", K_vars, ")."))
+  # Expected profit model (EPM) -------------------------------------------------------------------
+  if (is_epm) {
+    # Continuous catch data
+    Y_catch <- as.double(as.vector(design$epm$Y_catch)) # Actual catch
+    X_catch <- as.matrix(design$epm$X_catch) # Predictors for catch
+    n_catch_preds <- ncol(X_catch)
+    
+    # Strip attributes for RTMB efficiency
+    storage.mode(X_catch) <- "double"
+    attr(X_catch, "dimnames") <- NULL
+    
+    prices <- as.double(as.vector(design$epm$price_vec))
+    
+    # Discrete choice data
+    util_vars <- setdiff(colnames(design$X), colnames(design$epm$X_catch))
+    
+    if(length(util_vars) > 0) {
+      X_util <- as.matrix(design$X[, util_vars, drop = FALSE])
+      storage.mode(X_util) <- "double"
+      attr(X_util, "dimnames") <- NULL
+      n_util_preds <- ncol(X_util)
+    } else {
+      # Handle edge case where Utility is ONLY driven by expected revenue (no distance/cost)
+      X_util <- matrix(0, nrow = nrow(design$X), ncol = 0)
+      n_util_preds <- 0
+    }
+    
+    # Create zone index for vectorization
+    zone_idx <- rep(1:J_alts, N_obs)
+    
+    idx_list <- lapply(1:J_alts, function(j) seq(j, N_obs * J_alts, by = J_alts))
+    
+    # Set up parameters 
+    # Catch params (zone specific)
+    init_beta_catch <- matrix(0.1, nrow = n_catch_preds, ncol = J_alts)
+    
+    # Utility params
+    init_beta_util <- if (n_util_preds > 0) rep(0.001, n_util_preds) else numeric(0)
+    
+    # Variance params
+    init_log_sigma_c <- rep(log(0.1), J_alts)
+    init_log_sigma_e <- log(1.0)
+    
+    start_pars <- list(beta_catch = init_beta_catch,
+                       beta_util = init_beta_util,
+                       log_sigma_c = init_log_sigma_c,
+                       log_sigma_e = init_log_sigma_e)
+    
+    data_list <- list(Y_catch = Y_catch,
+                      X_catch = X_catch,
+                      X_util = X_util,
+                      prices = prices,
+                      choice_idx = choice_idx,
+                      zone_idx = zone_idx,
+                      N_obs = N_obs,
+                      J_alts = J_alts,
+                      model_type = "EPM") # Flag for RTMB
+    
+    nll_func <- function(pars) {
+      RTMB::getAll(data_list, pars)
+    
+      # Transform variances
+      sigma_c <- exp(log_sigma_c) # for each zone
+      sigma_e <- exp(log_sigma_e)
+      
+      total_rows <- N_obs * J_alts
+      E_catch_vec <- numeric(total_rows)
+      
+      # Loop through zones to fill the expected catch vector
+      for(j in 1:J_alts){
+        # Subset X for Zone j
+        X_sub <- X_catch[idx_list[[j]], , drop = FALSE]
+        # Get beta for Zone j
+        b_sub <- beta_catch[, j]
+        # Calculate predictions (AD Vector)
+        # Note: result of %*% is matrix, cast to vector for assignment
+        preds <- as.vector(X_sub %*% b_sub)
+        # Assign to correct indices (Promotes E_catch_vec to AD automatically)
+        E_catch_vec[idx_list[[j]]] <- preds
+      }
+      
+      # Subset to chosen zones
+      row_idx <- (0:(N_obs-1)) * J_alts + choice_idx
+      E_catch_chosen <- E_catch_vec[row_idx]
+      Y_catch_chosen <- Y_catch[row_idx]
+      sigma_c_chosen <- sigma_c[choice_idx]
+      
+      nll_cont <- -sum(RTMB::dnorm(Y_catch_chosen, E_catch_chosen, sigma_c_chosen, log = TRUE))
+      
+      # Discrete likelihood
+      # Expected revenue
+      revenue_util <- prices * E_catch_vec
+      
+      # Expected cost
+      if (ncol(X_util) > 0) {
+        cost_util <- X_util %*% beta_util
+      } else {
+        cost_util <- 0
+      }
+      
+      # Total utility
+      V_vec <- (1 / sigma_e) * (revenue_util + cost_util)
+      V_mat <- matrix(V_vec, nrow = N_obs, ncol = J_alts, byrow = TRUE)
+      log_sum_exp <- log(rowSums(exp(V_mat)))
+      
+      V_chosen <- V_mat[cbind(1:N_obs, choice_idx)]
+      
+      nll_disc <- -sum(V_chosen - log_sum_exp)
+      
+      return(nll_cont + nll_disc)
+    }
+  
+  # Standard logit model --------------------------------------------------------------------------
   } else {
-    init_beta <- rep(0.0001, K_vars)
-  }
-  
-  # Create Data List ------------------------------------------------------------------------------
-  data_list <- list(
-    X = X,
-    choice_idx = choice_idx, 
-    N_obs = N_obs,
-    J_alts = J_alts
-  )
-  
-  start_pars <- list(betas = init_beta)
-  
-  # Define RTMB objective function ----------------------------------------------------------------
-  nll_func <- function(pars) {
-    RTMB::getAll(data_list, pars)
+    # Force X to a clean matrix (strip all attributes/dimnames)
+    X <- as.matrix(design$X)
+    storage.mode(X) <- "double"
+    attr(X, "dimnames") <- NULL  
+    K_vars <- design$settings$K_vars
     
-    # Calculate Utility (Vector length N*J)
-    v <- X %*% betas
+    if (nrow(X) != (N_obs * J_alts)) {
+      stop("Design matrix dimensions do not match N_obs * J_alts.")
+    }
     
-    # Reshape to Matrix (N_obs x J_alts)
-    dim(v) <- c(J_alts, N_obs)
+    # Handle start values
+    if ("start_values" %in% names(dots)) {
+      init_beta <- dots$start_values
+      if(length(init_beta) != K_vars) stop(paste0("Start values length (", length(init_beta), 
+                                                  ") does not match parameters (", K_vars, ")."))
+    } else {
+      init_beta <- rep(0.0001, K_vars)
+    }
     
-    # Log-Sum-Exp (Denominator) - calculate log(sum(exp(v))) for every column
-    log_sum_exp <- log(RTMB::colSums(exp(v)))
+    data_list <- list(
+      X = X,
+      choice_idx = choice_idx, 
+      N_obs = N_obs,
+      J_alts = J_alts
+    )  
     
-    # Numerator (Utility of chosen alternative)
-    # Use the integer index to pick the specific value from the AD matrix
-    chosen_utilities <- v[cbind(choice_idx, 1:N_obs)]
+    start_pars <- list(betas = init_beta)
     
-    # Negative Log Likelihood
-    nll <- -sum(chosen_utilities - log_sum_exp)
-    
-    return(nll)
+    nll_func <- function(pars) {
+      RTMB::getAll(data_list, pars)
+      
+      # Calculate Utility (Vector length N*J)
+      v <- X %*% betas
+      
+      # Reshape to Matrix (N_obs x J_alts)
+      dim(v) <- c(J_alts, N_obs)
+      
+      # Log-Sum-Exp (Denominator) - calculate log(sum(exp(v))) for every column
+      log_sum_exp <- log(RTMB::colSums(exp(v)))
+      
+      # Numerator (Utility of chosen alternative)
+      # Use the integer index to pick the specific value from the AD matrix
+      chosen_utilities <- v[cbind(choice_idx, 1:N_obs)]
+      
+      # Negative Log Likelihood
+      nll <- -sum(chosen_utilities - log_sum_exp)
+      
+      return(nll)
+    }  
   }
   
   # Optimization ----------------------------------------------------------------------------------
@@ -182,7 +302,10 @@ fishset_fit <- function(project,
                          silent = TRUE)
   
   # Minimize NLL
-  opt <- nlminb(obj$par, obj$fn, obj$gr, control = control_list)
+  opt <- nlminb(obj$par, 
+                obj$fn, 
+                obj$gr, 
+                control = control_list)
   
   # Package Results -------------------------------------------------------------------------------
   sdr <- RTMB::sdreport(obj)
