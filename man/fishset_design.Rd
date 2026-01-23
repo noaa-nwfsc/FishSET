@@ -10,7 +10,9 @@ fishset_design(
   model_name,
   formatted_data_name,
   unique_obs_id,
-  zone_id
+  zone_id,
+  catch_formula = NULL,
+  price_var = NULL
 )
 }
 \arguments{
@@ -56,7 +58,7 @@ table named '[project_name]ModelDesigns'.
 # "chosen" is the response, "expected_catch" and "distance" are site attributes.
 fishset_design(
   formula = chosen ~ expected_catch + distance,
-  project = ""MyProject",
+  project = "MyProject",
   model_name = "clogit_model",
   formatted_data_name = "my_formatted_data",
   unique_obs_id = "haul_id",
@@ -67,7 +69,7 @@ fishset_design(
 # Add the zone_id variable ("zone_id") to the formula to generate fixed effects.
 fishset_design(
   formula = chosen ~ expected_catch + distance + zone_id,
-  project = ""MyProject",
+  project = "MyProject",
   model_name = "zonal_logit_model",
   formatted_data_name = "my_formatted_data",
   unique_obs_id = "haul_id",

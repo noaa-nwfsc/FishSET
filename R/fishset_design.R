@@ -35,7 +35,7 @@
 #' # "chosen" is the response, "expected_catch" and "distance" are site attributes.
 #' fishset_design(
 #'   formula = chosen ~ expected_catch + distance,
-#'   project = ""MyProject",
+#'   project = "MyProject",
 #'   model_name = "clogit_model",
 #'   formatted_data_name = "my_formatted_data",
 #'   unique_obs_id = "haul_id",
@@ -46,7 +46,7 @@
 #' # Add the zone_id variable ("zone_id") to the formula to generate fixed effects.
 #' fishset_design(
 #'   formula = chosen ~ expected_catch + distance + zone_id,
-#'   project = ""MyProject",
+#'   project = "MyProject",
 #'   model_name = "zonal_logit_model",
 #'   formatted_data_name = "my_formatted_data",
 #'   unique_obs_id = "haul_id",
@@ -66,8 +66,8 @@ fishset_design <- function(formula,
                            formatted_data_name,
                            unique_obs_id,
                            zone_id,
-                           catch_formula,
-                           price_var){
+                           catch_formula = NULL,
+                           price_var = NULL){
   
   # Load data -------------------------------------------------------------------------------------
   tryCatch({
@@ -93,6 +93,13 @@ fishset_design <- function(formula,
   
   # Ensure data is ordered by observation, then by zone
   data <- data[order(data[[unique_obs_id]], data[[zone_id]]),]
+  
+  # Check if design file exists
+  design_names <- model_design_list(project)
+  if (model_name %in% design_names) {
+    stop(paste0("Model design ", model_name, "already exists. Enter a new model name or ",
+                "delete the old model design using remove_model_design()."))
+  }
   
   # Formula parsing -------------------------------------------------------------------------------
   if (!inherits(formula, "formula")) {
@@ -239,36 +246,22 @@ fishset_design <- function(formula,
   class(design_obj) <- "fishset_design"
   
   # Save to database ------------------------------------------------------------------------------
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  # Hybrid storage
+  db_path <- locdatabase(project)
+  project_dir <- dirname(db_path)
+  designs_dir <- file.path(project_dir, "ModelDesigns")
   
-  # Save this into a new table or append to a designs list
-  table_name <- paste0(project, "ModelDesigns")
-  
-  # Create a named list wrapper
-  design_wrapper <- list()
-  design_wrapper[[model_name]] <- design_obj
-  
-  # Append or create a new table
-  if (table_exists(table_name, project)) {
-    existing_designs <- unserialize_table(table_name, project)
-    # Remove if exists to overwrite
-    if (model_name %in% names(existing_designs)) {
-      existing_designs[[model_name]] <- NULL
-    }
-    table_remove(table_name, project)
-    design_wrapper <- c(existing_designs, design_wrapper)
+  # Create a new ModelDesigns folder in the project folder if it doesn't exist yet
+  if (!dir.exists(designs_dir)) {
+    dir.create(designs_dir, recursive = TRUE)
   }
   
-  DBI::dbExecute(fishset_db, 
-                 paste("CREATE TABLE IF NOT EXISTS", 
-                       table_name, 
-                       "(data design_wrapper)"))
-  DBI::dbExecute(fishset_db, 
-                 paste("INSERT INTO", 
-                       table_name, 
-                       "VALUES (:data)"),
-                 params = list(data = list(serialize(design_wrapper, NULL))))
+  # Save the heavy object to disk (.rds)
+  file_name <- paste0(model_name, ".rds")
+  file_path <- file.path(designs_dir, file_name)
+  
+  saveRDS(design_obj, file = file_path, compress = "gzip")
+  message("Design object saved to: ", file_path)
   
   # Log the function call -------------------------------------------------------------------------
   fishset_design_function <- list()
@@ -277,6 +270,4 @@ fishset_design <- function(formula,
   fishset_design_function$kwargs <- list()
   
   log_call(project, fishset_design_function)
-  
-  return(design_obj)
 }

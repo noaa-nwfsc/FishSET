@@ -11,7 +11,7 @@
 #' @param fit_name Character string (Optional). Name to assign to the resulting fit object 
 #'   in the database. Defaults to \code{paste0(model_name, "_fit")}.
 #' @param distribution Character string. Distribution for the continuous catch component in EPMs.
-#'   Options: \code{"normal"} (default), \code{"lognormal"}, \code{"weibull"}.
+#'   Options: \code{"normal"}, \code{"lognormal"}, \code{"weibull"}, default = NULL.
 #' @param ... Additional arguments passed to the optimization control.
 #'   \itemize{
 #'     \item \code{control}: A list of control parameters passed to \code{\link[stats]{nlminb}} 
@@ -66,28 +66,34 @@
 #' @seealso \code{\link{fishset_design}} for creating the input design object.
 #'
 #' @export
-#' @importFrom RTMB MakeADFun sdreport getAll REPORT dnorm
+#' @importFrom RTMB MakeADFun sdreport getAll REPORT
 #' @importFrom stats nlminb cov2cor pnorm pchisq
 
 fishset_fit <- function(project,
                         model_name,
                         fit_name = NULL,
-                        distribution = "normal",
+                        distribution = NULL,
                         ...) {
   
   # Load and validate -----------------------------------------------------------------------------
   tryCatch({
-    full_design_list <- unserialize_table(paste0(project, "ModelDesigns"), project)
+    full_design_list <- model_design_list(project)
   }, error = function(cond) {
     message("Not able to load model designs. Run fishset_design() first.")
     return(NULL)
   })
   
-  if (!(model_name %in% names(full_design_list))) {
+  if (!(model_name %in% full_design_list)) {
     stop(paste0("Model design '", model_name, "' not found in project database."))
   }
   
-  design <- full_design_list[[model_name]]
+  # Read the design .rds file
+  db_path <- locdatabase(project)
+  project_dir <- dirname(db_path)
+  designs_dir <- file.path(project_dir, "ModelDesigns")
+  file_name <- paste0(model_name, ".rds")
+  file_path <- file.path(designs_dir, file_name)
+  design <- readRDS(file_path)
   
   # Check if this is an EPM
   is_epm <- isTRUE(design$epm$is_epm)
@@ -104,8 +110,10 @@ fishset_fit <- function(project,
     }
   }
   
-  valid_dists <- c("normal", "lognormal", "weibull")
-  distribution <- match.arg(distribution, valid_dists)  
+  if (!is.null(distribution)) {
+    valid_dists <- c("normal", "lognormal", "weibull")
+    distribution <- match.arg(distribution, valid_dists)    
+  }
   
   # Extract "..." arguments -----------------------------------------------------------------------
   dots <- list(...)

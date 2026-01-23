@@ -46,7 +46,7 @@ delete_models <- function(project, model.names, delete.nested = FALSE) {
   }
   
   mdf <- model_design_list(project)
-  mdf_n <- model_names(project)
+  # mdf_n <- model_names(project)
   # nested names
   mdf_nn <- lapply(mdf, function(x) {
     

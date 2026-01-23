@@ -4,7 +4,7 @@
 \alias{fishset_fit}
 \title{Fit FishSET Discrete Choice Model}
 \usage{
-fishset_fit(project, model_name, fit_name = NULL, ...)
+fishset_fit(project, model_name, fit_name = NULL, distribution = NULL, ...)
 }
 \arguments{
 \item{project}{Character string. Name of the project.}
@@ -14,6 +14,9 @@ Must match a name saved in the project's 'ModelDesigns' table.}
 
 \item{fit_name}{Character string (Optional). Name to assign to the resulting fit object 
 in the database. Defaults to \code{paste0(model_name, "_fit")}.}
+
+\item{distribution}{Character string. Distribution for the continuous catch component in EPMs.
+Options: \code{"normal"}, \code{"lognormal"}, \code{"weibull"}, default = NULL.}
 
 \item{...}{Additional arguments passed to the optimization control.
 \itemize{
