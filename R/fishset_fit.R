@@ -132,6 +132,85 @@ fishset_fit <- function(project,
   
   # Expected profit model (EPM) -------------------------------------------------------------------
   if (is_epm) {
+    
+    # FUNCTION 1 ####
+    # Extract and type cast data
+    Y_catch <- as.double(as.vector(design$epm$Y_catch)) 
+    X_catch <- as.matrix(design$epm$X_catch)
+    storage.mode(X_catch) <- "double"
+    attr(X_catch, "dimnames") <- NULL
+    
+    prices <- as.double(as.vector(design$epm$price_vec))
+    
+    # Extract utility variables (remove catch preds from X)
+    util_vars <- setdiff(colnames(design$X), colnames(design$epm$X_catch))
+    
+    if(length(util_vars) > 0) {
+      X_util <- as.matrix(design$X[, util_vars, drop = FALSE])
+      storage.mode(X_util) <- "double"
+      attr(X_util, "dimnames") <- NULL
+    } else {
+      X_util <- matrix(0, nrow = length(Y_catch), ncol = 0)
+    }
+    
+    # Pre-calculate indices for each zone
+    idx_list <- lapply(1:J_alts, function(j) seq(j, N_obs * J_alts, by = J_alts))
+    
+    # Automated pooling detection
+    # Check if user manually overrode via dots, otherwise detect from data.
+    if ("pooled_catch_beta" %in% names(dots)) {
+      pooled <- as.integer(dots$pooled_catch_beta)
+    } else {
+      # Auto-detection logic:
+      # Check the first observation's alternatives (Rows 1 to J_alts).
+      # If ANY predictor column has variance > 0 across zones, we assume spatial variation 
+      # and default to Global (Pooled) coefficients.
+      # If ALL predictors are constant (var approx 0), we default to Zone-Specific (Unpooled).
+      
+      first_obs_X <- X_catch[1:J_alts, , drop = FALSE]
+      
+      # Calculate variance for each column (predictor)
+      col_vars <- apply(first_obs_X, 2, var)
+      
+      # If any column has non-zero variance (approx), set pooled = 1
+      if (any(col_vars > 1e-9)) {
+        message("EPM: Spatial variation detected in catch predictors. Using GLOBAL coefficients.")
+        pooled <- 1
+      } else {
+        message("EPM: No spatial variation in catch predictors. Using ZONE-SPECIFIC coefficients.")
+        pooled <- 0
+      }
+    }
+    # End of FUNCTION 1 ####
+    
+    # FUNCTION 2 ####
+    n_catch_preds <- ncol(X_catch)
+    n_util_preds <- ncol(X_util)
+    
+    # Catch Parameters Setup based on Pooling Flag
+    if (pooled == 1) {
+      # POOLED: One beta per predictor (Global)
+      init_beta_catch <- matrix(0.1, nrow = n_catch_preds, ncol = 1)
+    } else {
+      # UNPOOLED: One beta per predictor PER ZONE
+      init_beta_catch <- matrix(0.1, nrow = n_catch_preds, ncol = J_alts)
+    }
+    
+    # Utility Parameters
+    init_beta_util <- if (n_util_preds > 0) rep(0.001, n_util_preds) else numeric(0)
+    
+    # Variance Parameters
+    init_log_sigma_c <- rep(log(0.1), J_alts)
+    init_log_sigma_e <- log(1.0)
+    
+    list(
+      beta_catch = init_beta_catch,
+      beta_util = init_beta_util,
+      log_sigma_c = init_log_sigma_c,
+      log_sigma_e = init_log_sigma_e
+    )
+    # End of FUNCTION 2####
+    
     # Continuous catch data
     Y_catch <- as.double(as.vector(design$epm$Y_catch)) # Actual catch
     X_catch <- as.matrix(design$epm$X_catch) # Predictors for catch
