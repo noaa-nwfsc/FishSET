@@ -10,6 +10,8 @@
 #'   Must match a name saved in the project's 'ModelDesigns' table.
 #' @param fit_name Character string (Optional). Name to assign to the resulting fit object 
 #'   in the database. Defaults to \code{paste0(model_name, "_fit")}.
+#' @param estimate_asc Logical. If TRUE, estimates Alternative Specific Constants for each zone 
+#'   Do NOT include ZoneID in your design formula if using this.
 #' @param distribution Character string. Distribution for the continuous catch component in EPMs.
 #'   Options: \code{"normal"}, \code{"lognormal"}, \code{"weibull"}, default = NULL.
 #' @param ... Additional arguments passed to the optimization control.
@@ -72,6 +74,7 @@
 fishset_fit <- function(project,
                         model_name,
                         fit_name = NULL,
+                        estimate_asc = FALSE,
                         distribution = NULL,
                         ...) {
   
@@ -350,14 +353,24 @@ fishset_fit <- function(project,
       init_beta <- rep(0.0001, K_vars)
     }
     
+    # Setup ASC Parameters
+    # We fix the first zone to 0 for identification, so we estimate J-1 parameters
+    if (estimate_asc) {
+      init_alpha <- rep(0.0, J_alts - 1)
+    } else {
+      init_alpha <- numeric(0)
+    }
+    
     data_list <- list(
       X = X,
       choice_idx = choice_idx, 
       N_obs = N_obs,
-      J_alts = J_alts
+      J_alts = J_alts,
+      fit_asc = as.integer(estimate_asc)
     )  
     
-    start_pars <- list(betas = init_beta)
+    start_pars <- list(betas = init_beta,
+                       alpha_raw = init_alpha)
     
     nll_func <- function(pars) {
       RTMB::getAll(data_list, pars)
@@ -368,8 +381,20 @@ fishset_fit <- function(project,
       # Reshape to Matrix (N_obs x J_alts)
       dim(v) <- c(J_alts, N_obs)
       
+      # Add ASCs
+      if (fit_asc == 1) {
+        # Full alpha vector
+        alpha_full <- c(0, alpha_raw)
+        
+        # Broadcast: add a vector of length J_alts to J_altsxN_obs matrix
+        v_final <- v + alpha_full
+        
+      } else {
+        v_final <- v
+      }
+      
       # Log-Sum-Exp (Denominator) - calculate log(sum(exp(v))) for every column
-      log_sum_exp <- log(RTMB::colSums(exp(v)))
+      log_sum_exp <- log(RTMB::colSums(exp(v_final)))
       
       # Numerator (Utility of chosen alternative)
       # Use the integer index to pick the specific value from the AD matrix
@@ -383,6 +408,8 @@ fishset_fit <- function(project,
   }
   
   # Optimization ----------------------------------------------------------------------------------
+  TMB::config(tmbad.sparse_hessian_compress = TRUE, DLL="RTMB")
+  
   obj <- RTMB::MakeADFun(func = nll_func,
                          data = data_list,
                          parameters = start_pars,
