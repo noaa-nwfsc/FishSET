@@ -36,11 +36,11 @@
 #' @param distance Logical. If 'TRUE', calculates and merges a distance matrix between observations
 #'   and zones. Defaults to 'TRUE'.
 #' @param distance_units String representing the units of measurement for distance ("km" or "mi").
-#' @param crs Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
-#'   are required.
 #' @param impute Method for imputing missing values (NAs). Options are `"mean"`, 
 #'   `"median"`, `"mode"`, or `"remove"`. `"Remove"` will completely remove zones from the dataset
 #'   that contain any NAs in corresponding data. If NULL, the function stops if NAs are detected.
+#' @param crs Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
+#'   are required.
 #'  
 #' @return A list containing the formatted data frame and the input settings. The list is saved to
 #'  the project database.
@@ -97,8 +97,8 @@ format_model_data <- function(project,
                               expectations = NULL, 
                               distance = TRUE,
                               distance_units = NULL,
-                              crs = NULL, 
-                              impute = NULL){ 
+                              impute = NULL,
+                              crs = NULL){ 
   
   # Input argument validation ---------------------------------------------------------------------
   # Check name uniqueness in database

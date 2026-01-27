@@ -25,6 +25,12 @@
 #' @param unique_obs_id Variable name in the dataset representing the unique observation 
 #'   identifier.
 #' @param zone_id Variable name in the dataset representing the zone (alternative) identifier.
+#' @param catch_formula description
+#' @param price_var description
+#' @param scale Logical. If TRUE, numeric predictors in the design matrix (X) are centered and 
+#'   scaled (z-score normalization) before saving. Scaling factors are stored to allow 
+#'   unscaling of parameters after estimation. Recommended for numerical stability. 
+#'   Default is FALSE.
 #' 
 #' @return A list object of class 'fishset_design' containing the design matrices, choice vector, 
 #'   and metadata. The list is saved to the project database.
@@ -67,7 +73,8 @@ fishset_design <- function(formula,
                            unique_obs_id,
                            zone_id,
                            catch_formula = NULL,
-                           price_var = NULL){
+                           price_var = NULL,
+                           scale = FALSE){
   
   # Load data -------------------------------------------------------------------------------------
   tryCatch({
@@ -168,6 +175,35 @@ fishset_design <- function(formula,
     X_final <- X1
   }
   
+  # Scaling logic
+  scalers <- list()
+  
+  if (scale) {
+    # Helper function to scale matrices while handling constants (sd = 0)
+    scale_matrix_data <- function(mat) {
+      mus <- apply(mat, 2, mean, na.rm = TRUE)
+      sds <- apply(mat, 2, sd, na.rm = TRUE)
+      
+      # Handle constant columns (prevent div by 0)
+      const_cols <- sds == 0
+      sds[const_cols] <- 1
+      
+      # Center and scale
+      mat_scaled <- sweep(mat, 2, mus, "-")
+      mat_scaled <- sweep(mat_scaled, 2, sds, "/")
+      
+      return(list(mat = mat_scaled, mu = mus, sd = sds))
+    }
+    
+    # Scale X_final
+    scaled_obj <- scale_matrix_data(X_final)
+    X_final <- scaled_obj$mat
+    
+    # Store params
+    scalers$X <- list(mu = scaled_obj$mu, sd = scaled_obj$sd)
+  } 
+  
+  
   # Process EPM components ------------------------------------------------------------------------
   epm_components <- list()
   
@@ -207,6 +243,14 @@ fishset_design <- function(formula,
     # Extract price vector
     price_vec <- data[[price_var]]
     
+    if (scale) {
+      scaled_catch <- scale_matrix_data(X_catch)
+      X_catch <- scaled_catch$mat
+      
+      # Store EPM scalers
+      scalers$X_catch <- list(mu = scaled_catch$mu, sd = scaled_catch$sd)
+    }
+    
     epm_components <- list(
       Y_catch = Y_catch,
       X_catch = X_catch,
@@ -218,12 +262,14 @@ fishset_design <- function(formula,
     epm_components <- list(is_epm = FALSE)
   }
   
+  
   # Package results -------------------------------------------------------------------------------
   design_obj <- list(
     y = y,
     X = X_final,
     formula = F_formula,
     epm = epm_components,
+    scalers = scalers,
     # Metadata used by the fit function
     settings = list(
       project = project,

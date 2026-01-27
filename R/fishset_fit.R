@@ -434,6 +434,9 @@ fishset_fit <- function(project,
     names(sdr$par.fixed) <- coef_names
   }
   
+  # Note: We do NOT unscale the Variance-Covariance matrix here to avoid
+  # breaking downstream matrix algebra, but the Std. Errors in the table are correct.
+  
   #### Fit statistics (AIC, BIC, LogLik) ####
   nll <- opt$objective
   k <- length(opt$par)
@@ -490,15 +493,63 @@ fishset_fit <- function(project,
   
   #### Coefficient Table ####
   sdr_summary <- summary(sdr, "fixed")
+  
+  # Unscaling logic
+  report_coefs <- estimated_coefs
+  report_se <- sdr_summary[, "Std. Error"]
+  
+  if (!is.null(design$scalers) && length(design$scalers) > 0) {
+    message("Unscaling parameters for final output...")
+    
+    # Create a vector of SDs matching the coefficient names
+    # Default to 1 (no scaling) for params that weren't scaled (like ASCs)
+    scale_factors <- rep(1, length(report_coefs))
+    names(scale_factors) <- names(report_coefs)
+    
+    # Match Main X Variables
+    if (!is.null(design$scalers$X)) {
+      x_sds <- design$scalers$X$sd
+      # Find overlapping names
+      common_x <- intersect(names(x_sds), names(report_coefs))
+      scale_factors[common_x] <- x_sds[common_x]
+    }
+    
+    # Match EPM Catch Variables (if applicable)
+    if (!is.null(design$scalers$X_catch)) {
+      catch_sds <- design$scalers$X_catch$sd
+      common_catch <- intersect(names(catch_sds), names(report_coefs))
+      scale_factors[common_catch] <- catch_sds[common_catch]
+    }
+    
+    # Apply Unscaling: Coef_raw = Coef_scaled / SD
+    report_coefs <- report_coefs / scale_factors
+    
+    # Apply Unscaling to Standard Errors
+    # SE_raw = SE_scaled / SD
+    # Ensure names match before division
+    se_names <- names(report_coefs) 
+    # sdr_summary rows are usually named. Match them up.
+    if (!is.null(rownames(sdr_summary))) {
+      # Map scale_factors to the order of sdr_summary
+      se_scales <- rep(1, nrow(sdr_summary))
+      names(se_scales) <- rownames(sdr_summary)
+      common_se <- intersect(names(scale_factors), rownames(sdr_summary))
+      se_scales[common_se] <- scale_factors[common_se]
+      report_se <- report_se / se_scales
+    }
+  }
+  
   coef_table <- data.frame(
-    Estimate = sdr_summary[, "Estimate"],
-    Std_Error = sdr_summary[, "Std. Error"]
+    Estimate = report_coefs,    
+    Std_Error = report_se 
   )
   
   # Z-score and P-value (Two-tailed)
   coef_table$z_value <- coef_table$Estimate / coef_table$Std_Error
   coef_table$Pr_z <- 2 * (1 - pnorm(abs(coef_table$z_value)))
-  if(!is.null(coef_names)) rownames(coef_table) <- coef_names
+  if(!is.null(coef_names) && length(coef_names) == nrow(coef_table)) {
+    rownames(coef_table) <- names(report_coefs)
+  }
   
   #### Fitted Values & Predictions ####
   # Re-calculate probabilities using the final betas
@@ -538,7 +589,8 @@ fishset_fit <- function(project,
     message = opt$message,
     
     # Tables and Stats
-    coefficients = estimated_coefs,
+    coefficients = report_coefs,
+    coefficients_scaled = opt$par,
     coef_table = coef_table,
     vcov = cov_mat,
     
