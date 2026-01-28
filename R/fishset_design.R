@@ -65,6 +65,7 @@
 #' @importFrom stats as.formula model.matrix
 #' @importFrom DBI dbConnect dbDisconnect dbExecute
 #' @importFrom RSQLite SQLite
+#' @importFrom data.table setDT setorderv setDF
 
 fishset_design <- function(formula,
                            project,
@@ -76,7 +77,15 @@ fishset_design <- function(formula,
                            price_var = NULL,
                            scale = FALSE){
   
-  # Load data -------------------------------------------------------------------------------------
+  # Load and validate data ------------------------------------------------------------------------
+  # Check if design file exists
+  design_names <- model_design_list(project)
+  if (model_name %in% design_names) {
+    stop(paste0("Model design ", model_name, "already exists. Enter a new model name or ",
+                "delete the old model design using remove_model_design()."))
+  }
+  
+  # Load formatted data table
   tryCatch({
     full_lf_list <- unserialize_table(paste0(project,"LongFormatData"), project)  
   }, error = function(cond){
@@ -93,20 +102,18 @@ fishset_design <- function(formula,
   # Extract the specific dataframe
   data <- full_lf_list[[which(names(full_lf_list) == formatted_data_name)]]
   
-  # Validation and sorting ------------------------------------------------------------------------
+  # Sorting ---------------------------------------------------------------------------------------
   if (!all(c(unique_obs_id, zone_id) %in% names(data))) {
     stop("Specified 'unique_obs_id' or 'zone_id' columns not found in the dataset.")
   }
   
   # Ensure data is ordered by observation, then by zone
-  data <- data[order(data[[unique_obs_id]], data[[zone_id]]),]
+  data.table::setDT(data) # Convert to data.table by reference
+  data.table::setorderv(data, c(unique_obs_id, zone_id)) # Sort by reference
+  data.table::setDF(data) # Convert back to data.frame
   
-  # Check if design file exists
-  design_names <- model_design_list(project)
-  if (model_name %in% design_names) {
-    stop(paste0("Model design ", model_name, "already exists. Enter a new model name or ",
-                "delete the old model design using remove_model_design()."))
-  }
+  # Force zone_id to a factor for correct dummy generation in formula
+  data[[zone_id]] <- as.factor(data[[zone_id]])
   
   # Formula parsing -------------------------------------------------------------------------------
   if (!inherits(formula, "formula")) {
@@ -125,12 +132,93 @@ fishset_design <- function(formula,
     stop("The choice variable (LHS of formula) must be binary (0/1).")
   }
   
+  scalers <- list()
+  
+  # Helper to scale a matrix and return stats - used for Part 1 and Part 2 of formula separately
+  calc_scale_stats <- function(mat) {
+    mus <- colMeans(mat, na.rm = TRUE)
+    
+    # We calculate Sum(x) and Sum(x^2) using vectorized C functions
+    if (anyNA(mat)) {
+      # Handle NAs
+      is_obs <- !is.na(mat)
+      n_obs <- colSums(is_obs)
+      
+      # We need raw sums for the binary check later
+      sum_x  <- colSums(mat, na.rm = TRUE)
+      sum_sq <- colSums(mat^2, na.rm = TRUE)
+    } else {
+      # Fast path for clean data
+      n_obs <- nrow(mat)
+      sum_x  <- colSums(mat)
+      sum_sq <- colSums(mat^2)
+    }
+    
+    vars <- (sum_sq - (sum_x^2 / n_obs)) / (n_obs - 1)    
+    vars[vars < 0] <- 0
+    sds <- sqrt(vars)
+    
+    # Don't scale binary columns (ASCs)
+    # If x is 0 or 1, then x^2 == x. 
+    # Therefore, Sum(x^2) should exactly equal Sum(x).
+    # We use a tiny tolerance for floating point safety.
+    is_binary <- abs(sum_sq - sum_x) < 1e-9
+    
+    # Handle constant columns & binaries
+    const_cols <- sds == 0
+    sds[const_cols] <- 1
+    
+    sds[is_binary] <- 1
+    mus[is_binary] <- 0
+    
+    return(list(mu = mus, sd = sds))
+  }
+  
+  apply_scale <- function(mat, stats) {
+    # Optimization: Only scale columns that strictly need it.
+    # In choice models, huge chunks of the matrix are binary ASCs (mu=0, sd=1).
+    # Standard scale() processes them uselessly, wasting CPU.
+    
+    # Identify target columns (where sd != 1 or mu != 0)
+    needs_scaling <- which(stats$sd != 1 | stats$mu != 0)
+    
+    # Fast Path 1: Nothing needs scaling (e.g. all binaries)
+    if (length(needs_scaling) == 0) return(mat)
+    
+    # Fast Path 2: Partial Scaling (The common case)
+    # If fewer than 100% of columns need scaling, we modify in place.
+    if (length(needs_scaling) < ncol(mat)) {
+      # Extract, Scale, Inject
+      # This saves massive CPU time by avoiding math on the ASCs
+      target_cols <- mat[, needs_scaling, drop = FALSE]
+      
+      scaled_cols <- scale(target_cols, 
+                           center = stats$mu[needs_scaling], 
+                           scale = stats$sd[needs_scaling])
+      
+      mat[, needs_scaling] <- scaled_cols
+      return(mat)
+    }
+    
+    # Fast Path 3: Full Scaling (All columns are continuous)
+    scaled <- scale(mat, center = stats$mu, scale = stats$sd)
+    attributes(scaled) <- attributes(scaled)[c("dim", "dimnames")]
+    return(scaled)
+  }
+  
   # Create X matrices -----------------------------------------------------------------------------
   X1 <- model.matrix(F_formula, data = data, rhs = 1)
   
   # Remove intercept if present (standard for conditional logit)
   if ("(Intercept)" %in% colnames(X1)) {
     X1 <- X1[, -which(colnames(X1) == "(Intercept)"), drop = FALSE]
+  }
+  
+  if (scale) {
+    # Scale Part 1 Variables (Standard Center/Scale)
+    s1 <- calc_scale_stats(X1)
+    X1 <- apply_scale(X1, s1)
+    scalers$X1 <- s1 # Store for unscaling
   }
   
   # Individual-specific variables
@@ -144,6 +232,14 @@ fishset_design <- function(formula,
       X2_raw <- X2_raw[, -which(colnames(X2_raw) == "(Intercept)"), drop = FALSE]
     }
     
+    # Scale Part 2 Variables BEFORE Interaction
+    # This prevents the "destroying zeros" problem
+    if (scale) {
+      s2 <- calc_scale_stats(X2_raw)
+      X2_raw <- apply_scale(X2_raw, s2)
+      scalers$X2 <- s2 # Store for unscaling
+    }
+    
     # Create Interactions: X2 variables * Zone Dummies
     # This mathematically allows individual traits to influence specific site selection.
     X2_df <- as.data.frame(X2_raw)
@@ -153,56 +249,39 @@ fishset_design <- function(formula,
     interact_vars <- colnames(X2_raw)
     interact_formula_str <- paste("~ (", 
                                   paste(interact_vars, collapse = " + "), 
-                                  ") : zone_factor - 1")
-    interact_formula <- as.formula(interact_formula_str)
+                                  ") : zone_factor")
     
     # The formula `~ X2_raw : zone_factor - 1` creates interaction columns
     # We use -1 to avoid a global intercept.
     # Note: This creates interactions for ALL zones. In estimation, one base zone
     # is usually dropped or constrained, but for the design matrix, we often keep all 
     # and handle identification in the fit function or TMB code.
-    X2_interacted <- model.matrix(interact_formula, data = X2_df)
+    X2_interacted <- model.matrix(as.formula(interact_formula_str), data = X2_df)
+    
+    ref_zone <- levels(X2_df$zone_factor)[1]
+    ref_suffix <- paste0(":zone_factor", ref_zone)
+    cols_to_drop <- grep(paste0(ref_suffix, "$"), colnames(X2_interacted))
+    
+    if (length(cols_to_drop) > 0) {
+      X2_interacted <- X2_interacted[, -cols_to_drop, drop = FALSE]
+    }
+    
+    if ("(Intercept)" %in% colnames(X2_interacted)) {
+      X2_interacted <- X2_interacted[, -which(colnames(X2_interacted) == "(Intercept)"), 
+                                     drop = FALSE]
+    }
     
     # Clean up column names (optional, makes summary cleaner)
     # e.g., changes "X2_rawIncome:zone_factorZoneA" to "Income:ZoneA"
-    colnames(X2_interacted) <- gsub("zone_factor", "", colnames(X2_interacted))
+    colnames(X2_interacted) <- gsub("zone_factor", "Zone", colnames(X2_interacted))
     
     # Combine Part 1 and Part 2
     X_final <- cbind(X1, X2_interacted)
     
   } else {
-    # If no individual vars, X is just Part 1
+    # If no zone-specific vars, X is just Part 1
     X_final <- X1
   }
-  
-  # Scaling logic
-  scalers <- list()
-  
-  if (scale) {
-    # Helper function to scale matrices while handling constants (sd = 0)
-    scale_matrix_data <- function(mat) {
-      mus <- apply(mat, 2, mean, na.rm = TRUE)
-      sds <- apply(mat, 2, sd, na.rm = TRUE)
-      
-      # Handle constant columns (prevent div by 0)
-      const_cols <- sds == 0
-      sds[const_cols] <- 1
-      
-      # Center and scale
-      mat_scaled <- sweep(mat, 2, mus, "-")
-      mat_scaled <- sweep(mat_scaled, 2, sds, "/")
-      
-      return(list(mat = mat_scaled, mu = mus, sd = sds))
-    }
-    
-    # Scale X_final
-    scaled_obj <- scale_matrix_data(X_final)
-    X_final <- scaled_obj$mat
-    
-    # Store params
-    scalers$X <- list(mu = scaled_obj$mu, sd = scaled_obj$sd)
-  } 
-  
   
   # Process EPM components ------------------------------------------------------------------------
   epm_components <- list()
@@ -291,8 +370,7 @@ fishset_design <- function(formula,
   
   class(design_obj) <- "fishset_design"
   
-  # Save to database ------------------------------------------------------------------------------
-  # Hybrid storage
+  # Save to design folder -------------------------------------------------------------------------
   db_path <- locdatabase(project)
   project_dir <- dirname(db_path)
   designs_dir <- file.path(project_dir, "ModelDesigns")

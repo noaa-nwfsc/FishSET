@@ -10,8 +10,6 @@
 #'   Must match a name saved in the project's 'ModelDesigns' table.
 #' @param fit_name Character string (Optional). Name to assign to the resulting fit object 
 #'   in the database. Defaults to \code{paste0(model_name, "_fit")}.
-#' @param estimate_asc Logical. If TRUE, estimates Alternative Specific Constants for each zone 
-#'   Do NOT include ZoneID in your design formula if using this.
 #' @param distribution Character string. Distribution for the continuous catch component in EPMs.
 #'   Options: \code{"normal"}, \code{"lognormal"}, \code{"weibull"}, default = NULL.
 #' @param ... Additional arguments passed to the optimization control.
@@ -74,7 +72,6 @@
 fishset_fit <- function(project,
                         model_name,
                         fit_name = NULL,
-                        estimate_asc = FALSE,
                         distribution = NULL,
                         ...) {
   
@@ -353,24 +350,13 @@ fishset_fit <- function(project,
       init_beta <- rep(0.0001, K_vars)
     }
     
-    # Setup ASC Parameters
-    # We fix the first zone to 0 for identification, so we estimate J-1 parameters
-    if (estimate_asc) {
-      init_alpha <- rep(0.0, J_alts - 1)
-    } else {
-      init_alpha <- numeric(0)
-    }
-    
     data_list <- list(
       X = X,
       choice_idx = choice_idx, 
       N_obs = N_obs,
-      J_alts = J_alts,
-      fit_asc = as.integer(estimate_asc)
-    )  
+      J_alts = J_alts)  
     
-    start_pars <- list(betas = init_beta,
-                       alpha_raw = init_alpha)
+    start_pars <- list(betas = init_beta)
     
     nll_func <- function(pars) {
       RTMB::getAll(data_list, pars)
@@ -381,20 +367,15 @@ fishset_fit <- function(project,
       # Reshape to Matrix (N_obs x J_alts)
       dim(v) <- c(J_alts, N_obs)
       
-      # Add ASCs
-      if (fit_asc == 1) {
-        # Full alpha vector
-        alpha_full <- c(0, alpha_raw)
-        
-        # Broadcast: add a vector of length J_alts to J_altsxN_obs matrix
-        v_final <- v + alpha_full
-        
-      } else {
-        v_final <- v
+      v_max <- v[1, ]
+      for(j in 2:J_alts) {
+        v_next <- v[j, ]
+        v_max <- 0.5 * (v_max + v_next + abs(v_max - v_next))
       }
       
-      # Log-Sum-Exp (Denominator) - calculate log(sum(exp(v))) for every column
-      log_sum_exp <- log(RTMB::colSums(exp(v_final)))
+      # Subtract Max: exp(v - v_max)
+      t_v_diff <- t(v) - v_max
+      log_sum_exp <- log(RTMB::rowSums(exp(t_v_diff))) + v_max
       
       # Numerator (Utility of chosen alternative)
       # Use the integer index to pick the specific value from the AD matrix
@@ -500,41 +481,56 @@ fishset_fit <- function(project,
   
   if (!is.null(design$scalers) && length(design$scalers) > 0) {
     message("Unscaling parameters for final output...")
-    
-    # Create a vector of SDs matching the coefficient names
-    # Default to 1 (no scaling) for params that weren't scaled (like ASCs)
     scale_factors <- rep(1, length(report_coefs))
     names(scale_factors) <- names(report_coefs)
     
-    # Match Main X Variables
-    if (!is.null(design$scalers$X)) {
-      x_sds <- design$scalers$X$sd
-      # Find overlapping names
-      common_x <- intersect(names(x_sds), names(report_coefs))
-      scale_factors[common_x] <- x_sds[common_x]
+    # 1. Unscale Part 1 (Direct Match)
+    if (!is.null(design$scalers$X1)) {
+      x1_sds <- design$scalers$X1$sd
+      common_x1 <- intersect(names(x1_sds), names(report_coefs))
+      scale_factors[common_x1] <- x1_sds[common_x1]
     }
     
-    # Match EPM Catch Variables (if applicable)
+    # 2. Unscale Part 2 (Interaction Match)
+    # Coef Name: "vessel_len:Zone1"  -->  Needs SD from: "vessel_len"
+    if (!is.null(design$scalers$X2)) {
+      x2_sds <- design$scalers$X2$sd
+      
+      # Loop through base variables in Part 2 (e.g., "vessel_len")
+      for (base_var in names(x2_sds)) {
+        sd_val <- x2_sds[[base_var]]
+        
+        # Find all coefficients that start with this variable name followed by ":"
+        # Regex: ^vessel_len:.*
+        pattern <- paste0("^", base_var, ":.*")
+        matches <- grep(pattern, names(report_coefs), value = TRUE)
+        
+        if (length(matches) > 0) {
+          scale_factors[matches] <- sd_val
+        }
+      }
+    }
+    
+    # 3. Unscale EPM (Direct Match)
     if (!is.null(design$scalers$X_catch)) {
-      catch_sds <- design$scalers$X_catch$sd
-      common_catch <- intersect(names(catch_sds), names(report_coefs))
-      scale_factors[common_catch] <- catch_sds[common_catch]
+      c_sds <- design$scalers$X_catch$sd
+      common_c <- intersect(names(c_sds), names(report_coefs))
+      scale_factors[common_c] <- c_sds[common_c]
     }
     
-    # Apply Unscaling: Coef_raw = Coef_scaled / SD
+    # Apply
     report_coefs <- report_coefs / scale_factors
     
-    # Apply Unscaling to Standard Errors
-    # SE_raw = SE_scaled / SD
-    # Ensure names match before division
-    se_names <- names(report_coefs) 
-    # sdr_summary rows are usually named. Match them up.
+    # Apply to Standard Errors
     if (!is.null(rownames(sdr_summary))) {
-      # Map scale_factors to the order of sdr_summary
       se_scales <- rep(1, nrow(sdr_summary))
       names(se_scales) <- rownames(sdr_summary)
-      common_se <- intersect(names(scale_factors), rownames(sdr_summary))
-      se_scales[common_se] <- scale_factors[common_se]
+      
+      # We must rebuild the SE scales vector to match the order of the summary table
+      # Use the same 'scale_factors' vector but re-mapped
+      common_names <- intersect(names(scale_factors), rownames(sdr_summary))
+      se_scales[common_names] <- scale_factors[common_names]
+      
       report_se <- report_se / se_scales
     }
   }
