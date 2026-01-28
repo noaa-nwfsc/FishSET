@@ -497,6 +497,7 @@ discretefish_subroutine <- function(project,
           
         } else {
           
+          final_df <- cbind(mft[setdiff(names(mft), names(mod.out))], mod.out)
           DBI::dbWriteTable(fishset_db, mft_tab_nm, cbind(mft, mod.out), overwrite = TRUE)
         }
         
