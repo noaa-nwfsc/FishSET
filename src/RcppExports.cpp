@@ -30,6 +30,54 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rcpp_calc_scale_stats_sparse
+List rcpp_calc_scale_stats_sparse(S4 mat);
+RcppExport SEXP _FishSET_rcpp_calc_scale_stats_sparse(SEXP matSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< S4 >::type mat(matSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_calc_scale_stats_sparse(mat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcpp_apply_scale_sparse
+SEXP rcpp_apply_scale_sparse(S4 mat, NumericVector mu, NumericVector sd);
+RcppExport SEXP _FishSET_rcpp_apply_scale_sparse(SEXP matSEXP, SEXP muSEXP, SEXP sdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< S4 >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type sd(sdSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_apply_scale_sparse(mat, mu, sd));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcpp_calc_scale_stats
+List rcpp_calc_scale_stats(SEXP mat);
+RcppExport SEXP _FishSET_rcpp_calc_scale_stats(SEXP matSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type mat(matSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_calc_scale_stats(mat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcpp_apply_scale
+SEXP rcpp_apply_scale(SEXP mat, NumericVector mu, NumericVector sd);
+RcppExport SEXP _FishSET_rcpp_apply_scale(SEXP matSEXP, SEXP muSEXP, SEXP sdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type sd(sdSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_apply_scale(mat, mu, sd));
+    return rcpp_result_gen;
+END_RCPP
+}
 // shift_sort_xcpp
 NumericMatrix shift_sort_xcpp(NumericMatrix x, NumericMatrix ch, NumericVector y, NumericMatrix distance, int alts, int ab);
 RcppExport SEXP _FishSET_shift_sort_xcpp(SEXP xSEXP, SEXP chSEXP, SEXP ySEXP, SEXP distanceSEXP, SEXP altsSEXP, SEXP abSEXP) {
@@ -49,6 +97,10 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_FishSET_calculate_moving_avg", (DL_FUNC) &_FishSET_calculate_moving_avg, 10},
+    {"_FishSET_rcpp_calc_scale_stats_sparse", (DL_FUNC) &_FishSET_rcpp_calc_scale_stats_sparse, 1},
+    {"_FishSET_rcpp_apply_scale_sparse", (DL_FUNC) &_FishSET_rcpp_apply_scale_sparse, 3},
+    {"_FishSET_rcpp_calc_scale_stats", (DL_FUNC) &_FishSET_rcpp_calc_scale_stats, 1},
+    {"_FishSET_rcpp_apply_scale", (DL_FUNC) &_FishSET_rcpp_apply_scale, 3},
     {"_FishSET_shift_sort_xcpp", (DL_FUNC) &_FishSET_shift_sort_xcpp, 6},
     {NULL, NULL, 0}
 };

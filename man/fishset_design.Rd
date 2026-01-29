@@ -12,16 +12,17 @@ fishset_design(
   unique_obs_id,
   zone_id,
   catch_formula = NULL,
-  price_var = NULL
+  price_var = NULL,
+  scale = FALSE
 )
 }
 \arguments{
 \item{formula}{A two-part formula specifying the model structure (e.g., 
-\code{chosen ~ catch + distance | income}). The left-hand side specifies the binary choice 
-variable, which is always specified as \code{chosen} from the \code{\link{format_model_data}}
-function. The right-hand side is separated by a pipe (|):
+\code{chosen ~ expected_catch + distance | income}). The left-hand side specifies the 
+binary choice variable, which is always specified as \code{chosen} from the 
+\code{\link{format_model_data}} function. The right-hand side is separated by a pipe (|):
 Part 1 contains alternative-specific variables, and 
-Part 2 contains individual-specific variables.}
+Part 2 contains trip- or haul-specific variables (i.e., do not vary across fishing zones).}
 
 \item{project}{Name of the project.}
 
@@ -35,31 +36,41 @@ name previously created by \code{\link{format_model_data}}.}
 identifier.}
 
 \item{zone_id}{Variable name in the dataset representing the zone (alternative) identifier.}
+
+\item{catch_formula}{A formula specifying the expected catch for an Expected Profit Model.}
+
+\item{price_var}{Variable name in the dataset representing price. This input is only used for
+Expected Profit Models, and the price variable must be included in the formatted dataset 
+created in the \code{\link{format_model_data}} function.}
+
+\item{scale}{Logical. Default = FALSE. If TRUE, numeric predictors in the design matrix (X) 
+are centered and scaled (z-score normalization) before saving. Scaling factors are stored to 
+allow unscaling of parameters after estimation. Recommended for numerical stability.}
 }
 \value{
 A list object of class 'fishset_design' containing the design matrices, choice vector, 
-  and metadata. The list is saved to the project database.
+  and metadata. The list is saved as a compressed .rds file in the project folder.
 }
 \description{
-Constructs the design object required for discrete choice modeling within the FishSET framework.
-This function parses the model formula, validates the formatted data, and generates the design
-matrices (X) and choice vector (y). It handles both alternative-specific variables and 
-individual-specific variables (automatically creating interactions with zone constants). The 
-resulting design object is the primary input for the fishset_fit() function, which performs
-the actual parameter estimation.
+Constructs the design object required for discrete choice model fitting within the FishSET 
+framework. This function parses the model formula, validates the formatted data, and generates 
+the design matrix (X) and choice vector (y). It handles both alternative-specific variables and 
+trip- or haul-specific variables (automatically creating interactions with zone constants). The 
+resulting design object is the primary input for the \code{\link{fishset_fit}} function, 
+which performs the parameter estimation.
 }
 \details{
-The resulting design object is serialized and stored in the FishSET project database within a
-table named '[project_name]ModelDesigns'.
+The resulting design object is saved as a compressed .rds file in the 'ModelDesigns' folder,
+which is located inside the project folder.
 }
 \examples{
 \dontrun{
 # 1. Standard Conditional Logit
-# "chosen" is the response, "expected_catch" and "distance" are site attributes.
+# "chosen" is ALWAYS the response, "expected_catch" and "distance" are site attributes.
 fishset_design(
   formula = chosen ~ expected_catch + distance,
   project = "MyProject",
-  model_name = "clogit_model",
+  model_name = "clogit_model1",
   formatted_data_name = "my_formatted_data",
   unique_obs_id = "haul_id",
   zone_id = "zone_id"
@@ -70,10 +81,23 @@ fishset_design(
 fishset_design(
   formula = chosen ~ expected_catch + distance + zone_id,
   project = "MyProject",
-  model_name = "zonal_logit_model",
+  model_name = "zonal_logit_model1",
   formatted_data_name = "my_formatted_data",
   unique_obs_id = "haul_id",
-  zone_id = "zone_id"
+  zone_id = "zone_id",
+  scale = TRUE
+) 
+
+# 3. Zonal Logit with trip- or haul-specific variables
+# Add the variable that does not vary across zones (e.g., vessel length) after the pipe ("|").
+fishset_design(
+  formula = chosen ~ expected_catch + distance | vessel_length,
+  project = "MyProject",
+  model_name = "zonal_logit_model2",
+  formatted_data_name = "my_formatted_data",
+  unique_obs_id = "haul_id",
+  zone_id = "zone_id",
+  scale = TRUE
 ) 
 }
 

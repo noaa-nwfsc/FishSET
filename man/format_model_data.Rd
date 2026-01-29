@@ -19,8 +19,8 @@ format_model_data(
   expectations = NULL,
   distance = TRUE,
   distance_units = NULL,
-  crs = NULL,
-  impute = NULL
+  impute = NULL,
+  crs = NULL
 )
 }
 \arguments{
@@ -66,12 +66,12 @@ and zones. Defaults to 'TRUE'.}
 
 \item{distance_units}{String representing the units of measurement for distance ("km" or "mi").}
 
-\item{crs}{Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
-are required.}
-
 \item{impute}{Method for imputing missing values (NAs). Options are `"mean"`, 
 `"median"`, `"mode"`, or `"remove"`. `"Remove"` will completely remove zones from the dataset
 that contain any NAs in corresponding data. If NULL, the function stops if NAs are detected.}
+
+\item{crs}{Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
+are required.}
 }
 \value{
 A list containing the formatted data frame and the input settings. The list is saved to

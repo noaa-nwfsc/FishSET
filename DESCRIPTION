@@ -60,6 +60,7 @@ Imports:
     leaflet,
     lubridate,
     lwgeom,
+    Matrix,
     methods,
     openxlsx,
     pander,
