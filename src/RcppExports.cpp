@@ -78,6 +78,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rcpp_sparse_interaction
+S4 rcpp_sparse_interaction(S4 mat, IntegerVector zone_int, int J);
+RcppExport SEXP _FishSET_rcpp_sparse_interaction(SEXP matSEXP, SEXP zone_intSEXP, SEXP JSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< S4 >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type zone_int(zone_intSEXP);
+    Rcpp::traits::input_parameter< int >::type J(JSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_sparse_interaction(mat, zone_int, J));
+    return rcpp_result_gen;
+END_RCPP
+}
 // shift_sort_xcpp
 NumericMatrix shift_sort_xcpp(NumericMatrix x, NumericMatrix ch, NumericVector y, NumericMatrix distance, int alts, int ab);
 RcppExport SEXP _FishSET_shift_sort_xcpp(SEXP xSEXP, SEXP chSEXP, SEXP ySEXP, SEXP distanceSEXP, SEXP altsSEXP, SEXP abSEXP) {
@@ -101,6 +114,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_FishSET_rcpp_apply_scale_sparse", (DL_FUNC) &_FishSET_rcpp_apply_scale_sparse, 3},
     {"_FishSET_rcpp_calc_scale_stats", (DL_FUNC) &_FishSET_rcpp_calc_scale_stats, 1},
     {"_FishSET_rcpp_apply_scale", (DL_FUNC) &_FishSET_rcpp_apply_scale, 3},
+    {"_FishSET_rcpp_sparse_interaction", (DL_FUNC) &_FishSET_rcpp_sparse_interaction, 3},
     {"_FishSET_shift_sort_xcpp", (DL_FUNC) &_FishSET_shift_sort_xcpp, 6},
     {NULL, NULL, 0}
 };

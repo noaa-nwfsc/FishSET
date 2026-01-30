@@ -1,5 +1,6 @@
 #include <Rcpp.h>
 #include <cmath>
+#include <vector>
 
 using namespace Rcpp;
 
@@ -110,6 +111,11 @@ SEXP rcpp_apply_scale_sparse(S4 mat, NumericVector mu, NumericVector sd) {
       }
     }
     
+    if (mat.hasSlot("Dimnames")) {
+      List dnames = mat.slot("Dimnames");
+      res.attr("dimnames") = dnames;
+    }
+    
     return res;
     
   } else {
@@ -199,4 +205,85 @@ SEXP rcpp_apply_scale(SEXP mat, NumericVector mu, NumericVector sd) {
     if (X.hasAttribute("dimnames")) res.attr("dimnames") = X.attr("dimnames");
     return res;
   }
+}
+
+// [[Rcpp::export]]
+S4 rcpp_sparse_interaction(S4 mat, IntegerVector zone_int, int J) {
+  // Input Matrix Slots
+  IntegerVector i_in = mat.slot("i");
+  IntegerVector p_in = mat.slot("p");
+  NumericVector x_in = mat.slot("x");
+  IntegerVector dim_in = mat.slot("Dim");
+  
+  int n_rows = dim_in[0];
+  int n_cols_in = dim_in[1];
+  int n_zones_keep = J - 1; 
+  int n_cols_out = n_cols_in * n_zones_keep;
+  
+  // --- PASS 1: COUNT (Calculate column sizes) ---
+  // We need to know exactly how many non-zeros land in each output column
+  std::vector<int> col_counts(n_cols_out, 0);
+  
+  for (int col = 0; col < n_cols_in; col++) {
+    for (int k = p_in[col]; k < p_in[col + 1]; k++) {
+      int r = i_in[k];
+      int z = zone_int[r];
+      
+      // Map Zone to Output Column Index
+      // Logic: Variable Block + Zone Offset
+      if (z > 1 && z <= J) {
+        int z_offset = z - 2; // Zone 2 -> 0
+        int out_col_idx = (col * n_zones_keep) + z_offset;
+        col_counts[out_col_idx]++;
+      }
+    }
+  }
+  
+  // --- ALLOCATE (Setup 'p' vector) ---
+  std::vector<int> p_out(n_cols_out + 1);
+  p_out[0] = 0;
+  for (int j = 0; j < n_cols_out; j++) {
+    p_out[j + 1] = p_out[j] + col_counts[j];
+  }
+  
+  int total_nnz = p_out[n_cols_out];
+  
+  // Allocate 'i' and 'x' exactly once (No resizing overhead)
+  // We use Rcpp vectors directly to avoid extra copy at return
+  IntegerVector i_out(total_nnz);
+  NumericVector x_out(total_nnz);
+  
+  // Helper to track where we are writing in each column
+  std::vector<int> current_pos = p_out; 
+  
+  // --- PASS 2: FILL ---
+  for (int col = 0; col < n_cols_in; col++) {
+    for (int k = p_in[col]; k < p_in[col + 1]; k++) {
+      int r = i_in[k];
+      double val = x_in[k];
+      int z = zone_int[r];
+      
+      if (z > 1 && z <= J) {
+        int z_offset = z - 2;
+        int out_col_idx = (col * n_zones_keep) + z_offset;
+        
+        // Write to the pre-calculated position
+        int write_loc = current_pos[out_col_idx];
+        
+        i_out[write_loc] = r;
+        x_out[write_loc] = val;
+        
+        current_pos[out_col_idx]++; // Advance cursor
+      }
+    }
+  }
+  
+  // Construct Result
+  S4 res("dgCMatrix");
+  res.slot("i") = i_out;
+  res.slot("p") = wrap(p_out);
+  res.slot("x") = x_out;
+  res.slot("Dim") = IntegerVector::create(n_rows, n_cols_out);
+  
+  return res;
 }

@@ -92,7 +92,7 @@ fishset_design <- function(formula,
                            price_var = NULL,
                            scale = FALSE){
   
-  # Load and validate data ------------------------------------------------------------------------
+  # Setup and validate data -----------------------------------------------------------------------
   # Check if design file exists
   design_names <- model_design_list(project)
   if (model_name %in% design_names) {
@@ -121,6 +121,9 @@ fishset_design <- function(formula,
     stop("Specified 'unique_obs_id' or 'zone_id' columns not found in the dataset.")
   }
   
+  # Use qs2 for saving if available - this will speed up the function
+  use_qs2 <- requireNamespace("qs2", quietly = TRUE)
+  
   # Sorting ---------------------------------------------------------------------------------------
   # Ensure data is ordered by observation, then by zone
   data.table::setDT(data) # Convert to data.table by reference
@@ -146,30 +149,36 @@ fishset_design <- function(formula,
   # Initialize scalers list
   scalers <- list()
   
+  # Process matrix helper function
+  process_matrix <- function(f_str, data_source, do_scale, scale_name) {
+    if (is.null(f_str)) return(NULL)
+    # Generate sparse matrix
+    mat <- Matrix::sparse.model.matrix(as.formula(f_str), data = data_source)
+    # Drop intercept
+    if ("(Intercept)" %in% colnames(mat)) {
+      mat <- mat[, -which(colnames(mat) == "(Intercept)"), drop = FALSE]
+    }
+    # Scale
+    if (do_scale && ncol(mat) > 0) {
+      # Scale calcs (mean and standard deviation) - handles sparse and dense matrices
+      s <- rcpp_calc_scale_stats(mat)
+      # Apply scale
+      mat <- rcpp_apply_scale(mat, s$mu, s$sd)
+      # Save scalers to list
+      scalers[[scale_name]] <<- s
+      # Ensure dgCMatrix
+      if (!inherits(mat, "Matrix")) mat <- methods::as(mat, "dgCMatrix")
+    }
+    return(mat)
+  }
+  
   ## Formula part 1 -----
   rhs1_vars <- attr(terms(F_formula, lhs = 0, rhs = 1), "term.labels")
-  
   if (length(rhs1_vars) == 0) {
     X1 <- NULL
-    
   } else {
     f1_str <- paste("~", paste(rhs1_vars, collapse = " + "))
-    X1 <- Matrix::sparse.model.matrix(as.formula(f1_str), data = data)  
-    
-    # Remove intercept if present (standard for conditional logit)
-    if ("(Intercept)" %in% colnames(X1)) {
-      X1 <- X1[, -which(colnames(X1) == "(Intercept)"), drop = FALSE]
-    }
-    
-    if (scale) {
-      # Rcpp scale calcs (mean and standard deviations) - handles sparse and dense matrices
-      s1 <- rcpp_calc_scale_stats(X1)
-      # Apply Scale
-      X1 <- rcpp_apply_scale(X1, s1$mu, s1$sd)
-      scalers$X1 <- s1 
-      # Ensure it's treated as a sparse matrix for cbind later (if it became dense)
-      if (!inherits(X1, "Matrix")) X1 <- methods::as(X1, "dgCMatrix")
-    }
+    X1 <- process_matrix(f1_str, data, scale, "X1")
   }
   
   ## Formula part 2 -----
@@ -183,63 +192,27 @@ fishset_design <- function(formula,
   } else {
     rhs2_vars <- attr(terms(F_formula, lhs = 0, rhs = 2), "term.labels")
     f2_str <- paste("~", paste(rhs2_vars, collapse = " + "))
-    X2_raw <- Matrix::sparse.model.matrix(as.formula(f2_str), data = data)
     
-    # Remove intercept from raw X2
-    if ("(Intercept)" %in% colnames(X2_raw)) {
-      X2_raw <- X2_raw[, -which(colnames(X2_raw) == "(Intercept)"), drop = FALSE]
-    }
+    # Get base matrix (scaled)
+    X2_base <- process_matrix(f2_str, data, scale, "X2")
     
-    interact_vars <- colnames(X2_raw) # Save names to reassign below
+    # Zone interaction
+    zone_int <- as.integer(data[[zone_id]])
+    X2_interacted <- rcpp_sparse_interaction(X2_base, zone_int, J_alts)
     
-    # Scale part 2 variables prior to interaction with zone (keeps zeros)
-    if (scale) {
-      s2 <- rcpp_calc_scale_stats(X2_raw)
-      X2_raw <- rcpp_apply_scale(X2_raw, s2$mu, s2$sd)
-      scalers$X2 <- s2 
-      # Convert back to sparse if it became dense (optional, but consistent)
-      if (!inherits(X2_raw, "Matrix")) X2_raw <- methods::as(X2_raw, "dgCMatrix")
-    }
+    # Fix names
+    var_names <- rhs2_vars
+    zone_names <- levels(data[[zone_id]])[-1] # Drop ref (zone 1)
+    int_names <- as.vector(outer(zone_names, var_names, function(z, v) paste0(v, ":Zone", z)))
+    colnames(X2_interacted) <- int_names
     
-    # Create interactions: X2 variables * zone dummies
-    X2_df <- as.data.frame(as.matrix(X2_raw))
-    names(X2_df) <- interact_vars
-    X2_df$zone_factor <- data[[zone_id]]
-    
-    # Formula: Drop intercept (-1) to generate columns for all levels
-    # We use the standard R behavior: ~ (Vars) : Zone - 1
-    interact_formula_str <- paste("~ (", 
-                                  paste(interact_vars, collapse = " + "), 
-                                  ") : zone_factor - 1")
-    X2_interacted <- Matrix::sparse.model.matrix(as.formula(interact_formula_str), data = X2_df)
-    
-    # Remove intercept if generated
-    if ("(Intercept)" %in% colnames(X2_interacted)) {
-      X2_interacted <- X2_interacted[, -which(colnames(X2_interacted) == "(Intercept)"), 
-                                     drop = FALSE]
-    }
-    
-    # Drop reference zone from each variable, zone interaction
-    ref_zone <- levels(data[[zone_id]])[[1]]
-    ref_pattern <- paste0(":zone_factor", ref_zone, "$")
-    cols_to_drop <- grep(ref_pattern, colnames(X2_interacted))
-    
-    if (length(cols_to_drop) > 0) {
-      X2_interacted <- X2_interacted[, -cols_to_drop, drop = FALSE]
-    }
-    
-    # Clean names: "Var:zone_factor2" -> "Var:Zone2"
-    new_names <- colnames(X2_interacted)
-    new_names <- gsub("zone_factor", "Zone", new_names)
-    colnames(X2_interacted) <- new_names
-    
+    # Combine
     if (is.null(X1)) {
       X_final <- X2_interacted
     } else {
-      # Combine
-      X_final <- cbind(X1, X2_interacted)  
+      X_final <- cbind(X1, X2_interacted)
     }
-  } 
+  }
   
   # Process EPM components ------------------------------------------------------------------------
   # epm_components <- list()
@@ -296,9 +269,8 @@ fishset_design <- function(formula,
   #   )
   #   
   # } else {
-    epm_components <- list(is_epm = FALSE)
+  epm_components <- list(is_epm = FALSE)
   # }
-  
   
   # Package results -------------------------------------------------------------------------------
   design_obj <- list(
@@ -334,15 +306,24 @@ fishset_design <- function(formula,
   designs_dir <- file.path(project_dir, "ModelDesigns")
   
   # Create a new ModelDesigns folder in the project folder if it doesn't exist yet
-  if (!dir.exists(designs_dir)) {
-    dir.create(designs_dir, recursive = TRUE)
-  }
+  if (!dir.exists(designs_dir)) dir.create(designs_dir, recursive = TRUE)
   
-  # Save the heavy object to disk (.rds)
-  file_name <- paste0(model_name, ".rds")
-  file_path <- file.path(designs_dir, file_name)
-  saveRDS(design_obj, file = file_path, compress = "gzip")
-  message("Design object saved to: ", file_path)
+  # SOFT DEPENDENCY LOGIC for qs2
+  if (use_qs2) {
+    # Recommended: Use distinct extension so your reader knows to use qread
+    file_name <- paste0(model_name, ".qs2")
+    qs2::qs_save(design_obj, file = file.path(designs_dir, file_name))
+  } else {
+    # Fallback to standard RDS
+    file_name <- paste0(model_name, ".rds")
+    saveRDS(design_obj, file = file.path(designs_dir, file_name), compress = FALSE)
+  }
+  message("Design object saved to: ", file.path(designs_dir, file_name))
+  
+  # ############################################
+  # # FOR TESTING 
+  # file.remove(file.path(designs_dir, file_name))
+  # ############################################
   
   # Log the function call -------------------------------------------------------------------------
   fishset_design_function <- list()

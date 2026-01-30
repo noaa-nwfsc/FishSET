@@ -21,6 +21,10 @@ rcpp_apply_scale <- function(mat, mu, sd) {
     .Call(`_FishSET_rcpp_apply_scale`, mat, mu, sd)
 }
 
+rcpp_sparse_interaction <- function(mat, zone_int, J) {
+    .Call(`_FishSET_rcpp_sparse_interaction`, mat, zone_int, J)
+}
+
 shift_sort_xcpp <- function(x, ch, y, distance, alts, ab) {
     .Call(`_FishSET_shift_sort_xcpp`, x, ch, y, distance, alts, ab)
 }
