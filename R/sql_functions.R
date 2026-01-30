@@ -846,8 +846,12 @@ model_design_list <- function(project, name = NULL) {
     stop("No model design files were created for this project. Run fishset_design().")
   } 
   
-  files <- list.files(designs_dir, pattern = "\\.rds$", full.names = FALSE)
-  files <- tools::file_path_sans_ext(basename(files))
+  files <- list.files(designs_dir, 
+                      pattern = "\\.(rds|qs|qs2)$", 
+                      ignore.case = TRUE, 
+                      full.names = FALSE)
+  
+  files <- unique(tools::file_path_sans_ext(basename(files)))
   
   return(files)
 }
@@ -864,27 +868,35 @@ remove_model_design <- function(project, names) {
   project_dir <- dirname(db_path)
   designs_dir <- file.path(project_dir, "ModelDesigns")
   
-  file_name <- paste0(names, ".rds")
-  file_path <- file.path(designs_dir, file_name)
-  
-  success_flag <- TRUE
-  
   if (!dir.exists(designs_dir)) {
     stop("No model design files were created for this project. Run fishset_design().")
   } 
   
-  files <- list.files(designs_dir, pattern = "\\.rds$", full.names = FALSE)
+  # List of extensions to check/remove
+  extensions <- c(".qs2", ".qs", ".rds")
   
-  # Remove File from Disk
-  if (file.exists(file_path)) {
-    tryCatch({
-      file.remove(file_path)
-      message("Deleted design file: ", file_name)
-    }, error = function(e) {
-      warning("Could not delete file: ", e$message)
-      success_flag <<- FALSE
-    })
-  } else {
-    message("File not found on disk (skipping): ", file_name)
+  # Iterate through each model name provided
+  for (model_name in names) {
+    found_any <- FALSE
+    
+    # Check all possible extensions for this model
+    for (ext in extensions) {
+      file_name <- paste0(model_name, ext)
+      file_path <- file.path(designs_dir, file_name)
+      
+      if (file.exists(file_path)) {
+        tryCatch({
+          file.remove(file_path)
+          message("Deleted design file: ", file_name)
+          found_any <- TRUE
+        }, error = function(e) {
+          warning("Could not delete file: ", file_name, "\n  Error: ", e$message)
+        })
+      }
+    }
+    
+    if (!found_any) {
+      message("File not found for model: ", model_name, " (checked .qs2, .qs, .rds)")
+    }
   }
 }

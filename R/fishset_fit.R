@@ -12,6 +12,9 @@
 #'   in the database. Defaults to \code{paste0(model_name, "_fit")}.
 #' @param distribution Character string. Distribution for the continuous catch component in EPMs.
 #'   Options: \code{"normal"}, \code{"lognormal"}, \code{"weibull"}, default = NULL.
+#' @param return_full_prob_mat Logical. If TRUE, returns the full N_obs x J_alts matrix of
+#'   probabilities for every alternative. Default is FALSE (returns only chosen probs)
+#'   to save memory on large datasets.
 #' @param ... Additional arguments passed to the optimization control.
 #'   \itemize{
 #'     \item \code{control}: A list of control parameters passed to \code{\link[stats]{nlminb}} 
@@ -73,6 +76,7 @@ fishset_fit <- function(project,
                         model_name,
                         fit_name = NULL,
                         distribution = NULL,
+                        return_full_prob_mat = FALSE,
                         ...) {
   
   # Load and validate -----------------------------------------------------------------------------
