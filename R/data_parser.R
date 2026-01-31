@@ -987,13 +987,13 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
   
   if (any(colnames(aux) %in% colnames(dataset)) == FALSE) {
     
-    warning("No shared columns. Column names do not match between two data sets.")
+    stop("No shared columns. Column names do not match between two data sets.")
     check <- FALSE
   }
   
   if (check == FALSE) {
     
-    warning("Auxiliary table not saved.")
+    stop("Auxiliary table not saved.")
     invisible(FALSE)
     
   } else {

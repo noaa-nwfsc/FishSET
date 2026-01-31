@@ -91,6 +91,7 @@ format_model_data <- function(project,
                               gridded_data = NULL, 
                               grid_var_name = NULL, 
                               grid_time_var = NULL, 
+                              main_time_var = NULL,
                               expectations = NULL, 
                               distance = TRUE,
                               distance_units = NULL,
@@ -149,10 +150,15 @@ format_model_data <- function(project,
       select_vars_combined <- c(select_vars_combined, aux_key)
     }
     
-    # Check if grid_time_var is in the dataset and add to columns to filter
-    if (!is_empty(grid_time_var) && !(grid_time_var %in% select_vars_combined)) {
-      column_check(dataset, grid_time_var)
-      select_vars_combined <- c(select_vars_combined, grid_time_var)
+    # Check if main_time_var (or grid_time_var) is in the dataset and add to columns to filter
+    if (!is_empty(grid_time_var)) {
+      # Determine which variable in the MAIN dataset represents time
+      target_main_time <- if(!is.null(main_time_var)) main_time_var else grid_time_var
+      
+      if(!is_empty(target_main_time) && !(target_main_time %in% select_vars_combined)){
+        column_check(dataset, target_main_time)
+        select_vars_combined <- c(select_vars_combined, target_main_time)
+      }
     }
     
     dataset <- dataset %>% select(all_of(select_vars_combined))
@@ -258,27 +264,51 @@ format_model_data <- function(project,
   
   # Add aux data ----------------------------------------------------------------------------------
   if (!is_empty(aux_data)) {
+    # FIX: Stop execution if aux_data is present but aux_key is missing
+    if (is.null(aux_key) || aux_key == "") {
+      stop("Auxiliary data was selected, but the join key ('aux_key') is missing.
+           Please select a variable to join on.")
+    }
+
     # Load aux data and check the aux_key
     aux_df <- table_view(aux_data, project)
     column_check(aux_df, aux_key)
     df <- left_join(df, aux_df, by = aux_key)
   }
   
-  # Add gridded data ------------------------------------------------------------------------------
-  # Load gridded_data
+ # Add gridded data ------------------------------------------------------------------------------
   if(!is_empty(gridded_data)){
-    gridded_df <- table_view(gridded_data, project)
-    column_check(gridded_df, grid_time_var)
+    if (is.null(grid_var_name) || grid_var_name == "") {
+        stop("Gridded data selected, but 'New Variable Name' is missing.")
+    }
     
-    # Pivot to long format
+    gridded_df <- table_view(gridded_data, project)
+     column_check(gridded_df, grid_time_var) 
+   
+   # Pivot to long format
     gridded_df <- gridded_df %>%
       pivot_longer(cols = -all_of(grid_time_var),
                    names_to = "zones",
                    values_to = grid_var_name)
+   
+    # Join Logic
+    # Determine the name of the time variable in the MAIN dataset
+    time_col_main <- if(!is.null(main_time_var)) main_time_var else grid_time_var
     
-    df <- left_join(df,
-                    gridded_df,
-                    by = c("zones",grid_time_var))
+    # Construct the join vector
+    if (!is.null(grid_time_var) && is.null(time_col_main)) {
+        stop("Gridded data has a time variable, but no matching time variable was 
+             found in the main dataset.")
+    }
+
+    join_cond <- c("zones" = "zones")
+    if (!is.null(grid_time_var)) {
+        join_cond <- c(join_cond, setNames(grid_time_var, time_col_main))
+    }
+   
+    df <- left_join(df, 
+                    gridded_df, 
+                    by = join_cond)
   }
   
   # Check NAs and impute --------------------------------------------------------------------------
@@ -342,7 +372,25 @@ format_model_data <- function(project,
   df <- df %>%
     rename(!!zone_id := zones)
   # Save settings
-  settings <- as.list(match.call())[-1]
+   settings <- list(
+    project = project,
+    name = name,
+    alt_name = alt_name,
+    zone_id = zone_id,        
+    unique_obs_id = unique_obs_id,
+    select_vars = select_vars,
+    aux_data = aux_data,
+    aux_key = aux_key,
+    gridded_data = gridded_data,
+    grid_var_name = grid_var_name,
+    grid_time_var = grid_time_var,
+    main_time_var = main_time_var,
+    expectations = expectations,
+    distance = distance,
+    distance_units = distance_units,
+    crs = crs,
+    impute = impute
+  )
   # Save data and settings as a list
   df_list <- list(tmp_name = df,
                   tmp_settings = settings)
@@ -375,7 +423,6 @@ format_model_data <- function(project,
   # Log the function call -------------------------------------------------------------------------
   format_model_data_function <- list()
   format_model_data_function$functionID <- "format_model_data"
-  format_model_data_function$args <- as.list(match.call())[-1]
   format_model_data_function$kwargs <- list()
   
   log_call(project, format_model_data_function)
