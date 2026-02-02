@@ -162,6 +162,8 @@ fishset_design <- function(formula,
     if (do_scale && ncol(mat) > 0) {
       # Scale calcs (mean and standard deviation) - handles sparse and dense matrices
       s <- rcpp_calc_scale_stats(mat)
+      names(s$mu) <- colnames(mat)
+      names(s$sd) <- colnames(mat)
       # Apply scale
       mat <- rcpp_apply_scale(mat, s$mu, s$sd)
       # Save scalers to list

@@ -847,7 +847,7 @@ model_design_list <- function(project, name = NULL) {
   } 
   
   files <- list.files(designs_dir, 
-                      pattern = "\\.(rds|qs|qs2)$", 
+                      pattern = "\\.(rds|qs2)$", 
                       ignore.case = TRUE, 
                       full.names = FALSE)
   
@@ -873,7 +873,7 @@ remove_model_design <- function(project, names) {
   } 
   
   # List of extensions to check/remove
-  extensions <- c(".qs2", ".qs", ".rds")
+  extensions <- c(".qs2", ".rds")
   
   # Iterate through each model name provided
   for (model_name in names) {
@@ -896,7 +896,7 @@ remove_model_design <- function(project, names) {
     }
     
     if (!found_any) {
-      message("File not found for model: ", model_name, " (checked .qs2, .qs, .rds)")
+      message("File not found for model: ", model_name, " (checked .qs2, .rds)")
     }
   }
 }

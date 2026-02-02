@@ -4,7 +4,15 @@
 \alias{fishset_fit}
 \title{Fit FishSET Discrete Choice Model}
 \usage{
-fishset_fit(project, model_name, fit_name = NULL, distribution = NULL, ...)
+fishset_fit(
+  project,
+  model_name,
+  fit_name = NULL,
+  distribution = NULL,
+  robust = FALSE,
+  return_full_prob_mat = FALSE,
+  ...
+)
 }
 \arguments{
 \item{project}{Character string. Name of the project.}
@@ -17,6 +25,12 @@ in the database. Defaults to \code{paste0(model_name, "_fit")}.}
 
 \item{distribution}{Character string. Distribution for the continuous catch component in EPMs.
 Options: \code{"normal"}, \code{"lognormal"}, \code{"weibull"}, default = NULL.}
+
+\item{robust}{Logical. Default FALSE. If TRUE, uses a numerically stable}
+
+\item{return_full_prob_mat}{Logical. If TRUE, returns the full N_obs x J_alts matrix of
+probabilities for every alternative. Default is FALSE (returns only chosen probs)
+to save memory on large datasets.}
 
 \item{...}{Additional arguments passed to the optimization control.
 \itemize{
