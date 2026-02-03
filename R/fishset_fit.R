@@ -12,10 +12,12 @@
 #'   in the database. Defaults to \code{paste0(model_name, "_fit")}.
 #' @param distribution Character string. Distribution for the continuous catch component in EPMs.
 #'   Options: \code{"normal"}, \code{"lognormal"}, \code{"weibull"}, default = NULL.
-#' @param robust Logical. Default FALSE. If TRUE, uses a numerically stable
+#' @param robust Logical. Default FALSE. If TRUE, uses numerically stable utility values.
 #' @param return_full_prob_mat Logical. If TRUE, returns the full N_obs x J_alts matrix of
 #'   probabilities for every alternative. Default is FALSE (returns only chosen probs)
 #'   to save memory on large datasets.
+#' @param se_calc Logical. Set \code{"se_calc" = TRUE} (default) to calculate standard errors.
+#'   Set to FALSE for faster runtime during model selection.
 #' @param ... Additional arguments passed to the optimization control.
 #'   \itemize{
 #'     \item \code{control}: A list of control parameters passed to \code{\link[stats]{nlminb}} 
@@ -72,6 +74,7 @@
 #' @export
 #' @importFrom RTMB MakeADFun sdreport getAll REPORT
 #' @importFrom stats nlminb cov2cor pnorm pchisq
+#' @importFrom Matrix colSums 
 
 fishset_fit <- function(project,
                         model_name,
@@ -79,9 +82,12 @@ fishset_fit <- function(project,
                         distribution = NULL,
                         robust = FALSE,
                         return_full_prob_mat = FALSE,
+                        se_calc = TRUE,
                         ...) {
   
-  # Load and validate -----------------------------------------------------------------------------
+  # Setup and validate ----------------------------------------------------------------------------
+  
+  # Load project designs
   tryCatch({
     full_design_list <- model_design_list(project)
   }, error = function(cond) {
@@ -93,11 +99,9 @@ fishset_fit <- function(project,
     stop(paste0("Model design '", model_name, "' not found in project database."))
   }
   
-  # Load (qs2 or rds)
+  # Load design file (qs2 or rds)
   db_path <- locdatabase(project)
   designs_dir <- file.path(dirname(db_path), "ModelDesigns")
-  
-  # Check for file existence with various extensions
   base_path <- file.path(designs_dir, model_name)
   paths <- c(paste0(base_path, ".qs2"), paste0(base_path, ".rds"))
   found_path <- paths[file.exists(paths)][1]
@@ -111,9 +115,6 @@ fishset_fit <- function(project,
   } else {
     design <- readRDS(found_path)
   }
-
-  # Check if this is an EPM
-  is_epm <- isTRUE(design$epm$is_epm)
   
   # Load model fit list and check fit_name input
   if (is_empty(fit_name)) fit_name <- paste0(model_name, "_fit")
@@ -125,12 +126,15 @@ fishset_fit <- function(project,
     }
   }
   
-  if (!is.null(distribution)) {
+  # Check if this is an EPM
+  is_epm <- isTRUE(design$epm$is_epm)
+  if (is_epm) {
+    if (is.null(distribution)) stop("EPMs require a distribution for the catch function.")
     valid_dists <- c("normal", "lognormal", "weibull")
     distribution <- match.arg(distribution, valid_dists)    
   }
   
-  # Setup control
+  # Control args
   dots <- list(...)
   default_control <- list(eval.max = 1000, iter.max = 1000)
   if ("control" %in% names(dots)) {
@@ -142,7 +146,6 @@ fishset_fit <- function(project,
   # Data prep -------------------------------------------------------------------------------------
   N_obs <- as.integer(design$settings$N_obs)
   J_alts <- as.integer(design$settings$J_alts)
-  
   y_vec <- as.numeric(design$y) # Choice index
   chosen_lin_idx <- which(y_vec == 1) # Index of chosen zones in flattened matrix
   
@@ -152,20 +155,10 @@ fishset_fit <- function(project,
                "Ensure data is sorted by Obs/Zone."))
   }
   
-  # Model setup -----------------------------------------------------------------------------------
+  # STANDARD LOGIT SETUP --------------------------------------------------------------------------
   if (!is_epm) {
-    X <- design$X
-    
-    # RTMB handles dgCMatrix natively. Need to cast if it's not sparse
-    if (!inherits(X, "sparseMatrix")) {
-      X <- as.matrix(X)
-      storage.mode(X) <- "double"
-      attr(X, "dimnames") <- NULL
-    }
-    
     K_vars <- design$settings$K_vars
-    
-    # Start values
+    # Initial betas
     if ("start_values" %in% names(dots)) {
       init_beta <- dots$start_values
       if(length(init_beta) != K_vars) stop(paste0("Start values length (", length(init_beta), 
@@ -174,28 +167,32 @@ fishset_fit <- function(project,
       init_beta <- rep(0.0001, K_vars)
     }
     
+    data_list <- list(
+      X = design$X,
+      chosen_lin_idx = chosen_lin_idx,
+      N_obs = N_obs,
+      J_alts = J_alts
+    )
+    
     start_pars <- list(betas = init_beta)
     
     # Objective function
     nll_func <- function(pars) {
       RTMB::getAll(data_list, pars)
       
-      # Linear predictor (works for dense or sparse matrices)
+      # Sparse Matrix Multiply (Zonal)
       v <- X %*% betas
       
-      # Reshape to Matrix (J_alts x N_obs)
+      v_chosen <- v[chosen_lin_idx]
+      
       dim(v) <- c(J_alts, N_obs)
       
-      # Numerically stable but slows down code
-      if (robust) { 
-        # Find max per column
+      if (robust) {
         v_max <- v[1, ]
         for(j in 2:J_alts) {
           v_next <- v[j, ]
           v_max <- (v_max + v_next + abs(v_max - v_next)) * 0.5
-        }  
-        
-        # Subtract max (per N_obs) and sum: t(v) broadcasts correctly by row (N_obs)
+        }
         t_v_shifted <- t(v) - v_max
         log_sum_exp <- log(RTMB::rowSums(exp(t_v_shifted))) + v_max
         
@@ -203,18 +200,14 @@ fishset_fit <- function(project,
         log_sum_exp <- log(RTMB::colSums(exp(v)))
       }
       
-      # Pick chosen utility
-      chosen_utilities <- v[chosen_lin_idx]
-      
-      # Negative Log Likelihood
-      nll <- -sum(chosen_utilities - log_sum_exp)
-      
+      nll <- -sum(v_chosen - log_sum_exp)
       return(nll)
-    }  
+    }
     
     
+    # EPM LOGIT SETUP -----------------------------------------------------------------------------
   } else {
-    # FUNCTION 1 ####
+    ### Function 1 ###
     # Extract and type cast data
     Y_catch <- as.double(as.vector(design$epm$Y_catch)) 
     X_catch <- as.matrix(design$epm$X_catch)
@@ -262,9 +255,8 @@ fishset_fit <- function(project,
         pooled <- 0
       }
     }
-    # End of FUNCTION 1 ####
     
-    # FUNCTION 2 ####
+    ### Function 2 ###
     n_catch_preds <- ncol(X_catch)
     n_util_preds <- ncol(X_util)
     
@@ -405,7 +397,7 @@ fishset_fit <- function(project,
   
   # Optimization ----------------------------------------------------------------------------------
   # Enable sparse Hessian compression (crucial for zonal logit)
-  use_sparse_hess <- (K_vars >= 50)
+  use_sparse_hess <- (design$settings$K_vars >= 50)
   TMB::config(tmbad.sparse_hessian_compress = use_sparse_hess, DLL="RTMB")
   
   obj <- RTMB::MakeADFun(func = nll_func,
@@ -419,133 +411,126 @@ fishset_fit <- function(project,
                 obj$gr, 
                 control = control_list)
   
-  sdr <- RTMB::sdreport(obj)
+  # Standard errors and diagnostics ---------------------------------------------------------------
+  hessian_mat <- NULL
+  eigen_vals <- NULL
+  cond_num <- NULL
+  report_se <- rep(NA, length(opt$par))
+  final_gradient <- NULL
   
-  # Package Results -------------------------------------------------------------------------------
-  estimated_coefs <- opt$par
-  coef_names <- colnames(design$X)
-  
-  if(length(estimated_coefs) == ncol(design$X)) names(estimated_coefs) <- coef_names
-  
-  # Unscaling
-  report_coefs <- estimated_coefs
-  sdr_summary <- summary(sdr, "fixed")
-  report_se <- sdr_summary[, "Std. Error"]
-  
-  if (!is.null(design$scalers) && length(design$scalers) > 0) {
-    message("Unscaling parameters for final output...")
-    scale_factors <- rep(1, length(report_coefs))
-    names(scale_factors) <- names(report_coefs)
-    
-    # Unscale part 1 (direct)
-    if (!is.null(design$scalers$X1)) {
-      s <- design$scalers$X1$sd
-      common_vars <- intersect(names(s), names(scale_factors))
-      scale_factors[common_vars] <- s[common_vars]
+  if (se_calc) {
+    k_len <- length(opt$par)
+    if (k_len < 50) {
+      # FAST PATH (Small K): Finite Difference
+      hessian_mat <- stats::optimHess(opt$par, obj$fn, obj$gr)
+    } else {
+      # SCALABLE PATH (Large K / Zonal): AD
+      hessian_mat <- obj$he(opt$par)
     }
     
-    # Unscale part 2 (interactions)
-    # Coef Name: "vessel_len:Zone1"  -->  Needs SD from: "vessel_len"
+    # Invert Hessian for SEs
+    cov_mat <- tryCatch(solve(hessian_mat), error = function(e) matrix(NA, k_len, k_len))
+    d_vals <- diag(cov_mat)
+    report_se <- sqrt(ifelse(d_vals < 0, NA, d_vals))
+    final_gradient <- obj$gr(opt$par) # Get gradient
+    
+    # Diagnostics (Only compute eigenvalues if needed)
+    if (!is.null(hessian_mat) && k_len < 2000) {
+      eigen_vals <- eigen(hessian_mat, symmetric = TRUE, only.values = TRUE)$values
+      cond_num <- max(abs(eigen_vals)) / min(abs(eigen_vals))
+    }
+  }
+  
+  # Reporting and unscaling -----------------------------------------------------------------------
+  estimated_coefs <- opt$par
+  coef_names <- colnames(design$X)
+  if(length(estimated_coefs) == ncol(design$X)) names(estimated_coefs) <- coef_names
+
+  report_coefs <- estimated_coefs
+
+  # Unscaling (if necessary)
+  if (!is.null(design$scalers) && length(design$scalers) > 0) {
+    scale_factors <- rep(1, length(report_coefs))
+    names(scale_factors) <- names(report_coefs)
+
+    # Part 1 (Direct)
+    if (!is.null(design$scalers$X1)) {
+      s <- design$scalers$X1$sd
+      # Patch for unnamed vectors in legacy designs
+      if (is.null(names(s)) && !is.null(coef_names)) {
+        try({names(s) <- coef_names[1:length(s)]}, silent=TRUE)
+      }
+      common <- intersect(names(s), names(scale_factors))
+      scale_factors[common] <- s[common]
+    }
+
+    # Part 2 (Interaction)
     if (!is.null(design$scalers$X2)) {
-      for (var in names(design$scalers$X2$sd)) {
-        sd_val <- design$scalers$X2$sd[[var]]
-        # Find cols like "var:Zone2", "var:Zone3"
-        idx <- grep(paste0("^", var, ":"), names(scale_factors))
-        scale_factors[idx] <- sd_val
+      s2 <- design$scalers$X2$sd
+      if (!is.null(names(s2))) {
+        for (var in names(s2)) {
+          idx <- grep(paste0("^", var, ":"), names(scale_factors))
+          scale_factors[idx] <- s2[[var]]
+        }
       }
     }
     
     report_coefs <- report_coefs / scale_factors
-    report_se <- report_se / scale_factors
+    if (se_calc) report_se <- report_se / scale_factors
   }
-  
+
   coef_table <- data.frame(
-    Estimate = report_coefs,    
+    Estimate = report_coefs,
     Std_Error = report_se,
-    z_value = report_coefs / report_se,
-    Pr_z = 2 * (1 - pnorm(abs(report_coefs / report_se)))
+    z_value = if(se_calc) report_coefs / report_se else NA,
+    Pr_z = if(se_calc) 2 * (1 - pnorm(abs(report_coefs / report_se))) else NA
   )
   
   # Fit stats and predictions ---------------------------------------------------------------------
   nll <- opt$objective
-  k <- length(opt$par)
-  n <- N_obs 
-  aic <- 2 * nll + 2 * k
-  bic <- 2 * nll + k * log(n)
-  rho2 <- 1 - ((-nll) / (-1 * N_obs * log(J_alts))) # McFadden's Pseudo-R2
-  
-  # Predictions (recalc with final pars)
+  k_param <- length(opt$par)
+  null_logLik <- -1 * N_obs * log(J_alts)
+  aic <- 2 * nll + 2 * k_param
+  bic <- 2 * nll + k_param * log(N_obs)
+  rho2 <- 1 - ((-nll) / null_logLik)
+
+  # Predictions (Recalculate with original X outside AD tape)
   final_v <- as.vector(design$X %*% opt$par)
-  dim(final_v) <- c(J_alts, N_obs) # J x N
-  
-  # Softmax - calc max per col for stability
+  dim(final_v) <- c(J_alts, N_obs)
+
   v_max <- apply(final_v, 2, max)
-  exp_v <- exp(t(t(final_v) - v_max)) # J x N
+  exp_v <- exp(t(t(final_v) - v_max))
   sum_exp <- colSums(exp_v)
-  prob_mat_t <- t(exp_v) / sum_exp # N x J (Transpose to N rows)
-  
-  # Get chosen probabilities
+  prob_mat_t <- t(exp_v) / sum_exp
+
   choice_idx_report <- (chosen_lin_idx - 1) %% J_alts + 1
   chosen_probs <- prob_mat_t[cbind(1:N_obs, choice_idx_report)]
-  
-  # Accuracy
   pred_choice <- max.col(prob_mat_t, ties.method = "first")
   accuracy <- mean(pred_choice == choice_idx_report)
-  
-  # Diagnostics
-  final_gradient <- obj$gr(opt$par)
-  names(final_gradient) <- coef_names
-  
-  store_full_hessian <- (k < 1000) # only store if K is reasonable
-  if (store_full_hessian) {
-    hessian_mat <- obj$he(opt$par)
-    if(!is.null(coef_names)) {
-      rownames(hessian_mat) <- coef_names
-      colnames(hessian_mat) <- coef_names
-    }
-    # Eigenvalues (Check for singularity)
-    eigen_vals <- eigen(hessian_mat, symmetric = TRUE, only.values = TRUE)$values
-  } else {
-    # For massive models, compute eigenvalues directly without saving the big matrix
-    hessian_mat <- NULL 
-    raw_hessian <- obj$he(opt$par)
-    eigen_vals <- eigen(raw_hessian, symmetric = TRUE, only.values = TRUE)$values
-    rm(raw_hessian) # Free memory immediately
-  }
-  
-  # Condition Number
-  cond_num <- max(abs(eigen_vals)) / min(abs(eigen_vals))
-  
-  # Correlation Matrix (Check for Collinearity)
-  cov_mat <- tryCatch(solve(hessian_mat), error = function(e) matrix(NA, k, k))
-  cor_mat <- tryCatch(cov2cor(cov_mat), error = function(e) matrix(NA, k, k))
-  
-  if(!is.null(coef_names)){
-    rownames(cor_mat) <- coef_names
-    colnames(cor_mat) <- coef_names
-  }
-  
-  # Result Object
+
+  # Output and save -------------------------------------------------------------------------------
   result <- list(
     opt = opt,
     coefficients = report_coefs,
     coef_table = coef_table,
     logLik = -nll,
+    null_logLik = null_logLik,
     AIC = aic,
     BIC = bic,
     pseudo_R2 = rho2,
     accuracy = accuracy,
-    fitted_values = chosen_probs, # Only chosen probs (lightweight)
-    
-    # Diagnostics
-    converged = (opt$convergence == 0),
-    message = opt$message,
-    final_gradient = final_gradient,
-    hessian = hessian_mat,
-    eigenvalues = eigen_vals,
-    condition_number = cond_num
+    fitted_values = chosen_probs,
+
+    diagnostics = list(
+      converged = (opt$convergence == 0),
+      message = opt$message,
+      final_gradient = final_gradient, # Now possibly NULL to save time
+      hessian = hessian_mat,           # Now possibly NULL to save time
+      eigenvalues = eigen_vals,        # Now possibly NULL to save time
+      condition_number = cond_num
+    )
   )
-  
+
   # OPTIONAL: Include full probability matrix (Heavy!)
   if (return_full_prob_mat) {
     if (!is.null(design$ids$zone)) {
@@ -555,18 +540,15 @@ fishset_fit <- function(project,
     result$prob_matrix <- prob_mat_t
     result$residuals <- 1 - chosen_probs
   }
-  
+
   class(result) <- "fishset_fit"
   
-  # Save to database ------------------------------------------------------------------------------
+  # Save to database
   # Check if fit_name exists
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
 
-  # Save this into a new table or append to a designs list
   table_name <- paste0(project, "ModelFit")
-
-  # Create a named list wrapper
   fit_wrapper <- list()
   fit_wrapper[[fit_name]] <- result
 
@@ -581,7 +563,7 @@ fishset_fit <- function(project,
     fit_wrapper <- c(existing_fits, fit_wrapper)
   }
 
-  DBI::dbExecute(fishset_db,
+  DBI::dbExecute(fishset_db, 
                  paste("CREATE TABLE IF NOT EXISTS",
                        table_name,
                        "(data fit_wrapper)"))
@@ -590,30 +572,31 @@ fishset_fit <- function(project,
                        table_name,
                        "VALUES (:data)"),
                  params = list(data = list(serialize(fit_wrapper, NULL))))
-
-
-  # Log the function call -------------------------------------------------------------------------
+  
+  
+  # Log the function call
   fishset_fit_function <- list()
   fishset_fit_function$functionID <- "fishset_fit"
   fishset_fit_function$args <- as.list(match.call())[-1]
   fishset_fit_function$kwargs <- list()
-
-  log_call(project, fishset_fit_function)
   
+  log_call(project, fishset_fit_function)
+
   return(result)
 }
 
+
 #' Print FishSET Model Fit Results
-#' 
+#'
 #' Formats and prints the output of a FishSET discrete choice model fit.
 #' Displays the model formula (if available), coefficients table with significance stars,
 #' and key goodness-of-fit statistics (Log-Likelihood, AIC, BIC, Pseudo-R2, Accuracy).
-#' 
+#'
 #' @param x A \code{fishset_fit} object returned by \code{\link{fishset_fit}}.
 #' @param digits Integer. The number of significant digits to use when printing
 #'   numeric values. Default is 4.
 #' @param ... Additional arguments passed to \code{\link[stats]{printCoefmat}}.
-#' 
+#'
 #' @method print fishset_fit
 #' @export
 print.fishset_fit <- function(x, digits = 4, ...) {

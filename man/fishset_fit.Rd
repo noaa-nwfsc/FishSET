@@ -11,6 +11,7 @@ fishset_fit(
   distribution = NULL,
   robust = FALSE,
   return_full_prob_mat = FALSE,
+  se_calc = TRUE,
   ...
 )
 }
@@ -26,11 +27,14 @@ in the database. Defaults to \code{paste0(model_name, "_fit")}.}
 \item{distribution}{Character string. Distribution for the continuous catch component in EPMs.
 Options: \code{"normal"}, \code{"lognormal"}, \code{"weibull"}, default = NULL.}
 
-\item{robust}{Logical. Default FALSE. If TRUE, uses a numerically stable}
+\item{robust}{Logical. Default FALSE. If TRUE, uses numerically stable utility values.}
 
 \item{return_full_prob_mat}{Logical. If TRUE, returns the full N_obs x J_alts matrix of
 probabilities for every alternative. Default is FALSE (returns only chosen probs)
 to save memory on large datasets.}
+
+\item{se_calc}{Logical. Set \code{"se_calc" = TRUE} (default) to calculate standard errors.
+Set to FALSE for faster runtime during model selection.}
 
 \item{...}{Additional arguments passed to the optimization control.
 \itemize{
