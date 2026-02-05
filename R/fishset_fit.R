@@ -86,7 +86,6 @@ fishset_fit <- function(project,
                         ...) {
   
   # Setup and validate ----------------------------------------------------------------------------
-  
   # Load project designs
   tryCatch({
     full_design_list <- model_design_list(project)
@@ -207,174 +206,56 @@ fishset_fit <- function(project,
     
     # EPM LOGIT SETUP -----------------------------------------------------------------------------
   } else {
-    ### Function 1 ###
-    # Extract and type cast data
-    Y_catch <- as.double(as.vector(design$epm$Y_catch)) 
-    X_catch <- as.matrix(design$epm$X_catch)
-    storage.mode(X_catch) <- "double"
-    attr(X_catch, "dimnames") <- NULL
-    
-    prices <- as.double(as.vector(design$epm$price_vec))
-    
     # Extract utility variables (remove catch preds from X)
     util_vars <- setdiff(colnames(design$X), colnames(design$epm$X_catch))
     
     if(length(util_vars) > 0) {
-      X_util <- as.matrix(design$X[, util_vars, drop = FALSE])
-      storage.mode(X_util) <- "double"
-      attr(X_util, "dimnames") <- NULL
+      X_util <- design$X[, util_vars, drop = FALSE]
     } else {
       X_util <- matrix(0, nrow = length(Y_catch), ncol = 0)
     }
     
-    # Pre-calculate indices for each zone
-    idx_list <- lapply(1:J_alts, function(j) seq(j, N_obs * J_alts, by = J_alts))
+    Y_catch_chosen = as.double(as.vector(design$epm$Y_catch[chosen_lin_idx]))
+    zone_id <- ((chosen_lin_idx - 1) %% J_alts) + 1
     
-    # Automated pooling detection
-    # Check if user manually overrode via dots, otherwise detect from data.
-    if ("pooled_catch_beta" %in% names(dots)) {
-      pooled <- as.integer(dots$pooled_catch_beta)
-    } else {
-      # Auto-detection logic:
-      # Check the first observation's alternatives (Rows 1 to J_alts).
-      # If ANY predictor column has variance > 0 across zones, we assume spatial variation 
-      # and default to Global (Pooled) coefficients.
-      # If ALL predictors are constant (var approx 0), we default to Zone-Specific (Unpooled).
-      
-      first_obs_X <- X_catch[1:J_alts, , drop = FALSE]
-      
-      # Calculate variance for each column (predictor)
-      col_vars <- apply(first_obs_X, 2, var)
-      
-      # If any column has non-zero variance (approx), set pooled = 1
-      if (any(col_vars > 1e-9)) {
-        message("EPM: Spatial variation detected in catch predictors. Using GLOBAL coefficients.")
-        pooled <- 1
-      } else {
-        message("EPM: No spatial variation in catch predictors. Using ZONE-SPECIFIC coefficients.")
-        pooled <- 0
-      }
-    }
-    
-    ### Function 2 ###
-    n_catch_preds <- ncol(X_catch)
-    n_util_preds <- ncol(X_util)
-    
-    # Catch Parameters Setup based on Pooling Flag
-    if (pooled == 1) {
-      # POOLED: One beta per predictor (Global)
-      init_beta_catch <- matrix(0.1, nrow = n_catch_preds, ncol = 1)
-    } else {
-      # UNPOOLED: One beta per predictor PER ZONE
-      init_beta_catch <- matrix(0.1, nrow = n_catch_preds, ncol = J_alts)
-    }
-    
-    # Utility Parameters
-    init_beta_util <- if (n_util_preds > 0) rep(0.001, n_util_preds) else numeric(0)
-    
-    # Variance Parameters
-    init_log_sigma_c <- rep(log(0.1), J_alts)
-    init_log_sigma_e <- log(1.0)
-    
-    list(
-      beta_catch = init_beta_catch,
-      beta_util = init_beta_util,
-      log_sigma_c = init_log_sigma_c,
-      log_sigma_e = init_log_sigma_e
+    data_list <- list(
+      Y_catch_chosen = Y_catch_chosen,
+      X_util = X_util,
+      X_catch = design$epm$X_catch,
+      prices = design$epm$price_vec,
+      chosen_lin_idx = chosen_lin_idx,
+      N_obs = N_obs,
+      J_alts = J_alts,
+      zone_id = zone_id
     )
-    # End of FUNCTION 2####
     
-    # Continuous catch data
-    Y_catch <- as.double(as.vector(design$epm$Y_catch)) # Actual catch
-    X_catch <- as.matrix(design$epm$X_catch) # Predictors for catch
-    n_catch_preds <- ncol(X_catch)
-    
-    # Strip attributes for RTMB efficiency
-    storage.mode(X_catch) <- "double"
-    attr(X_catch, "dimnames") <- NULL
-    
-    prices <- as.double(as.vector(design$epm$price_vec))
-    
-    # Discrete choice data
-    util_vars <- setdiff(colnames(design$X), colnames(design$epm$X_catch))
-    
-    if(length(util_vars) > 0) {
-      X_util <- as.matrix(design$X[, util_vars, drop = FALSE])
-      storage.mode(X_util) <- "double"
-      attr(X_util, "dimnames") <- NULL
-      n_util_preds <- ncol(X_util)
-    } else {
-      # Handle edge case where Utility is ONLY driven by expected revenue (no distance/cost)
-      X_util <- matrix(0, nrow = nrow(design$X), ncol = 0)
-      n_util_preds <- 0
-    }
-    
-    # Create zone index for vectorization
-    zone_idx <- rep(1:J_alts, N_obs)
-    
-    idx_list <- lapply(1:J_alts, function(j) seq(j, N_obs * J_alts, by = J_alts))
-    
-    # Set up parameters 
-    # Catch params (zone specific)
-    init_beta_catch <- matrix(0.1, nrow = n_catch_preds, ncol = J_alts)
-    
-    # Utility params
-    init_beta_util <- if (n_util_preds > 0) rep(0.001, n_util_preds) else numeric(0)
-    
-    # Variance params
-    init_log_sigma_c <- rep(log(0.1), J_alts)
+    # Initialize parameters
+    init_beta_catch <- rep(0.1, ncol(design$epm$X_catch))
+    init_beta_util <- rep(0.1, ncol(X_util))
+    init_log_sigma_c <- rep(log(1.0), J_alts)
     init_log_sigma_e <- log(1.0)
-    
+        
     start_pars <- list(beta_catch = init_beta_catch,
                        beta_util = init_beta_util,
                        log_sigma_c = init_log_sigma_c,
                        log_sigma_e = init_log_sigma_e)
     
-    data_list <- list(Y_catch = Y_catch,
-                      X_catch = X_catch,
-                      X_util = X_util,
-                      prices = prices,
-                      chosen_lin_idx = chosen_lin_idx,
-                      zone_idx = zone_idx,
-                      N_obs = N_obs,
-                      J_alts = J_alts,
-                      model_type = "EPM") # Flag for RTMB
-    
     nll_func <- function(pars) {
       RTMB::getAll(data_list, pars)
       
-      # Transform variances
+      # Parameters
       sigma_c <- exp(log_sigma_c) # for each zone
       sigma_e <- exp(log_sigma_e)
       
-      total_rows <- N_obs * J_alts
-      E_catch_vec <- numeric(total_rows)
-      
-      # Loop through zones to fill the expected catch vector
-      for(j in 1:J_alts){
-        # Subset X for Zone j
-        X_sub <- X_catch[idx_list[[j]], , drop = FALSE]
-        # Get beta for Zone j
-        b_sub <- beta_catch[, j]
-        # Calculate predictions (AD Vector)
-        # Note: result of %*% is matrix, cast to vector for assignment
-        preds <- as.vector(X_sub %*% b_sub)
-        # Assign to correct indices (Promotes E_catch_vec to AD automatically)
-        E_catch_vec[idx_list[[j]]] <- preds
-      }
-      
-      # Subset to chosen zones
-      row_idx <- (0:(N_obs-1)) * J_alts + chosen_lin_idx
-      E_catch_chosen <- E_catch_vec[row_idx]
-      Y_catch_chosen <- Y_catch[row_idx]
-      sigma_c_chosen <- sigma_c[chosen_lin_idx]
-      
+      # Continuous likelihood
+      E_catch <- X_catch %*% beta_catch
+      E_catch_chosen <- E_catch[chosen_lin_idx]
+      sigma_c_chosen <- sigma_c[zone_id]
       nll_cont <- -sum(RTMB::dnorm(Y_catch_chosen, E_catch_chosen, sigma_c_chosen, log = TRUE))
       
       # Discrete likelihood
       # Expected revenue
-      revenue_util <- prices * E_catch_vec
-      
+      revenue_util <- prices * E_catch
       # Expected cost
       if (ncol(X_util) > 0) {
         cost_util <- X_util %*% beta_util
@@ -382,14 +263,24 @@ fishset_fit <- function(project,
         cost_util <- 0
       }
       
-      # Total utility
-      V_vec <- (1 / sigma_e) * (revenue_util + cost_util)
-      V_mat <- matrix(V_vec, nrow = N_obs, ncol = J_alts, byrow = TRUE)
-      log_sum_exp <- log(rowSums(exp(V_mat)))
+      # Utility
+      v <- (1 / sigma_e) * (revenue_util + cost_util)
+      v_chosen <- v[chosen_lin_idx]
+      dim(v) <- c(J_alts, N_obs)
       
-      V_chosen <- V_mat[cbind(1:N_obs, chosen_lin_idx)]
+      if (robust) {
+        v_max <- v[1, ]
+        for(j in 2:J_alts) {
+          v_next <- v[j, ]
+          v_max <- (v_max + v_next + abs(v_max - v_next)) * 0.5
+        }
+        t_v_shifted <- t(v) - v_max
+        log_sum_exp <- log(RTMB::rowSums(exp(t_v_shifted))) + v_max
+      } else {
+        log_sum_exp <- log(RTMB::colSums(exp(v)))
+      }
       
-      nll_disc <- -sum(V_chosen - log_sum_exp)
+      nll_disc <- -sum(v_chosen - log_sum_exp)
       
       return(nll_cont + nll_disc)
     }
@@ -413,72 +304,116 @@ fishset_fit <- function(project,
   
   # Standard errors and diagnostics ---------------------------------------------------------------
   hessian_mat <- NULL
+  final_gradient <- NULL
   eigen_vals <- NULL
   cond_num <- NULL
   report_se <- rep(NA, length(opt$par))
-  final_gradient <- NULL
   
   if (se_calc) {
     k_len <- length(opt$par)
+    final_gradient <- obj$gr(opt$par)
+    
     if (k_len < 50) {
-      # FAST PATH (Small K): Finite Difference
       hessian_mat <- stats::optimHess(opt$par, obj$fn, obj$gr)
     } else {
-      # SCALABLE PATH (Large K / Zonal): AD
       hessian_mat <- obj$he(opt$par)
     }
     
-    # Invert Hessian for SEs
     cov_mat <- tryCatch(solve(hessian_mat), error = function(e) matrix(NA, k_len, k_len))
     d_vals <- diag(cov_mat)
     report_se <- sqrt(ifelse(d_vals < 0, NA, d_vals))
-    final_gradient <- obj$gr(opt$par) # Get gradient
     
-    # Diagnostics (Only compute eigenvalues if needed)
-    if (!is.null(hessian_mat) && k_len < 2000) {
-      eigen_vals <- eigen(hessian_mat, symmetric = TRUE, only.values = TRUE)$values
-      cond_num <- max(abs(eigen_vals)) / min(abs(eigen_vals))
+    if (!any(is.na(hessian_mat))) {
+      e_decomp <- eigen(hessian_mat, symmetric = TRUE, only.values = TRUE)
+      eigen_vals <- e_decomp$values
+      cond_num <- tryCatch(max(abs(eigen_vals)) / min(abs(eigen_vals)), error = function(e) NA)
     }
   }
   
   # Reporting and unscaling -----------------------------------------------------------------------
   estimated_coefs <- opt$par
-  coef_names <- colnames(design$X)
-  if(length(estimated_coefs) == ncol(design$X)) names(estimated_coefs) <- coef_names
-
-  report_coefs <- estimated_coefs
-
-  # Unscaling (if necessary)
-  if (!is.null(design$scalers) && length(design$scalers) > 0) {
-    scale_factors <- rep(1, length(report_coefs))
-    names(scale_factors) <- names(report_coefs)
-
-    # Part 1 (Direct)
-    if (!is.null(design$scalers$X1)) {
-      s <- design$scalers$X1$sd
-      # Patch for unnamed vectors in legacy designs
-      if (is.null(names(s)) && !is.null(coef_names)) {
-        try({names(s) <- coef_names[1:length(s)]}, silent=TRUE)
+  
+  if (!is_epm) {
+    # --- STANDARD LOGIT REPORTING ---
+    coef_names <- colnames(design$X)
+    if(length(estimated_coefs) == ncol(design$X)) names(estimated_coefs) <- coef_names
+    report_coefs <- estimated_coefs
+    
+    if (!is.null(design$scalers) && length(design$scalers) > 0) {
+      scale_factors <- rep(1, length(report_coefs))
+      names(scale_factors) <- names(report_coefs)
+      
+      if (!is.null(design$scalers$X1)) {
+        s <- design$scalers$X1$sd
+        if (is.null(names(s))) names(s) <- coef_names[1:length(s)]
+        common <- intersect(names(s), names(scale_factors))
+        scale_factors[common] <- s[common]
       }
-      common <- intersect(names(s), names(scale_factors))
-      scale_factors[common] <- s[common]
-    }
-
-    # Part 2 (Interaction)
-    if (!is.null(design$scalers$X2)) {
-      s2 <- design$scalers$X2$sd
-      if (!is.null(names(s2))) {
+      if (!is.null(design$scalers$X2)) {
+        s2 <- design$scalers$X2$sd
         for (var in names(s2)) {
           idx <- grep(paste0("^", var, ":"), names(scale_factors))
           scale_factors[idx] <- s2[[var]]
         }
       }
+      report_coefs <- report_coefs / scale_factors
+      if (se_calc) report_se <- report_se / scale_factors
     }
     
-    report_coefs <- report_coefs / scale_factors
-    if (se_calc) report_se <- report_se / scale_factors
+  } else {
+    # --- EPM REPORTING (Normal Only) ---
+    n_catch <- ncol(design$epm$X_catch)
+    n_util  <- ncol(data_list$X_util)
+    
+    beta_c_est <- estimated_coefs[1:n_catch]
+    beta_u_est <- estimated_coefs[(n_catch + 1):(n_catch + n_util)]
+    
+    # Unscale Catch Betas
+    if (!is_empty(design$scalers$X_catch)) {
+      sc <- design$scalers$X_catch
+      beta_c_est <- beta_c_est / sc$sd
+      if(se_calc) report_se[1:n_catch] <- report_se[1:n_catch] / sc$sd
+    }
+    
+    # Unscale Utility Betas
+    if (!is_empty(design$scalers)) {
+      util_names <- colnames(data_list$X_util)
+      # Combine all utility scalers
+      all_sds <- c(design$scalers$X1$sd, unlist(design$scalers$X2$sd))
+      
+      for(i in seq_along(util_names)) {
+        vn <- util_names[i]
+        if (vn %in% names(all_sds)) {
+          beta_u_est[i] <- beta_u_est[i] / all_sds[vn]
+          report_se[n_catch + i] <- report_se[n_catch + i] / all_sds[vn]
+        }
+      }
+    }
+    
+    names(beta_c_est) <- colnames(design$epm$X_catch)
+    names(beta_u_est) <- colnames(data_list$X_util)
+    
+    # Append Sigmas to report
+    sig_c_est <- exp(estimated_coefs[grep("log_sigma_c", names(estimated_coefs))])
+    sig_e_est <- exp(estimated_coefs[grep("log_sigma_e", names(estimated_coefs))])
+    names(sig_c_est) <- paste0("Sigma_Catch_Z", 1:J_alts)
+    names(sig_e_est) <- "Sigma_Error"
+    
+    report_coefs <- c(beta_c_est, beta_u_est, sig_c_est, sig_e_est)
+    
+    idx_log_sig_c <- grep("log_sigma_c", names(estimated_coefs))
+    idx_log_sig_e <- grep("log_sigma_e", names(estimated_coefs))
+    
+    se_log_sig_c <- report_se[idx_log_sig_c]
+    se_log_sig_e <- report_se[idx_log_sig_e]
+    
+    se_sig_c_natural <- se_log_sig_c * sig_c_est
+    se_sig_e_natural <- se_log_sig_e * sig_e_est
+    
+    # Adjust SE vector length to match report_coefs (Sigmas need Delta method)
+    report_se <- c(report_se[1:(n_catch + n_util)], se_sig_c_natural, se_sig_e_natural)
   }
-
+  
   coef_table <- data.frame(
     Estimate = report_coefs,
     Std_Error = report_se,
@@ -493,21 +428,46 @@ fishset_fit <- function(project,
   aic <- 2 * nll + 2 * k_param
   bic <- 2 * nll + k_param * log(N_obs)
   rho2 <- 1 - ((-nll) / null_logLik)
-
+  
   # Predictions (Recalculate with original X outside AD tape)
-  final_v <- as.vector(design$X %*% opt$par)
-  dim(final_v) <- c(J_alts, N_obs)
-
-  v_max <- apply(final_v, 2, max)
-  exp_v <- exp(t(t(final_v) - v_max))
-  sum_exp <- colSums(exp_v)
-  prob_mat_t <- t(exp_v) / sum_exp
-
+  if (!is_epm) {
+    final_v <- as.vector(design$X %*% opt$par)
+    dim(final_v) <- c(J_alts, N_obs)
+    v_max <- apply(final_v, 2, max)
+    exp_v <- exp(t(t(final_v) - v_max))
+    sum_exp <- colSums(exp_v)
+    prob_mat_t <- t(exp_v) / sum_exp
+    
+  } else {
+    # EPM Normal predictions
+    final_par <- opt$par
+    n_c <- ncol(design$epm$X_catch)
+    b_c <- final_par[1:n_c]
+    b_u <- final_par[(n_c+1):(n_c + ncol(data_list$X_util))]
+    l_sig_e <- final_par[grep("log_sigma_e", names(final_par))]
+    
+    # Expected catch
+    mu_catch <- design$epm$X_catch %*% b_c
+    
+    # Utility
+    rev_u <- design$epm$price_vec * mu_catch
+    if(length(b_u) > 0) cost_u <- data_list$X_util %*% b_u else cost_u <- 0
+    
+    v <- as.matrix((1/exp(l_sig_e)) * (rev_u + cost_u))
+    dim(v) <- c(J_alts, N_obs)
+    
+    # Probabilities
+    v_max <- apply(v, 2, max)
+    exp_v <- exp(t(t(v) - v_max))
+    sum_exp <- colSums(exp_v)
+    prob_mat_t <- t(exp_v) / sum_exp
+  }
+  
   choice_idx_report <- (chosen_lin_idx - 1) %% J_alts + 1
   chosen_probs <- prob_mat_t[cbind(1:N_obs, choice_idx_report)]
   pred_choice <- max.col(prob_mat_t, ties.method = "first")
   accuracy <- mean(pred_choice == choice_idx_report)
-
+  
   # Output and save -------------------------------------------------------------------------------
   result <- list(
     opt = opt,
@@ -520,7 +480,7 @@ fishset_fit <- function(project,
     pseudo_R2 = rho2,
     accuracy = accuracy,
     fitted_values = chosen_probs,
-
+    
     diagnostics = list(
       converged = (opt$convergence == 0),
       message = opt$message,
@@ -530,7 +490,7 @@ fishset_fit <- function(project,
       condition_number = cond_num
     )
   )
-
+  
   # OPTIONAL: Include full probability matrix (Heavy!)
   if (return_full_prob_mat) {
     if (!is.null(design$ids$zone)) {
@@ -540,18 +500,18 @@ fishset_fit <- function(project,
     result$prob_matrix <- prob_mat_t
     result$residuals <- 1 - chosen_probs
   }
-
+  
   class(result) <- "fishset_fit"
   
   # Save to database
   # Check if fit_name exists
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-
+  
   table_name <- paste0(project, "ModelFit")
   fit_wrapper <- list()
   fit_wrapper[[fit_name]] <- result
-
+  
   # Append or create a new table
   if (table_exists(table_name, project)) {
     existing_fits <- unserialize_table(table_name, project)
@@ -562,7 +522,7 @@ fishset_fit <- function(project,
     table_remove(table_name, project)
     fit_wrapper <- c(existing_fits, fit_wrapper)
   }
-
+  
   DBI::dbExecute(fishset_db, 
                  paste("CREATE TABLE IF NOT EXISTS",
                        table_name,
@@ -581,7 +541,7 @@ fishset_fit <- function(project,
   fishset_fit_function$kwargs <- list()
   
   log_call(project, fishset_fit_function)
-
+  
   return(result)
 }
 
@@ -600,19 +560,19 @@ fishset_fit <- function(project,
 #' @method print fishset_fit
 #' @export
 print.fishset_fit <- function(x, digits = 4, ...) {
-
+  
   # Helper for formatting stats
   fmt <- function(n, d=2) format(round(n, d), nsmall=d)
-
+  
   # Header
   cat("\nFishSET Model Fit\n")
   cat("========================================================\n")
-
+  
   # Metadata (if available in settings, otherwise check formula)
   if (!is.null(x$formula)) {
     cat("Formula:      ", deparse(x$formula), "\n")
   }
-
+  
   # Coefficients table
   cat("\nCoefficients:\n")
   cat("--------------------------------------------------------\n")
@@ -627,7 +587,7 @@ print.fishset_fit <- function(x, digits = 4, ...) {
   }
   cat("--------------------------------------------------------\n")
   cat("Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
-
+  
   # Fit statistics table
   cat("\nModel Statistics:\n")
   cat("--------------------------------------------------------\n")
@@ -635,7 +595,7 @@ print.fishset_fit <- function(x, digits = 4, ...) {
   cat("AIC:            ", fmt(x$AIC, 2),    "  (BIC:  ", fmt(x$BIC, 2), ")\n", sep="")
   cat("Pseudo R2:      ", fmt(x$pseudo_R2, 3), "\n", sep="")
   cat("Accuracy:       ", fmt(x$accuracy * 100, 1), "%\n", sep="")
-
+  
   # LR Test (if available)
   if (!is.null(x$LR_p_value)) {
     sig_star <- ""
@@ -643,10 +603,10 @@ print.fishset_fit <- function(x, digits = 4, ...) {
     else if (x$LR_p_value < 0.01) sig_star <- "**"
     else if (x$LR_p_value < 0.05) sig_star <- "*"
     else if (x$LR_p_value < 0.1) sig_star <- "."
-
+    
     p_val_str <- format.pval(x$LR_p_value, eps = 0.001)
     cat("LR Test:        Chi2 =", fmt(x$LR_stat, 2), ", p =", p_val_str, sig_star, "\n")
   }
-
+  
   invisible(x)
 }

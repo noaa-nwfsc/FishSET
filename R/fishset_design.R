@@ -174,7 +174,7 @@ fishset_design <- function(formula,
     return(mat)
   }
   
-  ## Formula part 1 -----
+  ### Formula part 1 ###
   rhs1_vars <- attr(terms(F_formula, lhs = 0, rhs = 1), "term.labels")
   if (length(rhs1_vars) == 0) {
     X1 <- NULL
@@ -183,7 +183,7 @@ fishset_design <- function(formula,
     X1 <- process_matrix(f1_str, data, scale, "X1")
   }
   
-  ## Formula part 2 -----
+  ### Formula part 2 ###
   # Trip- or haul-specific variables
   has_part_2 <- length(F_formula)[2] > 1
   
@@ -217,62 +217,91 @@ fishset_design <- function(formula,
   }
   
   # Process EPM components ------------------------------------------------------------------------
-  # epm_components <- list()
-  # 
-  # if (!is.null(catch_formula)) {
-  #   if (is.null(price_var)) stop(paste("If 'catch_formula' is provided, 'price_var' must also be",
-  #                                      "specified"))
-  #   if (!(price_var %in% names(data))) stop(paste("Price variable '", price_var, 
-  #                                                 "' not found in data."))
-  #   
-  #   # Parse catch formula
-  #   if (!inherits(catch_formula, "formula")) {
-  #     catch_formula <- as.formula(catch_formula)
-  #   }
-  #   
-  #   # Validation check: ensure catch predictors are in the main formula
-  #   catch_rhs_vars <- all.vars(catch_formula[[3]])
-  #   # Extract RHS from utility formula
-  #   util_rhs_vars <- all.vars(formula[[3]])
-  #   # Check for missing variables
-  #   missing_vars <- setdiff(catch_rhs_vars, util_rhs_vars)
-  #   if (length(missing_vars) > 0) {
-  #     stop(paste("EPM Validation Error: The following predictor(s) in 'catch_formula' are missing",
-  #                 "from the main 'formula': ", paste(missing_vars, collapse = ", "), 
-  #                 ". \nIn EPMs, the expected catch component must be included in both formulas."))
-  #   }
-  #   
-  #   # Extract continuous response (actual catch)
-  #   tmp_catch <- model.frame(catch_formula, data = data, na.action = na.pass)
-  #   Y_catch <- model.response(tmp_catch)
-  #   
-  #   # Extract catch predictors
-  #   X_catch <- model.matrix(catch_formula, data = tmp_catch)
-  #   if ("(Intercept)" %in% colnames(X_catch)) {
-  #     X_catch <- X_catch[, -which(colnames(X_catch) == "(Intercept)"), drop = FALSE]
-  #   }
-  #   
-  #   # Extract price vector
-  #   price_vec <- data[[price_var]]
-  #   
-  #   if (scale) {
-  #     scaled_catch <- scale_matrix_data(X_catch)
-  #     X_catch <- scaled_catch$mat
-  #     
-  #     # Store EPM scalers
-  #     scalers$X_catch <- list(mu = scaled_catch$mu, sd = scaled_catch$sd)
-  #   }
-  #   
-  #   epm_components <- list(
-  #     Y_catch = Y_catch,
-  #     X_catch = X_catch,
-  #     price_vec = price_vec,
-  #     is_epm = TRUE
-  #   )
-  #   
-  # } else {
-  epm_components <- list(is_epm = FALSE)
-  # }
+  epm_components <- list()
+  if (!is.null(catch_formula)) {
+    if (is.null(price_var)) stop(paste("If 'catch_formula' is provided, 'price_var' must also be",
+                                       "specified"))
+    if (!(price_var %in% names(data))) stop(paste("Price variable '", price_var,
+                                                  "' not found in data."))
+    
+    # Parse catch formula
+    if (!inherits(catch_formula, "formula")) catch_formula <- as.formula(catch_formula)
+    catch_formula <- Formula::Formula(catch_formula) # Handle multi-part formulas
+    
+    # Validation check: ensure catch predictors are in the main formula
+    catch_rhs_vars <- all.vars(catch_formula[[3]])
+    # Extract RHS from utility formula
+    util_rhs_vars <- all.vars(formula[[3]])
+    # Check for missing variables
+    missing_vars <- setdiff(catch_rhs_vars, util_rhs_vars)
+    if (length(missing_vars) > 0) {
+      stop(paste("EPM Validation Error: The following predictor(s) in 'catch_formula' are missing",
+                 "from the main 'formula': ", paste(missing_vars, collapse = ", "),
+                 ". \nIn EPMs, the expected catch component must be included in both formulas."))
+    }
+    
+    # Extract continuous response (actual catch)
+    tmp_catch <- model.frame(catch_formula, data = data, na.action = na.pass)
+    Y_catch <- model.response(tmp_catch)
+    
+    # Extract catch predictors part 1
+    rhs1_vars <- attr(terms(catch_formula, lhs = 0, rhs = 1), "term.labels")
+    if (length(rhs1_vars) == 0) {
+      X1_catch <- NULL
+    } else {
+      f1_str <- paste("~", paste(rhs1_vars, collapse = " + "))
+      X1_catch <- process_matrix(f1_str, data, scale, "X1")
+    }
+    
+    if ("(Intercept)" %in% colnames(X1_catch)) {
+      X1_catch <- X1_catch[, -which(colnames(X1_catch) == "(Intercept)"), drop = FALSE]
+    }
+    
+    # Trip- or haul-specific variables
+    has_part_2 <- length(catch_formula)[2] > 1
+    
+    if (!has_part_2) {
+      # If no zone-specific vars, X is just Part 1
+      X_catch_final <- X1_catch
+      
+    } else {
+      rhs2_vars <- attr(terms(catch_formula, lhs = 0, rhs = 2), "term.labels")
+      f2_str <- paste("~", paste(rhs2_vars, collapse = " + "))
+      
+      # Get base matrix (scaled)
+      X2_catch_base <- process_matrix(f2_str, data, scale, "X2")
+      
+      # Zone interaction
+      zone_int <- as.integer(data[[zone_id]])
+      X2_catch_interacted <- rcpp_sparse_interaction(X2_catch_base, zone_int, J_alts)
+      
+      # Fix names
+      var_names <- rhs2_vars
+      zone_names <- levels(data[[zone_id]])[-1] # Drop ref (zone 1)
+      int_names <- as.vector(outer(zone_names, var_names, function(z, v) paste0(v, ":Zone", z)))
+      colnames(X2_catch_interacted) <- int_names
+      
+      # Combine
+      if (is.null(X1_catch)) {
+        X_catch_final <- X2_catch_interacted
+      } else {
+        X_catch_final <- cbind(X1_catch, X2_catch_interacted)
+      }
+    }
+    
+    # Extract price vector
+    price_vec <- data[[price_var]]
+    
+    epm_components <- list(
+      Y_catch = Y_catch,
+      X_catch = X_catch_final,
+      price_vec = price_vec,
+      is_epm = TRUE
+    )
+    
+  } else {
+    epm_components <- list(is_epm = FALSE)
+  }
   
   # Package results -------------------------------------------------------------------------------
   design_obj <- list(
