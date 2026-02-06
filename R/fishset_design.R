@@ -205,7 +205,7 @@ fishset_design <- function(formula,
     # Fix names
     var_names <- rhs2_vars
     zone_names <- levels(data[[zone_id]])[-1] # Drop ref (zone 1)
-    int_names <- as.vector(outer(zone_names, var_names, function(z, v) paste0(v, ":Zone", z)))
+    int_names <- as.vector(outer(zone_names, var_names, function(z, v) paste0(v, ":", zone_id, z)))
     colnames(X2_interacted) <- int_names
     
     # Combine
@@ -229,7 +229,7 @@ fishset_design <- function(formula,
     catch_formula <- Formula::Formula(catch_formula) # Handle multi-part formulas
     
     # Validation check: ensure catch predictors are in the main formula
-    catch_rhs_vars <- all.vars(catch_formula[[3]])
+    catch_rhs_vars <- all.vars(catch_formula[[3]] != zone_id)
     # Extract RHS from utility formula
     util_rhs_vars <- all.vars(formula[[3]])
     # Check for missing variables

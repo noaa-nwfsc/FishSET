@@ -243,6 +243,8 @@ fishset_fit <- function(project,
     nll_func <- function(pars) {
       RTMB::getAll(data_list, pars)
       
+      browser()
+      
       # Parameters
       sigma_c <- exp(log_sigma_c) # for each zone
       sigma_e <- exp(log_sigma_e)
