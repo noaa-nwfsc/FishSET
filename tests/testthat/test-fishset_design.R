@@ -46,6 +46,7 @@ mock_lf_data <- data.frame(
   catch = c(10, 50, 20, 40), # Alt-specific var
   dist = c(5, 10, 5, 10), # Alt-specific var
   vessel = c(100, 80, 100, 80), # Indiv-specific var (constant per trip)
+  price = c(2, 3, 4, 5),
   stringsAsFactors = FALSE
 )
 
