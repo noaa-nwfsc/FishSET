@@ -70,6 +70,21 @@
 #'   unique_obs_id = "haul_id",
 #'   zone_id = "zone_id",
 #'   scale = TRUE
+#' )
+#' 
+#' # 4. Expected profit model - normal distribution
+#' # The expected catch (catch_var in this example) does not vary across zones in this 
+#' # example (e.g., vessel length).
+#' fishset_design(
+#'   formula = chosen ~ distance | catch_var,
+#'   project = "MyProject",
+#'   model_name = "epm1",
+#'   formatted_data_name = "my_formatted_data",
+#'   unique_obs_id = "haul_id",
+#'   zone_id = "ZoneID",
+#'   catch_formula = actual_catch ~ catch_var:ZoneID,
+#'   price_var = "price_var",
+#'   scale = TRUE
 #' ) 
 #' }
 #' 
@@ -350,12 +365,7 @@ fishset_design <- function(formula,
     saveRDS(design_obj, file = file.path(designs_dir, file_name), compress = FALSE)
   }
   message("Design object saved to: ", file.path(designs_dir, file_name))
-  
-  # ############################################
-  # # FOR TESTING 
-  # file.remove(file.path(designs_dir, file_name))
-  # ############################################
-  
+
   # Log the function call -------------------------------------------------------------------------
   fishset_design_function <- list()
   fishset_design_function$functionID <- "fishset_design"

@@ -67,6 +67,13 @@
 #'     # Pass initial start values for the parameters (e.g., for 2 predictors)
 #'     start_values = c(0.5, -0.2)
 #'   )
+#'   
+#'   # 3. EPM - normal catch function
+#'   epm_fit <- fishset_fit(project = project,
+#'              model_name = "epm1",
+#'             fit_name = "epm_fit1",
+#'             distribution = "normal"
+#'   )
 #' }
 #'
 #' @seealso \code{\link{fishset_design}} for creating the input design object.

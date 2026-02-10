@@ -87,7 +87,7 @@ format_model_data <- function(project,
                               name, 
                               alt_name, 
                               zone_id, 
-                              unique_obs_id, # ADD ERROR CHECK
+                              unique_obs_id,
                               select_vars = NULL,
                               aux_data = NULL, 
                               aux_key = NULL, 
