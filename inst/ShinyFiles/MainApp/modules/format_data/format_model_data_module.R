@@ -190,7 +190,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
           distance_units = if(input$distance_input) input$distance_units_input else NULL,
           crs            = 
             if(input$distance_input && input$crs_input != "") as.numeric(input$crs_input) else NULL,
-          impute         = input$impute_input
+          impute         = empty_to_null(input$impute_input)
         )
         
         # Success Feedback
@@ -283,13 +283,16 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       settings_list <- master_list[[settings_key]]
       
       # Format values for display
-      format_val <- function(x) {
-        if (is.data.frame(x)) {
+      format_val <- function(p_name, x) {
+        # Check specifically for select_vars being empty/NULL
+        if (p_name == "select_vars" && (is.null(x) || length(x) == 0 || x == "")) {
+          return("All variables")
+        } else if (is.data.frame(x)) {
           return(paste0("[Data Frame] ", nrow(x), " rows"))
         } else if (is.list(x)) {
           return(paste0("[List] ", length(x), " elements"))
         } else if (is.null(x)) {
-          return("NULL")
+          return("NULL") 
         } else if (length(x) > 10) {
           return(paste0("[Vector] ", length(x), " items"))
         } else {
@@ -307,7 +310,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
                        val <- settings_list[[p_name]]
                        tags$tr(
                          tags$td(tags$b(p_name)),
-                         tags$td(format_val(val))
+                         tags$td(format_val(p_name, val)) # Pass p_name here
                        )
                      })
                    )
@@ -422,11 +425,23 @@ format_model_data_ui <- function(id) {
                 bslib::card_header(h5("1. Core Inputs", class = "mb-0")),
                 bslib::card_body(
                   class = "card-overflow d-flex flex-column gap-3", 
-                  textInput(ns("format_name_input"), "Name of new data table", 
+                  textInput(ns("format_name_input"), 
+                            label = tags$span(
+                              "Name of new data table ", 
+                              bslib::tooltip(shiny::icon("info-circle"),
+                                             "Unique name for this specific formatted model data
+                                             instance.")), 
                             placeholder = "Unique name", width = "100%"),
                   div(
                     class = "p-3 bg-light border rounded",
-                    h6("Main Data Selection", class = "card-title text-primary mb-2"),
+                    h6(tags$span("Main Data Selection ", 
+                                 bslib::tooltip(shiny::icon("info-circle"),
+                                                "Variables to retain from the main data table. 
+                                                Limit to necessary variables for computational
+                                                efficiency. NOTE: if modeling multi-haul data, 
+                                                be sure to include the lagged zone ID (previous 
+                                                location) in this vector.")), 
+                       class = "card-title text-primary mb-2"),
                     selectizeInput(ns("select_vars_input"), NULL, 
                                    choices = NULL, multiple = TRUE, width = "100%",
                                    options = list(placeholder = "Default: All variables", 
@@ -434,9 +449,19 @@ format_model_data_ui <- function(id) {
                   ),
                   div(
                     h6("Model Matrices", class = "card-title text-primary mb-2"),
-                    selectizeInput(ns("alt_name_input"), "Alternative Choice", 
+                    selectizeInput(ns("alt_name_input"), 
+                                   label = tags$span(
+                                     "Alternative Choice ",
+                                     bslib::tooltip(shiny::icon("info-circle"), 
+                                                    "Name of the alternative choice matrix
+                                                    to use.")), 
                                    choices = NULL, width = "100%"),
-                    selectizeInput(ns("expectations_name_input"), "Expectations", 
+                    selectizeInput(ns("expectations_name_input"), 
+                                   label = tags$span(
+                                     "Expectations ",
+                                     bslib::tooltip(shiny::icon("info-circle"), 
+                                                    "Expected catch or revenue matrices to merge 
+                                                    into the dataset.")), 
                                    choices = NULL, width = "100%")
                   )
                 )
@@ -452,20 +477,33 @@ format_model_data_ui <- function(id) {
                     class = "p-3 border rounded",
                     div(class="d-flex align-items-center mb-2",
                         shiny::icon("table", class="text-primary me-2"),
-                        h6("Auxiliary Data", class = "mb-0")),
+                        h6(tags$span(
+                          "Auxiliary Data ",
+                          bslib::tooltip(shiny::icon("info-circle"),
+                                         "Name of the auxiliary data table to join
+                                         (e.g., vessel characteristics data).")), class = "mb-0")),
                     selectInput(ns("aux_data"), NULL, choices = NULL, width = "100%")
                   ),
                   div(
                     class = "p-3 border rounded",
                     div(class="d-flex align-items-center mb-2",
                         shiny::icon("border-all", class="text-primary me-2"),
-                        h6("Gridded Data", class = "mb-0")),
+                        h6(tags$span(
+                          "Gridded Data ", 
+                          bslib::tooltip(shiny::icon("info-circle"),
+                                         "Name of the gridded data table to join.")),
+                          class = "mb-0")),
                     selectInput(ns("gridded_data"), NULL, choices = NULL, width = "100%"),
                     conditionalPanel(
                       condition = "input.gridded_data != ''",
                       ns = ns,
                       div(class = "mt-2 pt-2 border-top",
-                          textInput(ns("grid_var_name"), "New Variable Name", 
+                          textInput(ns("grid_var_name"), 
+                                    label = tags$span(
+                                      "New Variable Name ",
+                                      bslib::tooltip(shiny::icon("info-circle"),
+                                                     "Name to use for the new variable 
+                                                     representing the value in the gridded data.")), 
                                     placeholder = "e.g., sst_avg", width = "100%"))
                     )
                   )
@@ -480,21 +518,45 @@ format_model_data_ui <- function(id) {
                 bslib::card_body(
                   class = "card-overflow d-flex flex-column",
                   h6("Data Cleaning", class = "card-title text-primary mb-3"),
-                  selectInput(ns("impute_input"), "Missing Data Imputation", 
-                              choices = c("mean", "median", "mode", "remove"), width = "100%"),
+                  selectInput(ns("impute_input"), 
+                              label = tags$span(
+                                "Missing Data Imputation ",
+                                bslib::tooltip(shiny::icon("info-circle"), 
+                                               "Method for dealing with NAs. 'Remove' drops zones 
+                                               the dataset containing any missing values.")), 
+                              choices = c("None" = "", "mean", "median", "mode", "remove"),
+                              width = "100%"),
                   hr(),
                   div(
                     class = "d-flex justify-content-between align-items-center mb-2",
                     h6("Spatial Settings", class = "card-title text-primary mb-0"),
-                    checkboxInput(ns("distance_input"), "Calculate Distance?", value = TRUE)
+                    checkboxInput(ns("distance_input"), 
+                                  label = tags$span(
+                                    "Calculate Distance? ",
+                                    bslib::tooltip(shiny::icon("info-circle"),
+                                                   "Calculates and merges a distance matrix between
+                                                   observations and zones.")), 
+                                  value = TRUE)
                   ),
                   conditionalPanel(
                     condition = "input.distance_input == true",
                     ns = ns,
                     div(class = "p-3 bg-light border rounded",
-                        selectInput(ns("distance_units_input"), "Units", 
+                        selectInput(ns("distance_units_input"), 
+                                    label = tags$span(
+                                      "Units ", 
+                                      bslib::tooltip(shiny::icon("info-circle"), 
+                                                     "Units of measurement for distance 
+                                                     calculations ('km' or 'mi').")), 
                                     choices = c("km", "mi"), width = "100%"),
-                        textInput(ns("crs_input"), "CRS", placeholder = "Default: 4326", 
+                        textInput(ns("crs_input"), 
+                                  label = tags$span(
+                                    "CRS ", 
+                                    bslib::tooltip(shiny::icon("info-circle"),
+                                                   "Coordinate reference system for 
+                                                   spatial calculations. Defaults to 4326 
+                                                   if blank.")), 
+                                  placeholder = "Default: 4326", 
                                   width = "100%"))
                   )
                 )

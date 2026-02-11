@@ -423,6 +423,7 @@ format_model_data <- function(project,
   # Log the function call -------------------------------------------------------------------------
   format_model_data_function <- list()
   format_model_data_function$functionID <- "format_model_data"
+  format_model_data_function$args <- as.list(match.call())[-1]
   format_model_data_function$kwargs <- list()
   
   log_call(project, format_model_data_function)
