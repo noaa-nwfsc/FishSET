@@ -25,6 +25,8 @@ source("modules/format_data/compute_new_var_module.R", local = TRUE)
 source("modules/format_data/define_alternatives_module.R", local = TRUE)
 source("modules/format_data/create_expectations_module.R", local = TRUE)
 source("modules/format_data/format_model_data_module.R", local = TRUE)
+source("modules/model_design_module.R", local = TRUE)
+
 
 
 # Server settings ---------------------------------------------------------------------------------
@@ -65,8 +67,8 @@ server <- function(input, output, session) {
                                    value = 3) # basic default
   rv_alt_names <- reactiveVal(character(0))
   rv_exp_names <- reactiveVal(character(0))
-
-
+  
+  
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
@@ -230,13 +232,31 @@ server <- function(input, output, session) {
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
-
+  
   ### Main panel
   format_model_data_server("format_mod_data",
-                            rv_folderpath = rv_folderpath, 
-                            rv_project_name = rv_project_name, 
-                            rv_data = rv_data,
-                            rv_shared_exp_names =rv_exp_names,
-                            rv_shared_alt_names = rv_alt_names)
+                           rv_folderpath = rv_folderpath, 
+                           rv_project_name = rv_project_name, 
+                           rv_data = rv_data,
+                           rv_shared_exp_names =rv_exp_names,
+                           rv_shared_alt_names = rv_alt_names)
+  
+  
+  
+  # Modeling --------------------------------------------------------------------------------------
+  ## Model design ---------------------------------------------------------------------------------
+  ### Sidebar 
+  checklist_server("model_design_checklist", rv_project_name, rv_data, rv_folderpath)
+  
+  other_actions_server("model_design_actions",
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
+  
+  ### Main panel
+  model_design_server("model_design",
+                      rv_project_name = rv_project_name)
   
 }
