@@ -164,7 +164,7 @@ test_that("EPM Fit (Normal) runs and unpacks parameters", {
   names_coef <- names(result$coefficients)
   expect_true("CatchVar" %in% names_coef)
   expect_true("UtilVar" %in% names_coef)
-  expect_true("Sigma_Catch_Z1" %in% names_coef)
+  expect_true("Sigma_Catch_1" %in% names_coef)
   expect_true("Sigma_Error" %in% names_coef)
 })
 
