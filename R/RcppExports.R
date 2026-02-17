@@ -5,6 +5,10 @@ calculate_moving_avg <- function(unique_dates, unique_groups, obs_dates, obs_gro
     .Call(`_FishSET_calculate_moving_avg`, unique_dates, unique_groups, obs_dates, obs_groups, obs_values, window_size, lag, year_lag, temporal, weighted)
 }
 
+calculate_monthly_avg <- function(unique_years, unique_months, unique_groups, obs_years, obs_months, obs_groups, obs_values, window_size, month_lag, year_lag = 0L, weighted = FALSE) {
+    .Call(`_FishSET_calculate_monthly_avg`, unique_years, unique_months, unique_groups, obs_years, obs_months, obs_groups, obs_values, window_size, month_lag, year_lag, weighted)
+}
+
 shift_sort_xcpp <- function(x, ch, y, distance, alts, ab) {
     .Call(`_FishSET_shift_sort_xcpp`, x, ch, y, distance, alts, ab)
 }
