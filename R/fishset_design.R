@@ -256,11 +256,11 @@ fishset_design <- function(formula,
     }
     
     # Extract continuous response (actual catch)
-    tmp_catch <- model.frame(catch_formula, data = data, na.action = na.pass)
-    Y_catch <- model.response(tmp_catch)
+    tmp_catch <- stats::model.frame(catch_formula, data = data, na.action = na.pass)
+    Y_catch <- stats::model.response(tmp_catch)
     
     # Extract catch predictors part 1
-    rhs1_vars <- attr(terms(catch_formula, lhs = 0, rhs = 1), "term.labels")
+    rhs1_vars <- attr(stats::terms(catch_formula, lhs = 0, rhs = 1), "term.labels")
     if (length(rhs1_vars) == 0) {
       X1_catch <- NULL
     } else {

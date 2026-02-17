@@ -5,8 +5,8 @@ delete_models <- function(project, model.names, delete.nested = FALSE) {
   #' (MOT).
   #' 
   #' @param project String, name of project.
-  #' @param model.names String, name of models to delete. Use [model_names()] to
-  #' see model names from the model design file. 
+  #' @param model.names String, name of models to delete. Use \code{\link{model_design_list}} to
+  #' see model names from the model design folder. 
   #' @param delete.nested Logical, whether to delete a model containing nested 
   #' models. Defaults to `FALSE`.
   #' @md
@@ -20,7 +20,6 @@ delete_models <- function(project, model.names, delete.nested = FALSE) {
   #' `model.names = 'logit_c_mod1.exp1'`, i.e. the original model name, a period, and 
   #' the name of the expected catch matrix used in the model. 
   #' 
-  #' @seealso [model_design_list()], [model_out_view()]
   #' @export
   #' @importFrom DBI dbConnect dbDisconnect dbExecute dbWriteTable
   #' @importFrom RSQLite SQLite
@@ -61,6 +60,7 @@ delete_models <- function(project, model.names, delete.nested = FALSE) {
     
   })
   
+  mdf_n <- NULL
   names(mdf_nn) <- mdf_n
   
   is_nested <- vapply(mdf_n, function(x) !x %in% mdf_nn[[x]] & length(mdf_nn[[x]]) > 1, logical(1))
