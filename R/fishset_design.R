@@ -265,7 +265,7 @@ fishset_design <- function(formula,
       X1_catch <- NULL
     } else {
       f1_str <- paste("~", paste(rhs1_vars, collapse = " + "))
-      X1_catch <- process_matrix(f1_str, data, scale, "X1")
+      X1_catch <- process_matrix(f1_str, data, scale, "X1_catch")
     }
     
     if ("(Intercept)" %in% colnames(X1_catch)) {
@@ -284,7 +284,7 @@ fishset_design <- function(formula,
       f2_str <- paste("~", paste(rhs2_vars, collapse = " + "))
       
       # Get base matrix (scaled)
-      X2_catch_base <- process_matrix(f2_str, data, scale, "X2")
+      X2_catch_base <- process_matrix(f2_str, data, scale, "X2_catch")
       
       # Zone interaction
       zone_int <- as.integer(data[[zone_id]])

@@ -12,6 +12,7 @@ fishset_fit(
   robust = FALSE,
   return_full_prob_mat = FALSE,
   se_calc = TRUE,
+  overwrite = FALSE,
   ...
 )
 }
@@ -35,6 +36,9 @@ to save memory on large datasets.}
 
 \item{se_calc}{Logical. Set \code{"se_calc" = TRUE} (default) to calculate standard errors.
 Set to FALSE for faster runtime during model selection.}
+
+\item{overwrite}{Logical. Default FALSE. If TRUE, overwrites an existing model fit 
+if \code{fit_name} already exists in the project database.}
 
 \item{...}{Additional arguments passed to the optimization control.
 \itemize{
@@ -72,33 +76,33 @@ fit statistics, and diagnostics.
 }
 \examples{
 \dontrun{
-  # 1. Standard fit using default settings
-  # This uses the design object named "clogit_design" saved in "MyProject"
-  fit_result <- fishset_fit(
-    project = "MyProject",
-    model_name = "clogit_design"
-  )
+# 1. Standard fit using default settings
+# This uses the design object named "clogit_design" saved in "MyProject"
+fit_result <- fishset_fit(
+  project = "MyProject",
+  model_name = "clogit_design"
+)
   
-  # 2. Advanced fit with custom optimization settings and start values
-  # 'control' and 'start_values' are passed via the '...' argument
-  fit_custom <- fishset_fit(
-    project = "MyProject",
-    model_name = "clogit_design",
-    fit_name = "clogit_custom_fit",
+# 2. Advanced fit with custom optimization settings and start values
+# 'control' and 'start_values' are passed via the '...' argument
+fit_custom <- fishset_fit(
+  project = "MyProject",
+  model_name = "clogit_design",
+  fit_name = "clogit_custom_fit",
     
-    # Pass control list to nlminb (e.g., increase max iterations, turn on tracing)
-    control = list(eval.max = 5000, iter.max = 5000, trace = 1),
+  # Pass control list to nlminb (e.g., increase max iterations, turn on tracing)
+  control = list(eval.max = 5000, iter.max = 5000, trace = 1),
     
-    # Pass initial start values for the parameters (e.g., for 2 predictors)
-    start_values = c(0.5, -0.2)
-  )
+  # Pass initial start values for the parameters (e.g., for 2 predictors)
+  start_values = c(0.5, -0.2)
+)
   
-  # 3. EPM - normal catch function
-  epm_fit <- fishset_fit(project = project,
-             model_name = "epm1",
-            fit_name = "epm_fit1",
-            distribution = "normal"
-  )
+# 3. EPM - normal catch function
+epm_fit <- fishset_fit(project = project,
+  model_name = "epm1",
+  fit_name = "epm_fit1",
+  distribution = "normal"
+)
 }
 
 }

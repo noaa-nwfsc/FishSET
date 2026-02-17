@@ -18,6 +18,8 @@
 #'   to save memory on large datasets.
 #' @param se_calc Logical. Set \code{"se_calc" = TRUE} (default) to calculate standard errors.
 #'   Set to FALSE for faster runtime during model selection.
+#' @param overwrite Logical. Default FALSE. If TRUE, overwrites an existing model fit 
+#'   if \code{fit_name} already exists in the project database.
 #' @param ... Additional arguments passed to the optimization control.
 #'   \itemize{
 #'     \item \code{control}: A list of control parameters passed to \code{\link[stats]{nlminb}} 
@@ -47,33 +49,33 @@
 #' 
 #' @examples
 #' \dontrun{
-#'   # 1. Standard fit using default settings
-#'   # This uses the design object named "clogit_design" saved in "MyProject"
-#'   fit_result <- fishset_fit(
-#'     project = "MyProject",
-#'     model_name = "clogit_design"
-#'   )
+#' # 1. Standard fit using default settings
+#' # This uses the design object named "clogit_design" saved in "MyProject"
+#' fit_result <- fishset_fit(
+#'   project = "MyProject",
+#'   model_name = "clogit_design"
+#' )
 #'   
-#'   # 2. Advanced fit with custom optimization settings and start values
-#'   # 'control' and 'start_values' are passed via the '...' argument
-#'   fit_custom <- fishset_fit(
-#'     project = "MyProject",
-#'     model_name = "clogit_design",
-#'     fit_name = "clogit_custom_fit",
+#' # 2. Advanced fit with custom optimization settings and start values
+#' # 'control' and 'start_values' are passed via the '...' argument
+#' fit_custom <- fishset_fit(
+#'   project = "MyProject",
+#'   model_name = "clogit_design",
+#'   fit_name = "clogit_custom_fit",
 #'     
-#'     # Pass control list to nlminb (e.g., increase max iterations, turn on tracing)
-#'     control = list(eval.max = 5000, iter.max = 5000, trace = 1),
+#'   # Pass control list to nlminb (e.g., increase max iterations, turn on tracing)
+#'   control = list(eval.max = 5000, iter.max = 5000, trace = 1),
 #'     
-#'     # Pass initial start values for the parameters (e.g., for 2 predictors)
-#'     start_values = c(0.5, -0.2)
-#'   )
+#'   # Pass initial start values for the parameters (e.g., for 2 predictors)
+#'   start_values = c(0.5, -0.2)
+#' )
 #'   
-#'   # 3. EPM - normal catch function
-#'   epm_fit <- fishset_fit(project = project,
-#'              model_name = "epm1",
-#'             fit_name = "epm_fit1",
-#'             distribution = "normal"
-#'   )
+#' # 3. EPM - normal catch function
+#' epm_fit <- fishset_fit(project = project,
+#'   model_name = "epm1",
+#'   fit_name = "epm_fit1",
+#'   distribution = "normal"
+#' )
 #' }
 #'
 #' @seealso \code{\link{fishset_design}} for creating the input design object.
@@ -90,6 +92,7 @@ fishset_fit <- function(project,
                         robust = FALSE,
                         return_full_prob_mat = FALSE,
                         se_calc = TRUE,
+                        overwrite = FALSE,
                         ...) {
   
   # Setup and validate ----------------------------------------------------------------------------
@@ -128,7 +131,10 @@ fishset_fit <- function(project,
   if (table_exists(paste0(project, "ModelFit"), project)) {
     full_fit_list <- unserialize_table(paste0(project, "ModelFit"), project)  
     if (fit_name %in% names(full_fit_list)) {
-      stop(paste0("Model fit '", fit_name, "' already exists. Enter a new fit_name."))
+      if (!overwrite) {
+        stop(paste0("Model fit '", fit_name, 
+                    "' already exists. Set overwrite = TRUE to replace it."))  
+      }
     }
   }
   
@@ -341,7 +347,7 @@ fishset_fit <- function(project,
   estimated_coefs <- opt$par
   
   if (!is_epm) {
-    # --- STANDARD LOGIT REPORTING ---
+    ### standard logit reporting ###
     coef_names <- colnames(design$X)
     if(length(estimated_coefs) == ncol(design$X)) names(estimated_coefs) <- coef_names
     report_coefs <- estimated_coefs
@@ -368,7 +374,7 @@ fishset_fit <- function(project,
     }
     
   } else {
-    # --- EPM REPORTING (Normal Only) ---
+    ### epm reporting (normal only) ###
     n_catch <- ncol(design$epm$X_catch)
     n_util  <- ncol(data_list$X_util)
     
@@ -403,7 +409,7 @@ fishset_fit <- function(project,
     # Append Sigmas to report
     sig_c_est <- exp(estimated_coefs[grep("log_sigma_c", names(estimated_coefs))])
     sig_e_est <- exp(estimated_coefs[grep("log_sigma_e", names(estimated_coefs))])
-    names(sig_c_est) <- paste0("Sigma_Catch_Z", 1:J_alts)
+    names(sig_c_est) <- paste0("Sigma_Catch_", levels(as.factor(design$ids$zone)))
     names(sig_e_est) <- "Sigma_Error"
     
     report_coefs <- c(beta_c_est, beta_u_est, sig_c_est, sig_e_est)
