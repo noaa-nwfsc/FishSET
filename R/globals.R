@@ -26,5 +26,7 @@ utils::globalVariables(c(
   'model_name',
   'policy_name',
   'rename',
-  'V1'
+  'V1',
+  'yr',
+  'mth'
 ))
