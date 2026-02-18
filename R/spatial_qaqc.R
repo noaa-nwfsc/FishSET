@@ -84,9 +84,18 @@
 #' mod.dat <- spat_out$dataset
 #' }
 #'   
-spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
-                         lat.spat = NULL, id.spat = NULL, epsg = NULL, date = NULL, 
-                         group = NULL, filter_dist = NULL) {
+spatial_qaqc <- function(dat, 
+                         project, 
+                         spat, 
+                         lon.dat, 
+                         lat.dat, 
+                         lon.spat = NULL,
+                         lat.spat = NULL, 
+                         id.spat = NULL, 
+                         epsg = NULL, 
+                         date = NULL, 
+                         group = NULL, 
+                         filter_dist = NULL) {
   
   # Pull primary data and spatial data
   out <- data_pull(dat, project)
@@ -424,12 +433,37 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                      type = "error",
                      duration = 60)
     
-  } else if(sum(obs_outside) > 0) {
+  } else if (sum(obs_outside) > 0) {
+    is_lonlat <- sf::st_is_longlat(spatdat)
+    tol_val <- if (is_lonlat) 0.001 else 100
+    
     # If any observations are outside the zones, calculate distances
     # Find nearest feature and get distance
-    nearest <- sf::st_nearest_feature(dat_sf[obs_outside, ], spatdat)
-    dist.rec <- sf::st_distance(dat_sf[obs_outside, ], spatdat[nearest, ],
+    # Simplify with preserveTopology = TRUE to prevent polygons from vanishing
+    spat_optim <- sf::st_simplify(spatdat, preserveTopology = TRUE, dTolerance = tol_val)
+    
+    # SAFETY CHECK: If simplification created empty geometries, revert those specific 
+    # features back to the original spatdat to avoid NA errors.
+    empty_idx <- sf::st_is_empty(spat_optim)
+    if (any(empty_idx)) {
+      spat_optim[empty_idx, ] <- spatdat[empty_idx, ]
+    }
+    
+    # Cast to boundary lines for faster distance calculation
+    # (st_boundary is safer than st_cast for Polygons)
+    spat_optim <- sf::st_boundary(spat_optim)
+    
+    # Find nearest feature using the OPTIMIZED object
+    nearest <- sf::st_nearest_feature(dat_sf[obs_outside, ], spat_optim)
+    # nearest <- sf::st_nearest_feature(dat_sf[obs_outside, ], spatdat)
+    
+    # Calculate distance
+    dist.rec <- sf::st_distance(dat_sf[obs_outside, ], 
+                                spat_optim[nearest, ],
                                 by_element = TRUE)
+    # dist.rec <- sf::st_distance(dat_sf[obs_outside, ], 
+    #                             spatdat[nearest, ],
+    #                             by_element = TRUE)
     
     # Add the distance to the dataset
     dataset[obs_outside, "dist"] <- as.numeric(dist.rec)
