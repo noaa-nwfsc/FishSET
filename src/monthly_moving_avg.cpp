@@ -29,8 +29,7 @@ NumericMatrix calculate_monthly_avg(IntegerVector unique_years,
   int n_groups = unique_groups.size();
   int n_obs = obs_years.size();
   
-  // --- 1. Map Setup ---
-  
+  // --- Map Setup ---
   // Map "Absolute Month" -> Row Index
   std::map<int, int> time_to_row_map;
   for(int i = 0; i < n_times; ++i) {
@@ -44,8 +43,7 @@ NumericMatrix calculate_monthly_avg(IntegerVector unique_years,
     group_to_col_map[unique_groups[i]] = i;
   }
   
-  // --- 2. Data Aggregation (Handle multiple obs per month/group) ---
-  
+  // --- Data Aggregation (Handle multiple obs per month/group) ---
   // Initialize matrices
   NumericMatrix values_matrix(n_times, n_groups);
   std::fill(values_matrix.begin(), values_matrix.end(), 0.0);
@@ -81,7 +79,7 @@ NumericMatrix calculate_monthly_avg(IntegerVector unique_years,
     }
   }
   
-  // --- 3. Sliding Window Calculation ---
+  // --- Sliding Window Calculation ---
   
   NumericMatrix result_matrix(n_times, n_groups);
   std::fill(result_matrix.begin(), result_matrix.end(), NA_REAL);
@@ -89,27 +87,14 @@ NumericMatrix calculate_monthly_avg(IntegerVector unique_years,
   for (int c = 0; c < n_groups; ++c) {
     for (int r = 0; r < n_times; ++r) {
       
-      // A. Identify the anchor time (Current Time - Year Lag)
+      // Identify the anchor time (Current Time - Year Lag)
       int current_abs = get_abs_month(unique_years[r], unique_months[r]);
       int anchor_abs = current_abs - (year_lag * 12);
-      
-      // Note: We do NOT require the anchor_abs to exist in the map to *calculate* the window.
-      // We only need the anchor to define the window range. 
-      // However, if your specific logic requires the exact date (N years ago) to be present 
-      // in the dataset to perform a calculation, uncomment the check below:
-      
-      /* if (time_to_row_map.find(anchor_abs) == time_to_row_map.end()) {
-       continue; // Returns NA if the exact date N years ago isn't in dataset
-      }
-       */
       
       double sum_product = 0.0;
       double sum_divisor = 0.0;
       
-      // B. Define Window (based on Month Lag)
-      // Example: Window 3, Lag 1. 
-      // We want: [Lag 1, Lag 2, Lag 3] relative to anchor.
-      
+      // Define Window (based on Month Lag)
       // Loop through the offsets for the window size
       for (int w = 0; w < window_size; ++w) {
         int lag_amount = month_lag + w; 
@@ -143,8 +128,6 @@ NumericMatrix calculate_monthly_avg(IntegerVector unique_years,
   
   // Set Names
   colnames(result_matrix) = unique_groups;
-  // We can't set RowNames easily to "Date" here since we only have int vectors, 
-  // but the rows correspond 1:1 to the input unique_years/unique_months.
   
   return result_matrix;
 }
