@@ -31,7 +31,8 @@
 #' @param scale Logical. Default = FALSE. If TRUE, numeric predictors in the design matrix (X) 
 #'   are centered and scaled (z-score normalization) before saving. Scaling factors are stored to 
 #'   allow unscaling of parameters after estimation. Recommended for numerical stability.
-#' 
+#' @param overwrite Logical. Default FALSE. If TRUE, overwrites an existing model design 
+#'   if \code{model_name} already exists in the project folder.
 #' @return A list object of class 'fishset_design' containing the design matrices, choice vector, 
 #'   and metadata. The list is saved as a compressed .rds file in the project folder.
 #' 
@@ -72,9 +73,9 @@
 #'   scale = TRUE
 #' )
 #' 
-#' # 4. Expected profit model - normal distribution
-#' # The expected catch (catch_var in this example) does not vary across zones in this 
-#' # example (e.g., vessel length).
+#' # 4. Expected profit model (EPM)
+#' # Note: The distribution (Normal, Lognormal, Weibull) is specified later in fishset_fit().
+#' # The expected catch predictor (catch_var in this example) does not vary across zones.
 #' fishset_design(
 #'   formula = chosen ~ distance | catch_var,
 #'   project = "MyProject",
@@ -105,14 +106,21 @@ fishset_design <- function(formula,
                            zone_id,
                            catch_formula = NULL,
                            price_var = NULL,
-                           scale = FALSE){
+                           scale = FALSE,
+                           overwrite = FALSE){
   
   # Setup and validate data -----------------------------------------------------------------------
   # Check if design file exists
   design_names <- model_design_list(project)
   if (model_name %in% design_names) {
-    stop(paste0("Model design ", model_name, "already exists. Enter a new model name or ",
-                "delete the old model design using remove_model_design()."))
+    if (!overwrite) {
+      stop(paste0("Model design '", model_name,"' already exists. Enter a new model name, ",
+                  "delete the old model design using remove_model_design(), ",
+                  "or set overwrite = TRUE."))  
+    } else {
+      message(paste0("Note: Overwriting existing model design '", model_name, "'"))
+    }
+    
   }
   
   # Load formatted data table
@@ -307,6 +315,26 @@ fishset_design <- function(formula,
     # Extract price vector
     price_vec <- data[[price_var]]
     
+    # Magnitude scaling for EPM strictly to positive values
+    if (scale) {
+      # Power-of-10 divisor
+      # Scale Y_catch
+      y_max <- max(Y_catch, na.rm = TRUE)
+      if (y_max > 10) {
+        y_divisor <- 10^(floor(log10(y_max)))
+        Y_catch <- Y_catch / y_divisor
+        scalers$Y_catch_divisor <- y_divisor
+      }
+      
+      # Scale price_vec
+      p_max <- max(price_vec, na.rm = TRUE)
+      if (p_max > 10) {
+        p_divisor <- 10^(floor(log10(p_max)))
+        price_vec <- price_vec / p_divisor
+        scalers$p_divisor <- p_divisor
+      }
+    }
+    
     epm_components <- list(
       Y_catch = Y_catch,
       X_catch = X_catch_final,
@@ -353,6 +381,12 @@ fishset_design <- function(formula,
   
   # Create a new ModelDesigns folder in the project folder if it doesn't exist yet
   if (!dir.exists(designs_dir)) dir.create(designs_dir, recursive = TRUE)
+  
+  # Clean up any existing files with this name to prevent extension conflicts (.rds vs .qs2)
+  if (overwrite) {
+    unlink(file.path(designs_dir, paste0(model_name, ".rds")))
+    unlink(file.path(designs_dir, paste0(model_name, ".qs2")))
+  }
   
   # SOFT DEPENDENCY LOGIC for qs2
   if (use_qs2) {
