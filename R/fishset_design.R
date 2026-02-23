@@ -331,7 +331,7 @@ fishset_design <- function(formula,
       if (p_max > 10) {
         p_divisor <- 10^(floor(log10(p_max)))
         price_vec <- price_vec / p_divisor
-        scalers$p_divisor <- p_divisor
+        scalers$price_divisor <- p_divisor
       }
     }
     

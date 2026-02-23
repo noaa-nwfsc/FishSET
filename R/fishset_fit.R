@@ -237,7 +237,7 @@ fishset_fit <- function(project,
                    Found zeros or negative values in the catch data.", distribution))
     }
     
-    # Assign numeric zone ID
+    # Assign numeric zone ID 
     zone_id <- ((chosen_lin_idx - 1) %% J_alts) + 1
     
     # Create a sequence to map zonal parameters to the full flattened X_catch matrix
