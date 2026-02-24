@@ -109,7 +109,12 @@ fishset_design <- function(formula,
   
   # Setup and validate data -----------------------------------------------------------------------
   # Check if design file exists
-  design_names <- model_design_list(project)
+  design_names <- tryCatch({
+     model_design_list(project)
+  }, error = function(cond) {
+    list()
+  })
+  
   if (model_name %in% design_names) {
     stop(paste0("Model design ", model_name, "already exists. Enter a new model name or ",
                 "delete the old model design using remove_model_design()."))
