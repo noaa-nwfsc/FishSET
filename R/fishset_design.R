@@ -111,6 +111,9 @@ fishset_design <- function(formula,
   
   # Setup and validate data -----------------------------------------------------------------------
   # Check if design file exists
+  
+  # TODO: ADD TRY CATCH!!!!!!!!!!!
+  
   design_names <- model_design_list(project)
   if (model_name %in% design_names) {
     if (!overwrite) {
