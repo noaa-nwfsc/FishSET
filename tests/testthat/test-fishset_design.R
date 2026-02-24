@@ -309,3 +309,48 @@ test_that("Scaling functionality stores scalers", {
   expect_true("X1" %in% names(obj$scalers))
   expect_true("mu" %in% names(obj$scalers$X1))
 })
+
+
+# Test scalers for catch and price ----------------------------------------------------------------
+test_that("Magnitude scalers for Catch and Price are correctly generated", {
+  project_name <- "TestProj"
+  model_name <- "epm_scaler_test"
+  
+  # Temporarily inject large catch and price values into the test_data
+  test_data$actual_catch <- runif(nrow(test_data), 1000, 5000) # Divisor should be 1000
+  test_data$price <- rep(runif(N_obs, 20, 50), each = J_alts)  # Divisor should be 10
+  
+  mock_unserialize_large_data <- function(name, project) {
+    out <- list()
+    out[["my_formatted_data"]] <- test_data
+    return(out)
+  }
+  assignInNamespace("unserialize_table", mock_unserialize_large_data, ns = "FishSET")
+  
+  suppressMessages(
+    fishset_design(
+      formula = chosen ~ distance | vessel_len,
+      project = project_name,
+      model_name = model_name,
+      formatted_data_name = "my_formatted_data",
+      unique_obs_id = "haul_id",
+      zone_id = "zone_id",
+      catch_formula = actual_catch ~ vessel_len:zone_id,
+      price_var = "price",
+      scale = TRUE
+    )  
+  )
+  
+  db_path <- mock_locdatabase(project_name)
+  files <- list.files(file.path(dirname(db_path), "ModelDesigns"), full.names = TRUE)
+  target_file <- files[grep(model_name, files)][1]
+  obj <- if (grepl("\\.qs2$", target_file)) qs2::qs_read(target_file) else readRDS(target_file)
+  
+  # Assertions to guarantee the names are exactly what fishset_fit expects
+  expect_true("Y_catch_divisor" %in% names(obj$scalers))
+  expect_true("price_divisor" %in% names(obj$scalers))
+  expect_equal(obj$scalers$Y_catch_divisor, 1000)
+  expect_equal(obj$scalers$price_divisor, 10)
+  
+  assignInNamespace("unserialize_table", mock_unserialize_table, ns = "FishSET")
+})

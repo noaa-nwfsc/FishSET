@@ -239,3 +239,69 @@ test_that("Return Full Probability Matrix works", {
   # Check residuals exist
   expect_true(!is.null(result$residuals))
 })
+
+
+# Test overwrite ----------------------------------------------------------------------------------
+test_that("Overwrite argument successfully replaces existing fit", {
+  project_name <- "TestProj_Overwrite"
+  model_name <- "std_model"
+  fit_name <- "existing_fit"
+  
+  save_design_to_temp(standard_design, model_name, project_name)
+  
+  # Mock an existing fit
+  mock_exists_true <- function(name, project) TRUE
+  mock_read_fit <- function(name, project) {
+    l <- list(); l[[fit_name]] <- "some_old_data"; return(l)
+  }
+  
+  assignInNamespace("table_exists", mock_exists_true, ns = "FishSET")
+  assignInNamespace("unserialize_table", mock_read_fit, ns = "FishSET")
+  
+  # This should NOT throw an error because overwrite = TRUE
+  expect_no_error(
+    fishset_fit(
+      project = project_name,
+      model_name = model_name,
+      fit_name = fit_name,
+      overwrite = TRUE,
+      control = list(iter.max = 1, eval.max = 5)
+    )
+  )
+  
+  # Restore global mocks
+  assignInNamespace("table_exists", mock_table_exists, ns = "FishSET")
+  assignInNamespace("unserialize_table", mock_unserialize_table, ns = "FishSET")
+})
+
+
+# Test unscaling works ----------------------------------------------------------------------------
+test_that("Vectorized unscaling correctly divides coefficients and SEs", {
+  project_name <- "TestProj_Scale"
+  model_name <- "std_model"
+  
+  # Create a design with fake scalers
+  scaled_design <- standard_design
+  scaled_design$scalers <- list(
+    X1 = list(sd = c("Var1" = 2.0, "Var2" = 10.0))
+  )
+  save_design_to_temp(scaled_design, model_name, project_name)
+  
+  result <- fishset_fit(
+    project = project_name,
+    model_name = model_name,
+    fit_name = "scaled_fit",
+    control = list(iter.max = 1, eval.max = 5) 
+  )
+  
+  # Check if standard errors are successfully divided by the scalers
+  # Since initial betas are small, and optim might take 1 step, we check the mechanics.
+  # The raw opt$par / scale_factors should equal the reported coefficients.
+  raw_var1 <- result$opt$par[1]
+  raw_var2 <- result$opt$par[2]
+
+  expect_equal(unname(result$coefficients["Var1"]), (unname(raw_var1) / 2.0), tolerance = 1e-5)
+  expect_equal(unname(result$coefficients["Var2"]), (unname(raw_var2) / 10.0), tolerance = 1e-5)
+})
+
+

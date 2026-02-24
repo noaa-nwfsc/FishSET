@@ -13,7 +13,8 @@ fishset_design(
   zone_id,
   catch_formula = NULL,
   price_var = NULL,
-  scale = FALSE
+  scale = FALSE,
+  overwrite = FALSE
 )
 }
 \arguments{
@@ -46,6 +47,9 @@ created in the \code{\link{format_model_data}} function.}
 \item{scale}{Logical. Default = FALSE. If TRUE, numeric predictors in the design matrix (X) 
 are centered and scaled (z-score normalization) before saving. Scaling factors are stored to 
 allow unscaling of parameters after estimation. Recommended for numerical stability.}
+
+\item{overwrite}{Logical. Default FALSE. If TRUE, overwrites an existing model design 
+if \code{model_name} already exists in the project folder.}
 }
 \value{
 A list object of class 'fishset_design' containing the design matrices, choice vector, 
@@ -100,9 +104,9 @@ fishset_design(
   scale = TRUE
 )
 
-# 4. Expected profit model - normal distribution
-# The expected catch (catch_var in this example) does not vary across zones in this 
-# example (e.g., vessel length).
+# 4. Expected profit model (EPM)
+# Note: The distribution (Normal, Lognormal, Weibull) is specified later in fishset_fit().
+# The expected catch predictor (catch_var in this example) does not vary across zones.
 fishset_design(
   formula = chosen ~ distance | catch_var,
   project = "MyProject",
