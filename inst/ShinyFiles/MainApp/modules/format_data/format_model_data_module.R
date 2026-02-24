@@ -154,6 +154,38 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       if (input$aux_data != "" && !is.null(rv_data$aux)) {
         final_aux_data <- input$aux_data
         final_aux_key  <- empty_to_null(rv_selected_vars$vars$aux$aux_id)
+        
+        # Check if key is missing completely
+        if (is.null(final_aux_key)) {
+          shinyjs::hide("run_format_spinner_container")
+          shinyjs::enable("run_format_btn")
+          
+          showModal(modalDialog(
+            title = "Error: Missing Auxiliary Key",
+            "You have selected an auxiliary dataset, but an auxiliary key could not be found. 
+            Please ensure you have assigned the variable that links the main data to the 
+            auxiliary data.",
+            easyClose = TRUE,
+            footer = modalButton("Close")
+          ))
+          return()
+        }
+        
+        # Check if the key actually exists in the main data table
+        if (!all(final_aux_key %in% colnames(rv_data$main))) {
+          shinyjs::hide("run_format_spinner_container")
+          shinyjs::enable("run_format_btn")
+          
+          showModal(modalDialog(
+            title = "Error: Column Mismatch",
+            paste0("The selected auxiliary key ('", paste(final_aux_key, collapse = ", "), 
+                   "') does not exist in the main dataset. Please select a valid matching column."),
+            easyClose = TRUE,
+            footer = modalButton("Close")
+          ))
+          return()
+        }
+        
       } else {
         final_aux_data <- NULL
         final_aux_key  <- NULL
@@ -170,6 +202,44 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
         final_grid_var  <- NULL
         final_grid_time <- NULL
       }
+      
+      # Check Expectations / Alternative Matrix Match
+      if (input$expectations_name_input != "" && input$alt_name_input != "") {
+        
+        # Fetch the expectations table from the database
+        exp_table_name <- paste0(project_name, "ExpectedCatch")
+        
+        exp_master_list <- tryCatch({
+          unserialize_table(exp_table_name, project_name)
+        }, error = function(e) return(NULL))
+        
+        # Extract the settings for the selected expectations matrix
+        exp_settings_key <- paste0(input$expectations_name_input, "_settings")
+        
+        if (!is.null(exp_master_list) && !is.null(exp_master_list[[exp_settings_key]])) {
+          
+          # Compare the saved choice matrix to the selected one
+          saved_alt_name <- exp_master_list[[exp_settings_key]]$alt_name
+          
+          if (!is.null(saved_alt_name) && saved_alt_name != input$alt_name_input) {
+            
+            # Show error and halt
+            shinyjs::hide("run_format_spinner_container")
+            shinyjs::enable("run_format_btn")
+            
+            showModal(modalDialog(
+              title = "Error: Matrix Mismatch",
+              paste0("The selected expected catch matrix ('", input$expectations_name_input, 
+                     "') was created using a different alternative choice matrix ('",
+                     saved_alt_name, "'). Please select the matching alternative matrix."),
+              easyClose = TRUE,
+              footer = modalButton("Close")
+            ))
+            return() # Halt execution
+          }
+        }
+      }
+      
       # Run Formatting Function
       tryCatch({
         format_model_data(
@@ -195,7 +265,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
         
         # Success Feedback
         output$format_success_out <- renderText({
-          paste0("Success: Data '", input$format_name_input,
+          paste0("Success: Data '", isolate(input$format_name_input),
                  "' formatted and saved to project.")
         })
         shinyjs::show("format_success_message")
@@ -434,11 +504,11 @@ format_model_data_ui <- function(id) {
                             placeholder = "Unique name", width = "100%"),
                   div(
                     class = "p-3 bg-light border rounded",
-                    h6(tags$span("Main Data Selection ", 
+                    h6(tags$span("Select variables from main data (recommended)", 
                                  bslib::tooltip(shiny::icon("info-circle"),
                                                 "Variables to retain from the main data table. 
                                                 Limit to necessary variables for computational
-                                                efficiency. NOTE: if modeling multi-haul data, 
+                                                efficiency. Note: if modeling multi-haul data, 
                                                 be sure to include the lagged zone ID (previous 
                                                 location) in this vector.")), 
                        class = "card-title text-primary mb-2"),
@@ -451,17 +521,21 @@ format_model_data_ui <- function(id) {
                     h6("Model Matrices", class = "card-title text-primary mb-2"),
                     selectizeInput(ns("alt_name_input"), 
                                    label = tags$span(
-                                     "Alternative Choice ",
+                                     "Alternative choice ",
                                      bslib::tooltip(shiny::icon("info-circle"), 
                                                     "Name of the alternative choice matrix
-                                                    to use.")), 
+                                                    to use. Note: If you select an Expectations
+                                                    matrix below, it must have been created using
+                                                    this exact Alternative matrix.")), 
                                    choices = NULL, width = "100%"),
                     selectizeInput(ns("expectations_name_input"), 
                                    label = tags$span(
                                      "Expectations ",
                                      bslib::tooltip(shiny::icon("info-circle"), 
                                                     "Expected catch or revenue matrices to merge 
-                                                    into the dataset.")), 
+                                                    into the dataset. Important: This matrix must 
+                                                    have been created using the specific 
+                                                    Alternative choice matrix selected above.")), 
                                    choices = NULL, width = "100%")
                   )
                 )
@@ -478,10 +552,13 @@ format_model_data_ui <- function(id) {
                     div(class="d-flex align-items-center mb-2",
                         shiny::icon("table", class="text-primary me-2"),
                         h6(tags$span(
-                          "Auxiliary Data ",
+                          "Auxiliary Data (optional) ",
                           bslib::tooltip(shiny::icon("info-circle"),
-                                         "Name of the auxiliary data table to join
-                                         (e.g., vessel characteristics data).")), class = "mb-0")),
+                                         "Select an auxiliary data table to join (e.g., vessel 
+                                         characteristics). Note: The key variable linking this 
+                                         table to your main dataset must be included in the 
+                                         'Select variables' input.")),
+                          class = "mb-0")),
                     selectInput(ns("aux_data"), NULL, choices = NULL, width = "100%")
                   ),
                   div(
@@ -489,7 +566,7 @@ format_model_data_ui <- function(id) {
                     div(class="d-flex align-items-center mb-2",
                         shiny::icon("border-all", class="text-primary me-2"),
                         h6(tags$span(
-                          "Gridded Data ", 
+                          "Gridded Data (optional) ", 
                           bslib::tooltip(shiny::icon("info-circle"),
                                          "Name of the gridded data table to join.")),
                           class = "mb-0")),
