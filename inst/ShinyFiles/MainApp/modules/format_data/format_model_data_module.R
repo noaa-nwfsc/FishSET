@@ -508,9 +508,11 @@ format_model_data_ui <- function(id) {
                                  bslib::tooltip(shiny::icon("info-circle"),
                                                 "Variables to retain from the main data table. 
                                                 Limit to necessary variables for computational
-                                                efficiency. Note: if modeling multi-haul data, 
+                                                efficiency. Note(1): if modeling multi-haul data, 
                                                 be sure to include the lagged zone ID (previous 
-                                                location) in this vector.")), 
+                                                location) in this vector. Note(2): if using
+                                                an Aux data table, the column that links the
+                                                main data to the Aux table must be included.")), 
                        class = "card-title text-primary mb-2"),
                     selectizeInput(ns("select_vars_input"), NULL, 
                                    choices = NULL, multiple = TRUE, width = "100%",
