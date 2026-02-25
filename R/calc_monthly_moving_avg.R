@@ -95,5 +95,5 @@ calc_monthly_moving_avg <- function(df,
   # Cleanup
   dt[, (temp_id_col) := NULL]
   
-  return(dt)
+  return(as.data.frame(dt))
 }
