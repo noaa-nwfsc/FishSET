@@ -98,6 +98,13 @@ format_model_data <- function(project,
                               crs = NULL, 
                               impute = NULL){ 
   
+  # Grab the fully evaluated arguments right as the function starts
+  settings <- as.list(environment())
+  
+  # Remove the project and name, as they are metadata, not formatting settings
+  settings$project <- NULL
+  settings$name <- NULL
+  
   # Input argument validation ---------------------------------------------------------------------
   # Check name uniqueness in database
   table_name <- paste0(project, "LongFormatData")
@@ -371,26 +378,7 @@ format_model_data <- function(project,
   # Rename cols
   df <- df %>%
     rename(!!zone_id := zones)
-  # Save settings
-   settings <- list(
-    project = project,
-    name = name,
-    alt_name = alt_name,
-    zone_id = zone_id,        
-    unique_obs_id = unique_obs_id,
-    select_vars = select_vars,
-    aux_data = aux_data,
-    aux_key = aux_key,
-    gridded_data = gridded_data,
-    grid_var_name = grid_var_name,
-    grid_time_var = grid_time_var,
-    main_time_var = main_time_var,
-    expectations = expectations,
-    distance = distance,
-    distance_units = distance_units,
-    crs = crs,
-    impute = impute
-  )
+ 
   # Save data and settings as a list
   df_list <- list(tmp_name = df,
                   tmp_settings = settings)

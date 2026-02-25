@@ -141,6 +141,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       selected_vars <- load_gui_variables(project_name, folderpath)
       if (is.null(selected_vars)) {
         shinyjs::hide("run_format_spinner_container")
+        shinyjs::enable("run_format_btn")
         showModal(modalDialog(
           title = "Error: Missing Data",
           "The selected variables file could not be found.",
@@ -355,7 +356,8 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       # Format values for display
       format_val <- function(p_name, x) {
         # Check specifically for select_vars being empty/NULL
-        if (p_name == "select_vars" && (is.null(x) || length(x) == 0 || x == "")) {
+        if (p_name == "select_vars" && 
+            (is.null(x) || length(x) == 0 || (length(x) == 1 && x == ""))) { 
           return("All variables")
         } else if (is.data.frame(x)) {
           return(paste0("[Data Frame] ", nrow(x), " rows"))
