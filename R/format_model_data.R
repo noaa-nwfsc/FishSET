@@ -18,7 +18,10 @@
 #' @param select_vars Character vector of variable names to retain from the main data table.
 #'   Although this input is optional, it is recommended to limit the final format to necessary
 #'   variables for computational efficiency. IMPORTANT NOTE: if modeling multi-haul data, 
-#'   be sure to include the lagged zone ID (previous location) in this vector.
+#'   be sure to include the lagged zone ID (previous location) in this vector. 
+#'   
+#'   *IMPORTANT NOTE*: for expected profit models, the price and actual catch variables
+#'   must be included here.
 #' @param aux_data Name of the auxiliary data table to join. Use \code{\link{list_tables}}
 #'   function to view the table name.
 #' @param aux_key Variable name used to join the main data table with the auxiliary data.
@@ -28,16 +31,18 @@
 #'   data.
 #' @param grid_time_var Variable name representing the time dimension for joining gridded data.
 #'   Only use this input if the gridded data varies by space and time.
+#' @param main_time_var Variable name for the time variable in the main data table that matches
+#'  the \code{grid_time_var}.
 #' @param expectations Character vector containing the names of expected catch or revenue matrices
 #'   to merge into the dataset.
 #' @param distance Logical. If 'TRUE', calculates and merges a distance matrix between observations
 #'   and zones. Defaults to 'TRUE'.
 #' @param distance_units String representing the units of measurement for distance ("km" or "mi").
-#' @param crs Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
-#'   are required.
 #' @param impute Method for imputing missing values (NAs). Options are `"mean"`, 
 #'   `"median"`, `"mode"`, or `"remove"`. `"Remove"` will completely remove zones from the dataset
 #'   that contain any NAs in corresponding data. If NULL, the function stops if NAs are detected.
+#' @param crs Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
+#'   are required.
 #'  
 #' @return A list containing the formatted data frame and the input settings. The list is saved to
 #'  the project database.
@@ -84,7 +89,7 @@ format_model_data <- function(project,
                               name, 
                               alt_name, 
                               zone_id, 
-                              unique_obs_id, # ADD ERROR CHECK
+                              unique_obs_id,
                               select_vars = NULL,
                               aux_data = NULL, 
                               aux_key = NULL, 
@@ -95,8 +100,8 @@ format_model_data <- function(project,
                               expectations = NULL, 
                               distance = TRUE,
                               distance_units = NULL,
-                              crs = NULL, 
-                              impute = NULL){ 
+                              impute = NULL,
+                              crs = NULL){ 
   
   # Grab the fully evaluated arguments right as the function starts
   settings <- as.list(environment())
@@ -251,7 +256,24 @@ format_model_data <- function(project,
   # Reshape and join expectation matrix -----------------------------------------------------------
   # Load expectations
   if(!is.null(expectations) & length(expectations) > 0){
-    expect_list <- unserialize_table(paste0(project,"ExpectedCatch"), project)
+    
+    # Error check for loading the ExpectedCatch table
+    expect_list <- tryCatch({
+      unserialize_table(paste0(project,"ExpectedCatch"), project)
+    }, error = function(cond) {
+      stop(paste0("The 'ExpectedCatch' table does not exist for project '",
+                  project, "'. Please ensure that expected catch matrices have been generated",
+                  "before running format_model_data()."), call. = FALSE)
+    })
+    
+    # Error check to ensure requested expectations exist in the loaded list
+    missing_exps <- setdiff(expectations, names(expect_list))
+    if (length(missing_exps) > 0) {
+      stop(paste0("The following expectation(s) were not found in the project database: '",
+                  paste(missing_exps, collapse = "', '"),
+                  "'. \nAvailable expectations are: '",
+                  paste(names(expect_list), collapse = "', '"), "'."), call. = FALSE)
+    }
     
     # Filter expectation matrices
     exp_mats <- expect_list[which(names(expect_list) %in% expectations)]

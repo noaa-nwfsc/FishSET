@@ -468,7 +468,6 @@ spatial_qaqc <- function(dat,
       
       calc_dist_chunk <- function(indices, points, polys) {
         # Explicitly ensure sf is loaded inside worker to prevent method errors
-        library(sf) 
         pts_sub <- points[indices, ]
         near_idx <- sf::st_nearest_feature(pts_sub, polys)
         sf::st_distance(pts_sub, polys[near_idx, ], by_element = TRUE)
@@ -478,7 +477,6 @@ spatial_qaqc <- function(dat,
       on.exit(parallel::stopCluster(cl), add = TRUE)
       
       parallel::clusterEvalQ(cl, {
-        library(sf)
         sf::sf_use_s2(FALSE)
       })
       
