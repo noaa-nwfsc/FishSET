@@ -87,7 +87,11 @@ fishset_fit <- function(project,
   design <- full_design_list[[model_name]]
   
   # Load model fit list and check fit_name input
-  full_fit_list <- unserialize_table(paste0(project, "ModelFit"), project)
+  full_fit_list <- tryCatch({
+    unserialize_table(paste0(project, "ModelFit"), project)
+  }, error = function(e) {
+    list()
+  })
 
   if (is_empty(fit_name)) {
     fit_name <- paste0(model_name, "_fit")
