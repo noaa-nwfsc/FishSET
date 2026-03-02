@@ -116,7 +116,7 @@ fishset_design <- function(formula,
   })
   
   if (model_name %in% design_names) {
-    stop(paste0("Model design ", model_name, "already exists. Enter a new model name or ",
+    stop(paste0("Model design ", model_name, " already exists. Enter a new model name or ",
                 "delete the old model design using remove_model_design()."))
   }
   
@@ -172,6 +172,19 @@ fishset_design <- function(formula,
   # Process matrix helper function
   process_matrix <- function(f_str, data_source, do_scale, scale_name) {
     if (is.null(f_str)) return(NULL)
+    
+    # Check variables exist in data_source
+    req_vars <- all.vars(as.formula(f_str))
+    missing_vars <- setdiff(req_vars, names(data_source))
+    if (length(missing_vars) > 0) {
+      stop(paste0(
+        "Model design failed. The following variable(s) specified in the formula are missing",
+        " from the formatted data: '",
+        paste(missing_vars, collapse = "', '"),
+        "'. Check your formula or your format_model_data() output."
+      ), call. = FALSE)
+    }
+    
     # Generate sparse matrix
     mat <- Matrix::sparse.model.matrix(as.formula(f_str), data = data_source)
     # Drop intercept
@@ -249,9 +262,11 @@ fishset_design <- function(formula,
     catch_formula <- Formula::Formula(catch_formula) # Handle multi-part formulas
     
     # Validation check: ensure catch predictors are in the main formula
-    catch_rhs_vars <- all.vars(catch_formula[[3]] != zone_id)
+    catch_rhs_vars <- all.vars(catch_formula[[3]]) 
+    catch_rhs_vars <- catch_rhs_vars[which(catch_rhs_vars!= zone_id)]
     # Extract RHS from utility formula
     util_rhs_vars <- all.vars(formula[[3]])
+    
     # Check for missing variables
     missing_vars <- setdiff(catch_rhs_vars, util_rhs_vars)
     if (length(missing_vars) > 0) {

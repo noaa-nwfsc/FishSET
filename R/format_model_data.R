@@ -241,7 +241,24 @@ format_model_data <- function(project,
   # Reshape and join expectation matrix -----------------------------------------------------------
   # Load expectations
   if(!is.null(expectations) & length(expectations) > 0){
-    expect_list <- unserialize_table(paste0(project,"ExpectedCatch"), project)
+    
+    # Error check for loading the ExpectedCatch table
+    expect_list <- tryCatch({
+      unserialize_table(paste0(project,"ExpectedCatch"), project)
+    }, error = function(cond) {
+      stop(paste0("The 'ExpectedCatch' table does not exist for project '",
+                  project, "'. Please ensure that expected catch matrices have been generated",
+                  "before running format_model_data()."), call. = FALSE)
+    })
+    
+    # Error check to ensure requested expectations exist in the loaded list
+    missing_exps <- setdiff(expectations, names(expect_list))
+    if (length(missing_exps) > 0) {
+      stop(paste0("The following expectation(s) were not found in the project database: '",
+                  paste(missing_exps, collapse = "', '"),
+                  "'. \nAvailable expectations are: '",
+                  paste(names(expect_list), collapse = "', '"), "'."), call. = FALSE)
+    }
     
     # Filter expectation matrices
     exp_mats <- expect_list[which(names(expect_list) %in% expectations)]

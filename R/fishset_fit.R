@@ -115,7 +115,7 @@ fishset_fit <- function(project,
   paths <- c(paste0(base_path, ".qs2"), paste0(base_path, ".rds"))
   found_path <- paths[file.exists(paths)][1]
   
-  if (is.na(found_path)) stop("Design file not found on disk.")
+  if (is.na(found_path)) stop("Design file not found.")
   
   # Load based on extension
   if (grepl("\\.qs2$", found_path)) {
