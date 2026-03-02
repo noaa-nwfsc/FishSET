@@ -14,11 +14,11 @@
 #' @param id A character string that is unique to this module instance.
 #' @param rv_project_name A reactive value containing the current project name.
 #' @param rv_data A reactiveValues object containing the loaded data frames.
-#' @param shared_alt_names A reactiveVal passed from the main server to share alt matrix names.
+#' @param rv_shared_alt_names A reactiveVal passed from the main server to share alt matrix names.
 #'
 #' @return This module does not return a value.
 define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data, 
-                              shared_alt_names = NULL){
+                              rv_shared_alt_names = NULL){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -55,8 +55,8 @@ define_alt_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       rv_existing_matrix_names(just_names)
       
       # Update SHARED value (for the other module)
-      if (!is.null(shared_alt_names)) {
-        shared_alt_names(just_names) 
+      if (!is.null(rv_shared_alt_names)) {
+        rv_shared_alt_names(just_names) 
       }
       
       # Update removal dropdown

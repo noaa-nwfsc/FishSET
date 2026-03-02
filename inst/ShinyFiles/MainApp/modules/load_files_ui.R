@@ -178,20 +178,28 @@ load_data_ui <- function(id){
       width = 1/2,
       ### Select main data 
       bslib::card(fill = FALSE,
+                  class="card-overflow",
                   bslib::card_header("3. Primary data"),
                   bslib::card_body(
+                    class="card-overflow d-flex flex-column",
                     bslib::card(
+                      class="card-overflow",
                       bslib::card_body(
+                        class="card-overflow d-flex flex-column",
                         select_data_ui(ns("select_main"), data_type = "main")
                       )
                     ),
                     bslib::card(
+                      class="card-overflow",
                       bslib::card_body(
+                        class="card-overflow d-flex flex-column",
                         select_data_ui(ns("select_port"), data_type = "port")
                       )
                     ),
                     bslib::card(
+                      class="card-overflow",
                       bslib::card_body(
+                        class="card-overflow d-flex flex-column",
                         select_data_ui(ns("select_aux"), data_type = "aux")
                       )
                     )
@@ -200,15 +208,20 @@ load_data_ui <- function(id){
       
       ### Select spatial data
       bslib::card(fill = FALSE,
+                  class="card-overflow",
                   bslib::card_header("4. Spatial data"),
                   bslib::card_body(
                     bslib::card(fill = FALSE,
+                                class="card-overflow",
                                 bslib::card_body(
+                                  class="card-overflow d-flex flex-column",
                                   select_data_ui(ns("select_spatial"), data_type = "spat")
                                 )
                     ), 
                     bslib::card(fill = FALSE,
+                                class="card-overflow",
                                 bslib::card_body(
+                                  class="card-overflow d-flex flex-column",
                                   select_data_ui(ns("select_grid"), data_type = "grid")
                                 )
                     )
