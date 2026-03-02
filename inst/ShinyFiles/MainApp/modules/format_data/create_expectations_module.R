@@ -20,12 +20,13 @@
 #' @param rv_folderpath A reactive value containing the path to the project folder.
 #' @param rv_project_name A reactive value containing the current project name.
 #' @param rv_data A reactiveValues object containing the loaded data frames.
-#' @param shared_alt_names A reactiveVal passed from the main server to share alt matrix names.
+#' @param rv_shared_alt_names A reactiveVal passed from the main server to share alt matrix names.
+#' @param rv_shared_exp_names A reactiveVal passed from the main server to share exp matrix names.
 #'
 #' @return This module does not return a value but saves an expectations matrix
 #'         to the project's database.
 create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_data,
-                                       shared_alt_names = NULL){
+                                       rv_shared_alt_names = NULL, rv_shared_exp_names = NULL){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -39,7 +40,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       table_name <- paste0(project, "ExpectedCatch")
       
       exp_mats <- list() # Default empty list
-      
+
       if (table_exists(table_name, project)) {
         tryCatch({
           exp_mats <- unserialize_table(table_name, project)
@@ -52,20 +53,27 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
       # Update the reactive value
       rv_existing_matrix_data(exp_mats)
       
+    
+      
       # Update the remove dropdown
       mat_names <- names(exp_mats)[!names(exp_mats) %in%
                                      c('scale', 'units') &
                                      !grepl("_dummy|_settings", names(exp_mats))]
       updateSelectizeInput(session, "matrix_to_remove", choices = mat_names, selected = "")
       
+         # Update SHARED value (for the other module)
+      if (!is.null(rv_shared_exp_names)) {
+        rv_shared_exp_names(mat_names) 
+      }
+      
     }
     
     # Instead of querying the DB for alt names, we listen to the shared list
     observe({
-      req(shared_alt_names)
+      req(rv_shared_alt_names)
       
       # Get the names directly from the shared reactive
-      current_names <- shared_alt_names()
+      current_names <- rv_shared_alt_names()
       
       # Update the dropdown immediately
       updateSelectizeInput(session, "alt_name_input", 

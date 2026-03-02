@@ -126,15 +126,18 @@ fishset_fit <- function(project,
   }
   
   # Load model fit list and check fit_name input
+  full_fit_list <- tryCatch({
+    unserialize_table(paste0(project, "ModelFit"), project)
+  }, error = function(e) {
+    list()
+  })
+  
   if (is_empty(fit_name)) fit_name <- paste0(model_name, "_fit")
   
-  if (table_exists(paste0(project, "ModelFit"), project)) {
-    full_fit_list <- unserialize_table(paste0(project, "ModelFit"), project)  
-    if (fit_name %in% names(full_fit_list)) {
-      if (!overwrite) {
-        stop(paste0("Model fit '", fit_name, 
-                    "' already exists. Set overwrite = TRUE to replace it."))  
-      }
+  if (fit_name %in% names(full_fit_list)) {
+    if (!overwrite) {
+      stop(paste0("Model fit '", fit_name, 
+                  "' already exists. Set overwrite = TRUE to replace it."))  
     }
   }
   
