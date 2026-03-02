@@ -105,8 +105,9 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL,
         InOutLogit <- matrix(0,length(tacAllowedAllTime), 2) 
         
         # Run logit model prediction
-        temp <- logit_predict(project = project, mod.name = mod.name[ii], 
-                              use.scalers = use.scalers, scaler.func = scaler.func) 
+        # temp <- logit_predict(project = project, mod.name = mod.name[ii], 
+        #                       use.scalers = use.scalers, scaler.func = scaler.func) 
+        temp <- NULL
         probLogit <- temp[[1]] # Predicted probabilities of selecting each zone
         modelDat <- temp[[2]] # Model data
         
@@ -178,9 +179,10 @@ model_prediction <- function(project, mod.name, closures, enteredPrice = NULL,
         InOutepm_base <- matrix(0,length(tacAllowedAllTime), 2) 
         
         # Run logit model prediction
-        temp <- epm_predict(project = project, mod.name = mod.name[ii], 
-                            mod.type = x_new$likelihood, 
-                            use.scalers = use.scalers, scaler.func = scaler.func) 
+        # temp <- epm_predict(project = project, mod.name = mod.name[ii], 
+        #                     mod.type = x_new$likelihood, 
+        #                     use.scalers = use.scalers, scaler.func = scaler.func) 
+        temp <- NULL
         probepm <- temp[[1]] # Predicted probabilities of selecting each zone
         modelDat <- temp[[2]] # Model data
         

@@ -14,7 +14,7 @@ list_tables(project, type = "main")
 (GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (AltMatrix), 
 "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
 "filter" (FilterTable), "centroid" (Centroid or FishCentroid),  "model" 
-(ModelOut), "model data" or "model design" (ModelInputData), 
+(ModelOut), "model data" (ModelInputData), 
 "outsample" (OutSampleDataTable).}
 }
 \description{

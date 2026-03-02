@@ -16,11 +16,12 @@ format_model_data(
   gridded_data = NULL,
   grid_var_name = NULL,
   grid_time_var = NULL,
+  main_time_var = NULL,
   expectations = NULL,
   distance = TRUE,
   distance_units = NULL,
-  crs = NULL,
-  impute = NULL
+  impute = NULL,
+  crs = NULL
 )
 }
 \arguments{
@@ -39,7 +40,10 @@ identifier (unique rows in the main data table).}
 \item{select_vars}{Character vector of variable names to retain from the main data table.
 Although this input is optional, it is recommended to limit the final format to necessary
 variables for computational efficiency. IMPORTANT NOTE: if modeling multi-haul data, 
-be sure to include the lagged zone ID (previous location) in this vector.}
+be sure to include the lagged zone ID (previous location) in this vector. 
+
+*IMPORTANT NOTE*: for expected profit models, the price and actual catch variables
+must be included here.}
 
 \item{aux_data}{Name of the auxiliary data table to join. Use \code{\link{list_tables}}
 function to view the table name.}
@@ -55,6 +59,9 @@ data.}
 \item{grid_time_var}{Variable name representing the time dimension for joining gridded data.
 Only use this input if the gridded data varies by space and time.}
 
+\item{main_time_var}{Variable name for the time variable in the main data table that matches
+the \code{grid_time_var}.}
+
 \item{expectations}{Character vector containing the names of expected catch or revenue matrices
 to merge into the dataset.}
 
@@ -63,12 +70,12 @@ and zones. Defaults to 'TRUE'.}
 
 \item{distance_units}{String representing the units of measurement for distance ("km" or "mi").}
 
-\item{crs}{Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
-are required.}
-
 \item{impute}{Method for imputing missing values (NAs). Options are `"mean"`, 
 `"median"`, `"mode"`, or `"remove"`. `"Remove"` will completely remove zones from the dataset
 that contain any NAs in corresponding data. If NULL, the function stops if NAs are detected.}
+
+\item{crs}{Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
+are required.}
 }
 \value{
 A list containing the formatted data frame and the input settings. The list is saved to
