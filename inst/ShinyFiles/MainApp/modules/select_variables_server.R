@@ -260,7 +260,7 @@ select_aux_var_server <- function(id, rv_project_name, rv_data) {
       # return selected variables 
       reactive({
         list(
-          aux_id = input$aux_id_input,
+          aux_id = input$aux_id_input
         )
       })
     })
@@ -320,6 +320,65 @@ select_spat_var_server <- function(id, rv_project_name, rv_data) {
       reactive({
         list(
           spat_zone_id = input$spat_zone_id_input
+        )
+      })
+    })
+}
+
+## Select variables from grid data table ----------------------------------------------------------
+## Description: Users can select variables from grid data table where they can then be used 
+##              throughout the app
+select_grid_var_server <- function(id, rv_project_name, rv_data) {
+  moduleServer(
+    id,
+    function(input, output, session){
+      
+      ns <- session$ns
+      
+      observe({
+        req(rv_project_name()) # Check to ensure reactive is available
+        project_name <- rv_project_name()$value
+        req(rv_data) # Ensure data is not null
+        grid_data <- rv_data$grid # Save static copy of spat data from reactive input
+        
+        if (is.null(grid_data)) {
+          shinyjs::hide("grid_variables_container")  
+          shinyjs::show("select_error_message")
+          
+        } else {
+          # if saved variables already exist in project folder
+          saved_var_file <- paste0(project_name, "SavedVariables.rds")
+          saved_var_filepath <- file.path(loc_data(project_name), saved_var_file)
+          saved_var_filepath <- suppressWarnings(normalizePath(saved_var_filepath)) 
+          
+          # if exists update the selectInput selections to show the existing variable
+          if (file.exists(saved_var_filepath) & !is.null(grid_data)) {
+            existing_variables <- readRDS(saved_var_filepath)
+            
+            shinyjs::show("grid_variables_container") # Show inputs for spat data 
+            shinyjs::hide("select_error_message")
+            
+            updateSelectInput(session,
+                              'grid_time_input',
+                              choices = colnames(grid_data), 
+                              selected = existing_variables$grid$grid_time)
+            
+            # if doesn't exist, just show variables in spat data
+          } else if(!file.exists(saved_var_filepath) & !is.null(grid_data)) {
+            shinyjs::show("grid_variables_container")  
+            shinyjs::hide("select_error_message")
+            
+            updateSelectInput(session,
+                              'grid_time_input',
+                              choices = colnames(grid_data))
+          }
+        }
+      })
+      
+      # return selected variables 
+      reactive({
+        list(
+          grid_time = input$grid_time_input
         )
       })
     })
@@ -603,22 +662,31 @@ save_var_server <- function(id, rv_project_name, rv_data, parent_session){
       rv_selected_variables$aux <-  select_aux_var_server("selecting_aux",
                                                           rv_project_name = rv_project_name,
                                                           rv_data = rv_data)
+       #### Select grid data variables (optional)
+      rv_selected_variables$grid <-  select_grid_var_server("selecting_grid",
+                                                          rv_project_name = rv_project_name,
+                                                          rv_data = rv_data)
       
       observeEvent(input$save_vars_btn, {
         req(rv_project_name()) # Check to ensure reactive is available
         project_name <- rv_project_name()$value
         req(rv_selected_variables)
-        
+
         # Overlay spinner
         shinyjs::show("save_var_spinner_container")
         
         saved_variables_main <- rv_selected_variables$main()
         saved_variables_port <- rv_selected_variables$port()
         saved_variables_spat <- rv_selected_variables$spat()
+        saved_variables_grid <- rv_selected_variables$grid()
+        saved_variables_aux <- rv_selected_variables$aux()
+
         
         saved_variables <- list(main = saved_variables_main,
                                 spat = saved_variables_spat,
-                                port = saved_variables_port)
+                                port = saved_variables_port,
+                                grid = saved_variables_grid,
+                                aux = saved_variables_aux)
         
         # Save .rds file
         tab_name <- paste0(project_name, "SavedVariables.rds")

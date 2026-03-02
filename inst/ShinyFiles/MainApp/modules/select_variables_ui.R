@@ -166,8 +166,7 @@ select_aux_var_ui <- function(id){
     
     div(id = ns("select_error_message"), 
         style = "display: none; font-size: 20px;", 
-        p("Aux data not found. If you supplied this data, return to load files and ensure data is
-          loaded correctly.")
+        p("No auxiliary data files currently loaded.")
     )
   )
 }
@@ -193,6 +192,28 @@ select_spat_var_ui <- function(id){
     )
   )
 }
+
+## Select variables from gridded data table -------------------------------------------------------
+## Description: Users can select variables from grid data table where they can then be used 
+##              throughout the app; error message will show if spat data does not exist
+select_grid_var_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    div(id = ns("grid_variables_container"),
+        style = "display: none;",
+        
+        selectizeInput(ns('grid_time_input'),
+                       'Select column containing time variable in gridded data table',
+                       choices = NULL, multiple = FALSE)
+    ),
+    
+    div(id = ns("select_error_message"), 
+        style = "display: none; font-size: 20px;",
+        p("No gridded data files currently loaded.")
+    )
+  )
+}
+
 
 ## Create trip/haul level ID button ---------------------------------------------------------------
 ## Description: Button to open modal for creating a trip/haul level ID.
@@ -234,8 +255,8 @@ save_var_ui <- function(id){
       column(
         width = 12,
         bslib::card(
+          class="card-overflow",
           fill = FALSE,
-          
           bslib::card_header(
             "1. Main data variables",
             class = "bg-secondary"),
@@ -244,16 +265,25 @@ save_var_ui <- function(id){
               fill = TRUE,
               width = 1/3,
               bslib::card(fill = FALSE,
+                          class="card-overflow",                          
                           h6("Main data"),
-                          select_main_var_ui(ns("selecting_main"))),
+                          bslib::card_body(
+                            class="card-overflow d-flex flex-column",
+                            select_main_var_ui(ns("selecting_main")))),
               
               bslib::card(fill = FALSE,
+                          class="card-overflow",                          
                           h6("Port data"),
-                          select_port_var_ui(ns("selecting_port"))),
+                          bslib::card_body(
+                            class="card-overflow d-flex flex-column",
+                            select_port_var_ui(ns("selecting_port")))),
               
               bslib::card(fill = FALSE,
+                          class="card-overflow",
                           h6("Aux data"),
-                          select_aux_var_ui(ns("selecting_aux")))
+                          bslib::card_body(
+                            class="card-overflow d-flex flex-column",
+                            select_aux_var_ui(ns("selecting_aux"))))
             )
           )
         )
@@ -264,16 +294,27 @@ save_var_ui <- function(id){
       column(
         width = 12,
         bslib::card(
+          class="card-overflow",
           fill = FALSE,
-          
           bslib::card_header(
             "2. Spatial data variables",
             class = "bg-secondary"),
-          
           bslib::card_body(
-            fill = FALSE,
-            h6("Spatial data"),
-            select_spat_var_ui(ns("selecting_spat"))
+            class="card-overflow d-flex flex-column",
+            bslib::layout_column_wrap(
+              fill = TRUE,
+              width = 1/2,
+              bslib::card(fill = FALSE,
+                          class="card-overflow",
+                          h6("Spatial data"),
+                          select_spat_var_ui(ns("selecting_spat"))
+              ),
+              bslib::card(fill = FALSE,
+                          class="card-overflow",
+                          h6("Gridded data"),
+                          select_grid_var_ui(ns("selecting_grid"))
+              )
+            )
           )
         )
       )
