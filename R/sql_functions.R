@@ -246,7 +246,7 @@ unserialize_table <- function(table, project) {
   
   tab_type <- table_type(table)
   
-  serial_tabs <- c("alt choice matrix", "expected catch matrix", "model data", "model designs",
+  serial_tabs <- c("alt choice matrix", "expected catch matrix", "model data",
                    "model fit", "predict output", "global check", "model output", 
                    "long format data")
   
@@ -264,8 +264,7 @@ unserialize_table <- function(table, project) {
                     "model data" = "ModelInputData", # Note: check for consistency, seen lowercase version 
                                                      # (depends on whether created in app or console)
                     "predict output" = "PredictOutput",
-                    "long format data" = "data",
-                    "model designs" = "data")
+                    "long format data" = "data")
   
   sql_qry <- paste0("SELECT ", tab_qry, " FROM ", table, " LIMIT 1")
   
@@ -499,21 +498,6 @@ model_fit <- function(project, CV = FALSE) {
   
 }
 
-model_names <- function(project) {
-  #' Return model names 
-  #' 
-  #' Returns model names saved to to the model design file. 
-  #' 
-  #' @param project Name of project.
-  #' @export
-  #' 
-  
-  tab_name <- paste0(project, "ModelInputData")
-  mod_design_list <- unserialize_table(tab_name, project)
-  
-  vapply(mod_design_list, function(x) x$mod.name, character(1))
-}
-
 exp_catch_names <- function(project) {
   #' Return names of expected catch matrices 
   #' 
@@ -635,7 +619,7 @@ list_tables <- function(project, type = "main") {
   #'   (GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (AltMatrix), 
   #'   "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
   #'   "filter" (FilterTable), "centroid" (Centroid or FishCentroid),  "model" 
-  #'   (ModelOut), "model data" or "model design" (ModelInputData), 
+  #'   (ModelOut), "model data" (ModelInputData), 
   #'   "outsample" (OutSampleDataTable).
   #' @export
   #' @examples 
@@ -646,7 +630,7 @@ list_tables <- function(project, type = "main") {
   #' 
 
   tab_types <- c("info", "main", "ec", "altc", "port", "gc", "fleet", "model", 
-                 "model data", "model design", "grid", "aux", "spat", "filter",
+                 "model data", "grid", "aux", "spat", "filter",
                  "centroid", "outsample", "cross valid")
   
   if (!type %in% tab_types) {
@@ -660,7 +644,7 @@ list_tables <- function(project, type = "main") {
            "info" = "MainDataTableInfo", "main" = "MainDataTable", "ec" = "ExpectedCatch", 
            "altc" = "AltMatrix", "port" = "PortTable", "gc" = "ldglobalcheck", 
            "fleet" = "FleetTable", "model" = "ModelOut", "model data" = "ModelInputData", 
-           "model design" = "ModelInputData", "grid" = "GridTable", "aux" = "AuxTable",
+           "grid" = "GridTable", "aux" = "AuxTable",
            "spat" = "SpatTable", "filter" = "FilterTable", "centroid" = "Centroid",
            "outsample" = "OutSampleDataTable", "cross valid" = "CV")
   
@@ -780,8 +764,7 @@ fishset_tables <- function(project = NULL) {
                "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
                "FleetTable" = "fleet table", "ModelOut" = "model output", 
                "ModelFit" = "model fit", "ModelInputData" = "model data", 
-               "modelDesignTable" = "model design", "other" = "other",
-               "GridTable_raw" = "raw grid table",  "GridTable" = "grid table",
+               "other" = "other", "GridTable_raw" = "raw grid table",  "GridTable" = "grid table",
                "AuxTable_raw" = "raw aux table", "AuxTable" = "aux table", 
                "SpatTable_raw" = "raw spat table",  "SpatTable" = "spat table")
       }, character(1))
@@ -855,14 +838,22 @@ model_design_list <- function(project, name = NULL) {
   #' @export
   #'   
   
-  if (!is_value_empty(name)) {
-    
-    unserialize_table(name, project)
-    
-  } else {
-    
-    unserialize_table(paste0(project, 'ModelInputData'), project)
-  }
+  db_path <- locdatabase(project)
+  project_dir <- dirname(db_path)
+  designs_dir <- file.path(project_dir, "ModelDesigns")
+  
+  if (!dir.exists(designs_dir)) {
+    stop("No model design files were created for this project. Run fishset_design().")
+  } 
+  
+  files <- list.files(designs_dir, 
+                      pattern = "\\.(rds|qs2)$", 
+                      ignore.case = TRUE, 
+                      full.names = FALSE)
+  
+  files <- unique(tools::file_path_sans_ext(basename(files)))
+  
+  return(files)
 }
 
 
@@ -873,41 +864,39 @@ remove_model_design <- function(project, names) {
   #' @param names Names of model designs to be deleted from the table
   #' @export
   #'   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  db_path <- locdatabase(project)
+  project_dir <- dirname(db_path)
+  designs_dir <- file.path(project_dir, "ModelDesigns")
   
-  single_sql <- paste0(project, "ModelInputData")
+  if (!dir.exists(designs_dir)) {
+    stop("No model design files were created for this project. Run fishset_design().")
+  } 
   
-  if(!table_exists(single_sql, project)){
-    if(isRunning()){
-      showNotification(paste0(single_sql, " does not exist in database"), type = "error", duration = 60)
-    } else {
-      stop(paste0(single_sql, " does not exist in database."))
-    }
+  # List of extensions to check/remove
+  extensions <- c(".qs2", ".rds")
+  
+  # Iterate through each model name provided
+  for (model_name in names) {
+    found_any <- FALSE
     
-  } else {
-    # Load data and find models to delete
-    ModelInputData <- model_design_list(project)
-    mod_names <- model_names(project)
-    del_mods <- which(mod_names %in% names)
-    
-    if(length(del_mods) == 0){
-      if(isRunning()){
-        showNotification("Model(s) do not exist in ModelInputData table", type = "error", duration = 60)
-      } else {
-        stop("Model(s) do not exist in ModelInputData table.")
+    # Check all possible extensions for this model
+    for (ext in extensions) {
+      file_name <- paste0(model_name, ext)
+      file_path <- file.path(designs_dir, file_name)
+      
+      if (file.exists(file_path)) {
+        tryCatch({
+          file.remove(file_path)
+          message("Deleted design file: ", file_name)
+          found_any <- TRUE
+        }, error = function(e) {
+          warning("Could not delete file: ", file_name, "\n  Error: ", e$message)
+        })
       }
     }
     
-    # Remove models from input data list
-    ModelInputData[del_mods] <- NULL
-    
-    # Now remove old table from sql database
-    table_remove(single_sql, project)
-    
-    # Add table with updated input data
-    DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
-    DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"),
-                   params = list(ModelInputData = list(serialize(ModelInputData, NULL))))
+    if (!found_any) {
+      message("File not found for model: ", model_name, " (checked .qs2, .rds)")
+    }
   }
 }

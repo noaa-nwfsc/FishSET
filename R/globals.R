@@ -40,5 +40,15 @@ utils::globalVariables(c(
   'within_haul_dist',
   'between_haul_dist',
   'as.formula',
-  'final_dist'
+  'final_dist',
+  'X',
+  'X_catch',
+  'Y_catch',
+  'log_sigma_c',
+  'log_sigma_e',
+  'beta_catch',
+  'beta_util',
+  'prices',
+  'diff_val',
+  'terms'
 ))
