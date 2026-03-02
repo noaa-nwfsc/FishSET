@@ -31,6 +31,8 @@
 #'   data.
 #' @param grid_time_var Variable name representing the time dimension for joining gridded data.
 #'   Only use this input if the gridded data varies by space and time.
+#' @param main_time_var Variable name for the time variable in the main data table that matches
+#'  the \code{grid_time_var}.
 #' @param expectations Character vector containing the names of expected catch or revenue matrices
 #'   to merge into the dataset.
 #' @param distance Logical. If 'TRUE', calculates and merges a distance matrix between observations
