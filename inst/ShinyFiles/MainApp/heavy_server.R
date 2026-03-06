@@ -6531,18 +6531,18 @@ heavy_server <- function(input, output, session) {
     if (input$mod_run_select == 'select') mod_run <- input$mod_run_custom
     else mod_run <- input$mod_run_select
     
-    q_test <- quietly_test(discretefish_subroutine, show_msg = TRUE)
-    
-    withProgress(
-      discretefish_subroutine(project = project$name, run = mod_run, select.model = FALSE, 
-                              explorestarts = input$mod_explore_starts, max.iterations = input$max_iter,
-                              breakearly = input$mod_break_early, space = space_val, 
-                              dev = dev_val, use.scalers = FALSE, scaler.func = NULL),
-      message = "Running model(s): ",
-      detail = 'Models can take up to a few minutes to run. All buttons are inactive while models are running.
-                    Check R console for progress.'
-    )
-    
+    # q_test <- quietly_test(discretefish_subroutine, show_msg = TRUE)
+    # 
+    # withProgress(
+    #   discretefish_subroutine(project = project$name, run = mod_run, select.model = FALSE, 
+    #                           explorestarts = input$mod_explore_starts, max.iterations = input$max_iter,
+    #                           breakearly = input$mod_break_early, space = space_val, 
+    #                           dev = dev_val, use.scalers = FALSE, scaler.func = NULL),
+    #   message = "Running model(s): ",
+    #   detail = 'Models can take up to a few minutes to run. All buttons are inactive while models are running.
+    #                 Check R console for progress.'
+    # )
+    # 
     showNotification('Model run is complete', type = 'message', duration = 60)
     showNotification('Check the `Compare Models` subtab to view outputs', 
                      type = 'default', duration = 60)

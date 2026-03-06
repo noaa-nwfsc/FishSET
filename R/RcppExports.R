@@ -25,6 +25,10 @@ rcpp_sparse_interaction <- function(mat, zone_int, J) {
     .Call(`_FishSET_rcpp_sparse_interaction`, mat, zone_int, J)
 }
 
+calculate_monthly_avg <- function(unique_years, unique_months, unique_groups, obs_years, obs_months, obs_groups, obs_values, window_size, month_lag, year_lag = 0L, weighted = FALSE) {
+    .Call(`_FishSET_calculate_monthly_avg`, unique_years, unique_months, unique_groups, obs_years, obs_months, obs_groups, obs_values, window_size, month_lag, year_lag, weighted)
+}
+
 shift_sort_xcpp <- function(x, ch, y, distance, alts, ab) {
     .Call(`_FishSET_shift_sort_xcpp`, x, ch, y, distance, alts, ab)
 }

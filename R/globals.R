@@ -50,5 +50,7 @@ utils::globalVariables(c(
   'beta_util',
   'prices',
   'diff_val',
-  'terms'
+  'terms',
+  'yr',
+  'mth'
 ))
