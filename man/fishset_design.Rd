@@ -104,9 +104,9 @@ fishset_design(
   scale = TRUE
 )
 
-# 4. Expected profit model (EPM)
-# Note: The distribution (Normal, Lognormal, Weibull) is specified later in fishset_fit().
-# The expected catch predictor (catch_var in this example) does not vary across zones.
+# 4. Expected profit model - normal distribution
+# The expected catch (catch_var in this example) does not vary across zones in this 
+# example (e.g., vessel length).
 fishset_design(
   formula = chosen ~ distance | catch_var,
   project = "MyProject",

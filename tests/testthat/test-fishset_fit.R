@@ -303,5 +303,3 @@ test_that("Vectorized unscaling correctly divides coefficients and SEs", {
   expect_equal(unname(result$coefficients["Var1"]), (unname(raw_var1) / 2.0), tolerance = 1e-5)
   expect_equal(unname(result$coefficients["Var2"]), (unname(raw_var2) / 10.0), tolerance = 1e-5)
 })
-
-

@@ -23,6 +23,8 @@ source("modules/explore_data_module.R", local = TRUE)
 source("modules/format_data/compute_new_var_module.R", local = TRUE)
 source("modules/format_data/define_alternatives_module.R", local = TRUE)
 source("modules/format_data/create_expectations_module.R", local = TRUE)
+source("modules/format_data/format_model_data_module.R", local = TRUE)
+
 
 # UI function definition
 ui <- function(request){
@@ -72,9 +74,11 @@ ui <- function(request){
             
             #### Select project
             bslib::card(fill = FALSE,
+                        class="card-overflow",
                         height = 200,
                         bslib::card_header("2. Add or select a project"),
                         bslib::card_body(
+                          class="card-overflow d-flex flex-column",
                           shinyjs::useShinyjs(),
                           select_project_ui("select_project")
                         )
@@ -116,7 +120,6 @@ ui <- function(request){
         )
       )
     ),
-    
     # QAQC ----------------------------------------------------------------------------------------
     bslib::nav_menu(
       title = "QAQC",
@@ -258,6 +261,32 @@ ui <- function(request){
             
             ### Main panel
             create_expectations_ui("create_expectations")
+            
+          )
+        )
+      ),
+     ## Format model data subtab ------------------------------------------------------------------
+           bslib::nav_panel(
+        title = "Format model data", 
+        id = "format_model_data",
+        value = "format_model_data",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE,
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+
+              checklist_ui("format_mod_data_checklist"),
+              other_actions_ui("format_mod_data_actions")
+            ),
+            
+            ### Main panel
+            format_model_data_ui("format_mod_data")
             
           )
         )

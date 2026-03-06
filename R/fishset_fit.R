@@ -115,7 +115,7 @@ fishset_fit <- function(project,
   paths <- c(paste0(base_path, ".qs2"), paste0(base_path, ".rds"))
   found_path <- paths[file.exists(paths)][1]
   
-  if (is.na(found_path)) stop("Design file not found on disk.")
+  if (is.na(found_path)) stop("Design file not found.")
   
   # Load based on extension
   if (grepl("\\.qs2$", found_path)) {
@@ -126,15 +126,18 @@ fishset_fit <- function(project,
   }
   
   # Load model fit list and check fit_name input
+  full_fit_list <- tryCatch({
+    unserialize_table(paste0(project, "ModelFit"), project)
+  }, error = function(e) {
+    list()
+  })
+  
   if (is_empty(fit_name)) fit_name <- paste0(model_name, "_fit")
   
-  if (table_exists(paste0(project, "ModelFit"), project)) {
-    full_fit_list <- unserialize_table(paste0(project, "ModelFit"), project)  
-    if (fit_name %in% names(full_fit_list)) {
-      if (!overwrite) {
-        stop(paste0("Model fit '", fit_name, 
-                    "' already exists. Set overwrite = TRUE to replace it."))  
-      }
+  if (fit_name %in% names(full_fit_list)) {
+    if (!overwrite) {
+      stop(paste0("Model fit '", fit_name, 
+                  "' already exists. Set overwrite = TRUE to replace it."))  
     }
   }
   
@@ -229,7 +232,7 @@ fishset_fit <- function(project,
     }
     
     Y_catch_chosen = as.double(as.vector(design$epm$Y_catch[chosen_lin_idx]))
-    
+
     # Need to check for zero values if using lognormal or weibull distributions
     if (distribution %in% c("lognormal", "weibull") && 
         any(design$epm$Y_catch <= 0, na.rm = TRUE)) {
@@ -330,7 +333,7 @@ fishset_fit <- function(project,
         nll_cont <- -sum(RTMB::dweibull(Y_catch_chosen, shape = sigma_c_chosen, 
                                         scale = scale_chosen, log = TRUE))
       }
-      
+
       # Discrete likelihood
       # Expected revenue
       revenue_util <- prices * E_catch
@@ -475,7 +478,7 @@ fishset_fit <- function(project,
     # Split back out for the final report packaging
     beta_c_est <- beta_all[1:n_catch]
     beta_u_est <- if (n_util > 0) beta_all[(n_catch + 1):(n_catch + n_util)] else numeric(0)
-    
+
     # Append Sigmas to report
     sig_c_est <- exp(estimated_coefs[grep("log_sigma_c", names(estimated_coefs))])
     sig_e_est <- exp(estimated_coefs[grep("log_sigma_e", names(estimated_coefs))])
@@ -534,7 +537,7 @@ fishset_fit <- function(project,
     n_c <- ncol(design$epm$X_catch)
     b_c <- final_par[1:n_c]
     b_u <- final_par[(n_c+1):(n_c + ncol(data_list$X_util))]
-    
+
     l_sig_e <- final_par[grep("log_sigma_e", names(final_par))]
     l_sig_c <- final_par[grep("log_sigma_c", names(final_par))]
     
@@ -588,7 +591,6 @@ fishset_fit <- function(project,
     fitted_values = chosen_probs,
     Y_catch_divisor = y_div,
     price_divisor = p_div,
-    
     diagnostics = list(
       converged = (opt$convergence == 0),
       message = opt$message,

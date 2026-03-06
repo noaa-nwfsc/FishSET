@@ -31,6 +31,8 @@
 #'   data.
 #' @param grid_time_var Variable name representing the time dimension for joining gridded data.
 #'   Only use this input if the gridded data varies by space and time.
+#' @param main_time_var Variable name for the time variable in the main data table that matches
+#'  the \code{grid_time_var}.
 #' @param expectations Character vector containing the names of expected catch or revenue matrices
 #'   to merge into the dataset.
 #' @param distance Logical. If 'TRUE', calculates and merges a distance matrix between observations
@@ -94,12 +96,20 @@ format_model_data <- function(project,
                               gridded_data = NULL, 
                               grid_var_name = NULL, 
                               grid_time_var = NULL, 
+                              main_time_var = NULL,
                               expectations = NULL, 
                               distance = TRUE,
                               distance_units = NULL,
                               impute = NULL,
                               crs = NULL){ 
+
+  # Grab the fully evaluated arguments right as the function starts
+  settings <- as.list(environment())
   
+  # Remove the project and name, as they are metadata, not formatting settings
+  settings$project <- NULL
+  settings$name <- NULL
+
   # Input argument validation ---------------------------------------------------------------------
   # Check name uniqueness in database
   table_name <- paste0(project, "LongFormatData")
@@ -152,10 +162,15 @@ format_model_data <- function(project,
       select_vars_combined <- c(select_vars_combined, aux_key)
     }
     
-    # Check if grid_time_var is in the dataset and add to columns to filter
-    if (!is_empty(grid_time_var) && !(grid_time_var %in% select_vars_combined)) {
-      column_check(dataset, grid_time_var)
-      select_vars_combined <- c(select_vars_combined, grid_time_var)
+    # Check if main_time_var (or grid_time_var) is in the dataset and add to columns to filter
+    if (!is_empty(grid_time_var)) {
+      # Determine which variable in the MAIN dataset represents time
+      target_main_time <- if(!is.null(main_time_var)) main_time_var else grid_time_var
+      
+      if(!is_empty(target_main_time) && !(target_main_time %in% select_vars_combined)){
+        column_check(dataset, target_main_time)
+        select_vars_combined <- c(select_vars_combined, target_main_time)
+      }
     }
     
     dataset <- dataset %>% select(all_of(select_vars_combined))
@@ -241,7 +256,24 @@ format_model_data <- function(project,
   # Reshape and join expectation matrix -----------------------------------------------------------
   # Load expectations
   if(!is.null(expectations) & length(expectations) > 0){
-    expect_list <- unserialize_table(paste0(project,"ExpectedCatch"), project)
+    
+    # Error check for loading the ExpectedCatch table
+    expect_list <- tryCatch({
+      unserialize_table(paste0(project,"ExpectedCatch"), project)
+    }, error = function(cond) {
+      stop(paste0("The 'ExpectedCatch' table does not exist for project '",
+                  project, "'. Please ensure that expected catch matrices have been generated",
+                  "before running format_model_data()."), call. = FALSE)
+    })
+    
+    # Error check to ensure requested expectations exist in the loaded list
+    missing_exps <- setdiff(expectations, names(expect_list))
+    if (length(missing_exps) > 0) {
+      stop(paste0("The following expectation(s) were not found in the project database: '",
+                  paste(missing_exps, collapse = "', '"),
+                  "'. \nAvailable expectations are: '",
+                  paste(names(expect_list), collapse = "', '"), "'."), call. = FALSE)
+    }
     
     # Filter expectation matrices
     exp_mats <- expect_list[which(names(expect_list) %in% expectations)]
@@ -261,27 +293,51 @@ format_model_data <- function(project,
   
   # Add aux data ----------------------------------------------------------------------------------
   if (!is_empty(aux_data)) {
+    # FIX: Stop execution if aux_data is present but aux_key is missing
+    if (is.null(aux_key) || aux_key == "") {
+      stop("Auxiliary data was selected, but the join key ('aux_key') is missing.
+           Please select a variable to join on.")
+    }
+
     # Load aux data and check the aux_key
     aux_df <- table_view(aux_data, project)
     column_check(aux_df, aux_key)
     df <- left_join(df, aux_df, by = aux_key)
   }
   
-  # Add gridded data ------------------------------------------------------------------------------
-  # Load gridded_data
+ # Add gridded data ------------------------------------------------------------------------------
   if(!is_empty(gridded_data)){
-    gridded_df <- table_view(gridded_data, project)
-    column_check(gridded_df, grid_time_var)
+    if (is.null(grid_var_name) || grid_var_name == "") {
+        stop("Gridded data selected, but 'New Variable Name' is missing.")
+    }
     
-    # Pivot to long format
+    gridded_df <- table_view(gridded_data, project)
+     column_check(gridded_df, grid_time_var) 
+   
+   # Pivot to long format
     gridded_df <- gridded_df %>%
       pivot_longer(cols = -all_of(grid_time_var),
                    names_to = "zones",
                    values_to = grid_var_name)
+   
+    # Join Logic
+    # Determine the name of the time variable in the MAIN dataset
+    time_col_main <- if(!is.null(main_time_var)) main_time_var else grid_time_var
     
-    df <- left_join(df,
-                    gridded_df,
-                    by = c("zones",grid_time_var))
+    # Construct the join vector
+    if (!is.null(grid_time_var) && is.null(time_col_main)) {
+        stop("Gridded data has a time variable, but no matching time variable was 
+             found in the main dataset.")
+    }
+
+    join_cond <- c("zones" = "zones")
+    if (!is.null(grid_time_var)) {
+        join_cond <- c(join_cond, setNames(grid_time_var, time_col_main))
+    }
+   
+    df <- left_join(df, 
+                    gridded_df, 
+                    by = join_cond)
   }
   
   # Check NAs and impute --------------------------------------------------------------------------
@@ -344,8 +400,7 @@ format_model_data <- function(project,
   # Rename cols
   df <- df %>%
     rename(!!zone_id := zones)
-  # Save settings
-  settings <- as.list(match.call())[-1]
+ 
   # Save data and settings as a list
   df_list <- list(tmp_name = df,
                   tmp_settings = settings)

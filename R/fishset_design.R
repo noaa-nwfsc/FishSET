@@ -33,6 +33,7 @@
 #'   allow unscaling of parameters after estimation. Recommended for numerical stability.
 #' @param overwrite Logical. Default FALSE. If TRUE, overwrites an existing model design 
 #'   if \code{model_name} already exists in the project folder.
+#' 
 #' @return A list object of class 'fishset_design' containing the design matrices, choice vector, 
 #'   and metadata. The list is saved as a compressed .rds file in the project folder.
 #' 
@@ -73,9 +74,9 @@
 #'   scale = TRUE
 #' )
 #' 
-#' # 4. Expected profit model (EPM)
-#' # Note: The distribution (Normal, Lognormal, Weibull) is specified later in fishset_fit().
-#' # The expected catch predictor (catch_var in this example) does not vary across zones.
+#' # 4. Expected profit model - normal distribution
+#' # The expected catch (catch_var in this example) does not vary across zones in this 
+#' # example (e.g., vessel length).
 #' fishset_design(
 #'   formula = chosen ~ distance | catch_var,
 #'   project = "MyProject",
@@ -117,7 +118,6 @@ fishset_design <- function(formula,
     list()
   })
   
-  design_names <- model_design_list(project)
   if (model_name %in% design_names) {
     if (!overwrite) {
       stop(paste0("Model design '", model_name,"' already exists. Enter a new model name, ",
@@ -126,7 +126,6 @@ fishset_design <- function(formula,
     } else {
       message(paste0("Note: Overwriting existing model design '", model_name, "'"))
     }
-    
   }
   
   # Load formatted data table
@@ -173,7 +172,7 @@ fishset_design <- function(formula,
   
   # Validate Y is binary
   if (!all(y %in% c(0, 1))) stop("The choice variable (LHS of formula) must be binary (0/1).")
-  
+
   # Create X matrices (discrete) ------------------------------------------------------------------
   # Initialize scalers list
   scalers <- list()
@@ -181,6 +180,19 @@ fishset_design <- function(formula,
   # Process matrix helper function
   process_matrix <- function(f_str, data_source, do_scale, scale_name) {
     if (is.null(f_str)) return(NULL)
+    
+    # Check variables exist in data_source
+    req_vars <- all.vars(as.formula(f_str))
+    missing_vars <- setdiff(req_vars, names(data_source))
+    if (length(missing_vars) > 0) {
+      stop(paste0(
+        "Model design failed. The following variable(s) specified in the formula are missing",
+        " from the formatted data: '",
+        paste(missing_vars, collapse = "', '"),
+        "'. Check your formula or your format_model_data() output."
+      ), call. = FALSE)
+    }
+    
     # Generate sparse matrix
     mat <- Matrix::sparse.model.matrix(as.formula(f_str), data = data_source)
     # Drop intercept
@@ -258,9 +270,11 @@ fishset_design <- function(formula,
     catch_formula <- Formula::Formula(catch_formula) # Handle multi-part formulas
     
     # Validation check: ensure catch predictors are in the main formula
-    catch_rhs_vars <- all.vars(catch_formula[[3]] != zone_id)
+    catch_rhs_vars <- all.vars(catch_formula[[3]]) 
+    catch_rhs_vars <- catch_rhs_vars[which(catch_rhs_vars!= zone_id)]
     # Extract RHS from utility formula
     util_rhs_vars <- all.vars(formula[[3]])
+    
     # Check for missing variables
     missing_vars <- setdiff(catch_rhs_vars, util_rhs_vars)
     if (length(missing_vars) > 0) {
@@ -404,6 +418,7 @@ fishset_design <- function(formula,
     file_name <- paste0(model_name, ".rds")
     saveRDS(design_obj, file = file.path(designs_dir, file_name), compress = FALSE)
   }
+  
   message("Design object saved to: ", file.path(designs_dir, file_name))
 
   # Log the function call -------------------------------------------------------------------------
