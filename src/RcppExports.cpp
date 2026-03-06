@@ -91,6 +91,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// calculate_monthly_avg
+NumericMatrix calculate_monthly_avg(IntegerVector unique_years, IntegerVector unique_months, CharacterVector unique_groups, IntegerVector obs_years, IntegerVector obs_months, CharacterVector obs_groups, NumericVector obs_values, int window_size, int month_lag, int year_lag, bool weighted);
+RcppExport SEXP _FishSET_calculate_monthly_avg(SEXP unique_yearsSEXP, SEXP unique_monthsSEXP, SEXP unique_groupsSEXP, SEXP obs_yearsSEXP, SEXP obs_monthsSEXP, SEXP obs_groupsSEXP, SEXP obs_valuesSEXP, SEXP window_sizeSEXP, SEXP month_lagSEXP, SEXP year_lagSEXP, SEXP weightedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type unique_years(unique_yearsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type unique_months(unique_monthsSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type unique_groups(unique_groupsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type obs_years(obs_yearsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type obs_months(obs_monthsSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type obs_groups(obs_groupsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type obs_values(obs_valuesSEXP);
+    Rcpp::traits::input_parameter< int >::type window_size(window_sizeSEXP);
+    Rcpp::traits::input_parameter< int >::type month_lag(month_lagSEXP);
+    Rcpp::traits::input_parameter< int >::type year_lag(year_lagSEXP);
+    Rcpp::traits::input_parameter< bool >::type weighted(weightedSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculate_monthly_avg(unique_years, unique_months, unique_groups, obs_years, obs_months, obs_groups, obs_values, window_size, month_lag, year_lag, weighted));
+    return rcpp_result_gen;
+END_RCPP
+}
 // shift_sort_xcpp
 NumericMatrix shift_sort_xcpp(NumericMatrix x, NumericMatrix ch, NumericVector y, NumericMatrix distance, int alts, int ab);
 RcppExport SEXP _FishSET_shift_sort_xcpp(SEXP xSEXP, SEXP chSEXP, SEXP ySEXP, SEXP distanceSEXP, SEXP altsSEXP, SEXP abSEXP) {
@@ -115,6 +136,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_FishSET_rcpp_calc_scale_stats", (DL_FUNC) &_FishSET_rcpp_calc_scale_stats, 1},
     {"_FishSET_rcpp_apply_scale", (DL_FUNC) &_FishSET_rcpp_apply_scale, 3},
     {"_FishSET_rcpp_sparse_interaction", (DL_FUNC) &_FishSET_rcpp_sparse_interaction, 3},
+    {"_FishSET_calculate_monthly_avg", (DL_FUNC) &_FishSET_calculate_monthly_avg, 11},
     {"_FishSET_shift_sort_xcpp", (DL_FUNC) &_FishSET_shift_sort_xcpp, 6},
     {NULL, NULL, 0}
 };
