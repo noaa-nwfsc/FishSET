@@ -4,12 +4,16 @@
 \alias{table_view}
 \title{View FishSET Database table}
 \usage{
-table_view(table, project)
+table_view(table, project, convert_dates = TRUE)
 }
 \arguments{
 \item{table}{String, name of table in FishSET database. Table name must be in quotes.}
 
 \item{project}{Name of project.}
+
+\item{convert_dates}{Logical, when \code{TRUE} (default) the function attempts to search for
+columns that contain dates, but saved as non-date data types, then converts these columns 
+back to dates.}
 }
 \description{
 Wrapper for \code{\link[DBI]{dbGetQuery}}. View or call the 
