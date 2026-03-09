@@ -157,13 +157,16 @@ table_fields <- function(table, project) {
   }
 }
 
-table_view <- function(table, project) {
+table_view <- function(table, project, convert_dates = TRUE) {
   #' View FishSET Database table
   #' 
   #' \code{table_view()} returns a table from a project's FishSET Database. 
   #' 
   #' @param table String, name of table in FishSET database. Table name must be in quotes.
   #' @param project Name of project.
+  #' @param convert_dates Logical, when \code{TRUE} (default) the function attempts to search for
+  #'   columns that contain dates, but saved as non-date data types, then converts these columns 
+  #'   back to dates.
   #' @export table_view
   #' @description Wrapper for \code{\link[DBI]{dbGetQuery}}. View or call the 
   #'   selected table from the FishSET database.
@@ -208,17 +211,10 @@ table_view <- function(table, project) {
       #   tab_out[dt_numeric] <- lapply(tab_out[dt_numeric], lubridate::as_datetime)
       # }
 
-      # convert date variables back to date
-      d_cols <- date_cols(tab_out)
-      tab_out[d_cols] <- lapply(tab_out[d_cols], date_parser)
-
-      # If the table is a grid table, convert the first column to dates
-      if(table %in% suppressWarnings(list_tables(project, "grid"))){
-        # If the table has more than one row AND the first column is NOT a date variable,
-        # then convert the first column to dates
-        if (nrow(tab_out) > 1 && !lubridate::is.Date(tab_out[[1]])) {
-          tab_out[[1]] <- lubridate::as_date(tab_out[[1]])
-        }
+      if (convert_dates) {
+        # convert date variables back to date
+        d_cols <- date_cols(tab_out)
+        tab_out[d_cols] <- lapply(tab_out[d_cols], date_parser)
       }
       
       tibble::as_tibble(tab_out)
