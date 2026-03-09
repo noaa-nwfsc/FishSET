@@ -28,6 +28,8 @@
 #' @param price_var Variable name in the dataset representing price. This input is only used for
 #'   Expected Profit Models, and the price variable must be included in the formatted dataset 
 #'   created in the \code{\link{format_model_data}} function.
+#' @param model_type Model type: default is \code{"logit"} and will be used in most cases. Set
+#'   to \code{"poisson"} if designing a Poisson-equivalence model.
 #' @param scale Logical. Default = FALSE. If TRUE, numeric predictors in the design matrix (X) 
 #'   are centered and scaled (z-score normalization) before saving. Scaling factors are stored to 
 #'   allow unscaling of parameters after estimation. Recommended for numerical stability.
@@ -105,6 +107,7 @@ fishset_design <- function(formula,
                            zone_id,
                            catch_formula = NULL,
                            price_var = NULL,
+                           model_type = "logit",
                            scale = FALSE){
   
   # Setup and validate data -----------------------------------------------------------------------
@@ -158,12 +161,16 @@ fishset_design <- function(formula,
   if (!inherits(formula, "formula")) formula <- as.formula(formula)
   F_formula <- Formula::Formula(formula) # Use Formula package to handle multi-part formulas
   
-  # Create Y (chosen) -----------------------------------------------------------------------------
+  # Create Y (chosen or count) --------------------------------------------------------------------
   y_frame <- Formula::model.part(F_formula, data = data, lhs = 1)
   y <- as.numeric(y_frame[[1]])
   
   # Validate Y is binary
-  if (!all(y %in% c(0, 1))) stop("The choice variable (LHS of formula) must be binary (0/1).")
+  if (model_type == "logit" && !all(y %in% c(0, 1))) {
+    stop("The choice variable (LHS of formula) must be binary (0/1).")
+  } else if (model_type == "poisson" && any(y < 0)) {
+    stop("The choice variable must be non-negative integers for Poisson equivalence.")
+  }
   
   # Create X matrices (discrete) ------------------------------------------------------------------
   # Initialize scalers list
@@ -339,6 +346,10 @@ fishset_design <- function(formula,
   }
   
   # Package results -------------------------------------------------------------------------------
+  # Create 0-indexed occasion IDs for RTMB
+  occ_factor <- as.factor(data[[unique_obs_id]])
+  occ_id <- as.numeric(occ_factor) - 1
+  
   design_obj <- list(
     y = y,
     X = X_final,
@@ -352,6 +363,7 @@ fishset_design <- function(formula,
       formatted_data_name = formatted_data_name,
       unique_obs_id = unique_obs_id,
       zone_id = zone_id,
+      model_type = model_type,
       # Dimensions
       N_obs = length(unique(data[[unique_obs_id]])), # Number of choices made
       J_alts = length(unique(data[[zone_id]])), # Number of alternatives
@@ -360,7 +372,8 @@ fishset_design <- function(formula,
     # Store ids for post-estimation/prediction
     ids = list(
       obs = data[[unique_obs_id]],
-      zone = data[[zone_id]]
+      zone = data[[zone_id]],
+      occ_id = occ_id
     )
   )
   

@@ -13,6 +13,7 @@ fishset_design(
   zone_id,
   catch_formula = NULL,
   price_var = NULL,
+  model_type = "logit",
   scale = FALSE
 )
 }
@@ -42,6 +43,9 @@ identifier.}
 \item{price_var}{Variable name in the dataset representing price. This input is only used for
 Expected Profit Models, and the price variable must be included in the formatted dataset 
 created in the \code{\link{format_model_data}} function.}
+
+\item{model_type}{Model type: default is \code{"logit"} and will be used in most cases. Set
+to \code{"poisson"} if designing a Poisson-equivalence model.}
 
 \item{scale}{Logical. Default = FALSE. If TRUE, numeric predictors in the design matrix (X) 
 are centered and scaled (z-score normalization) before saving. Scaling factors are stored to 
