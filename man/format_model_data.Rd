@@ -18,6 +18,7 @@ format_model_data(
   grid_time_var = NULL,
   main_time_var = NULL,
   expectations = NULL,
+  count_var = NULL,
   distance = TRUE,
   distance_units = NULL,
   impute = NULL,
@@ -64,6 +65,9 @@ the \code{grid_time_var}.}
 
 \item{expectations}{Character vector containing the names of expected catch or revenue matrices
 to merge into the dataset.}
+
+\item{count_var}{Character representing name of variable containing counts for Poisson-
+equivalence model. NOTE: only use this input if runing a Poisson model.}
 
 \item{distance}{Logical. If 'TRUE', calculates and merges a distance matrix between observations
 and zones. Defaults to 'TRUE'.}

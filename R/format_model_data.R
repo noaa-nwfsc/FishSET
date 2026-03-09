@@ -35,6 +35,8 @@
 #'  the \code{grid_time_var}.
 #' @param expectations Character vector containing the names of expected catch or revenue matrices
 #'   to merge into the dataset.
+#' @param count_var Character representing name of variable containing counts for Poisson-
+#'   equivalence model. NOTE: only use this input if runing a Poisson model.
 #' @param distance Logical. If 'TRUE', calculates and merges a distance matrix between observations
 #'   and zones. Defaults to 'TRUE'.
 #' @param distance_units String representing the units of measurement for distance ("km" or "mi").
@@ -98,6 +100,7 @@ format_model_data <- function(project,
                               grid_time_var = NULL, 
                               main_time_var = NULL,
                               expectations = NULL, 
+                              count_var = NULL,
                               distance = TRUE,
                               distance_units = NULL,
                               impute = NULL,
@@ -181,11 +184,21 @@ format_model_data <- function(project,
   zones_df <- dplyr::tibble(zones = unique_zones)
   # Cross join to create Cartesian product of dataset and zones
   df <- dplyr::cross_join(dataset, zones_df)
-  # Identify chosen zone and remove original zone_id column
-  df <- df %>%
-    mutate(chosen = as.integer(!!sym(zone_id) == zones)) %>%
-    mutate(zones = as.character(zones)) %>%
-    select(-all_of(zone_id))
+  
+  # Identify chosen zone or assign counts
+  if (is.null(count_var)) {
+    # Standard logit binary for chosen zone
+    df <- df %>%
+      mutate(chosen = as.integer(!!sym(zone_id) == zones)) %>%
+      mutate(zones = as.character(zones)) %>%
+      select(-all_of(zone_id))  
+  } else {
+    # Poisson count data - keep count for chosen zones
+    df <- df %>%
+      mutate(!!count_var := ifelse(!!sym(zone_id) == zones, !!sym(count_var), 0)) %>%
+      mutate(zones = as.character(zones)) %>%
+      select(-all_of(zone_id))
+  }
   
   # Generate distance matrix ----------------------------------------------------------------------
   if (distance) {
@@ -298,45 +311,46 @@ format_model_data <- function(project,
       stop("Auxiliary data was selected, but the join key ('aux_key') is missing.
            Please select a variable to join on.")
     }
-
+    
     # Load aux data and check the aux_key
     aux_df <- table_view(aux_data, project)
     column_check(aux_df, aux_key)
     df <- left_join(df, aux_df, by = aux_key)
   }
   
- # Add gridded data ------------------------------------------------------------------------------
+  # Add gridded data ------------------------------------------------------------------------------
   if(!is_empty(gridded_data)){
     if (is.null(grid_var_name) || grid_var_name == "") {
-        stop("Gridded data selected, but 'New Variable Name' is missing.")
+      stop("Gridded data selected, but 'New Variable Name' is missing.")
     }
     
     gridded_df <- table_view(gridded_data, project)
-     column_check(gridded_df, grid_time_var) 
-   
-   # Pivot to long format
-    gridded_df <- gridded_df %>%
-      pivot_longer(cols = -all_of(grid_time_var),
-                   names_to = "zones",
-                   values_to = grid_var_name)
-   
+    column_check(gridded_df, grid_time_var) 
+    
     # Join Logic
     # Determine the name of the time variable in the MAIN dataset
     time_col_main <- if(!is.null(main_time_var)) main_time_var else grid_time_var
     
     # Construct the join vector
     if (!is.null(grid_time_var) && is.null(time_col_main)) {
-        stop("Gridded data has a time variable, but no matching time variable was 
+      stop("Gridded data has a time variable, but no matching time variable was 
              found in the main dataset.")
     }
-
-    join_cond <- c("zones" = "zones")
+    
+    join_cond <- c("zones" = zone_id)
+    
+    # Remove duplicate columns
+    dupes <- intersect(names(df), names(gridded_df))
+    dupes <- dupes[!(dupes %in% c(grid_time_var, time_col_main))]
+    gridded_df_cleaned <- gridded_df %>%
+      select(-all_of(dupes))
+    
     if (!is.null(grid_time_var)) {
-        join_cond <- c(join_cond, setNames(grid_time_var, time_col_main))
+      join_cond <- c(join_cond, setNames(grid_time_var, time_col_main))
     }
-   
+    
     df <- left_join(df, 
-                    gridded_df, 
+                    gridded_df_cleaned, 
                     by = join_cond)
   }
   
@@ -400,7 +414,7 @@ format_model_data <- function(project,
   # Rename cols
   df <- df %>%
     rename(!!zone_id := zones)
- 
+  
   # Save data and settings as a list
   df_list <- list(tmp_name = df,
                   tmp_settings = settings)
