@@ -141,8 +141,10 @@ fishset_fit <- function(project,
     }
   }
   
-  # Check if this is an EPM
+  # Check if this is EPM or Poisson
+  is_poisson <- isTRUE(design$settings$model_type == "poisson")
   is_epm <- isTRUE(design$epm$is_epm)
+  
   if (is_epm) {
     if (is.null(distribution)) stop("EPMs require a distribution for the catch function.")
     valid_dists <- c("normal", "lognormal", "weibull")
@@ -162,66 +164,18 @@ fishset_fit <- function(project,
   N_obs <- as.integer(design$settings$N_obs)
   J_alts <- as.integer(design$settings$J_alts)
   y_vec <- as.numeric(design$y) # Choice index
-  chosen_lin_idx <- which(y_vec == 1) # Index of chosen zones in flattened matrix
   
-  # Validation to ensure data wasn't corrupted
-  if (length(chosen_lin_idx) != N_obs) {
-    stop(paste("Error in choice index: number of choices does not match N_obs.",
-               "Ensure data is sorted by Obs/Zone."))
+  if (design$settings$model_type == "logit") {
+    chosen_lin_idx <- which(y_vec == 1) # Index of chosen zones in flattened matrix
+    # Validation to ensure data wasn't corrupted
+    if (length(chosen_lin_idx) != N_obs) {
+      stop(paste("Error in choice index: number of choices does not match N_obs.",
+                 "Ensure data is sorted by Obs/Zone."))
+    }  
   }
   
-  # STANDARD LOGIT SETUP --------------------------------------------------------------------------
-  if (!is_epm) {
-    K_vars <- design$settings$K_vars
-    # Initial betas
-    if ("start_values" %in% names(dots)) {
-      init_beta <- dots$start_values
-      if(length(init_beta) != K_vars) stop(paste0("Start values length (", length(init_beta), 
-                                                  ") does not match parameters (", K_vars, ")."))
-    } else {
-      init_beta <- rep(0.0001, K_vars)
-    }
-    
-    data_list <- list(
-      X = design$X,
-      chosen_lin_idx = chosen_lin_idx,
-      N_obs = N_obs,
-      J_alts = J_alts
-    )
-    
-    start_pars <- list(betas = init_beta)
-    
-    # Objective function
-    nll_func <- function(pars) {
-      RTMB::getAll(data_list, pars)
-      
-      # Sparse Matrix Multiply (Zonal)
-      v <- X %*% betas
-      
-      v_chosen <- v[chosen_lin_idx]
-      
-      dim(v) <- c(J_alts, N_obs)
-      
-      if (robust) {
-        v_max <- v[1, ]
-        for(j in 2:J_alts) {
-          v_next <- v[j, ]
-          v_max <- (v_max + v_next + abs(v_max - v_next)) * 0.5
-        }
-        t_v_shifted <- t(v) - v_max
-        log_sum_exp <- log(RTMB::rowSums(exp(t_v_shifted))) + v_max
-        
-      } else {
-        log_sum_exp <- log(RTMB::colSums(exp(v)))
-      }
-      
-      nll <- -sum(v_chosen - log_sum_exp)
-      return(nll)
-    }
-    
-    
-    # EPM LOGIT SETUP -----------------------------------------------------------------------------
-  } else {
+  # EPM LOGIT SETUP -------------------------------------------------------------------------------
+  if (is_epm) {
     # Extract utility variables (remove catch preds from X)
     util_vars <- setdiff(colnames(design$X), colnames(design$epm$X_catch))
     
@@ -250,7 +204,7 @@ fishset_fit <- function(project,
     init_beta_util <- rep(0.1, ncol(X_util))
     init_log_sigma_c <- rep(log(1.0), J_alts)
     init_log_sigma_e <- log(1.0)
-        
+    
     start_pars <- list(beta_catch = init_beta_catch,
                        beta_util = init_beta_util,
                        log_sigma_c = init_log_sigma_c,
@@ -300,6 +254,89 @@ fishset_fit <- function(project,
       
       return(nll_cont + nll_disc)
     }
+    
+    # POISSON EQUIVALENCE SETUP -------------------------------------------------------------------
+  } else if (is_poisson) {
+    K_vars <- design$settings$K_vars
+    
+    if ("start_values" %in% names(dots)) {
+      init_beta <- dots$start_values
+    } else {
+      init_beta <- rep(0.01, K_vars)
+    }
+    
+    data_list <- list(
+      count = design$y,
+      X = design$X,
+      occ_id = design$ids$occ_id
+    )
+    
+    start_pars <- list(
+      betas = init_beta,
+      alpha_occ = rep(0, N_obs) # intercept for each occasion
+    )
+    
+    nll_func <- function(pars) {
+      RTMB::getAll(data_list, pars)
+      
+      # Linear predictor: occasion inercepts + utilities
+      eta <- alpha_occ[occ_id + 1] + X %*% betas
+      
+      # Expected count
+      lambda <- exp(eta)
+      
+      # Poisson negative LL
+      nll <- -sum(RTMB::dpois(count, lambda, log = TRUE))
+    }
+    
+    # STANDARD LOGIT SETUP ------------------------------------------------------------------------
+  } else {
+    K_vars <- design$settings$K_vars
+    # Initial betas
+    if ("start_values" %in% names(dots)) {
+      init_beta <- dots$start_values
+      if(length(init_beta) != K_vars) stop(paste0("Start values length (", length(init_beta), 
+                                                  ") does not match parameters (", K_vars, ")."))
+    } else {
+      init_beta <- rep(0.0001, K_vars)
+    }
+    
+    data_list <- list(
+      X = design$X,
+      chosen_lin_idx = chosen_lin_idx,
+      N_obs = N_obs,
+      J_alts = J_alts
+    )
+    
+    start_pars <- list(betas = init_beta)
+    
+    # Objective function
+    nll_func <- function(pars) {
+      RTMB::getAll(data_list, pars)
+      
+      # Sparse Matrix Multiply (Zonal)
+      v <- X %*% betas
+      
+      v_chosen <- v[chosen_lin_idx]
+      
+      dim(v) <- c(J_alts, N_obs)
+      
+      if (robust) {
+        v_max <- v[1, ]
+        for(j in 2:J_alts) {
+          v_next <- v[j, ]
+          v_max <- (v_max + v_next + abs(v_max - v_next)) * 0.5
+        }
+        t_v_shifted <- t(v) - v_max
+        log_sum_exp <- log(RTMB::rowSums(exp(t_v_shifted))) + v_max
+        
+      } else {
+        log_sum_exp <- log(RTMB::colSums(exp(v)))
+      }
+      
+      nll <- -sum(v_chosen - log_sum_exp)
+      return(nll)
+    }
   }
   
   # Optimization ----------------------------------------------------------------------------------
@@ -307,9 +344,13 @@ fishset_fit <- function(project,
   use_sparse_hess <- (design$settings$K_vars >= 50)
   TMB::config(tmbad.sparse_hessian_compress = use_sparse_hess, DLL="RTMB")
   
+  # If Poisson, profile out alpha_occ
+  random_args <- if (is_poisson) "alpha_occ" else NULL
+  
   obj <- RTMB::MakeADFun(func = nll_func,
                          data = data_list,
                          parameters = start_pars,
+                         random = random_args,
                          silent = TRUE)
   
   # Minimize NLL

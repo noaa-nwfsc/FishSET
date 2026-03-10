@@ -135,10 +135,12 @@ format_model_data <- function(project,
   # Load main data table
   original_dataset <- table_view(paste0(project, "MainDataTable"), project)
   
-  # Check unique_obs_id 
-  if (!(nrow(unique(original_dataset[unique_obs_id])) == nrow(original_dataset))) {
-    stop("The unique_obs_id is not unique for each observation (row). Select a new variable
+  # Check unique_obs_id (required for standard logit)
+  if (is.null(count_var)) {
+    if (!(nrow(unique(original_dataset[unique_obs_id])) == nrow(original_dataset))) {
+      stop("The unique_obs_id is not unique for each observation (row). Select a new variable
          or create a new ID variable unique to each observation.")
+    }  
   }
   
   # Load alternative choice list
@@ -182,23 +184,41 @@ format_model_data <- function(project,
   ## Create a long format data frame for all possible choices ----
   # Data frame of unique zones
   zones_df <- dplyr::tibble(zones = unique_zones)
-  # Cross join to create Cartesian product of dataset and zones
-  df <- dplyr::cross_join(dataset, zones_df)
   
-  # Identify chosen zone or assign counts
   if (is.null(count_var)) {
-    # Standard logit binary for chosen zone
-    df <- df %>%
+    # Standard logit (assumes 1 row = 1 choice)
+    df <- dplyr::cross_join(dataset, zones_df) %>%
       mutate(chosen = as.integer(!!sym(zone_id) == zones)) %>%
       mutate(zones = as.character(zones)) %>%
-      select(-all_of(zone_id))  
-  } else {
-    # Poisson count data - keep count for chosen zones
-    df <- df %>%
-      mutate(!!count_var := ifelse(!!sym(zone_id) == zones, !!sym(count_var), 0)) %>%
-      mutate(zones = as.character(zones)) %>%
       select(-all_of(zone_id))
+    
+  } else {
+    # Poisson count data (aggregates multi-cell visits dynamically)
+    # Extract occasion-level attributes
+    occ_vars <- dataset %>%
+      select(-all_of(c(zone_id, count_var))) %>%
+      distinct(!!sym(unique_obs_id), .keep_all = TRUE)
+    
+    # Aggregate counts in case a fisher/fleet visited a cell multiple times
+    agg_counts <- dataset %>%
+      group_by(!!sym(unique_obs_id), !!sym(zone_id)) %>%
+      summarize(!!count_var := sum(!!sym(count_var), na.rm = TRUE), .groups = "drop") %>%
+      mutate(!!sym(zone_id) := as.character(!!sym(zone_id)))
+    
+    # Universal grid
+    df <- dplyr::cross_join(occ_vars, zones_df) %>%
+      mutate(zones = as.character(zones))
+    
+    # Final join
+    join_by_vec <- setNames(c(unique_obs_id, zone_id), c(unique_obs_id, "zones"))
+    df <- df %>%
+      left_join(agg_counts, by = join_by_vec) %>%
+      mutate(!!count_var := tidyr::replace_na(!!sym(count_var), 0))
   }
+  
+  
+  
+  
   
   # Generate distance matrix ----------------------------------------------------------------------
   if (distance) {

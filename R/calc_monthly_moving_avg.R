@@ -1,8 +1,12 @@
 #' Calculate monthly moving window averages
 #'
+#' @param project Sting, name of the FishSET project.
 #' @param df Primary data frame or data.table containing the observations.
-#' @param name String, the name of the new column to be added to \code{df} 
+#' @param var_name String, the name of the new column to be added to \code{df} 
 #'   containing the calculated moving averages. Defaults to \code{"moving_avg"}.
+#' @param grid_name String, name of the gridded table to save to the FishSET database.
+#' @param append_to_existing Logical, If TRUE, looks for an existing GridTable in the 
+#'   database and merges the new column into it. Defaults to FALSE (creates a new table).
 #' @param year_col String, the name of the column containing the year (integer).
 #' @param month_col String, the name of the column containing the month (integer).
 #' @param group_cols Character vector, variable(s) from \code{df} that define how to 
@@ -25,8 +29,11 @@
 #'   column specified by \code{name}.
 #' @export
 
-calc_monthly_moving_avg <- function(df,
-                                    name,
+calc_monthly_moving_avg <- function(project,
+                                    df,
+                                    var_name,
+                                    grid_name,
+                                    append_to_existing,
                                     year_col, 
                                     month_col, 
                                     group_cols,
@@ -81,19 +88,55 @@ calc_monthly_moving_avg <- function(df,
   # Rename columns to match the input df and the desired target column name
   setnames(lookup_table, 
            old = c("yr", "mth", "group_id", "val_placeholder"), 
-           new = c(year_col, month_col, temp_id_col, name))
+           new = c(year_col, month_col, temp_id_col, var_name))
   
-  dt <- merge(dt, lookup_table, by = c(year_col, month_col, temp_id_col), all.x = TRUE)
+  # Re-attach the original separate group_cols
+  cols_to_select <- c(group_cols, temp_id_col)
+  group_map <- unique(dt[, .SD, .SDcols = cols_to_select])
+  lookup_table <- merge(lookup_table, group_map, by = temp_id_col, all.x = TRUE)
   
   # Handle missing expectations
   if (!is.na(fill_empty_expectation)) {
     # Replace NAs in the NEW column with the provided value
     # We use get() to refer to the column by its string name
-    dt[is.na(get(name)), (name) := fill_empty_expectation]
+    lookup_table[is.na(get(var_name)), (var_name) := fill_empty_expectation]
   }
   
-  # Cleanup
-  dt[, (temp_id_col) := NULL]
+  # Save to database
+  if (append_to_existing) {
+    grid_table_name <- paste0(project, grid_name, "GridTable")
+    
+    # Try to load existing grid
+    existing_grid <- tryCatch({
+      table_view(grid_table_name, project)
+    }, error = function(cond) {
+      message("Existing grid '", grid_name, "' not found. Creating a new one instead.")
+      return(NULL)
+    })
+    
+    if (!is.null(existing_grid)) {
+      existing_dt <- as.data.table(existing_grid)
+      # Merge new column into existing grid using full outer join
+      final_grid <- merge(existing_dt,
+                          lookup_table,
+                          by = c(year_col, month_col, group_cols),
+                          all = TRUE)
+    } else {
+      final_grid <- lookup_table
+    }
+  } else {
+    final_grid <- lookup_table
+  }
   
-  return(as.data.frame(dt))
+  # Convert back to data.frame for FishSET
+  final_grid_df <- as.data.frame(final_grid) %>%
+    select(-TEMP_UNIFIED_ID_XYZ)
+  
+  # Save to FishSET database
+  load_grid(grid = final_grid_df,
+            name = grid_name,
+            project = project,
+            over_write = TRUE)
+  
+  return(invisible(final_grid_df))
 }
