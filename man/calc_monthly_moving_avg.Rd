@@ -5,8 +5,11 @@
 \title{Calculate monthly moving window averages}
 \usage{
 calc_monthly_moving_avg(
+  project,
   df,
-  name,
+  var_name,
+  grid_name,
+  append_to_existing,
   year_col,
   month_col,
   group_cols,
@@ -18,10 +21,17 @@ calc_monthly_moving_avg(
 )
 }
 \arguments{
+\item{project}{Sting, name of the FishSET project.}
+
 \item{df}{Primary data frame or data.table containing the observations.}
 
-\item{name}{String, the name of the new column to be added to \code{df} 
+\item{var_name}{String, the name of the new column to be added to \code{df} 
 containing the calculated moving averages. Defaults to \code{"moving_avg"}.}
+
+\item{grid_name}{String, name of the gridded table to save to the FishSET database.}
+
+\item{append_to_existing}{Logical, If TRUE, looks for an existing GridTable in the 
+database and merges the new column into it. Defaults to FALSE (creates a new table).}
 
 \item{year_col}{String, the name of the column containing the year (integer).}
 
