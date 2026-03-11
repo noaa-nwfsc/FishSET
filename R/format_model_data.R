@@ -25,14 +25,8 @@
 #' @param aux_data Name of the auxiliary data table to join. Use \code{\link{list_tables}}
 #'   function to view the table name.
 #' @param aux_key Variable name used to join the main data table with the auxiliary data.
-#' @param gridded_data Name of the gridded data table to join. Use \code{\link{list_tables}}
-#'   function to view the table name.
-#' @param grid_var_name Name to use for the new variable representing the value in the gridded
-#'   data.
-#' @param grid_time_var Variable name representing the time dimension for joining gridded data.
-#'   Only use this input if the gridded data varies by space and time.
-#' @param main_time_var Variable name for the time variable in the main data table that matches
-#'  the \code{grid_time_var}.
+#' @param gridded_data Character vector of the gridded data table(s) to join. 
+#'   Use \code{\link{list_tables}} function and set \code{type = "grid"}  to view the table name.
 #' @param expectations Character vector containing the names of expected catch or revenue matrices
 #'   to merge into the dataset.
 #' @param count_var Character representing name of variable containing counts for Poisson-
@@ -96,9 +90,6 @@ format_model_data <- function(project,
                               aux_data = NULL, 
                               aux_key = NULL, 
                               gridded_data = NULL, 
-                              grid_var_name = NULL, 
-                              grid_time_var = NULL, 
-                              main_time_var = NULL,
                               expectations = NULL, 
                               count_var = NULL,
                               distance = TRUE,
@@ -216,10 +207,6 @@ format_model_data <- function(project,
       mutate(!!count_var := tidyr::replace_na(!!sym(count_var), 0))
   }
   
-  
-  
-  
-  
   # Generate distance matrix ----------------------------------------------------------------------
   if (distance) {
     # Check that units are specified
@@ -278,6 +265,11 @@ format_model_data <- function(project,
         cols = -all_of(unique_obs_id),
         names_to = "zones",
         values_to = "distance")
+    
+    if (!is.null(count_var)) {
+      distance_long <- distance_long %>%
+        distinct()
+    }
     
     if(!class(df[[unique_obs_id]]) == class(distance_long[[unique_obs_id]])) {
       class(distance_long[[unique_obs_id]]) <- class(df[[unique_obs_id]])
@@ -339,39 +331,40 @@ format_model_data <- function(project,
   }
   
   # Add gridded data ------------------------------------------------------------------------------
-  if(!is_empty(gridded_data)){
+  if (!all(is_empty(gridded_data))) {
     if (is.null(grid_var_name) || grid_var_name == "") {
       stop("Gridded data selected, but 'New Variable Name' is missing.")
     }
     
-    gridded_df <- table_view(gridded_data, project)
-    column_check(gridded_df, grid_time_var) 
-    
-    # Join Logic
-    # Determine the name of the time variable in the MAIN dataset
-    time_col_main <- if(!is.null(main_time_var)) main_time_var else grid_time_var
-    
-    # Construct the join vector
-    if (!is.null(grid_time_var) && is.null(time_col_main)) {
-      stop("Gridded data has a time variable, but no matching time variable was 
-             found in the main dataset.")
+    # Loop through each table name provided
+    for (grid_table in gridded_data) {
+      
+      # Load the grid table from the database
+      gridded_df <- table_view(grid_table, project, convert_dates = FALSE)
+      
+      # Align the spatial identifier
+      if (zone_id %in% names(gridded_df)) {
+        gridded_df <- gridded_df %>% rename(zones = !!sym(zone_id))
+      }
+      
+      common_cols <- intersect(names(df), names(gridded_df))  
+      
+      if (length(common_cols) == 0) {
+        stop(paste0("Could not join gridded table '", 
+                    grid_table, 
+                    "'. No matching column names found. Ensure your spatial",
+                    " and temporal variables match."))
+      }
+      
+      # Remove duplicate non-join columns to prevent .x/.y suffixes
+      duplicate_vars <- setdiff(intersect(names(df), names(gridded_df)), common_cols)
+      if (length(duplicate_vars) > 0) {
+        gridded_df <- gridded_df %>% select(-all_of(duplicate_vars))
+      }
+      
+      # Perform automated join
+      df <- left_join(df, gridded_df, by = common_cols)
     }
-    
-    join_cond <- c("zones" = zone_id)
-    
-    # Remove duplicate columns
-    dupes <- intersect(names(df), names(gridded_df))
-    dupes <- dupes[!(dupes %in% c(grid_time_var, time_col_main))]
-    gridded_df_cleaned <- gridded_df %>%
-      select(-all_of(dupes))
-    
-    if (!is.null(grid_time_var)) {
-      join_cond <- c(join_cond, setNames(grid_time_var, time_col_main))
-    }
-    
-    df <- left_join(df, 
-                    gridded_df_cleaned, 
-                    by = join_cond)
   }
   
   # Check NAs and impute --------------------------------------------------------------------------

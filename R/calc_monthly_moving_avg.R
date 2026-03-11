@@ -45,17 +45,23 @@ calc_monthly_moving_avg <- function(project,
   
   dt <- as.data.table(df)
   
+  # Create full grid of all grouping variables
+  group_list <- lapply(group_cols, function(col) unique(dt[[col]]))
+  full_groups <- do.call(data.table::CJ, group_list)
+  setnames(full_groups, group_cols)
+  
   # Create unified group ID
-  # Use a temp name to avoid clashes
-  temp_id_col <- "TEMP_UNIFIED_ID_XYZ"
+  temp_id_col <- "TEMP_UNIFIED_ID_XYZ" # Use a temp name to avoid clashes
+  full_groups[, (temp_id_col) := do.call(paste, c(.SD, sep = "_")), .SDcols = group_cols]
+  unique_groups <- full_groups[["TEMP_UNIFIED_ID_XYZ"]]
+  
+  # Create the unified ID on the observation data so C++ can map it
   dt[, (temp_id_col) := do.call(paste, c(.SD, sep = "_")), .SDcols = group_cols]
   
   # Prepare unique vectors
   unique_times <- unique(dt[, .(get(year_col), get(month_col))])
   setnames(unique_times, c("yr", "mth"))
   setorder(unique_times, yr, mth)
-  
-  unique_groups <- unique(dt[[temp_id_col]])
   
   # Call C++ function
   res_mat <- calculate_monthly_avg(
@@ -91,15 +97,16 @@ calc_monthly_moving_avg <- function(project,
            new = c(year_col, month_col, temp_id_col, var_name))
   
   # Re-attach the original separate group_cols
-  cols_to_select <- c(group_cols, temp_id_col)
-  group_map <- unique(dt[, .SD, .SDcols = cols_to_select])
+  group_map <- full_groups
   lookup_table <- merge(lookup_table, group_map, by = temp_id_col, all.x = TRUE)
+  lookup_table[, (temp_id_col) := NULL]
   
   # Handle missing expectations
   if (!is.na(fill_empty_expectation)) {
     # Replace NAs in the NEW column with the provided value
     # We use get() to refer to the column by its string name
-    lookup_table[is.na(get(var_name)), (var_name) := fill_empty_expectation]
+    fill_val <- as(fill_empty_expectation, class(lookup_table[[var_name]]))
+    lookup_table[is.na(get(var_name)), (var_name) := fill_val]
   }
   
   # Save to database
@@ -108,7 +115,7 @@ calc_monthly_moving_avg <- function(project,
     
     # Try to load existing grid
     existing_grid <- tryCatch({
-      table_view(grid_table_name, project)
+      table_view(grid_table_name, project, convert_dates = FALSE)
     }, error = function(cond) {
       message("Existing grid '", grid_name, "' not found. Creating a new one instead.")
       return(NULL)
@@ -129,8 +136,7 @@ calc_monthly_moving_avg <- function(project,
   }
   
   # Convert back to data.frame for FishSET
-  final_grid_df <- as.data.frame(final_grid) %>%
-    select(-TEMP_UNIFIED_ID_XYZ)
+  final_grid_df <- as.data.frame(final_grid)
   
   # Save to FishSET database
   load_grid(grid = final_grid_df,
