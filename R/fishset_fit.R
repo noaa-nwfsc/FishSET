@@ -370,15 +370,30 @@ fishset_fit <- function(project,
     k_len <- length(opt$par)
     final_gradient <- obj$gr(opt$par)
     
-    if (k_len < 50) {
-      hessian_mat <- stats::optimHess(opt$par, obj$fn, obj$gr)
+    if (is_poisson) {
+      # Use sdreport for models with random effects
+      sdr <- tryCatch(RTMB::sdreport(obj), error = function(e) NULL)
+      
+      if (!is.null(sdr)) {
+        cov_mat <- sdr$cov.fixed
+        d_vals <- diag(cov_mat)
+        report_se <- sqrt(ifelse(d_vals < 0, NA, d_vals))
+        
+        # Approximate Hessian from inverse of cov matrix
+        hessian_mat <- tryCatch(solve(cov_mat), error = function(e) matrix(NA, k_len, k_len))
+      }
+      
     } else {
-      hessian_mat <- obj$he(opt$par)
+      if (k_len < 50) {
+        hessian_mat <- stats::optimHess(opt$par, obj$fn, obj$gr)
+      } else {
+        hessian_mat <- obj$he(opt$par)
+      }
+      
+      cov_mat <- tryCatch(solve(hessian_mat), error = function(e) matrix(NA, k_len, k_len))
+      d_vals <- diag(cov_mat)
+      report_se <- sqrt(ifelse(d_vals < 0, NA, d_vals))
     }
-    
-    cov_mat <- tryCatch(solve(hessian_mat), error = function(e) matrix(NA, k_len, k_len))
-    d_vals <- diag(cov_mat)
-    report_se <- sqrt(ifelse(d_vals < 0, NA, d_vals))
     
     if (!any(is.na(hessian_mat))) {
       e_decomp <- eigen(hessian_mat, symmetric = TRUE, only.values = TRUE)
@@ -481,7 +496,17 @@ fishset_fit <- function(project,
   # Fit stats and predictions ---------------------------------------------------------------------
   nll <- opt$objective
   k_param <- length(opt$par)
-  null_logLik <- -1 * N_obs * log(J_alts)
+  
+  # Calculate appropriate NULL LLs
+  if (is_poisson) {
+    # Null Poisson: assumes counts are distributed perfectly evenly across all cells
+    actual_mat <- t(matrix(y_vec, nrow = J_alts, ncol = N_obs))
+    lambda_null <- rowSums(actual_mat) / J_alts
+    null_logLik <- sum(stats::dpois(y_vec, rep(lambda_null, each = J_alts), log = TRUE))
+  } else {
+    null_logLik <- -1 * N_obs * log(J_alts)  
+  }
+  
   aic <- 2 * nll + 2 * k_param
   bic <- 2 * nll + k_param * log(N_obs)
   rho2 <- 1 - ((-nll) / null_logLik)
@@ -520,10 +545,22 @@ fishset_fit <- function(project,
     prob_mat_t <- t(exp_v) / sum_exp
   }
   
-  choice_idx_report <- (chosen_lin_idx - 1) %% J_alts + 1
-  chosen_probs <- prob_mat_t[cbind(1:N_obs, choice_idx_report)]
-  pred_choice <- max.col(prob_mat_t, ties.method = "first")
-  accuracy <- mean(pred_choice == choice_idx_report)
+  # Calculate accuracy and outputs
+  if (is_poisson) {
+    pred_choice <- max.col(prob_mat_t, ties.method = "first")
+    actual_max <- max.col(actual_mat, ties.method = "first")
+    accuracy <- mean(pred_choice == actual_max)
+    
+    # Instead of 'chosen_probs', we output the 'Expected Counts' (Shares * Total Traps)
+    total_counts_per_occ <- rowSums(actual_mat)
+    chosen_probs <- as.vector(prob_mat_t * total_counts_per_occ)
+    
+  } else {
+    choice_idx_report <- (chosen_lin_idx - 1) %% J_alts + 1
+    chosen_probs <- prob_mat_t[cbind(1:N_obs, choice_idx_report)]
+    pred_choice <- max.col(prob_mat_t, ties.method = "first")
+    accuracy <- mean(pred_choice == choice_idx_report)
+  }
   
   # Output and save -------------------------------------------------------------------------------
   result <- list(

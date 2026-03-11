@@ -165,11 +165,13 @@ fishset_design <- function(formula,
   y_frame <- Formula::model.part(F_formula, data = data, lhs = 1)
   y <- as.numeric(y_frame[[1]])
   
-  # Validate Y is binary
+  # Validate Y based on model type
   if (model_type == "logit" && !all(y %in% c(0, 1))) {
     stop("The choice variable (LHS of formula) must be binary (0/1).")
-  } else if (model_type == "poisson" && any(y < 0)) {
-    stop("The choice variable must be non-negative integers for Poisson equivalence.")
+  } else if (model_type == "poisson") {
+    if (any(y < 0) || !isTRUE(all.equal(y, as.integer(y)))) {
+      stop("The choice variable must be non-negative integers for Poisson equivalence.")  
+    }
   }
   
   # Create X matrices (discrete) ------------------------------------------------------------------
