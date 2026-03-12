@@ -158,17 +158,6 @@ format_model_data <- function(project,
       select_vars_combined <- c(select_vars_combined, aux_key)
     }
     
-    # Check if main_time_var (or grid_time_var) is in the dataset and add to columns to filter
-    if (!is_empty(grid_time_var)) {
-      # Determine which variable in the MAIN dataset represents time
-      target_main_time <- if(!is.null(main_time_var)) main_time_var else grid_time_var
-      
-      if(!is_empty(target_main_time) && !(target_main_time %in% select_vars_combined)){
-        column_check(dataset, target_main_time)
-        select_vars_combined <- c(select_vars_combined, target_main_time)
-      }
-    }
-    
     dataset <- dataset %>% select(all_of(select_vars_combined))
   }
   
@@ -332,9 +321,6 @@ format_model_data <- function(project,
   
   # Add gridded data ------------------------------------------------------------------------------
   if (!all(is_empty(gridded_data))) {
-    if (is.null(grid_var_name) || grid_var_name == "") {
-      stop("Gridded data selected, but 'New Variable Name' is missing.")
-    }
     
     # Loop through each table name provided
     for (grid_table in gridded_data) {
