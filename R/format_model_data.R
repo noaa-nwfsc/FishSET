@@ -102,14 +102,14 @@ format_model_data <- function(project,
                               distance_units = NULL,
                               impute = NULL,
                               crs = NULL){ 
-  
+
   # Grab the fully evaluated arguments right as the function starts
   settings <- as.list(environment())
   
   # Remove the project and name, as they are metadata, not formatting settings
   settings$project <- NULL
   settings$name <- NULL
-  
+
   # Input argument validation ---------------------------------------------------------------------
   # Check name uniqueness in database
   table_name <- paste0(project, "LongFormatData")
