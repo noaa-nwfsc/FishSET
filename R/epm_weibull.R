@@ -120,7 +120,6 @@ epm_weibull <- function(starts3, dat, otherdat, alts, project, expname, mod.name
   # Log-likelihood (for each observation) for choice component of the model
   ldchoice <- (-log(rowSums(exb)))
   
-  
   ##
   ## Calculate likelihood for catch component ----
   ##

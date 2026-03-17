@@ -5,6 +5,26 @@ calculate_moving_avg <- function(unique_dates, unique_groups, obs_dates, obs_gro
     .Call(`_FishSET_calculate_moving_avg`, unique_dates, unique_groups, obs_dates, obs_groups, obs_values, window_size, lag, year_lag, temporal, weighted)
 }
 
+rcpp_calc_scale_stats_sparse <- function(mat) {
+    .Call(`_FishSET_rcpp_calc_scale_stats_sparse`, mat)
+}
+
+rcpp_apply_scale_sparse <- function(mat, mu, sd) {
+    .Call(`_FishSET_rcpp_apply_scale_sparse`, mat, mu, sd)
+}
+
+rcpp_calc_scale_stats <- function(mat) {
+    .Call(`_FishSET_rcpp_calc_scale_stats`, mat)
+}
+
+rcpp_apply_scale <- function(mat, mu, sd) {
+    .Call(`_FishSET_rcpp_apply_scale`, mat, mu, sd)
+}
+
+rcpp_sparse_interaction <- function(mat, zone_int, J) {
+    .Call(`_FishSET_rcpp_sparse_interaction`, mat, zone_int, J)
+}
+
 shift_sort_xcpp <- function(x, ch, y, distance, alts, ab) {
     .Call(`_FishSET_shift_sort_xcpp`, x, ch, y, distance, alts, ab)
 }

@@ -166,8 +166,7 @@ select_aux_var_ui <- function(id){
     
     div(id = ns("select_error_message"), 
         style = "display: none; font-size: 20px;", 
-        p("Aux data not found. If you supplied this data, return to load files and ensure data is
-          loaded correctly.")
+        p("No auxiliary data files currently loaded.")
     )
   )
 }
@@ -212,6 +211,7 @@ select_grid_var_ui <- function(id){
         style = "color: red; display: none; font-size: 20px;", 
         p("Gridded data not found. If you supplied this data, return to load files and ensure data is
           loaded correctly.")
+
     )
   )
 }

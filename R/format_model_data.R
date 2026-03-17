@@ -18,7 +18,10 @@
 #' @param select_vars Character vector of variable names to retain from the main data table.
 #'   Although this input is optional, it is recommended to limit the final format to necessary
 #'   variables for computational efficiency. IMPORTANT NOTE: if modeling multi-haul data, 
-#'   be sure to include the lagged zone ID (previous location) in this vector.
+#'   be sure to include the lagged zone ID (previous location) in this vector. 
+#'   
+#'   *IMPORTANT NOTE*: for expected profit models, the price and actual catch variables
+#'   must be included here.
 #' @param aux_data Name of the auxiliary data table to join. Use \code{\link{list_tables}}
 #'   function to view the table name.
 #' @param aux_key Variable name used to join the main data table with the auxiliary data.
@@ -28,16 +31,18 @@
 #'   data.
 #' @param grid_time_var Variable name representing the time dimension for joining gridded data.
 #'   Only use this input if the gridded data varies by space and time.
+#' @param main_time_var Variable name for the time variable in the main data table that matches
+#'  the \code{grid_time_var}.
 #' @param expectations Character vector containing the names of expected catch or revenue matrices
 #'   to merge into the dataset.
 #' @param distance Logical. If 'TRUE', calculates and merges a distance matrix between observations
 #'   and zones. Defaults to 'TRUE'.
 #' @param distance_units String representing the units of measurement for distance ("km" or "mi").
-#' @param crs Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
-#'   are required.
 #' @param impute Method for imputing missing values (NAs). Options are `"mean"`, 
 #'   `"median"`, `"mode"`, or `"remove"`. `"Remove"` will completely remove zones from the dataset
 #'   that contain any NAs in corresponding data. If NULL, the function stops if NAs are detected.
+#' @param crs Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
+#'   are required.
 #'  
 #' @return A list containing the formatted data frame and the input settings. The list is saved to
 #'  the project database.
@@ -74,7 +79,7 @@
 #' }
 #'
 #' @export
-#' @importFrom dplyr %>% filter select all_of mutate rename left_join sym
+#' @importFrom dplyr %>% filter select all_of mutate rename left_join sym cross_join
 #' @importFrom tidyr pivot_longer
 #' @importFrom DBI dbConnect dbDisconnect dbExecute
 #' @importFrom RSQLite SQLite
@@ -84,7 +89,7 @@ format_model_data <- function(project,
                               name, 
                               alt_name, 
                               zone_id, 
-                              unique_obs_id, # ADD ERROR CHECK
+                              unique_obs_id,
                               select_vars = NULL,
                               aux_data = NULL, 
                               aux_key = NULL, 
@@ -95,18 +100,43 @@ format_model_data <- function(project,
                               expectations = NULL, 
                               distance = TRUE,
                               distance_units = NULL,
-                              crs = NULL, 
-                              impute = NULL){ 
+                              impute = NULL,
+                              crs = NULL){ 
   
-  # Input argument validation ---------------------------------------------------------------------
-  # Check name uniqueness in database
+  # Grab the fully evaluated arguments right as the function starts
+  settings <- as.list(environment())
+  
+  # Remove the project and name, as they are metadata, not formatting settings
+  settings$project <- NULL
+  settings$name <- NULL
+  
+  # Use qs2 for saving if available - this will speed up the function
+  use_qs2 <- requireNamespace("qs2", quietly = TRUE)
+
+# Define nested directory paths ---
   table_name <- paste0(project, "LongFormatData")
-  if (table_exists(table_name, project)) {
-    # load data and check names
-    tmp_data <- unserialize_table(table_name, project)
-    names_tmp_data <- names(tmp_data)
-    if (name %in% names_tmp_data) {
-      stop(paste0("Formatted data with the name '", name, "' already exists. Enter a new name."))
+  db_path <- locdatabase(project)
+  project_dir <- dirname(db_path)
+  
+  # This nests FormattedData INSIDE the Models folder
+  designs_dir <- file.path(project_dir, "Models", "FormattedData") 
+  # ---------------------------------------------
+  
+  file_name_qs2 <- paste0(table_name, ".qs2")
+  file_name_rds <- paste0(table_name, ".rds")
+
+  # Input argument validation ---------------------------------------------------------------------
+  # Check name uniqueness in existing flat files
+  if (file.exists(file.path(designs_dir, file_name_qs2)) && use_qs2) {
+    tmp_data <- qs2::qs_read(file.path(designs_dir, file_name_qs2))
+    if (name %in% names(tmp_data)) {
+      stop(paste0("Formatted data with the name '", name, "' already exists in the .qs2 file. Enter a new name."))
+    }
+    rm(tmp_data)
+  } else if (file.exists(file.path(designs_dir, file_name_rds))) {
+    tmp_data <- readRDS(file.path(designs_dir, file_name_rds))
+    if (name %in% names(tmp_data)) {
+      stop(paste0("Formatted data with the name '", name, "' already exists in the .rds file. Enter a new name."))
     }
     rm(tmp_data)
   }
@@ -123,7 +153,7 @@ format_model_data <- function(project,
   # Check unique_obs_id 
   if (!(nrow(unique(original_dataset[unique_obs_id])) == nrow(original_dataset))) {
     stop("The unique_obs_id is not unique for each observation (row). Select a new variable
-         or create a new ID variable unique to each observation.")
+          or create a new ID variable unique to each observation.")
   }
   
   # Load alternative choice list
@@ -180,7 +210,7 @@ format_model_data <- function(project,
     # Check that units are specified
     if (is_empty(distance_units)) {
       stop("Distance units are required when distance = TRUE. Check format_model_data() help 
-           documentation for acceptable distance_unit inputs.")
+            documentation for acceptable distance_unit inputs.")
     }
     
     port <- NULL # initialize to NULL if no port included
@@ -244,7 +274,24 @@ format_model_data <- function(project,
   # Reshape and join expectation matrix -----------------------------------------------------------
   # Load expectations
   if(!is.null(expectations) & length(expectations) > 0){
-    expect_list <- unserialize_table(paste0(project,"ExpectedCatch"), project)
+    
+    # Error check for loading the ExpectedCatch table
+    expect_list <- tryCatch({
+      unserialize_table(paste0(project,"ExpectedCatch"), project)
+    }, error = function(cond) {
+      stop(paste0("The 'ExpectedCatch' table does not exist for project '",
+                  project, "'. Please ensure that expected catch matrices have been generated",
+                  "before running format_model_data()."), call. = FALSE)
+    })
+    
+    # Error check to ensure requested expectations exist in the loaded list
+    missing_exps <- setdiff(expectations, names(expect_list))
+    if (length(missing_exps) > 0) {
+      stop(paste0("The following expectation(s) were not found in the project database: '",
+                  paste(missing_exps, collapse = "', '"),
+                  "'. \nAvailable expectations are: '",
+                  paste(names(expect_list), collapse = "', '"), "'."), call. = FALSE)
+    }
     
     # Filter expectation matrices
     exp_mats <- expect_list[which(names(expect_list) %in% expectations)]
@@ -264,10 +311,10 @@ format_model_data <- function(project,
   
   # Add aux data ----------------------------------------------------------------------------------
   if (!is_empty(aux_data)) {
-    # FIX: Stop execution if aux_data is present but aux_key is missing
+    # Stop execution if aux_data is present but aux_key is missing
     if (is.null(aux_key) || aux_key == "") {
       stop("Auxiliary data was selected, but the join key ('aux_key') is missing.
-           Please select a variable to join on.")
+            Please select a variable to join on.")
     }
 
     # Load aux data and check the aux_key
@@ -298,7 +345,7 @@ format_model_data <- function(project,
     # Construct the join vector
     if (!is.null(grid_time_var) && is.null(time_col_main)) {
         stop("Gridded data has a time variable, but no matching time variable was 
-             found in the main dataset.")
+              found in the main dataset.")
     }
 
     join_cond <- c("zones" = "zones")
@@ -371,54 +418,41 @@ format_model_data <- function(project,
   # Rename cols
   df <- df %>%
     rename(!!zone_id := zones)
-  # Save settings
-   settings <- list(
-    project = project,
-    name = name,
-    alt_name = alt_name,
-    zone_id = zone_id,        
-    unique_obs_id = unique_obs_id,
-    select_vars = select_vars,
-    aux_data = aux_data,
-    aux_key = aux_key,
-    gridded_data = gridded_data,
-    grid_var_name = grid_var_name,
-    grid_time_var = grid_time_var,
-    main_time_var = main_time_var,
-    expectations = expectations,
-    distance = distance,
-    distance_units = distance_units,
-    crs = crs,
-    impute = impute
-  )
+
   # Save data and settings as a list
   df_list <- list(tmp_name = df,
                   tmp_settings = settings)
   names(df_list) <- c(name, paste0(name, "_settings"))
   
-  # Save formated data, as well as settings
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-  
-  table_name <- paste0(project, "LongFormatData")
-  
-  if (table_exists(table_name, project)) {
-    # save data and remove
-    all_formatted_data <- unserialize_table(table_name, project)
-    table_remove(table_name, project)
+ # Create nested folders ---
+  # recursive = TRUE will automatically create the parent "Models" folder 
+  # and the "FormattedData" subfolder inside it
+  if (!dir.exists(designs_dir)) dir.create(designs_dir, recursive = TRUE)
+  # -------------------------------------
+
+  # Read existing file to append data to it
+  if (file.exists(file.path(designs_dir, file_name_qs2))) {
+    if (use_qs2) {
+      all_formatted_data <- qs2::qs_read(file.path(designs_dir, file_name_qs2))
+      df_list <- c(all_formatted_data, df_list)
+    } else {
+      warning("A .qs2 file exists, but the qs2 package is not available. Overwriting with .rds.")
+    }
+  } else if (file.exists(file.path(designs_dir, file_name_rds))) {
+    all_formatted_data <- readRDS(file.path(designs_dir, file_name_rds))
     df_list <- c(all_formatted_data, df_list)
-  } 
+  }
   
-  # Save table and insert data
-  DBI::dbExecute(fishset_db, 
-                 paste("CREATE TABLE IF NOT EXISTS", 
-                       table_name, 
-                       "(data df_list)"))
-  DBI::dbExecute(fishset_db, 
-                 paste("INSERT INTO", 
-                       table_name, 
-                       "VALUES (:data)"),
-                 params = list(data = list(serialize(df_list, NULL))))
+  # SOFT DEPENDENCY LOGIC for qs2
+  if (use_qs2) {
+    # Recommended: Use distinct extension so your reader knows to use qread
+    qs2::qs_save(df_list, file = file.path(designs_dir, file_name_qs2))
+    message("Design object saved to: ", file.path(designs_dir, file_name_qs2))
+  } else {
+    # Fallback to standard RDS
+    saveRDS(df_list, file = file.path(designs_dir, file_name_rds), compress = FALSE)
+    message("Design object saved to: ", file.path(designs_dir, file_name_rds))
+  }
   
   # Log the function call -------------------------------------------------------------------------
   format_model_data_function <- list()
@@ -428,5 +462,3 @@ format_model_data <- function(project,
   
   log_call(project, format_model_data_function)
 }
-
-

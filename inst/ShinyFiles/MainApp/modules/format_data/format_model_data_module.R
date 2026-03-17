@@ -5,17 +5,20 @@
 #              
 # Authors: Anna Abelman, Paul Carvalho
 # Date created: 1/30/2026
-# Dependencies: shiny, DT, shinyjs, bslib
+# Dependencies: shiny, DT, shinyjs, bslib, qs2
 # Notes: This module interacts with the main reactive data values (rv_data) and
-#        project database.
+#        flat files (.qs2/.rds) stored in Models/FormattedData.
 # =================================================================================================
 
 # format model data server ----------------------------------------------------------------------
 #' format_model_data_server
 #'
 #' @param id A character string that is unique to this module instance.
+#' @param rv_folderpath A reactive value containing the folderpath.
 #' @param rv_project_name A reactive value containing the current project name.
 #' @param rv_data A reactiveValues object containing the loaded data frames.
+#' @param rv_shared_alt_names Reactive values for alternative choices.
+#' @param rv_shared_exp_names Reactive values for expectations.
 #'
 #' @return This module does not return a value.
 format_model_data_server <- function(id, rv_folderpath, rv_project_name, 
@@ -39,30 +42,46 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       return(x)
     }    
     
+    # helper functions for file paths 
+    get_long_format_paths <- function(project) {
+      db_path <- locdatabase(project)
+      designs_dir <- file.path(dirname(db_path), "Models", "FormattedData")
+      table_name <- paste0(project, "LongFormatData")
+      list(
+        dir = designs_dir,
+        qs2 = file.path(designs_dir, paste0(table_name, ".qs2")),
+        rds = file.path(designs_dir, paste0(table_name, ".rds"))
+      )
+    }
+    
+    read_long_format_file <- function(project) {
+      paths <- get_long_format_paths(project)
+      
+      if (file.exists(paths$qs2) && requireNamespace("qs2", quietly = TRUE)) {
+        return(tryCatch(qs2::qs_read(paths$qs2), error = function(e) list()))
+      } else if (file.exists(paths$rds)) {
+        return(tryCatch(readRDS(paths$rds), error = function(e) list()))
+      }
+      return(list())
+    }
+    
     # 1. Load Manage Table Data ----------------------------------------------------------------
     load_formatted_data <- function() {
       req(rv_project_name())
       project <- rv_project_name()$value
-      table_name <- paste0(project, "LongFormatData")
       
       # Default to empty
       just_names <- character(0)
       
-      if (table_exists(table_name, project)) {
-        # Load the object from DB
-        full_data <- tryCatch({
-          unserialize_table(table_name, project)
-        }, error = function(e) {
-          return(list()) 
-        })
-        
-        # Extract NAMES only
-        # NOTE: format_model_data saves two entries per run: "Name" and "Name_settings"
-        if (length(full_data) > 0) {
-          all_keys <- names(full_data)
-          # Filter out keys ending in "_settings"
-          just_names <- all_keys[!grepl("_settings$", all_keys)]
-        }
+      # Load the object from flat files
+      full_data <- read_long_format_file(project)
+      
+      # Extract NAMES only
+      # NOTE: format_model_data saves two entries per run: "Name" and "Name_settings"
+      if (length(full_data) > 0) {
+        all_keys <- names(full_data)
+        # Filter out keys ending in "_settings"
+        just_names <- all_keys[!grepl("_settings$", all_keys)]
       }
       
       # Update reactive value
@@ -141,6 +160,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       selected_vars <- load_gui_variables(project_name, folderpath)
       if (is.null(selected_vars)) {
         shinyjs::hide("run_format_spinner_container")
+        shinyjs::enable("run_format_btn")
         showModal(modalDialog(
           title = "Error: Missing Data",
           "The selected variables file could not be found.",
@@ -154,6 +174,38 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       if (input$aux_data != "" && !is.null(rv_data$aux)) {
         final_aux_data <- input$aux_data
         final_aux_key  <- empty_to_null(rv_selected_vars$vars$aux$aux_id)
+        
+        # Check if key is missing completely
+        if (is.null(final_aux_key)) {
+          shinyjs::hide("run_format_spinner_container")
+          shinyjs::enable("run_format_btn")
+          
+          showModal(modalDialog(
+            title = "Error: Missing Auxiliary Key",
+            "You have selected an auxiliary dataset, but an auxiliary key could not be found. 
+            Please ensure you have assigned the variable that links the main data to the 
+            auxiliary data.",
+            easyClose = TRUE,
+            footer = modalButton("Close")
+          ))
+          return()
+        }
+        
+        # Check if the key actually exists in the main data table
+        if (!all(final_aux_key %in% colnames(rv_data$main))) {
+          shinyjs::hide("run_format_spinner_container")
+          shinyjs::enable("run_format_btn")
+          
+          showModal(modalDialog(
+            title = "Error: Column Mismatch",
+            paste0("The selected auxiliary key ('", paste(final_aux_key, collapse = ", "), 
+                   "') does not exist in the main dataset. Please select a valid matching column."),
+            easyClose = TRUE,
+            footer = modalButton("Close")
+          ))
+          return()
+        }
+        
       } else {
         final_aux_data <- NULL
         final_aux_key  <- NULL
@@ -170,6 +222,46 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
         final_grid_var  <- NULL
         final_grid_time <- NULL
       }
+      
+      
+      # Check Expectations / Alternative Matrix Match
+      if (input$expectations_name_input != "" && input$alt_name_input != "") {
+        
+        # Fetch the expectations table from the database (Note: Assuming ExpectedCatch is still
+        #  SQLite based)
+        exp_table_name <- paste0(project_name, "ExpectedCatch")
+        
+        exp_master_list <- tryCatch({
+          unserialize_table(exp_table_name, project_name)
+        }, error = function(e) return(NULL))
+        
+        # Extract the settings for the selected expectations matrix
+        exp_settings_key <- paste0(input$expectations_name_input, "_settings")
+        
+        if (!is.null(exp_master_list) && !is.null(exp_master_list[[exp_settings_key]])) {
+          
+          # Compare the saved choice matrix to the selected one
+          saved_alt_name <- exp_master_list[[exp_settings_key]]$alt_name
+          
+          if (!is.null(saved_alt_name) && saved_alt_name != input$alt_name_input) {
+            
+            # Show error and halt
+            shinyjs::hide("run_format_spinner_container")
+            shinyjs::enable("run_format_btn")
+            
+            showModal(modalDialog(
+              title = "Error: Matrix Mismatch",
+              paste0("The selected expected catch matrix ('", input$expectations_name_input, 
+                     "') was created using a different alternative choice matrix ('",
+                     saved_alt_name, "'). Please select the matching alternative matrix."),
+              easyClose = TRUE,
+              footer = modalButton("Close")
+            ))
+            return() # Halt execution
+          }
+        }
+      }
+      
       # Run Formatting Function
       tryCatch({
         format_model_data(
@@ -195,7 +287,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
         
         # Success Feedback
         output$format_success_out <- renderText({
-          paste0("Success: Data '", input$format_name_input,
+          paste0("Success: Data '", isolate(input$format_name_input),
                  "' formatted and saved to project.")
         })
         shinyjs::show("format_success_message")
@@ -264,17 +356,14 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
     observeEvent(input$view_settings_trigger, {
       selected_name <- input$view_settings_trigger
       project_name <- rv_project_name()$value
-      table_name_db <- paste0(project_name, "LongFormatData")
       
-      # Load the master list from DB
-      master_list <- tryCatch({
-        unserialize_table(table_name_db, project_name)
-      }, error = function(e) return(NULL))
+      # Load the master list from flat files
+      master_list <- read_long_format_file(project_name)
       
       # NOTE: Settings are stored in a separate key with suffix "_settings"
       settings_key <- paste0(selected_name, "_settings")
       
-      if (is.null(master_list) || is.null(master_list[[settings_key]])) {
+      if (length(master_list) == 0 || is.null(master_list[[settings_key]])) {
         showNotification("Could not load settings for this item.", type = "error")
         return()
       }
@@ -285,7 +374,8 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       # Format values for display
       format_val <- function(p_name, x) {
         # Check specifically for select_vars being empty/NULL
-        if (p_name == "select_vars" && (is.null(x) || length(x) == 0 || x == "")) {
+        if (p_name == "select_vars" && 
+            (is.null(x) || length(x) == 0 || (length(x) == 1 && x == ""))) { 
           return("All variables")
         } else if (is.data.frame(x)) {
           return(paste0("[Data Frame] ", nrow(x), " rows"))
@@ -345,15 +435,12 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       removeModal()
       target_name <- input$data_to_remove
       project_name <- rv_project_name()$value
-      table_name_db <- paste0(project_name, "LongFormatData")
       
       tryCatch({
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project_name))
-        on.exit({ if(DBI::dbIsValid(fishset_db)) DBI::dbDisconnect(fishset_db) })
+        paths <- get_long_format_paths(project_name)
+        master_list <- read_long_format_file(project_name)
         
-        if(table_exists(table_name_db, project_name)){
-          master_list <- unserialize_table(table_name_db, project_name)
-          
+        if(length(master_list) > 0) {
           # Remove both the Data and the Settings
           target_settings <- paste0(target_name, "_settings")
           
@@ -364,16 +451,23 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
             master_list[[target_settings]] <- NULL
           }
           
-          # Remove old table
-          table_remove(table_name_db, project_name)
-          
-          # Only recreate table if list is not empty
-          if(length(master_list) > 0){
-            DBI::dbExecute(fishset_db, paste("CREATE TABLE", table_name_db,
-                                             "(data BLOB)"))
-            DBI::dbExecute(fishset_db, paste("INSERT INTO", table_name_db, 
-                                             "(data) VALUES (:data)"),
-                           params = list(data = list(serialize(master_list, NULL))))
+          # If the list isn't empty after removal, save it back
+          if(length(master_list) > 0) {
+            use_qs2 <- requireNamespace("qs2", quietly = TRUE)
+            
+            if (!dir.exists(paths$dir)) dir.create(paths$dir, recursive = TRUE)
+            
+            if (use_qs2) {
+              qs2::qs_save(master_list, paths$qs2)
+              # Cleanup any old RDS file if switching formats
+              if(file.exists(paths$rds)) file.remove(paths$rds) 
+            } else {
+              saveRDS(master_list, paths$rds, compress = FALSE)
+            }
+          } else {
+            # List is empty, remove the files completely
+            if(file.exists(paths$qs2)) file.remove(paths$qs2)
+            if(file.exists(paths$rds)) file.remove(paths$rds)
           }
           
           load_formatted_data()
@@ -434,13 +528,15 @@ format_model_data_ui <- function(id) {
                             placeholder = "Unique name", width = "100%"),
                   div(
                     class = "p-3 bg-light border rounded",
-                    h6(tags$span("Main Data Selection ", 
+                    h6(tags$span("Select variables from main data (recommended)", 
                                  bslib::tooltip(shiny::icon("info-circle"),
                                                 "Variables to retain from the main data table. 
                                                 Limit to necessary variables for computational
-                                                efficiency. NOTE: if modeling multi-haul data, 
+                                                efficiency. Note(1): if modeling multi-haul data, 
                                                 be sure to include the lagged zone ID (previous 
-                                                location) in this vector.")), 
+                                                location) in this vector. Note(2): if using
+                                                an Aux data table, the column that links the
+                                                main data to the Aux table must be included.")), 
                        class = "card-title text-primary mb-2"),
                     selectizeInput(ns("select_vars_input"), NULL, 
                                    choices = NULL, multiple = TRUE, width = "100%",
@@ -451,17 +547,21 @@ format_model_data_ui <- function(id) {
                     h6("Model Matrices", class = "card-title text-primary mb-2"),
                     selectizeInput(ns("alt_name_input"), 
                                    label = tags$span(
-                                     "Alternative Choice ",
+                                     "Alternative choice ",
                                      bslib::tooltip(shiny::icon("info-circle"), 
                                                     "Name of the alternative choice matrix
-                                                    to use.")), 
+                                                    to use. Note: If you select an Expectations
+                                                    matrix below, it must have been created using
+                                                    this exact Alternative matrix.")), 
                                    choices = NULL, width = "100%"),
                     selectizeInput(ns("expectations_name_input"), 
                                    label = tags$span(
                                      "Expectations ",
                                      bslib::tooltip(shiny::icon("info-circle"), 
                                                     "Expected catch or revenue matrices to merge 
-                                                    into the dataset.")), 
+                                                    into the dataset. Important: This matrix must 
+                                                    have been created using the specific 
+                                                    Alternative choice matrix selected above.")), 
                                    choices = NULL, width = "100%")
                   )
                 )
@@ -478,10 +578,13 @@ format_model_data_ui <- function(id) {
                     div(class="d-flex align-items-center mb-2",
                         shiny::icon("table", class="text-primary me-2"),
                         h6(tags$span(
-                          "Auxiliary Data ",
+                          "Auxiliary Data (optional) ",
                           bslib::tooltip(shiny::icon("info-circle"),
-                                         "Name of the auxiliary data table to join
-                                         (e.g., vessel characteristics data).")), class = "mb-0")),
+                                         "Select an auxiliary data table to join (e.g., vessel 
+                                         characteristics). Note: The key variable linking this 
+                                         table to your main dataset must be included in the 
+                                         'Select variables' input.")),
+                          class = "mb-0")),
                     selectInput(ns("aux_data"), NULL, choices = NULL, width = "100%")
                   ),
                   div(
@@ -489,7 +592,7 @@ format_model_data_ui <- function(id) {
                     div(class="d-flex align-items-center mb-2",
                         shiny::icon("border-all", class="text-primary me-2"),
                         h6(tags$span(
-                          "Gridded Data ", 
+                          "Gridded Data (optional) ", 
                           bslib::tooltip(shiny::icon("info-circle"),
                                          "Name of the gridded data table to join.")),
                           class = "mb-0")),
@@ -554,8 +657,8 @@ format_model_data_ui <- function(id) {
                                     "CRS ", 
                                     bslib::tooltip(shiny::icon("info-circle"),
                                                    "Coordinate reference system for 
-                                                   spatial calculations. Defaults to 4326 
-                                                   if blank.")), 
+                                                    spatial calculations. Defaults to 4326 
+                                                    if blank.")), 
                                   placeholder = "Default: 4326", 
                                   width = "100%"))
                   )

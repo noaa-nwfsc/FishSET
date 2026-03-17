@@ -26,7 +26,6 @@ source("modules/format_data/create_expectations_module.R", local = TRUE)
 source("modules/format_data/format_model_data_module.R", local = TRUE)
 source("modules/model_design_module.R", local = TRUE)
 
-
 # UI function definition
 ui <- function(request){
   bslib::page_navbar(
@@ -266,8 +265,8 @@ ui <- function(request){
           )
         )
       ),
-      ## Format model data subtab ------------------------------------------------------------------
-      bslib::nav_panel(
+     ## Format model data subtab ------------------------------------------------------------------
+           bslib::nav_panel(
         title = "Format model data", 
         id = "format_model_data",
         value = "format_model_data",
@@ -275,13 +274,11 @@ ui <- function(request){
           bslib::layout_sidebar(
             fillable = TRUE,
             fill = TRUE,
-            
             ### Sidebar
             sidebar = bslib::sidebar( 
               fillable = TRUE, 
               fill = TRUE, 
               width = 400,
-              
               checklist_ui("format_mod_data_checklist"),
               other_actions_ui("format_mod_data_actions")
             ),
@@ -317,7 +314,7 @@ ui <- function(request){
             ),
             
             ### Main panel
-            model_design_ui("model_design")    
+            model_design_ui("model_design_data")    
           )
         )
       )
