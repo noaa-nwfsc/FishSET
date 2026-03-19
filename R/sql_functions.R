@@ -840,7 +840,7 @@ model_design_list <- function(project, name = NULL) {
   
   db_path <- locdatabase(project)
   project_dir <- dirname(db_path)
-  designs_dir <- file.path(project_dir, "ModelDesigns")
+  designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
   
   if (!dir.exists(designs_dir)) {
     stop("No model design files were created for this project. Run fishset_design().")
@@ -866,7 +866,7 @@ remove_model_design <- function(project, names) {
   #'   
   db_path <- locdatabase(project)
   project_dir <- dirname(db_path)
-  designs_dir <- file.path(project_dir, "ModelDesigns")
+  designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
   
   if (!dir.exists(designs_dir)) {
     stop("No model design files were created for this project. Run fishset_design().")

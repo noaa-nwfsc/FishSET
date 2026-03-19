@@ -110,7 +110,7 @@ fishset_fit <- function(project,
   
   # Load design file (qs2 or rds)
   db_path <- locdatabase(project)
-  designs_dir <- file.path(dirname(db_path), "ModelDesigns")
+  designs_dir <- file.path(dirname(db_path), "Models", "ModelDesigns")
   base_path <- file.path(designs_dir, model_name)
   paths <- c(paste0(base_path, ".qs2"), paste0(base_path, ".rds"))
   found_path <- paths[file.exists(paths)][1]

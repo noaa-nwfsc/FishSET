@@ -25,6 +25,8 @@ source("modules/format_data/define_alternatives_module.R", local = TRUE)
 source("modules/format_data/create_expectations_module.R", local = TRUE)
 source("modules/format_data/format_model_data_module.R", local = TRUE)
 source("modules/model_design_module.R", local = TRUE)
+source("modules/model_fit_module.R", local = TRUE)
+
 
 # UI function definition
 ui <- function(request){
@@ -317,8 +319,34 @@ ui <- function(request){
             model_design_ui("model_design_data")    
           )
         )
-      )
+      
     ),
+          bslib::nav_panel(
+        title = "Model Fit", 
+        id = "model_fit",
+        value = "model_fit",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE,
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+              
+              checklist_ui("model_fit_checklist"),
+              hr(),
+              other_actions_ui("model_fit_actions")
+            ),
+            
+            ### Main panel
+            model_fit_ui("model_fit_data")    
+          )
+        )
+      )
+    )
   )
 }
 
