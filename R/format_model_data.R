@@ -112,8 +112,8 @@ format_model_data <- function(project,
   
   # Use qs2 for saving if available - this will speed up the function
   use_qs2 <- requireNamespace("qs2", quietly = TRUE)
-
-# Define nested directory paths ---
+  
+  # Define nested directory paths ---
   table_name <- paste0(project, "LongFormatData")
   db_path <- locdatabase(project)
   project_dir <- dirname(db_path)
@@ -124,7 +124,7 @@ format_model_data <- function(project,
   
   file_name_qs2 <- paste0(table_name, ".qs2")
   file_name_rds <- paste0(table_name, ".rds")
-
+  
   # Input argument validation ---------------------------------------------------------------------
   # Check name uniqueness in existing flat files
   if (file.exists(file.path(designs_dir, file_name_qs2)) && use_qs2) {
@@ -316,43 +316,43 @@ format_model_data <- function(project,
       stop("Auxiliary data was selected, but the join key ('aux_key') is missing.
             Please select a variable to join on.")
     }
-
+    
     # Load aux data and check the aux_key
     aux_df <- table_view(aux_data, project)
     column_check(aux_df, aux_key)
     df <- left_join(df, aux_df, by = aux_key)
   }
   
- # Add gridded data ------------------------------------------------------------------------------
+  # Add gridded data ------------------------------------------------------------------------------
   if(!is_empty(gridded_data)){
     if (is.null(grid_var_name) || grid_var_name == "") {
-        stop("Gridded data selected, but 'New Variable Name' is missing.")
+      stop("Gridded data selected, but 'New Variable Name' is missing.")
     }
     
     gridded_df <- table_view(gridded_data, project)
-     column_check(gridded_df, grid_time_var) 
-   
-   # Pivot to long format
+    column_check(gridded_df, grid_time_var) 
+    
+    # Pivot to long format
     gridded_df <- gridded_df %>%
       pivot_longer(cols = -all_of(grid_time_var),
                    names_to = "zones",
                    values_to = grid_var_name)
-   
+    
     # Join Logic
     # Determine the name of the time variable in the MAIN dataset
     time_col_main <- if(!is.null(main_time_var)) main_time_var else grid_time_var
     
     # Construct the join vector
     if (!is.null(grid_time_var) && is.null(time_col_main)) {
-        stop("Gridded data has a time variable, but no matching time variable was 
+      stop("Gridded data has a time variable, but no matching time variable was 
               found in the main dataset.")
     }
-
+    
     join_cond <- c("zones" = "zones")
     if (!is.null(grid_time_var)) {
-        join_cond <- c(join_cond, setNames(grid_time_var, time_col_main))
+      join_cond <- c(join_cond, setNames(grid_time_var, time_col_main))
     }
-   
+    
     df <- left_join(df, 
                     gridded_df, 
                     by = join_cond)
@@ -418,18 +418,18 @@ format_model_data <- function(project,
   # Rename cols
   df <- df %>%
     rename(!!zone_id := zones)
-
+  
   # Save data and settings as a list
   df_list <- list(tmp_name = df,
                   tmp_settings = settings)
   names(df_list) <- c(name, paste0(name, "_settings"))
   
- # Create nested folders ---
+  # Create nested folders ---
   # recursive = TRUE will automatically create the parent "Models" folder 
   # and the "FormattedData" subfolder inside it
   if (!dir.exists(designs_dir)) dir.create(designs_dir, recursive = TRUE)
   # -------------------------------------
-
+  
   # Read existing file to append data to it
   if (file.exists(file.path(designs_dir, file_name_qs2))) {
     if (use_qs2) {

@@ -1,4 +1,3 @@
-# =================================================================================================
 # File: model_fit_module.R
 # Description: This module defines the UI and server logic for fitting FishSET Discrete Choice Models.
 #              It takes a saved model design, optimizes the negative log-likelihood via RTMB,
@@ -253,7 +252,8 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       fit_obj <- fits_list[[selected_name]]
       
       # Helper for formatting numeric summary stats
-      fmt <- function(n, d = 2) if(is.null(n) || is.na(n)) "NA" else format(round(n, d), nsmall = d)
+      fmt <- function(n, d = 2) if(is.null(n) || is.na(n)) "NA" else format(round(n, d),
+                                                                            nsmall = d)
       
       # 1. Build an HTML Bootstrap Table for Summary Stats
       summary_table <- tags$div(
@@ -268,7 +268,8 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
             tags$tr(tags$td(tags$b("AIC")), tags$td(fmt(fit_obj$AIC, 2))),
             tags$tr(tags$td(tags$b("BIC")), tags$td(fmt(fit_obj$BIC, 2))),
             tags$tr(tags$td(tags$b("Pseudo R-Squared")), tags$td(fmt(fit_obj$pseudo_R2, 3))),
-            tags$tr(tags$td(tags$b("Accuracy")), tags$td(paste0(fmt(fit_obj$accuracy * 100, 1), "%")))
+            tags$tr(tags$td(tags$b("Accuracy")), 
+                    tags$td(paste0(fmt(fit_obj$accuracy * 100, 1), "%")))
           )
         )
       )
@@ -305,7 +306,28 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
                       class = 'cell-border stripe hover')
       })
       
-      # 3. Combine into final UI for the Modal
+      # 3. Create Scaling Alerts 
+      scaling_alerts <- tagList()
+      
+      if (!is.null(fit_obj$Y_catch_divisor) && fit_obj$Y_catch_divisor > 1) {
+        scaling_alerts[[length(scaling_alerts) + 1]] <- tags$div(
+          class = "alert alert-info py-2 mb-2",
+          style = "font-size: 0.9rem;",
+          tags$strong("Catch Units: "), 
+          paste("Modeled in 1 /", format(fit_obj$Y_catch_divisor, scientific = FALSE), "units")
+        )
+      }
+      
+      if (!is.null(fit_obj$price_divisor) && fit_obj$price_divisor > 1) {
+        scaling_alerts[[length(scaling_alerts) + 1]] <- tags$div(
+          class = "alert alert-info py-2 mb-2",
+          style = "font-size: 0.9rem;",
+          tags$strong("Price Units: "), 
+          paste("Modeled in 1 /", format(fit_obj$price_divisor, scientific = FALSE), "units")
+        )
+      }
+      
+      # 4. Combine into final UI for the Modal
       details_ui <- tagList(
         
         h5("Coefficient Estimates", class = "text-primary mt-3"),
@@ -313,6 +335,9 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         
         h5("Model Statistics", class = "text-primary"),
         summary_table,
+        
+        # Add the scaling alerts near the bottom of the modal
+        scaling_alerts, 
         
         div(class = "text-muted mt-2", style = "font-size: 0.8rem;",
             "Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
@@ -391,7 +416,7 @@ model_fit_ui <- function(id) {
     
     div(id = ns("main_container"),
         
-        # CARD 1: Fit Model
+        # Fit Model
         bslib::card(
           class = "card-overflow",
           bslib::card_header('Fit Discrete Choice Model'),
@@ -466,7 +491,7 @@ model_fit_ui <- function(id) {
           )
         ),
         
-        # CARD 2: Manage Fits
+        # Manage Fits
         bslib::card(
           class = "card-overflow",
           bslib::card_header("Manage Model Fits"),
