@@ -107,7 +107,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     }
     
     # Trigger loading fits on project change
-    observeEvent(rv_project_name()$value, {
+    observeEvent(rv_data$main, {
       load_fits()
     })
     
