@@ -49,7 +49,7 @@ allow unscaling of parameters after estimation. Recommended for numerical stabil
 }
 \value{
 A list object of class 'fishset_design' containing the design matrices, choice vector, 
-  and metadata. The list is saved as a compressed .rds file in the project folder.
+  and metadata. The list is saved as a compressed file in the project folder.
 }
 \description{
 Constructs the design object required for discrete choice model fitting within the FishSET 
@@ -60,7 +60,7 @@ resulting design object is the primary input for the \code{\link{fishset_fit}} f
 which performs the parameter estimation.
 }
 \details{
-The resulting design object is saved as a compressed .rds file in the 'ModelDesigns' folder,
+The resulting design object is saved as a compressed file in the 'Models/ModelDesigns' folder,
 which is located inside the project folder.
 }
 \examples{

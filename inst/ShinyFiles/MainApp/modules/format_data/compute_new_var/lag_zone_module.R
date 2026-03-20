@@ -121,7 +121,8 @@ lag_zone_server <- function(id, rv_folderpath, rv_project_name, rv_data){
           starting_port = input$starting_port_input,
           zoneID_dat = selected_vars$main$main_zone_id,
           zoneID_spat = selected_vars$spat$spat_zone_id,
-          name = input$lag_zone_name_input)
+          name = input$lag_zone_name_input,
+          bufferval = input$bufferval_input)
         
         rv_lag_zone_dat(dat_with_lag)
         
@@ -287,6 +288,30 @@ lag_zone_ui <- function(id){
                          )
                        ),
                        choices = NULL, multiple = FALSE)
+              )
+            ),
+            # New Fluid Row for Buffer Value
+            fluidRow(
+              column(6,
+                     numericInput(
+                       ns("bufferval_input"),
+                       tagList(
+                         span(
+                           style = "white-space: wrap; display: inline-flex; align-items: center;",
+                           HTML("5. Buffer Distance (m): &nbsp;"),
+                           bslib::tooltip(
+                             shiny::icon("circle-info", `aria-label` = "More information"),
+                             HTML("Maximum distance (in meters) to buffer around a zone polygon 
+                                  when assigning port locations to zones. Useful if port coordinates
+                                  are slightly offset from zone boundaries."),
+                             options = list(delay = list(show = 0, hide = 850))
+                           )
+                         )
+                       ),
+                       value = 100,
+                       min = 0,
+                       step = 10
+                     )
               )
             ),
             

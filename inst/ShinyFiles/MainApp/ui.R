@@ -24,7 +24,7 @@ source("modules/format_data/compute_new_var_module.R", local = TRUE)
 source("modules/format_data/define_alternatives_module.R", local = TRUE)
 source("modules/format_data/create_expectations_module.R", local = TRUE)
 source("modules/format_data/format_model_data_module.R", local = TRUE)
-
+source("modules/model_design_module.R", local = TRUE)
 
 # UI function definition
 ui <- function(request){
@@ -211,12 +211,12 @@ ui <- function(request){
           )
         )
       ),
-     ## Define alternatives subtab -------------------------------------------------------------
+      ## Define alternatives subtab -------------------------------------------------------------
       bslib::nav_panel(
         title = "Define alternative fishing choices", 
         id = "define_alternatives_id",
         value = "define_alternatives_id",
-          bslib::page_fillable(
+        bslib::page_fillable(
           bslib::layout_sidebar(
             fillable = TRUE,
             fill = TRUE,
@@ -227,7 +227,7 @@ ui <- function(request){
               fill = TRUE, 
               width = 400,
               
-          checklist_ui("define_alt_checklist"),
+              checklist_ui("define_alt_checklist"),
               hr(),
               other_actions_ui("define_alt_actions")
             ),
@@ -254,7 +254,7 @@ ui <- function(request){
               fillable = TRUE, 
               fill = TRUE, 
               width = 400,
-
+              
               checklist_ui("create_expectations_checklist"),
               other_actions_ui("create_expectations_actions")
             ),
@@ -274,13 +274,11 @@ ui <- function(request){
           bslib::layout_sidebar(
             fillable = TRUE,
             fill = TRUE,
-            
             ### Sidebar
             sidebar = bslib::sidebar( 
               fillable = TRUE, 
               fill = TRUE, 
               width = 400,
-
               checklist_ui("format_mod_data_checklist"),
               other_actions_ui("format_mod_data_actions")
             ),
@@ -291,7 +289,36 @@ ui <- function(request){
           )
         )
       )
-    )
+    ),
+    
+    bslib::nav_menu(
+      title = "Modeling",
+      bslib::nav_panel(
+        title = "Design Model", 
+        id = "model_design",
+        value = "model_design",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE,
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+              
+              checklist_ui("model_design_checklist"),
+              hr(),
+              other_actions_ui("model_design_actions")
+            ),
+            
+            ### Main panel
+            model_design_ui("model_design_data")    
+          )
+        )
+      )
+    ),
   )
 }
 
