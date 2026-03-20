@@ -123,11 +123,9 @@ fishset_design <- function(formula,
   # Use qs2 for saving/loading if available - this will speed up the function
   use_qs2 <- requireNamespace("qs2", quietly = TRUE)
 
-  # Load Formatted Data from nested Models/FormattedData ---
-  db_path <- locdatabase(project)
-  project_dir <- dirname(db_path)
+  # Load Formatted Data from nested Models/FormattedData
+  project_dir <- file.path(locproject(), project)
   formatted_dir <- file.path(project_dir, "Models", "FormattedData")
-  # ----------------------------------------------------------------------
   
   table_name <- paste0(project, "LongFormatData")
   file_name_qs2 <- paste0(table_name, ".qs2")
