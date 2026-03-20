@@ -219,7 +219,7 @@ server <- function(input, output, session) {
                              rv_shared_exp_names =rv_exp_names,
                              rv_shared_alt_names = rv_alt_names)
   
-  ## Format model data --------------------------------------------------------------------------
+  ## Format model data ----------------------------------------------------------------------------
   ### Sidebar
   checklist_server("format_mod_data_checklist", rv_project_name, rv_data, rv_folderpath)
   
