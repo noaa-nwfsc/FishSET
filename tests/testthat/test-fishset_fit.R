@@ -82,10 +82,13 @@ save_design_to_temp <- function(design_obj, model_name, project) {
 # Test standard logit -----------------------------------------------------------------------------
 test_that("Standard Logit Fit runs successfully (End-to-End)", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- save_design_to_temp(standard_design, "std_model", "TestProj_Std")
-  withr::local_options(list(test_folder_path = test_base_dir)) # Strictly scoped to this test block
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   result <- fishset_fit(
     project = "TestProj_Std",
@@ -103,10 +106,13 @@ test_that("Standard Logit Fit runs successfully (End-to-End)", {
 # Test EPM normal ---------------------------------------------------------------------------------
 test_that("EPM Fit (Normal) runs and unpacks parameters", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- save_design_to_temp(epm_design, "epm_model", "TestProj_EPM")
-  withr::local_options(list(test_folder_path = test_base_dir))
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   result <- fishset_fit(
     project = "TestProj_EPM",
@@ -130,12 +136,15 @@ test_that("EPM Fit (Normal) runs and unpacks parameters", {
 # Test design not found error ---------------------------------------------------------------------
 test_that("Error: Design not found", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- normalizePath(file.path(tempdir(), "FishSET_Fit_Tests"), 
                                  winslash = "/", 
                                  mustWork = FALSE)
-  withr::local_options(list(test_folder_path = test_base_dir))
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   # Create an empty ModelDesigns folder so model_design_list returns empty, 
   # avoiding a missing directory error
@@ -153,10 +162,13 @@ test_that("Error: Design not found", {
 # Test fit already exists error -------------------------------------------------------------------
 test_that("Error: Fit name already exists", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- save_design_to_temp(standard_design, "std_model", "TestProj_Dup")
-  withr::local_options(list(test_folder_path = test_base_dir))
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   # 1st call natively creates the fit and writes to SQLite database
   fishset_fit(
@@ -181,10 +193,13 @@ test_that("Error: Fit name already exists", {
 # Test full prob matrix works ---------------------------------------------------------------------
 test_that("Return Full Probability Matrix works", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- save_design_to_temp(standard_design, "std_model", "TestProj_Prob")
-  withr::local_options(list(test_folder_path = test_base_dir))
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   result <- fishset_fit(
     project = "TestProj_Prob", 

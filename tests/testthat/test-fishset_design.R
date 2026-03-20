@@ -89,10 +89,13 @@ read_design_output <- function(project_name, model_name, base_dir) {
 # Standard conditional logit ----------------------------------------------------------------------
 test_that("Standard Conditional Logit (Part 1 only) runs successfully", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE) # Bulletproof restoration scoped to this block
-  
   test_base_dir <- setup_test_env(project_name)
-  withr::local_options(list(test_folder_path = test_base_dir))
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   suppressMessages(
     fishset_design(formula = chosen ~ distance + expected_catch, 
@@ -103,18 +106,26 @@ test_that("Standard Conditional Logit (Part 1 only) runs successfully", {
                    zone_id = "zone_id")
   )
   
-  files_saved <- list.files(file.path(test_base_dir, project_name, "Models", "ModelDesigns"))
-  expect_true(any(grepl("clogit_test", files_saved)))
+  design_obj <- read_design_output(project_name, "clogit_test", test_base_dir)
+  
+  expect_type(design_obj, "list")
+  expect_equal(class(design_obj), "fishset_design")
+  expect_equal(design_obj$settings$N_obs, N_obs)
+  expect_equal(design_obj$settings$J_alts, J_alts)
+  expect_equal(ncol(design_obj$X), 2)
 })
 
 
 # Test duplicate model names error ----------------------------------------------------------------
 test_that("Error: Duplicate model name throws error", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- setup_test_env(project_name)
-  withr::local_options(list(test_folder_path = test_base_dir))
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   # Natively create a dummy file to trigger the duplicate error gracefully
   md_dir <- file.path(test_base_dir, project_name, "Models", "ModelDesigns")
@@ -136,10 +147,13 @@ test_that("Error: Duplicate model name throws error", {
 # Test missing data error -------------------------------------------------------------------------
 test_that("Error: Missing data name throws error", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- setup_test_env(project_name)
-  withr::local_options(list(test_folder_path = test_base_dir))
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   expect_error(
     fishset_design(formula = chosen ~ distance, 
@@ -156,10 +170,13 @@ test_that("Error: Missing data name throws error", {
 # Test logit with two parts -----------------------------------------------------------------------
 test_that("Interaction terms (Part 2 formula) are generated correctly", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- setup_test_env(project_name)
-  withr::local_options(list(test_folder_path = test_base_dir))
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   suppressMessages(
     fishset_design(formula = chosen ~ distance | vessel_len, 
@@ -178,10 +195,13 @@ test_that("Interaction terms (Part 2 formula) are generated correctly", {
 # Test EPM normal ---------------------------------------------------------------------------------
 test_that("Expected Profit Model (EPM) configuration works", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- setup_test_env(project_name)
-  withr::local_options(list(test_folder_path = test_base_dir))
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   suppressMessages(
     fishset_design(formula = chosen ~ distance | vessel_len, 
@@ -202,10 +222,13 @@ test_that("Expected Profit Model (EPM) configuration works", {
 # Test EPM missing price error --------------------------------------------------------------------
 test_that("EPM Error: Missing price variable", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- setup_test_env(project_name)
-  withr::local_options(list(test_folder_path = test_base_dir))
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   expect_error(
     fishset_design(formula = chosen ~ distance, 
@@ -223,10 +246,13 @@ test_that("EPM Error: Missing price variable", {
 # Test scaler functionality -----------------------------------------------------------------------
 test_that("Scaling functionality stores scalers", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- setup_test_env(project_name)
-  withr::local_options(list(test_folder_path = test_base_dir))
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   suppressMessages(
     fishset_design(formula = chosen ~ distance + expected_catch, 

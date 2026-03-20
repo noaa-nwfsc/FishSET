@@ -131,15 +131,18 @@ read_fmd_output <- function(project_name, base_dir) {
 # Reshape and assign choices correctly ------------------------------------------------------------
 test_that("format_model_data reshapes and assigns choices correctly", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- normalizePath(file.path(tempdir(), "FishSET_FMD_Tests"), 
                                  winslash = "/", 
                                  mustWork = FALSE)
-  withr::local_options(list(test_folder_path = test_base_dir))
   dir.create(file.path(test_base_dir, "TEST_PROJ_RESHAPE", "src"), 
              recursive = TRUE, 
              showWarnings = FALSE)
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   suppressMessages(
     format_model_data(project = "TEST_PROJ_RESHAPE", 
@@ -157,21 +160,25 @@ test_that("format_model_data reshapes and assigns choices correctly", {
   expect_true(all(c("distance", "chosen", "other_var", "ZoneID") %in% names(df_out)))
 })
 
+
 # Test imputation ---------------------------------------------------------------------------------
 test_that("format_model_data handles imputation correctly", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- normalizePath(file.path(tempdir(), "FishSET_FMD_Tests"), 
                                  winslash = "/", 
                                  mustWork = FALSE)
-  withr::local_options(list(test_folder_path = test_base_dir))
   dir.create(file.path(test_base_dir, "TEST_PROJ_MEAN", "src"), 
              recursive = TRUE, 
              showWarnings = FALSE)
   dir.create(file.path(test_base_dir, "TEST_PROJ_REM", "src"), 
              recursive = TRUE, 
              showWarnings = FALSE)
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   # Mean Imputation Test
   main_data_na <- main_data
@@ -220,15 +227,18 @@ test_that("format_model_data handles imputation correctly", {
 # Test merging expectations -----------------------------------------------------------------------
 test_that("format_model_data merges expectations correctly", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- normalizePath(file.path(tempdir(), "FishSET_FMD_Tests"), 
                                  winslash = "/", 
                                  mustWork = FALSE)
-  withr::local_options(list(test_folder_path = test_base_dir))
   dir.create(file.path(test_base_dir, "TEST_PROJ_EXP", "src"), 
              recursive = TRUE, 
              showWarnings = FALSE)
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   suppressMessages(
     format_model_data(project = "TEST_PROJ_EXP", 
@@ -248,12 +258,15 @@ test_that("format_model_data merges expectations correctly", {
 # Test model fail for invalid inputs --------------------------------------------------------------
 test_that("format_model_data fails fast on invalid inputs", {
   setup_mocks()
-  on.exit(restore_mocks(), add = TRUE)
-  
   test_base_dir <- normalizePath(file.path(tempdir(), "FishSET_FMD_Tests"), 
                                  winslash = "/", 
                                  mustWork = FALSE)
-  withr::local_options(list(test_folder_path = test_base_dir))
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
   expect_error(
     format_model_data(project = "TEST_PROJ_FAIL", 
