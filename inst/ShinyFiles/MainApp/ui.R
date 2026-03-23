@@ -120,6 +120,7 @@ ui <- function(request){
         )
       )
     ),
+    
     # QAQC ----------------------------------------------------------------------------------------
     bslib::nav_menu(
       title = "QAQC",
@@ -180,6 +181,7 @@ ui <- function(request){
         )
       )
     ),
+    
     # Format data ---------------------------------------------------------------------------------
     bslib::nav_menu(
       title = "Format Data",
@@ -211,7 +213,8 @@ ui <- function(request){
           )
         )
       ),
-      ## Define alternatives subtab -------------------------------------------------------------
+      
+      ## Define alternatives subtab ---------------------------------------------------------------
       bslib::nav_panel(
         title = "Define alternative fishing choices", 
         id = "define_alternatives_id",
@@ -265,8 +268,9 @@ ui <- function(request){
           )
         )
       ),
-     ## Format model data subtab ------------------------------------------------------------------
-           bslib::nav_panel(
+      
+      ## Format model data subtab ------------------------------------------------------------------
+      bslib::nav_panel(
         title = "Format model data", 
         id = "format_model_data",
         value = "format_model_data",
@@ -291,6 +295,8 @@ ui <- function(request){
       )
     ),
     
+    # Modeling ------------------------------------------------------------------------------------
+    ## Model design -------------------------------------------------------------------------------
     bslib::nav_menu(
       title = "Modeling",
       bslib::nav_panel(

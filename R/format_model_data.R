@@ -427,11 +427,8 @@ format_model_data <- function(project,
                   tmp_settings = settings)
   names(df_list) <- c(name, paste0(name, "_settings"))
   
-  # Create nested folders ---
-  # recursive = TRUE will automatically create the parent "Models" folder 
-  # and the "FormattedData" subfolder inside it
+  # Create nested folders
   if (!dir.exists(designs_dir)) dir.create(designs_dir, recursive = TRUE)
-  # -------------------------------------
   
   # Read existing file to append data to it
   if (file.exists(file.path(designs_dir, file_name_qs2))) {
@@ -446,9 +443,8 @@ format_model_data <- function(project,
     df_list <- c(all_formatted_data, df_list)
   }
   
-  # SOFT DEPENDENCY LOGIC for qs2
+  # Soft dependency for qs2 package
   if (use_qs2) {
-    # Recommended: Use distinct extension so your reader knows to use qread
     qs2::qs_save(df_list, file = file.path(designs_dir, file_name_qs2))
     message("Design object saved to: ", file.path(designs_dir, file_name_qs2))
   } else {

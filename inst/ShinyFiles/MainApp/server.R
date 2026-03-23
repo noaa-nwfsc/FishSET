@@ -65,7 +65,7 @@ server <- function(input, output, session) {
                                    value = 3) # basic default
   rv_alt_names <- reactiveVal(character(0))
   rv_exp_names <- reactiveVal(character(0))
-
+  
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
@@ -229,8 +229,8 @@ server <- function(input, output, session) {
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
-
-    ### Main panel
+  
+  ### Main panel
   format_model_data_server("format_mod_data",
                            rv_folderpath = rv_folderpath, 
                            rv_project_name = rv_project_name, 
@@ -257,5 +257,5 @@ server <- function(input, output, session) {
                       rv_folderpath = rv_folderpath, 
                       rv_project_name = rv_project_name,
                       rv_data = rv_data)
-
+  
 }

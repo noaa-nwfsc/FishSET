@@ -145,8 +145,10 @@ fishset_design <- function(formula,
              no .rds file exists.")
       }
     }
+    
   } else if (file.exists(file.path(formatted_dir, file_name_rds))) {
     full_lf_list <- readRDS(file.path(formatted_dir, file_name_rds))
+    
   } else {
     stop("Not able to load formatted data. Run format_model_data() prior to fishset_design().")
   }
@@ -388,18 +390,15 @@ fishset_design <- function(formula,
   
   class(design_obj) <- "fishset_design"
   
-  # Save to nested Models/ModelDesigns folder ---
-  db_path <- locdatabase(project)
-  project_dir <- dirname(db_path)
+  # Save to nested Models/ModelDesigns folder
+  project_dir <- file.path(locproject(), project)
   designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
-  # -----------------------------------------------------------
   
   # Create a new ModelDesigns folder in the project folder if it doesn't exist yet
   if (!dir.exists(designs_dir)) dir.create(designs_dir, recursive = TRUE)
   
-  # SOFT DEPENDENCY LOGIC for qs2
+  # Soft dependency for qs2 package
   if (use_qs2) {
-    # Recommended: Use distinct extension so your reader knows to use qread
     file_name <- paste0(model_name, ".qs2")
     qs2::qs_save(design_obj, file = file.path(designs_dir, file_name))
   } else {
