@@ -5,12 +5,12 @@
 #              
 # Authors: Anna Abelman, Paul Carvalho
 # Date created: 1/30/2026
-# Dependencies: shiny, DT, shinyjs, bslib, qs2
+# Dependencies: shiny, DT, shinyjs, bslib
 # Notes: This module interacts with the main reactive data values (rv_data) and
 #        flat files (.qs2/.rds) stored in Models/FormattedData.
 # =================================================================================================
 
-# format model data server ----------------------------------------------------------------------
+# format model data server ------------------------------------------------------------------------
 #' format_model_data_server
 #'
 #' @param id A character string that is unique to this module instance.
@@ -44,8 +44,8 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
     
     # helper functions for file paths 
     get_long_format_paths <- function(project) {
-      db_path <- locdatabase(project)
-      designs_dir <- file.path(dirname(db_path), "Models", "FormattedData")
+      proj_path <- file.path(locproject(), project)
+      designs_dir <- file.path(proj_path, "Models", "FormattedData")
       table_name <- paste0(project, "LongFormatData")
       list(
         dir = designs_dir,
@@ -65,7 +65,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       return(list())
     }
     
-    # 1. Load Manage Table Data ----------------------------------------------------------------
+    # 1. Load Manage Table Data -------------------------------------------------------------------
     load_formatted_data <- function() {
       req(rv_project_name())
       project <- rv_project_name()$value
@@ -97,8 +97,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
     }, once = TRUE)
     
     
-    # 2. Dropdown Logic --------------------------------------------------------------------
-    # Instead of querying the DB for alt names, we listen to the shared list
+    # 2. Dropdown Logic ---------------------------------------------------------------------------
     observe({
       req(rv_shared_alt_names)
       req(rv_shared_exp_names)
@@ -126,7 +125,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       req(rv_project_name())
       project <- rv_project_name()$value
       
-      # Update Auxiliary Data Dropdown ---
+      # Update Auxiliary Data Dropdown
       aux_choices <- c("None" = "")
       if (!is.null(rv_data$aux)) {
         label <- list_tables(project, "aux")[1]
@@ -134,7 +133,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       }
       updateSelectInput(session, "aux_data", choices = aux_choices)
       
-      # Update Gridded Data Dropdown ---
+      # Update Gridded Data Dropdown
       grid_choices <- c("None" = "")
       if (!is.null(rv_data$grid)) {
         label <- list_tables(project, "grid")[1]
@@ -144,7 +143,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
     })
     
     
-    # 3. Execution Logic (Run Format) -------------------------------------------------------
+    # 3. Execution Logic (Run Format) -------------------------------------------------------------
     observeEvent(input$run_format_btn, {
       req(rv_project_name(), input$format_name_input)
       folderpath <- rv_folderpath()
@@ -198,7 +197,8 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
           
           showModal(modalDialog(
             title = "Error: Column Mismatch",
-            paste0("The selected auxiliary key ('", paste(final_aux_key, collapse = ", "), 
+            paste0("The selected auxiliary key ('", 
+                   paste(final_aux_key, collapse = ", "), 
                    "') does not exist in the main dataset. Please select a valid matching column."),
             easyClose = TRUE,
             footer = modalButton("Close")
@@ -223,12 +223,10 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
         final_grid_time <- NULL
       }
       
-      
       # Check Expectations / Alternative Matrix Match
       if (input$expectations_name_input != "" && input$alt_name_input != "") {
         
-        # Fetch the expectations table from the database (Note: Assuming ExpectedCatch is still
-        #  SQLite based)
+        # Fetch the expectations table from the database
         exp_table_name <- paste0(project_name, "ExpectedCatch")
         
         exp_master_list <- tryCatch({
@@ -481,7 +479,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
   })
 }
 
-# format model data sidebar ---------------------------------------------------------------------
+# format model data sidebar -----------------------------------------------------------------------
 #' format_model_data_ui
 #'
 #' @param id A character string that is unique to this module instance.
@@ -666,7 +664,7 @@ format_model_data_ui <- function(id) {
               )
             ), 
             
-            #  Run Button 
+            # Run Button 
             fluidRow(
               column(6,
                      style = "margin-top: 25px;",
