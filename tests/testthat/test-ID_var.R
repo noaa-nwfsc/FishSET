@@ -20,21 +20,29 @@
 #   - Assumes access to example model and spatial objects for reproducibility.
 # -------------------------------------------------------------------------------------------------
 
+# Environment Setup -------------------------------------------------------------------------------
+# Mock log_call to prevent creating permanent log files in your dummy test directory
+mock_log_call <- function(...) { invisible(NULL) }
+original_log_call <- getFromNamespace("log_call", "FishSET")
+assignInNamespace("log_call", mock_log_call, ns = "FishSET")
+
+withr::defer({
+  assignInNamespace("log_call", original_log_call, ns = "FishSET")
+}, envir = testthat::teardown_env())
+
+# Create dummy data so we don't rely on physical SQLite databases, paths, or table_view()
+dummy_main_data <- data.frame(
+  ZoneID = c("387312", "387312", "387313", "387314", "387315"),
+  TRIPID = c("22", "23", "22", "24", "25"),
+  GEARCODE = c("G1", "G1", "G2", "G3", "G1"),
+  stringsAsFactors = FALSE
+)
+
 # Test default settings ---------------------------------------------------------------------------
 test_that("ID_var creates correct string ID with default setting", {
-  # Define the base folder path to the test data directory
-  # This folder should contain the subfolder named "s1" to pass the test
-  test_folder <- testthat::test_path("testdata/FishSETFolder")
   
-  # Override the folder path used by locproject() which is nested within 
-  # This isolates the test env from the default paths
-  old_option <- getOption("test_folder_path")
-  options(test_folder_path = test_folder)
-  
-  result_main <- table_view("s1MainDataTable", "s1")
-  
-  result <- ID_var(dat = result_main,
-                   project = "s1",
+  result <- ID_var(dat = dummy_main_data,
+                   project = "dummy_proj",
                    vars = c("ZoneID", "TRIPID"),
                    name = "PermitID",
                    type = "string",
@@ -43,26 +51,16 @@ test_that("ID_var creates correct string ID with default setting", {
   expect_true("PermitID" %in% names(result))
   expect_equal(result$PermitID[1], "387312_22")
   expect_type(result$PermitID, "character")
-  expect_true(all(c("GEARCODE", "TRIPID", "ZoneID")
-                  %in% names(result))) # Ensure original vars are not dropped by default
-  
+  # Ensure original vars are not dropped
+  expect_true(all(c("GEARCODE", "TRIPID", "ZoneID") %in% names(result))) 
 })
 
-# Test with integer ID ---------------------------------------------------------------------------
+
+# Test with integer ID ----------------------------------------------------------------------------
 test_that("ID_var creates correct integer ID", {
-  # Define the base folder path to the test data directory
-  # This folder should contain the subfolder named "s1" to pass the test
-  test_folder <- testthat::test_path("testdata/FishSETFolder")
   
-  # Override the folder path used by locproject() which is nested within 
-  # This isolates the test env from the default paths
-  old_option <- getOption("test_folder_path")
-  options(test_folder_path = test_folder)
-  
-  result_main <- table_view("s1MainDataTable", "s1")
-  
-  result <- ID_var(dat = result_main,
-                   project = "s1",
+  result <- ID_var(dat = dummy_main_data,
+                   project = "dummy_proj",
                    vars = c("ZoneID", "TRIPID"),
                    name = "PermitID",
                    type = "integer",
@@ -72,21 +70,12 @@ test_that("ID_var creates correct integer ID", {
   expect_type(result$PermitID, "integer")
 })
 
-# Test with custom separator -----------------------------------------------------------------------
+
+# Test with custom separator ----------------------------------------------------------------------
 test_that("ID_var uses custom separator for string ID", {
-  # Define the base folder path to the test data directory
-  # This folder should contain the subfolder named "s1" to pass the test
-  test_folder <- testthat::test_path("testdata/FishSETFolder")
   
-  # Override the folder path used by locproject() which is nested within 
-  # This isolates the test env from the default paths
-  old_option <- getOption("test_folder_path")
-  options(test_folder_path = test_folder)
-  
-  result_main <- table_view("s1MainDataTable", "s1")
-  
-  result <- ID_var(dat = result_main,
-                   project = "s1",
+  result <- ID_var(dat = dummy_main_data,
+                   project = "dummy_proj",
                    vars = c("ZoneID", "TRIPID"),
                    name = "PermitID",
                    log_fun = FALSE,
@@ -95,49 +84,29 @@ test_that("ID_var uses custom separator for string ID", {
   expect_true("PermitID" %in% names(result))
   expect_type(result$PermitID, "character")
   expect_equal(result$PermitID[1], "387312-22")
-  
-  
 })
+
 
 # Test with drop = TRUE ---------------------------------------------------------------------------
 test_that("ID_var drops original variables when drop = TRUE", {
-  # Define the base folder path to the test data directory
-  # This folder should contain the subfolder named "s1" to pass the test
-  test_folder <- testthat::test_path("testdata/FishSETFolder")
   
-  # Override the folder path used by locproject() which is nested within 
-  # This isolates the test env from the default paths
-  old_option <- getOption("test_folder_path")
-  options(test_folder_path = test_folder)
-  
-  result_main <- table_view("s1MainDataTable", "s1")
-  
-  result <- ID_var(dat = result_main,
-                   project = "s1",
+  result <- ID_var(dat = dummy_main_data,
+                   project = "dummy_proj",
                    vars = c("ZoneID", "TRIPID"),
                    name = "PermitID",
                    log_fun = FALSE,
                    drop = TRUE)
   
   expect_true("PermitID" %in% names(result))
-  expect_false(all(c( "TRIPID", "ZoneID") %in% names(result)))  
+  expect_false(all(c("TRIPID", "ZoneID") %in% names(result)))
 })
 
-# Test with vars empty and name provided -----------------------------------------------------------
+
+# Test with vars empty and name provided ----------------------------------------------------------
 test_that("ID_var creates row_id when vars is empty and name is provided", {
-  # Define the base folder path to the test data directory
-  # This folder should contain the subfolder named "s1" to pass the test
-  test_folder <- testthat::test_path("testdata/FishSETFolder")
   
-  # Override the folder path used by locproject() which is nested within 
-  # This isolates the test env from the default paths
-  old_option <- getOption("test_folder_path")
-  options(test_folder_path = test_folder)
-  
-  result_main <- table_view("s1MainDataTable", "s1")
-  
-  result <- ID_var(dat = result_main,
-                   project = "s1",
+  result <- ID_var(dat = dummy_main_data,
+                   project = "dummy_proj",
                    name = "PermitID",
                    vars = NULL,
                    log_fun = FALSE)
@@ -147,21 +116,12 @@ test_that("ID_var creates row_id when vars is empty and name is provided", {
   expect_equal(result$PermitID[5], "5")
 })
 
+
 # Test with vars and name empty -------------------------------------------------------------------
 test_that("ID_var stops if vars is empty and name is NULL", {
-  # Define the base folder path to the test data directory
-  # This folder should contain the subfolder named "s1" to pass the test
-  test_folder <- testthat::test_path("testdata/FishSETFolder")
   
-  # Override the folder path used by locproject() which is nested within 
-  # This isolates the test env from the default paths
-  old_option <- getOption("test_folder_path")
-  options(test_folder_path = test_folder)
-  
-  result_main <- table_view("s1MainDataTable", "s1")
-  
-  expect_error(ID_var(dat = result_main,
-                   project = "s1",
-                   vars = NULL,
-                   log_fun = FALSE))
+  expect_error(ID_var(dat = dummy_main_data,
+                      project = "dummy_proj",
+                      vars = NULL,
+                      log_fun = FALSE))
 })
