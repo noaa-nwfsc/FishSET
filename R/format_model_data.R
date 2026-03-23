@@ -102,14 +102,15 @@ format_model_data <- function(project,
                               distance_units = NULL,
                               impute = NULL,
                               crs = NULL){ 
-  
+
   # Grab the fully evaluated arguments right as the function starts
   settings <- as.list(environment())
   
   # Remove the project and name, as they are metadata, not formatting settings
   settings$project <- NULL
   settings$name <- NULL
-  
+
+  # Input argument validation ---------------------------------------------------------------------
   # Use qs2 for saving if available - this will speed up the function
   use_qs2 <- requireNamespace("qs2", quietly = TRUE)
   

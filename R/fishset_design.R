@@ -31,6 +31,8 @@
 #' @param scale Logical. Default = FALSE. If TRUE, numeric predictors in the design matrix (X) 
 #'   are centered and scaled (z-score normalization) before saving. Scaling factors are stored to 
 #'   allow unscaling of parameters after estimation. Recommended for numerical stability.
+#' @param overwrite Logical. Default FALSE. If TRUE, overwrites an existing model design 
+#'   if \code{model_name} already exists in the project folder.
 #' 
 #' @return A list object of class 'fishset_design' containing the design matrices, choice vector, 
 #'   and metadata. The list is saved as a compressed file in the project folder.
@@ -105,19 +107,25 @@ fishset_design <- function(formula,
                            zone_id,
                            catch_formula = NULL,
                            price_var = NULL,
-                           scale = FALSE){
+                           scale = FALSE,
+                           overwrite = FALSE){
   
   # Setup and validate data -----------------------------------------------------------------------
   # Check if design file exists
   design_names <- tryCatch({
-     model_design_list(project)
+    model_design_list(project)
   }, error = function(cond) {
     list()
   })
   
   if (model_name %in% design_names) {
-    stop(paste0("Model design ", model_name, " already exists. Enter a new model name or ",
-                "delete the old model design using remove_model_design()."))
+    if (!overwrite) {
+      stop(paste0("Model design '", model_name,"' already exists. Enter a new model name, ",
+                  "delete the old model design using remove_model_design(), ",
+                  "or set overwrite = TRUE."))  
+    } else {
+      message(paste0("Note: Overwriting existing model design '", model_name, "'"))
+    }
   }
   
   # Use qs2 for saving/loading if available - this will speed up the function
@@ -187,7 +195,7 @@ fishset_design <- function(formula,
   
   # Validate Y is binary
   if (!all(y %in% c(0, 1))) stop("The choice variable (LHS of formula) must be binary (0/1).")
-  
+
   # Create X matrices (discrete) ------------------------------------------------------------------
   # Initialize scalers list
   scalers <- list()
@@ -350,6 +358,26 @@ fishset_design <- function(formula,
     # Extract price vector
     price_vec <- data[[price_var]]
     
+    # Magnitude scaling for EPM strictly to positive values
+    if (scale) {
+      # Power-of-10 divisor
+      # Scale Y_catch
+      y_max <- max(Y_catch, na.rm = TRUE)
+      if (y_max > 10) {
+        y_divisor <- 10^(floor(log10(y_max)))
+        Y_catch <- Y_catch / y_divisor
+        scalers$Y_catch_divisor <- y_divisor
+      }
+      
+      # Scale price_vec
+      p_max <- max(price_vec, na.rm = TRUE)
+      if (p_max > 10) {
+        p_divisor <- 10^(floor(log10(p_max)))
+        price_vec <- price_vec / p_divisor
+        scalers$price_divisor <- p_divisor
+      }
+    }
+    
     epm_components <- list(
       Y_catch = Y_catch,
       X_catch = X_catch_final,
@@ -397,6 +425,12 @@ fishset_design <- function(formula,
   # Create a new ModelDesigns folder in the project folder if it doesn't exist yet
   if (!dir.exists(designs_dir)) dir.create(designs_dir, recursive = TRUE)
   
+  # Clean up any existing files with this name to prevent extension conflicts (.rds vs .qs2)
+  if (overwrite) {
+    unlink(file.path(designs_dir, paste0(model_name, ".rds")))
+    unlink(file.path(designs_dir, paste0(model_name, ".qs2")))
+  }
+  
   # Soft dependency for qs2 package
   if (use_qs2) {
     file_name <- paste0(model_name, ".qs2")
@@ -406,6 +440,7 @@ fishset_design <- function(formula,
     file_name <- paste0(model_name, ".rds")
     saveRDS(design_obj, file = file.path(designs_dir, file_name), compress = FALSE)
   }
+  
   message("Design object saved to: ", file.path(designs_dir, file_name))
 
   # Log the function call -------------------------------------------------------------------------
