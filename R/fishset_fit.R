@@ -97,8 +97,8 @@ fishset_fit <- function(project,
   
   # Setup and validate ----------------------------------------------------------------------------
   # Load project designs
-  tryCatch({
-    full_design_list <- model_design_list(project)
+  full_design_list <- tryCatch({
+    model_design_list(project)
   }, error = function(cond) {
     message("Not able to load model designs. Run fishset_design() first.")
     return(NULL)
@@ -109,10 +109,11 @@ fishset_fit <- function(project,
   }
   
   # Load design file (qs2 or rds)
-  db_path <- locdatabase(project)
-  designs_dir <- file.path(dirname(db_path), "ModelDesigns")
-  base_path <- file.path(designs_dir, model_name)
-  paths <- c(paste0(base_path, ".qs2"), paste0(base_path, ".rds"))
+  paths <- file.path(locproject(), 
+                     project, 
+                     "Models", 
+                     "ModelDesigns", 
+                     c(paste0(model_name, ".qs2"), paste0(model_name, ".rds")))
   found_path <- paths[file.exists(paths)][1]
   
   if (is.na(found_path)) stop("Design file not found.")

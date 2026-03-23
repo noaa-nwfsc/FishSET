@@ -7,7 +7,7 @@
 #' resulting design object is the primary input for the \code{\link{fishset_fit}} function, 
 #' which performs the parameter estimation.
 #' 
-#' The resulting design object is saved as a compressed .rds file in the 'ModelDesigns' folder,
+#' The resulting design object is saved as a compressed file in the 'Models/ModelDesigns' folder,
 #' which is located inside the project folder.
 #' 
 #' @param formula A two-part formula specifying the model structure (e.g., 
@@ -35,7 +35,7 @@
 #'   if \code{model_name} already exists in the project folder.
 #' 
 #' @return A list object of class 'fishset_design' containing the design matrices, choice vector, 
-#'   and metadata. The list is saved as a compressed .rds file in the project folder.
+#'   and metadata. The list is saved as a compressed file in the project folder.
 #' 
 #' @examples
 #' \dontrun{
@@ -128,17 +128,43 @@ fishset_design <- function(formula,
     }
   }
   
-  # Load formatted data table
-  tryCatch({
-    full_lf_list <- unserialize_table(paste0(project,"LongFormatData"), project)  
-  }, error = function(cond){
-    message("Not able to load formatted data. Run format_model_data() prior to fishset_design().")
-  })
+  # Use qs2 for saving/loading if available - this will speed up the function
+  use_qs2 <- requireNamespace("qs2", quietly = TRUE)
+
+  # Load Formatted Data from nested Models/FormattedData
+  project_dir <- file.path(locproject(), project)
+  formatted_dir <- file.path(project_dir, "Models", "FormattedData")
+  
+  table_name <- paste0(project, "LongFormatData")
+  file_name_qs2 <- paste0(table_name, ".qs2")
+  file_name_rds <- paste0(table_name, ".rds")
+
+  # Load formatted data table from flat files
+  if (file.exists(file.path(formatted_dir, file_name_qs2))) {
+    if (use_qs2) {
+      full_lf_list <- qs2::qs_read(file.path(formatted_dir, file_name_qs2))
+    } else {
+      warning("A .qs2 file exists, but the qs2 package is not available. Falling back to .rds 
+              if it exists.")
+      if (file.exists(file.path(formatted_dir, file_name_rds))) {
+        full_lf_list <- readRDS(file.path(formatted_dir, file_name_rds))
+      } else {
+        stop("Could not load formatted data. .qs2 file found but qs2 package missing, and 
+             no .rds file exists.")
+      }
+    }
+    
+  } else if (file.exists(file.path(formatted_dir, file_name_rds))) {
+    full_lf_list <- readRDS(file.path(formatted_dir, file_name_rds))
+    
+  } else {
+    stop("Not able to load formatted data. Run format_model_data() prior to fishset_design().")
+  }
   
   # Check that formatted data name exists
   if (!(formatted_data_name %in% names(full_lf_list))) {
     stop(paste0("Formatted data name not found in ", project,
-                " database. Run format_model_data() first, or check formatted data names."))
+                " files. Run format_model_data() first, or check formatted data names."))
   } 
   
   # Extract the specific dataframe
@@ -148,9 +174,6 @@ fishset_design <- function(formula,
   if (!all(c(unique_obs_id, zone_id) %in% names(data))) {
     stop("Specified 'unique_obs_id' or 'zone_id' columns not found in the dataset.")
   }
-  
-  # Use qs2 for saving if available - this will speed up the function
-  use_qs2 <- requireNamespace("qs2", quietly = TRUE)
   
   # Sorting ---------------------------------------------------------------------------------------
   # Ensure data is ordered by observation, then by zone
@@ -359,6 +382,7 @@ fishset_design <- function(formula,
       Y_catch = Y_catch,
       X_catch = X_catch_final,
       price_vec = price_vec,
+      catch_formula = catch_formula,
       is_epm = TRUE
     )
     
@@ -394,10 +418,9 @@ fishset_design <- function(formula,
   
   class(design_obj) <- "fishset_design"
   
-  # Save to design folder -------------------------------------------------------------------------
-  db_path <- locdatabase(project)
-  project_dir <- dirname(db_path)
-  designs_dir <- file.path(project_dir, "ModelDesigns")
+  # Save to nested Models/ModelDesigns folder
+  project_dir <- file.path(locproject(), project)
+  designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
   
   # Create a new ModelDesigns folder in the project folder if it doesn't exist yet
   if (!dir.exists(designs_dir)) dir.create(designs_dir, recursive = TRUE)
@@ -408,9 +431,8 @@ fishset_design <- function(formula,
     unlink(file.path(designs_dir, paste0(model_name, ".qs2")))
   }
   
-  # SOFT DEPENDENCY LOGIC for qs2
+  # Soft dependency for qs2 package
   if (use_qs2) {
-    # Recommended: Use distinct extension so your reader knows to use qread
     file_name <- paste0(model_name, ".qs2")
     qs2::qs_save(design_obj, file = file.path(designs_dir, file_name))
   } else {
