@@ -79,7 +79,7 @@
 #' }
 #'
 #' @export
-#' @importFrom dplyr %>% filter select all_of mutate rename left_join sym
+#' @importFrom dplyr %>% filter select all_of mutate rename left_join sym cross_join
 #' @importFrom tidyr pivot_longer
 #' @importFrom DBI dbConnect dbDisconnect dbExecute
 #' @importFrom RSQLite SQLite
@@ -110,15 +110,36 @@ format_model_data <- function(project,
   settings$project <- NULL
   settings$name <- NULL
   
-  # Input argument validation ---------------------------------------------------------------------
-  # Check name uniqueness in database
+  # Use qs2 for saving if available - this will speed up the function
+  use_qs2 <- requireNamespace("qs2", quietly = TRUE)
+  
+  # Define nested directory paths
   table_name <- paste0(project, "LongFormatData")
-  if (table_exists(table_name, project)) {
-    # load data and check names
-    tmp_data <- unserialize_table(table_name, project)
-    names_tmp_data <- names(tmp_data)
-    if (name %in% names_tmp_data) {
-      stop(paste0("Formatted data with the name '", name, "' already exists. Enter a new name."))
+  project_dir <- file.path(locproject(), project)
+  
+  # This nests FormattedData INSIDE the Models folder
+  designs_dir <- file.path(project_dir, "Models", "FormattedData") 
+  
+  file_name_qs2 <- paste0(table_name, ".qs2")
+  file_name_rds <- paste0(table_name, ".rds")
+  
+  # Input argument validation ---------------------------------------------------------------------
+  # Check name uniqueness in existing flat files
+  if (file.exists(file.path(designs_dir, file_name_qs2)) && use_qs2) {
+    tmp_data <- qs2::qs_read(file.path(designs_dir, file_name_qs2))
+    if (name %in% names(tmp_data)) {
+      stop(paste0("Formatted data with the name '", 
+                  name, 
+                  "' already exists in the .qs2 file. Enter a new name."))
+    }
+    rm(tmp_data)
+    
+  } else if (file.exists(file.path(designs_dir, file_name_rds))) {
+    tmp_data <- readRDS(file.path(designs_dir, file_name_rds))
+    if (name %in% names(tmp_data)) {
+      stop(paste0("Formatted data with the name '", 
+                  name, 
+                  "' already exists in the .rds file. Enter a new name."))
     }
     rm(tmp_data)
   }
@@ -135,7 +156,7 @@ format_model_data <- function(project,
   # Check unique_obs_id 
   if (!(nrow(unique(original_dataset[unique_obs_id])) == nrow(original_dataset))) {
     stop("The unique_obs_id is not unique for each observation (row). Select a new variable
-         or create a new ID variable unique to each observation.")
+          or create a new ID variable unique to each observation.")
   }
   
   # Load alternative choice list
@@ -192,7 +213,7 @@ format_model_data <- function(project,
     # Check that units are specified
     if (is_empty(distance_units)) {
       stop("Distance units are required when distance = TRUE. Check format_model_data() help 
-           documentation for acceptable distance_unit inputs.")
+            documentation for acceptable distance_unit inputs.")
     }
     
     port <- NULL # initialize to NULL if no port included
@@ -293,48 +314,48 @@ format_model_data <- function(project,
   
   # Add aux data ----------------------------------------------------------------------------------
   if (!is_empty(aux_data)) {
-    # FIX: Stop execution if aux_data is present but aux_key is missing
+    # Stop execution if aux_data is present but aux_key is missing
     if (is.null(aux_key) || aux_key == "") {
       stop("Auxiliary data was selected, but the join key ('aux_key') is missing.
-           Please select a variable to join on.")
+            Please select a variable to join on.")
     }
-
+    
     # Load aux data and check the aux_key
     aux_df <- table_view(aux_data, project)
     column_check(aux_df, aux_key)
     df <- left_join(df, aux_df, by = aux_key)
   }
   
- # Add gridded data ------------------------------------------------------------------------------
+  # Add gridded data ------------------------------------------------------------------------------
   if(!is_empty(gridded_data)){
     if (is.null(grid_var_name) || grid_var_name == "") {
-        stop("Gridded data selected, but 'New Variable Name' is missing.")
+      stop("Gridded data selected, but 'New Variable Name' is missing.")
     }
     
     gridded_df <- table_view(gridded_data, project)
-     column_check(gridded_df, grid_time_var) 
-   
-   # Pivot to long format
+    column_check(gridded_df, grid_time_var) 
+    
+    # Pivot to long format
     gridded_df <- gridded_df %>%
       pivot_longer(cols = -all_of(grid_time_var),
                    names_to = "zones",
                    values_to = grid_var_name)
-   
+    
     # Join Logic
     # Determine the name of the time variable in the MAIN dataset
     time_col_main <- if(!is.null(main_time_var)) main_time_var else grid_time_var
     
     # Construct the join vector
     if (!is.null(grid_time_var) && is.null(time_col_main)) {
-        stop("Gridded data has a time variable, but no matching time variable was 
-             found in the main dataset.")
+      stop("Gridded data has a time variable, but no matching time variable was 
+              found in the main dataset.")
     }
-
+    
     join_cond <- c("zones" = "zones")
     if (!is.null(grid_time_var)) {
-        join_cond <- c(join_cond, setNames(grid_time_var, time_col_main))
+      join_cond <- c(join_cond, setNames(grid_time_var, time_col_main))
     }
-   
+    
     df <- left_join(df, 
                     gridded_df, 
                     by = join_cond)
@@ -400,35 +421,37 @@ format_model_data <- function(project,
   # Rename cols
   df <- df %>%
     rename(!!zone_id := zones)
- 
+  
   # Save data and settings as a list
   df_list <- list(tmp_name = df,
                   tmp_settings = settings)
   names(df_list) <- c(name, paste0(name, "_settings"))
   
-  # Save formated data, as well as settings
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  # Create nested folders
+  if (!dir.exists(designs_dir)) dir.create(designs_dir, recursive = TRUE)
   
-  table_name <- paste0(project, "LongFormatData")
-  
-  if (table_exists(table_name, project)) {
-    # save data and remove
-    all_formatted_data <- unserialize_table(table_name, project)
-    table_remove(table_name, project)
+  # Read existing file to append data to it
+  if (file.exists(file.path(designs_dir, file_name_qs2))) {
+    if (use_qs2) {
+      all_formatted_data <- qs2::qs_read(file.path(designs_dir, file_name_qs2))
+      df_list <- c(all_formatted_data, df_list)
+    } else {
+      warning("A .qs2 file exists, but the qs2 package is not available. Overwriting with .rds.")
+    }
+  } else if (file.exists(file.path(designs_dir, file_name_rds))) {
+    all_formatted_data <- readRDS(file.path(designs_dir, file_name_rds))
     df_list <- c(all_formatted_data, df_list)
-  } 
+  }
   
-  # Save table and insert data
-  DBI::dbExecute(fishset_db, 
-                 paste("CREATE TABLE IF NOT EXISTS", 
-                       table_name, 
-                       "(data df_list)"))
-  DBI::dbExecute(fishset_db, 
-                 paste("INSERT INTO", 
-                       table_name, 
-                       "VALUES (:data)"),
-                 params = list(data = list(serialize(df_list, NULL))))
+  # Soft dependency for qs2 package
+  if (use_qs2) {
+    qs2::qs_save(df_list, file = file.path(designs_dir, file_name_qs2))
+    message("Design object saved to: ", file.path(designs_dir, file_name_qs2))
+  } else {
+    # Fallback to standard RDS
+    saveRDS(df_list, file = file.path(designs_dir, file_name_rds), compress = FALSE)
+    message("Design object saved to: ", file.path(designs_dir, file_name_rds))
+  }
   
   # Log the function call -------------------------------------------------------------------------
   format_model_data_function <- list()
@@ -438,5 +461,3 @@ format_model_data <- function(project,
   
   log_call(project, format_model_data_function)
 }
-
-

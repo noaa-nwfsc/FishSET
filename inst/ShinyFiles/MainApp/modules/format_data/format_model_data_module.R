@@ -7,15 +7,18 @@
 # Date created: 1/30/2026
 # Dependencies: shiny, DT, shinyjs, bslib
 # Notes: This module interacts with the main reactive data values (rv_data) and
-#        project database.
+#        flat files (.qs2/.rds) stored in Models/FormattedData.
 # =================================================================================================
 
-# format model data server ----------------------------------------------------------------------
+# format model data server ------------------------------------------------------------------------
 #' format_model_data_server
 #'
 #' @param id A character string that is unique to this module instance.
+#' @param rv_folderpath A reactive value containing the folderpath.
 #' @param rv_project_name A reactive value containing the current project name.
 #' @param rv_data A reactiveValues object containing the loaded data frames.
+#' @param rv_shared_alt_names Reactive values for alternative choices.
+#' @param rv_shared_exp_names Reactive values for expectations.
 #'
 #' @return This module does not return a value.
 format_model_data_server <- function(id, rv_folderpath, rv_project_name, 
@@ -39,30 +42,46 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       return(x)
     }    
     
-    # 1. Load Manage Table Data ----------------------------------------------------------------
+    # helper functions for file paths 
+    get_long_format_paths <- function(project) {
+      proj_path <- file.path(locproject(), project)
+      designs_dir <- file.path(proj_path, "Models", "FormattedData")
+      table_name <- paste0(project, "LongFormatData")
+      list(
+        dir = designs_dir,
+        qs2 = file.path(designs_dir, paste0(table_name, ".qs2")),
+        rds = file.path(designs_dir, paste0(table_name, ".rds"))
+      )
+    }
+    
+    read_long_format_file <- function(project) {
+      paths <- get_long_format_paths(project)
+      
+      if (file.exists(paths$qs2) && requireNamespace("qs2", quietly = TRUE)) {
+        return(tryCatch(qs2::qs_read(paths$qs2), error = function(e) list()))
+      } else if (file.exists(paths$rds)) {
+        return(tryCatch(readRDS(paths$rds), error = function(e) list()))
+      }
+      return(list())
+    }
+    
+    # 1. Load Manage Table Data -------------------------------------------------------------------
     load_formatted_data <- function() {
       req(rv_project_name())
       project <- rv_project_name()$value
-      table_name <- paste0(project, "LongFormatData")
       
       # Default to empty
       just_names <- character(0)
       
-      if (table_exists(table_name, project)) {
-        # Load the object from DB
-        full_data <- tryCatch({
-          unserialize_table(table_name, project)
-        }, error = function(e) {
-          return(list()) 
-        })
-        
-        # Extract NAMES only
-        # NOTE: format_model_data saves two entries per run: "Name" and "Name_settings"
-        if (length(full_data) > 0) {
-          all_keys <- names(full_data)
-          # Filter out keys ending in "_settings"
-          just_names <- all_keys[!grepl("_settings$", all_keys)]
-        }
+      # Load the object from flat files
+      full_data <- read_long_format_file(project)
+      
+      # Extract NAMES only
+      # NOTE: format_model_data saves two entries per run: "Name" and "Name_settings"
+      if (length(full_data) > 0) {
+        all_keys <- names(full_data)
+        # Filter out keys ending in "_settings"
+        just_names <- all_keys[!grepl("_settings$", all_keys)]
       }
       
       # Update reactive value
@@ -78,8 +97,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
     }, once = TRUE)
     
     
-    # 2. Dropdown Logic --------------------------------------------------------------------
-    # Instead of querying the DB for alt names, we listen to the shared list
+    # 2. Dropdown Logic ---------------------------------------------------------------------------
     observe({
       req(rv_shared_alt_names)
       req(rv_shared_exp_names)
@@ -107,7 +125,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       req(rv_project_name())
       project <- rv_project_name()$value
       
-      # Update Auxiliary Data Dropdown ---
+      # Update Auxiliary Data Dropdown
       aux_choices <- c("None" = "")
       if (!is.null(rv_data$aux)) {
         label <- list_tables(project, "aux")[1]
@@ -115,7 +133,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       }
       updateSelectInput(session, "aux_data", choices = aux_choices)
       
-      # Update Gridded Data Dropdown ---
+      # Update Gridded Data Dropdown
       grid_choices <- c("None" = "")
       if (!is.null(rv_data$grid)) {
         label <- list_tables(project, "grid")[1]
@@ -125,7 +143,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
     })
     
     
-    # 3. Execution Logic (Run Format) -------------------------------------------------------
+    # 3. Execution Logic (Run Format) -------------------------------------------------------------
     observeEvent(input$run_format_btn, {
       req(rv_project_name(), input$format_name_input)
       folderpath <- rv_folderpath()
@@ -179,7 +197,8 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
           
           showModal(modalDialog(
             title = "Error: Column Mismatch",
-            paste0("The selected auxiliary key ('", paste(final_aux_key, collapse = ", "), 
+            paste0("The selected auxiliary key ('", 
+                   paste(final_aux_key, collapse = ", "), 
                    "') does not exist in the main dataset. Please select a valid matching column."),
             easyClose = TRUE,
             footer = modalButton("Close")
@@ -335,17 +354,14 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
     observeEvent(input$view_settings_trigger, {
       selected_name <- input$view_settings_trigger
       project_name <- rv_project_name()$value
-      table_name_db <- paste0(project_name, "LongFormatData")
       
-      # Load the master list from DB
-      master_list <- tryCatch({
-        unserialize_table(table_name_db, project_name)
-      }, error = function(e) return(NULL))
+      # Load the master list from flat files
+      master_list <- read_long_format_file(project_name)
       
       # NOTE: Settings are stored in a separate key with suffix "_settings"
       settings_key <- paste0(selected_name, "_settings")
       
-      if (is.null(master_list) || is.null(master_list[[settings_key]])) {
+      if (length(master_list) == 0 || is.null(master_list[[settings_key]])) {
         showNotification("Could not load settings for this item.", type = "error")
         return()
       }
@@ -417,15 +433,12 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       removeModal()
       target_name <- input$data_to_remove
       project_name <- rv_project_name()$value
-      table_name_db <- paste0(project_name, "LongFormatData")
       
       tryCatch({
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project_name))
-        on.exit({ if(DBI::dbIsValid(fishset_db)) DBI::dbDisconnect(fishset_db) })
+        paths <- get_long_format_paths(project_name)
+        master_list <- read_long_format_file(project_name)
         
-        if(table_exists(table_name_db, project_name)){
-          master_list <- unserialize_table(table_name_db, project_name)
-          
+        if(length(master_list) > 0) {
           # Remove both the Data and the Settings
           target_settings <- paste0(target_name, "_settings")
           
@@ -436,16 +449,23 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
             master_list[[target_settings]] <- NULL
           }
           
-          # Remove old table
-          table_remove(table_name_db, project_name)
-          
-          # Only recreate table if list is not empty
-          if(length(master_list) > 0){
-            DBI::dbExecute(fishset_db, paste("CREATE TABLE", table_name_db,
-                                             "(data BLOB)"))
-            DBI::dbExecute(fishset_db, paste("INSERT INTO", table_name_db, 
-                                             "(data) VALUES (:data)"),
-                           params = list(data = list(serialize(master_list, NULL))))
+          # If the list isn't empty after removal, save it back
+          if(length(master_list) > 0) {
+            use_qs2 <- requireNamespace("qs2", quietly = TRUE)
+            
+            if (!dir.exists(paths$dir)) dir.create(paths$dir, recursive = TRUE)
+            
+            if (use_qs2) {
+              qs2::qs_save(master_list, paths$qs2)
+              # Cleanup any old RDS file if switching formats
+              if(file.exists(paths$rds)) file.remove(paths$rds) 
+            } else {
+              saveRDS(master_list, paths$rds, compress = FALSE)
+            }
+          } else {
+            # List is empty, remove the files completely
+            if(file.exists(paths$qs2)) file.remove(paths$qs2)
+            if(file.exists(paths$rds)) file.remove(paths$rds)
           }
           
           load_formatted_data()
@@ -459,7 +479,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
   })
 }
 
-# format model data sidebar ---------------------------------------------------------------------
+# format model data sidebar -----------------------------------------------------------------------
 #' format_model_data_ui
 #'
 #' @param id A character string that is unique to this module instance.
@@ -635,8 +655,8 @@ format_model_data_ui <- function(id) {
                                     "CRS ", 
                                     bslib::tooltip(shiny::icon("info-circle"),
                                                    "Coordinate reference system for 
-                                                   spatial calculations. Defaults to 4326 
-                                                   if blank.")), 
+                                                    spatial calculations. Defaults to 4326 
+                                                    if blank.")), 
                                   placeholder = "Default: 4326", 
                                   width = "100%"))
                   )
@@ -644,7 +664,7 @@ format_model_data_ui <- function(id) {
               )
             ), 
             
-            #  Run Button 
+            # Run Button 
             fluidRow(
               column(6,
                      style = "margin-top: 25px;",

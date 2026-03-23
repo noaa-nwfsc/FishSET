@@ -986,7 +986,7 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
   aux <- data_upload_helper(aux, "aux")
   
   if (any(colnames(aux) %in% colnames(dataset)) == FALSE) {
-    
+  
     stop("No shared columns. At least one column name must match between the auxiliary
      and main datasets.")
   }
@@ -1010,7 +1010,7 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
                                                   locdatabase(project = project)))
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-    
+
     DBI::dbWriteTable(fishset_db, 
                       paste0(project, name, "AuxTable", 
                              format(Sys.Date(), format = "%Y%m%d")), 

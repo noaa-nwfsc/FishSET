@@ -28,8 +28,14 @@
 
 #' }
 #'
-ID_var <- function(dat, project, vars, name = NULL, type = "string", drop = FALSE, 
-                   sep = "_", log_fun = TRUE) {
+ID_var <- function(dat, 
+                   project, 
+                   vars, 
+                   name = NULL, 
+                   type = "string", 
+                   drop = FALSE, 
+                   sep = "_", 
+                   log_fun = TRUE) {
 
   # Call in datasets
   out <- data_pull(dat, project)
