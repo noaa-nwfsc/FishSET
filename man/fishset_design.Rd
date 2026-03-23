@@ -13,7 +13,8 @@ fishset_design(
   zone_id,
   catch_formula = NULL,
   price_var = NULL,
-  scale = FALSE
+  scale = FALSE,
+  overwrite = FALSE
 )
 }
 \arguments{
@@ -46,6 +47,9 @@ created in the \code{\link{format_model_data}} function.}
 \item{scale}{Logical. Default = FALSE. If TRUE, numeric predictors in the design matrix (X) 
 are centered and scaled (z-score normalization) before saving. Scaling factors are stored to 
 allow unscaling of parameters after estimation. Recommended for numerical stability.}
+
+\item{overwrite}{Logical. Default FALSE. If TRUE, overwrites an existing model design 
+if \code{model_name} already exists in the project folder.}
 }
 \value{
 A list object of class 'fishset_design' containing the design matrices, choice vector, 

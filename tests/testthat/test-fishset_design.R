@@ -120,24 +120,24 @@ test_that("Standard Conditional Logit (Part 1 only) runs successfully", {
 test_that("Error: Duplicate model name throws error", {
   setup_mocks()
   test_base_dir <- setup_test_env(project_name)
-  
+
   old_opts <- options(test_folder_path = test_base_dir)
   on.exit({
     options(old_opts)
     restore_mocks()
   }, add = TRUE)
-  
+
   # Natively create a dummy file to trigger the duplicate error gracefully
   md_dir <- file.path(test_base_dir, project_name, "Models", "ModelDesigns")
   dir.create(md_dir, recursive = TRUE, showWarnings = FALSE)
   saveRDS(list(), file.path(md_dir, "existing_model.rds"))
-  
+
   expect_error(
-    fishset_design(formula = chosen ~ distance, 
-                   project = project_name, 
+    fishset_design(formula = chosen ~ distance,
+                   project = project_name,
                    model_name = "existing_model",
-                   formatted_data_name = "my_formatted_data", 
-                   unique_obs_id = "haul_id", 
+                   formatted_data_name = "my_formatted_data",
+                   unique_obs_id = "haul_id",
                    zone_id = "zone_id"),
     "already exists"
   )
@@ -148,19 +148,19 @@ test_that("Error: Duplicate model name throws error", {
 test_that("Error: Missing data name throws error", {
   setup_mocks()
   test_base_dir <- setup_test_env(project_name)
-  
+
   old_opts <- options(test_folder_path = test_base_dir)
   on.exit({
     options(old_opts)
     restore_mocks()
   }, add = TRUE)
-  
+
   expect_error(
-    fishset_design(formula = chosen ~ distance, 
-                   project = project_name, 
+    fishset_design(formula = chosen ~ distance,
+                   project = project_name,
                    model_name = "new_model",
-                   formatted_data_name = "NON_EXISTENT_DATA", 
-                   unique_obs_id = "haul_id", 
+                   formatted_data_name = "NON_EXISTENT_DATA",
+                   unique_obs_id = "haul_id",
                    zone_id = "zone_id"),
     "Formatted data name not found"
   )
@@ -171,22 +171,22 @@ test_that("Error: Missing data name throws error", {
 test_that("Interaction terms (Part 2 formula) are generated correctly", {
   setup_mocks()
   test_base_dir <- setup_test_env(project_name)
-  
+
   old_opts <- options(test_folder_path = test_base_dir)
   on.exit({
     options(old_opts)
     restore_mocks()
   }, add = TRUE)
-  
+
   suppressMessages(
-    fishset_design(formula = chosen ~ distance | vessel_len, 
-                   project = project_name, 
+    fishset_design(formula = chosen ~ distance | vessel_len,
+                   project = project_name,
                    model_name = "interact_test",
-                   formatted_data_name = "my_formatted_data", 
-                   unique_obs_id = "haul_id", 
-                   zone_id = "zone_id")  
+                   formatted_data_name = "my_formatted_data",
+                   unique_obs_id = "haul_id",
+                   zone_id = "zone_id")
   )
-  
+
   obj <- read_design_output(project_name, "interact_test", test_base_dir)
   expect_true(any(grepl("vessel_len", colnames(obj$X))))
 })
@@ -196,24 +196,24 @@ test_that("Interaction terms (Part 2 formula) are generated correctly", {
 test_that("Expected Profit Model (EPM) configuration works", {
   setup_mocks()
   test_base_dir <- setup_test_env(project_name)
-  
+
   old_opts <- options(test_folder_path = test_base_dir)
   on.exit({
     options(old_opts)
     restore_mocks()
   }, add = TRUE)
-  
+
   suppressMessages(
-    fishset_design(formula = chosen ~ distance | vessel_len, 
-                   project = project_name, 
+    fishset_design(formula = chosen ~ distance | vessel_len,
+                   project = project_name,
                    model_name = "epm_test",
-                   formatted_data_name = "my_formatted_data", 
-                   unique_obs_id = "haul_id", 
+                   formatted_data_name = "my_formatted_data",
+                   unique_obs_id = "haul_id",
                    zone_id = "zone_id",
-                   catch_formula = actual_catch ~ vessel_len:zone_id, 
-                   price_var = "price")  
+                   catch_formula = actual_catch ~ vessel_len:zone_id,
+                   price_var = "price")
   )
-  
+
   obj <- read_design_output(project_name, "epm_test", test_base_dir)
   expect_true(obj$epm$is_epm)
 })
@@ -223,19 +223,19 @@ test_that("Expected Profit Model (EPM) configuration works", {
 test_that("EPM Error: Missing price variable", {
   setup_mocks()
   test_base_dir <- setup_test_env(project_name)
-  
+
   old_opts <- options(test_folder_path = test_base_dir)
   on.exit({
     options(old_opts)
     restore_mocks()
   }, add = TRUE)
-  
+
   expect_error(
-    fishset_design(formula = chosen ~ distance, 
-                   project = project_name, 
+    fishset_design(formula = chosen ~ distance,
+                   project = project_name,
                    model_name = "epm_fail",
-                   formatted_data_name = "my_formatted_data", 
-                   unique_obs_id = "haul_id", 
+                   formatted_data_name = "my_formatted_data",
+                   unique_obs_id = "haul_id",
                    zone_id = "zone_id",
                    catch_formula = actual_catch ~ distance),
     "must also be specified"
@@ -247,6 +247,34 @@ test_that("EPM Error: Missing price variable", {
 test_that("Scaling functionality stores scalers", {
   setup_mocks()
   test_base_dir <- setup_test_env(project_name)
+
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+
+  suppressMessages(
+    fishset_design(formula = chosen ~ distance + expected_catch,
+                   project = project_name,
+                   model_name = "scale_test",
+                   formatted_data_name = "my_formatted_data",
+                   unique_obs_id = "haul_id",
+                   zone_id = "zone_id",
+                   scale = TRUE)
+  )
+
+  obj <- read_design_output(project_name, "scale_test", test_base_dir)
+  expect_true(length(obj$scalers) > 0)
+  expect_true("X1" %in% names(obj$scalers))
+  expect_true("mu" %in% names(obj$scalers$X1))
+})
+
+
+# Test scalers for catch and price ----------------------------------------------------------------
+test_that("Magnitude scalers for Catch and Price are correctly generated", {
+  setup_mocks()
+  test_base_dir <- setup_test_env(project_name)
   
   old_opts <- options(test_folder_path = test_base_dir)
   on.exit({
@@ -254,17 +282,36 @@ test_that("Scaling functionality stores scalers", {
     restore_mocks()
   }, add = TRUE)
   
+  model_name <- "epm_scaler_test"
+
+  # Inject large catch and price values into the test_data
+  modified_test_data <- test_data
+  modified_test_data$actual_catch <- runif(nrow(modified_test_data), 1000, 5000) 
+  modified_test_data$price <- rep(runif(N_obs, 20, 50), each = J_alts)
+
+  formatted_dir <- file.path(test_base_dir, project_name, "Models", "FormattedData")
+  saveRDS(list(my_formatted_data = modified_test_data), 
+          file.path(formatted_dir, paste0(project_name, "LongFormatData.rds")))
+
   suppressMessages(
-    fishset_design(formula = chosen ~ distance + expected_catch, 
-                   project = project_name, 
-                   model_name = "scale_test",
-                   formatted_data_name = "my_formatted_data", 
-                   unique_obs_id = "haul_id", 
-                   zone_id = "zone_id",
-                   scale = TRUE)
+    fishset_design(
+      formula = chosen ~ distance | vessel_len,
+      project = project_name,
+      model_name = model_name,
+      formatted_data_name = "my_formatted_data",
+      unique_obs_id = "haul_id",
+      zone_id = "zone_id",
+      catch_formula = actual_catch ~ vessel_len:zone_id,
+      price_var = "price",
+      scale = TRUE
+    )
   )
+
+  obj <- read_design_output(project_name, model_name, test_base_dir)
   
-  obj <- read_design_output(project_name, "scale_test", test_base_dir)
-  expect_true(length(obj$scalers) > 0)
-  expect_true("X1" %in% names(obj$scalers))
+  # Assertions to guarantee the names are exactly what fishset_fit expects
+  expect_true("Y_catch_divisor" %in% names(obj$scalers))
+  expect_true("price_divisor" %in% names(obj$scalers))
+  expect_equal(obj$scalers$Y_catch_divisor, 1000)
+  expect_equal(obj$scalers$price_divisor, 10)
 })
