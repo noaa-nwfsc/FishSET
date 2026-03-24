@@ -9,7 +9,8 @@
 \arguments{
 \item{x}{A \code{fishset_cv} object returned by \code{\link{fishset_cv}}.}
 
-\item{digits}{Integer. The number of significant digits to use when printing numeric values. Default is 4.}
+\item{digits}{Integer. The number of significant digits to use when printing numeric values. 
+Default is 4.}
 
 \item{...}{Additional arguments passed to the print method.}
 }
