@@ -9,7 +9,8 @@
 #        Models/ModelDesigns (output).
 # =================================================================================================
 
-# model design server -------------------------------------------------------------------------
+
+# model design server -----------------------------------------------------------------------------
 #' model_design_server
 #'
 #' @param id A character string that is unique to this module instance.
@@ -31,7 +32,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
     # Reactive to store the currently loaded formatted dataframe (for column extraction)
     rv_current_formatted_data <- reactiveVal(NULL)
     
-    # Helper to read formatted data from flat files --------------------------------------------
+    # Helper to read formatted data from flat files -----------------------------------------------
     read_long_format_file <- function(project_dir, project_name) {
       formatted_dir <- file.path(project_dir, "Models", "FormattedData")
       table_name <- paste0(project_name, "LongFormatData")
@@ -46,7 +47,8 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       return(list())
     }
     
-    # 1. Load Manage Table Data ----------------------------------------------------------------
+
+    # 1. Load Manage Table Data -------------------------------------------------------------------
     load_designs <- function() {
       req(rv_project_name(), rv_folderpath())
       
@@ -54,7 +56,8 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       project <- rv_project_name()$value
       
       project_dir <- file.path(rv_folderpath(), project) 
-      # Point to nested Models/ModelDesigns ---
+
+      # Point to nested Models/ModelDesigns
       designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
       
       just_names <- character(0)
@@ -77,8 +80,9 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       load_designs()
     })
     
-    # 2. Input Updates (Dropdowns) -------------------------------------------------------------
-    # Update Formatted Data Dropdown (Ultra-sensitive file watcher)
+
+    # 2. Input Updates (Dropdowns) ----------------------------------------------------------------
+    # Update Formatted Data Dropdown
     formatted_data_choices <- reactivePoll(
       intervalMillis = 1000, 
       session = session,
@@ -87,11 +91,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
         project <- rv_project_name()$value
         if (is.null(project) || project == "") return("")
         
-        # Use locdatabase() exactly like the format_model_data function does!
-        db_path <- tryCatch(locdatabase(project), error = function(e) NULL)
-        if (is.null(db_path)) return("")
-        
-        project_dir <- dirname(db_path)
+        project_dir <- file.path(locproject(), project)
         formatted_dir <- file.path(project_dir, "Models", "FormattedData")
         table_name <- paste0(project, "LongFormatData")
         
@@ -144,10 +144,8 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       project <- rv_project_name()$value
       data_name <- input$formatted_data_input
       
-      db_path <- tryCatch(locdatabase(project), error = function(e) NULL)
-      if (is.null(db_path)) return()
-      project_dir <- dirname(db_path)
-      
+        project_dir <- file.path(locproject(), project)
+   
       # Load the specific dataframe to get column names
       tryCatch({
         full_lf_list <- read_long_format_file(project_dir, project)
@@ -162,7 +160,8 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
           
           # Also help the user by listing available variables for the formula
           output$avail_vars_list <- renderText({
-            paste("Available variables:", paste(cols, collapse = ", "))
+
+            paste("AVAILABLE VARIABLES:", paste(cols, collapse = ", "))
           })
         }
       }, error = function(e) {
@@ -170,7 +169,8 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       })
     })
     
-    # 3. Execution Logic (Run Design) ----------------------------------------------------------
+
+    # 3. Execution Logic (Run Design) -------------------------------------------------------------
     observeEvent(input$run_design_btn, {
       req(rv_project_name(), rv_folderpath())
       
@@ -280,7 +280,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       })
     })
     
-    # 4. Manage Table Logic --------------------------------------------------------------------
+    # 4. Manage Table Logic -----------------------------------------------------------------------
     output$existing_designs_table <- DT::renderDataTable({
       d_names <- rv_existing_design_names()
       
@@ -326,6 +326,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       
       project_dir <- file.path(rv_folderpath(), project_name)
       # Point to nested Models/ModelDesigns ---
+
       designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
       
       qs2_path <- file.path(designs_dir, paste0(selected_name, ".qs2"))
@@ -448,7 +449,8 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
   })
 }
 
-# model design UI -----------------------------------------------------------------------------
+
+# model design UI ---------------------------------------------------------------------------------
 #' model_design_ui
 #'
 #' @param id A character string that is unique to this module instance.
@@ -481,15 +483,14 @@ model_design_ui <- function(id) {
                 bslib::card_header(h5("1. Source Data & Naming", class = "mb-0")),
                 bslib::card_body(
                   class = "card-overflow d-flex flex-column gap-3",
-                  
-                  textInput(ns("model_name_input"), 
-                            label = tags$span("Model Design Name ", 
-                                              bslib::tooltip(
-                                                shiny::icon("info-circle"),
-                                                "Unique name for this model design 
-                                                configuration.")), 
-                            placeholder = "e.g., clogit_base_design", width = "100%"),
-                  
+                  textInput(
+                    ns("model_name_input"), 
+                    label = tags$span(
+                      "Model Design Name ", 
+                      bslib::tooltip(
+                        shiny::icon("info-circle"),
+                        "Unique name for this model design configuration.")), 
+                    placeholder = "e.g., clogit_base_design", width = "100%"),
                   selectizeInput(ns("formatted_data_input"), 
                                  label = tags$span(
                                    "Input Formatted Data ", 
@@ -504,8 +505,7 @@ model_design_ui <- function(id) {
                                 bslib::tooltip(
                                   shiny::icon("info-circle"),
                                   "Select the type of discrete choice model.")),
-                              choices = c("Conditional Logit", 
-                                          "Zonal Logit", 
+                              choices = c("Standard Logit", 
                                           "Expected Profit Model (EPM)" = "epm"),
                               width = "100%")
                 )
@@ -517,21 +517,21 @@ model_design_ui <- function(id) {
                 bslib::card_header(h5("2. Model Specification", class = "mb-0")),
                 bslib::card_body(
                   class = "card-overflow d-flex flex-column gap-3",
-                  
                   textAreaInput(ns("formula_input"), 
                                 label = tags$span(
                                   "Utility Formula ", 
                                   bslib::tooltip(
                                     shiny::icon("info-circle"),
-                                    "Use '|' to separate alternative-specific vars from
-                                    individual-specific vars.")),
-                                placeholder = "chosen ~ catch + distance | income", 
+                                    "Use '|' to separate alternative-specific vars (left) from
+                                    trip- or haul-specific vars (right) that do not vary 
+                                    across zones.")),
+                                placeholder = "chosen ~ catch + distance | vessel_length", 
                                 rows = 3, width = "100%"),
                   
                   helpText(tags$small(
-                    "Format: ", tags$code("LHS ~ Alt_Vars | Ind_Vars"), br(),
-                    "Note: LHS is usually 'chosen'. Ind_Vars are interacted with zones 
-                    automatically."
+                    "Format: ", tags$code("chosen ~ Alt_Vars | Ind_Vars"), br(),
+                    "Note: LHS is always 'chosen' for logit models and EPMs, and Ind_Vars are 
+                    interacted with zones automatically."
                   )),
                   
                   # Conditional Panel for EPM inputs
@@ -547,26 +547,31 @@ model_design_ui <- function(id) {
                                       "Catch Formula ", 
                                       bslib::tooltip(
                                         shiny::icon("info-circle"),
-                                        "Formula specifying expected catch.")),
-                                    placeholder = "actual_catch ~ catch_var:ZoneID",
+                                        "Formula specifying catch density. Use ':' to 
+                                        estimate zone-specific coefficients. For example,
+                                        'actual_catch ~ exp_catch:ZoneID'.
+                                        Note: that the actual catch variable in the dataset
+                                        must be available in the list below.")),
+                                    placeholder = "actual_catch ~ exp_catch_matrix",
                                     rows = 2, width = "100%"),
                       
                       selectizeInput(ns("price_var_input"), 
                                      label = "Price Variable", 
-                                     choices = NULL, width = "100%"),
-                      
-                      checkboxInput(ns("scale_input"), 
-                                    label = tags$span(
-                                      "Scale Numeric Predictors? ",
-                                      bslib::tooltip(
-                                        shiny::icon("info-circle"),
-                                        "Center and scale numeric X variables.")),
-                                    value = FALSE)
+                                     choices = NULL, width = "100%")
                     )
                   ),
+                  div(class = "text", style = "font-size: 0.8rem;",
+                      textOutput(ns("avail_vars_list"))),
                   
-                  div(class = "text-muted", style = "font-size: 0.8rem;",
-                      textOutput(ns("avail_vars_list")))
+                  checkboxInput(ns("scale_input"), 
+                                label = tags$span(
+                                  "Scale Numeric Covariates? ",
+                                  bslib::tooltip(
+                                    shiny::icon("info-circle"),
+                                    "Standard scaler for numeric X variables. Note: scaling
+                                    covariates is recommended for numerical stability and 
+                                    efficient optimization.")),
+                                value = FALSE)
                 )
               )
             ),

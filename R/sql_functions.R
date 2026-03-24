@@ -837,11 +837,9 @@ model_design_list <- function(project, name = NULL) {
   #'   of FishSET database tables by project. 
   #' @export
   #'   
-  
-  db_path <- locdatabase(project)
-  project_dir <- dirname(db_path)
-  designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
-  
+
+  designs_dir <- file.path(locproject(), project, "Models", "ModelDesigns")
+
   if (!dir.exists(designs_dir)) {
     stop("No model design files were created for this project. Run fishset_design().")
   } 

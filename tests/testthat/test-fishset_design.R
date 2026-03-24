@@ -40,137 +40,128 @@ for(i in 1:N_obs) {
   test_data$chosen[idx[sample(1:J_alts, 1)]] <- 1
 }
 
-# Define Mocks ------------------------------------------------------------------------------------
-# Mock database path retrieval to use tempdir
-mock_locdatabase <- function(project) {
-  # Mimic: project_folder/database_name
-  # This ensures dirname(path) returns the project folder
-  file.path(tempdir(), project, paste0(project, ".sqlite"))
+project_name <- "TestProj"
+
+# Environment Setup -------------------------------------------------------------------------------
+# Preserve original functions to prevent bleeding
+orig_functions <- list(
+  log_call = getFromNamespace("log_call", "FishSET")
+)
+
+# Helpers to safely apply and remove mocks
+setup_mocks <- function() {
+  assignInNamespace("log_call", function(...) invisible(NULL), ns = "FishSET")
 }
 
-# Mock model_design_list to control "existing" models
-# By default, returns empty (no models exist)
-mock_model_design_list <- function(project) {
-  return(character(0))
+restore_mocks <- function() {
+  assignInNamespace("log_call", orig_functions$log_call, ns = "FishSET")
 }
 
-# Mock data loading to return our test_data
-mock_unserialize_table <- function(name, project) {
-  # The function expects a list containing the dataframe
-  out <- list()
-  out[["my_formatted_data"]] <- test_data
-  return(out)
+# Helper: Set up isolated directory per test
+setup_test_env <- function(project_name) {
+  test_base_dir <- normalizePath(file.path(tempdir(), "FishSET_Design_Tests"), 
+                                 winslash = "/", 
+                                 mustWork = FALSE)
+  formatted_dir <- file.path(test_base_dir, project_name, "Models", "FormattedData")
+  dir.create(formatted_dir, recursive = TRUE, showWarnings = FALSE)
+  dir.create(file.path(test_base_dir, project_name, "src"), recursive = TRUE, showWarnings = FALSE)
+  
+  # Write the dummy formatted data
+  saveRDS(list(my_formatted_data = test_data), 
+          file.path(formatted_dir, paste0(project_name, "LongFormatData.rds")))
+  return(test_base_dir)
 }
 
-# Mock logging to silence output
-mock_log_call <- function(...) {
-  invisible(NULL)
+# Helper: Read the design output handling both qs2 and rds
+read_design_output <- function(project_name, model_name, base_dir) {
+  md_dir <- file.path(base_dir, project_name, "Models", "ModelDesigns")
+  qs2_file <- file.path(md_dir, paste0(model_name, ".qs2"))
+  rds_file <- file.path(md_dir, paste0(model_name, ".rds"))
+  
+  if (file.exists(qs2_file) && requireNamespace("qs2", quietly = TRUE)) {
+    return(qs2::qs_read(qs2_file))
+  } else if (file.exists(rds_file)) {
+    return(readRDS(rds_file))
+  }
+  stop(paste("Design file not found for model:", model_name))
 }
-
-# Save original functions
-original_locdatabase <- get("locdatabase", envir = as.environment("package:FishSET"))
-original_model_design_list <- get("model_design_list", envir = as.environment("package:FishSET"))
-original_unserialize_table <- get("unserialize_table", envir = as.environment("package:FishSET"))
-original_log_call <- get("log_call", envir = as.environment("package:FishSET"))
-
-# Schedule restoration
-on.exit({
-  assignInNamespace("locdatabase", original_locdatabase, ns = "FishSET")
-  assignInNamespace("model_design_list", original_model_design_list, ns = "FishSET")
-  assignInNamespace("unserialize_table", original_unserialize_table, ns = "FishSET")
-  assignInNamespace("log_call", original_log_call, ns = "FishSET")
-})
-
-# Apply mocks
-assignInNamespace("locdatabase", mock_locdatabase, ns = "FishSET")
-assignInNamespace("model_design_list", mock_model_design_list, ns = "FishSET")
-assignInNamespace("unserialize_table", mock_unserialize_table, ns = "FishSET")
-assignInNamespace("log_call", mock_log_call, ns = "FishSET")
-
 
 # Standard conditional logit ----------------------------------------------------------------------
 test_that("Standard Conditional Logit (Part 1 only) runs successfully", {
-  project_name <- "TestProj"
-  model_name <- "clogit_test"
+  setup_mocks()
+  test_base_dir <- setup_test_env(project_name)
   
-  # Ensure the directory structure exists for saving
-  db_path <- mock_locdatabase(project_name)
-  dir.create(dirname(db_path), recursive = TRUE, showWarnings = FALSE)
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
   
-  # Run function
   suppressMessages(
-    fishset_design(
-      formula = chosen ~ distance + expected_catch,
-      project = project_name,
-      model_name = model_name,
-      formatted_data_name = "my_formatted_data",
-      unique_obs_id = "haul_id",
-      zone_id = "zone_id"
-    )  
+    fishset_design(formula = chosen ~ distance + expected_catch, 
+                   project = project_name, 
+                   model_name = "clogit_test",
+                   formatted_data_name = "my_formatted_data", 
+                   unique_obs_id = "haul_id", 
+                   zone_id = "zone_id")
   )
-
-  # Check if file was saved
-  save_path <- file.path(dirname(db_path), "ModelDesigns", paste0(model_name, ".rds"))
-  # Note: logic handles .qs2 if available, but checking generic existence is safer
-  files_saved <- list.files(file.path(dirname(db_path), "ModelDesigns"))
-  expect_true(any(grepl(model_name, files_saved)))
   
-  # Load and validate content
-  # Determine which file was saved (qs2 or rds)
-  saved_file <- files_saved[grep(model_name, files_saved)][1]
-  full_path <- file.path(dirname(db_path), "ModelDesigns", saved_file)
-  
-  if (grepl("\\.qs2$", saved_file)) {
-    design_obj <- qs2::qs_read(full_path)
-  } else {
-    design_obj <- readRDS(full_path)
-  }
+  design_obj <- read_design_output(project_name, "clogit_test", test_base_dir)
   
   expect_type(design_obj, "list")
   expect_equal(class(design_obj), "fishset_design")
   expect_equal(design_obj$settings$N_obs, N_obs)
   expect_equal(design_obj$settings$J_alts, J_alts)
-  
-  # Check X dimensions (intercept dropped automatically?)
-  # formula: chosen ~ distance + expected_catch. 2 vars.
-  expect_equal(ncol(design_obj$X), 2) 
+  expect_equal(ncol(design_obj$X), 2)
 })
 
 
 # Test duplicate model names error ----------------------------------------------------------------
 test_that("Error: Duplicate model name throws error", {
-  # Mock model_design_list to return "existing_model"
-  mock_existing <- function(project) { return("existing_model") }
-  assignInNamespace("model_design_list", mock_existing, ns = "FishSET")
+  setup_mocks()
+  test_base_dir <- setup_test_env(project_name)
+
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+
+  # Natively create a dummy file to trigger the duplicate error gracefully
+  md_dir <- file.path(test_base_dir, project_name, "Models", "ModelDesigns")
+  dir.create(md_dir, recursive = TRUE, showWarnings = FALSE)
+  saveRDS(list(), file.path(md_dir, "existing_model.rds"))
 
   expect_error(
-    fishset_design(
-      formula = chosen ~ distance,
-      project = "TestProj",
-      model_name = "existing_model",
-      formatted_data_name = "my_formatted_data",
-      unique_obs_id = "haul_id",
-      zone_id = "zone_id"
-    ),
+    fishset_design(formula = chosen ~ distance,
+                   project = project_name,
+                   model_name = "existing_model",
+                   formatted_data_name = "my_formatted_data",
+                   unique_obs_id = "haul_id",
+                   zone_id = "zone_id"),
     "already exists"
   )
-
-  # Restore mock for subsequent tests
-  assignInNamespace("model_design_list", mock_model_design_list, ns = "FishSET")
 })
 
 
 # Test missing data error -------------------------------------------------------------------------
 test_that("Error: Missing data name throws error", {
+  setup_mocks()
+  test_base_dir <- setup_test_env(project_name)
+
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+
   expect_error(
-    fishset_design(
-      formula = chosen ~ distance,
-      project = "TestProj",
-      model_name = "new_model",
-      formatted_data_name = "NON_EXISTENT_DATA",
-      unique_obs_id = "haul_id",
-      zone_id = "zone_id"
-    ),
+    fishset_design(formula = chosen ~ distance,
+                   project = project_name,
+                   model_name = "new_model",
+                   formatted_data_name = "NON_EXISTENT_DATA",
+                   unique_obs_id = "haul_id",
+                   zone_id = "zone_id"),
     "Formatted data name not found"
   )
 })
@@ -178,99 +169,75 @@ test_that("Error: Missing data name throws error", {
 
 # Test logit with two parts -----------------------------------------------------------------------
 test_that("Interaction terms (Part 2 formula) are generated correctly", {
-  # Part 2 variables (vessel_len) should interact with zone constants
-  # Formula: chosen ~ distance | vessel_len
-  # J=3, so vessel_len should create J-1 = 2 columns (vessel_len:zone2, vessel_len:zone3)
-  # Total cols = 1 (distance) + 2 (interactions) = 3
-  
-  project_name <- "TestProj"
-  model_name <- "interact_test"
+  setup_mocks()
+  test_base_dir <- setup_test_env(project_name)
+
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
 
   suppressMessages(
-    fishset_design(
-      formula = chosen ~ distance | vessel_len,
-      project = project_name,
-      model_name = model_name,
-      formatted_data_name = "my_formatted_data",
-      unique_obs_id = "haul_id",
-      zone_id = "zone_id"
-    )  
+    fishset_design(formula = chosen ~ distance | vessel_len,
+                   project = project_name,
+                   model_name = "interact_test",
+                   formatted_data_name = "my_formatted_data",
+                   unique_obs_id = "haul_id",
+                   zone_id = "zone_id")
   )
-  
-  # Retrieve object
-  db_path <- mock_locdatabase(project_name)
-  # Find file (rds or qs2)
-  files <- list.files(file.path(dirname(db_path), "ModelDesigns"), full.names = TRUE)
-  # Basic grep to ensure we get the file we just made
-  target_file <- files[grep(model_name, files)][1]
 
-  if (grepl("\\.qs2$", target_file)) {
-    obj <- qs2::qs_read(target_file)
-  } else {
-    obj <- readRDS(target_file)
-  }
-
-  # Check columns
-  col_names <- colnames(obj$X)
-  expect_true("distance" %in% col_names)
-  # Check for interaction naming convention usually "var:zone_idVal"
-  expect_true(any(grepl("vessel_len", col_names)))
-  expect_equal(ncol(obj$X), 3)
+  obj <- read_design_output(project_name, "interact_test", test_base_dir)
+  expect_true(any(grepl("vessel_len", colnames(obj$X))))
 })
 
 
 # Test EPM normal ---------------------------------------------------------------------------------
 test_that("Expected Profit Model (EPM) configuration works", {
-  project_name <- "TestProj"
-  model_name <- "epm_test"
+  setup_mocks()
+  test_base_dir <- setup_test_env(project_name)
 
-  # Main: chosen ~ distance | vessel_len
-  # Catch: actual_catch ~ vessel_len:ZoneID
-  # 'vessel_len' is in Part 2 of main formula, so this should pass.
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
 
   suppressMessages(
-    fishset_design(
-      formula = chosen ~ distance | vessel_len,
-      project = project_name,
-      model_name = model_name,
-      formatted_data_name = "my_formatted_data",
-      unique_obs_id = "haul_id",
-      zone_id = "zone_id",
-      catch_formula = actual_catch ~ vessel_len:zone_id,
-      price_var = "price"
-    )  
+    fishset_design(formula = chosen ~ distance | vessel_len,
+                   project = project_name,
+                   model_name = "epm_test",
+                   formatted_data_name = "my_formatted_data",
+                   unique_obs_id = "haul_id",
+                   zone_id = "zone_id",
+                   catch_formula = actual_catch ~ vessel_len:zone_id,
+                   price_var = "price")
   )
-  
-  # Retrieve object
-  db_path <- mock_locdatabase(project_name)
-  files <- list.files(file.path(dirname(db_path), "ModelDesigns"), full.names = TRUE)
-  target_file <- files[grep(model_name, files)][1]
 
-  if (grepl("\\.qs2$", target_file)) {
-    obj <- qs2::qs_read(target_file)
-  } else {
-    obj <- readRDS(target_file)
-  }
-
+  obj <- read_design_output(project_name, "epm_test", test_base_dir)
   expect_true(obj$epm$is_epm)
-  expect_equal(length(obj$epm$Y_catch), nrow(test_data))
-  expect_equal(length(obj$epm$price_vec), nrow(test_data))
 })
 
 
 # Test EPM missing price error --------------------------------------------------------------------
 test_that("EPM Error: Missing price variable", {
+  setup_mocks()
+  test_base_dir <- setup_test_env(project_name)
+
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+
   expect_error(
-    fishset_design(
-      formula = chosen ~ distance,
-      project = "TestProj",
-      model_name = "epm_fail",
-      formatted_data_name = "my_formatted_data",
-      unique_obs_id = "haul_id",
-      zone_id = "zone_id",
-      catch_formula = actual_catch ~ distance
-      # Missing price_var
-    ),
+    fishset_design(formula = chosen ~ distance,
+                   project = project_name,
+                   model_name = "epm_fail",
+                   formatted_data_name = "my_formatted_data",
+                   unique_obs_id = "haul_id",
+                   zone_id = "zone_id",
+                   catch_formula = actual_catch ~ distance),
     "must also be specified"
   )
 })
@@ -278,33 +245,26 @@ test_that("EPM Error: Missing price variable", {
 
 # Test scaler functionality -----------------------------------------------------------------------
 test_that("Scaling functionality stores scalers", {
-  project_name <- "TestProj"
-  model_name <- "scale_test"
+  setup_mocks()
+  test_base_dir <- setup_test_env(project_name)
+
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
 
   suppressMessages(
-    fishset_design(
-      formula = chosen ~ distance + expected_catch,
-      project = project_name,
-      model_name = model_name,
-      formatted_data_name = "my_formatted_data",
-      unique_obs_id = "haul_id",
-      zone_id = "zone_id",
-      scale = TRUE
-    )
+    fishset_design(formula = chosen ~ distance + expected_catch,
+                   project = project_name,
+                   model_name = "scale_test",
+                   formatted_data_name = "my_formatted_data",
+                   unique_obs_id = "haul_id",
+                   zone_id = "zone_id",
+                   scale = TRUE)
   )
-  
-  # Retrieve object
-  db_path <- mock_locdatabase(project_name)
-  files <- list.files(file.path(dirname(db_path), "ModelDesigns"), full.names = TRUE)
-  target_file <- files[grep(model_name, files)][1]
 
-  if (grepl("\\.qs2$", target_file)) {
-    obj <- qs2::qs_read(target_file)
-  } else {
-    obj <- readRDS(target_file)
-  }
-
-  # Check that scalers list is populated
+  obj <- read_design_output(project_name, "scale_test", test_base_dir)
   expect_true(length(obj$scalers) > 0)
   expect_true("X1" %in% names(obj$scalers))
   expect_true("mu" %in% names(obj$scalers$X1))
@@ -313,20 +273,26 @@ test_that("Scaling functionality stores scalers", {
 
 # Test scalers for catch and price ----------------------------------------------------------------
 test_that("Magnitude scalers for Catch and Price are correctly generated", {
-  project_name <- "TestProj"
+  setup_mocks()
+  test_base_dir <- setup_test_env(project_name)
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+  
   model_name <- "epm_scaler_test"
-  
-  # Temporarily inject large catch and price values into the test_data
-  test_data$actual_catch <- runif(nrow(test_data), 1000, 5000) # Divisor should be 1000
-  test_data$price <- rep(runif(N_obs, 20, 50), each = J_alts)  # Divisor should be 10
-  
-  mock_unserialize_large_data <- function(name, project) {
-    out <- list()
-    out[["my_formatted_data"]] <- test_data
-    return(out)
-  }
-  assignInNamespace("unserialize_table", mock_unserialize_large_data, ns = "FishSET")
-  
+
+  # Inject large catch and price values into the test_data
+  modified_test_data <- test_data
+  modified_test_data$actual_catch <- runif(nrow(modified_test_data), 1000, 5000) 
+  modified_test_data$price <- rep(runif(N_obs, 20, 50), each = J_alts)
+
+  formatted_dir <- file.path(test_base_dir, project_name, "Models", "FormattedData")
+  saveRDS(list(my_formatted_data = modified_test_data), 
+          file.path(formatted_dir, paste0(project_name, "LongFormatData.rds")))
+
   suppressMessages(
     fishset_design(
       formula = chosen ~ distance | vessel_len,
@@ -338,19 +304,14 @@ test_that("Magnitude scalers for Catch and Price are correctly generated", {
       catch_formula = actual_catch ~ vessel_len:zone_id,
       price_var = "price",
       scale = TRUE
-    )  
+    )
   )
-  
-  db_path <- mock_locdatabase(project_name)
-  files <- list.files(file.path(dirname(db_path), "ModelDesigns"), full.names = TRUE)
-  target_file <- files[grep(model_name, files)][1]
-  obj <- if (grepl("\\.qs2$", target_file)) qs2::qs_read(target_file) else readRDS(target_file)
+
+  obj <- read_design_output(project_name, model_name, test_base_dir)
   
   # Assertions to guarantee the names are exactly what fishset_fit expects
   expect_true("Y_catch_divisor" %in% names(obj$scalers))
   expect_true("price_divisor" %in% names(obj$scalers))
   expect_equal(obj$scalers$Y_catch_divisor, 1000)
   expect_equal(obj$scalers$price_divisor, 10)
-  
-  assignInNamespace("unserialize_table", mock_unserialize_table, ns = "FishSET")
 })

@@ -27,7 +27,6 @@ source("modules/format_data/format_model_data_module.R", local = TRUE)
 source("modules/model_design_module.R", local = TRUE)
 source("modules/model_fit_module.R", local = TRUE)
 
-
 # UI function definition
 ui <- function(request){
   bslib::page_navbar(
@@ -122,6 +121,7 @@ ui <- function(request){
         )
       )
     ),
+    
     # QAQC ----------------------------------------------------------------------------------------
     bslib::nav_menu(
       title = "QAQC",
@@ -182,6 +182,7 @@ ui <- function(request){
         )
       )
     ),
+    
     # Format data ---------------------------------------------------------------------------------
     bslib::nav_menu(
       title = "Format Data",
@@ -213,7 +214,7 @@ ui <- function(request){
           )
         )
       ),
-      ## Define alternatives subtab -------------------------------------------------------------
+      ## Define alternatives subtab ---------------------------------------------------------------
       bslib::nav_panel(
         title = "Define alternative fishing choices", 
         id = "define_alternatives_id",
@@ -267,8 +268,9 @@ ui <- function(request){
           )
         )
       ),
-     ## Format model data subtab ------------------------------------------------------------------
-           bslib::nav_panel(
+      
+      ## Format model data subtab ------------------------------------------------------------------
+      bslib::nav_panel(
         title = "Format model data", 
         id = "format_model_data",
         value = "format_model_data",
@@ -293,6 +295,9 @@ ui <- function(request){
       )
     ),
     
+    
+    # Modeling ------------------------------------------------------------------------------------
+    ## Model design -------------------------------------------------------------------------------
     bslib::nav_menu(
       title = "Modeling",
       bslib::nav_panel(
@@ -319,9 +324,9 @@ ui <- function(request){
             model_design_ui("model_design_data")    
           )
         )
-      
-    ),
-          bslib::nav_panel(
+        
+      ),
+      bslib::nav_panel(
         title = "Model Fit", 
         id = "model_fit",
         value = "model_fit",

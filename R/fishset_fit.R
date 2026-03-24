@@ -97,8 +97,8 @@ fishset_fit <- function(project,
   
   # Setup and validate ----------------------------------------------------------------------------
   # Load project designs
-  tryCatch({
-    full_design_list <- model_design_list(project)
+  full_design_list <- tryCatch({
+    model_design_list(project)
   }, error = function(cond) {
     message("Not able to load model designs. Run fishset_design() first.")
     return(NULL)
@@ -109,10 +109,11 @@ fishset_fit <- function(project,
   }
   
   # Load design file (qs2 or rds)
-  db_path <- locdatabase(project)
-  designs_dir <- file.path(dirname(db_path), "Models", "ModelDesigns")
-  base_path <- file.path(designs_dir, model_name)
-  paths <- c(paste0(base_path, ".qs2"), paste0(base_path, ".rds"))
+  paths <- file.path(locproject(), 
+                     project, 
+                     "Models", 
+                     "ModelDesigns", 
+                     c(paste0(model_name, ".qs2"), paste0(model_name, ".rds")))
   found_path <- paths[file.exists(paths)][1]
   
   if (is.na(found_path)) stop("Design file not found.")
@@ -507,12 +508,18 @@ fishset_fit <- function(project,
     report_se <- c(report_se[1:(n_catch + n_util)], se_sig_c_natural, se_sig_e_natural)
   }
   
-  coef_table <- data.frame(
-    Estimate = report_coefs,
-    Std_Error = report_se,
-    z_value = if(se_calc) report_coefs / report_se else NA,
-    Pr_z = if(se_calc) 2 * (1 - pnorm(abs(report_coefs / report_se))) else NA
-  )
+  if (se_calc) {
+    coef_table <- data.frame(
+      Estimate = report_coefs,
+      Std_Error = report_se,
+      z_value = report_coefs / report_se,
+      Pr_z = 2 * (1 - pnorm(abs(report_coefs / report_se)))
+    )
+  } else {
+    coef_table <- data.frame(
+      Estimate = report_coefs
+    )
+  }
   
   # Fit stats and predictions ---------------------------------------------------------------------
   nll <- opt$objective
@@ -695,16 +702,24 @@ print.fishset_fit <- function(x, digits = 4, ...) {
   cat("\nCoefficients:\n")
   cat("--------------------------------------------------------\n")
   if (!is.null(x$coef_table)) {
+    # Check if the table includes P-values
+    has_pvals <- "Pr_z" %in% colnames(x$coef_table)
+    
     stats::printCoefmat(x$coef_table,
                         digits = digits,
-                        signif.stars = TRUE,
-                        P.values = TRUE,
-                        has.Pvalue = TRUE)
+                        signif.stars = has_pvals,
+                        P.values = has_pvals,
+                        has.Pvalue = has_pvals)
+    
+    cat("--------------------------------------------------------\n")
+    # Only print significance codes if we actually calculated P-values
+    if (has_pvals) {
+      cat("Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
+    }
   } else {
     print(x$coefficients)
+    cat("--------------------------------------------------------\n")
   }
-  cat("--------------------------------------------------------\n")
-  cat("Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
   
   # Fit statistics table
   cat("\nModel Statistics:\n")

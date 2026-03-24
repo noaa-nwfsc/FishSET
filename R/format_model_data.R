@@ -102,25 +102,24 @@ format_model_data <- function(project,
                               distance_units = NULL,
                               impute = NULL,
                               crs = NULL){ 
-  
+
   # Grab the fully evaluated arguments right as the function starts
   settings <- as.list(environment())
   
   # Remove the project and name, as they are metadata, not formatting settings
   settings$project <- NULL
   settings$name <- NULL
-  
+
+  # Input argument validation ---------------------------------------------------------------------
   # Use qs2 for saving if available - this will speed up the function
   use_qs2 <- requireNamespace("qs2", quietly = TRUE)
   
-  # Define nested directory paths ---
+  # Define nested directory paths
   table_name <- paste0(project, "LongFormatData")
-  db_path <- locdatabase(project)
-  project_dir <- dirname(db_path)
+  project_dir <- file.path(locproject(), project)
   
   # This nests FormattedData INSIDE the Models folder
   designs_dir <- file.path(project_dir, "Models", "FormattedData") 
-  # ---------------------------------------------
   
   file_name_qs2 <- paste0(table_name, ".qs2")
   file_name_rds <- paste0(table_name, ".rds")
@@ -130,13 +129,18 @@ format_model_data <- function(project,
   if (file.exists(file.path(designs_dir, file_name_qs2)) && use_qs2) {
     tmp_data <- qs2::qs_read(file.path(designs_dir, file_name_qs2))
     if (name %in% names(tmp_data)) {
-      stop(paste0("Formatted data with the name '", name, "' already exists in the .qs2 file. Enter a new name."))
+      stop(paste0("Formatted data with the name '", 
+                  name, 
+                  "' already exists in the .qs2 file. Enter a new name."))
     }
     rm(tmp_data)
+    
   } else if (file.exists(file.path(designs_dir, file_name_rds))) {
     tmp_data <- readRDS(file.path(designs_dir, file_name_rds))
     if (name %in% names(tmp_data)) {
-      stop(paste0("Formatted data with the name '", name, "' already exists in the .rds file. Enter a new name."))
+      stop(paste0("Formatted data with the name '", 
+                  name, 
+                  "' already exists in the .rds file. Enter a new name."))
     }
     rm(tmp_data)
   }
@@ -424,12 +428,9 @@ format_model_data <- function(project,
                   tmp_settings = settings)
   names(df_list) <- c(name, paste0(name, "_settings"))
   
-  # Create nested folders ---
-  # recursive = TRUE will automatically create the parent "Models" folder 
-  # and the "FormattedData" subfolder inside it
+  # Create nested folders
   if (!dir.exists(designs_dir)) dir.create(designs_dir, recursive = TRUE)
-  # -------------------------------------
-  
+
   # Read existing file to append data to it
   if (file.exists(file.path(designs_dir, file_name_qs2))) {
     if (use_qs2) {
@@ -442,10 +443,9 @@ format_model_data <- function(project,
     all_formatted_data <- readRDS(file.path(designs_dir, file_name_rds))
     df_list <- c(all_formatted_data, df_list)
   }
-  
-  # SOFT DEPENDENCY LOGIC for qs2
+
+  # Soft dependency for qs2 package
   if (use_qs2) {
-    # Recommended: Use distinct extension so your reader knows to use qread
     qs2::qs_save(df_list, file = file.path(designs_dir, file_name_qs2))
     message("Design object saved to: ", file.path(designs_dir, file_name_qs2))
   } else {

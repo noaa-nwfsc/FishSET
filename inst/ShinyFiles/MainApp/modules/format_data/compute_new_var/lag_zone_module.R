@@ -302,8 +302,8 @@ lag_zone_ui <- function(id){
                            bslib::tooltip(
                              shiny::icon("circle-info", `aria-label` = "More information"),
                              HTML("Maximum distance (in meters) to buffer around a zone polygon 
-                                  when assigning port locations to zones. Useful if port coordinates
-                                  are slightly offset from zone boundaries."),
+                                  when assigning port locations to zones. Useful if port 
+                                  coordinates are slightly offset from zone boundaries."),
                              options = list(delay = list(show = 0, hide = 850))
                            )
                          )
