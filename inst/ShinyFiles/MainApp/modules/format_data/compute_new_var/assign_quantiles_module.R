@@ -103,7 +103,7 @@ assign_quantiles_server <- function(id, rv_project_name, rv_data){
     })
     
     # Render the data table *inside* the modal
-    output$preview_table <- renderDT({
+    output$preview_table <- DT::renderDT({
       req(rv_temp_data())
       datatable(
         head(rv_temp_data(), 5), # Preview first 5 rows
