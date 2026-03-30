@@ -101,8 +101,19 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       rv_fit_list(fits)
       rv_existing_fits(fit_names)
       
+      # Update the removal dropdown
       updateSelectizeInput(session, "fit_to_remove", 
                            choices = fit_names, selected = "")
+      
+      # Update the Comparison Filter dropdown
+      current_sel <- isolate(input$models_to_compare)
+      
+      if (is.null(current_sel) || length(current_sel) == 0) {
+        updateSelectizeInput(session, "models_to_compare", choices = fit_names, selected = fit_names)
+      } else {
+        new_fits <- setdiff(fit_names, isolate(rv_existing_fits()))
+        updateSelectizeInput(session, "models_to_compare", choices = fit_names, selected = c(current_sel, new_fits))
+      }
     }
     
     # Trigger loading fits on project change
@@ -148,7 +159,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       }
     })
     
-    # 3. Execution Logic (Run Fit) -------------------------------------------------------------
+    # 4. Execution Logic (Run Fit) -------------------------------------------------------------
     observeEvent(input$run_fit_btn, {
       req(rv_project_name(), rv_folderpath())
       
@@ -201,158 +212,140 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       })
     })
     
-    # 4. Manage Table Logic --------------------------------------------------------------------
-    output$existing_fits_table <- DT::renderDataTable({
-      f_names <- rv_existing_fits()
+    # 5. Consolidated DataTables Generation ----------------------------------------------------
+    
+    # Helper for stats formatting
+    fmt <- function(n, d = 2) if(is.null(n) || is.na(n)) "NA" else format(round(n, d), nsmall = d)
+    
+    # Table 1: Model Statistics
+    output$combined_stats_table <- DT::renderDataTable({
+      fits_list <- rv_fit_list()
+      selected_models <- input$models_to_compare
       
-      if (length(f_names) == 0) {
-        return(DT::datatable(
-          data.frame(Name = character(0), Actions = character(0)),
-          caption = "No Model Fits found."
-        ))
-      }
+      if (length(fits_list) == 0 || is.null(selected_models) || length(selected_models) == 0) return(NULL)
       
-      # Create buttons with embedded JS onclick events
-      actions <- sapply(f_names, function(name) {
-        as.character(
-          tags$button(
-            class = "btn btn-secondary btn-sm",
-            onclick = sprintf("Shiny.setInputValue('%s', '%s', {priority: 'event'})", 
-                              ns("view_fit_trigger"), name),
-            "View Results"
-          )
-        )
-      })
+      # Subset the list to only the models selected in the UI
+      fits_list <- fits_list[names(fits_list) %in% selected_models]
       
-      df <- data.frame(
-        Name = f_names,
-        Actions = actions,
+      stats_df <- data.frame(
+        Model = names(fits_list),
+        `Log-Likelihood` = sapply(fits_list, function(x) fmt(x$logLik)),
+        AIC = sapply(fits_list, function(x) fmt(x$AIC)),
+        BIC = sapply(fits_list, function(x) fmt(x$BIC)),
+        `Pseudo R-Squared` = sapply(fits_list, function(x) fmt(x$pseudo_R2, 3)),
+        Accuracy = sapply(fits_list, function(x) paste0(fmt(x$accuracy * 100, 1), "%")),
+        check.names = FALSE,
         stringsAsFactors = FALSE
       )
       
-      DT::datatable(df,
-                    options = list(pageLength = 5, searching = TRUE, dom = 'tp',
-                                   columnDefs = list(list(orderable = FALSE, targets = 1))),
+      DT::datatable(stats_df,
+                    options = list(pageLength = 10, dom = 't', scrollX = TRUE),
                     rownames = FALSE,
-                    escape = FALSE,
-                    selection = 'none',
-                    caption = "Existing Model Fits")
+                    class = 'cell-border stripe hover')
     })
     
-    # View Details Modal
-    observeEvent(input$view_fit_trigger, {
-      selected_name <- input$view_fit_trigger
+    # Table 2: Model Coefficients
+    output$combined_coef_table <- DT::renderDataTable({
       fits_list <- rv_fit_list()
+      selected_models <- input$models_to_compare
       
-      if (!(selected_name %in% names(fits_list))) {
-        showNotification("Could not load details. Fit not found in cache.", type = "error")
-        return()
-      }
+      if (length(fits_list) == 0 || is.null(selected_models) || length(selected_models) == 0) return(NULL)
       
-      fit_obj <- fits_list[[selected_name]]
+      # Subset the list to only the models selected in the UI
+      fits_list <- fits_list[names(fits_list) %in% selected_models]
       
-      # Helper for formatting numeric summary stats
-      fmt <- function(n, d = 2) if(is.null(n) || is.na(n)) "NA" else format(round(n, d),
-                                                                            nsmall = d)
+      # Extract all unique parameter names across the *filtered* saved models
+      all_params <- unique(unlist(lapply(fits_list, function(x) rownames(x$coef_table))))
       
-      # 1. Build an HTML Bootstrap Table for Summary Stats
-      summary_table <- tags$div(
-        class = "table-responsive mb-4",
-        tags$table(
-          class = "table table-sm table-striped table-bordered",
-          tags$thead(
-            tags$tr(class = "table-light", tags$th("Statistic"), tags$th("Value"))
-          ),
-          tags$tbody(
-            tags$tr(tags$td(tags$b("Log-Likelihood")), tags$td(fmt(fit_obj$logLik, 2))),
-            tags$tr(tags$td(tags$b("AIC")), tags$td(fmt(fit_obj$AIC, 2))),
-            tags$tr(tags$td(tags$b("BIC")), tags$td(fmt(fit_obj$BIC, 2))),
-            tags$tr(tags$td(tags$b("Pseudo R-Squared")), tags$td(fmt(fit_obj$pseudo_R2, 3))),
-            tags$tr(tags$td(tags$b("Accuracy")), 
-                    tags$td(paste0(fmt(fit_obj$accuracy * 100, 1), "%")))
-          )
-        )
-      )
+      coef_df <- data.frame(Model = names(fits_list), stringsAsFactors = FALSE)
       
-      # 2. Render the Coefficients as a DT Data Table
-      output$modal_coef_table <- DT::renderDataTable({
-        req(fit_obj$coef_table)
-        df <- fit_obj$coef_table
-        
-        # Bring rownames into the dataframe as a column
-        df <- cbind(Parameter = rownames(df), df)
-        rownames(df) <- NULL
-        
-        # Round numeric columns
-        df$Estimate <- round(df$Estimate, 4)
-        df$Std_Error <- round(df$Std_Error, 4)
-        df$z_value <- round(df$z_value, 2)
-        
-        # Format P-values and append significance stars
-        df$Pr_z <- sapply(df$Pr_z, function(p) {
-          if (is.na(p)) return("NA")
-          star <- ""
-          if (p < 0.001) star <- "***"
-          else if (p < 0.01) star <- "**"
-          else if (p < 0.05) star <- "*"
-          else if (p < 0.1) star <- "."
-          paste0(format.pval(p, eps = 0.001, digits = 3), " ", star)
+      # Build columns for each parameter
+      for (p in all_params) {
+        coef_df[[p]] <- sapply(names(fits_list), function(m_name) {
+          x <- fits_list[[m_name]]
+          if (p %in% rownames(x$coef_table)) {
+            est <- x$coef_table[p, "Estimate"]
+            if (is.na(est)) return("NA")
+            
+            # Format with SE and Significance Stars if available
+            if ("Std_Error" %in% colnames(x$coef_table)) {
+              se <- x$coef_table[p, "Std_Error"]
+              pval <- x$coef_table[p, "Pr_z"]
+              
+              star <- ""
+              if (!is.null(pval) && !is.na(pval)) {
+                if (pval < 0.001) star <- "***"
+                else if (pval < 0.01) star <- "**"
+                else if (pval < 0.05) star <- "*"
+                else if (pval < 0.1) star <- "."
+              }
+              return(sprintf("%.4f (%.4f) %s", est, se, star))
+            } else {
+              return(sprintf("%.4f", est))
+            }
+          } else {
+            return("-") # Return a dash if the model doesn't use this parameter
+          }
         })
-        
-        # Return cleanly styled DT
-        DT::datatable(df,
-                      options = list(pageLength = 10, dom = 'tip', searching = FALSE),
-                      rownames = FALSE,
-                      class = 'cell-border stripe hover')
-      })
-      
-      # 3. Create Scaling Alerts 
-      scaling_alerts <- tagList()
-      
-      if (!is.null(fit_obj$Y_catch_divisor) && fit_obj$Y_catch_divisor > 1) {
-        scaling_alerts[[length(scaling_alerts) + 1]] <- tags$div(
-          class = "alert alert-info py-2 mb-2",
-          style = "font-size: 0.9rem;",
-          tags$strong("Catch Units: "), 
-          paste("Modeled in 1 /", format(fit_obj$Y_catch_divisor, scientific = FALSE), "units")
-        )
       }
       
-      if (!is.null(fit_obj$price_divisor) && fit_obj$price_divisor > 1) {
-        scaling_alerts[[length(scaling_alerts) + 1]] <- tags$div(
-          class = "alert alert-info py-2 mb-2",
-          style = "font-size: 0.9rem;",
-          tags$strong("Price Units: "), 
-          paste("Modeled in 1 /", format(fit_obj$price_divisor, scientific = FALSE), "units")
-        )
-      }
-      
-      # 4. Combine into final UI for the Modal
-      details_ui <- tagList(
-        
-        h5("Coefficient Estimates", class = "text-primary mt-3"),
-        DT::dataTableOutput(ns("modal_coef_table")),
-        
-        h5("Model Statistics", class = "text-primary"),
-        summary_table,
-        
-        # Add the scaling alerts near the bottom of the modal
-        scaling_alerts, 
-        
-        div(class = "text-muted mt-2", style = "font-size: 0.8rem;",
-            "Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
-      )
-      
-      showModal(modalDialog(
-        title = paste("Fit Details:", selected_name),
-        details_ui,
-        size = "l",
-        easyClose = TRUE,
-        footer = modalButton("Close")
-      ))
+      # Render with FixedColumns, ColVis, and custom Select/Deselect All buttons
+      DT::datatable(coef_df,
+                    extensions = c('FixedColumns', 'Buttons'),
+                    options = list(
+                      pageLength = 10, 
+                      dom = 'Brtip',
+                      scrollX = TRUE,
+                      fixedColumns = list(leftColumns = 1),
+                      buttons = list(
+                        list(
+                          extend = 'colvis', 
+                          text = 'Show/Hide Parameters',
+                          columns = ':gt(0)' # Prevents hiding the first "Model" column
+                        ),
+                        list(
+                          extend = 'colvisGroup', 
+                          text = 'Show All', 
+                          show = ':gt(0)'
+                        ),
+                        list(
+                          extend = 'colvisGroup', 
+                          text = 'Hide All', 
+                          hide = ':gt(0)'
+                        )
+                      )
+                    ),
+                    rownames = FALSE,
+                    class = 'cell-border stripe hover')
     })
     
-    # Remove Fit Logic
+    # Aggregated Scaling Alerts 
+    output$scaling_alerts_ui <- renderUI({
+      fits_list <- rv_fit_list()
+      selected_models <- input$models_to_compare
+      
+      if (length(fits_list) == 0 || is.null(selected_models) || length(selected_models) == 0) return(NULL)
+      
+      # Subset the list so alerts only show if the *filtered* models triggered scaling
+      fits_list <- fits_list[names(fits_list) %in% selected_models]
+      
+      alerts <- tagList()
+      
+      has_catch_div <- any(sapply(fits_list, function(x) !is.null(x$Y_catch_divisor) && x$Y_catch_divisor > 1))
+      has_price_div <- any(sapply(fits_list, function(x) !is.null(x$price_divisor) && x$price_divisor > 1))
+      
+      if (has_catch_div || has_price_div) {
+        alerts[[1]] <- tags$div(
+          class = "alert alert-info py-2 mb-0", 
+          style = "font-size: 0.85rem; clear: both; margin-top: 25px; position: relative; z-index: 10;",
+          tags$strong("Note: "), "One or more of your models utilize magnitude scaling for computational stability. ",
+          "Ensure you check the specific divisor outputs when applying coefficients to raw data."
+        )
+      }
+      alerts
+    })
+    
+    # 6. Remove Fit Logic ----------------------------------------------------------------------
     observeEvent(input$remove_fit_btn, {
       req(input$fit_to_remove)
       showModal(modalDialog(
@@ -416,7 +409,7 @@ model_fit_ui <- function(id) {
     
     div(id = ns("main_container"),
         
-        # Fit Model
+        # 1. Fit Model Card
         bslib::card(
           class = "card-overflow",
           bslib::card_header('Fit Discrete Choice Model'),
@@ -425,42 +418,54 @@ model_fit_ui <- function(id) {
             p("This module estimates the parameters of a discrete choice model using a 
               saved model design and the RTMB framework."),
             
-            # 1. Inputs & Naming
+            # Inputs & Naming
             bslib::card(
               class = "card-overflow",
               bslib::card_header(h5("1. Target & Naming", class = "mb-0")),
               bslib::card_body(
-                class = "card-overflow d-flex flex-column gap-3",
+                class = "card-overflow",
                 
-                selectizeInput(ns("design_input"), 
-                               label = tags$span(
-                                 "Model Design ", 
-                                 bslib::tooltip(
-                                   shiny::icon("info-circle"),
-                                   "Select a design matrix created in the Model Design module.")),
-                               choices = NULL, width = "100%"),
-                
-                textInput(ns("fit_name_input"), 
-                          label = tags$span(
-                            "Fit Name (Optional) ", 
-                            bslib::tooltip(
-                              shiny::icon("info-circle"),
-                              "Defaults to <model_name>_fit if left blank.")), 
-                          placeholder = "e.g., clogit_base_fit", width = "100%"),
-                
-                shinyjs::hidden(
-                  div(id = ns("distribution_container"),
-                      selectInput(ns("distribution_input"), 
-                                  label = tags$span(
-                                    "EPM Distribution ", 
-                                    bslib::tooltip(
-                                      shiny::icon("info-circle"),
-                                      "Required for Expected Profit Models.")),
-                                  choices = c("Normal" = "normal", 
-                                              "Lognormal" = "lognormal", 
-                                              "Weibull" = "weibull"),
-                                  selected = "none",
-                                  width = "100%")
+                # Using layout_column_wrap to perfectly size 3 columns
+                bslib::layout_column_wrap(
+                  width = 1/3, # Forces 3 equal columns
+                  
+                  # Slot 1: Model Design
+                  selectizeInput(ns("design_input"), 
+                                 label = tags$span(
+                                   "Model Design ", 
+                                   bslib::tooltip(
+                                     shiny::icon("info-circle"),
+                                     "Select a design matrix created in the Model Design module.")),
+                                 choices = NULL, width = "100%"),
+                  
+                  # Slot 2: Fit Name
+                  textInput(ns("fit_name_input"), 
+                            label = tags$span(
+                              "Fit Name (Optional) ", 
+                              bslib::tooltip(
+                                shiny::icon("info-circle"),
+                                "Defaults to <model_name>_fit if left blank.")), 
+                            placeholder = "e.g., clogit_base_fit", width = "100%"),
+                  
+                  # Slot 3: EPM Distribution
+                  # Wrapped in a plain div so layout_column_wrap always sees 3 items 
+                  # even when the input itself is hidden by shinyjs.
+                  div(
+                    shinyjs::hidden(
+                      div(id = ns("distribution_container"),
+                          selectInput(ns("distribution_input"), 
+                                      label = tags$span(
+                                        "EPM Distribution ", 
+                                        bslib::tooltip(
+                                          shiny::icon("info-circle"),
+                                          "Required for Expected Profit Models.")),
+                                      choices = c("Normal" = "normal", 
+                                                  "Lognormal" = "lognormal", 
+                                                  "Weibull" = "weibull"),
+                                      selected = "none",
+                                      width = "100%")
+                      )
+                    )
                   )
                 )
               )
@@ -475,7 +480,6 @@ model_fit_ui <- function(id) {
                                   width = "100%")
               )
             ),
-            
             # Spinner & Messages
             div(id = ns("run_fit_spinner_container"),
                 style = "display: none; margin-top: 15px;",
@@ -491,18 +495,72 @@ model_fit_ui <- function(id) {
           )
         ),
         
-        # Manage Fits
+        hr(class = "my-4"),
+        
+        # Filtering Control Row
+        bslib::card(
+          class = "card-overflow border-secondary bg-light mt-4 mb-4", 
+          bslib::card_body(
+            class = "p-3 card-overflow d-flex flex-column", 
+            selectizeInput(ns("models_to_compare"),
+                           label = tags$span(
+                             shiny::icon("filter"), 
+                             tags$strong(" Filter Models to Compare "),
+                             bslib::tooltip(
+                               shiny::icon("info-circle"),
+                               "Select specific models to view them side-by-side. 
+                               Delete tags to hide them from the tables."
+                             )
+                           ),
+                           choices = NULL, 
+                           multiple = TRUE, 
+                           width = "100%",
+                           options = list(
+                             placeholder = 'Click here to add models to the comparison...',
+                             plugins = list('remove_button')
+                           )
+            )
+          )
+        ),
+        
+        # 2. Model Statistics Card
         bslib::card(
           class = "card-overflow",
-          bslib::card_header("Manage Model Fits"),
+          bslib::card_header("Model Statistics"),
           bslib::card_body(
             class = "card-overflow",
-            DT::dataTableOutput(ns("existing_fits_table"), fill = FALSE),
-            hr(),
+            
+            div(style = "width: 100%; overflow-x: auto;",
+                DT::dataTableOutput(ns("combined_stats_table"))
+            )
+          )
+        ),
+        
+        # 3. Coefficient Estimates Card
+        bslib::card(
+          class = "card-overflow",
+          bslib::card_header("Coefficient Estimates"),
+          bslib::card_body(
+            class = "card-overflow",
+            
+            div(style = "width: 100%; position: relative;",
+                DT::dataTableOutput(ns("combined_coef_table"))
+            ),
+            
+            div(class = "text-muted mt-2", style = "font-size: 0.8rem; clear: both;",
+                "Cells show: Estimate (Standard Error) Significance. Codes:  0 '***' 0.001 '**'
+                0.01 '*' 0.05 '.' 0.1 ' ' 1"),
+            
+            uiOutput(ns("scaling_alerts_ui")),
+            
+            hr(class = "my-4", style = "clear: both;"),
+            
+            # Removal Action
             fluidRow(
               column(8,
                      selectizeInput(ns("fit_to_remove"),
-                                    "Select fit to remove:", choices = NULL, width = "100%")
+                                    "Select fit to permanently remove from database:", 
+                                    choices = NULL, width = "100%")
               ),
               column(4, style = "margin-top: 25px;",
                      actionButton(ns("remove_fit_btn"), "Remove Selected",
@@ -514,3 +572,4 @@ model_fit_ui <- function(id) {
     )
   )
 }
+
