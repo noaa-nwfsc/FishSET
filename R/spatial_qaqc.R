@@ -281,12 +281,12 @@ spatial_qaqc <- function(dat,
       ggplot2::labs(title = "Obs on land", x = "Longitude", y = "Latitude",
                     subtitle = paste0("N:", n_land, " (", p_land, "%)")) +
       fishset_theme() +
-      theme(axis.text.x = element_text(size = 14),
-            axis.text.y = element_text(size = 14),
-            axis.title.x = element_text(size = 14),
-            axis.title.y = element_text(size = 14),
-            plot.title = element_text(size = 14),
-            plot.subtitle = element_text(size = 14))
+      ggplot2::theme(axis.text.x =  ggplot2::element_text(size = 14),
+                     axis.text.y =  ggplot2::element_text(size = 14),
+                     axis.title.x =  ggplot2::element_text(size = 14),
+                     axis.title.y =  ggplot2::element_text(size = 14),
+                     plot.title =  ggplot2::element_text(size = 14),
+                     plot.subtitle =  ggplot2::element_text(size = 14))
   }
   
   ## 2. Observations outside of the spatial data bounds -------------------------------------------
@@ -333,12 +333,12 @@ spatial_qaqc <- function(dat,
       ggplot2::labs(title = "Obs outside zone", x = "Longitude", y = "Latitude",
                     subtitle = paste0("N:", n_out, " (", p_out, "%)")) +
       fishset_theme() +
-      theme(axis.text.x = element_text(size = 14),
-            axis.text.y = element_text(size = 14),
-            axis.title.x = element_text(size = 14),
-            axis.title.y = element_text(size = 14),
-            plot.title = element_text(size = 14),
-            plot.subtitle = element_text(size = 14))
+      ggplot2::theme(axis.text.x =  ggplot2::element_text(size = 14),
+                     axis.text.y =  ggplot2::element_text(size = 14),
+                     axis.title.x =  ggplot2::element_text(size = 14),
+                     axis.title.y =  ggplot2::element_text(size = 14),
+                     plot.title =  ggplot2::element_text(size = 14),
+                     plot.subtitle =  ggplot2::element_text(size = 14))
   }
   
   ## 3. Observations on zone boundary lines -------------------------------------------------------
@@ -371,12 +371,12 @@ spatial_qaqc <- function(dat,
       ggplot2::labs(title = "Obs on zone boundary", x = "Longitude", y = "Latitude",
                     subtitle = paste0("N:", n_bound, " (", p_bound, "%)")) +
       fishset_theme() +
-      theme(axis.text.x = element_text(size = 14),
-            axis.text.y = element_text(size = 14),
-            axis.title.x = element_text(size = 14),
-            axis.title.y = element_text(size = 14),
-            plot.title = element_text(size = 14),
-            plot.subtitle = element_text(size = 14))
+      ggplot2::theme(axis.text.x =  ggplot2::element_text(size = 14),
+                     axis.text.y =  ggplot2::element_text(size = 14),
+                     axis.title.x =  ggplot2::element_text(size = 14),
+                     axis.title.y =  ggplot2::element_text(size = 14),
+                     plot.title =  ggplot2::element_text(size = 14),
+                     plot.subtitle =  ggplot2::element_text(size = 14))
   }
   
   ## 4. Observations in the "expected" locations --------------------------------------------------
@@ -402,12 +402,12 @@ spatial_qaqc <- function(dat,
     ggplot2::labs(title = "Obs in expected location", x = "Longitude", y = "Latitude",
                   subtitle = paste0("N:", n_expected, " (", p_expected, "%)")) +
     fishset_theme() +
-    theme(axis.text.x = element_text(size = 14),
-          axis.text.y = element_text(size = 14),
-          axis.title.x = element_text(size = 14),
-          axis.title.y = element_text(size = 14),
-          plot.title = element_text(size = 14),
-          plot.subtitle = element_text(size = 14))
+    ggplot2::theme(axis.text.x =  ggplot2::element_text(size = 14),
+                   axis.text.y =  ggplot2::element_text(size = 14),
+                   axis.title.x =  ggplot2::element_text(size = 14),
+                   axis.title.y =  ggplot2::element_text(size = 14),
+                   plot.title =  ggplot2::element_text(size = 14),
+                   plot.subtitle =  ggplot2::element_text(size = 14))
   
   # Spatial summary table -------------------------------------------------------------------------
   # Create  a summary table of the spatial checks
@@ -518,12 +518,12 @@ spatial_qaqc <- function(dat,
                             adjust = 2, color = "black") +
       fishset_theme() +
       ggplot2::theme(legend.position = "bottom") +
-      theme(axis.text.x = element_text(size = 14),
-            axis.text.y = element_text(size = 14),
-            axis.title.x = element_text(size = 14),
-            axis.title.y = element_text(size = 14),
-            plot.title = element_text(size = 14),
-            plot.subtitle = element_text(size = 14))
+      ggplot2::theme(axis.text.x =  ggplot2::element_text(size = 14),
+                     axis.text.y =  ggplot2::element_text(size = 14),
+                     axis.title.x =  ggplot2::element_text(size = 14),
+                     axis.title.y =  ggplot2::element_text(size = 14),
+                     plot.title =  ggplot2::element_text(size = 14),
+                     plot.subtitle =  ggplot2::element_text(size = 14))
     
     # Create a frequency table of distances
     dist_freq <- freq_table(dist_df, "dist", group = c("YEAR", group),

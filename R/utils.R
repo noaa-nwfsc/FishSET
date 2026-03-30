@@ -2209,10 +2209,10 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal",
       }
     } # End Outlier mod
     
-    mytheme <- theme(
-      panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-      panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text = element_text(size = 11),
-      axis.title = element_text(size = 11)
+    mytheme <-  ggplot2::theme(
+      panel.grid.major =  ggplot2::element_blank(), panel.grid.minor =  ggplot2::element_blank(),
+      panel.background =  ggplot2::element_blank(), axis.line =  ggplot2::element_line(colour = "black"), axis.text =  ggplot2::element_text(size = 11),
+      axis.title =  ggplot2::element_text(size = 11)
     )
     
     # Hist

@@ -244,13 +244,13 @@ outliers_ui <- function(id){
       bslib::card_body(
         fillable = TRUE,
         div(
-          withSpinner(
+          shinycssloaders::withSpinner(
             DT::DTOutput(ns("outlier_summary_table")),
             type = 6
           )
         ),
         div(
-          withSpinner(
+          shinycssloaders::withSpinner(
             plotOutput(ns("outlier_diagnostic_plot")),
             type = 6
           )

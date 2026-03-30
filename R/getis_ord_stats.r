@@ -179,7 +179,7 @@ getis_ord_stats <- function(dat, project, varofint, zoneid, spat, cat, lon.dat =
              label = paste0("p-value = ", round(globalgetis$p.value, 2)  ),
              parse = FALSE, size = annotatesize, color = "black", hjust = 0) +
     ggplot2::theme(
-      text = element_text(size = 20), axis.title.y = ggplot2::element_text(vjust = 1.5),
+      text =  ggplot2::element_text(size = 20), axis.title.y = ggplot2::element_text(vjust = 1.5),
       legend.position = c(0.875, 0.7), legend.text = ggplot2::element_text(size = 15), 
       legend.title = ggplot2::element_text(size = 15)
     ) +

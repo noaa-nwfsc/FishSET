@@ -87,7 +87,7 @@ summary_data_ui <- function(id){
     bslib::card(
       height = "1000px",
       fill = TRUE,
-      withSpinner(
+      shinycssloaders::withSpinner(
         DT::DTOutput(ns("summary_datatable")),
         type = 6
       )

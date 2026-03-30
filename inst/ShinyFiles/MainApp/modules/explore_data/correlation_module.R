@@ -103,13 +103,13 @@ correlation_server <- function(id, rv_folderpath, rv_project_name, rv_data){
         geom_tile(color = "white") +
         ggplot2::theme_minimal(base_size = 12) +
         ggplot2::theme(
-          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 12),
-          axis.text.y = element_text(size = 12),
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
-          panel.grid.major = element_blank(),
-          panel.border = element_blank(),
-          axis.ticks = element_blank()
+          axis.text.x =  ggplot2::element_text(angle = 45, vjust = 1, hjust = 1, size = 12),
+          axis.text.y =  ggplot2::element_text(size = 12),
+          axis.title.x =  ggplot2::element_blank(),
+          axis.title.y =  ggplot2::element_blank(),
+          panel.grid.major =  ggplot2::element_blank(),
+          panel.border =  ggplot2::element_blank(),
+          axis.ticks =  ggplot2::element_blank()
         ) +
         scale_y_discrete(limits = rev) +
         coord_fixed() + # Ensure tiles are square

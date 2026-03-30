@@ -133,10 +133,10 @@ spatial_autocorr_server <- function(id, rv_project_name, rv_data, rv_folderpath)
       
       plot_out +
         labs(title = "Local indicators of spatial association") +
-        theme(
-          title = element_text(size = 14),
-          axis.text = element_text(size = 14),
-          legend.text = element_text(size = 14),
+         ggplot2::theme(
+          title =  ggplot2::element_text(size = 14),
+          axis.text =  ggplot2::element_text(size = 14),
+          legend.text =  ggplot2::element_text(size = 14),
           # Add this line to reduce margin size
           plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm") 
         )
@@ -174,7 +174,7 @@ spatial_autocorr_ui <- function(id){
                   choices = NULL),
       
       div(style = "display: flex; justify-content: center;",
-          withSpinner(
+          shinycssloaders::withSpinner(
             tableOutput(ns("moran_table")),
             type = 6
           )
@@ -185,7 +185,7 @@ spatial_autocorr_ui <- function(id){
         ns = ns,
         div(
           style = "width: 800px; height: 650px; margin: auto; text-align: center;",
-          withSpinner(
+          shinycssloaders::withSpinner(
             plotOutput(ns("lisa_plot"), width = "100%", height = "600px"),
             type = 6
           ),
