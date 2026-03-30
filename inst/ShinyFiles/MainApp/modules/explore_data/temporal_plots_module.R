@@ -22,7 +22,7 @@ temporal_plot_theme <- ggplot2::theme_classic() +
     axis.text.y =  ggplot2::element_text(size = 14),
     axis.title.x =  ggplot2::element_text(size = 14),
     axis.title.y =  ggplot2::element_text(size = 14),
-    plot.margin = margin(t = 5.5, r = 30, b = 5.5, l = 5.5, unit = "pt")
+    plot.margin = ggplot2::margin(t = 5.5, r = 30, b = 5.5, l = 5.5, unit = "pt")
   )
 
 # Server ------------------------------------------------------------------------------------------

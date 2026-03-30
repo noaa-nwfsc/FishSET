@@ -138,7 +138,7 @@ spatial_autocorr_server <- function(id, rv_project_name, rv_data, rv_folderpath)
           axis.text =  ggplot2::element_text(size = 14),
           legend.text =  ggplot2::element_text(size = 14),
           # Add this line to reduce margin size
-          plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm") 
+          plot.margin = grid::unit(c(0.5, 0.5, 0.5, 0.5), "cm") 
         )
     })
     
