@@ -47,7 +47,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       return(list())
     }
     
-
+    
     # 1. Load Manage Table Data -------------------------------------------------------------------
     load_designs <- function() {
       req(rv_project_name(), rv_folderpath())
@@ -56,7 +56,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       project <- rv_project_name()$value
       
       project_dir <- file.path(rv_folderpath(), project) 
-
+      
       # Point to nested Models/ModelDesigns
       designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
       
@@ -80,7 +80,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       load_designs()
     })
     
-
+    
     # 2. Input Updates (Dropdowns) ----------------------------------------------------------------
     # Update Formatted Data Dropdown
     formatted_data_choices <- reactivePoll(
@@ -144,8 +144,8 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       project <- rv_project_name()$value
       data_name <- input$formatted_data_input
       
-        project_dir <- file.path(locproject(), project)
-   
+      project_dir <- file.path(locproject(), project)
+      
       # Load the specific dataframe to get column names
       tryCatch({
         full_lf_list <- read_long_format_file(project_dir, project)
@@ -160,8 +160,8 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
           
           # Also help the user by listing available variables for the formula
           output$avail_vars_list <- renderText({
-
-            paste("AVAILABLE VARIABLES:", paste(cols, collapse = ", "))
+            
+            paste(paste(cols, collapse = ", "))
           })
         }
       }, error = function(e) {
@@ -169,7 +169,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       })
     })
     
-
+    
     # 3. Execution Logic (Run Design) -------------------------------------------------------------
     observeEvent(input$run_design_btn, {
       req(rv_project_name(), rv_folderpath())
@@ -326,7 +326,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       
       project_dir <- file.path(rv_folderpath(), project_name)
       # Point to nested Models/ModelDesigns ---
-
+      
       designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
       
       qs2_path <- file.path(designs_dir, paste0(selected_name, ".qs2"))
@@ -469,20 +469,20 @@ model_design_ui <- function(id) {
           bslib::card_header('Create Model Design'),
           bslib::card_body(
             class = "card-overflow",
-            p("This module constructs the design matrices required for discrete choice modeling 
-            using formatted FishSET data."),
+            p("This module constructs the design matrices required for discrete choice modeling
+              using formatted FishSET data."),
             
-            bslib::layout_column_wrap(
-              fill = FALSE,
-              width = 1/2, 
-              gap = "1rem",
-              
-              # 1. Source and Naming
-              bslib::card(
+            # 1. Source and Naming (3 Columns)
+            bslib::card(
+              class = "card-overflow mb-4", 
+              bslib::card_header(h5("1. Source Data & Naming", class = "mb-0")),
+              bslib::card_body(
                 class = "card-overflow",
-                bslib::card_header(h5("1. Source Data & Naming", class = "mb-0")),
-                bslib::card_body(
-                  class = "card-overflow d-flex flex-column gap-3",
+                bslib::layout_column_wrap(
+                  width = 1/3, 
+                  gap = "1rem",
+                  
+                  # Column 1
                   textInput(
                     ns("model_name_input"), 
                     label = tags$span(
@@ -491,6 +491,8 @@ model_design_ui <- function(id) {
                         shiny::icon("info-circle"),
                         "Unique name for this model design configuration.")), 
                     placeholder = "e.g., clogit_base_design", width = "100%"),
+                  
+                  # Column 2
                   selectizeInput(ns("formatted_data_input"), 
                                  label = tags$span(
                                    "Input Formatted Data ", 
@@ -499,111 +501,149 @@ model_design_ui <- function(id) {
                                      "Select a dataset created in the Format Model Data module.")),
                                  choices = NULL, width = "100%"),
                   
-                  selectInput(ns("model_type_input"), 
-                              label = tags$span(
-                                "Model Type ",
-                                bslib::tooltip(
-                                  shiny::icon("info-circle"),
-                                  "Select the type of discrete choice model.")),
-                              choices = c("Standard Logit", 
-                                          "Expected Profit Model (EPM)" = "epm"),
-                              width = "100%")
-                )
-              ),
-              
-              # 2. Model Specification
-              bslib::card(
-                class = "card-overflow",
-                bslib::card_header(h5("2. Model Specification", class = "mb-0")),
-                bslib::card_body(
-                  class = "card-overflow d-flex flex-column gap-3",
-                  textAreaInput(ns("formula_input"), 
+                  # Column 3
+                  div(
+                    selectInput(ns("model_type_input"), 
                                 label = tags$span(
-                                  "Utility Formula ", 
+                                  "Model Type ",
                                   bslib::tooltip(
                                     shiny::icon("info-circle"),
-                                    "Use '|' to separate alternative-specific vars (left) from
-                                    trip- or haul-specific vars (right) that do not vary 
-                                    across zones.")),
-                                placeholder = "chosen ~ catch + distance | vessel_length", 
-                                rows = 3, width = "100%"),
+                                    "Select the type of discrete choice model.")),
+                                choices = c("Standard Logit", 
+                                            "Expected Profit Model (EPM)" = "epm"),
+                                width = "100%"),
+                    shinyjs::hidden(
+                      div(id = ns("distribution_container"),
+                          selectInput(ns("distribution_input"), 
+                                      label = tags$span(
+                                        "EPM Distribution ", 
+                                                        bslib::tooltip(
+                                                          shiny::icon("info-circle"),
+                                                          "Required for Expected Profit Models.")),
+                                      choices = c("Normal" = "normal",
+                                                  "Lognormal" = "lognormal", 
+                                                  "Weibull" = "weibull"),
+                                      selected = "none", width = "100%")
+                      )
+                    )
+                  )
+                )
+              )
+            ),
+            
+            # 2. Model Specification (Asymmetrical Layout)
+            bslib::card(
+              class = "card-overflow",
+              bslib::card_header(h5("2. Model Specification", class = "mb-0")),
+              bslib::card_body(
+                class = "card-overflow",
+                bslib::layout_columns(
+                  col_widths = c(7, 5), # 7 parts left, 5 parts right
+                  gap = "2rem",
                   
-                  helpText(tags$small(
-                    "Format: ", tags$code("chosen ~ Alt_Vars | Ind_Vars"), br(),
-                    "Note: LHS is always 'chosen' for logit models and EPMs, and Ind_Vars are 
-                    interacted with zones automatically."
-                  )),
-                  
-                  # Conditional Panel for EPM inputs
-                  conditionalPanel(
-                    condition = "input.model_type_input == 'epm'",
-                    ns = ns,
-                    div(
-                      class = "p-3 bg-light border rounded mt-3",
-                      h6("EPM Settings", class = "card-title text-primary mb-2"),
+                  # LEFT COLUMN: Formulas and EPM Settings
+                  div(class = "d-flex flex-column gap-3",
                       
-                      textAreaInput(ns("catch_formula_input"), 
+                      div(
+                        textAreaInput(ns("formula_input"), 
+                                      label = tags$span(
+                                        "Utility Formula ", 
+                                        bslib::tooltip(
+                                          shiny::icon("info-circle"),
+                                          "Use '|' to separate alternative-specific vars (left) from
+                                          trip- or haul-specific vars (right) that do not vary 
+                                          across zones.")),
+                                      placeholder = "chosen ~ catch + distance | vessel_length", 
+                                      rows = 3, width = "100%"),
+                        
+                      ),
+                      
+                      # Entire EPM block stays together on the left
+                      conditionalPanel(
+                        condition = "input.model_type_input == 'epm'",
+                        ns = ns,
+                        div(
+                          class = "p-3 bg-light border rounded",
+                          h6("EPM Settings", class = "card-title text-primary mb-3"),
+                          
+                          textAreaInput(ns("catch_formula_input"), 
+                                        label = tags$span(
+                                          "Catch Formula ", 
+                                          bslib::tooltip(
+                                            shiny::icon("info-circle"),
+                                            "Formula specifying catch density. Use ':' to 
+                                            estimate zone-specific coefficients. For example,
+                                            'actual_catch ~ exp_catch:ZoneID'.
+                                            Note: that the actual catch variable in the dataset
+                                            must be available in the list below.")),
+                                        placeholder = "actual_catch ~ exp_catch_matrix",
+                                        rows = 2, width = "100%"),
+                          
+                          selectizeInput(ns("price_var_input"), 
+                                         label = "Price Variable", 
+                                         choices = NULL, width = "100%")
+                        )
+                      )
+                  ),
+                  
+                  # RIGHT COLUMN: Scale Toggle and Reference Variables
+                  div(class = "d-flex flex-column gap-3",
+                      
+                      helpText(tags$small(
+                        "Format: ", tags$code("chosen ~ Alt_Vars | Ind_Vars"), br(),
+                        "Note: LHS is always 'chosen' for logit models and EPMs, and Ind_Vars are 
+                          interacted with zones automatically."
+                      )),
+                      # Scrollable container for variables so it doesn't stretch the UI
+                      div(class = "p-3 border rounded bg-light", 
+                          style = "max-height: 250px; overflow-y: auto;",                         
+                          h6("Available Variables", class = "card-title text-primary mb-3"),
+                          div(class = "text-muted mt-2", style = "font-size: 0.8rem;",
+                              textOutput(ns("avail_vars_list"))
+                          )
+                      ),
+                      checkboxInput(ns("scale_input"), 
                                     label = tags$span(
-                                      "Catch Formula ", 
+                                      "Scale Numeric Covariates? ",
                                       bslib::tooltip(
                                         shiny::icon("info-circle"),
-                                        "Formula specifying catch density. Use ':' to 
-                                        estimate zone-specific coefficients. For example,
-                                        'actual_catch ~ exp_catch:ZoneID'.
-                                        Note: that the actual catch variable in the dataset
-                                        must be available in the list below.")),
-                                    placeholder = "actual_catch ~ exp_catch_matrix",
-                                    rows = 2, width = "100%"),
-                      
-                      selectizeInput(ns("price_var_input"), 
-                                     label = "Price Variable", 
-                                     choices = NULL, width = "100%")
-                    )
-                  ),
-                  div(class = "text", style = "font-size: 0.8rem;",
-                      textOutput(ns("avail_vars_list"))),
-                  
-                  checkboxInput(ns("scale_input"), 
-                                label = tags$span(
-                                  "Scale Numeric Covariates? ",
-                                  bslib::tooltip(
-                                    shiny::icon("info-circle"),
-                                    "Standard scaler for numeric X variables. Note: scaling
-                                    covariates is recommended for numerical stability and 
-                                    efficient optimization.")),
-                                value = FALSE)
+                                        "Standard scaler for numeric X variables. Note: scaling
+                                        covariates is recommended for numerical stability and 
+                                        efficient optimization.")),
+                                    value = FALSE),
+                  )
                 )
               )
-            ),
-            
-            # Run Button
-            fluidRow(
-              column(6, style = "margin-top: 25px;",
-                     actionButton(ns("run_design_btn"), "Create Design Object", 
-                                  icon = icon("layer-group"), 
-                                  class = "btn-secondary",
-                                  width = "100%")
-              )
-            ),
-            
-            # Spinner & Messages
-            div(id = ns("run_design_spinner_container"),
-                style = "display: none; margin-top: 15px;",
-                spinner_ui(ns("run_design_spinner"), spinner_type = "circle", 
-                           message = "Generating Design Matrices...", overlay = TRUE)
-            ),
-            div(id = ns("design_success_message"), 
-                style = "color: green; display: none; margin-top: 10px;",
-                textOutput(ns("design_success_out"))),
-            div(id = ns("design_error_message"), 
-                style = "color: red; display: none; margin-top: 10px;", 
-                textOutput(ns("design_error_out")))
-          )
+            )
+          ),
+          
+          # Run Button
+          fluidRow(
+            column(6, style = "margin-top: 25px; padding-left: 30px;",
+                   actionButton(ns("run_design_btn"), "Create Design Object", 
+                                icon = icon("layer-group"), 
+                                class = "btn-secondary",
+                                width = "100%")
+            )
+          ),
+          
+          # Spinner & Messages
+          div(id = ns("run_design_spinner_container"),
+              style = "display: none; margin-top: 15px; padding-left: 15px;",
+              spinner_ui(ns("run_design_spinner"), spinner_type = "circle", 
+                         message = "Generating Design Matrices...", overlay = TRUE)
+          ),
+          div(id = ns("design_success_message"), 
+              style = "color: green; display: none; margin-top: 10px; padding-left: 15px;",
+              textOutput(ns("design_success_out"))),
+          div(id = ns("design_error_message"), 
+              style = "color: red; display: none; margin-top: 10px; padding-left: 15px;", 
+              textOutput(ns("design_error_out")))
         ),
         
         #  Manage Designs
         bslib::card(
-          class = "card-overflow",
+          class = "card-overflow mt-4",
           bslib::card_header("Manage Design Objects"),
           bslib::card_body(
             class = "card-overflow",
