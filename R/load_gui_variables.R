@@ -7,6 +7,8 @@
 #' @param project_name The name of the current project.
 #' @param folderpath The file path to the project's root folder.
 #'
+#' @export load_gui_variables
+#'
 #' @return A list of saved variables if the file exists, otherwise returns NULL.
 load_gui_variables <- function(project_name, folderpath) {
   

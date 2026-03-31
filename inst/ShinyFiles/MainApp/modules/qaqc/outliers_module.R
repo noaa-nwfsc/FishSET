@@ -90,7 +90,7 @@ outliers_server <- function(id, rv_project_name, rv_data){
       }
       
       # Use a quiet version of the plot function to avoid stopping the app on error
-      q_outlier_plot <- quietly(outlier_plot)
+      q_outlier_plot <- purrr::quietly(outlier_plot)
       
       # Call the plot function
       result <- q_outlier_plot(
@@ -168,7 +168,7 @@ outliers_server <- function(id, rv_project_name, rv_data){
       rv_data$main <- rv_outlier_data()
       
       # Save the updated data to the project database
-      q_save <- quietly(table_save)
+      q_save <- purrr::quietly(table_save)
       saved <- q_save(rv_data$main, project = rv_project_name()$value, type = "main")
       
       if (!is.null(saved$result)) {
