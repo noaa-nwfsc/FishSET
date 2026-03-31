@@ -18,10 +18,10 @@ temp_plot_color <- "#586A89"
 ## Shared plot theme
 temporal_plot_theme <- ggplot2::theme_classic() +
   ggplot2::theme(
-    axis.text.x = element_text(size = 14),
-    axis.text.y = element_text(size = 14),
-    axis.title.x = element_text(size = 14),
-    axis.title.y = element_text(size = 14),
+    axis.text.x = ggplot2::element_text(size = 14),
+    axis.text.y = ggplot2::element_text(size = 14),
+    axis.title.x = ggplot2::element_text(size = 14),
+    axis.title.y = ggplot2::element_text(size = 14),
     plot.margin = margin(t = 5.5, r = 30, b = 5.5, l = 5.5, unit = "pt")
   )
 
