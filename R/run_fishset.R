@@ -7,8 +7,7 @@
 #' @import ggplot2
 #' @importFrom DT DTOutput renderDT
 #' @importFrom ggpubr ggarrange
-#' @importFrom ggcorrplot ggcorrplot
-#' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable
+#' @importFrom DBI dbDisconnect dbConnect dbListTables dbWriteTable
 #' @importFrom gridExtra grid.table
 #' @importFrom stringi stri_count_regex
 #' @importFrom shinycssloaders withSpinner
