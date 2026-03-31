@@ -16,6 +16,7 @@
 # Source libraries --------------------------------------------------------------------------------
 library(shinycssloaders)
 library(ggplot2)
+library(bslib)
 
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/spinner.R", local = TRUE) # Reusable spinner
