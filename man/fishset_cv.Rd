@@ -34,3 +34,20 @@ A list containing the average out-of-sample accuracy, log-likelihood, and fold d
 Performs k-fold cross-validation on a fitted FishSET model to evaluate out-of-sample 
 predictive performance. Bypasses formula parsing by directly subsetting the design matrix.
 }
+\examples{
+\dontrun{
+# Standard logit
+cv_results <- fishset_cv(
+  project = "MyProject",
+  base_model_name = "clogit_design"
+)
+
+# EPM - normal catch function
+cv_epm_results <- fishset_cv(
+  project = "MyProject",
+  base_model_name = "epm_design",
+  distribution = "normal"
+)
+}
+
+}

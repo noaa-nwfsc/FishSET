@@ -13,6 +13,22 @@
 #'
 #' @return A list containing the average out-of-sample accuracy, log-likelihood, and fold details.
 #'
+#' @examples
+#' \dontrun{
+#' # Standard logit
+#' cv_results <- fishset_cv(
+#'   project = "MyProject",
+#'   base_model_name = "clogit_design"
+#' )
+#' 
+#' # EPM - normal catch function
+#' cv_epm_results <- fishset_cv(
+#'   project = "MyProject",
+#'   base_model_name = "epm_design",
+#'   distribution = "normal"
+#' )
+#' }
+#'
 #' @export
 #' @importFrom DBI dbConnect dbDisconnect dbExecute
 #' @importFrom RSQLite SQLite
@@ -34,7 +50,8 @@ fishset_cv <- function(project,
   } else if (file.exists(base_path_rds)) {
     base_design <- readRDS(base_path_rds)
   } else {
-    stop("Base model design not found.")
+    stop("Base model design not found in project folders. 
+         Check project and base model name inputs.")
   }
   
   is_epm <- isTRUE(base_design$epm$is_epm)
