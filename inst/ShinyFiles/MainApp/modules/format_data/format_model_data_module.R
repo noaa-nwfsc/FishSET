@@ -5,7 +5,7 @@
 #              
 # Authors: Anna Abelman, Paul Carvalho
 # Date created: 1/30/2026
-# Dependencies: shiny, DT, shinyjs, bslib
+# Dependencies: shiny, DT, shinyjs, bslib, qs2
 # Notes: This module interacts with the main reactive data values (rv_data) and
 #        flat files (.qs2/.rds) stored in Models/FormattedData.
 # =================================================================================================
@@ -44,6 +44,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
     
     # helper functions for file paths 
     get_long_format_paths <- function(project) {
+      
       proj_path <- file.path(locproject(), project)
       designs_dir <- file.path(proj_path, "Models", "FormattedData")
       table_name <- paste0(project, "LongFormatData")
@@ -222,6 +223,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
         final_grid_var  <- NULL
         final_grid_time <- NULL
       }
+      
       
       # Check Expectations / Alternative Matrix Match
       if (input$expectations_name_input != "" && input$alt_name_input != "") {

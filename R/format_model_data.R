@@ -430,7 +430,7 @@ format_model_data <- function(project,
   
   # Create nested folders
   if (!dir.exists(designs_dir)) dir.create(designs_dir, recursive = TRUE)
-  
+
   # Read existing file to append data to it
   if (file.exists(file.path(designs_dir, file_name_qs2))) {
     if (use_qs2) {
@@ -443,7 +443,7 @@ format_model_data <- function(project,
     all_formatted_data <- readRDS(file.path(designs_dir, file_name_rds))
     df_list <- c(all_formatted_data, df_list)
   }
-  
+
   # Soft dependency for qs2 package
   if (use_qs2) {
     qs2::qs_save(df_list, file = file.path(designs_dir, file_name_qs2))

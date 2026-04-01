@@ -134,7 +134,7 @@ fishset_design <- function(formula,
   # Load Formatted Data from nested Models/FormattedData
   project_dir <- file.path(locproject(), project)
   formatted_dir <- file.path(project_dir, "Models", "FormattedData")
-  
+
   table_name <- paste0(project, "LongFormatData")
   file_name_qs2 <- paste0(table_name, ".qs2")
   file_name_rds <- paste0(table_name, ".rds")
@@ -153,6 +153,7 @@ fishset_design <- function(formula,
              no .rds file exists.")
       }
     }
+
     
   } else if (file.exists(file.path(formatted_dir, file_name_rds))) {
     full_lf_list <- readRDS(file.path(formatted_dir, file_name_rds))
@@ -421,7 +422,7 @@ fishset_design <- function(formula,
   # Save to nested Models/ModelDesigns folder
   project_dir <- file.path(locproject(), project)
   designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
-  
+
   # Create a new ModelDesigns folder in the project folder if it doesn't exist yet
   if (!dir.exists(designs_dir)) dir.create(designs_dir, recursive = TRUE)
   
