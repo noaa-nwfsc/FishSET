@@ -6,7 +6,6 @@
 #' @import shiny
 #' @import ggplot2
 #' @importFrom DT DTOutput renderDT
-#' @importFrom ggpubr ggarrange
 #' @importFrom DBI dbDisconnect dbConnect dbListTables dbWriteTable
 #' @importFrom gridExtra grid.table
 #' @importFrom stringi stri_count_regex
