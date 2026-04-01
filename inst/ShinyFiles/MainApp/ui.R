@@ -13,6 +13,12 @@
 #
 # =================================================================================================
 
+# Source libraries --------------------------------------------------------------------------------
+library(shinycssloaders)
+library(ggplot2)
+library(bslib)
+library(DT)
+
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/spinner.R", local = TRUE) # Reusable spinner
 source("modules/load_files_ui.R", local = TRUE) # Upload data - load files subtab

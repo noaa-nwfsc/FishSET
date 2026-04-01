@@ -2211,8 +2211,8 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal",
     
     mytheme <- theme(
       panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-      panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text = element_text(size = 11),
-      axis.title = element_text(size = 11)
+      panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text = ggplot2::element_text(size = 11),
+      axis.title = ggplot2::element_text(size = 11)
     )
     
     # Hist

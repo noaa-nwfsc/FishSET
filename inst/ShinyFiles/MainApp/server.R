@@ -15,6 +15,10 @@
 #
 # =================================================================================================
 
+# Source libraries --------------------------------------------------------------------------------
+library(tidyr)
+library(dplyr)
+
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/load_files_server.R", local = TRUE) # Upload data - load files subtab
 source("modules/other_actions_server.R", local = TRUE) # Other actions in sidebar 
