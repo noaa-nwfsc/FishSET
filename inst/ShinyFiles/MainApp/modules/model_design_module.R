@@ -160,7 +160,6 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
           
           # Also help the user by listing available variables for the formula
           output$avail_vars_list <- renderText({
-            
             paste(paste(cols, collapse = ", "))
           })
         }
@@ -325,10 +324,9 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       project_name <- rv_project_name()$value
       
       project_dir <- file.path(rv_folderpath(), project_name)
-      # Point to nested Models/ModelDesigns ---
       
+      # Point to nested Models/ModelDesigns
       designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
-      
       qs2_path <- file.path(designs_dir, paste0(selected_name, ".qs2"))
       rds_path <- file.path(designs_dir, paste0(selected_name, ".rds"))
       
@@ -517,9 +515,9 @@ model_design_ui <- function(id) {
                           selectInput(ns("distribution_input"), 
                                       label = tags$span(
                                         "EPM Distribution ", 
-                                                        bslib::tooltip(
-                                                          shiny::icon("info-circle"),
-                                                          "Required for Expected Profit Models.")),
+                                        bslib::tooltip(
+                                          shiny::icon("info-circle"),
+                                          "Required for Expected Profit Models.")),
                                       choices = c("Normal" = "normal",
                                                   "Lognormal" = "lognormal", 
                                                   "Weibull" = "weibull"),
@@ -545,16 +543,17 @@ model_design_ui <- function(id) {
                   div(class = "d-flex flex-column gap-3",
                       
                       div(
-                        textAreaInput(ns("formula_input"), 
-                                      label = tags$span(
-                                        "Utility Formula ", 
-                                        bslib::tooltip(
-                                          shiny::icon("info-circle"),
-                                          "Use '|' to separate alternative-specific vars (left) from
+                        textAreaInput(
+                          ns("formula_input"), 
+                          label = tags$span(
+                            "Utility Formula ", 
+                            bslib::tooltip(
+                              shiny::icon("info-circle"),
+                              "Use '|' to separate alternative-specific vars (left) from
                                           trip- or haul-specific vars (right) that do not vary 
                                           across zones.")),
-                                      placeholder = "chosen ~ catch + distance | vessel_length", 
-                                      rows = 3, width = "100%"),
+                          placeholder = "chosen ~ catch + distance | vessel_length", 
+                          rows = 3, width = "100%"),
                         
                       ),
                       

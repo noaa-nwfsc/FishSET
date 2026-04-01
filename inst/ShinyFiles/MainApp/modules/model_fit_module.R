@@ -1,7 +1,7 @@
 # File: model_fit_module.R
-# Description: This module defines the UI and server logic for fitting FishSET Discrete Choice Models.
-#              It takes a saved model design, optimizes the negative log-likelihood via RTMB,
-#              and saves the results to the project database.
+# Description: This module defines the UI and server logic for fitting FishSET Discrete Choice 
+#              Models. It takes a saved model design, optimizes the negative log-likelihood via 
+#              RTMB, and saves the results to the project database.
 #              
 # Dependencies: shiny, DT, shinyjs, bslib, RSQLite, DBI, Formula, stats, shinycssloaders
 # Notes: This module interacts with Models/ModelDesigns (input) and 
@@ -335,10 +335,12 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       fits_list <- fits_list[names(fits_list) %in% selected_models]
       alerts <- tagList()
       
-      has_catch_div <- any(sapply(fits_list, 
-                                  function(x) !is.null(x$Y_catch_divisor) && x$Y_catch_divisor > 1))
-      has_price_div <- any(sapply(fits_list, 
-                                  function(x) !is.null(x$price_divisor) && x$price_divisor > 1))
+      has_catch_div <- any(
+        sapply(fits_list, 
+               function(x) !is.null(x$Y_catch_divisor) && x$Y_catch_divisor > 1))
+      has_price_div <- any(
+        sapply(fits_list, 
+               function(x) !is.null(x$price_divisor) && x$price_divisor > 1))
       
       if (has_catch_div || has_price_div) {
         alerts[[1]] <- tags$div(
@@ -504,18 +506,6 @@ model_fit_ui <- function(id) {
         
         bslib::card(
           class = "card-overflow",
-          bslib::card_header("Model Statistics"),
-          bslib::card_body(
-            class = "card-overflow", 
-            div(style = "width: 100%; overflow-x: auto;", 
-                shinycssloaders::withSpinner(
-                  DT::dataTableOutput(ns("combined_stats_table")), type = 8, color = "#007bc2")
-            )
-          )
-        ),
-        
-        bslib::card(
-          class = "card-overflow",
           bslib::card_header("Coefficient Estimates"),
           bslib::card_body(
             class = "card-overflow",
@@ -540,6 +530,18 @@ model_fit_ui <- function(id) {
                                   "Remove Selected",
                                   icon = icon("trash"), 
                                   class = "btn-danger w-100"))
+            )
+          )
+        ),
+        
+        bslib::card(
+          class = "card-overflow",
+          bslib::card_header("Model Statistics"),
+          bslib::card_body(
+            class = "card-overflow", 
+            div(style = "width: 100%; overflow-x: auto;", 
+                shinycssloaders::withSpinner(
+                  DT::dataTableOutput(ns("combined_stats_table")), type = 8, color = "#007bc2")
             )
           )
         )

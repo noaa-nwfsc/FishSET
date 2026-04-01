@@ -277,6 +277,4 @@ server <- function(input, output, session) {
                       rv_folderpath = rv_folderpath, 
                       rv_project_name = rv_project_name,
                       rv_data = rv_data)
-
-
 }
