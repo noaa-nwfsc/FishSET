@@ -105,7 +105,7 @@ fishset_fit <- function(project,
   })
   
   if (!(model_name %in% full_design_list)) {
-    stop(paste0("Model design '", model_name, "' not found in project database."))
+    stop(paste0("Model design '", model_name, "' not found in project folders."))
   }
   
   # Load design file (qs2 or rds)

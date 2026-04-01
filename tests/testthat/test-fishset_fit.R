@@ -154,7 +154,7 @@ test_that("Error: Design not found", {
   
   expect_error(
     fishset_fit(project = "TestProj_Missing", model_name = "missing_model"),
-    "not found in project database"
+    "not found in project folders."
   )
 })
 
