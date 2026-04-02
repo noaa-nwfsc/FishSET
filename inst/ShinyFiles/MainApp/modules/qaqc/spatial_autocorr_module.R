@@ -134,9 +134,9 @@ spatial_autocorr_server <- function(id, rv_project_name, rv_data, rv_folderpath)
       plot_out +
         labs(title = "Local indicators of spatial association") +
         theme(
-          title = element_text(size = 14),
-          axis.text = element_text(size = 14),
-          legend.text = element_text(size = 14),
+          title = ggplot2::element_text(size = 14),
+          axis.text = ggplot2::element_text(size = 14),
+          legend.text = ggplot2::element_text(size = 14),
           # Add this line to reduce margin size
           plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm") 
         )

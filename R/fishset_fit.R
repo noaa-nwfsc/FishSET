@@ -97,22 +97,23 @@ fishset_fit <- function(project,
   
   # Setup and validate ----------------------------------------------------------------------------
   # Load project designs
-  tryCatch({
-    full_design_list <- model_design_list(project)
+  full_design_list <- tryCatch({
+    model_design_list(project)
   }, error = function(cond) {
     message("Not able to load model designs. Run fishset_design() first.")
     return(NULL)
   })
   
   if (!(model_name %in% full_design_list)) {
-    stop(paste0("Model design '", model_name, "' not found in project database."))
+    stop(paste0("Model design '", model_name, "' not found in project folders."))
   }
   
   # Load design file (qs2 or rds)
-  db_path <- locdatabase(project)
-  designs_dir <- file.path(dirname(db_path), "ModelDesigns")
-  base_path <- file.path(designs_dir, model_name)
-  paths <- c(paste0(base_path, ".qs2"), paste0(base_path, ".rds"))
+  paths <- file.path(locproject(), 
+                     project, 
+                     "Models", 
+                     "ModelDesigns", 
+                     c(paste0(model_name, ".qs2"), paste0(model_name, ".rds")))
   found_path <- paths[file.exists(paths)][1]
   
   if (is.na(found_path)) stop("Design file not found.")
@@ -186,7 +187,20 @@ fishset_fit <- function(project,
     }
     
     Y_catch_chosen = as.double(as.vector(design$epm$Y_catch[chosen_lin_idx]))
+
+    # Need to check for zero values if using lognormal or weibull distributions
+    if (distribution %in% c("lognormal", "weibull") && 
+        any(design$epm$Y_catch <= 0, na.rm = TRUE)) {
+      stop(sprintf("The '%s' distribution requires strictly positive actual catch values (Y > 0). 
+                   Found zeros or negative values in the catch data.", distribution))
+    }
+    
+    # Assign numeric zone ID 
     zone_id <- ((chosen_lin_idx - 1) %% J_alts) + 1
+    
+    # Create a sequence to map zonal parameters to the full flattened X_catch matrix
+    zone_seq <- ((0:(nrow(design$epm$X_catch) - 1)) %% J_alts) + 1
+    dist_code <- switch(distribution, "normal" = 1, "lognormal" = 2, "weibull" = 3)
     
     data_list <- list(
       Y_catch_chosen = Y_catch_chosen,
@@ -196,33 +210,85 @@ fishset_fit <- function(project,
       chosen_lin_idx = chosen_lin_idx,
       N_obs = N_obs,
       J_alts = J_alts,
-      zone_id = zone_id
+      zone_id = zone_id,
+      zone_seq = zone_seq,
+      dist_code = dist_code
     )
     
     # Initialize parameters
-    init_beta_catch <- rep(0.1, ncol(design$epm$X_catch))
-    init_beta_util <- rep(0.1, ncol(X_util))
-    init_log_sigma_c <- rep(log(1.0), J_alts)
-    init_log_sigma_e <- log(1.0)
+    # Convert Y_catch to the appropriate scale for a quick linear model
+    if (distribution == "normal") {
+      y_tmp <- Y_catch_chosen
+    } else {
+      # Lognormal and Weibull scale linearly with log(Y)
+      y_tmp <- log(Y_catch_chosen) 
+    }
     
-    start_pars <- list(beta_catch = init_beta_catch,
+    # Convert the sparse S4 matrix to a standard dense matrix for initialization
+    X_dense <- as.matrix(design$epm$X_catch[chosen_lin_idx, , drop = FALSE])
+    
+    # Quiet linear model to get data-driven starting values
+    tmp_fit <- stats::lm.fit(x = X_dense, y = y_tmp)
+    init_beta_catch <- tmp_fit$coefficients
+    
+    # Fallback to 0.01 if there are NAs (e.g., collinearity in the design matrix)
+    init_beta_catch[is.na(init_beta_catch)] <- 0.01
+    
+    # Initialize sigmas based on the regression residuals
+    resid_sd <- stats::sd(tmp_fit$residuals, na.rm = TRUE)
+    if (is.na(resid_sd) || resid_sd <= 0) resid_sd <- 1.0
+    
+    if (distribution %in% c("normal", "lognormal")) {
+      init_log_sigma_c <- rep(log(resid_sd), J_alts)
+    } else if (distribution == "weibull") {
+      # A safe starting shape for Weibull based on variance
+      init_log_sigma_c <- rep(log(max(1.0, 1.28 / resid_sd)), J_alts)
+    }
+    
+    # Initialize utility and error parameters
+    init_beta_util <- rep(0.1, ncol(X_util))
+    init_log_sigma_e <- log(1.0)
+
+    start_pars <- list(beta_catch = as.numeric(init_beta_catch),
                        beta_util = init_beta_util,
-                       log_sigma_c = init_log_sigma_c,
+                       log_sigma_c = as.numeric(init_log_sigma_c),
                        log_sigma_e = init_log_sigma_e)
     
     nll_func <- function(pars) {
       RTMB::getAll(data_list, pars)
       
       # Parameters
-      sigma_c <- exp(log_sigma_c) # for each zone
+      sigma_c <- exp(log_sigma_c) # for each zone (shape param for Weibull dist)
       sigma_e <- exp(log_sigma_e)
       
-      # Continuous likelihood
-      E_catch <- X_catch %*% beta_catch
-      E_catch_chosen <- E_catch[chosen_lin_idx]
+      # Linear predictor for catch
+      lin_pred <- X_catch %*% beta_catch 
+      lin_pred_chosen <- lin_pred[chosen_lin_idx]
       sigma_c_chosen <- sigma_c[zone_id]
-      nll_cont <- -sum(RTMB::dnorm(Y_catch_chosen, E_catch_chosen, sigma_c_chosen, log = TRUE))
+      sigma_c_full <- sigma_c[zone_seq]
       
+      # Continuous likelihood and expected catch mapping
+      if (dist_code == 1) {
+        # Normal
+        E_catch <- lin_pred
+        nll_cont <- -sum(RTMB::dnorm(Y_catch_chosen, lin_pred_chosen, sigma_c_chosen, log = TRUE))  
+        
+      } else if (dist_code == 2) {
+        # Lognormal (expected value = exp(mu + 0.5 * sigma^2))
+        E_catch <- exp(lin_pred + 0.5 * sigma_c_full^2)
+        nll_cont <- -sum(RTMB::dlnorm(Y_catch_chosen, lin_pred_chosen, sigma_c_chosen, log = TRUE))
+        
+      } else if (dist_code == 3) {
+        # Weibull: shape = sigma_c, scale = exp(lin_pred)
+        scale_param <- exp(lin_pred)
+        scale_chosen <- scale_param[chosen_lin_idx]
+        
+        # Mean of Weibull = scale * Gamma(1 + 1/shape)
+        E_catch <- scale_param * exp(lgamma(1 + 1/sigma_c_full))
+        nll_cont <- -sum(RTMB::dweibull(Y_catch_chosen, shape = sigma_c_chosen, 
+                                        scale = scale_chosen, log = TRUE))
+      }
+
       # Discrete likelihood
       # Expected revenue
       revenue_util <- prices * E_catch
@@ -433,42 +499,54 @@ fishset_fit <- function(project,
     }
     
   } else {
-    ### epm reporting (normal only) ###
+    ### epm reporting ###
     n_catch <- ncol(design$epm$X_catch)
     n_util  <- ncol(data_list$X_util)
     
-    beta_c_est <- estimated_coefs[1:n_catch]
-    beta_u_est <- estimated_coefs[(n_catch + 1):(n_catch + n_util)]
+    beta_all <- estimated_coefs[1:(n_catch + n_util)]
+    names(beta_all) <- c(colnames(design$epm$X_catch), colnames(data_list$X_util))
     
-    # Unscale Catch Betas
-    if (!is_empty(design$scalers$X_catch)) {
-      sc <- design$scalers$X_catch
-      beta_c_est <- beta_c_est / sc$sd
-      if(se_calc) report_se[1:n_catch] <- report_se[1:n_catch] / sc$sd
-    }
-    
-    # Unscale Utility Betas
-    if (!is_empty(design$scalers)) {
-      util_names <- colnames(data_list$X_util)
-      # Combine all utility scalers
-      all_sds <- c(design$scalers$X1$sd, unlist(design$scalers$X2$sd))
+    if (length(design$scalers) > 0) {
+      # Pool all standard deviations (c() naturally ignores NULLs)
+      all_sds <- c(
+        design$scalers$X1_catch$sd,
+        unlist(design$scalers$X2_catch$sd),
+        design$scalers$X1$sd,
+        unlist(design$scalers$X2$sd)
+      )
       
-      for(i in seq_along(util_names)) {
-        vn <- util_names[i]
-        if (vn %in% names(all_sds)) {
-          beta_u_est[i] <- beta_u_est[i] / all_sds[vn]
-          report_se[n_catch + i] <- report_se[n_catch + i] / all_sds[vn]
+      if (length(all_sds) > 0) {
+        # Find which parameters were scaled by matching names
+        scaled_vars <- intersect(names(beta_all), names(all_sds))
+        
+        if (length(scaled_vars) > 0) {
+          # Unscale coefficients
+          beta_all[scaled_vars] <- beta_all[scaled_vars] / all_sds[scaled_vars]
+          
+          # Unscale standard errors
+          if (se_calc) {
+            scaled_idx <- match(scaled_vars, names(beta_all))
+            report_se[scaled_idx] <- report_se[scaled_idx] / all_sds[scaled_vars]
+          }
         }
       }
     }
     
-    names(beta_c_est) <- colnames(design$epm$X_catch)
-    names(beta_u_est) <- colnames(data_list$X_util)
-    
+    # Split back out for the final report packaging
+    beta_c_est <- beta_all[1:n_catch]
+    beta_u_est <- if (n_util > 0) beta_all[(n_catch + 1):(n_catch + n_util)] else numeric(0)
+
     # Append Sigmas to report
     sig_c_est <- exp(estimated_coefs[grep("log_sigma_c", names(estimated_coefs))])
     sig_e_est <- exp(estimated_coefs[grep("log_sigma_e", names(estimated_coefs))])
-    names(sig_c_est) <- paste0("Sigma_Catch_", levels(as.factor(design$ids$zone)))
+    
+    # Adjust parameter names based on chosen distribution
+    param_prefix <- switch(distribution, 
+                           "normal" = "Sigma_Catch_", 
+                           "lognormal" = "Sdlog_Catch_", 
+                           "weibull" = "Shape_Catch_")
+    
+    names(sig_c_est) <- paste0(param_prefix, levels(as.factor(design$ids$zone)))
     names(sig_e_est) <- "Sigma_Error"
     
     report_coefs <- c(beta_c_est, beta_u_est, sig_c_est, sig_e_est)
@@ -486,12 +564,18 @@ fishset_fit <- function(project,
     report_se <- c(report_se[1:(n_catch + n_util)], se_sig_c_natural, se_sig_e_natural)
   }
   
-  coef_table <- data.frame(
-    Estimate = report_coefs,
-    Std_Error = report_se,
-    z_value = if(se_calc) report_coefs / report_se else NA,
-    Pr_z = if(se_calc) 2 * (1 - pnorm(abs(report_coefs / report_se))) else NA
-  )
+  if (se_calc) {
+    coef_table <- data.frame(
+      Estimate = report_coefs,
+      Std_Error = report_se,
+      z_value = report_coefs / report_se,
+      Pr_z = 2 * (1 - pnorm(abs(report_coefs / report_se)))
+    )
+  } else {
+    coef_table <- data.frame(
+      Estimate = report_coefs
+    )
+  }
   
   # Fit stats and predictions ---------------------------------------------------------------------
   nll <- opt$objective
@@ -521,19 +605,31 @@ fishset_fit <- function(project,
     prob_mat_t <- t(exp_v) / sum_exp
     
   } else {
-    # EPM Normal predictions
+    # EPM predictions
     final_par <- opt$par
     n_c <- ncol(design$epm$X_catch)
     b_c <- final_par[1:n_c]
     b_u <- final_par[(n_c+1):(n_c + ncol(data_list$X_util))]
+
     l_sig_e <- final_par[grep("log_sigma_e", names(final_par))]
+    l_sig_c <- final_par[grep("log_sigma_c", names(final_par))]
     
-    # Expected catch
-    mu_catch <- design$epm$X_catch %*% b_c
+    # Calculate Expected Catch based on distribution
+    lin_pred <- design$epm$X_catch %*% b_c
+    zone_seq <- ((0:(length(lin_pred) - 1)) %% J_alts) + 1
+    sig_c_full <- exp(l_sig_c)[zone_seq]
+    
+    if (distribution == "normal") {
+      mu_catch <- lin_pred
+    } else if (distribution == "lognormal") {
+      mu_catch <- exp(lin_pred + 0.5 * sig_c_full^2)
+    } else if (distribution == "weibull") {
+      mu_catch <- exp(lin_pred) * exp(lgamma(1 + 1/sig_c_full))
+    }
     
     # Utility
     rev_u <- design$epm$price_vec * mu_catch
-    if(length(b_u) > 0) cost_u <- data_list$X_util %*% b_u else cost_u <- 0
+    if (length(b_u) > 0) cost_u <- data_list$X_util %*% b_u else cost_u <- 0
     
     v <- as.matrix((1/exp(l_sig_e)) * (rev_u + cost_u))
     dim(v) <- c(J_alts, N_obs)
@@ -562,6 +658,10 @@ fishset_fit <- function(project,
     accuracy <- mean(pred_choice == choice_idx_report)
   }
   
+  # Extract magnitude scalers if they exist
+  y_div <- if (!is.null(design$scalers$Y_catch_divisor)) design$scalers$Y_catch_divisor else 1
+  p_div <- if (!is.null(design$scalers$price_divisor)) design$scalers$price_divisor else 1
+  
   # Output and save -------------------------------------------------------------------------------
   result <- list(
     opt = opt,
@@ -574,7 +674,8 @@ fishset_fit <- function(project,
     pseudo_R2 = rho2,
     accuracy = accuracy,
     fitted_values = chosen_probs,
-    
+    Y_catch_divisor = y_div,
+    price_divisor = p_div,
     diagnostics = list(
       converged = (opt$convergence == 0),
       message = opt$message,
@@ -667,20 +768,36 @@ print.fishset_fit <- function(x, digits = 4, ...) {
     cat("Formula:      ", deparse(x$formula), "\n")
   }
   
+  # Alert the user to magnitude scaling if it occurred
+  if (!is.null(x$Y_catch_divisor) && x$Y_catch_divisor > 1) {
+    cat("Catch Units:   Modeled in 1 /", format(x$Y_catch_divisor, scientific = FALSE), "units\n")
+  }
+  if (!is.null(x$price_divisor) && x$price_divisor > 1) {
+    cat("Price Units:   Modeled in 1 /", format(x$price_divisor, scientific = FALSE), "units\n")
+  }
+  
   # Coefficients table
   cat("\nCoefficients:\n")
   cat("--------------------------------------------------------\n")
   if (!is.null(x$coef_table)) {
+    # Check if the table includes P-values
+    has_pvals <- "Pr_z" %in% colnames(x$coef_table)
+    
     stats::printCoefmat(x$coef_table,
                         digits = digits,
-                        signif.stars = TRUE,
-                        P.values = TRUE,
-                        has.Pvalue = TRUE)
+                        signif.stars = has_pvals,
+                        P.values = has_pvals,
+                        has.Pvalue = has_pvals)
+    
+    cat("--------------------------------------------------------\n")
+    # Only print significance codes if we actually calculated P-values
+    if (has_pvals) {
+      cat("Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
+    }
   } else {
     print(x$coefficients)
+    cat("--------------------------------------------------------\n")
   }
-  cat("--------------------------------------------------------\n")
-  cat("Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
   
   # Fit statistics table
   cat("\nModel Statistics:\n")
