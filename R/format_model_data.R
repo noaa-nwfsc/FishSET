@@ -264,6 +264,8 @@ format_model_data <- function(project,
       class(distance_long[[unique_obs_id]]) <- class(df[[unique_obs_id]])
     }
     
+    units(distance_long$distance) <- NULL
+    
     df <- left_join(df, distance_long, by = c("zones", unique_obs_id))
   }
   
