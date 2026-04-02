@@ -15,6 +15,10 @@
 #
 # =================================================================================================
 
+# Source libraries --------------------------------------------------------------------------------
+library(tidyr)
+library(dplyr)
+
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/load_files_server.R", local = TRUE) # Upload data - load files subtab
 source("modules/other_actions_server.R", local = TRUE) # Other actions in sidebar 
@@ -25,7 +29,8 @@ source("modules/format_data/compute_new_var_module.R", local = TRUE)
 source("modules/format_data/define_alternatives_module.R", local = TRUE)
 source("modules/format_data/create_expectations_module.R", local = TRUE)
 source("modules/format_data/format_model_data_module.R", local = TRUE)
-
+source("modules/model_design_module.R", local = TRUE)
+source("modules/model_fit_module.R", local = TRUE)
 
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
@@ -65,7 +70,6 @@ server <- function(input, output, session) {
                                    value = 3) # basic default
   rv_alt_names <- reactiveVal(character(0))
   rv_exp_names <- reactiveVal(character(0))
-
 
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
@@ -220,7 +224,7 @@ server <- function(input, output, session) {
                              rv_shared_exp_names =rv_exp_names,
                              rv_shared_alt_names = rv_alt_names)
   
-  ## Format model data --------------------------------------------------------------------------
+  ## Format model data ----------------------------------------------------------------------------
   ### Sidebar
   checklist_server("format_mod_data_checklist", rv_project_name, rv_data, rv_folderpath)
   
@@ -230,13 +234,47 @@ server <- function(input, output, session) {
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
-
-  ### Main panel
+ 
+   ### Main panel
   format_model_data_server("format_mod_data",
-                            rv_folderpath = rv_folderpath, 
-                            rv_project_name = rv_project_name, 
-                            rv_data = rv_data,
-                            rv_shared_exp_names =rv_exp_names,
-                            rv_shared_alt_names = rv_alt_names)
+                           rv_folderpath = rv_folderpath, 
+                           rv_project_name = rv_project_name, 
+                           rv_data = rv_data,
+                           rv_shared_exp_names =rv_exp_names,
+                           rv_shared_alt_names = rv_alt_names)
   
+  # Modeling --------------------------------------------------------------------------------------
+  ## Model design ---------------------------------------------------------------------------------
+  ### Sidebar 
+  checklist_server("model_design_checklist", rv_project_name, rv_data, rv_folderpath)
+  
+  other_actions_server("model_design_actions",
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
+  
+  ### Main panel
+  model_design_server("model_design_data",
+                      rv_folderpath = rv_folderpath, 
+                      rv_project_name = rv_project_name,
+                      rv_data = rv_data)
+  
+  ## Model fit ---------------------------------------------------------------------------------
+  ### Sidebar 
+  checklist_server("model_fit_checklist", rv_project_name, rv_data, rv_folderpath)
+  
+  other_actions_server("model_fit_actions",
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
+  
+  ### Main panel
+  model_fit_server("model_fit_data",
+                      rv_folderpath = rv_folderpath, 
+                      rv_project_name = rv_project_name,
+                      rv_data = rv_data)
 }

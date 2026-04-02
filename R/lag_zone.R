@@ -26,6 +26,8 @@
 #'   areas.
 #' @param name String, name of created variable. Defaults to name of the function 
 #'   if not defined.
+#' @param bufferval Maximum buffer distance, in meters, for assigning observations 
+#'   to the closest zone polygon. 
 #' @param db_save Default = FALSE and only returns the dataframe without saving the the database.
 #'   \code{db_save = TRUE} will save the dataframe with the lagged variable to the database.
 #' @importFrom DBI dbExecute
@@ -60,6 +62,7 @@ lag_zone <- function(dat,
                      zoneID_dat,
                      zoneID_spat = NULL, 
                      name = "startingloc",
+                     bufferval = 100,
                      db_save = FALSE) {
   
   # Call in data sets
@@ -124,7 +127,7 @@ lag_zone <- function(dat,
                                   zoneID_spat = zoneID_spat, 
                                   closest_pt = TRUE, 
                                   log_fun = FALSE, 
-                                  bufferval = 100) # need to consider how this affects things
+                                  bufferval = bufferval) # need to consider how this affects things
   names(port_table)[which(names(port_table) == "ZoneID")] <- "port_zone"
   
   new_col_name <- name

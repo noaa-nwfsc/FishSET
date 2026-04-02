@@ -13,8 +13,13 @@ fishset_design(
   zone_id,
   catch_formula = NULL,
   price_var = NULL,
+<<<<<<< HEAD
   model_type = "logit",
   scale = FALSE
+=======
+  scale = FALSE,
+  overwrite = FALSE
+>>>>>>> bd5617cb07d7b53696c8b81f3b13c32d2a76739e
 )
 }
 \arguments{
@@ -50,10 +55,13 @@ to \code{"poisson"} if designing a Poisson-equivalence model.}
 \item{scale}{Logical. Default = FALSE. If TRUE, numeric predictors in the design matrix (X) 
 are centered and scaled (z-score normalization) before saving. Scaling factors are stored to 
 allow unscaling of parameters after estimation. Recommended for numerical stability.}
+
+\item{overwrite}{Logical. Default FALSE. If TRUE, overwrites an existing model design 
+if \code{model_name} already exists in the project folder.}
 }
 \value{
 A list object of class 'fishset_design' containing the design matrices, choice vector, 
-  and metadata. The list is saved as a compressed .rds file in the project folder.
+  and metadata. The list is saved as a compressed file in the project folder.
 }
 \description{
 Constructs the design object required for discrete choice model fitting within the FishSET 
@@ -64,7 +72,7 @@ resulting design object is the primary input for the \code{\link{fishset_fit}} f
 which performs the parameter estimation.
 }
 \details{
-The resulting design object is saved as a compressed .rds file in the 'ModelDesigns' folder,
+The resulting design object is saved as a compressed file in the 'Models/ModelDesigns' folder,
 which is located inside the project folder.
 }
 \examples{
