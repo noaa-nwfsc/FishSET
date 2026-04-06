@@ -84,9 +84,18 @@
 #' mod.dat <- spat_out$dataset
 #' }
 #'   
-spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
-                         lat.spat = NULL, id.spat = NULL, epsg = NULL, date = NULL, 
-                         group = NULL, filter_dist = NULL) {
+spatial_qaqc <- function(dat, 
+                         project, 
+                         spat, 
+                         lon.dat, 
+                         lat.dat, 
+                         lon.spat = NULL,
+                         lat.spat = NULL, 
+                         id.spat = NULL, 
+                         epsg = NULL, 
+                         date = NULL, 
+                         group = NULL, 
+                         filter_dist = NULL) {
   
   # Pull primary data and spatial data
   out <- data_pull(dat, project)
@@ -272,12 +281,12 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
       ggplot2::labs(title = "Obs on land", x = "Longitude", y = "Latitude",
                     subtitle = paste0("N:", n_land, " (", p_land, "%)")) +
       fishset_theme() +
-      theme(axis.text.x = element_text(size = 14),
-            axis.text.y = element_text(size = 14),
-            axis.title.x = element_text(size = 14),
-            axis.title.y = element_text(size = 14),
-            plot.title = element_text(size = 14),
-            plot.subtitle = element_text(size = 14))
+      theme(axis.text.x = ggplot2::element_text(size = 14),
+            axis.text.y = ggplot2::element_text(size = 14),
+            axis.title.x = ggplot2::element_text(size = 14),
+            axis.title.y = ggplot2::element_text(size = 14),
+            plot.title = ggplot2::element_text(size = 14),
+            plot.subtitle = ggplot2::element_text(size = 14))
   }
   
   ## 2. Observations outside of the spatial data bounds -------------------------------------------
@@ -324,12 +333,12 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
       ggplot2::labs(title = "Obs outside zone", x = "Longitude", y = "Latitude",
                     subtitle = paste0("N:", n_out, " (", p_out, "%)")) +
       fishset_theme() +
-      theme(axis.text.x = element_text(size = 14),
-            axis.text.y = element_text(size = 14),
-            axis.title.x = element_text(size = 14),
-            axis.title.y = element_text(size = 14),
-            plot.title = element_text(size = 14),
-            plot.subtitle = element_text(size = 14))
+      theme(axis.text.x = ggplot2::element_text(size = 14),
+            axis.text.y = ggplot2::element_text(size = 14),
+            axis.title.x = ggplot2::element_text(size = 14),
+            axis.title.y = ggplot2::element_text(size = 14),
+            plot.title = ggplot2::element_text(size = 14),
+            plot.subtitle = ggplot2::element_text(size = 14))
   }
   
   ## 3. Observations on zone boundary lines -------------------------------------------------------
@@ -362,12 +371,12 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
       ggplot2::labs(title = "Obs on zone boundary", x = "Longitude", y = "Latitude",
                     subtitle = paste0("N:", n_bound, " (", p_bound, "%)")) +
       fishset_theme() +
-      theme(axis.text.x = element_text(size = 14),
-            axis.text.y = element_text(size = 14),
-            axis.title.x = element_text(size = 14),
-            axis.title.y = element_text(size = 14),
-            plot.title = element_text(size = 14),
-            plot.subtitle = element_text(size = 14))
+      theme(axis.text.x = ggplot2::element_text(size = 14),
+            axis.text.y = ggplot2::element_text(size = 14),
+            axis.title.x = ggplot2::element_text(size = 14),
+            axis.title.y = ggplot2::element_text(size = 14),
+            plot.title = ggplot2::element_text(size = 14),
+            plot.subtitle = ggplot2::element_text(size = 14))
   }
   
   ## 4. Observations in the "expected" locations --------------------------------------------------
@@ -393,12 +402,12 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     ggplot2::labs(title = "Obs in expected location", x = "Longitude", y = "Latitude",
                   subtitle = paste0("N:", n_expected, " (", p_expected, "%)")) +
     fishset_theme() +
-    theme(axis.text.x = element_text(size = 14),
-          axis.text.y = element_text(size = 14),
-          axis.title.x = element_text(size = 14),
-          axis.title.y = element_text(size = 14),
-          plot.title = element_text(size = 14),
-          plot.subtitle = element_text(size = 14))
+    theme(axis.text.x = ggplot2::element_text(size = 14),
+          axis.text.y = ggplot2::element_text(size = 14),
+          axis.title.x = ggplot2::element_text(size = 14),
+          axis.title.y = ggplot2::element_text(size = 14),
+          plot.title = ggplot2::element_text(size = 14),
+          plot.subtitle = ggplot2::element_text(size = 14))
   
   # Spatial summary table -------------------------------------------------------------------------
   # Create  a summary table of the spatial checks
@@ -424,15 +433,75 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                      type = "error",
                      duration = 60)
     
-  } else if(sum(obs_outside) > 0) {
+  } else if (sum(obs_outside) > 0) {
     # If any observations are outside the zones, calculate distances
-    # Find nearest feature and get distance
-    nearest <- sf::st_nearest_feature(dat_sf[obs_outside, ], spatdat)
-    dist.rec <- sf::st_distance(dat_sf[obs_outside, ], spatdat[nearest, ],
-                                by_element = TRUE)
+    
+    # Prep data and fix units
+    # Project to EPSG:3857 (Web Mercator) to ensure results are in METERS.
+    metric_crs <- 3857
+    pts_calc <- sf::st_transform(dat_sf[obs_outside, ], metric_crs)
+    
+    # Simplify and project spatial data
+    spat_simp <- sf::st_simplify(spatdat, preserveTopology = TRUE, dTolerance = 50)
+    
+    # Handle empty geometries from simplification
+    empty_idx <- sf::st_is_empty(spat_simp)
+    if (any(empty_idx)) spat_simp[empty_idx, ] <- spatdat[empty_idx, ]
+    
+    # Transform to metric and cast to boundary lines
+    spat_calc <- sf::st_transform(spat_simp, metric_crs)
+    spat_calc <- sf::st_boundary(spat_calc)
+    
+    # Initialize distance vector
+    dist_vec <- numeric(nrow(pts_calc))
+    
+    # Parallel or serial computation
+    # Only pay the "startup cost" of parallel processing if we have many points (> 2000).
+    run_parallel <- nrow(pts_calc) > 2000
+    
+    if (run_parallel) {
+      # --- PARALLEL MODE (For Large Data) ---
+      n_cores <- parallel::detectCores(logical = FALSE) - 1
+      if (n_cores < 1) n_cores <- 1
+      
+      parts <- split(1:nrow(pts_calc), cut(1:nrow(pts_calc), n_cores))
+      
+      calc_dist_chunk <- function(indices, points, polys) {
+        # Explicitly ensure sf is loaded inside worker to prevent method errors
+        pts_sub <- points[indices, ]
+        near_idx <- sf::st_nearest_feature(pts_sub, polys)
+        sf::st_distance(pts_sub, polys[near_idx, ], by_element = TRUE)
+      }
+      
+      cl <- parallel::makeCluster(n_cores)
+      on.exit(parallel::stopCluster(cl), add = TRUE)
+      
+      parallel::clusterEvalQ(cl, {
+        sf::sf_use_s2(FALSE)
+      })
+      
+      # Use tryCatch to fall back to serial if parallel fails
+      tryCatch({
+        dist_list <- parallel::parLapply(cl, parts, calc_dist_chunk, 
+                                         points = pts_calc, 
+                                         polys = spat_calc)
+        dist_vec <- unlist(dist_list)
+      }, error = function(e) {
+        warning("Parallel processing failed. Falling back to serial calculation.")
+        run_parallel <<- FALSE # Fallback flag
+      })
+    }
+    
+    if (!run_parallel) {
+      # --- SERIAL MODE (For Unit Tests & Small Data) ---
+      # This runs simply in the main process, avoiding firewall checks and method errors.
+      nearest <- sf::st_nearest_feature(pts_calc, spat_calc)
+      dist_vec <- sf::st_distance(pts_calc, spat_calc[nearest, ], by_element = TRUE)
+    }
     
     # Add the distance to the dataset
-    dataset[obs_outside, "dist"] <- as.numeric(dist.rec)
+    dataset[obs_outside, "dist"] <- as.numeric(dist_vec)
+    
     dataset$dist[is.na(dataset$dist)] <- 0
     dist_vec <- dataset$dist
     
@@ -449,12 +518,12 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                             adjust = 2, color = "black") +
       fishset_theme() +
       ggplot2::theme(legend.position = "bottom") +
-      theme(axis.text.x = element_text(size = 14),
-            axis.text.y = element_text(size = 14),
-            axis.title.x = element_text(size = 14),
-            axis.title.y = element_text(size = 14),
-            plot.title = element_text(size = 14),
-            plot.subtitle = element_text(size = 14))
+      theme(axis.text.x = ggplot2::element_text(size = 14),
+            axis.text.y = ggplot2::element_text(size = 14),
+            axis.title.x = ggplot2::element_text(size = 14),
+            axis.title.y = ggplot2::element_text(size = 14),
+            plot.title = ggplot2::element_text(size = 14),
+            plot.subtitle = ggplot2::element_text(size = 14))
     
     # Create a frequency table of distances
     dist_freq <- freq_table(dist_df, "dist", group = c("YEAR", group),

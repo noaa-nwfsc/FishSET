@@ -520,7 +520,7 @@ load_maindata <- function(dat, project, over_write = FALSE, compare = FALSE, y =
   #' looad_maindata(dat = "pollockMainDataTable", project = "pollock2020")
   #' }
   #' 
-
+  
   # project name check
   stopifnot("Project name cannot contain spaces." = !grepl("\\s", project),
             "Project name cannot be empty." = !is_value_empty(project))
@@ -874,7 +874,7 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
   } else {
     colnames(x)[port_name] <- "Port_Name"
   }
-
+  
   colnames(x)[grep("LON", colnames(x), ignore.case = TRUE)] <- "Port_Long"
   colnames(x)[grep("LAT", colnames(x), ignore.case = TRUE)] <- "Port_Lat"
   
@@ -986,60 +986,49 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
   aux <- data_upload_helper(aux, "aux")
   
   if (any(colnames(aux) %in% colnames(dataset)) == FALSE) {
-    
-    warning("No shared columns. Column names do not match between two data sets.")
-    check <- FALSE
+  
+    stop("No shared columns. At least one column name must match between the auxiliary
+     and main datasets.")
   }
   
-  if (check == FALSE) {
+  #unique rows
+  aux <- unique_rows(aux)
+  
+  # TODO: Use name_check() 
+  #unique column names
+  if(length(toupper(colnames(aux))) != length(unique(toupper(colnames(aux))))){
+    print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
+    colnames(aux)[which(duplicated(colnames(aux)))] <- 
+      paste0(colnames(aux)[which(duplicated(colnames(aux)))], '.1')
+  }
+  
+  #empty variables
+  aux <- empty_vars(aux, remove = TRUE)
+  
+  if (table_exists(paste0(project, name), project) == FALSE | over_write == TRUE) {
     
-    warning("Auxiliary table not saved.")
-    invisible(FALSE)
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
+                                                  locdatabase(project = project)))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+
+    DBI::dbWriteTable(fishset_db, 
+                      paste0(project, name, "AuxTable", 
+                             format(Sys.Date(), format = "%Y%m%d")), 
+                      aux, overwrite = over_write)
     
-  } else {
+    DBI::dbWriteTable(fishset_db, paste0(project, name, "AuxTable"), 
+                      aux, overwrite = over_write)
     
-    #unique rows
-    aux <- unique_rows(aux)
+    load_aux_function <- list()
+    load_aux_function$functionID <- "load_aux"
+    load_aux_function$args <- list(deparse_name(dat), deparse_name(aux), name, 
+                                   over_write, project)
+    log_call(project, load_aux_function)
     
-    # TODO: Use name_check() 
-    #unique column names
-    if(length(toupper(colnames(aux))) != length(unique(toupper(colnames(aux))))){
-      print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
-      colnames(aux)[which(duplicated(colnames(aux)))] <- paste0(colnames(aux)[which(duplicated(colnames(aux)))], '.1')
-    }
+    message("Auxiliary table saved to database.")
+    invisible(TRUE)
     
-    #empty variables
-    aux <- empty_vars(aux, remove = TRUE)
     
-    if (table_exists(paste0(project, name), project) == FALSE | over_write == TRUE) {
-      
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
-                                                    locdatabase(project = project)))
-      on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-      
-      DBI::dbWriteTable(fishset_db, 
-                        paste0(project, name, "AuxTable", 
-                               format(Sys.Date(), format = "%Y%m%d")), 
-                        aux, overwrite = over_write)
-      
-      DBI::dbWriteTable(fishset_db, paste0(project, name, "AuxTable"), 
-                        aux, overwrite = over_write)
-      
-      load_aux_function <- list()
-      load_aux_function$functionID <- "load_aux"
-      load_aux_function$args <- list(deparse_name(dat), deparse_name(aux), name, 
-                                     over_write, project)
-      log_call(project, load_aux_function)
-      
-      message("Auxiliary table saved to database.")
-      invisible(TRUE)
-      
-    } else {
-      
-      warning(paste("Table not saved.", paste0(project, name), 
-                    "exists in database, and overwrite is FALSE."))
-      invisible(FALSE)
-    }
   }
 }
 

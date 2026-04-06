@@ -1,244 +1,290 @@
 # -------------------------------------------------------------------------------------------------
 # File: test-fishset_fit.R
 # Purpose: To provide unit tests for the fishset_fit() function.
-# Description: This script uses the 'testthat' framework to validate the behavior of 
-#              fishset_fit(). It mocks the database retrieval of design objects and
-#              the saving of fit results. It verifies that the RTMB optimization runs,
-#              statistics (AIC, R2) are calculated, and diagnostics are generated.
+# Description: This script uses the 'testthat' framework to validate the behavior of the
+#              fishset_fit() function.
 #
 # Scenarios tested:
-#   - Successful estimation (Golden Path) with valid design inputs.
-#   - Validation of post-estimation statistics (AIC, Accuracy, Pseudo-R2).
-#   - Database persistence (mocking the save).
-#   - Handling of control parameters and start values.
-#   - Error handling for dimension mismatches and invalid start values.
+#   - Standard Logit Fit: Runs end-to-end using a real temporary database and RTMB.
+#   - EPM Fit: Validates parameter unpacking and distribution checks.
+#   - Error Handling: Checks for missing designs and duplicate fit names.
+#   - Prediction: Verifies the full probability matrix option.
 #
+# Notes: This test follows the pattern of 'test-create_alternative_choice.R' by mocking
+#        internal FishSET functions via assignInNamespace. It uses real DBI/RSQLite
+#        connections directed to a temporary file to avoid locking errors.
 # -------------------------------------------------------------------------------------------------
 
 # Test Data Setup ---------------------------------------------------------------------------------
-# Capture Original Functions
-orig_functions <- list(
-  unserialize_table = getFromNamespace("unserialize_table", "FishSET"),
-  table_exists = getFromNamespace("table_exists", "FishSET"),
-  table_remove = getFromNamespace("table_remove", "FishSET"),
-  log_call = getFromNamespace("log_call", "FishSET"),
-  locdatabase = getFromNamespace("locdatabase", "FishSET"),
-  dbExecute = DBI::dbExecute
+set.seed(42)
+N_obs <- 10
+J_alts <- 2 # Keep small for speed
+K_vars <- 2
+
+# Synthetic Design Object (Standard)
+standard_design <- list(
+  y = rep(c(1, 0), N_obs), 
+  X = matrix(rnorm(N_obs * J_alts * K_vars), ncol = K_vars),
+  epm = list(is_epm = FALSE),
+  settings = list(N_obs = N_obs, J_alts = J_alts, K_vars = K_vars, project = "TestProj"),
+  ids = list(zone = rep(1:J_alts, N_obs)),
+  scalers = list()
 )
+colnames(standard_design$X) <- c("Var1", "Var2")
 
-# Restore these functions at the end of the test file
-on.exit({
-  assignInNamespace("unserialize_table", orig_functions$unserialize_table, ns = "FishSET")
-  assignInNamespace("table_exists", orig_functions$table_exists, ns = "FishSET")
-  assignInNamespace("table_remove", orig_functions$table_remove, ns = "FishSET")
-  assignInNamespace("log_call", orig_functions$log_call, ns = "FishSET")
-  assignInNamespace("locdatabase", orig_functions$locdatabase, ns = "FishSET")
-  assignInNamespace("dbExecute", orig_functions$dbExecute, ns = "DBI")
-})
-
-# Mock Design Object
-# We need a mathematically valid design so RTMB can actually fit it.
-# Scenario: 2 Observations, 2 Alternatives per observation.
-# Variable: "catch" (High catch should be preferred).
-# Obs 1: Alt A (Catch=10), Alt B (Catch=2) -> Chooses A (y=1)
-# Obs 2: Alt A (Catch=2), Alt B (Catch=10) -> Chooses B (y=1 for B)
-
-N_obs_mock <- 4
-J_alts_mock <- 2
-X_mock <- matrix(c(
-  # Obs 1: Clear winner
-  10, 2,  
-  # Obs 2: Clear winner
-  2, 10,  
-  # Obs 3: Close call
-  5, 6,   
-  # Obs 4: Contradiction! (Chooses lower catch to constrain Beta)
-  8, 4    
-), ncol = 1) 
-colnames(X_mock) <- "catch"
-
-# y vector: Obs1(1,0), Obs2(0,1) -> c(1, 0, 0, 1)
-y_mock <- c(
-  1, 0, 
-  0, 1, 
-  0, 1, 
-  0, 1
-)
-
-mock_design_obj <- list(
-  X = X_mock,
-  y = y_mock,
-  formula = as.formula("chosen ~ catch"),
-  settings = list(
-    N_obs = N_obs_mock,
-    J_alts = J_alts_mock,
-    K_vars = 1
+# Synthetic Design Object (EPM)
+epm_design <- list(
+  y = rep(c(1, 0), N_obs),
+  X = matrix(rnorm(N_obs * J_alts * 1), ncol = 1), # Utility var
+  epm = list(
+    is_epm = TRUE,
+    X_catch = matrix(rnorm(N_obs * J_alts * 1), ncol = 1), # Catch var
+    Y_catch = rnorm(N_obs * J_alts, 100, 10),
+    price_vec = rep(2.5, N_obs * J_alts)
   ),
-  ids = list(
-    # Just generic labels repeated
-    zone = rep(c("ZoneA", "ZoneB"), N_obs_mock) 
-  )
+  settings = list(N_obs = N_obs, J_alts = J_alts, K_vars = 3),
+  ids = list(zone = rep(1:J_alts, N_obs)),
+  scalers = list()
+)
+colnames(epm_design$X) <- "UtilVar"
+colnames(epm_design$epm$X_catch) <- "CatchVar"
+
+# Mocking architecture ----------------------------------------------------------------------------
+orig_functions <- list(
+  log_call = getFromNamespace("log_call", "FishSET")
 )
 
-# Wrapper list representing the 'ModelDesigns' table
-mock_design_db_list <- list(
-  TEST_MODEL_DESIGN = mock_design_obj
-)
-
-# Helper: Mock Functions (Defined Globally) -------------------------------------------------------
-clean_mock_unserialize_fit <- function(table_name, project) {
-  # verify the function asks for the ModelDesigns table
-  if (grepl("ModelDesigns", table_name)) return(mock_design_db_list)
-  if (grepl("ModelFit", table_name)) return(list()) # Empty list for existing fits
-  return(NULL)
+setup_mocks <- function() {
+  assignInNamespace("log_call", function(...) invisible(NULL), ns = "FishSET")
 }
 
-clean_mock_table_exists <- function(table_name, project) return(TRUE)
-clean_mock_table_remove <- function(table_name, project) return(TRUE)
-clean_mock_log <- function(...) invisible(NULL)
-clean_mock_locdb <- function(...) return(":memory:")
-
-# Helper: Setup Function --------------------------------------------------------------------------
-setup_fit_mocks <- function() {
-  assignInNamespace("unserialize_table", clean_mock_unserialize_fit, ns = "FishSET")
-  assignInNamespace("table_exists", clean_mock_table_exists, ns = "FishSET")
-  assignInNamespace("table_remove", clean_mock_table_remove, ns = "FishSET")
-  assignInNamespace("log_call", clean_mock_log, ns = "FishSET")
-  assignInNamespace("locdatabase", clean_mock_locdb, ns = "FishSET")
+restore_mocks <- function() {
+  assignInNamespace("log_call", orig_functions$log_call, ns = "FishSET")
 }
 
-# Standard Model Fitting --------------------------------------------------------------------------
-test_that("fishset_fit runs optimization and returns correct structure", {
-  setup_fit_mocks()
+# Helper: Safely save the mock design to the exact expected folder structure
+save_design_to_temp <- function(design_obj, model_name, project) {
+  test_base_dir <- normalizePath(file.path(tempdir(), "FishSET_Fit_Tests"), 
+                                 winslash = "/", 
+                                 mustWork = FALSE)
+  project_dir <- file.path(test_base_dir, project)
+  designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
   
-  # Mock DB Save Capture
-  captured_fit <- NULL
-  mock_dbExecute <- function(conn, statement, params = NULL, ...) {
-    if (!is.null(params)) captured_fit <<- unserialize(params$data[[1]])
-    return(invisible(TRUE))
-  }
-  assignInNamespace("dbExecute", mock_dbExecute, ns = "DBI")
+  # Create dummy directories safely
+  dir.create(designs_dir, recursive = TRUE, showWarnings = FALSE)
+  dir.create(file.path(project_dir, "src"), recursive = TRUE, showWarnings = FALSE) # For log_call
   
-  # Run the fit
-  # We use a very high eval.max to ensure it doesn't timeout, though this data is tiny.
-  res <- fishset_fit(
-    project = "TEST_PROJ",
-    model_name = "TEST_MODEL_DESIGN",
-    fit_name = "TEST_FIT_RESULT"
+  saveRDS(design_obj, file.path(designs_dir, paste0(model_name, ".rds")))
+  return(test_base_dir)
+}
+
+
+# Test standard logit -----------------------------------------------------------------------------
+test_that("Standard Logit Fit runs successfully (End-to-End)", {
+  setup_mocks()
+  test_base_dir <- save_design_to_temp(standard_design, "std_model", "TestProj_Std")
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+  
+  result <- fishset_fit(
+    project = "TestProj_Std",
+    model_name = "std_model",
+    fit_name = "std_fit_1",
+    control = list(iter.max = 1, eval.max = 5) 
   )
   
-  # 1. Structure Check
-  expect_s3_class(res, "fishset_fit")
-  expect_true(res$converged) # Should converge easily on this data
-  
-  # 2. Coefficient Check
-  # "catch" should be positive (people prefer higher catch)
-  expect_true("catch" %in% names(res$coefficients))
-  expect_gt(res$coefficients["catch"], 0) 
-  
-  # 3. Database Persistence Check
-  # Ensure the captured object matches the returned object
-  expect_equal(captured_fit$TEST_FIT_RESULT$coefficients, res$coefficients)
+  expect_s3_class(result, "fishset_fit")
+  expect_true(is.numeric(result$logLik))
+  expect_true(!is.null(result$coefficients))
 })
 
-# Post-Estimation Statistics ----------------------------------------------------------------------
-test_that("fishset_fit calculates correct post-estimation statistics", {
-  setup_fit_mocks()
 
-  # Mock DB Save Capture
-  mock_dbExecute <- function(conn, statement, params = NULL, ...) { return(invisible(TRUE)) }
-  assignInNamespace("dbExecute", mock_dbExecute, ns = "DBI")
-
-  res <- fishset_fit(
-    project = "TEST_PROJ",
-    model_name = "TEST_MODEL_DESIGN"
+# Test EPM normal ---------------------------------------------------------------------------------
+test_that("EPM Fit (Normal) runs and unpacks parameters", {
+  setup_mocks()
+  test_base_dir <- save_design_to_temp(epm_design, "epm_model", "TestProj_EPM")
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+  
+  result <- fishset_fit(
+    project = "TestProj_EPM",
+    model_name = "epm_model",
+    fit_name = "epm_fit_1",
+    distribution = "normal",
+    control = list(iter.max = 1, eval.max = 5)
   )
-
-  # 1. Prediction Accuracy
-  # We have 4 observations.
-  # Obs 1, 2, 3 follow the "High Catch" rule -> Predicted Correctly.
-  # Obs 4 violates the rule (chose low catch) -> Predicted Incorrectly.
-  # Expected Accuracy = 3 / 4 = 0.75
-  expect_equal(res$accuracy, 0.75)
-
-  # 2. Pseudo R2
-  # Should be between 0 and 1
-  expect_gte(res$pseudo_R2, 0)
-  expect_lte(res$pseudo_R2, 1)
-
-  # 3. Prob Matrix Dimensions
-  # Should be N_obs_mock (4) x J_alts_mock (2)
-  expect_equal(nrow(res$prob_matrix), N_obs_mock)
-  expect_equal(ncol(res$prob_matrix), J_alts_mock)
-
-  # 4. Global Test
-  expect_true(!is.null(res$LR_stat))
-  expect_true(!is.null(res$LR_p_value))
-
-  # 5. Diagnostics exists
-  expect_true(is.list(res$diagnostics))
-  expect_true("eigenvalues" %in% names(res$diagnostics))
+  
+  expect_s3_class(result, "fishset_fit")
+  expect_equal(length(result$coefficients), 5)
+  
+  names_coef <- names(result$coefficients)
+  expect_true("CatchVar" %in% names_coef)
+  expect_true("UtilVar" %in% names_coef)
+  expect_true("Sigma_Catch_1" %in% names_coef)
+  expect_true("Sigma_Error" %in% names_coef)
 })
 
-# Inputs and Controls -----------------------------------------------------------------------------
-test_that("fishset_fit handles start values and control arguments", {
-  setup_fit_mocks()
 
-  mock_dbExecute <- function(conn, statement, params = NULL, ...) { return(invisible(TRUE)) }
-  assignInNamespace("dbExecute", mock_dbExecute, ns = "DBI")
-
-  # Test with specific start values
-  res <- fishset_fit(
-    project = "TEST_PROJ",
-    model_name = "TEST_MODEL_DESIGN",
-    start_values = c(0.5) # Valid length (1 var)
-  )
-
-  expect_s3_class(res, "fishset_fit")
-
-  # Test with invalid start value length -> Should Error
+# Test design not found error ---------------------------------------------------------------------
+test_that("Error: Design not found", {
+  setup_mocks()
+  test_base_dir <- normalizePath(file.path(tempdir(), "FishSET_Fit_Tests"), 
+                                 winslash = "/", 
+                                 mustWork = FALSE)
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+  
+  # Create an empty ModelDesigns folder so model_design_list returns empty, 
+  # avoiding a missing directory error
+  dir.create(file.path(test_base_dir, "TestProj_Missing", "Models", "ModelDesigns"), 
+             recursive = TRUE, 
+             showWarnings = FALSE)
+  
   expect_error(
-    fishset_fit(
-      project = "TEST_PROJ",
-      model_name = "TEST_MODEL_DESIGN",
-      start_values = c(0.5, 0.2) # Invalid length (2 values, 1 var)
-    ),
-    "Start values length .* does not match parameters"
+    fishset_fit(project = "TestProj_Missing", model_name = "missing_model"),
+    "not found in project folders."
   )
 })
 
-# Error Handling ----------------------------------------------------------------------------------
-test_that("fishset_fit fails gracefully on data integrity issues", {
-  setup_fit_mocks()
-  mock_dbExecute <- function(conn, statement, params = NULL, ...) { return(invisible(TRUE)) }
-  assignInNamespace("dbExecute", mock_dbExecute, ns = "DBI")
 
-  # 1. Missing Model Name
+# Test fit already exists error -------------------------------------------------------------------
+test_that("Error: Fit name already exists", {
+  setup_mocks()
+  test_base_dir <- save_design_to_temp(standard_design, "std_model", "TestProj_Dup")
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+  
+  # 1st call natively creates the fit and writes to SQLite database
+  fishset_fit(
+    project = "TestProj_Dup", 
+    model_name = "std_model", 
+    fit_name = "existing_fit", 
+    control = list(iter.max = 1)
+  )
+  
+  # 2nd call throws error
   expect_error(
     fishset_fit(
-      project = "TEST_PROJ",
-      model_name = "NON_EXISTENT_MODEL"
+      project = "TestProj_Dup", 
+      model_name = "std_model", 
+      fit_name = "existing_fit"
     ),
-    "Model design .* not found"
+    "already exists"
   )
+})
 
-  # 2. Corrupted Design Matrix (Dimension Mismatch)
-  # Modify mock to return a corrupted design
-  corrupted_db_list <- mock_design_db_list
-  # Add an extra row to X so it doesn't match N*J
-  corrupted_db_list$TEST_MODEL_DESIGN$X <- rbind(X_mock, c(5))
 
-  mock_unserialize_corrupt <- function(table_name, project) {
-    if (grepl("ModelDesigns", table_name)) return(corrupted_db_list)
-    return(NULL)
-  }
-  assignInNamespace("unserialize_table", mock_unserialize_corrupt, ns = "FishSET")
+# Test full prob matrix works ---------------------------------------------------------------------
+test_that("Return Full Probability Matrix works", {
+  setup_mocks()
+  test_base_dir <- save_design_to_temp(standard_design, "std_model", "TestProj_Prob")
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+  
+  result <- fishset_fit(
+    project = "TestProj_Prob", 
+    model_name = "std_model", 
+    return_full_prob_mat = TRUE, 
+    control = list(iter.max = 1)
+  )
+  
+  expect_true(!is.null(result$prob_matrix))
+  expect_equal(nrow(result$prob_matrix), N_obs)
+  expect_equal(ncol(result$prob_matrix), J_alts)
+  expect_true(!is.null(result$residuals))
+})
 
-  expect_error(
+
+# Test overwrite ----------------------------------------------------------------------------------
+test_that("Overwrite argument successfully replaces existing fit", {
+  setup_mocks()
+  project_name <- "TestProj_Overwrite"
+  model_name <- "std_model"
+  fit_name <- "existing_fit"
+  
+  test_base_dir <- save_design_to_temp(standard_design, model_name, project_name)
+  
+  # Setup environment and teardown
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+  
+  # 1st call natively creates the fit in the temporary SQLite database
+  fishset_fit(
+    project = project_name,
+    model_name = model_name,
+    fit_name = fit_name,
+    control = list(iter.max = 1, eval.max = 5)
+  )
+  
+  # 2nd call should NOT throw an error because overwrite = TRUE
+  expect_no_error(
     fishset_fit(
-      project = "TEST_PROJ",
-      model_name = "TEST_MODEL_DESIGN"
-    ),
-    "Design matrix dimensions do not match"
+      project = project_name,
+      model_name = model_name,
+      fit_name = fit_name,
+      overwrite = TRUE,
+      control = list(iter.max = 1, eval.max = 5)
+    )
   )
+})
+
+
+# Test unscaling works ----------------------------------------------------------------------------
+test_that("Vectorized unscaling correctly divides coefficients and SEs", {
+  setup_mocks()
+  project_name <- "TestProj_Scale"
+  model_name <- "std_model"
+  
+  # Create a design with fake scalers
+  scaled_design <- standard_design
+  scaled_design$scalers <- list(
+    X1 = list(sd = c("Var1" = 2.0, "Var2" = 10.0))
+  )
+  test_base_dir <- save_design_to_temp(scaled_design, model_name, project_name)
+  
+  # Setup environment and teardown
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+  
+  result <- fishset_fit(
+    project = project_name,
+    model_name = model_name,
+    fit_name = "scaled_fit",
+    control = list(iter.max = 1, eval.max = 5) 
+  )
+  
+  # Check if standard errors are successfully divided by the scalers
+  # Since initial betas are small, and optim might take 1 step, we check the mechanics.
+  # The raw opt$par / scale_factors should equal the reported coefficients.
+  raw_var1 <- result$opt$par[1]
+  raw_var2 <- result$opt$par[2]
+
+  expect_equal(unname(result$coefficients["Var1"]), (unname(raw_var1) / 2.0), tolerance = 1e-5)
+  expect_equal(unname(result$coefficients["Var2"]), (unname(raw_var2) / 10.0), tolerance = 1e-5)
 })

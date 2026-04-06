@@ -705,7 +705,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
                          "aux" = quietly_test(load_aux),
                          "spat" = quietly_test(load_spatial),
                          "grid" = quietly_test(load_grid))
-
+        
         # Handle each data type separately because they have different inputs
         if (data_type == "main") {
           pass <- q_test(dat = data_out,
@@ -714,7 +714,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
                          compare = FALSE,
                          y = NULL)
           table_name <- paste0(project_name, "MainDataTable")
-
+          
           # Save package version and recent git commit to the output folder
           fishset_commit <- packageDescription("FishSET")$GithubSHA1
           fishset_version <- packageDescription("FishSET")$Version
@@ -722,7 +722,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
           version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
           cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"),
               file = version_file, append = TRUE)
-
+          
           if (is.null(pass)) {
             rv_load_error_message(
               paste0("⚠️ Error while loading main data file. Check user manual for file format
@@ -730,7 +730,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
             )
             shinyjs::show("load_error_message")
           }
-
+          
         } else if (data_type == "port") {
           pass <- q_test(dat = data_out,
                          port_name = load_data_input$port_name(),
@@ -739,7 +739,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
                          compare = FALSE,
                          y = NULL)
           table_name <- paste0(project_name, "PortTable")
-
+          
           if (is.null(pass)) {
             rv_load_error_message(
               paste0("⚠️ Error while loading port data. Select port file again and select a
@@ -750,43 +750,59 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
           
           # Need to use table_view because load_port overwrites column names
           data_out <- table_view(table_name, project_name)
-
+          
         } else if (data_type == "aux") {
-          pass <- q_test(dat = data_out,
-                         aux = load_data_input$value$datapath,
-                         name = sub("\\..*$", "", load_data_input$value$name),
-                         over_write = TRUE,
-                         project = project_name)
-          table_name <- paste0(project_name,
-                               sub("\\..*$", "", load_data_input$value$name),
-                               "AuxTable")
-
-          if (is.null(pass)) {
-            rv_load_error_message(
-              paste0("⚠️ Error while loading aux data file. Check user manual for file format
-                     compatibility.")
+          
+          # construct the name of the Main Data Table for this project
+          main_table_name <- paste0(project_name, "MainDataTable")
+          
+          # Use tryCatch to capture the specific error message from load_aux
+          tryCatch({
+            
+            # NOTE: We pass 'main_table_name' into 'dat', NOT 'data_out'
+            load_aux(
+              dat = main_table_name, 
+              aux = load_data_input$value$datapath,
+              name = sub("\\..*$", "", load_data_input$value$name),
+              over_write = TRUE,
+              project = project_name
             )
+            
+            pass <- TRUE # If we get here, it succeeded
+            
+            # Set the table name for the return value
+            table_name <- paste0(project_name,
+                                 sub("\\..*$", "", load_data_input$value$name),
+                                 "AuxTable")
+            
+          }, error = function(e) {
+            # If load_aux throws stop(), this block runs
+            pass <<- NULL 
+            load_warning_error <<- TRUE
+            
+            # This will now print "No shared columns..." to the UI
+            rv_load_error_message(paste0("⚠️ ", e$message))
             shinyjs::show("load_error_message")
-          }
-
+          })
+          
         } else if (data_type == "spat") {
-
+          
           # Shapefiles have multiple components - only get the name of the .shp file
           if(load_data_input$spat_type == "spat_shp") {
             spat_name <- sub("\\..*$", "", shp_file)
           } else {
             spat_name <- sub("\\..*$", "", load_data_input$value$name)
           }
-
+          
           pass <- q_test(spat = data_out,
                          name = spat_name,
                          over_write = TRUE,
                          project = project_name)
-
+          
           table_name <- paste0(project_name,
                                spat_name,
                                "SpatTable")
-
+          
           if (is.null(pass)) {
             rv_load_error_message(
               paste0("⚠️ Error while reading spatial file. Check for incomplete or corrupted
@@ -798,7 +814,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
           # Some spatial files require loading from the SQLite DB to gather
           # correct column names (particularly for 'geometry' column)
           data_out <- table_view(table_name, project_name)
-
+          
         } else if (data_type == "grid") {
           pass <- q_test(grid = data_out,
                          name = sub("\\..*$", "", load_data_input$value$name),
@@ -807,7 +823,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
           table_name <- paste0(project_name,
                                sub("\\..*$", "", load_data_input$value$name),
                                "GridTable")
-
+          
           if (is.null(pass)) {
             rv_load_error_message(
               paste0("⚠️ Error while loading grid data file. Check user manual for file format
@@ -817,7 +833,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
           }
         }
       }
-
+      
       if(load_warning_error || is.null(pass) || !pass) {
         return("error") # return if error/warning occured
       }
@@ -895,23 +911,22 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
       rv_all_data_output$main <- load_project_data(data_type = "main",
                                                    load_data_input = main_data_info,
                                                    project_name = project_name$value)
-
+      
       rv_all_data_output$port <- load_project_data(data_type = "port",
                                                    load_data_input = port_data_info,
                                                    project_name = project_name$value)
-
+      
       rv_all_data_output$aux <- load_project_data(data_type = "aux",
                                                   load_data_input = aux_data_info,
                                                   project_name = project_name$value)
-
+      
       rv_all_data_output$spat <- load_project_data(data_type = "spat",
                                                    load_data_input = spat_data_info,
                                                    project_name = project_name$value)
-       
+      
       rv_all_data_output$grid <- load_project_data(data_type = "grid",
                                                    load_data_input = grid_data_info,
                                                    project_name = project_name$value)
-      
       # If any items in list is a character, then it contains a warning or error message
       # return empty value
       if(any(sapply(reactiveValuesToList(rv_all_data_output), is.character))){
@@ -920,7 +935,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
         invisible(lapply(names(rv_all_data_output),function(x) rv_all_data_output[[x]] <<- NULL))
         return(rv_all_data_output$error <- TRUE)
       }
-
+      
       # Hide local spinner
       shinyjs::hide("load_data_spinner_container")
       

@@ -45,5 +45,14 @@ utils::globalVariables(c(
   'J_alts',
   'N_obs',
   'choice_idx',
-  'modifyList'
+  'modifyList',
+  'X_catch',
+  'Y_catch',
+  'log_sigma_c',
+  'log_sigma_e',
+  'beta_catch',
+  'beta_util',
+  'prices',
+  'diff_val',
+  'terms'
 ))

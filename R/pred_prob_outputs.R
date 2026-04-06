@@ -141,8 +141,8 @@ pred_prob_outputs <- function(project, mod.name = NULL,
         scale_fill_viridis_d() +
         theme_classic() +
         # facet_wrap(~model)+
-        theme(text = element_text(size= 16),
-              axis.text.x = element_text(angle = 90, vjust = 1, hjust = 0.95))
+        theme(text = ggplot2::element_text(size= 16),
+              axis.text.x = ggplot2::element_text(angle = 90, vjust = 1, hjust = 0.95))
       
       if(!isRunning()){
         return(out_fig)
@@ -207,8 +207,8 @@ pred_prob_outputs <- function(project, mod.name = NULL,
         scale_y_continuous(expand = c(0,0), limits = c(0, max(fig_df$value) + 0.05)) +
         scale_fill_viridis_d() +
         theme_classic() +
-        theme(text = element_text(size= 16),
-              axis.text.x = element_text(angle = 45, vjust = 1, hjust = 0.95))
+        theme(text = ggplot2::element_text(size= 16),
+              axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 0.95))
       
       if(!isRunning()){
         return(out_fig)

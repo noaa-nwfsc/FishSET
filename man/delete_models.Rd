@@ -9,8 +9,8 @@ delete_models(project, model.names, delete.nested = FALSE)
 \arguments{
 \item{project}{String, name of project.}
 
-\item{model.names}{String, name of models to delete. Use \code{\link[=model_names]{model_names()}} to
-see model names from the model design file.}
+\item{model.names}{String, name of models to delete. Use \code{\link{model_design_list}} to
+see model names from the model design folder.}
 
 \item{delete.nested}{Logical, whether to delete a model containing nested
 models. Defaults to \code{FALSE}.}
@@ -29,7 +29,4 @@ matrix. To delete all three models, enter \code{model.names = 'logit_c_mod1'} an
 set \code{delete.nested = TRUE}. To delete one or more specific nested models, use
 \code{model.names = 'logit_c_mod1.exp1'}, i.e. the original model name, a period, and
 the name of the expected catch matrix used in the model.
-}
-\seealso{
-\code{\link[=model_design_list]{model_design_list()}}, \code{\link[=model_out_view]{model_out_view()}}
 }
