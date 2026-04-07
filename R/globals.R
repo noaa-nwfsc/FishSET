@@ -54,5 +54,10 @@ utils::globalVariables(c(
   'beta_util',
   'prices',
   'diff_val',
-  'terms'
+  'terms',
+  'X_util',
+  'Y_catch_chosen',
+  'chosen_lin_idx',
+  'zone_id',
+  'zone_seq'
 ))
