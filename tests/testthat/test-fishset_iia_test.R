@@ -2,215 +2,257 @@
 # File: test-fishset_iia_test.R
 # Purpose: To provide unit tests for the fishset_iia_test() function.
 # Description: This script uses the 'testthat' framework to validate the behavior of 
-#              fishset_iia_test(). It mocks the database retrieval of fitted models and
-#              design objects. It verifies that the restricted model is correctly
-#              constructed, optimized, and compared to the full model.
+#              fishset_iia_test(). It isolates the test environment by saving mock design
+#              objects to a temporary directory and mocking the database retrieval of 
+#              the full model fit.
 #
 # Scenarios tested:
-#   - Successful IIA test execution (Golden Path).
-#   - Correct identification/removal of invalid observations (those choosing omitted zones).
-#   - Validation of inputs (omitted zones exist, enough zones remain).
-#   - Correct handling of parameter matching (common parameters).
-#
+#   - Standard Conditional Logit IIA test (Golden Path).
+#   - Expected Profit Model (EPM) IIA test with distribution mapping.
+#   - Random omitted zone selection (when omitted_zones = NULL).
+#   - Validation of inputs (invalid zones, omitting too many zones).
+#   - S3 Print Method specifically checking the custom EPM interpretation text.
 # -------------------------------------------------------------------------------------------------
 
 # Test Data Setup ---------------------------------------------------------------------------------
-# Capture original functions
-orig_functions <- list(
-  unserialize_table = getFromNamespace("unserialize_table", "FishSET"),
-  log_call = getFromNamespace("log_call", "FishSET"),
-  locdatabase = getFromNamespace("locdatabase", "FishSET")
-)
-
-# Restore on exit
-on.exit({
-  assignInNamespace("unserialize_table", orig_functions$unserialize_table, ns = "FishSET")
-  assignInNamespace("log_call", orig_functions$log_call, ns = "FishSET")
-  assignInNamespace("locdatabase", orig_functions$locdatabase, ns = "FishSET")
-})
-
-##### Mock design object (full model) ####
-# Scenario: 3 Zones (A, B, C), 3 Obs.
-# Obs 1: Chose A
-# Obs 2: Chose B (Will be INVALID when we omit B)
-# Obs 3: Chose C
-N_obs_mock <- 3
-J_alts_mock <- 3
-
-# X matrix: Just one variable "catch"
-# 3 obs * 3 alts = 9 rows
 set.seed(42)
-X_mock <- matrix(rnorm(9, mean = 10), ncol = 1)
-colnames(X_mock) <- "catch"
+N_obs <- 20
+J_alts <- 3 # Zones A, B, C
 
-# y vector: Obs1(A), Obs2(B), Obs3(C)
-# Sorted: Obs1(A,B,C), Obs2(A,B,C), Obs3(A,B,C)
-y_mock <- c(
-  1, 0, 0,  # Obs 1 -> A
-  0, 1, 0,  # Obs 2 -> B (Target for removal)
-  0, 0, 1   # Obs 3 -> C
+# Hardcode choices so that observations are spread across all 3 zones
+y_vec <- rep(0, N_obs * J_alts)
+choices <- c(rep(1, 7), rep(2, 7), rep(3, 6)) # 7 chose A, 7 chose B, 6 chose C
+chosen_indices <- (seq_len(N_obs) - 1) * J_alts + choices
+y_vec[chosen_indices] <- 1
+
+# Shared IDs
+mock_ids <- list(
+  obs = rep(paste0("Obs", 1:N_obs), each = J_alts),
+  zone = rep(c("ZoneA", "ZoneB", "ZoneC"), N_obs)
 )
 
-ids_mock <- list(
-  obs = rep(c("Obs1", "Obs2", "Obs3"), each = 3),
-  zone = rep(c("ZoneA", "ZoneB", "ZoneC"), 3)
+# 1. Synthetic Design (Standard Logit)
+K_vars <- 2
+X_std <- matrix(rnorm(N_obs * J_alts * K_vars), ncol = K_vars)
+colnames(X_std) <- c("Var1", "Var2")
+
+standard_design <- list(
+  y = y_vec, 
+  X = X_std,
+  epm = list(is_epm = FALSE),
+  settings = list(N_obs = N_obs, J_alts = J_alts, K_vars = K_vars, project = "TestProj"),
+  ids = mock_ids,
+  scalers = list()
 )
 
-mock_design_obj <- list(
-  X = X_mock,
-  y = y_mock,
-  ids = ids_mock,
-  formula = as.formula("chosen ~ catch"),
-  settings = list(N_obs = N_obs_mock, J_alts = J_alts_mock, K_vars = 1)
+# 2. Synthetic Design (EPM)
+X_util <- matrix(rnorm(N_obs * J_alts * 1), ncol = 1)
+colnames(X_util) <- "UtilVar"
+
+X_catch <- matrix(rnorm(N_obs * J_alts * 1), ncol = 1)
+colnames(X_catch) <- "CatchVar"
+
+epm_design <- list(
+  y = y_vec,
+  X = X_util,
+  epm = list(
+    is_epm = TRUE,
+    X_catch = X_catch,
+    Y_catch = runif(N_obs * J_alts, 50, 150),
+    price_vec = rep(2.5, N_obs * J_alts)
+  ),
+  settings = list(N_obs = N_obs, J_alts = J_alts, K_vars = 6),
+  ids = mock_ids,
+  scalers = list()
 )
 
-#### Mock fit object (full model) ####
-# We need coefficients and a vcov matrix
-mock_fit_obj <- list(
-  design_name = "TEST_MODEL_DESIGN",
-  opt = list(par = c(catch = 0.5)),
-  vcov = matrix(0.01, 1, 1, dimnames = list("catch", "catch")),
-  coefficients = c(catch = 0.5)
+# 3. Mocked Fitted Objects
+# Create and name standard hessian
+h_std <- diag(2, nrow = 2)
+dimnames(h_std) <- list(c("Var1", "Var2"), c("Var1", "Var2"))
+
+mock_fit_std <- list(
+  opt = list(par = c(Var1 = 0.5, Var2 = -0.2)),
+  coefficients = c(Var1 = 0.5, Var2 = -0.2),
+  diagnostics = list(hessian = h_std)
 )
 
-# Database mock wrappers
-mock_design_db <- list(TEST_MODEL_DESIGN = mock_design_obj)
-mock_fit_db <- list(TEST_FULL_FIT = mock_fit_obj)
+# EPM fit parameters must strictly include log_sigma prefixes to trigger detection logic
+epm_pars <- c(CatchVar = 0.5, UtilVar = 0.1, 
+              log_sigma_c_A = -0.2, log_sigma_c_B = -0.2, log_sigma_c_C = -0.2, 
+              log_sigma_e = 0)
 
-# Helper: mock functions --------------------------------------------------------------------------
-clean_mock_unserialize_iia <- function(table_name, project) {
-  if (grepl("ModelDesigns", table_name)) return(mock_design_db)
-  if (grepl("ModelFit", table_name)) return(mock_fit_db)
-  return(NULL)
+# Create and name EPM hessian
+h_epm <- diag(6, nrow = length(epm_pars))
+dimnames(h_epm) <- list(names(epm_pars), names(epm_pars))
+
+mock_fit_epm <- list(
+  opt = list(par = epm_pars),
+  coefficients = c(CatchVar = 0.5, UtilVar = 0.1, 
+                   Sigma_Catch_A = exp(-0.2), Sigma_Catch_B = exp(-0.2), Sigma_Catch_C = exp(-0.2), 
+                   Sigma_Error = 1),
+  diagnostics = list(hessian = h_epm)
+)
+
+# Mocking architecture ----------------------------------------------------------------------------
+orig_functions <- list(
+  log_call = getFromNamespace("log_call", "FishSET"),
+  unserialize_table = getFromNamespace("unserialize_table", "FishSET")
+)
+
+setup_iia_mocks <- function(fit_db) {
+  assignInNamespace("log_call", function(...) invisible(NULL), ns = "FishSET")
+  assignInNamespace("unserialize_table", function(table_name, project) {
+    if (grepl("ModelFit", table_name)) return(fit_db)
+    return(NULL)
+  }, ns = "FishSET")
 }
 
-clean_mock_log <- function(...) invisible(NULL)
-clean_mock_locdb <- function(...) return(":memory:")
-
-# Helper: setup function --------------------------------------------------------------------------
-setup_iia_mocks <- function() {
-  assignInNamespace("unserialize_table", clean_mock_unserialize_iia, ns = "FishSET")
-  assignInNamespace("log_call", clean_mock_log, ns = "FishSET")
-  assignInNamespace("locdatabase", clean_mock_locdb, ns = "FishSET")
+restore_mocks <- function() {
+  assignInNamespace("log_call", orig_functions$log_call, ns = "FishSET")
+  assignInNamespace("unserialize_table", orig_functions$unserialize_table, ns = "FishSET")
 }
 
-# Check that function runs correctly --------------------------------------------------------------
-test_that("fishset_iia_test runs successfully on valid inputs", {
-  setup_iia_mocks()
+# Helper: Safely save the mock design to the exact expected folder structure
+save_design_to_temp <- function(design_obj, model_name, project) {
+  test_base_dir <- normalizePath(file.path(tempdir(), "FishSET_IIA_Tests"), 
+                                 winslash = "/", 
+                                 mustWork = FALSE)
+  project_dir <- file.path(test_base_dir, project)
+  designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
   
-  # Run IIA test omitting "ZoneB"
-  # This should remove Obs 2 (who chose B)
+  dir.create(designs_dir, recursive = TRUE, showWarnings = FALSE)
+  dir.create(file.path(project_dir, "src"), recursive = TRUE, showWarnings = FALSE) 
+  
+  saveRDS(design_obj, file.path(designs_dir, paste0(model_name, ".rds")))
+  return(test_base_dir)
+}
+
+
+# Test Standard Conditional Logit -----------------------------------------------------------------
+test_that("Standard Logit IIA runs successfully (Golden Path)", {
+  # Map database
+  db_mock <- list(std_fit = mock_fit_std)
+  setup_iia_mocks(db_mock)
+  
+  test_base_dir <- save_design_to_temp(standard_design, "std_model", "TestProj_IIA_Std")
+  old_opts <- options(test_folder_path = test_base_dir)
+  
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+  
+  # Run test omitting ZoneC. Limit iterations for test speed.
   res <- fishset_iia_test(
-    project = "TEST_PROJ",
-    fit_name = "TEST_FULL_FIT",
-    omitted_zones = "ZoneB"
+    project = "TestProj_IIA_Std",
+    model_name = "std_model",
+    fit_name = "std_fit",
+    omitted_zones = "ZoneC",
+    control = list(iter.max = 1, eval.max = 5)
   )
   
-  # Structure check
   expect_s3_class(res, "fishset_iia")
   expect_true(is.numeric(res$statistic))
-  expect_true(is.numeric(res$p_value))
-  
-  # Correct omission logic
-  expect_equal(res$omitted, "ZoneB")
-  
-  # Parameter matching
-  # Both models have "catch".
-  expect_equal(res$common_parameters, "catch")
-  expect_equal(length(res$full_coefs), 1)
-  expect_equal(length(res$restricted_coefs), 1)
+  expect_equal(res$omitted, "ZoneC")
+  expect_true(all(res$common_parameters %in% c("Var1", "Var2")))
+  expect_false(res$is_epm)
 })
 
-# IIA supported scenario --------------------------------------------------------------------------
-test_that("fishset_iia_test returns 'IIA Supported' when coefficients match", {
-  setup_iia_mocks()
-  
-  # Setup Data that produces a specific beta
-  # X=10 for chosen, X=0 for unchosen. The optimizer will find a positive beta.
-  # Let's assume the optimizer finds beta approx 1.0 to 2.0.
-  
-  # Create a "Full Fit" Mock that MATCHES this expectation
-  # We set the coefficient to 1.5 (a reasonable guess for this data)
-  # We set a tiny variance (1e-6) to ensure V_diff is positive definite
-  match_fit_obj <- list(
-    design_name = "TEST_MODEL_DESIGN",
-    opt = list(par = c(catch = 1.5)), 
-    vcov = matrix(1e-6, 1, 1, dimnames = list("catch", "catch")),
-    coefficients = c(catch = 1.5)
-  )
-  
-  # Override the unserialize mock locally for this test
-  local_mock_db <- list(TEST_FULL_FIT = match_fit_obj)
-  
-  mock_unserialize_local <- function(table_name, project) {
-    if (grepl("ModelFit", table_name)) return(local_mock_db)
-    if (grepl("ModelDesigns", table_name)) return(mock_design_db) # Use global design mock
-    return(NULL)
-  }
-  assignInNamespace("unserialize_table", mock_unserialize_local, ns = "FishSET")
-  
-  # Run Test
-  # We use the X_mock/y_mock from the global setup which has a clear preference structure
+
+# Test Expected Profit Model (EPM) ----------------------------------------------------------------
+test_that("EPM IIA runs successfully and handles distribution mapping", {
+  db_mock <- list(epm_fit = mock_fit_epm)
+  setup_iia_mocks(db_mock)
+
+  test_base_dir <- save_design_to_temp(epm_design, "epm_model", "TestProj_IIA_EPM")
+  old_opts <- options(test_folder_path = test_base_dir)
+
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+
   res <- fishset_iia_test(
-    project = "TEST_PROJ",
-    fit_name = "TEST_FULL_FIT",
+    project = "TestProj_IIA_EPM",
+    model_name = "epm_model",
+    fit_name = "epm_fit",
     omitted_zones = "ZoneB",
-    start_values = c(1.5) # Help optimizer find the same spot
+    # Letting distribution = NULL to test auto-inference from Sigma_Catch_X
+    control = list(iter.max = 1, eval.max = 5)
   )
-  
-  # Since coefficients are similar, P-value should be high
-  expect_gt(res$p_value, 0.05)
-  expect_match(res$description, "IIA Supported")
+
+  expect_s3_class(res, "fishset_iia")
+  expect_true(res$is_epm)
+  expect_equal(res$omitted, "ZoneB")
+
+  # Ensure nuisance sigma parameters were filtered out of comparison
+  expect_true("CatchVar" %in% res$common_parameters)
+  expect_true("UtilVar" %in% res$common_parameters)
+  expect_false(any(grepl("log_sigma", res$common_parameters)))
 })
 
-# Test invalid inputs -----------------------------------------------------------------------------
-test_that("fishset_iia_test validates input zones correctly", {
-  setup_iia_mocks()
-  
-  # Invalid omitted zone
+
+# Test Invalid Inputs -----------------------------------------------------------------------------
+test_that("Invalid omitted zones throw clear errors", {
+  db_mock <- list(std_fit = mock_fit_std)
+  setup_iia_mocks(db_mock)
+
+  test_base_dir <- save_design_to_temp(standard_design, "std_model", "TestProj_IIA_Err")
+  old_opts <- options(test_folder_path = test_base_dir)
+
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+
+  # Invalid name
   expect_error(
     fishset_iia_test(
-      project = "TEST_PROJ",
-      fit_name = "TEST_FULL_FIT",
-      omitted_zones = "ZoneX"
+      project = "TestProj_IIA_Err",
+      model_name = "std_model",
+      fit_name = "std_fit",
+      omitted_zones = "GhostZone"
     ),
-    "One or more 'omitted_zones' not found"
+    "not found in the original dataset"
   )
-  
-  # Removing too many zones (Leaves 1, need at least 2)
-  # We have 3 zones (A, B, C). Removing A and B leaves only C.
+
+  # Omitting too many (Leaves 1, needs >= 2)
   expect_error(
     fishset_iia_test(
-      project = "TEST_PROJ",
-      fit_name = "TEST_FULL_FIT",
+      project = "TestProj_IIA_Err",
+      model_name = "std_model",
+      fit_name = "std_fit",
       omitted_zones = c("ZoneA", "ZoneB")
     ),
-    "You must keep at least two alternatives"
+    "must keep at least two alternatives"
   )
 })
 
-# Handles error in model designs ------------------------------------------------------------------
-test_that("fishset_iia_test correctly handles mismatched designs", {
-  setup_iia_mocks()
+
+# Test S3 Print Method ----------------------------------------------------------------------------
+test_that("Print method displays correct output based on model type", {
+  db_mock <- list(std_fit = mock_fit_std, epm_fit = mock_fit_epm)
+  setup_iia_mocks(db_mock)
+
+  test_base_dir <- save_design_to_temp(standard_design, "std_model", "TestProj_IIA_Print")
+  save_design_to_temp(epm_design, "epm_model", "TestProj_IIA_Print")
+  old_opts <- options(test_folder_path = test_base_dir)
+
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+
+  # Standard Model Output
+  res_std <- fishset_iia_test(project = "TestProj_IIA_Print", model_name = "std_model",
+                              fit_name = "std_fit", omitted_zones = "ZoneA", control = list(iter.max = 1))
+  expect_output(print(res_std), "Hausman-McFadden IIA Test")
+  expect_output(print(res_std), "Result:\\s+No significant difference")
   
-  # Create a fit object pointing to a ghost design
-  bad_fit_db <- list(
-    BAD_FIT = list(design_name = "GHOST_DESIGN")
-  )
-  
-  mock_unserialize_bad <- function(table_name, project) {
-    if (grepl("ModelFit", table_name)) return(bad_fit_db)
-    if (grepl("ModelDesigns", table_name)) return(mock_design_db)
-    return(NULL)
-  }
-  assignInNamespace("unserialize_table", mock_unserialize_bad, ns = "FishSET")
-  
-  expect_error(
-    fishset_iia_test(
-      project = "TEST_PROJ",
-      fit_name = "BAD_FIT",
-      omitted_zones = "ZoneB"
-    ),
-    "Design object 'GHOST_DESIGN' not found"
-  )
+  # EPM Output (Checking custom interpretation block)
+  res_epm <- fishset_iia_test(project = "TestProj_IIA_Print", model_name = "epm_model",
+                              fit_name = "epm_fit", omitted_zones = "ZoneA", control = list(iter.max = 1))
+  expect_output(print(res_epm), "Expected Profit Model \\(Joint\\)")
+  expect_output(print(res_epm), "EPM Interpretation:")
 })

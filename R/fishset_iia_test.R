@@ -294,11 +294,12 @@ fishset_iia_test <- function(project,
   
   obj <- RTMB::MakeADFun(func = nll_func_restr, parameters = pars_list, data = data_list, silent = TRUE)
   
+  default_ctrl <- list(eval.max = 1000, iter.max = 1000)
   dots <- list(...)
   if("control" %in% names(dots)) {
     usr_ctrl <- modifyList(default_ctrl, dots$control)
   } else {
-    usr_ctrl <- list(eval.max = 1000, iter.max = 1000)
+    usr_ctrl <- default_ctrl
   }
   
   opt <- stats::nlminb(obj$par, 

@@ -4,17 +4,29 @@
 \alias{fishset_iia_test}
 \title{Hausman-McFadden Test for IIA}
 \usage{
-fishset_iia_test(project, fit_name, omitted_zones, ...)
+fishset_iia_test(
+  project,
+  model_name,
+  fit_name = NULL,
+  omitted_zones = NULL,
+  robust = FALSE,
+  ...
+)
 }
 \arguments{
 \item{project}{Character string. Name of the project.}
 
+\item{model_name}{Character string. Name of the specific model design used.}
+
 \item{fit_name}{Character string. Name of the full model fit object previously 
 saved in the project database (created by \code{\link{fishset_fit}}).}
 
-\item{omitted_zones}{Character vector. The names of the zones (alternatives) to 
+\item{omitted_zones}{Character vector (Optional). The names of the zones (alternatives) to 
 exclude from the restricted model. These must match the zone labels found in 
-the original data.}
+the original data. If NULL (default), a random zone is selected.}
+
+\item{robust}{Logical. Default FALSE. If TRUE, uses numerically stable utility values,
+mirroring the fit in \code{\link{fishset_fit}}.}
 
 \item{...}{Additional arguments passed to the optimization of the restricted model 
 (e.g., \code{control}, \code{start_values}).}
