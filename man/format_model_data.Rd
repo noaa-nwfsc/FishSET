@@ -21,7 +21,8 @@ format_model_data(
   distance = TRUE,
   distance_units = NULL,
   impute = NULL,
-  crs = NULL
+  crs = NULL,
+  overwrite = FALSE
 )
 }
 \arguments{
@@ -76,6 +77,9 @@ that contain any NAs in corresponding data. If NULL, the function stops if NAs a
 
 \item{crs}{Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
 are required.}
+
+\item{overwrite}{Logical. Defaults to FALSE. If TRUE, overwrites an existing formatted dataset
+with the same name.}
 }
 \value{
 A list containing the formatted data frame and the input settings. The list is saved to
