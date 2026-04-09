@@ -39,7 +39,8 @@
 #'   that contain any NAs in corresponding data. If NULL, the function stops if NAs are detected.
 #' @param crs Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
 #'   are required.
-#'  
+#' @param overwrite Logical. Defaults to FALSE. If TRUE, overwrites an existing formatted dataset
+#'   with the same name.  
 #' @return A list containing the formatted data frame and the input settings. The list is saved to
 #'  the project database.
 #'  
@@ -95,15 +96,17 @@ format_model_data <- function(project,
                               distance = TRUE,
                               distance_units = NULL,
                               impute = NULL,
-                              crs = NULL){ 
-
+                              crs = NULL,
+                              overwrite = FALSE){ 
+  
   # Grab the fully evaluated arguments right as the function starts
   settings <- as.list(environment())
   
   # Remove the project and name, as they are metadata, not formatting settings
   settings$project <- NULL
   settings$name <- NULL
-
+  settings$overwrite <- NULL
+  
   # Input argument validation ---------------------------------------------------------------------
   # Use qs2 for saving if available - this will speed up the function
   use_qs2 <- requireNamespace("qs2", quietly = TRUE)
@@ -123,18 +126,26 @@ format_model_data <- function(project,
   if (file.exists(file.path(designs_dir, file_name_qs2)) && use_qs2) {
     tmp_data <- qs2::qs_read(file.path(designs_dir, file_name_qs2))
     if (name %in% names(tmp_data)) {
-      stop(paste0("Formatted data with the name '", 
-                  name, 
-                  "' already exists in the .qs2 file. Enter a new name."))
+      if (!overwrite) {
+        stop(paste0("Formatted data with the name '", 
+                    name, 
+                    "' already exists in the .qs2 file. Enter a new name."))  
+      } else {
+        message(paste0("Overwriting existing formatted data: '", name, "'"))
+      }
     }
     rm(tmp_data)
     
   } else if (file.exists(file.path(designs_dir, file_name_rds))) {
     tmp_data <- readRDS(file.path(designs_dir, file_name_rds))
     if (name %in% names(tmp_data)) {
-      stop(paste0("Formatted data with the name '", 
-                  name, 
-                  "' already exists in the .rds file. Enter a new name."))
+      if (!overwrite) {
+        stop(paste0("Formatted data with the name '", 
+                    name, 
+                    "' already exists in the .rds file. Enter a new name."))  
+      } else {
+        message(paste0("Overwriting existing formatted data: '", name, "'"))
+      }
     }
     rm(tmp_data)
   }
@@ -445,20 +456,36 @@ format_model_data <- function(project,
   
   # Create nested folders
   if (!dir.exists(designs_dir)) dir.create(designs_dir, recursive = TRUE)
-
+  
   # Read existing file to append data to it
   if (file.exists(file.path(designs_dir, file_name_qs2))) {
     if (use_qs2) {
       all_formatted_data <- qs2::qs_read(file.path(designs_dir, file_name_qs2))
+      
+      # Remove old data to overwrite
+      if (overwrite && (name %in% names(all_formatted_data))) {
+        all_formatted_data[[name]] <- NULL
+        all_formatted_data[[paste0(name, "_settings")]] <- NULL
+      }
+      
       df_list <- c(all_formatted_data, df_list)
+      
     } else {
       warning("A .qs2 file exists, but the qs2 package is not available. Overwriting with .rds.")
     }
+    
   } else if (file.exists(file.path(designs_dir, file_name_rds))) {
     all_formatted_data <- readRDS(file.path(designs_dir, file_name_rds))
+    
+    # Remove old data to overwrite
+    if (overwrite && (name %in% names(all_formatted_data))) {
+      all_formatted_data[[name]] <- NULL
+      all_formatted_data[[paste0(name, "_settings")]] <- NULL
+    }
+    
     df_list <- c(all_formatted_data, df_list)
   }
-
+  
   # Soft dependency for qs2 package
   if (use_qs2) {
     qs2::qs_save(df_list, file = file.path(designs_dir, file_name_qs2))
