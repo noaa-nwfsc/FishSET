@@ -14,9 +14,6 @@ format_model_data(
   aux_data = NULL,
   aux_key = NULL,
   gridded_data = NULL,
-  grid_var_name = NULL,
-  grid_time_var = NULL,
-  main_time_var = NULL,
   expectations = NULL,
   count_var = NULL,
   distance = TRUE,
@@ -52,17 +49,8 @@ function to view the table name.}
 
 \item{aux_key}{Variable name used to join the main data table with the auxiliary data.}
 
-\item{gridded_data}{Name of the gridded data table to join. Use \code{\link{list_tables}}
-function to view the table name.}
-
-\item{grid_var_name}{Name to use for the new variable representing the value in the gridded
-data.}
-
-\item{grid_time_var}{Variable name representing the time dimension for joining gridded data.
-Only use this input if the gridded data varies by space and time.}
-
-\item{main_time_var}{Variable name for the time variable in the main data table that matches
-the \code{grid_time_var}.}
+\item{gridded_data}{Character vector of the gridded data table(s) to join. 
+Use \code{\link{list_tables}} function and set \code{type = "grid"}  to view the table name.}
 
 \item{expectations}{Character vector containing the names of expected catch or revenue matrices
 to merge into the dataset.}

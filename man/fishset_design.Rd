@@ -13,13 +13,9 @@ fishset_design(
   zone_id,
   catch_formula = NULL,
   price_var = NULL,
-<<<<<<< HEAD
   model_type = "logit",
-  scale = FALSE
-=======
   scale = FALSE,
   overwrite = FALSE
->>>>>>> bd5617cb07d7b53696c8b81f3b13c32d2a76739e
 )
 }
 \arguments{
