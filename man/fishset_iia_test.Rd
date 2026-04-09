@@ -44,7 +44,7 @@ A list object of class \code{"fishset_iia"} containing:
 }
 \description{
 Performs the Hausman-McFadden specification test to check the Independence of 
-Irrelevant Alternatives (IIA) assumption for a conditional logit model.
+Irrelevant Alternatives (IIA) assumption for logit models.
 }
 \details{
 The test compares the estimates from a full model (fitted on all alternatives) 
@@ -53,6 +53,7 @@ holds, the coefficients common to both models should not be systematically diffe
 
 
 A significant p-value (typically < 0.05) indicates that the IIA assumption has been 
-violated, suggesting that the conditional logit model may be misspecified (e.g., 
-unobserved correlation between alternatives).
+violated, suggesting that the logit model may be misspecified (e.g., 
+unobserved correlation between alternatives). Note: Alternative-Specific Constants 
+(ASCs) are excluded from the statistical comparison to prevent reference-level shift bias.
 }

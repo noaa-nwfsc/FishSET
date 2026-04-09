@@ -1,7 +1,7 @@
 #' Hausman-McFadden Test for IIA
 #'
 #' Performs the Hausman-McFadden specification test to check the Independence of 
-#' Irrelevant Alternatives (IIA) assumption for a conditional logit model.
+#' Irrelevant Alternatives (IIA) assumption for logit models.
 #'
 #' The test compares the estimates from a full model (fitted on all alternatives) 
 #' against a restricted model (fitted on a subset of alternatives). If the IIA assumption 
@@ -31,8 +31,9 @@
 #'
 #' @details 
 #' A significant p-value (typically < 0.05) indicates that the IIA assumption has been 
-#' violated, suggesting that the conditional logit model may be misspecified (e.g., 
-#' unobserved correlation between alternatives).
+#' violated, suggesting that the logit model may be misspecified (e.g., 
+#' unobserved correlation between alternatives). Note: Alternative-Specific Constants 
+#' (ASCs) are excluded from the statistical comparison to prevent reference-level shift bias.
 #'
 #' @export
 #' @importFrom RTMB MakeADFun sdreport
@@ -46,6 +47,51 @@ fishset_iia_test <- function(project,
                              omitted_zones = NULL,
                              robust = FALSE,
                              ...) {
+  
+  # Helper functions ------------------------------------------------------------------------------
+  # Helper: Clean collinear/constant columns from logit design matrix
+  clean_logit_matrix <- function(mat, group_ids) {
+    if (ncol(mat) == 0) return(mat)
+    mat_dense <- as.matrix(mat)
+    
+    # Demean by choice task to find true variation
+    g_means <- rowsum(mat_dense, group_ids) / as.vector(table(group_ids))
+    mat_demean <- mat_dense - g_means[as.character(group_ids), , drop = FALSE]
+    
+    # Check for zero variance
+    col_vars <- apply(mat_demean, 2, stats::var)
+    keep_idx <- which(col_vars > 1e-10)
+    
+    if (length(keep_idx) == 0) return(mat[, integer(0), drop = FALSE])
+    
+    # Check for linear independence
+    mat_sub <- mat_demean[, keep_idx, drop = FALSE]
+    qr_dec <- qr(mat_sub)
+    indep_idx <- qr_dec$pivot[seq_len(qr_dec$rank)]
+    
+    final_cols <- colnames(mat_sub)[indep_idx]
+    return(mat[, final_cols, drop = FALSE])
+  }
+  
+  # Helper: Clean Linear design matrix (EPM Catch)
+  clean_linear_matrix <- function(mat) {
+    if (ncol(mat) == 0) return(mat)
+    mat_dense <- as.matrix(mat)
+    
+    # Drop pure zero columns (e.g. omitted dummies)
+    col_max <- apply(abs(mat_dense), 2, max)
+    keep_idx <- which(col_max > 1e-10)
+    
+    if (length(keep_idx) == 0) return(mat[, integer(0), drop = FALSE])
+    
+    # Check for linear independence
+    mat_sub <- mat_dense[, keep_idx, drop = FALSE]
+    qr_dec <- qr(mat_sub)
+    indep_idx <- qr_dec$pivot[seq_len(qr_dec$rank)]
+    
+    final_cols <- colnames(mat_sub)[indep_idx]
+    return(mat[, final_cols, drop = FALSE])
+  }
   
   # Load the full model fit -----------------------------------------------------------------------
   if (is.null(fit_name)) fit_name <- paste0(model_name, "_fit")
@@ -115,12 +161,13 @@ fishset_iia_test <- function(project,
   
   # Filter data again to keep only valid observations
   final_mask <- obs_id_restricted %in% valid_obs_ids
+  obs_id_final <- obs_id_restricted[final_mask]
   
   y_restr <- as.numeric(y_restricted_raw[final_mask])
   chosen_lin_idx_restr <- which(y_restr == 1)
   
   # Update Dimensions
-  N_restr <- length(unique(obs_id_restricted[final_mask]))
+  N_restr <- length(unique(obs_id_final))
   J_restr <- length(all_zones) - length(omitted_zones)
   
   # Base param arrays from full fit
@@ -129,7 +176,12 @@ fishset_iia_test <- function(project,
   # Model routing setup (standard vs EPM) ---------------------------------------------------------
   if (!is_epm) {
     # Standard conditional logit
-    X_restr <- full_design$X[keep_mask, , drop = FALSE][final_mask, , drop = FALSE]
+    X_restr_raw <- full_design$X[keep_mask, , drop = FALSE][final_mask, , drop = FALSE]
+    
+    # Safely clean out dropped ASCs and collinear reference levels
+    X_restr <- clean_logit_matrix(X_restr_raw, obs_id_final)
+    
+    if (ncol(X_restr) == 0) stop("No identifiable parameters remain in the restricted model.")
     
     data_list <- list(X = X_restr,
                       chosen_lin_idx = chosen_lin_idx_restr,
@@ -183,23 +235,26 @@ fishset_iia_test <- function(project,
     dist_code <- switch(distribution, "normal" = 1, "lognormal" = 2, "weibull" = 3)
     
     # Subsetting components
-    X_catch_restr <- full_design$epm$X_catch[keep_mask, , drop = FALSE][final_mask, , drop = FALSE]
+    X_catch_raw <- full_design$epm$X_catch[keep_mask, , drop = FALSE][final_mask, , drop = FALSE]
+    X_catch_restr <- clean_linear_matrix(X_catch_raw)
+    
     Y_catch_restr <- full_design$epm$Y_catch[keep_mask][final_mask]
     prices_restr <- full_design$epm$price_vec[keep_mask][final_mask]
     
     util_vars <- setdiff(colnames(full_design$X), colnames(full_design$epm$X_catch))
     if (length(util_vars) > 0) {
-      X_util_restr <- full_design$X[keep_mask, util_vars, drop = FALSE][final_mask, , drop = FALSE]
+      X_util_raw <- full_design$X[keep_mask, util_vars, drop = FALSE][final_mask, , drop = FALSE]
+      X_util_restr <- clean_logit_matrix(X_util_raw, obs_id_final)
     } else {
       X_util_restr <- matrix(0, nrow = length(Y_catch_restr), ncol = 0)
     }
     
     data_list <- list(
       Y_catch_chosen = as.double(as.vector(Y_catch_restr[chosen_lin_idx_restr])),
-      X_util = X_util_restr,
-      X_catch = X_catch_restr,
+      X_util = X_util_restr, 
+      X_catch = X_catch_restr, 
       prices = prices_restr,
-      chosen_lin_idx = chosen_lin_idx_restr,
+      chosen_lin_idx = chosen_lin_idx_restr, 
       N_obs = as.integer(N_restr),
       J_alts = as.integer(J_restr),
       zone_id = ((chosen_lin_idx_restr - 1) %% J_restr) + 1,
@@ -216,10 +271,19 @@ fishset_iia_test <- function(project,
     n_c <- ncol(X_catch_restr)
     n_u <- ncol(X_util_restr)
     
-    beta_c_init <- b_full[1:n_c]
-    beta_u_init <- if(n_u > 0) b_full[(n_c_full+1):(n_c_full+n_u)] else numeric(0)
+    # Smart initializations
+    beta_c_init <- rep(0.0001, n_c)
+    names(beta_c_init) <- colnames(X_catch_restr)
+    c_pars <- intersect(names(b_full), colnames(X_catch_restr))
+    beta_c_init[c_pars] <- b_full[c_pars]
     
-    # Filter Sigmas (drop omitted zones from starting sigma_c)
+    beta_u_init <- rep(0.0001, n_u)
+    if (n_u > 0) {
+      names(beta_u_init) <- colnames(X_util_restr)
+      u_pars <- intersect(names(b_full), colnames(X_util_restr))
+      beta_u_init[u_pars] <- b_full[u_pars]
+    }
+    
     kept_zones_idx <- which(all_zones %in% all_zones[!(all_zones %in% omitted_zones)])
     log_sig_c_full <- full_fit$opt$par[grep("log_sigma_c", names(full_fit$opt$par))]
     
@@ -292,7 +356,10 @@ fishset_iia_test <- function(project,
   use_sparse_hess <- (param_count >= 50)
   TMB::config(tmbad.sparse_hessian_compress = use_sparse_hess, DLL="RTMB")
   
-  obj <- RTMB::MakeADFun(func = nll_func_restr, parameters = pars_list, data = data_list, silent = TRUE)
+  obj <- RTMB::MakeADFun(func = nll_func_restr, 
+                         parameters = pars_list, 
+                         data = data_list, 
+                         silent = TRUE)
   
   default_ctrl <- list(eval.max = 1000, iter.max = 1000)
   dots <- list(...)
@@ -325,9 +392,16 @@ fishset_iia_test <- function(project,
     colnames(V_restr) <- names(b_restr)
   }, error = function(e) { V_restr <<- matrix(NA, k_len, k_len) })
   
+  zone_var <- full_design$settings$zone_id
+  
   # Only compare the structurally similar vars
   common_pars <- intersect(names(b_full), names(b_restr))
   common_pars <- common_pars[!grepl("log_sigma", common_pars)]
+  
+  # Exclude ASCs to prevent reference level shift bias
+  if (!is.null(zone_var) && zone_var != "") {
+    common_pars <- common_pars[!grepl(zone_var, common_pars)]
+  }
   
   if (length(common_pars) == 0) {
     stop("No common parameters found between full and restricted models.")
@@ -420,9 +494,9 @@ print.fishset_iia <- function(x, ...) {
     } else {
       cat("Result: No significant difference detected.\n\n")
       cat("EPM Interpretation:\n")
-      cat("The IIA assumption is supported. Furthermore, this implies\n")
-      cat("that BOTH your continuous catch equation and discrete choice\n")
-      cat("utility equation are robust and well-specified.\n")
+      cat("The IIA assumption is tentatively supported (run multiple times to confirm.\n")
+      cat("Furthermore, this implies that BOTH your continuous catch equation and\n")
+      cat("discrete choice utility equation are robust and well-specified.\n")
     }
     
   } else {
