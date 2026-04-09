@@ -48,13 +48,19 @@ year_lag_data <- data.frame(
 
 # Test calc across years --------------------------------------------------------------------------
 test_that("calculates moving average correctly across year boundaries", {
+  # Mock the database write so it doesn't fail on missing project
+  local_mocked_bindings(load_grid = function(...) invisible(TRUE))
+  
   # Scenario: Calculate average for Jan 2024.
   # Parameters: Window=3, Lag=1.
   # Logic: Target Jan 2024. Lag 1 starts at Dec 2023. Window covers [Oct, Nov, Dec].
   # Values: 10, 20, 30. Expected Mean: 20.
   result <- calc_monthly_moving_avg(
+    project = "test_project",
+    grid_name = "test_grid",
+    append_to_existing = FALSE,
     df = basic_data,
-    name = "avg_val",
+    var_name = "avg_val",
     year_col = "year",
     month_col = "month",
     group_cols = "group",
@@ -74,13 +80,18 @@ test_that("calculates moving average correctly across year boundaries", {
 
 # Test year lag -----------------------------------------------------------------------------------
 test_that("applies 'year_lag' correctly", {
+  local_mocked_bindings(load_grid = function(...) invisible(TRUE))
+  
   # Scenario: Predict May 2023 based on May 2022.
   # Parameters: Window=1, Lag=0, Year Lag=1.
   # Logic: Target May 2023 -> Shift 1 year back -> May 2022.
   # Window covers [May 2022]. Value: 50.
   result <- calc_monthly_moving_avg(
+    project = "test_project",
+    grid_name = "test_grid",
+    append_to_existing = FALSE,
     df = year_lag_data,
-    name = "hist_avg",
+    var_name = "hist_avg",
     year_col = "year",
     month_col = "month",
     group_cols = "group",
@@ -101,12 +112,17 @@ test_that("applies 'year_lag' correctly", {
 
 # Test multiple groups ----------------------------------------------------------------------------
 test_that("handles multiple grouping variables independently", {
+  local_mocked_bindings(load_grid = function(...) invisible(TRUE))
+  
   # Scenario: V1 and V2 operate in the same Zone Z1.
   # We group by BOTH vessel and zone to ensure V1's average doesn't include V2's data.
   # Test Target: Feb 2023. Lag=1, Window=1 (Look at Jan 2023).
   result <- calc_monthly_moving_avg(
+    project = "test_project",
+    grid_name = "test_grid",
+    append_to_existing = FALSE,
     df = group_data,
-    name = "mov_avg",
+    var_name = "mov_avg",
     year_col = "year",
     month_col = "month",
     group_cols = c("vessel", "zone"), # Multiple columns
@@ -116,7 +132,7 @@ test_that("handles multiple grouping variables independently", {
   )
 
   # V1 Feb 2023 (Row 2). Previous month (Jan) catch: 10.
-  expect_equal(result$mov_avg[3], 10)
+  expect_equal(result$mov_avg[2], 10)
 
   # V2 Feb 2023 (Row 4). Previous month (Jan) catch: 100.
   expect_equal(result$mov_avg[4], 100)
@@ -125,11 +141,16 @@ test_that("handles multiple grouping variables independently", {
 
 # Test column name --------------------------------------------------------------------------------
 test_that("assigns the correct column name specified by 'name'", {
+  local_mocked_bindings(load_grid = function(...) invisible(TRUE))
+  
   custom_name <- "my_custom_metric"
 
   result <- calc_monthly_moving_avg(
+    project = "test_project",
+    grid_name = "test_grid",
+    append_to_existing = FALSE,
     df = basic_data,
-    name = custom_name,
+    var_name = custom_name,
     year_col = "year",
     month_col = "month",
     group_cols = "group",
@@ -147,13 +168,18 @@ test_that("assigns the correct column name specified by 'name'", {
 
 # Test fill values --------------------------------------------------------------------------------
 test_that("fill_empty_expectation replaces NA values correctly", {
+  local_mocked_bindings(load_grid = function(...) invisible(TRUE))
+  
   # Scenario: Oct 2023 (1st row of basic_data).
   # With Lag=1, it looks for Sept 2023, which does not exist.
   # Default result would be NA. We want it to be 0.
 
   result <- calc_monthly_moving_avg(
+    project = "test_project",
+    grid_name = "test_grid",
+    append_to_existing = FALSE,
     df = basic_data,
-    name = "filled_avg",
+    var_name = "filled_avg",
     year_col = "year",
     month_col = "month",
     group_cols = "group",
@@ -173,11 +199,16 @@ test_that("fill_empty_expectation replaces NA values correctly", {
 
 # Test NA fill ------------------------------------------------------------------------------------
 test_that("returns NA when fill_empty_expectation is not provided", {
+  local_mocked_bindings(load_grid = function(...) invisible(TRUE))
+  
   # Same scenario as above, but with default behavior.
 
   result <- calc_monthly_moving_avg(
+    project = "test_project",
+    grid_name = "test_grid",
+    append_to_existing = FALSE,
     df = basic_data,
-    name = "na_avg",
+    var_name = "na_avg",
     year_col = "year",
     month_col = "month",
     group_cols = "group",

@@ -52,5 +52,7 @@ utils::globalVariables(c(
   'diff_val',
   'terms',
   'yr',
-  'mth'
+  'mth',
+  'alpha_occ',
+  'occ_id'
 ))

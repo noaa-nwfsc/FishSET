@@ -27,7 +27,11 @@ standard_design <- list(
   y = rep(c(1, 0), N_obs), 
   X = matrix(rnorm(N_obs * J_alts * K_vars), ncol = K_vars),
   epm = list(is_epm = FALSE),
-  settings = list(N_obs = N_obs, J_alts = J_alts, K_vars = K_vars, project = "TestProj"),
+  settings = list(N_obs = N_obs, 
+                  J_alts = J_alts, 
+                  K_vars = K_vars, 
+                  project = "TestProj",
+                  model_type = "logit"),
   ids = list(
     obs = rep(1:N_obs, each = J_alts),
     zone = rep(1:J_alts, N_obs)
@@ -46,7 +50,7 @@ epm_design <- list(
     Y_catch = runif(N_obs * J_alts, 50, 150), # Keep positive for lognormal
     price_vec = rep(2.5, N_obs * J_alts)
   ),
-  settings = list(N_obs = N_obs, J_alts = J_alts, K_vars = 3),
+  settings = list(N_obs = N_obs, J_alts = J_alts, K_vars = 3, model_type = "logit"),
   ids = list(
     obs = rep(1:N_obs, each = J_alts),
     zone = rep(1:J_alts, N_obs)
