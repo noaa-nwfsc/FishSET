@@ -631,7 +631,9 @@ fishset_fit <- function(project,
   
   # Append or create a new table
   if (table_exists(table_name, project)) {
-    existing_fits <- unserialize_table(table_name, project)
+    # This prevents the "no such column" crash on legacy schemas
+    existing_fits <- full_fit_list
+    
     # Remove if exists to overwrite
     if (fit_name %in% names(existing_fits)) {
       existing_fits[[fit_name]] <- NULL
@@ -640,16 +642,18 @@ fishset_fit <- function(project,
     fit_wrapper <- c(existing_fits, fit_wrapper)
   }
   
+  # Define the column type as BLOB, not 'fit_wrapper'
   DBI::dbExecute(fishset_db, 
                  paste("CREATE TABLE IF NOT EXISTS",
                        table_name,
-                       "(data fit_wrapper)"))
+                       "(data BLOB)"))
+  
+  # Explicitly map the insert to the 'data' column for safety
   DBI::dbExecute(fishset_db,
                  paste("INSERT INTO",
                        table_name,
-                       "VALUES (:data)"),
+                       "(data) VALUES (:data)"),
                  params = list(data = list(serialize(fit_wrapper, NULL))))
-  
   
   # Log the function call
   fishset_fit_function <- list()
