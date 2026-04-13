@@ -115,7 +115,7 @@ create_dist_matrix <-
                class(fromXY[[o_var]]), ' while the port name column is ', 
                class(area_tab[[o_var]]), '. \nChange ', o_var, ' to class ', 
                class(area_tab[[o_var]]), ' by using change_class() ',
-               'then rerun create_alternative_choice() and check_model_data().', call. = FALSE)
+               'then rerun create_alternative_choice().', call. = FALSE)
         }
         
         fromXY <- dplyr::left_join(fromXY, area_tab, by = o_var)

@@ -688,7 +688,7 @@ function_summary <- function(project, date = NULL, type = "dat_load", show = "al
   dat_quality <- c(
     "data_verification", "data_check", "nan_identify", "nan_filter", "na_filter",
     "outlier_table", "outlier_plot", "outlier_plot_int", "outlier_remove", "degree", 
-    "unique_filter", "empty_vars_filter", "check_model_data", "filter_table", 
+    "unique_filter", "empty_vars_filter", "filter_table", 
     "filter_dat", "add_vars", "change_class", "summary_stats", "spatial_qaqc"
   )
 
@@ -718,7 +718,7 @@ function_summary <- function(project, date = NULL, type = "dat_load", show = "al
 
   model <- c(
     "sparsetable", "sparsplot", "create_expectations", "make_model_design",
-    "discretefish_subroutine", "check_model_data", "log_func_model",
+    "discretefish_subroutine", "log_func_model",
     "create_alternative_choice", "temp_obs_table"
   )
 
