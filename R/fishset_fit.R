@@ -716,10 +716,7 @@ print.fishset_fit <- function(x, digits = 4, ...) {
                         has.Pvalue = has_pvals)
     
     cat("--------------------------------------------------------\n")
-    # Only print significance codes if we actually calculated P-values
-    if (has_pvals) {
-      cat("Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
-    }
+    
   } else {
     print(x$coefficients)
     cat("--------------------------------------------------------\n")
