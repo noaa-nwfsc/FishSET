@@ -27,12 +27,6 @@
 #' @param aux_key Variable name used to join the main data table with the auxiliary data.
 #' @param gridded_data Name of the gridded data table to join. Use \code{\link{list_tables}}
 #'   function to view the table name.
-#' @param grid_var_name Name to use for the new variable representing the value in the gridded
-#'   data.
-#' @param grid_time_var Variable name representing the time dimension for joining gridded data.
-#'   Only use this input if the gridded data varies by space and time.
-#' @param main_time_var Variable name for the time variable in the main data table that matches
-#'  the \code{grid_time_var}.
 #' @param expectations Character vector containing the names of expected catch or revenue matrices
 #'   to merge into the dataset.
 #' @param distance Logical. If 'TRUE', calculates and merges a distance matrix between observations
@@ -95,9 +89,6 @@ format_model_data <- function(project,
                               aux_data = NULL, 
                               aux_key = NULL, 
                               gridded_data = NULL, 
-                              grid_var_name = NULL, 
-                              grid_time_var = NULL, 
-                              main_time_var = NULL,
                               expectations = NULL, 
                               distance = TRUE,
                               distance_units = NULL,
@@ -193,17 +184,6 @@ format_model_data <- function(project,
     if (!is_empty(aux_key) && !(aux_key %in% select_vars_combined)) {
       column_check(dataset, aux_key)
       select_vars_combined <- c(select_vars_combined, aux_key)
-    }
-    
-    # Check if main_time_var (or grid_time_var) is in the dataset and add to columns to filter
-    if (!is_empty(grid_time_var)) {
-      # Determine which variable in the MAIN dataset represents time
-      target_main_time <- if(!is.null(main_time_var)) main_time_var else grid_time_var
-      
-      if(!is_empty(target_main_time) && !(target_main_time %in% select_vars_combined)){
-        column_check(dataset, target_main_time)
-        select_vars_combined <- c(select_vars_combined, target_main_time)
-      }
     }
     
     dataset <- dataset %>% select(all_of(select_vars_combined))
@@ -340,37 +320,39 @@ format_model_data <- function(project,
   
   # Add gridded data ------------------------------------------------------------------------------
   if(!is_empty(gridded_data)){
-    if (is.null(grid_var_name) || grid_var_name == "") {
-      stop("Gridded data selected, but 'New Variable Name' is missing.")
+    # Loop through each table name provided
+    for (grid_table in gridded_data) {
+      
+      # Load the grid table from the database
+      gridded_df <- table_view(grid_table, project)
+      
+      # Align the spatial identifier
+      if (zone_id %in% names(gridded_df)) {
+        gridded_df <- gridded_df %>% rename(zones = !!sym(zone_id))
+      }
+      
+      if(class(df$zones) != class(gridded_df$zones)) {
+        class(gridded_df$zones) <- class(df$zones)
+      }
+      
+      common_cols <- intersect(names(df), names(gridded_df))
+    
+      if (length(common_cols) == 0) {
+        stop(paste0("Could not join gridded table '", 
+                    grid_table, 
+                    "'. No matching column names found. Ensure your spatial",
+                    " and temporal variables match."))
+      }
+      
+      # Remove duplicate non-join columns to prevent .x/.y suffixes
+      duplicate_vars <- setdiff(intersect(names(df), names(gridded_df)), common_cols)
+      if (length(duplicate_vars) > 0) {
+        gridded_df <- gridded_df %>% select(-all_of(duplicate_vars))
+      }
+      
+      # Perform automated join
+      df <- left_join(df, gridded_df, by = common_cols)
     }
-    
-    gridded_df <- table_view(gridded_data, project)
-    column_check(gridded_df, grid_time_var) 
-    
-    # Pivot to long format
-    gridded_df <- gridded_df %>%
-      pivot_longer(cols = -all_of(grid_time_var),
-                   names_to = "zones",
-                   values_to = grid_var_name)
-    
-    # Join Logic
-    # Determine the name of the time variable in the MAIN dataset
-    time_col_main <- if(!is.null(main_time_var)) main_time_var else grid_time_var
-    
-    # Construct the join vector
-    if (!is.null(grid_time_var) && is.null(time_col_main)) {
-      stop("Gridded data has a time variable, but no matching time variable was 
-              found in the main dataset.")
-    }
-    
-    join_cond <- c("zones" = "zones")
-    if (!is.null(grid_time_var)) {
-      join_cond <- c(join_cond, setNames(grid_time_var, time_col_main))
-    }
-    
-    df <- left_join(df, 
-                    gridded_df, 
-                    by = join_cond)
   }
   
   # Check NAs and impute --------------------------------------------------------------------------
