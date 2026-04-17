@@ -666,7 +666,6 @@ fishset_fit <- function(project,
   return(result)
 }
 
-
 #' Print FishSET Model Fit Results
 #'
 #' Formats and prints the output of a FishSET discrete choice model fit.
@@ -741,6 +740,5 @@ print.fishset_fit <- function(x, digits = 4, ...) {
     p_val_str <- format.pval(x$LR_p_value, eps = 0.001)
     cat("LR Test:        Chi2 =", fmt(x$LR_stat, 2), ", p =", p_val_str, sig_star, "\n")
   }
-  
   invisible(x)
 }

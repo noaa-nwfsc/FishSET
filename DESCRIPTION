@@ -99,6 +99,7 @@ Suggests:
     haven,
     htmlwidgets (>= 1.6.0),
     maps,
+    MASS,
     qs2,
     R.matlab,
     readODS,
