@@ -107,12 +107,22 @@ test_that("Standard Logit CV runs successfully (End-to-End)", {
   
   expect_s3_class(result, "fishset_cv")
   expect_equal(result$k_folds, 4)
+  
+  # Check overall averages
   expect_true(is.numeric(result$avg_out_sample_accuracy))
   expect_true(is.numeric(result$avg_out_sample_logLik))
+  expect_true(is.numeric(result$avg_out_sample_AIC))
+  expect_true(is.numeric(result$avg_out_sample_PAPE))
   
-  # Check dataframe output
+  # Check dataframe output and new metrics
   expect_equal(nrow(result$fold_details), 4)
   expect_true("Out_Sample_LL" %in% names(result$fold_details))
+  expect_true("Out_Sample_AIC" %in% names(result$fold_details))
+  expect_true("Out_Sample_PAPE" %in% names(result$fold_details))
+  
+  # Check coefficient matrix output
+  expect_true(is.matrix(result$fold_coefficients) || is.data.frame(result$fold_coefficients))
+  expect_equal(nrow(result$fold_coefficients), 4) # One row per fold
 })
 
 # Test EPM CV -------------------------------------------------------------------------------------
@@ -138,6 +148,7 @@ test_that("EPM CV runs successfully with normal distribution", {
   
   expect_s3_class(result, "fishset_cv")
   expect_true(!is.na(result$avg_out_sample_logLik))
+  expect_true(!is.na(result$avg_out_sample_PAPE))
 })
 
 # Test missing design error -----------------------------------------------------------------------
@@ -210,5 +221,9 @@ test_that("Print method displays correct console output", {
   expect_output(print(result), "FishSET Cross-Validation Results")
   expect_output(print(result), "Total Folds:")
   expect_output(print(result), "Avg Out-of-Sample LL:")
+  expect_output(print(result), "Avg Out-of-Sample AIC:")
+  expect_output(print(result), "Avg Out-of-Sample PAPE:")
   expect_output(print(result), "Out_Sample_Acc") # Column in the dataframe
+  expect_output(print(result), "Coefficient Estimates by Fold:")
+  expect_output(print(result), "Average Coefficients Across All Folds:")
 })
