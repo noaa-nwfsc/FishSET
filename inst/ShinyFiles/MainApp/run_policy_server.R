@@ -241,8 +241,6 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
         
         if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
           return(NULL)
-        }else {
-          pred_prob_outputs(project, mod.name = isolate(c(selected_choices()$model)), output_option = "table")
         }
       }
       
@@ -252,8 +250,6 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
         
         if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
           return(NULL)
-        }else {
-          pred_prob_outputs(project, mod.name = isolate(c(selected_choices()$model)), output_option = "model_fig")
         }
         
       })
@@ -264,12 +260,7 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
         
         if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
           return(NULL)
-        }else {
-          pred_prob_outputs(project, mod.name = isolate(c(selected_choices()$model)),
-                            policy.name = isolate(c(selected_choices()$sel_closures)),
-                            output_option = "policy_fig")
         }
-        
       })
       
       output$pol_mod_diff_tbl <- function() {
@@ -278,10 +269,6 @@ rp_welf_predModuleServer <- function(id, project, spatdat, values, selected_choi
         
         if(any(unlist(lapply(fdf$outputs_welf[[2]], function(x) (x < 0))))==TRUE){
           return(NULL)
-        }else {
-          pred_prob_outputs(project,  mod.name = isolate(c(selected_choices()$model)),
-                            policy.name = isolate(c(selected_choices()$sel_closures)),
-                            output_option = "diff_table")
         }
         
       }
