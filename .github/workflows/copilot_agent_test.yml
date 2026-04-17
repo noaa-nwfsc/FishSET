@@ -1,0 +1,35 @@
+name: Copilot Agent Simple Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  copilot-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Test agent response via issue
+        id: create-issue
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: "Copilot Agent Test Issue"
+          content-filepath: .github/copilot-agent-test.md
+
+      # You would normally have an Agent reacting to this issue.
+      # Add a waiting step or check for a specific comment/label from the Agent.
+      - name: Wait for agent response (example - sleep)
+        run: sleep 60
+
+      - name: Check for agent response (example - check for comment)
+        run: |
+          COMMENT=$(gh issue view ${{ steps.create-issue.outputs.issue-number }} --json comments --jq '.comments[-1].body')
+          if [[ "$COMMENT" == *"Test Passed"* ]]; then
+            echo "Agent responded with expected output"
+          else
+            echo "Agent did not respond as expected"
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
