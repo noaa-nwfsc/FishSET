@@ -303,10 +303,7 @@ discretefish_subroutine()
 functions can be saved and logged using the `log_func-model` function.
 `logit_c` Conditional logit likelihood `logit_avgcat` Average catch
 multinomial logit procedure `logit_correction` Full information model
-with Dahl's correction function `epm_normal` Expected profit model
-normal catch function `epm_lognormal` Expected profit model lognormal
-catch function `epm_weibull` Expected profit model Weibull catch
-function
+with Dahl's correction function
 
 ###Model run output The discretefish_subroutine function can take 30 or
 minutes to run. Model run status is returned to the R console. The
@@ -331,17 +328,10 @@ model_out_view('pcod')
 
 ###Selecting models Model comparison metrics are conveniently saved in a
 table in the FishSET database. To access the table use `model_fit` with
-the project name. Identifying the best model for future reference
-requires `select_model`. This function utilized R Shiny to open an
-interactive window where best models can be selected and saved. Model
-selection can also be accomplished from the discretefish_subroutine
-function by setting the `select.model` parameter to TRUE. When the
-parameter is set to TRUE, a interactive window opens after the model has
-compiled and output has saved.
+the project name. 
 
 ```{r  eval=FALSE}
 model_fit('pollock')
-select_model()
 ```
 
 ##Interactivity R Shiny is used to provide interactive interfaces. All
@@ -356,7 +346,6 @@ raw dataset.
 ```{r  eval=FALSE}
 run_fishset_gui()
 select_vars()
-select_model()
 add_vars()
 ```
 

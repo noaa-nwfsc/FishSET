@@ -42,6 +42,10 @@ utils::globalVariables(c(
   'as.formula',
   'final_dist',
   'X',
+  'J_alts',
+  'N_obs',
+  'choice_idx',
+  'modifyList',
   'X_catch',
   'Y_catch',
   'log_sigma_c',
@@ -50,5 +54,10 @@ utils::globalVariables(c(
   'beta_util',
   'prices',
   'diff_val',
-  'terms'
+  'terms',
+  'X_util',
+  'Y_catch_chosen',
+  'chosen_lin_idx',
+  'zone_id',
+  'zone_seq'
 ))
