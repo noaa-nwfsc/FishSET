@@ -666,7 +666,6 @@ fishset_fit <- function(project,
   return(result)
 }
 
-
 #' Print FishSET Model Fit Results
 #'
 #' Formats and prints the output of a FishSET discrete choice model fit.
@@ -716,10 +715,7 @@ print.fishset_fit <- function(x, digits = 4, ...) {
                         has.Pvalue = has_pvals)
     
     cat("--------------------------------------------------------\n")
-    # Only print significance codes if we actually calculated P-values
-    if (has_pvals) {
-      cat("Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
-    }
+    
   } else {
     print(x$coefficients)
     cat("--------------------------------------------------------\n")
@@ -744,6 +740,5 @@ print.fishset_fit <- function(x, digits = 4, ...) {
     p_val_str <- format.pval(x$LR_p_value, eps = 0.001)
     cat("LR Test:        Chi2 =", fmt(x$LR_stat, 2), ", p =", p_val_str, sig_star, "\n")
   }
-  
   invisible(x)
 }
