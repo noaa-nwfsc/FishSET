@@ -83,7 +83,6 @@ Imports:
     spdep,
     stats,
     stringi,
-    stringr,
     rstudioapi,
     tibble,
     tidyr,

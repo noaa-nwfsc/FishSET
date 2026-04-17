@@ -1463,10 +1463,7 @@ heavy_ui <- function(request){
                                                               selectInput("model", label = "",
                                                                           choices = list("Conditional logit" = 'logit_c', 
                                                                                          "Zonal logit" = "logit_zonal", 
-                                                                                         "Logit Dahl correction" = "logit_correction",
-                                                                                         'EPM normal'='epm_normal', 
-                                                                                         'EPM lognormal'='epm_lognormal', 
-                                                                                         'EPM Weibull'='epm_weibull'),
+                                                                                         "Logit Dahl correction" = "logit_correction"),
                                                                           selected = 'logit_c'),
                                                               
                                                               uiOutput('mod_name_ui'), 
@@ -1552,12 +1549,6 @@ heavy_ui <- function(request){
                                        
                                        conditionalPanel(condition = "input.initchoice=='prev'",
                                                         uiOutput("mod_param_table_ui")),
-                                       
-                                       conditionalPanel(condition = "input.model == 'epm_weibull'",
-                                                        checkboxInput("alt_spec_epm1", label = "Set alternative-specific shape parameters")),
-                                       
-                                       conditionalPanel(condition = "input.model == 'epm_lognormal' || input.model == 'epm_normal'",
-                                                        checkboxInput("alt_spec_epm2", label = "Set alternative-specific standard deviation")),
                                        
                                        fluidRow(
                                          column(6, DT::dataTableOutput("param_tab"))
