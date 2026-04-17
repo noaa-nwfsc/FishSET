@@ -1083,11 +1083,13 @@ load_grid <- function(grid, name, project, over_write = TRUE) {
   
   check <- TRUE
   
+  if (is.character(grid)) {
+    grid <- data_upload_helper(grid, "grid")  
+  }
+  
   if(!is.data.frame(grid)){
     grid <- as.data.frame(grid)
   }
-  
-  grid <- data_upload_helper(grid, "grid")
   
   # Coerce to tibble
   if(any(is.na(names(grid)))){

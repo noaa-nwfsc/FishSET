@@ -26,7 +26,7 @@ checklist <- function(project, modDesignTab = NULL) {
   } else {
     
     check$qaqc$msg <- paste("No final dataset for project \"", project,"\" has been",
-    "saved to FishSET Database. Run check_model_data() in the console or click",
+    "saved to FishSET Database.",
     "\"Save final table to FishSET DB\" on the \"Define Alternative Fishing Choices\" tab before",
     "running model.")
   }
