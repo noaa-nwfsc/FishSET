@@ -11,7 +11,8 @@
 #' @param distribution Character string. Distribution for the continuous catch component in EPMs.
 #' @param ... Additional control arguments passed to \code{fishset_fit()}.
 #'
-#' @return A list containing the average out-of-sample accuracy, log-likelihood, and fold details.
+#' @return A list containing the average out-of-sample accuracy, log-likelihood, PAPE, AIC,
+#'   fold details, and estimated coefficients across folds.
 #'
 #' @examples
 #' \dontrun{
@@ -87,8 +88,13 @@ fishset_cv <- function(project,
   cv_results <- data.frame(
     Fold = 1:k, Train_N = integer(k), Test_N = integer(k),
     In_Sample_LL = numeric(k), Out_Sample_LL = numeric(k),
-    In_Sample_Acc = numeric(k), Out_Sample_Acc = numeric(k)
+    In_Sample_AIC = numeric(k), Out_Sample_AIC = numeric(k),
+    In_Sample_Acc = numeric(k), Out_Sample_Acc = numeric(k),
+    Out_Sample_PAPE = numeric(k)
   )
+  
+  # List to store coefficients for each fold
+  coef_list <- vector("list", k)
   
   # The CV Loop
   for (i in 1:k) {
@@ -116,7 +122,6 @@ fishset_cv <- function(project,
         distribution = distribution, 
         se_calc = FALSE, 
         overwrite = TRUE
-        # ...
       )
     })
     
@@ -173,17 +178,35 @@ fishset_cv <- function(project,
       prob_mat_t <- t(exp_v) / colSums(exp_v)
     }
     
+    # Store coefficients
+    coef_list[[i]] <- fit_train$coefficients
+    
     chosen_probs <- prob_mat_t[cbind(1:N, choice_idx_report)]
     pred_choice <- max.col(prob_mat_t, ties.method = "first")
     
+    # Calculate PAPE (Percent Absolute Prediction Error)
+    pred_shares <- colSums(prob_mat_t)
+    actual_shares <- tabulate(choice_idx_report, nbins = J)
+    pape <- 0.5 * sum(abs(pred_shares - actual_shares)) / sum(actual_shares)
+    
     cv_results$In_Sample_LL[i] <- fit_train$logLik
+    cv_results$In_Sample_AIC[i] <- fit_train$AIC
     cv_results$In_Sample_Acc[i] <- fit_train$accuracy
     cv_results$Out_Sample_LL[i] <- sum(log(chosen_probs))
+    
+    # Calculate Out-of-Sample AIC (AIC = 2k - 2ln(L))
+    cv_results$Out_Sample_AIC[i] <- 
+      2 * length(fit_train$coefficients) - 2 * cv_results$Out_Sample_LL[i]
     cv_results$Out_Sample_Acc[i] <- mean(pred_choice == choice_idx_report)
+    cv_results$Out_Sample_PAPE[i] <- pape
     
     # Cleanup temp files
     unlink(file.path(designs_dir, paste0(tmp_model_name, ".rds")))
   }
+  
+  # Combine coefficients into a dataframe
+  coef_df <- do.call(rbind, coef_list)
+  rownames(coef_df) <- paste0("Fold_", 1:k)
   
   # Remove temporary fits from the SQLite database
   table_name <- paste0(project, "ModelFit")
@@ -201,7 +224,10 @@ fishset_cv <- function(project,
     k_folds = k,
     avg_out_sample_accuracy = mean(cv_results$Out_Sample_Acc),
     avg_out_sample_logLik = mean(cv_results$Out_Sample_LL),
-    fold_details = cv_results
+    avg_out_sample_AIC = mean(cv_results$Out_Sample_AIC),
+    avg_out_sample_PAPE = mean(cv_results$Out_Sample_PAPE),
+    fold_details = cv_results,
+    fold_coefficients = coef_df
   )
   class(out) <- "fishset_cv"
   
@@ -212,8 +238,8 @@ fishset_cv <- function(project,
 #' Print FishSET Cross Validation Results
 #'
 #' Formats and prints the output of a FishSET cross-validation run.
-#' Displays the average out-of-sample performance and a detailed table of metrics
-#' for each individual fold.
+#' Displays the average out-of-sample performance, a detailed table of metrics
+#' for each individual fold, and the estimated coefficients across folds.
 #'
 #' @param x A \code{fishset_cv} object returned by \code{\link{fishset_cv}}.
 #' @param digits Integer. The number of significant digits to use when printing numeric values. 
@@ -229,30 +255,46 @@ print.fishset_cv <- function(x, digits = 4, ...) {
   
   # Header
   cat("\nFishSET Cross-Validation Results\n")
-  cat("========================================================\n")
+  cat("==========================================================================\n")
   
   # Overall Summary
   cat("Total Folds:             ", x$k_folds, "\n")
   cat("Avg Out-of-Sample LL:    ", fmt(x$avg_out_sample_logLik, 2), "\n")
+  cat("Avg Out-of-Sample AIC:   ", fmt(x$avg_out_sample_AIC, 2), "\n")
   cat("Avg Out-of-Sample Acc:   ", fmt(x$avg_out_sample_accuracy * 100, 1), "%\n")
+  cat("Avg Out-of-Sample PAPE:  ", fmt(x$avg_out_sample_PAPE * 100, 1), "%\n")
   
   # Detailed Folds Table
   cat("\nFold Details:\n")
-  cat("--------------------------------------------------------\n")
+  cat("--------------------------------------------------------------------------\n")
   
   # Create a copy of the dataframe to format purely for printing
   df_print <- x$fold_details
   
   # Format numeric columns for clean console output
-  df_print$In_Sample_LL   <- fmt(df_print$In_Sample_LL, 2)
-  df_print$Out_Sample_LL  <- fmt(df_print$Out_Sample_LL, 2)
-  df_print$In_Sample_Acc  <- paste0(fmt(df_print$In_Sample_Acc * 100, 1), "%")
-  df_print$Out_Sample_Acc <- paste0(fmt(df_print$Out_Sample_Acc * 100, 1), "%")
+  df_print$In_Sample_LL    <- fmt(df_print$In_Sample_LL, 2)
+  df_print$Out_Sample_LL   <- fmt(df_print$Out_Sample_LL, 2)
+  df_print$In_Sample_AIC   <- fmt(df_print$In_Sample_AIC, 2)
+  df_print$Out_Sample_AIC  <- fmt(df_print$Out_Sample_AIC, 2)
+  df_print$In_Sample_Acc   <- paste0(fmt(df_print$In_Sample_Acc * 100, 1), "%")
+  df_print$Out_Sample_Acc  <- paste0(fmt(df_print$Out_Sample_Acc * 100, 1), "%")
+  df_print$Out_Sample_PAPE <- paste0(fmt(df_print$Out_Sample_PAPE * 100, 1), "%")
   
   # Print the formatted dataframe without row numbers
   print(df_print, row.names = FALSE, right = TRUE)
   
-  cat("========================================================\n")
+  # Coefficient Table
+  if (!is.null(x$fold_coefficients)) {
+    cat("\nCoefficient Estimates by Fold:\n")
+    cat("--------------------------------------------------------------------------\n")
+    print(round(x$fold_coefficients, digits = digits))
+    
+    cat("\nAverage Coefficients Across All Folds:\n")
+    cat("--------------------------------------------------------------------------\n")
+    print(round(colMeans(x$fold_coefficients), digits = digits))
+  }
+  
+  cat("==========================================================================\n")
   
   # Invisibly return the original object so assignment works if they call print() directly
   invisible(x)
