@@ -5611,13 +5611,23 @@ server = function(input, output, session) {
                              allCatch = 'allCatch', groupCatch = 'groupCatch')
        empty_exp <- switch(input$empty_expectation, 'NA' = NA, '1e-04' = 1e-04, '0' = 0)
        
-       q_test(values$dataset, project$name, input$exp_catch_var, price=price, 
-              defineGroup=defineGroup, temp.var=input$exp_temp_var, temporal = input$exp_temporal, 
-              calc.method = input$exp_calc_method, lag.method = input$exp_lag_method, 
-              empty.catch = empty_catch,  empty.expectation = empty_exp, 
-              temp.window = input$exp_temp_window, temp.lag = input$exp_temp_lag, 
-              year.lag=input$exp_temp_year, dummy.exp = input$exp_dummy, 
-              default.exp = defaults, replace.output = input$exp_replace_output, weight_avg = input$weight_avg)
+       q_test(dat = values$dataset, 
+              project = project$name,
+              name = "exp_matrix_1",
+              catch = input$exp_catch_var, 
+              price = price, 
+              defineGroup = defineGroup, 
+              temp_var=input$exp_temp_var, 
+              temporal = input$exp_temporal, 
+              calc_method = input$exp_calc_method, 
+              temp_window = input$exp_temp_window, 
+              day_lag = input$exp_temp_lag, 
+              year_lag=input$exp_temp_year, 
+              empty_catch = empty_catch,  
+              empty_expectation = empty_exp, 
+              dummy_exp = input$exp_dummy, 
+              weight_avg = input$weight_avg,
+              outsample = FALSE)
        
        showNotification('Expected catch/revenue matrix complete', type = 'message', duration = 60)   
     }

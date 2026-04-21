@@ -329,27 +329,35 @@ pred_mapServer <- function(id, project, spatdat, selected_choices, all_variables
         req(all_variables())
         
         if(input$pred_pol_name == "no closure"){
-          rv_output$plot <-  predict_map(project, mod.name = isolate(input$select_pred_pol_mod),
+          rv_output$plot <-  predict_map(project, 
+                                         mod.name = isolate(input$select_pred_pol_mod),
                                          policy.name = isolate(input$select_pred_pol_mod), 
-                                         spat = spatdat, zone.spat = all_variables()$sz_id)
+                                         spat = spatdat, 
+                                         zone.spat = all_variables()$sz_id,
+                                         plot_type = "dynamic")
           
         } else {
-          rv_output$plot <-  predict_map(project, mod.name = isolate(input$select_pred_pol_mod),
+          rv_output$plot <-  predict_map(project, 
+                                         mod.name = isolate(input$select_pred_pol_mod),
                                          policy.name = isolate(input$pred_pol_name), 
-                                         spat = spatdat, zone.spat = all_variables()$sz_id)
+                                         spat = spatdat, 
+                                         zone.spat = all_variables()$sz_id,
+                                         plot_type = "dynamic")
         }
+        
+        output$predict_map <- rv_output$plot
       })
       
-      output$predict_map <- leaflet::renderLeaflet({
-        req(input$run_pred_map)
-        req(isTruthy(rv_output$plot))
-        
-        validate(
-          need(input$run_policy_button, 'To view map, run policy function above.'),
-        )
-        
-        rv_output$plot
-      })
+      # output$predict_map <- leaflet::renderLeaflet({
+      #   req(input$run_pred_map)
+      #   req(isTruthy(rv_output$plot))
+      #   
+      #   validate(
+      #     need(input$run_policy_button, 'To view map, run policy function above.'),
+      #   )
+      #   
+      #   rv_output$plot
+      # })
     }
   )
 }
