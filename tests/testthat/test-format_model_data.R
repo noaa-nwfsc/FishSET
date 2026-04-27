@@ -131,6 +131,7 @@ read_fmd_output <- function(project_name, base_dir) {
 # Reshape and assign choices correctly ------------------------------------------------------------
 test_that("format_model_data reshapes and assigns choices correctly", {
   setup_mocks()
+  
   test_base_dir <- normalizePath(file.path(tempdir(), "FishSET_FMD_Tests"), 
                                  winslash = "/", 
                                  mustWork = FALSE)

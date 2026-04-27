@@ -28,7 +28,8 @@ cross-validate.}
 \item{...}{Additional control arguments passed to \code{fishset_fit()}.}
 }
 \value{
-A list containing the average out-of-sample accuracy, log-likelihood, and fold details.
+A list containing the average out-of-sample accuracy, log-likelihood, PAPE, AIC,
+  fold details, and estimated coefficients across folds.
 }
 \description{
 Performs k-fold cross-validation on a fitted FishSET model to evaluate out-of-sample 

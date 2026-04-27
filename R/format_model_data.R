@@ -25,8 +25,8 @@
 #' @param aux_data Name of the auxiliary data table to join. Use \code{\link{list_tables}}
 #'   function to view the table name.
 #' @param aux_key Variable name used to join the main data table with the auxiliary data.
-#' @param gridded_data Character vector of the gridded data table(s) to join. 
-#'   Use \code{\link{list_tables}} function and set \code{type = "grid"}  to view the table name.
+#' @param gridded_data Name of the gridded data table to join. Use \code{\link{list_tables}}
+#'   function to view the table name.
 #' @param expectations Character vector containing the names of expected catch or revenue matrices
 #'   to merge into the dataset.
 #' @param count_var Character representing name of variable containing counts for Poisson-
@@ -356,20 +356,26 @@ format_model_data <- function(project,
   
   # Add gridded data ------------------------------------------------------------------------------
   if (!all(is_empty(gridded_data))) {
-    
     # Loop through each table name provided
     for (grid_table in gridded_data) {
       
       # Load the grid table from the database
       gridded_df <- table_view(grid_table, project, convert_dates = FALSE)
-      
+
       # Align the spatial identifier
       if (zone_id %in% names(gridded_df)) {
         gridded_df <- gridded_df %>% rename(zones = !!sym(zone_id))
       }
       
+
       common_cols <- intersect(names(df), names(gridded_df))  
       
+      if(class(df$zones) != class(gridded_df$zones)) {
+        class(gridded_df$zones) <- class(df$zones)
+      }
+      
+      common_cols <- intersect(names(df), names(gridded_df))
+    
       if (length(common_cols) == 0) {
         stop(paste0("Could not join gridded table '", 
                     grid_table, 

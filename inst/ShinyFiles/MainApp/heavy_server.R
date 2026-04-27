@@ -5984,14 +5984,6 @@ heavy_server <- function(input, output, session) {
                   choices = numeric_cols(values$dataset)),
       
       conditionalPanel(
-        condition = "['epm_normal', 'epm_lognormal', 'epm_weibull'].includes(input.model)",
-        
-        checkboxInput('mod_lockk', 'Location-specific catch parameter', value=FALSE),
-        
-        selectizeInput('mod_price', 'Price variable', choices= find_value(values$dataset), 
-                       multiple = TRUE), options = list(maxItems = 1)),
-      
-      conditionalPanel(
         condition="input.model=='logit_correction'",
         
         numericInput('mod_polyn', 'Correction polynomial degree', value=2),
@@ -6137,19 +6129,7 @@ heavy_server <- function(input, output, session) {
       
     } else {
       
-      if((input$alt_spec_epm1 && input$model == 'epm_weibull') ||
-         (input$alt_spec_epm2 && (input$model == 'epm_lognormal' || input$model == 'epm_normal'))){
-        
-        gridNum*mod_rv$alt_num+intNum+mod_rv$alt_num+1
-      
-      # } else if (input$mod_lockk) {
-      #   
-      #   gridNum*mod_rv$alt_num+intNum+alt+1
-        
-      } else {
-        
-        gridNum*mod_rv$alt_num+intNum+1+1
-      }
+      gridNum*mod_rv$alt_num+intNum+1+1
     }
   })
 
@@ -6199,23 +6179,7 @@ heavy_server <- function(input, output, session) {
           par.names <- c(unlist(lapply(1:gridNum, function(x) {paste0('beta', x, '.', tmpzone)})),
                          unlist(lapply(1:intNum, function(x) {paste0('gamma', x)})))
           
-          if(input$model == "epm_weibull"){
-            if(!input$alt_spec_epm1){ # single shape parameter
-              par.names <- c(par.names, "k", "sigma")
-            } else { # alternative-specific shape parameters
-              par.names <- c(par.names, unlist(lapply("k", function(x) {paste0(x, ".", tmpzone)})), "sigma")
-            }
-            
-          } else if (input$model == "epm_lognormal" || input$model == "epm_normal"){
-            if(!input$alt_spec_epm2){ # single standard deviation parameter
-              par.names <- c(par.names, "stdev", "sigma")
-            } else { # alternative-specific standard deviation parameters
-              par.names <- c(par.names, unlist(lapply("stdev", function(x) {paste0(x, ".", tmpzone)})), "sigma")
-            }
-            
-          } else {
-            par.names <- seq(1:numInits())    
-          }
+          par.names <- seq(1:numInits())    
         }
       }
   
@@ -6676,13 +6640,7 @@ heavy_server <- function(input, output, session) {
   
   observeEvent(input$mod_delete, {
     
-    q_test <- quietly_test(delete_models, show_msg = TRUE) 
     
-    q_test(project = project$name, model.names = input$mod_man_select, 
-           delete.nested = TRUE)
-    
-    # refresh model list/output
-    input$mod_reload
     
   }, ignoreNULL = TRUE, ignoreInit = TRUE)
   
@@ -7362,9 +7320,7 @@ heavy_server <- function(input, output, session) {
   
   observeEvent(input$save_final_table, {
     
-    q_test <- quietly_test(check_model_data)
-    save_final$out <- q_test(dat = values$dataset,  project = project$name,
-                             uniqueID = input$final_uniqueID, latlon = input$final_latlon)
+    
   })
   
   output$checkMsg <- renderUI({

@@ -709,7 +709,9 @@ fishset_fit <- function(project,
   
   # Append or create a new table
   if (table_exists(table_name, project)) {
-    existing_fits <- unserialize_table(table_name, project)
+    # This prevents the "no such column" crash on legacy schemas
+    existing_fits <- full_fit_list
+    
     # Remove if exists to overwrite
     if (fit_name %in% names(existing_fits)) {
       existing_fits[[fit_name]] <- NULL
@@ -718,16 +720,18 @@ fishset_fit <- function(project,
     fit_wrapper <- c(existing_fits, fit_wrapper)
   }
   
+  # Define the column type as BLOB, not 'fit_wrapper'
   DBI::dbExecute(fishset_db, 
                  paste("CREATE TABLE IF NOT EXISTS",
                        table_name,
-                       "(data fit_wrapper)"))
+                       "(data BLOB)"))
+  
+  # Explicitly map the insert to the 'data' column for safety
   DBI::dbExecute(fishset_db,
                  paste("INSERT INTO",
                        table_name,
-                       "VALUES (:data)"),
+                       "(data) VALUES (:data)"),
                  params = list(data = list(serialize(fit_wrapper, NULL))))
-  
   
   # Log the function call
   fishset_fit_function <- list()
@@ -739,7 +743,6 @@ fishset_fit <- function(project,
   
   return(result)
 }
-
 
 #' Print FishSET Model Fit Results
 #'
@@ -790,10 +793,7 @@ print.fishset_fit <- function(x, digits = 4, ...) {
                         has.Pvalue = has_pvals)
     
     cat("--------------------------------------------------------\n")
-    # Only print significance codes if we actually calculated P-values
-    if (has_pvals) {
-      cat("Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
-    }
+    
   } else {
     print(x$coefficients)
     cat("--------------------------------------------------------\n")
@@ -818,6 +818,5 @@ print.fishset_fit <- function(x, digits = 4, ...) {
     p_val_str <- format.pval(x$LR_p_value, eps = 0.001)
     cat("LR Test:        Chi2 =", fmt(x$LR_stat, 2), ", p =", p_val_str, sig_star, "\n")
   }
-  
   invisible(x)
 }

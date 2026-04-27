@@ -31,6 +31,8 @@ source("modules/format_data/create_expectations_module.R", local = TRUE)
 source("modules/format_data/format_model_data_module.R", local = TRUE)
 source("modules/model_design_module.R", local = TRUE)
 source("modules/model_fit_module.R", local = TRUE)
+source("modules/model_cv_module.R", local = TRUE)
+
 
 # Server settings ---------------------------------------------------------------------------------
 options(shiny.maxRequestSize = 8000*1024^2) # set the max file upload size
@@ -277,4 +279,20 @@ server <- function(input, output, session) {
                       rv_folderpath = rv_folderpath, 
                       rv_project_name = rv_project_name,
                       rv_data = rv_data)
+  
+  ## Model Cross Validation  ---------------------------------------------------------------------
+  ### Sidebar 
+  checklist_server("model_cv_checklist", rv_project_name, rv_data, rv_folderpath)
+  
+  other_actions_server("model_cv_actions",
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
+  
+  ### Main panel
+  model_cv_server("model_cv",
+                      rv_folderpath = rv_folderpath, 
+                      rv_project_name = rv_project_name)
 }
