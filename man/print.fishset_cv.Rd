@@ -16,6 +16,6 @@ Default is 4.}
 }
 \description{
 Formats and prints the output of a FishSET cross-validation run.
-Displays the average out-of-sample performance and a detailed table of metrics
-for each individual fold.
+Displays the average out-of-sample performance, a detailed table of metrics
+for each individual fold, and the estimated coefficients across folds.
 }

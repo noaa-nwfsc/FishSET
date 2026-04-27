@@ -32,6 +32,8 @@ source("modules/format_data/create_expectations_module.R", local = TRUE)
 source("modules/format_data/format_model_data_module.R", local = TRUE)
 source("modules/model_design_module.R", local = TRUE)
 source("modules/model_fit_module.R", local = TRUE)
+source("modules/model_cv_module.R", local = TRUE)
+
 
 # UI function definition
 ui <- function(request){
@@ -303,9 +305,10 @@ ui <- function(request){
     
     
     # Modeling ------------------------------------------------------------------------------------
-    ## Model design -------------------------------------------------------------------------------
     bslib::nav_menu(
       title = "Modeling",
+      
+      ## Model design -------------------------------------------------------------------------------
       bslib::nav_panel(
         title = "Design Model", 
         id = "model_design",
@@ -332,6 +335,7 @@ ui <- function(request){
         )
         
       ),
+      ## Model fit -------------------------------------------------------------------------------
       bslib::nav_panel(
         title = "Model Fit", 
         id = "model_fit",
@@ -354,6 +358,32 @@ ui <- function(request){
             
             ### Main panel
             model_fit_ui("model_fit_data")    
+          )
+        )
+      ),
+      ## Model Cross Validation -------------------------------------------------------------------
+      bslib::nav_panel(
+        title = "Model Cross Validation", 
+        id = "model_cv_id",
+        value = "model_cv_id",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE,
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+              
+              checklist_ui("model_cv_checklist"),
+              hr(),
+              other_actions_ui("model_cv_actions")
+            ),
+            
+            ### Main panel
+            model_cv_ui("model_cv")    
           )
         )
       )

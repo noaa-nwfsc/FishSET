@@ -11,7 +11,8 @@
 #' @param distribution Character string. Distribution for the continuous catch component in EPMs.
 #' @param ... Additional control arguments passed to \code{fishset_fit()}.
 #'
-#' @return A list containing the average out-of-sample accuracy, log-likelihood, and fold details.
+#' @return A list containing the average out-of-sample accuracy, log-likelihood, PAPE, AIC,
+#'   fold details, and estimated coefficients across folds.
 #'
 #' @examples
 #' \dontrun{
@@ -95,8 +96,13 @@ fishset_cv <- function(project,
   cv_results <- data.frame(
     Fold = 1:k, Train_N = integer(k), Test_N = integer(k),
     In_Sample_LL = numeric(k), Out_Sample_LL = numeric(k),
-    In_Sample_Acc = numeric(k), Out_Sample_Acc = numeric(k)
+    In_Sample_AIC = numeric(k), Out_Sample_AIC = numeric(k),
+    In_Sample_Acc = numeric(k), Out_Sample_Acc = numeric(k),
+    Out_Sample_PAPE = numeric(k)
   )
+  
+  # List to store coefficients for each fold
+  coef_list <- vector("list", k)
   
   # The CV Loop
   for (i in 1:k) {
@@ -124,9 +130,11 @@ fishset_cv <- function(project,
         distribution = distribution, 
         se_calc = FALSE, 
         overwrite = TRUE
-        # ...
       )
     })
+    
+    # Store coefficients
+    coef_list[[i]] <- fit_train$coefficients
     
     # Out-of-sample prediction using exactly the math from fishset_fit 
     J <- test_des$settings$J_alts
@@ -185,6 +193,11 @@ fishset_cv <- function(project,
       actual_max <- max.col(actual_mat, ties.method = "first")
       pred_choice <- max.col(prob_mat_t, ties.method = "first")
       
+      # Calculate Percent Absolute Prediction Error
+      pred_shares <- colSums(prob_mat_t * rowSums(actual_mat))
+      actual_shares <- colSums(actual_mat)
+      out_sample_pape <- 0.5 * sum(abs(pred_shares - actual_shares)) / sum(actual_shares)
+      
       # Conditional logit equivalence LL (using counts)
       out_sample_ll <- sum(test_des$y * log(as.vector(t(prob_mat_t))))
       out_sample_acc <- mean(pred_choice == actual_max)
@@ -201,6 +214,9 @@ fishset_cv <- function(project,
       in_sample_ll <- sum(train_des$y * log(as.vector(t(train_prob_mat_t))))
       in_sample_acc <- fit_train$accuracy
       
+      # Logit-equivalent AIC
+      in_sample_aic <- 2 * length(fit_train$coefficients) - 2 * in_sample_ll
+      
     } else {
       chosen_lin_idx <- which(test_des$y == 1)
       choice_idx_report <- (chosen_lin_idx - 1) %% J + 1
@@ -208,10 +224,16 @@ fishset_cv <- function(project,
       chosen_probs <- prob_mat_t[cbind(1:N, choice_idx_report)]
       pred_choice <- max.col(prob_mat_t, ties.method = "first")
       
+      # Calculate PAPE (Percent Absolute Prediction Error)
+      pred_shares <- colSums(prob_mat_t)
+      actual_shares <- tabulate(choice_idx_report, nbins = J)
+      out_sample_pape <- 0.5 * sum(abs(pred_shares - actual_shares)) / sum(actual_shares)
+      
       out_sample_ll <- sum(log(chosen_probs))
       out_sample_acc <- mean(pred_choice == choice_idx_report)
       
       in_sample_ll <- fit_train$logLik
+      in_sample_aic <- fit_train$AIC
       in_sample_acc <- fit_train$accuracy
     }
     
@@ -219,10 +241,19 @@ fishset_cv <- function(project,
     cv_results$In_Sample_Acc[i] <- in_sample_acc
     cv_results$Out_Sample_LL[i] <- out_sample_ll
     cv_results$Out_Sample_Acc[i] <- out_sample_acc
+
+    # Calculate Out-of-Sample AIC (AIC = 2k - 2ln(L))
+    cv_results$Out_Sample_AIC[i] <- 2 * length(fit_train$coefficients) - 2 * out_sample_ll
+    cv_results$Out_Sample_Acc[i] <- out_sample_acc
+    cv_results$Out_Sample_PAPE[i] <- out_sample_pape
     
     # Cleanup temp files
     unlink(file.path(designs_dir, paste0(tmp_model_name, ".rds")))
   }
+  
+  # Combine coefficients into a dataframe
+  coef_df <- do.call(rbind, coef_list)
+  rownames(coef_df) <- paste0("Fold_", 1:k)
   
   # Remove temporary fits from the SQLite database
   table_name <- paste0(project, "ModelFit")
@@ -240,7 +271,10 @@ fishset_cv <- function(project,
     k_folds = k,
     avg_out_sample_accuracy = mean(cv_results$Out_Sample_Acc),
     avg_out_sample_logLik = mean(cv_results$Out_Sample_LL),
-    fold_details = cv_results
+    avg_out_sample_AIC = mean(cv_results$Out_Sample_AIC),
+    avg_out_sample_PAPE = mean(cv_results$Out_Sample_PAPE),
+    fold_details = cv_results,
+    fold_coefficients = coef_df
   )
   class(out) <- "fishset_cv"
   
@@ -251,8 +285,8 @@ fishset_cv <- function(project,
 #' Print FishSET Cross Validation Results
 #'
 #' Formats and prints the output of a FishSET cross-validation run.
-#' Displays the average out-of-sample performance and a detailed table of metrics
-#' for each individual fold.
+#' Displays the average out-of-sample performance, a detailed table of metrics
+#' for each individual fold, and the estimated coefficients across folds.
 #'
 #' @param x A \code{fishset_cv} object returned by \code{\link{fishset_cv}}.
 #' @param digits Integer. The number of significant digits to use when printing numeric values. 
@@ -268,30 +302,46 @@ print.fishset_cv <- function(x, digits = 4, ...) {
   
   # Header
   cat("\nFishSET Cross-Validation Results\n")
-  cat("========================================================\n")
+  cat("==========================================================================\n")
   
   # Overall Summary
   cat("Total Folds:             ", x$k_folds, "\n")
   cat("Avg Out-of-Sample LL:    ", fmt(x$avg_out_sample_logLik, 2), "\n")
+  cat("Avg Out-of-Sample AIC:   ", fmt(x$avg_out_sample_AIC, 2), "\n")
   cat("Avg Out-of-Sample Acc:   ", fmt(x$avg_out_sample_accuracy * 100, 1), "%\n")
+  cat("Avg Out-of-Sample PAPE:  ", fmt(x$avg_out_sample_PAPE * 100, 1), "%\n")
   
   # Detailed Folds Table
   cat("\nFold Details:\n")
-  cat("--------------------------------------------------------\n")
+  cat("--------------------------------------------------------------------------\n")
   
   # Create a copy of the dataframe to format purely for printing
   df_print <- x$fold_details
   
   # Format numeric columns for clean console output
-  df_print$In_Sample_LL   <- fmt(df_print$In_Sample_LL, 2)
-  df_print$Out_Sample_LL  <- fmt(df_print$Out_Sample_LL, 2)
-  df_print$In_Sample_Acc  <- paste0(fmt(df_print$In_Sample_Acc * 100, 1), "%")
-  df_print$Out_Sample_Acc <- paste0(fmt(df_print$Out_Sample_Acc * 100, 1), "%")
+  df_print$In_Sample_LL    <- fmt(df_print$In_Sample_LL, 2)
+  df_print$Out_Sample_LL   <- fmt(df_print$Out_Sample_LL, 2)
+  df_print$In_Sample_AIC   <- fmt(df_print$In_Sample_AIC, 2)
+  df_print$Out_Sample_AIC  <- fmt(df_print$Out_Sample_AIC, 2)
+  df_print$In_Sample_Acc   <- paste0(fmt(df_print$In_Sample_Acc * 100, 1), "%")
+  df_print$Out_Sample_Acc  <- paste0(fmt(df_print$Out_Sample_Acc * 100, 1), "%")
+  df_print$Out_Sample_PAPE <- paste0(fmt(df_print$Out_Sample_PAPE * 100, 1), "%")
   
   # Print the formatted dataframe without row numbers
   print(df_print, row.names = FALSE, right = TRUE)
   
-  cat("========================================================\n")
+  # Coefficient Table
+  if (!is.null(x$fold_coefficients)) {
+    cat("\nCoefficient Estimates by Fold:\n")
+    cat("--------------------------------------------------------------------------\n")
+    print(round(x$fold_coefficients, digits = digits))
+    
+    cat("\nAverage Coefficients Across All Folds:\n")
+    cat("--------------------------------------------------------------------------\n")
+    print(round(colMeans(x$fold_coefficients), digits = digits))
+  }
+  
+  cat("==========================================================================\n")
   
   # Invisibly return the original object so assignment works if they call print() directly
   invisible(x)
