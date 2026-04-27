@@ -55,6 +55,8 @@ fishset_cv <- function(project,
   }
   
   is_epm <- isTRUE(base_design$epm$is_epm)
+  is_poisson <- isTRUE(base_design$settings$model_type == "poisson")
+  
   if (is_epm && is.null(distribution)) stop("EPMs require a 'distribution' argument for CV.")
   
   # Create folds based on unique choice occasions (Trips/Hauls)
@@ -81,6 +83,12 @@ fishset_cv <- function(project,
     new_des$settings$N_obs <- length(target_obs)
     new_des$ids$obs <- design$ids$obs[idx]
     new_des$ids$zone <- design$ids$zone[idx]
+    
+    # Re-index occasion IDs cintguously to prevent RTMB out-of-bounds memory errors
+    if (is_poisson) {
+      new_des$ids$occ_id <- as.numeric(as.factor(new_des$ids$obs)) - 1
+    }
+    
     return(new_des)
   }
   
@@ -123,8 +131,6 @@ fishset_cv <- function(project,
     # Out-of-sample prediction using exactly the math from fishset_fit 
     J <- test_des$settings$J_alts
     N <- test_des$settings$N_obs
-    chosen_lin_idx <- which(test_des$y == 1)
-    choice_idx_report <- (chosen_lin_idx - 1) %% J + 1
     
     if (!is_epm) {
       final_v <- as.vector(test_des$X %*% fit_train$opt$par)
@@ -173,13 +179,46 @@ fishset_cv <- function(project,
       prob_mat_t <- t(exp_v) / colSums(exp_v)
     }
     
-    chosen_probs <- prob_mat_t[cbind(1:N, choice_idx_report)]
-    pred_choice <- max.col(prob_mat_t, ties.method = "first")
+    # Calculate the appropriate LL and accuracy based on model type
+    if (is_poisson) {
+      actual_mat <- t(matrix(test_des$y, nrow = J, ncol = N))
+      actual_max <- max.col(actual_mat, ties.method = "first")
+      pred_choice <- max.col(prob_mat_t, ties.method = "first")
+      
+      # Conditional logit equivalence LL (using counts)
+      out_sample_ll <- sum(test_des$y * log(as.vector(t(prob_mat_t))))
+      out_sample_acc <- mean(pred_choice == actual_max)
+      
+      # Recalculate in-sample LL
+      J_train <- train_des$settings$J_alts
+      N_train <- train_des$settings$N_obs
+      train_v <- as.vector(train_des$X %*% fit_train$opt$par)
+      dim(train_v) <- c(J_train, N_train)
+      train_v_max <- apply(train_v, 2, max)
+      train_exp_v <- exp(t(t(train_v) - train_v_max))
+      train_prob_mat_t <- t(train_exp_v) / colSums(train_exp_v)
+      
+      in_sample_ll <- sum(train_des$y * log(as.vector(t(train_prob_mat_t))))
+      in_sample_acc <- fit_train$accuracy
+      
+    } else {
+      chosen_lin_idx <- which(test_des$y == 1)
+      choice_idx_report <- (chosen_lin_idx - 1) %% J + 1
+      
+      chosen_probs <- prob_mat_t[cbind(1:N, choice_idx_report)]
+      pred_choice <- max.col(prob_mat_t, ties.method = "first")
+      
+      out_sample_ll <- sum(log(chosen_probs))
+      out_sample_acc <- mean(pred_choice == choice_idx_report)
+      
+      in_sample_ll <- fit_train$logLik
+      in_sample_acc <- fit_train$accuracy
+    }
     
-    cv_results$In_Sample_LL[i] <- fit_train$logLik
-    cv_results$In_Sample_Acc[i] <- fit_train$accuracy
-    cv_results$Out_Sample_LL[i] <- sum(log(chosen_probs))
-    cv_results$Out_Sample_Acc[i] <- mean(pred_choice == choice_idx_report)
+    cv_results$In_Sample_LL[i] <- in_sample_ll
+    cv_results$In_Sample_Acc[i] <- in_sample_acc
+    cv_results$Out_Sample_LL[i] <- out_sample_ll
+    cv_results$Out_Sample_Acc[i] <- out_sample_acc
     
     # Cleanup temp files
     unlink(file.path(designs_dir, paste0(tmp_model_name, ".rds")))
