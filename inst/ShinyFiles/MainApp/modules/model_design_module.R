@@ -242,7 +242,8 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
           model_name = input$model_name_input,
           formatted_data_name = input$formatted_data_input,
           unique_obs_id = rv_selected_vars$vars$main$main_unique_obs_id, 
-          zone_id = rv_selected_vars$vars$main$main_zone_id
+          zone_id = rv_selected_vars$vars$main$main_zone_id,
+          scale = input$scale_input
         )
         
         # Add EPM specific arguments if applicable
@@ -252,7 +253,6 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
           }
           args$catch_formula <- as.formula(input$catch_formula_input)
           args$price_var <- input$price_var_input
-          args$scale <- input$scale_input
         }
         
         # Run the main function using do.call
