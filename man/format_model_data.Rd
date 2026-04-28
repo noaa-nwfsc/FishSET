@@ -49,13 +49,8 @@ function to view the table name.}
 
 \item{aux_key}{Variable name used to join the main data table with the auxiliary data.}
 
-<<<<<<< HEAD
-\item{gridded_data}{Character vector of the gridded data table(s) to join. 
-Use \code{\link{list_tables}} function and set \code{type = "grid"}  to view the table name.}
-=======
 \item{gridded_data}{Name of the gridded data table to join. Use \code{\link{list_tables}}
 function to view the table name.}
->>>>>>> a8ddc3c5980d89cb8de1b81d9666fc1ef595c73d
 
 \item{expectations}{Character vector containing the names of expected catch or revenue matrices
 to merge into the dataset.}
