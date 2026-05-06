@@ -381,7 +381,7 @@ fishset_fit <- function(project,
   # Proactive gradient check
   init_grad <- tryCatch(obj$gr(obj$par), error = function(e) rep(NA, length(obj$par)))
   
-  if (any(!is.na(init_grad)) && max(abs(init_grad), na.rm = TRUE) > 10000) {
+  if (any(!is.na(init_grad)) && max(abs(init_grad), na.rm = TRUE) > 100000) {
     warning("Initial gradients are extremely large. ",
             "This usually indicates unscaled continuous variables in your design matrix. ",
             "If the optimizer fails, try scaling your variables or setting `robust = TRUE`.",
