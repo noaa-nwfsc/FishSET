@@ -59,5 +59,6 @@ utils::globalVariables(c(
   'Y_catch_chosen',
   'chosen_lin_idx',
   'zone_id',
-  'zone_seq'
+  'zone_seq',
+  'mean_residual'
 ))
