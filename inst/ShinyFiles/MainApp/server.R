@@ -32,6 +32,7 @@ source("modules/format_data/format_model_data_module.R", local = TRUE)
 source("modules/model_design_module.R", local = TRUE)
 source("modules/model_fit_module.R", local = TRUE)
 source("modules/model_cv_module.R", local = TRUE)
+source("modules/zone_closure_module.R", local = TRUE)
 
 
 # Server settings ---------------------------------------------------------------------------------
@@ -72,7 +73,7 @@ server <- function(input, output, session) {
                                    value = 3) # basic default
   rv_alt_names <- reactiveVal(character(0))
   rv_exp_names <- reactiveVal(character(0))
-
+  
   # Upload data -----------------------------------------------------------------------------------
   ## Load files subtab ----------------------------------------------------------------------------
   ### Sidebar
@@ -236,8 +237,8 @@ server <- function(input, output, session) {
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
                        current_tab = reactive(input$tabs))
- 
-   ### Main panel
+  
+  ### Main panel
   format_model_data_server("format_mod_data",
                            rv_folderpath = rv_folderpath, 
                            rv_project_name = rv_project_name, 
@@ -276,9 +277,9 @@ server <- function(input, output, session) {
   
   ### Main panel
   model_fit_server("model_fit_data",
-                      rv_folderpath = rv_folderpath, 
-                      rv_project_name = rv_project_name,
-                      rv_data = rv_data)
+                   rv_folderpath = rv_folderpath, 
+                   rv_project_name = rv_project_name,
+                   rv_data = rv_data)
   
   ## Model Cross Validation  ---------------------------------------------------------------------
   ### Sidebar 
@@ -293,6 +294,25 @@ server <- function(input, output, session) {
   
   ### Main panel
   model_cv_server("model_cv",
-                      rv_folderpath = rv_folderpath, 
-                      rv_project_name = rv_project_name)
+                  rv_folderpath = rv_folderpath, 
+                  rv_project_name = rv_project_name)
+  
+  # Policy ---------------------------------------------------------------------------------------
+  ## Zone Closure --------------------------------------------------------------------------------
+  ### Sidebar
+  checklist_server("zone_closure_checklist", rv_project_name, rv_data, rv_folderpath)
+  
+  other_actions_server("zone_closure_actions",
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
+  
+  ### Main panel 
+  zone_closure_server("zone_closure", rv_folderpath = rv_folderpath, 
+                      rv_project_name = rv_project_name,
+                      rv_data = rv_data,
+                      spat_zone_id = NULL)
+  
 }
