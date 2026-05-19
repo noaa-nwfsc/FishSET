@@ -262,6 +262,13 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
         }
       }
       
+      # Handle input for imputation
+      if (input$impute_input == "None") {
+        impute_option <- NULL
+      } else {
+        impute_option <- input$impute_input
+      }
+      
       # Run Formatting Function
       tryCatch({
         format_model_data(
@@ -279,7 +286,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
           distance_units = if(input$distance_input) input$distance_units_input else NULL,
           crs            = 
             if(input$distance_input && input$crs_input != "") as.numeric(input$crs_input) else NULL,
-          impute         = empty_to_null(input$impute_input)
+          impute         = impute_option
         )
         
         # Success Feedback
@@ -624,7 +631,7 @@ format_model_data_ui <- function(id) {
                                 bslib::tooltip(shiny::icon("info-circle"), 
                                                "Method for dealing with NAs. 'Remove' drops zones 
                                                the dataset containing any missing values.")), 
-                              choices = c("None" = "", "mean", "median", "mode", "remove"),
+                              choices = c("None", "Mean", "Median", "Mode", "Remove"),
                               width = "100%"),
                   hr(),
                   div(
