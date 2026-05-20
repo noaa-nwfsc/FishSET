@@ -16,6 +16,10 @@
 #        without needing to launch a web browser.
 # -------------------------------------------------------------------------------------------------
 
+library(shiny)
+library(sf)
+library(dplyr)
+
 module_path <- system.file("ShinyFiles", "MainApp", "modules", "zone_closure_module.R", package = "FishSET")
 
 # Fallback path just in case you are running tests interactively instead of via devtools
