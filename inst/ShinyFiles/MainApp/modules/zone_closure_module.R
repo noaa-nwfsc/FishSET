@@ -21,7 +21,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    # 1. Initialize Reactives ---------------------------------------------------------------------
+    # Initialize Reactives ------------------------------------------------------------------------
     rv_clicked_zones   <- reactiveValues(ids = character(0)) 
     rv_tac_table       <- reactiveValues(data = NULL)        
     rv_saved_closures  <- reactiveValues(saved = list())      
@@ -69,7 +69,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
         mutate(zone = as.character(spat_data[[z_id]]))
     })
     
-    # 2. Extract Modeled Zones (Evaluates lazily) -------------------------------------------------
+    # Extract Modeled Zones (Evaluates lazily) ----------------------------------------------------
     modeled_zones <- reactive({
       req(current_project())
       proj <- current_project()
@@ -96,7 +96,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
       return(res)
     })
     
-    # 3. Output Leaflet Map (Combined Plotting Logic) ---------------------------------------------
+    # Output Leaflet Map (Combined Plotting Logic) ------------------------------------------------
     output$zone_map_output <- leaflet::renderLeaflet({
       req(zone_df()) 
       
@@ -157,7 +157,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
       return(map)
     })
     
-    # 4. Map Shape Selection Logic ----------------------------------------------------------------
+    # Map Shape Selection Logic -------------------------------------------------------------------
     observeEvent(input$zone_map_output_shape_click, {
       click <- input$zone_map_output_shape_click
       req(click$id)
@@ -175,7 +175,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
         # SELECTING
         clicked_poly <- zone_df() %>% filter(.data[[sec_id]] == click$id)
         
-        # IS ZONE HIGHLIGHTED? ---
+        # IS ZONE HIGHLIGHTED?
         m_zones <- modeled_zones()
         
         # If no zones are modeled, OR if the clicked zone isn't in the modeled list: throw error
@@ -184,7 +184,6 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
                            type = "error", duration = 4)
           return() # Instantly halts the function so it doesn't turn red
         }
-        # ---------------------------------------
         
         # If it passes the check, proceed with selection (Red Fill)
         rv_clicked_zones$ids <- unique(c(rv_clicked_zones$ids, click$id))
@@ -206,7 +205,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
       }
     })
     
-    # 5. Add & Instantly Save Closure Logic -------------------------------------------------------
+    # Add & Instantly Save Closure Logic ----------------------------------------------------------
     observeEvent(input$add_closure_btn, {
       req(current_project())
       proj <- current_project()
@@ -251,7 +250,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
                        type = "message")
     })
     
-    # 6. View Saved Closures Table ----------------------------------------------------------------
+    # View Saved Closures Table -------------------------------------------------------------------
     output$saved_closures_table <- DT::renderDataTable({
       req(current_project())
       rv_saved_closures$saved <- get_closure_scenario(current_project())
@@ -275,7 +274,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
                     class = 'cell-border stripe hover')
     })
     
-    # 7. Delete Closures Directly from Table ------------------------------------------------------
+    # Delete Closures Directly from Table ---------------------------------------------------------
     observeEvent(input$delete_closure_btn, {
       req(current_project())
       proj <- current_project()
@@ -302,7 +301,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
       showNotification("Selected closure scenarios deleted.", type = "message")
     })
     
-    # 8. Visualize Saved Closures on Map ----------------------------------------------------------
+    # Visualize Saved Closures on Map -------------------------------------------------------------
     observeEvent(input$saved_closures_table_rows_selected, {
       proxy <- leaflet::leafletProxy("zone_map_output")
       proxy %>% leaflet::clearGroup("saved_scenario_layer")
@@ -336,7 +335,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
       }
     }, ignoreNULL = FALSE) 
     
-    # 9. Editable TAC Table Logic -----------------------------------------------------------------
+    # Editable TAC Table Logic --------------------------------------------------------------------
     observeEvent(rv_clicked_zones$ids, {
       if (length(rv_clicked_zones$ids) == 0) {
         rv_tac_table$data <- data.frame(Zones = character(0), `% allowable TAC` = numeric(0), 
@@ -401,7 +400,7 @@ zone_closure_ui <- function(id) {
   tagList(
     shinyjs::useShinyjs(),
     
-    # 1. Instructions
+    # Instructions
     div(
       class = "mb-3",
       h4("Zone Closure Management"),
@@ -412,7 +411,7 @@ zone_closure_ui <- function(id) {
       )
     ),
     
-    # 2. Main Map Card
+    # Main Map Card
     bslib::card(
       class = "mb-3",
       height = "700px",  # Explicit string to force container height
@@ -432,7 +431,7 @@ zone_closure_ui <- function(id) {
       )
     ),
     
-    # 3. Control Panel (Scenario Naming)
+    # Control Panel (Scenario Naming)
     bslib::card(
       class = "mb-3",
       fill = FALSE, 
@@ -466,7 +465,7 @@ zone_closure_ui <- function(id) {
       )
     ),
     
-    # 4. Allowable TAC Table Card
+    # Allowable TAC Table Card
     bslib::card(
       class = "mb-3",
       fill = FALSE,
@@ -479,7 +478,7 @@ zone_closure_ui <- function(id) {
       )
     ),
     
-    # 5. Scenario Management Card (Single Table)
+    # Scenario Management Card (Single Table)
     div(
       class = "mb-5", 
       bslib::card(

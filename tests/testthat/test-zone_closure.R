@@ -20,11 +20,22 @@ library(shiny)
 library(sf)
 library(dplyr)
 
-module_path <- system.file("ShinyFiles", "MainApp", "modules", "zone_closure_module.R", package = "FishSET")
+# Test zone closure set up ------------------------------------------------------------------------
+module_path <- system.file("ShinyFiles", 
+                           "MainApp", 
+                           "modules", 
+                           "zone_closure_module.R", 
+                           package = "FishSET")
 
 # Fallback path just in case you are running tests interactively instead of via devtools
 if (module_path == "") {
-  module_path <- file.path("..", "..", "inst", "ShinyFiles", "MainApp", "modules", "zone_closure_module.R")
+  module_path <- file.path("..", 
+                           "..", 
+                           "inst", 
+                           "ShinyFiles", 
+                           "MainApp", 
+                           "modules", 
+                           "zone_closure_module.R")
 }
 
 if (file.exists(module_path)) {
@@ -33,17 +44,17 @@ if (file.exists(module_path)) {
   stop("Testing failed: Could not locate zone_closure_module.R")
 }
 
+# Tets shiny app object ---------------------------------------------------------------------------
 test_that("zone_closure() successfully constructs a Shiny app object", {
   
-  # 1. Create a dummy spatial dataset
+  # Create a dummy spatial dataset
   dummy_spat <- data.frame(
     zone_id = c("ZoneA", "ZoneB"),
     lon = c(-122.0, -121.0),
-    lat = c(37.0, 38.0)
-  ) %>%
+    lat = c(37.0, 38.0)) %>%
     sf::st_as_sf(coords = c("lon", "lat"), crs = 4326)
   
-  # 2. Mock the FishSET helper functions to prevent real database queries during the test
+  # Mock the FishSET helper functions to prevent real database queries during the test
   local_mocked_bindings(
     data_pull = function(spatname, project) {
       list(dataset = dummy_spat)
@@ -53,32 +64,32 @@ test_that("zone_closure() successfully constructs a Shiny app object", {
     }
   )
   
-  # 3. Run the wrapper function
+  # Run the wrapper function
   app <- zone_closure(
     project = "TestProject",
     spatname = "dummy_spat_file",
     zone_spat = "zone_id"
   )
   
-  # 4. Assertions: Ensure the function returns a valid shiny app object
+  # Assertions: Ensure the function returns a valid shiny app object
   expect_s3_class(app, "shiny.appobj")
 })
 
 
+# Test map clicks ---------------------------------------------------------------------------------
 test_that("zone_closure_server handles map clicks correctly", {
   
-  # 1. Create dummy inputs for the server module
+  # Create dummy inputs for the server module
   dummy_spat <- data.frame(
     zone_id = c("ZoneA", "ZoneB"),
     lon = c(-122.0, -121.0),
-    lat = c(37.0, 38.0)
-  ) %>%
+    lat = c(37.0, 38.0)) %>%
     sf::st_as_sf(coords = c("lon", "lat"), crs = 4326)
   
   rv_data <- reactiveValues(spat = dummy_spat)
   rv_project_name <- reactiveVal("TestProject")
   
-  # 2. Setup a temporary directory to trick the modeled_zones() reactive
+  # Setup a temporary directory to trick the modeled_zones() reactive
   tmp_dir <- tempdir()
   rv_folderpath <- reactiveVal(tmp_dir)
   
@@ -95,31 +106,30 @@ test_that("zone_closure_server handles map clicks correctly", {
     locproject = function() { return(tmp_dir) }
   )
   
-  # 3. Use shiny::testServer to test the module logic in isolation
+  # Use shiny::testServer to test the module logic in isolation
   testServer(zone_closure_server, args = list(
     rv_folderpath = rv_folderpath,
     rv_project_name = rv_project_name,
     rv_data = rv_data,
-    spat_zone_id = "zone_id"
-  ), {
-    
-    # Check initial state
-    expect_equal(length(rv_clicked_zones$ids), 0)
-    
-    # Simulate clicking on a modeled zone (ZoneA)
-    session$setInputs(zone_map_output_shape_click = list(id = "Zone_ZoneA"))
-    
-    # Verify the zone was added to rv_clicked_zones
-    expect_true("Zone_ZoneA" %in% rv_clicked_zones$ids)
-    
-    # Verify the TAC table updated automatically
-    expect_equal(nrow(rv_tac_table$data), 1)
-    expect_equal(rv_tac_table$data$Zones[1], "Zone_ZoneA")
-    
-    # Simulate clicking on a non-modeled zone (ZoneB)
-    session$setInputs(zone_map_output_shape_click = list(id = "Zone_ZoneB"))
-    
-    # Verify ZoneB was NOT added because of our safety check
-    expect_false("Zone_ZoneB" %in% rv_clicked_zones$ids)
-  })
+    spat_zone_id = "zone_id"), {
+      
+      # Check initial state
+      expect_equal(length(rv_clicked_zones$ids), 0)
+      
+      # Simulate clicking on a modeled zone (ZoneA)
+      session$setInputs(zone_map_output_shape_click = list(id = "Zone_ZoneA"))
+      
+      # Verify the zone was added to rv_clicked_zones
+      expect_true("Zone_ZoneA" %in% rv_clicked_zones$ids)
+      
+      # Verify the TAC table updated automatically
+      expect_equal(nrow(rv_tac_table$data), 1)
+      expect_equal(rv_tac_table$data$Zones[1], "Zone_ZoneA")
+      
+      # Simulate clicking on a non-modeled zone (ZoneB)
+      session$setInputs(zone_map_output_shape_click = list(id = "Zone_ZoneB"))
+      
+      # Verify ZoneB was NOT added because of our safety check
+      expect_false("Zone_ZoneB" %in% rv_clicked_zones$ids)
+    })
 })
