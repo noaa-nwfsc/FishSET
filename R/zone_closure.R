@@ -31,7 +31,7 @@
 #' @export
 #' @return Returns a yaml file to the project output folder.
 
-zone_closure <- function(project, spat, zone_spat, lon_spat = NULL,
+zone_closure <- function(project, spatname, zone_spat, lon_spat = NULL,
                          lat_spat = NULL, epsg = NULL) {
   
   # Set these values to NULL to appease RCMD checks
@@ -44,10 +44,13 @@ zone_closure <- function(project, spat, zone_spat, lon_spat = NULL,
   
   source(file.path(zone_closure_dir, "zone_closure_module.R"), local = TRUE)
   
+   # Pull spatial data if needed
+  spat_out <- data_pull(spatname, project)
+  spatdat <- spat_out$dataset
+
   # Check/build the sf object, then transform to Leaflet CRS
-  spat <- check_spatdat(spat, id = zone_spat, lon = lon_spat, lat = lat_spat)
-  spat <- sf::st_transform(spat, "+proj=longlat +datum=WGS84")
-  
+  spat <- check_spatdat(spatdat, id = zone_spat, lon = lon_spat, lat = lat_spat)
+
   # Zone closure ui -------------------------------------------------------------------------------
   ui <- bslib::page_fluid(
     theme = bslib::bs_theme(

@@ -14,7 +14,8 @@
 #' @param rv_folderpath Reactive value for the root folder path.
 #' @param rv_project_name Reactive value for the current project.
 #' @param rv_data Reactive list containing spatial data (rv_data$spat).
-#' @param spat_zone_id Optional string passed directly from the console wrapper to bypass GUI loader.
+#' @param spat_zone_id Optional string passed directly from the console wrapper to bypass GUI 
+#' loader.
 #' @return This module does not return a value.
 zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spat_zone_id = NULL) {
   moduleServer(id, function(input, output, session) {
@@ -32,10 +33,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
         req(current_project(), rv_folderpath())
         selected_vars <- load_gui_variables(current_project(), rv_folderpath())
         
-        if (is.null(selected_vars)) {
-          showNotification("Error: Missing Data. The selected variables file could not be found.", 
-                           type = "error", duration = 10)
-        } else {
+        if (!is.null(selected_vars)) {
           rv_selected_vars$vars <- selected_vars
         }
       })
@@ -174,20 +172,35 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
         proxy %>% leaflet::removeShape(layerId = paste0(click$id, "_selected"))
         
       } else {
-        # SELECTING (Red Fill)
-        rv_clicked_zones$ids <- unique(c(rv_clicked_zones$ids, click$id))
+        # SELECTING
         clicked_poly <- zone_df() %>% filter(.data[[sec_id]] == click$id)
+        
+        # IS ZONE HIGHLIGHTED? ---
+        m_zones <- modeled_zones()
+        
+        # If no zones are modeled, OR if the clicked zone isn't in the modeled list: throw error
+        if (is.null(m_zones) || !(clicked_poly$zone[1] %in% m_zones)) {
+          showNotification("Error: You can only select highlighted zones.", 
+                           type = "error", duration = 4)
+          return() # Instantly halts the function so it doesn't turn red
+        }
+        # ---------------------------------------
+        
+        # If it passes the check, proceed with selection (Red Fill)
+        rv_clicked_zones$ids <- unique(c(rv_clicked_zones$ids, click$id))
         
         if (is_point_data) {
           proxy %>% leaflet::addCircleMarkers(data = clicked_poly, radius = 6, fillColor = "red", 
                                               fillOpacity = 0.8,
                                               weight = 2, color = "black", stroke = TRUE,
                                               layerId = paste0(click$id, "_selected"), 
+                                              group = "selected_zones",
                                               options = leaflet::pathOptions(interactive = FALSE))
         } else {
           proxy %>% leaflet::addPolygons(data = clicked_poly, fillColor = "red", fillOpacity = 0.5,
                                          weight = 2, color = "black", stroke = TRUE,
                                          layerId = paste0(click$id, "_selected"), 
+                                         group = "selected_zones",
                                          options = leaflet::pathOptions(interactive = FALSE))
         }
       }
@@ -271,7 +284,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
       
       if (length(selected_rows) == 0) {
         showNotification("Click on one or more scenarios in the Saved Scenarios table to delete 
-                         them.", type = "warning")
+                          them.", type = "warning")
         return()
       }
       
@@ -371,7 +384,8 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
         }
       })
       
-      DT::replaceData(DT::dataTableProxy("tac_table_output"), rv_tac_table$data, resetPaging = FALSE)
+      DT::replaceData(DT::dataTableProxy("tac_table_output"), rv_tac_table$data,
+                      resetPaging = FALSE)
     })
   })
 }
@@ -404,7 +418,10 @@ zone_closure_ui <- function(id) {
       height = "700px",  # Explicit string to force container height
       fill = FALSE,      # Prevents the parent page layout from compressing the card
       full_screen = TRUE,
-      bslib::card_header("Spatial Zone Selection"),
+      bslib::card_header(
+        class = "d-flex justify-content-between align-items-center",
+        "Spatial Zone Selection"
+      ),
       bslib::card_body(
         class = "p-0",
         style = "overflow: hidden;", # Forces map to stay cleanly within rounded borders
