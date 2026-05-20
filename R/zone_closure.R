@@ -1,7 +1,7 @@
 #' Define zone closure scenarios
 #' 
 #' @param project Required, name of project.
-#' @param spat Required, data file or character. 
+#' @param spatname Required, data file or character. 
 #'   \code{spat} is a spatial data file containing information on fishery 
 #'   management or regulatory zone boundaries. Shape, json, geojson, and csv 
 #'   formats are supported. geojson is the preferred format. json files must be 

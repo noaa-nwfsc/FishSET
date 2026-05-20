@@ -59,5 +59,7 @@ utils::globalVariables(c(
   'Y_catch_chosen',
   'chosen_lin_idx',
   'zone_id',
-  'zone_seq'
+  'zone_seq',
+  'zone_closure_ui',
+  'zone_closure_server'
 ))
