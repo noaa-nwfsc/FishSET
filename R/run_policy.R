@@ -37,17 +37,15 @@
 #' @importFrom data.table fread
 #' @export
 
-### NOTES: Need to make sure closure areas and fishery zones match
-### Have users rerun assignment column function and model.
+# TODO:
+# 1. Restructure run_policy to contain all of the simulation logic, then have the output generating
+#    function completely separate (summarize_policy, plot_policy)
+# 2. In welfare_predict, the nested loop structure could be restructed as a series of 3d arrays or
+#    matrix multiplications. Vecotrizing should drop the runtime.
+# 3. Draw parameters from variance-covariance matrix rather than using standard errors, which 
+#    will preserve parameter correlation.
 
-#model_prediction
-#  -create_model_input
-#  -logit_predict
-#  -epm_predict
-#  -mixed_logit_predict
-#  -predict_probability
-#  welfare_predict
-#  sim_welfare
+
 
 run_policy <- function(project, 
                        mod_name = NULL, 
