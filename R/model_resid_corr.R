@@ -148,6 +148,7 @@ model_resid_corr <- function(project,
     stringsAsFactors = FALSE
   )
   
+  
   # Merge with spatial data -----------------------------------------------------------------------
   if (!(spat_id %in% names(spat))) {
     stop(paste("Column", spat_id, "not found in the provided spat object."))
@@ -155,17 +156,29 @@ model_resid_corr <- function(project,
   
   # Standardize merge column types
   spat[[spat_id]] <- as.character(spat[[spat_id]])
+  # Find which IDs appear more than once in your shapefile
+  duplicate_ids <- spat[[spat_id]][duplicated(spat[[spat_id]])]
+  # Group by your zone ID and merge the geometries together
+  spat_clean <- suppressWarnings(suppressMessages({
+    spat %>%
+      # Fix any slightly broken geometries first (helps prevent st_union crashes)
+      st_make_valid() %>%
+      group_by(!!sym(spat_id)) %>%
+      # is_coverage = TRUE heavily speeds up the unioning of adjacent borders
+      summarize(geometry = st_union(geometry, is_coverage = TRUE), .groups = "drop")
+  }))
   
-  merged_sf <- merge(spat, resid_df, by.x = spat_id, by.y = "zone_id", all.x = FALSE)
+  merged_sf <- merge(spat_clean, resid_df, by.x = spat_id, by.y = "zone_id", all.x = FALSE)
   
   if (nrow(merged_sf) != J) {
     warning("Mismatch between the number of zones in the model and the sf object. ",
             "Check for missing geometries or unmatched zone names.")
   }
+
   
   # Calculate Moran's I ---------------------------------------------------------------------------
   # Create neighborhood and weights (Queen contiguity by default)
-  nb <- spdep::poly2nb(merged_sf)
+  nb <- suppressMessages(suppressWarnings(spdep::poly2nb(merged_sf))) 
   
   # Check for islands (zones with no neighbors)
   has_islands <- any(spdep::card(nb) == 0)
