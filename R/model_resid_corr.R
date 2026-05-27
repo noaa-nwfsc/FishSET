@@ -26,6 +26,7 @@
 #' @importFrom DBI dbConnect dbDisconnect dbExecute
 #' @importFrom RSQLite SQLite
 #' @importFrom Matrix colSums
+
 model_resid_corr <- function(project,
                              model_name,
                              spat,
