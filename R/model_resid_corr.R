@@ -187,8 +187,18 @@ model_resid_corr <- function(project,
                    "They will be evaluated with zero.policy = TRUE."))
   }
   
-  lw <- spdep::nb2listw(nb, style = "W", zero.policy = TRUE)
-  moran_res <- spdep::moran.test(merged_sf$mean_residual, lw, zero.policy = TRUE)
+  # Check for zero variance (e.g., Models with ASCs)
+  resid_var <- var(merged_sf$mean_residual, na.rm = TRUE)
+  
+  if (is.na(resid_var) || resid_var < 1e-10) {
+    message("Notice: Zonal residual variance is near zero. This can happen when Area-Specific ",
+            "Constants (ASCs) perfectly absorb aggregate zonal variation. ",
+            "Skipping Moran's I test.")
+    moran_res <- list(estimate = c("Moran I statistic" = NA), p.value = NA)
+  } else {
+    lw <- spdep::nb2listw(nb, style = "W", zero.policy = TRUE)
+    moran_res <- spdep::moran.test(merged_sf$mean_residual, lw, zero.policy = TRUE)
+  }
   
   # Generate Plot ---------------------------------------------------------------------------------
   # Calculate max absolute residual to center the color scale around 0
