@@ -149,9 +149,16 @@ format_model_data <- function(project,
   }
   
   # Check impute method
-  if (!is.null(impute) && !(impute %in% c("mean", "median", "mode", "remove"))){
-    stop(paste0("Impute method must be one of 'mean', 'median', or 'mode'."))
+  if (!is.null(impute)) {
+    # Force the input to lowercase
+    impute <- tolower(impute)
+    
+    # Validation check
+    if (!(impute %in% c("mean", "median", "mode", "remove"))){
+      stop(paste0("Impute method must be one of 'mean', 'median', or 'mode'."))
+    }
   }
+  
   
   # Format main data ------------------------------------------------------------------------------
   # Load main data table
