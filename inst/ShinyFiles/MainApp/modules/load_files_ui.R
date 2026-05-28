@@ -110,7 +110,7 @@ select_data_ui <- function(id, data_type){
     fluidRow(
       # select existing data table - initially hidden with CSS
       div(id = ns(paste0(data_type, "_select_container")), 
-          style = "display: none;", # hide this input to start
+          style = "display: none;", 
           selectInput(inputId = ns(paste0(data_type, "_select_input")),
                       label = 
                         switch(data_type,
@@ -125,81 +125,78 @@ select_data_ui <- function(id, data_type){
       # select new data file - initially visible
       if (data_type != "spat") {
         div(id = ns(paste0(data_type, "_upload_container")),
-            fluidRow(
-              column(10, 
-                     fileInput(ns(paste0(data_type, "_upload_input")),
-                               label = 
-                                 switch(data_type,
-                                        "main" = HTML("Select main data file <b>(required)</b>:"),
-                                        "port" = HTML("Select port file <b>(optional)</b>:"),
-                                        "aux" = 
-                                          HTML("Select auxiliary data file <b>(optional)</b>:"),
-                                        "grid" = 
-                                          HTML("Select gridded data file <b>(optional)</b>:")),
-                               multiple = FALSE,
-                               placeholder = "No file selected")
-              ),
-              column(2,
-                     # NEW: Clear button to reset the fileInput
-                     actionButton(ns(paste0(data_type, "_clear_btn")), 
-                                  label = NULL, 
-                                  icon = icon("xmark"), 
-                                  class = "btn-sm",
-                                  style = "margin-top: 20px;",
-                                  title = "Remove file")
-              )
+            
+            # --- NEW: Relative container for absolute positioning ---
+            div(style = "position: relative;",
+                fileInput(ns(paste0(data_type, "_upload_input")),
+                          label = 
+                            switch(data_type,
+                                   "main" = HTML("Select main data file <b>(required)</b>:"),
+                                   "port" = HTML("Select port file <b>(optional)</b>:"),
+                                   "aux" = HTML("Select auxiliary data file <b>(optional)</b>:"),
+                                   "grid" = HTML("Select gridded data file <b>(optional)</b>:")),
+                          multiple = FALSE,
+                          placeholder = "No file selected",
+                          width = "100%"), # Forced to 100% to fill space
+                
+                # Overlay button
+                actionButton(ns(paste0(data_type, "_clear_btn")), 
+                             label = NULL, 
+                             icon = icon("xmark"), 
+                             style = "position: absolute; right: 0px; bottom: 15px; 
+                             border-top-left-radius: 0; border-bottom-left-radius: 0; z-index: 10;",
+                             title = "Remove file")
             )
+            # --------------------------------------------------------
         )
       } else {
         # Visible container for selecting spatial file(s)
         div(id = ns("spat_upload_container"),
-            fluidRow(
-              # File input for general spatial data files (e.g., CSV, GeoJSON)
-              div(id = ns('spat_file_container'), 
-                  fluidRow(
-                    column(10,
-                           fileInput(ns("spat_file_input"), 
-                                     label = HTML("Select spatial file <b>(required)</b>:"),
-                                     multiple = FALSE, 
-                                     placeholder = 'No file selected')
-                    ),
-                    column(2,
-                           actionButton(ns("spat_file_clear_btn"), 
-                                        label = NULL, 
-                                        icon = icon("xmark"), 
-                                        class = "btn-sm",
-                                        style = "margin-top: 20px;",
-                                        title = "Remove file")
-                    )
-                  )
-              ),
-              
-              # File input for shapefile components
-              div(id = ns("spat_shp_container"),
-                  fluidRow(
-                    column(10,
-                           fileInput(ns("spat_shp_input"), 
-                                     label = HTML("Select shape files <b>(required)</b>:"),
-                                     accept = c('.shp', '.dbf', '.sbn', '.sbx', 
-                                                '.shx', '.prj', '.cpg'),
-                                     multiple = TRUE, 
-                                     placeholder = 'No file selected')
-                    ),
-                    column(2,
-                           actionButton(ns("spat_shp_clear_btn"), 
-                                        label = NULL, 
-                                        icon = icon("xmark"), 
-                                        style = "margin-top: 32px;",
-                                        title = "Remove file")
-                    )
-                  )
-              ),
-              
-              #Checkbox to change file upload to shape files
-              checkboxInput(inputId = ns("spat_shp_chk_input"),
-                            label = "Uploading shape file instead?",
-                            value = FALSE)
-            )
+            
+            # File input for general spatial data files (e.g., CSV, GeoJSON)
+            div(id = ns('spat_file_container'), 
+                div(style = "position: relative;",
+                    fileInput(ns("spat_file_input"), 
+                              label = HTML("Select spatial file <b>(required)</b>:"),
+                              multiple = FALSE, 
+                              placeholder = 'No file selected',
+                              width = "100%"),
+                    
+                    actionButton(ns("spat_file_clear_btn"), 
+                                 label = NULL, 
+                                 icon = icon("xmark"), 
+                                 style = "position: absolute; right: 0px; bottom: 15px; 
+                                 border-top-left-radius: 0; border-bottom-left-radius: 0;
+                                 z-index: 10;",
+                                 title = "Remove file")
+                )
+            ),
+            
+            # File input for shapefile components
+            div(id = ns("spat_shp_container"),
+                div(style = "position: relative;",
+                    fileInput(ns("spat_shp_input"), 
+                              label = HTML("Select shape files <b>(required)</b>:"),
+                              accept = c('.shp', '.dbf', '.sbn', '.sbx', 
+                                         '.shx', '.prj', '.cpg'),
+                              multiple = TRUE, 
+                              placeholder = 'No file selected',
+                              width = "100%"),
+                    
+                    actionButton(ns("spat_shp_clear_btn"), 
+                                 label = NULL, 
+                                 icon = icon("xmark"), 
+                                 style = "position: absolute; right: 0px; bottom: 15px;
+                                 border-top-left-radius: 0; border-bottom-left-radius: 0;
+                                 z-index: 10;",
+                                 title = "Remove file")
+                )
+            ),
+            
+            # Checkbox to change file upload to shape files
+            checkboxInput(inputId = ns("spat_shp_chk_input"),
+                          label = "Uploading shape file instead?",
+                          value = FALSE)
         )
       }
     )
