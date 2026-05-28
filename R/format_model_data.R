@@ -33,7 +33,7 @@
 #'   and zones. Defaults to 'TRUE'.
 #' @param distance_units String representing the units of measurement for distance ("km" or "mi").
 #' @param impute Method for imputing missing values (NAs). Options are `"mean"`, 
-#'   `"median"`, `"mode"`, or `"remove"`. `"Remove"` will completely remove zones from the dataset
+#'   `"median"`, `"mode"`, or `"remove"`. `"remove"` will completely remove zones from the dataset
 #'   that contain any NAs in corresponding data. If NULL, the function stops if NAs are detected.
 #' @param crs Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
 #'   are required.
@@ -79,6 +79,7 @@
 #' @importFrom DBI dbConnect dbDisconnect dbExecute
 #' @importFrom RSQLite SQLite
 #' @importFrom stats complete.cases
+#' @importFrom purrr map2_lgl
 
 format_model_data <- function(project, 
                               name, 
@@ -331,12 +332,47 @@ format_model_data <- function(project,
         gridded_df <- gridded_df %>% rename(zones = !!sym(zone_id))
       }
       
-      if(class(df$zones) != class(gridded_df$zones)) {
-        class(gridded_df$zones) <- class(df$zones)
-      }
-      
       common_cols <- intersect(names(df), names(gridded_df))
     
+      # Check class of common cols
+      class_matches <- purrr::map2_lgl(
+        df[common_cols], 
+        gridded_df[common_cols], 
+        ~ identical(class(.x), class(.y))
+      )
+      mismatched_cols <- common_cols[!class_matches]
+      
+      # Resolve the mismatches
+      if (length(mismatched_cols) > 0) {
+        for (col in mismatched_cols) {
+          # Extract the primary class from df
+          target_class <- class(df[[col]])[1] 
+          
+          # Safely route the coercion based on the target class
+          if (target_class == "factor") {
+            gridded_df[[col]] <- as.factor(gridded_df[[col]])
+            
+          } else if (target_class == "Date") {
+            # If gridded_df column is numeric, handle it as a Unix timestamp
+            if (is.numeric(gridded_df[[col]])) {
+              gridded_df[[col]] <- as.Date(as.POSIXct(gridded_df[[col]], 
+                                                      origin = "1970-01-01", 
+                                                      tz = "UTC"))
+            } else {
+              # Otherwise, attempt standard Date conversion (for strings/characters)
+              gridded_df[[col]] <- as.Date(gridded_df[[col]])
+            }
+            
+          } else if (target_class %in% c("POSIXct", "POSIXt")) {
+            gridded_df[[col]] <- as.POSIXct(gridded_df[[col]])
+            
+          } else {
+            # For standard atomic vectors (numeric, integer, character, logical, etc.)
+            gridded_df[[col]] <- methods::as(gridded_df[[col]], target_class)
+          }
+        }
+      }
+      
       if (length(common_cols) == 0) {
         stop(paste0("Could not join gridded table '", 
                     grid_table, 
