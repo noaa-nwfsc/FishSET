@@ -328,6 +328,44 @@ format_model_data <- function(project,
   
   # Add gridded data ------------------------------------------------------------------------------
   if(!is_empty(gridded_data)){
+    # Helper function to detect dates using heuristics
+    detect_date_cols <- function(df_to_check) {
+      cols <- names(df_to_check)
+      date_vars <- c()
+      
+      for (col in cols) {
+        if (col == "zones") next # skip spatial join key
+        
+        col_data = df_to_check[[col]]
+        
+        # Check by class
+        if (inherits(col_data, c("Date", "POSIXt", "POSIXct", "POSIXlt"))) {
+          date_vars <- c(date_vars, col)
+          next
+        }
+        
+        # Check by name (contains 'date')
+        if (grepl("date", col, ignore.case = TRUE)) {
+          date_vars <- c(date_vars, col)
+          next
+        }
+        
+        # Check numeric value (Unix timestamps or YYYYMMDD integers)
+        if (is.numeric(col_data) && !all(is.na(col_data))) {
+          med_val <- median(col_data, na.rm = TRUE)
+          # Unix timestamp check: ~1980 (3e8) to ~2050 (2.5e9)
+          is_unix <- (med_val > 300000000 && med_val < 2500000000)
+          # YYYYMMDD integer check (e.g., 20231025)
+          is_yyyymmdd <- (med_val > 19800000 && med_val < 20509999)
+          if (is_unix || is_yyyymmdd) {
+            date_vars <- c(date_vars, col)
+            next
+          }
+        }
+      }
+      return(date_vars)
+    }
+    
     # Loop through each table name provided
     for (grid_table in gridded_data) {
       
@@ -341,6 +379,24 @@ format_model_data <- function(project,
       
       common_cols <- intersect(names(df), names(gridded_df))
     
+      # Execute date validation
+      grid_date_cols <- detect_date_cols(gridded_df)
+      
+      # If temporal columns exist in the grid, ensure they are in common_cols
+      if (length(grid_date_cols) > 0) {
+        missing_dates <- setdiff(grid_date_cols, common_cols)
+        
+        if (length(missing_dates) > 0) {
+          stop(paste0(
+            "Merge aborted to prevent join explosion. ",
+            "The gridded table '", grid_table, "' contains temporal data (e.g., ",
+            paste(missing_dates, collapse = ", "), 
+            "), but a matching date variable was not found in your target dataframe. ",
+            "The date variable must be included in the 'select_vars' input."
+          ))
+        }
+      }
+      
       # Check class of common cols
       class_matches <- purrr::map2_lgl(
         df[common_cols], 
