@@ -193,8 +193,11 @@ model_resid_corr <- function(project,
   nb <- suppressMessages(suppressWarnings(spdep::poly2nb(merged_sf))) 
   
   # Check for islands (zones with no neighbors)
+  total_edges <- sum(spdep::card(nb))
   has_islands <- any(spdep::card(nb) == 0)
-  if (has_islands) {
+  n_connected <- sum(spdep::card(nb) > 0)
+  
+  if (has_islands && total_edges > 0) {
     warning(paste0("Some zones have no spatial neighbors (islands).",
                    "They will be evaluated with zero.policy = TRUE."))
   }
@@ -202,12 +205,31 @@ model_resid_corr <- function(project,
   # Check for zero variance (e.g., Models with ASCs)
   resid_var <- var(merged_sf$mean_residual, na.rm = TRUE)
   
-  if (is.na(resid_var) || resid_var < 1e-10) {
+  # Evaluate guardrails before passing to moran.test
+  if (total_edges == 0) {
+    message("Notice: No spatial neighbors detected across the entire map (all zones are islands). ",
+            "Moran's I requires at least some connected borders. Skipping test.")
+    moran_res <- list(estimate = c("Moran I statistic" = NA), p.value = NA)
+    
+  } else if (n_connected <= 3) {  
+    message("Notice: Too few connected zones (", n_connected, ") to calculate a statistically ",
+            "meaningful Moran's I. Skipping test.")
+    moran_res <- list(estimate = c("Moran I statistic" = NA), p.value = NA)
+    
+  } else if (n_connected < 20) {
+    warning("Moran's I is an asymptotic test. With fewer than 20 connected zones (", 
+            n_connected, "), the p-value may be unreliable.")
+    lw <- spdep::nb2listw(nb, style = "W", zero.policy = TRUE)
+    moran_res <- spdep::moran.test(merged_sf$mean_residual, lw, zero.policy = TRUE)
+    
+  } else if (is.na(resid_var) || resid_var < 1e-10) {
     message("Notice: Zonal residual variance is near zero. This can happen when Area-Specific ",
             "Constants (ASCs) perfectly absorb aggregate zonal variation. ",
             "Skipping Moran's I test.")
     moran_res <- list(estimate = c("Moran I statistic" = NA), p.value = NA)
+    
   } else {
+    # If all checks pass, run the test
     lw <- spdep::nb2listw(nb, style = "W", zero.policy = TRUE)
     moran_res <- spdep::moran.test(merged_sf$mean_residual, lw, zero.policy = TRUE)
   }

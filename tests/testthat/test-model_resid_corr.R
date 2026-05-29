@@ -133,13 +133,15 @@ test_that("Standard Logit spatial residuals and Moran's I run successfully", {
     restore_mocks()
   }, add = TRUE)
   
-  res <- model_resid_corr(
-    project = "TestProj_Spat_Std",
-    model_name = "std_model",
-    spat = spat_mock,
-    spat_id = "ZoneID",
-    fit_name = "std_fit"
-  )
+  suppressWarnings({
+    res <- model_resid_corr(
+      project = "TestProj_Spat_Std",
+      model_name = "std_model",
+      spat = spat_mock,
+      spat_id = "ZoneID",
+      fit_name = "std_fit"
+    )  
+  })
   
   expect_s3_class(res, "fishset_spatial_resid")
   expect_s3_class(res$residual_map, "ggplot")
@@ -167,15 +169,17 @@ test_that("EPM spatial residuals run successfully with distribution specified", 
     restore_mocks()
   }, add = TRUE)
 
-  res <- model_resid_corr(
-    project = "TestProj_Spat_EPM",
-    model_name = "epm_model",
-    spat = spat_mock,
-    spat_id = "ZoneID",
-    fit_name = "epm_fit",
-    distribution = "normal"
-  )
-
+  suppressWarnings({
+    res <- model_resid_corr(
+      project = "TestProj_Spat_EPM",
+      model_name = "epm_model",
+      spat = spat_mock,
+      spat_id = "ZoneID",
+      fit_name = "epm_fit",
+      distribution = "normal"
+    )  
+  })
+  
   expect_s3_class(res, "fishset_spatial_resid")
   expect_s3_class(res$spatial_data, "sf")
   expect_true(!is.null(res$moran_test$p.value))
@@ -197,29 +201,33 @@ test_that("Invalid inputs throw clear spatial and routing errors", {
   }, add = TRUE)
 
   # Missing distribution for EPM
-  expect_error(
-    model_resid_corr(
-      project = "TestProj_Spat_Err",
-      model_name = "epm_model",
-      spat = spat_mock,
-      spat_id = "ZoneID",
-      fit_name = "epm_fit"
-      # Missing distribution argument
-    ),
-    "EPMs require the 'distribution' argument"
-  )
-
+  suppressWarnings({
+    expect_error(
+      model_resid_corr(
+        project = "TestProj_Spat_Err",
+        model_name = "epm_model",
+        spat = spat_mock,
+        spat_id = "ZoneID",
+        fit_name = "epm_fit"
+        # Missing distribution argument
+      ),
+      "EPMs require the 'distribution' argument"
+    )  
+  })
+  
   # Missing spatial ID column in the sf object
-  expect_error(
-    model_resid_corr(
-      project = "TestProj_Spat_Err",
-      model_name = "std_model",
-      spat = spat_mock,
-      spat_id = "GhostColumn",
-      fit_name = "std_fit"
-    ),
-    "Column GhostColumn not found in the provided spat object"
-  )
+  suppressWarnings({
+    expect_error(
+      model_resid_corr(
+        project = "TestProj_Spat_Err",
+        model_name = "std_model",
+        spat = spat_mock,
+        spat_id = "GhostColumn",
+        fit_name = "std_fit"
+      ),
+      "Column GhostColumn not found in the provided spat object"
+    )  
+  })
 })
 
 
@@ -236,14 +244,16 @@ test_that("Print and plot methods display expected output", {
     restore_mocks()
   }, add = TRUE)
 
-  res <- model_resid_corr(
-    project = "TestProj_Spat_Print",
-    model_name = "std_model",
-    spat = spat_mock,
-    spat_id = "ZoneID",
-    fit_name = "std_fit"
-  )
-
+  suppressWarnings({
+    res <- model_resid_corr(
+      project = "TestProj_Spat_Print",
+      model_name = "std_model",
+      spat = spat_mock,
+      spat_id = "ZoneID",
+      fit_name = "std_fit"
+    )  
+  })
+  
   # Print Output
   expect_output(print(res), "FishSET Spatial Residual Analysis")
   expect_output(print(res), "Moran's I Statistic:")
