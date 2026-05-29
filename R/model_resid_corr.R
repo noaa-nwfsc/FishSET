@@ -5,8 +5,8 @@
 #'
 #' @param project Character string. Name of the project.
 #' @param model_name Character string. Name of the specific model design used.
-#' @param spat An \code{sf} polygon object containing the spatial boundaries 
-#'   of the fishing zones.
+#' @param spat Character string of spatial table name in project database OR \code{sf} polygon 
+#'   object containing the spatial boundaries of the fishing zones.
 #' @param spat_id Character string. The name of the column in \code{spat} that 
 #'   matches the zone identifiers used in the model design.
 #' @param fit_name Character string (Optional). Name of the model fit object. 
@@ -73,10 +73,21 @@ model_resid_corr <- function(project,
     stop("Model design not found in project folders.")
   }
   
+  # Pull spatial data if needed
+  spat_out <- data_pull(spat, project)
+  spatdat <- spat_out$dataset
+   
+  # Check/build the sf object, then transform to Leaflet CRS
+  spat <- check_spatdat(spatdat, id = spat_id)
+  
   # Predict probabilities -------------------------------------------------------------------------
   is_epm <- isTRUE(design$epm$is_epm)
   J <- design$settings$J_alts
   N <- design$settings$N_obs
+  
+  if (!is_epm && !is.null(distribution)) {
+    message("Note: the distribution input will be ignored for standard logit models.")
+  }
   
   if (is_epm && is.null(distribution)) {
     stop("EPMs require the 'distribution' argument to calculate residuals.")
