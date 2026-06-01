@@ -6,35 +6,35 @@
 \usage{
 zone_closure(
   project,
-  spatdat,
-  cat,
-  lon.spat = NULL,
-  lat.spat = NULL,
+  spatname,
+  zone_spat,
+  lon_spat = NULL,
+  lat_spat = NULL,
   epsg = NULL
 )
 }
 \arguments{
 \item{project}{Required, name of project.}
 
-\item{spatdat}{Required, data file or character. 
-\code{spatdat} is a spatial data file containing information on fishery 
-management or regulatory zones boundaries. Shape, json, geojson, and csv 
+\item{spatname}{Required, data file or character. 
+\code{spat} is a spatial data file containing information on fishery 
+management or regulatory zone boundaries. Shape, json, geojson, and csv 
 formats are supported. geojson is the preferred format. json files must be 
-converted into geoson. This is done automatically when the file is loaded 
-with \code{\link{read_dat}} with \code{is.map} set to true. \code{spatdat} 
+converted into geojson. This is done automatically when the file is loaded 
+with \code{\link{read_dat}} with \code{is.map} set to true. \code{spat} 
 cannot, at this time, be loaded from the FishSET database. \cr}
 
-\item{cat}{Variable in \code{spatdat} that identifies the individual areas or zones.}
+\item{zone_spat}{Variable in \code{spat} that identifies the individual areas or zones.}
 
-\item{lon.spat}{Required for csv files. Variable or list from \code{spatdat} 
-containing longitude data. Leave as NULL if \code{spatdat} is a shape or json file.}
+\item{lon_spat}{Required for csv files. Variable or list from \code{spat} 
+containing longitude data. Leave as NULL if \code{spat} is a shape or json file.}
 
-\item{lat.spat}{Required for csv files. Variable or list from \code{spatdat} 
-containing latitude data.  Leave as NULL if \code{spatdat} is a shape or json file.}
+\item{lat_spat}{Required for csv files. Variable or list from \code{spat} 
+containing latitude data.  Leave as NULL if \code{spat} is a shape or json file.}
 
-\item{epsg}{EPSG number. Set the epsg to ensure that \code{spatdat} have the correct projections. 
-If epsg is not specified but is defined for \code{spatdat}. 
-  See \url{http://spatialreference.org/} to help identify optimal epsg number.}
+\item{epsg}{EPSG number. Set the epsg to ensure that \code{spat} has the correct projections. 
+If epsg is not specified but is defined for \code{spat}. 
+See \url{http://spatialreference.org/} to help identify the optimal epsg number.}
 }
 \value{
 Returns a yaml file to the project output folder.
@@ -43,9 +43,9 @@ Returns a yaml file to the project output folder.
 Define zone closure scenarios
 }
 \details{
-Define zone closure scenarios. Function opens an interactive map. 
-  Define zone closures by clicking on one or more zones and clicking the 
-  'Close zones' button. To define another closure scenario, unclick zones and 
-  then click the desired zones. Press the 'Save closures' button to save choices.
-  The saved choices are called in the policy scenario function.
+Define zone closure scenarios via an interactive app. 
+  Users can define scenarios by clicking on one or more zones on the map, 
+  adjusting the allowable TAC percentages in the table, and entering a unique scenario name. 
+  Clicking 'Add closure' instantly saves the scenario to the project database. 
+  These saved choices are later called in the policy scenario function.
 }

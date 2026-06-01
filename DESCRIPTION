@@ -108,9 +108,8 @@ Suggests:
     withr
 VignetteBuilder:
     knitr
-BuildVignettes: yes
+BuildVignettes: no
 ByteCompile: TRUE
-devtools: :use_data(MainDataTable)
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 LazyData: true

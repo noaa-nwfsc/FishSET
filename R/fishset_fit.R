@@ -419,11 +419,42 @@ fishset_fit <- function(project,
                          random = random_args,
                          silent = TRUE)
   
+  # Proactive gradient check
+  init_grad <- tryCatch(obj$gr(obj$par), error = function(e) rep(NA, length(obj$par)))
+  
+  if (any(!is.na(init_grad)) && max(abs(init_grad), na.rm = TRUE) > 100000) {
+    warning("Initial gradients are extremely large. ",
+            "This usually indicates unscaled continuous variables in your design matrix. ",
+            "If the optimizer fails, try scaling your variables or setting `robust = TRUE`.",
+            call. = FALSE, immediate. = TRUE)
+  }
+  
   # Minimize NLL
-  opt <- nlminb(obj$par, 
-                obj$fn, 
-                obj$gr, 
-                control = control_list)
+  opt <- tryCatch({
+    nlminb(obj$par, 
+           obj$fn, 
+           obj$gr, 
+           control = control_list)
+    
+  }, error = function(e) {
+    # Check if the error is the classic scaling/overflow crash
+    if (grepl("NA/NaN gradient evaluation|NaN value of objective function", 
+              e$message, 
+              ignore.case = TRUE)) {
+      stop(paste0("\n\nOptimization failed: ", e$message, "\n",
+                  "-------------------------------------------------------------------\n",
+                  "This is commonly caused by numeric overflow when continuous variables \n",
+                  "(like income or distance) in the design matrix are too large/unscaled.\n",
+                  "How to fix this:\n",
+                  "  1. Scale variables by setting 'scale = TRUE' in fishset_design().\n",
+                  "  2. Run fishset_fit() with `robust = TRUE` to prevent math overflow.\n",
+                  "-------------------------------------------------------------------\n"), 
+           call. = FALSE)
+    } else {
+      # If it is a different error, pass it through normally
+      stop(paste("Optimization failed:", e$message), call. = FALSE)
+    }
+  })
   
   # Standard errors and diagnostics ---------------------------------------------------------------
   hessian_mat <- NULL

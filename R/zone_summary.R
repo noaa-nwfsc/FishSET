@@ -96,6 +96,7 @@ zone_summary <- function(dat,
                          dat_center = TRUE,
                          plot_type = "dynamic",
                          output = "plot") {
+
   
   # Pull in datasets ------------------------------------------------------------------------------
   out <- data_pull(dat, project)
@@ -255,12 +256,25 @@ zone_summary <- function(dat,
     } else bbox <- sf::st_bbox(spatdat) # use entire spatial data
     
     # world2 uses 0 - 360 lon format
-    base_map <- ggplot2::map_data(map = ifelse(shift_long(spatdat), "world2", "world"),
-                                  xlim = c(bbox["xmin"], bbox["xmax"]),
+    use_world2 <- shift_long(spatdat)
+    map_name <- ifelse(use_world2, "world2", "world")
+    
+    # Extract x-limits
+    x_limits <- c(bbox["xmin"], bbox["xmax"])
+    
+    if (use_world2) {
+      x_limits <- ifelse(x_limits < 0, x_limits + 360, x_limits)
+      # Ensure xmax is actually greater than xmin after shifting 
+      x_limits <- sort(x_limits)
+    }
+    
+    base_map <- ggplot2::map_data(map = map_name,
+                                  xlim = x_limits,
                                   ylim = c(bbox["ymin"], bbox["ymax"]))
     
     # convert data to sf for plotting purposes
-    base_map <- sf::st_as_sf(base_map, coords = c("long", "lat"),
+    base_map <- sf::st_as_sf(base_map, 
+                             coords = c("long", "lat"),
                              crs = sf::st_crs(spat_join))
     
     # convert points to polygon
