@@ -60,6 +60,8 @@ utils::globalVariables(c(
   'chosen_lin_idx',
   'zone_id',
   'zone_seq',
+  'mean_residual',
+  'geometry',
   'zone_closure_ui',
   'zone_closure_server'
 ))
