@@ -23,8 +23,6 @@
 #' }
 #' 
 #' @export
-#' @importFrom DBI dbConnect dbDisconnect dbExecute
-#' @importFrom RSQLite SQLite
 #' @importFrom Matrix colSums
 
 model_resid_corr <- function(project,
@@ -168,8 +166,6 @@ model_resid_corr <- function(project,
   
   # Standardize merge column types
   spat[[spat_id]] <- as.character(spat[[spat_id]])
-  # Find which IDs appear more than once in your shapefile
-  duplicate_ids <- spat[[spat_id]][duplicated(spat[[spat_id]])]
   # Group by your zone ID and merge the geometries together
   spat_clean <- suppressWarnings(suppressMessages({
     spat %>%
@@ -236,7 +232,12 @@ model_resid_corr <- function(project,
   
   # Generate Plot ---------------------------------------------------------------------------------
   # Calculate max absolute residual to center the color scale around 0
-  max_abs <- max(abs(merged_sf$mean_residual), na.rm = TRUE)
+  max_abs <- suppressWarnings(max(abs(merged_sf$mean_residual), na.rm = TRUE))
+  
+  # Edge case handling: if all residuals are NA
+  if (is.infinite(max_abs) || is.na(max_abs) || max_abs == 0) {
+    max_abs <- 1  # Provide a safe default limit so the plot renders without crashing
+  }
   
   p <- ggplot2::ggplot(data = merged_sf) +
     ggplot2::geom_sf(ggplot2::aes(fill = mean_residual), color = "black", linewidth = 0.2) +

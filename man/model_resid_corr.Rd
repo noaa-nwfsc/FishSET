@@ -18,8 +18,8 @@ model_resid_corr(
 
 \item{model_name}{Character string. Name of the specific model design used.}
 
-\item{spat}{An \code{sf} polygon object containing the spatial boundaries 
-of the fishing zones.}
+\item{spat}{Character string of spatial table name in project database OR \code{sf} polygon 
+object containing the spatial boundaries of the fishing zones.}
 
 \item{spat_id}{Character string. The name of the column in \code{spat} that 
 matches the zone identifiers used in the model design.}
