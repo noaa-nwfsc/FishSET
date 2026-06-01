@@ -33,6 +33,8 @@ source("modules/format_data/format_model_data_module.R", local = TRUE)
 source("modules/model_design_module.R", local = TRUE)
 source("modules/model_fit_module.R", local = TRUE)
 source("modules/model_cv_module.R", local = TRUE)
+source("modules/zone_closure_module.R", local = TRUE)
+
 
 
 # UI function definition
@@ -386,6 +388,38 @@ ui <- function(request){
             model_cv_ui("model_cv")    
           )
         )
+      )
+    ),
+    # Policy ------------------------------------------------------------------------------------
+    bslib::nav_menu(
+      title = "Policy",
+      
+      ## Model design -------------------------------------------------------------------------------
+      bslib::nav_panel(
+        title = "Zone Closures", 
+        id = "zone_closures",
+        value = "zone_closures",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE,
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+              
+              checklist_ui("zone_closure_checklist"),
+              hr(),
+              other_actions_ui("zone_closure_actions")
+            ),
+            
+            ### Main panel
+            zone_closure_ui("zone_closure")    
+          )
+        )
+        
       )
     )
   )

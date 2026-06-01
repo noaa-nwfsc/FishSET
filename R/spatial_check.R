@@ -10,7 +10,7 @@ shift_long <- function(spat) {
   # this is just a working version, needs adjusting
   bbox <- sf::st_bbox(spat)
   
-  bbox$xmin < -179 | bbox$xmax > 179
+  bbox["xmin"] < -179 | bbox["xmax"] > 179
 }
 
 
