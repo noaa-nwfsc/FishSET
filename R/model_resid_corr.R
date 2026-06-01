@@ -23,7 +23,10 @@
 #' }
 #' 
 #' @export
+#' 
+#' @importFrom dplyr %>% group_by summarize
 #' @importFrom Matrix colSums
+#' @importFrom rlang !! sym
 
 model_resid_corr <- function(project,
                              model_name,
@@ -138,14 +141,28 @@ model_resid_corr <- function(project,
   }
   
   # Calculate residuals for each zone -------------------------------------------------------------
-  # Y matrix (N x J) of actual choices
-  y_mat <- matrix(0, nrow = N, ncol = J)
-  chosen_lin_idx <- which(design$y == 1)
-  choice_idx_report <- (chosen_lin_idx - 1) %% J + 1
-  y_mat[cbind(1:N, choice_idx_report)] <- 1
+  is_poisson <- isTRUE(design$settings$model_type == "poisson")
   
-  # Residuals = Actual - Predicted
-  resid_mat <- y_mat - prob_mat_t
+  if (is_poisson) {
+    # Actual counts vs expected counts
+    y_mat <- t(matrix(design$y, nrow = J, ncol = N))
+    total_counts <- rowSums(y_mat)
+    
+    # Expected counts = predicted share * total counts for that occasion
+    expected_mat <- prob_mat_t * total_counts
+    resid_mat <- y_mat - expected_mat
+    
+  } else {
+    # Standard logit, EPM: Binary choice vs predicted probability
+    # Y matrix (N x J) of actual choices
+    y_mat <- matrix(0, nrow = N, ncol = J)
+    chosen_lin_idx <- which(design$y == 1)
+    choice_idx_report <- (chosen_lin_idx - 1) %% J + 1
+    y_mat[cbind(1:N, choice_idx_report)] <- 1
+    
+    # Residuals = Actual - Predicted
+    resid_mat <- y_mat - prob_mat_t  
+  }
   
   # Average residual per zone
   mean_zonal_resid <- colMeans(resid_mat)
