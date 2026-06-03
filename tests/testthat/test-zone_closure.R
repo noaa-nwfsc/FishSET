@@ -6,19 +6,21 @@
 #
 # Scenarios tested:
 #   - App Construction: Verifies the wrapper successfully builds a Shiny app object.
-#   - Map Click Logic: Simulates user clicks to ensure only modeled zones can be selected, 
-#                      while non-modeled zones correctly trigger an error and are ignored.
+#   - Map Click Logic: Simulates user clicks to ensure only valid zones (based on the 
+#                      selected alt_matrix) can be selected, while invalid zones trigger 
+#                      an error and are ignored.
 #   - Reactive Tables: Validates that selecting a valid zone properly updates the TAC table.
 #
-# Notes: This test uses 'testthat::local_mocked_bindings()' to safely mock internal data-pulling
-#        and directory paths (preventing real database queries or file modifications). It also
-#        utilizes 'shiny::testServer()' to test the module's reactive environment in isolation
-#        without needing to launch a web browser.
+# Notes: This test uses 'testthat::local_mocked_bindings()' to safely mock internal data-pulling,
+#        database checks, and directory paths (preventing real DB queries or file modifications). 
+#        It also utilizes 'shiny::testServer()' to test the module's reactive environment in 
+#        isolation without needing to launch a web browser.
 # -------------------------------------------------------------------------------------------------
 
 library(shiny)
 library(sf)
 library(dplyr)
+library(testthat)
 
 # Test zone closure set up ------------------------------------------------------------------------
 module_path <- system.file("ShinyFiles", 
@@ -44,7 +46,7 @@ if (file.exists(module_path)) {
   stop("Testing failed: Could not locate zone_closure_module.R")
 }
 
-# Tets shiny app object ---------------------------------------------------------------------------
+# Test shiny app object ---------------------------------------------------------------------------
 test_that("zone_closure() successfully constructs a Shiny app object", {
   
   # Create a dummy spatial dataset
@@ -54,30 +56,47 @@ test_that("zone_closure() successfully constructs a Shiny app object", {
     lat = c(37.0, 38.0)) %>%
     sf::st_as_sf(coords = c("lon", "lat"), crs = 4326)
   
-  # Mock the FishSET helper functions to prevent real database queries during the test
+  # Create a temporary empty file to represent the database so file.exists() returns TRUE
+  tmp_db <- tempfile(fileext = ".sqlite")
+  file.create(tmp_db)
+  
+  # Mock the FishSET helper functions to bypass real spatial/database queries
   local_mocked_bindings(
     data_pull = function(spatname, project) {
       list(dataset = dummy_spat)
     },
     check_spatdat = function(spatdat, id, lon, lat) {
       return(spatdat)
+    },
+    locdatabase = function(project) { 
+      return(tmp_db) 
+    },
+    table_exists = function(table, project) { 
+      return(TRUE) 
+    },
+    unserialize_table = function(table, project) { 
+      list(TestMatrix = list(greaterNZ = c("ZoneA"))) 
     }
   )
   
-  # Run the wrapper function
+  # Run the wrapper function with the new alt_matrix parameter
   app <- zone_closure(
     project = "TestProject",
     spatname = "dummy_spat_file",
-    zone_spat = "zone_id"
+    zone_spat = "zone_id",
+    alt_matrix = "TestMatrix"
   )
   
   # Assertions: Ensure the function returns a valid shiny app object
   expect_s3_class(app, "shiny.appobj")
+  
+  # Clean up temp file
+  unlink(tmp_db)
 })
 
 
 # Test map clicks ---------------------------------------------------------------------------------
-test_that("zone_closure_server handles map clicks correctly", {
+test_that("zone_closure_server handles map clicks correctly based on alt_matrix", {
   
   # Create dummy inputs for the server module
   dummy_spat <- data.frame(
@@ -88,22 +107,19 @@ test_that("zone_closure_server handles map clicks correctly", {
   
   rv_data <- reactiveValues(spat = dummy_spat)
   rv_project_name <- reactiveVal("TestProject")
+  rv_folderpath <- reactiveVal(tempdir())
   
-  # Setup a temporary directory to trick the modeled_zones() reactive
-  tmp_dir <- tempdir()
-  rv_folderpath <- reactiveVal(tmp_dir)
+  # Create a temporary file to act as our mocked SQLite database
+  tmp_db <- tempfile(fileext = ".sqlite")
+  file.create(tmp_db)
   
-  # Build the folder structure the reactive expects: TestProject/Models/ModelDesigns
-  design_dir <- file.path(tmp_dir, "TestProject", "Models", "ModelDesigns")
-  dir.create(design_dir, recursive = TRUE, showWarnings = FALSE)
-  
-  # Save a fake design file that specifies "ZoneA" is modeled
-  fake_design <- list(ids = list(zone = "ZoneA"))
-  saveRDS(fake_design, file.path(design_dir, "dummy_design.rds"))
-  
-  # Mock locproject() to point to our temporary directory
+  # Mock the database functions so the app thinks "TestMatrix" exists and contains "ZoneA"
   local_mocked_bindings(
-    locproject = function() { return(tmp_dir) }
+    locdatabase = function(project) { return(tmp_db) },
+    table_exists = function(table, project) { return(TRUE) },
+    unserialize_table = function(table, project) { 
+      list(TestMatrix = list(greaterNZ = c("ZoneA"))) 
+    }
   )
   
   # Use shiny::testServer to test the module logic in isolation
@@ -111,7 +127,11 @@ test_that("zone_closure_server handles map clicks correctly", {
     rv_folderpath = rv_folderpath,
     rv_project_name = rv_project_name,
     rv_data = rv_data,
-    spat_zone_id = "zone_id"), {
+    spat_zone_id = "zone_id",
+    alt_matrix = "TestMatrix"), {
+      
+      # Simulate the dropdown updating (which bypasses the 'init' hold in the server)
+      session$setInputs(alt_matrix_ui = "TestMatrix")
       
       # Check initial state
       expect_equal(length(rv_clicked_zones$ids), 0)
@@ -129,7 +149,10 @@ test_that("zone_closure_server handles map clicks correctly", {
       # Simulate clicking on a non-modeled zone (ZoneB)
       session$setInputs(zone_map_output_shape_click = list(id = "Zone_ZoneB"))
       
-      # Verify ZoneB was NOT added because of our safety check
+      # Verify ZoneB was NOT added because of our safety check (it is not in TestMatrix)
       expect_false("Zone_ZoneB" %in% rv_clicked_zones$ids)
     })
+  
+  # Clean up temp file
+  unlink(tmp_db)
 })

@@ -313,6 +313,7 @@ server <- function(input, output, session) {
   zone_closure_server("zone_closure", rv_folderpath = rv_folderpath, 
                       rv_project_name = rv_project_name,
                       rv_data = rv_data,
-                      spat_zone_id = NULL)
+                      spat_zone_id = NULL,
+                      alt_matrix = NULL)
   
 }
