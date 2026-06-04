@@ -83,8 +83,7 @@ test_that("zone_closure() successfully constructs a Shiny app object", {
   app <- zone_closure(
     project = "TestProject",
     spatname = "dummy_spat_file",
-    zone_spat = "zone_id",
-    alt_matrix = "TestMatrix"
+    zone_spat = "zone_id"
   )
   
   # Assertions: Ensure the function returns a valid shiny app object
@@ -127,8 +126,7 @@ test_that("zone_closure_server handles map clicks correctly based on alt_matrix"
     rv_folderpath = rv_folderpath,
     rv_project_name = rv_project_name,
     rv_data = rv_data,
-    spat_zone_id = "zone_id",
-    alt_matrix = "TestMatrix"), {
+    spat_zone_id = "zone_id"), {
       
       # Simulate the dropdown updating (which bypasses the 'init' hold in the server)
       session$setInputs(alt_matrix_ui = "TestMatrix")

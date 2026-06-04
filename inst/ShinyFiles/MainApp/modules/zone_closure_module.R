@@ -7,7 +7,6 @@
 # =================================================================================================
 
 # zone closure server -----------------------------------------------------------------------------
-
 #' zone_closure_server
 #'
 #' @param id A character string that is unique to this module instance.
@@ -16,10 +15,9 @@
 #' @param rv_data Reactive list containing spatial data (rv_data$spat).
 #' @param spat_zone_id Optional string passed directly from the console wrapper to bypass GUI 
 #'                     loader.
-#' @param alt_matrix Optional alternative matrix name or list object.
 #' @return This module does not return a value.
-zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spat_zone_id = NULL, 
-                                alt_matrix = NULL) {
+zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, 
+                                spat_zone_id = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -37,10 +35,17 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
     if (is.null(spat_zone_id)) {
       observe({
         req(current_project(), rv_folderpath())
-        selected_vars <- load_gui_variables(current_project(), rv_folderpath())
         
-        if (!is.null(selected_vars)) {
-          rv_selected_vars$vars <- selected_vars
+        # Tell Shiny to re-run this check every 2.5 seconds
+        shiny::invalidateLater(5000, session)
+        
+        # Read the current state of the file from the disk
+        new_vars <- load_gui_variables(current_project(), rv_folderpath())
+        
+        # If valid data is found AND it's different from what we currently have in memory
+        if (!is.null(new_vars) && !identical(new_vars, rv_selected_vars$vars)) {
+          # Overwrite the old memory with the new disk data
+          rv_selected_vars$vars <- new_vars
         }
       })
     }
@@ -56,6 +61,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
     get_zone_id <- reactive({
       if (!is.null(spat_zone_id)) {
         return(spat_zone_id) 
+        
       } else {
         req(rv_selected_vars$vars$spat$spat_zone_id)
         return(rv_selected_vars$vars$spat$spat_zone_id) 
@@ -64,21 +70,21 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
     
     # Process spatial data
     zone_df <- reactive({
-      req(rv_data$spat, get_zone_id())
+      req(rv_data$spat, get_zone_id() )
       
       spat_data <- rv_data$spat
       z_id <- get_zone_id()
       
       spat_data %>%
         sf::st_transform(., "+proj=longlat +datum=WGS84") %>%
-        mutate(secondLocationID = paste0("Zone_", as.character(spat_data[[z_id]]))) %>%
-        mutate(zone = as.character(spat_data[[z_id]]))
+        mutate(second_location_id = paste0("Zone_", as.character(.data[[z_id]]))) %>%
+        mutate(zone = as.character(.data[[z_id]]))
     })
     
     # Render Missing Matrix Warning ---------------------------------------------------------------
     output$alt_matrix_warning <- renderUI({
       req(rv_db_state$initialized)
-      req(!is.null(input$alt_matrix_ui), input$alt_matrix_ui != "init") # Wait until UI fully updates
+      req(!is.null(input$alt_matrix_ui), input$alt_matrix_ui != "init") # Wait until UI updates
       
       # Check if the database genuinely has no matrices
       if (length(rv_db_state$choices) == 1 && rv_db_state$choices == "") {
@@ -109,39 +115,28 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
       if (!identical(current_mtime, rv_db_state$mtime)) {
         rv_db_state$mtime <- current_mtime
         
-        single_sql <- paste0(proj, "AltMatrix")
+        alt_table <- paste0(proj, "AltMatrix")
         
-        if (file.exists(db_path) && table_exists(single_sql, proj)) {
-          AltList <- unserialize_table(single_sql, proj)
-          if (length(names(AltList)) > 0) {
-            dropdown_choices <- stats::setNames(names(AltList), names(AltList))
-          } else {
-            dropdown_choices <- c("No matrices available" = "")
-          }
-        } else {
-          dropdown_choices <- c("No matrices available" = "")
+        dropdown_choices <- c("No matrices available" = "")
+        table_is_present <- tryCatch({
+          table_exists(alt_table, proj)
+        }, error = function(e) {
+          FALSE # If an error is thrown, silently assume the table does not exist
+        })
+        
+        if (table_is_present) {
+          alt_list <- unserialize_table(alt_table, proj)
+          if (length(names(alt_list)) > 0) {
+            dropdown_choices <- stats::setNames(names(alt_list), names(alt_list))
+          } 
         }
         
         if (!identical(dropdown_choices, rv_db_state$choices)) {
           rv_db_state$choices <- dropdown_choices
           current_selection <- shiny::isolate(input$alt_matrix_ui)
           
-          # Priority 1: If passed via parameter, attempt to force it on initial load
-          if (!rv_db_state$initialized && isTruthy(alt_matrix) && is.character(alt_matrix)) {
-            if (alt_matrix %in% dropdown_choices) {
-              current_selection <- alt_matrix
-            } else {
-              showNotification(
-                sprintf("Warning: Matrix '%s' was not found. Defaulting to available options.",
-                        alt_matrix), 
-                type = "warning", duration = 8
-              )
-              current_selection <- dropdown_choices[1]
-            }
-          } 
-          # Priority 2: Standard fallback to the first choice
-          else if (!isTruthy(current_selection) || current_selection == "init" || 
-                   !(current_selection %in% dropdown_choices)) {
+          if (!isTruthy(current_selection) || current_selection == "init" || 
+              !(current_selection %in% dropdown_choices)) {
             current_selection <- dropdown_choices[1]
           }
           
@@ -156,7 +151,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
       }
     })
     
-    # Clear user selections ONLY when the selected matrix actually changes -----------------------
+    # Clear user selections ONLY when the selected matrix actually changes ------------------------
     observeEvent(input$alt_matrix_ui, {
       current_val <- input$alt_matrix_ui
       req(!is.null(current_val), current_val != "init") # Ignore the initial loading state
@@ -171,27 +166,30 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
     
     # Extract Modeled Zones (Evaluates lazily - NO FALLBACK) --------------------------------------
     modeled_zones <- reactive({
+      req(rv_db_state$choices, rv_db_state$mtime)
       req(current_project(), rv_db_state$initialized)
-      req(!is.null(input$alt_matrix_ui), input$alt_matrix_ui != "init") # Hold until dropdown updates
+      req(!is.null(input$alt_matrix_ui), input$alt_matrix_ui != "init") # Hold until updates
       
       proj <- current_project()
       selected_matrix <- input$alt_matrix_ui
       
-      # Accommodate legacy lists passed via alt_matrix parameter (if applicable)
-      if (selected_matrix == "" && is.list(alt_matrix) && "greaterNZ" %in% names(alt_matrix)) {
-        return(as.character(unique(alt_matrix$greaterNZ)))
+      if (selected_matrix == "") {
+        return(NULL)
       }
       
       # Standard logic: Grab character-based names from database
-      if (selected_matrix != "") {
-        if (is.character(selected_matrix)) {
-          single_sql <- paste0(proj, "AltMatrix")
-          if (table_exists(single_sql, proj)) {
-            AltList <- unserialize_table(single_sql, proj)
-            if (selected_matrix %in% names(AltList)) {
-              return(as.character(unique(AltList[[selected_matrix]]$greaterNZ)))
-            }
-          }
+      alt_table <- paste0(proj, "AltMatrix")
+      table_is_present <- tryCatch({
+        table_exists(alt_table, proj)
+      }, error = function(e) { FALSE })
+      
+      if (table_is_present) {
+        alt_list <- tryCatch({
+          unserialize_table(alt_table, proj)
+        }, error = function(e) list())
+        
+        if (selected_matrix %in% names(alt_list)) {
+          return(as.character(unique(alt_list[[selected_matrix]]$greaterNZ)))
         }
       }
       
@@ -200,7 +198,6 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
     
     # Output Leaflet Map (Combined Plotting Logic) ------------------------------------------------
     output$zone_map_output <- leaflet::renderLeaflet({
-      req(zone_df(), rv_db_state$initialized)
       req(!is.null(input$alt_matrix_ui), input$alt_matrix_ui != "init") # Prevent double-rendering
       
       z_df <- zone_df()
@@ -223,14 +220,14 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
           leaflet::addCircleMarkers(data = z_df, radius = 6, fillColor = "white", 
                                     fillOpacity = 0.6,
                                     color = "black", stroke = TRUE, weight = 1,
-                                    layerId = ~secondLocationID, group = "regions", 
-                                    label = ~secondLocationID)
+                                    layerId = ~second_location_id, group = "regions", 
+                                    label = ~second_location_id)
       } else {
         map <- map %>%
           leaflet::addPolygons(data = z_df, fillColor = "white", fillOpacity = 0.5,
                                color = "black", stroke = TRUE, weight = 1,
-                               layerId = ~secondLocationID, group = "regions", 
-                               label = ~secondLocationID)
+                               layerId = ~second_location_id, group = "regions", 
+                               label = ~second_location_id)
       }
       
       # Add Highlights Layer (Yellow Fill) if matrix exists
@@ -243,14 +240,14 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
               leaflet::addCircleMarkers(data = highlight_data, radius = 6, fillColor = "#FFC107",
                                         fillOpacity = 0.7,
                                         color = "#FFC107", stroke = TRUE, weight = 1,
-                                        layerId = ~secondLocationID, group = "regions", 
-                                        label = ~secondLocationID)
+                                        layerId = ~second_location_id, group = "regions", 
+                                        label = ~second_location_id)
           } else {
             map <- map %>% 
               leaflet::addPolygons(data = highlight_data, fillColor = "#FFC107", fillOpacity = 0.5,
                                    color = "#FFC107", stroke = TRUE, weight = 1,
-                                   layerId = ~secondLocationID, group = "regions", 
-                                   label = ~secondLocationID)
+                                   layerId = ~second_location_id, group = "regions", 
+                                   label = ~second_location_id)
           }
         }
       }
@@ -263,7 +260,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
       click <- input$zone_map_output_shape_click
       req(click$id)
       
-      sec_id <- "secondLocationID"
+      sec_id <- "second_location_id"
       proxy <- leaflet::leafletProxy("zone_map_output")
       is_point_data <- any(sf::st_geometry_type(zone_df()) %in% c("POINT", "MULTIPOINT"))
       
@@ -430,7 +427,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
         zones_to_show <- unique(unlist(lapply(selected_scenarios, function(x) x$zone)))
         
         if (length(zones_to_show) > 0) {
-          sec_id <- "secondLocationID"
+          sec_id <- "second_location_id"
           poly_to_show <- zone_df() %>% filter(.data[[sec_id]] %in% zones_to_show)
           
           if (is_point_data) {

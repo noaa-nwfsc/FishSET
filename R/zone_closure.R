@@ -36,57 +36,46 @@ zone_closure <- function(project,
                          zone_spat, 
                          lon_spat = NULL,
                          lat_spat = NULL, 
-                         epsg = NULL,
-                         alt_matrix) { 
+                         epsg = NULL) { 
   
-  # 1. CONSOLE-SPECIFIC ERROR CHECKS (Runs before Shiny app opens)
-  if (missing(alt_matrix) || is.null(alt_matrix)) {
-    stop("Error: 'alt_matrix' is missing. You must specify a valid alternative matrix to run this 
-         app from the console.", call. = FALSE)
+  # Load alt matrix -------------------------------------------------------------------------------
+  alt_table <- paste0(project, "AltMatrix")
+  
+  # Stop function if the alt matrix table doesn't exist
+  if (!table_exists(alt_table, project)) {
+    stop(paste0("Error: The table of alternative choice matrices does not exist for project ",
+                project, 
+                ". Run `create_alternative_choice()` to define your valid zones."))
+  } else {
+    alt_list <- unserialize_table(alt_table, project)
+    
+    # Ensure the table is not empty
+    if (is.null(alt_list)) {
+      stop(paste0("Error: The table of alternative choice matrices is empty. Create an ",
+                  "alternative choice matrix to continue with zone_closure()."))
+    }
   }
   
-  # If passed as a character string, verify it actually exists in the project database
-  if (is.character(alt_matrix)) {
-    db_path <- locdatabase(project = project)
-    single_sql <- paste0(project, "AltMatrix")
-    
-    if (!file.exists(db_path) || !table_exists(single_sql, project)) {
-      stop(sprintf(
-        paste0("Error: No alternative matrices found in the database for project '%s'. ",
-               "Run `create_alternative_choice()` in the console to define your valid zones."), 
-        project
-      ), call. = FALSE)
-    }
-    
-    AltList <- unserialize_table(single_sql, project)
-    if (!(alt_matrix %in% names(AltList))) {
-      available <- paste(names(AltList), collapse = ", ")
-      stop(sprintf("Error: The alt_matrix '%s' was not found. Available matrices: %s", alt_matrix,
-                   available), call. = FALSE)
-    }
-  } else if (!is.list(alt_matrix)) {
-    stop("Error: 'alt_matrix' must be either a character string or a valid list object.", 
-         call. = FALSE)
-  }
+  # Default to first alt_matrix in the list
+  alt_matrix <- alt_list[[1]]
   
-  # Set these values to NULL to appease RCMD checks
-  zone <- display <- NULL
   
+  # Set zone closure shiny path -------------------------------------------------------------------
   zone_closure_dir <- system.file("ShinyFiles", "MainApp", "modules", package = "FishSET")
   if (zone_closure_dir == "") {
     stop("Could not find example directory. Try re-installing `FishSET`.", call. = FALSE)
   }
-  
   source(file.path(zone_closure_dir, "zone_closure_module.R"), local = TRUE)
   
-  # Pull spatial data if needed
+  
+  # Pull spatial data if needed -------------------------------------------------------------------
   spat_out <- data_pull(spatname, project)
   spatdat <- spat_out$dataset
   
   # Check/build the sf object, then transform to Leaflet CRS
   spat <- check_spatdat(spatdat, id = zone_spat, lon = lon_spat, lat = lat_spat)
   
-  # Zone closure ui -----------------------------------------------------------
+  # Zone closure ui -------------------------------------------------------------------------------
   ui <- bslib::page_fluid(
     theme = bslib::bs_theme(
       primary = "#41729F", 
@@ -98,7 +87,7 @@ zone_closure <- function(project,
     zone_closure_ui("policy")
   )
   
-  # Zone closure server -------------------------------------------------------
+  # Zone closure server ---------------------------------------------------------------------------
   server <- function(input, output, session){
     session$onSessionEnded(function() {
       stopApp()
@@ -114,8 +103,7 @@ zone_closure <- function(project,
       rv_folderpath = rv_folderpath, 
       rv_project_name = rv_project_name, 
       rv_data = rv_data,
-      spat_zone_id = zone_spat,
-      alt_matrix = alt_matrix 
+      spat_zone_id = zone_spat 
     )
   }
   
