@@ -91,6 +91,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rcpp_calc_welfare
+NumericVector rcpp_calc_welfare(NumericMatrix V_base, NumericMatrix V_new, NumericVector theta, IntegerVector closed_idx, int J, int N, int betadraws, bool has_mods);
+RcppExport SEXP _FishSET_rcpp_calc_welfare(SEXP V_baseSEXP, SEXP V_newSEXP, SEXP thetaSEXP, SEXP closed_idxSEXP, SEXP JSEXP, SEXP NSEXP, SEXP betadrawsSEXP, SEXP has_modsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type V_base(V_baseSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type V_new(V_newSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type closed_idx(closed_idxSEXP);
+    Rcpp::traits::input_parameter< int >::type J(JSEXP);
+    Rcpp::traits::input_parameter< int >::type N(NSEXP);
+    Rcpp::traits::input_parameter< int >::type betadraws(betadrawsSEXP);
+    Rcpp::traits::input_parameter< bool >::type has_mods(has_modsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_calc_welfare(V_base, V_new, theta, closed_idx, J, N, betadraws, has_mods));
+    return rcpp_result_gen;
+END_RCPP
+}
 // shift_sort_xcpp
 NumericMatrix shift_sort_xcpp(NumericMatrix x, NumericMatrix ch, NumericVector y, NumericMatrix distance, int alts, int ab);
 RcppExport SEXP _FishSET_shift_sort_xcpp(SEXP xSEXP, SEXP chSEXP, SEXP ySEXP, SEXP distanceSEXP, SEXP altsSEXP, SEXP abSEXP) {
@@ -115,6 +133,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_FishSET_rcpp_calc_scale_stats", (DL_FUNC) &_FishSET_rcpp_calc_scale_stats, 1},
     {"_FishSET_rcpp_apply_scale", (DL_FUNC) &_FishSET_rcpp_apply_scale, 3},
     {"_FishSET_rcpp_sparse_interaction", (DL_FUNC) &_FishSET_rcpp_sparse_interaction, 3},
+    {"_FishSET_rcpp_calc_welfare", (DL_FUNC) &_FishSET_rcpp_calc_welfare, 8},
     {"_FishSET_shift_sort_xcpp", (DL_FUNC) &_FishSET_shift_sort_xcpp, 6},
     {NULL, NULL, 0}
 };

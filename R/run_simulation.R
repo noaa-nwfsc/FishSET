@@ -26,7 +26,7 @@ run_simulation <- function(project,
                            mod_name,
                            closures = NULL,
                            data_modifiers = NULL,
-                           betadraws = 1000,
+                           betadraws = 500,
                            marg_util_income = NULL,
                            income_cost = FALSE) {
   
@@ -53,6 +53,9 @@ run_simulation <- function(project,
     stop(paste("Model fit", fit_name, "not found. Run fishset_fit() first."))
   }
   fit <- fit_list[[fit_name]]
+
+  # Delete the full fit_list
+  rm(fit_list)
   
   is_epm <- isTRUE(design$epm$is_epm)
   N_obs <- design$settings$N_obs
@@ -61,7 +64,6 @@ run_simulation <- function(project,
   # Auto-detect distribution for EPM
   if (is_epm) {
     coef_names <- names(fit$coefficients)
-    
     if (any(grepl("Sigma_Catch_", coef_names))) {
       distribution <- "normal"
     } else if (any(grepl("Sdlog_Catch_", coef_names))) {
@@ -75,13 +77,16 @@ run_simulation <- function(project,
     distribution <- "logit"
   }
   
-  
   # Extract data and parameter draws --------------------------------------------------------------
   # Create base matrices
   X_base <- design$X
   if (is_epm) {
     X_catch_base <- design$epm$X_catch
     price_base <- design$epm$price_vec
+    
+    # EPMs split the design matrix
+    cost_cols <- setdiff(colnames(X_base), colnames(X_catch_base))
+    X_cost_base <- X_base[, cost_cols, drop = FALSE]
   }
   
   # Check Hessian for valid covariance matrix
@@ -89,10 +94,11 @@ run_simulation <- function(project,
   if (is.null(hess) || any(is.na(hess))) {
     stop("Invalid Hessian matrix in model fit. Cannot generate parameter draws.")
   }
+  
   cov_mat <- tryCatch(solve(hess), error = function(e) NULL)
   if (is.null(cov_mat)) stop("Hessian matrix is not invertible (not positive definite).")
   
-  # Draw parameters from Multivariate Normal: rows = draws, cols = parameters
+  # Draw parameters from Multivariate Normal
   beta_draws <- MASS::mvrnorm(n = betadraws, mu = fit$opt$par, Sigma = cov_mat)
   colnames(beta_draws) <- names(fit$opt$par)
   
@@ -100,7 +106,9 @@ run_simulation <- function(project,
   X_new <- X_base
   if (is_epm) {
     X_catch_new <- X_catch_base
+    X_cost_new <- X_new[, cost_cols, drop = FALSE]
     price_new <- price_base
+
   }
   
   if (!is.null(data_modifiers)) {
@@ -140,114 +148,199 @@ run_simulation <- function(project,
     }
   }
   
+  if (is_epm) {
+    y_div <- if (!is.null(design$scalers$Y_catch_divisor)) design$scalers$Y_catch_divisor else 1
+    p_div <- if (!is.null(design$scalers$price_divisor)) design$scalers$price_divisor else 1
+    epm_welfare_multiplier <- y_div * p_div
+  }
   
-  # Simulation loop setup -------------------------------------------------------------------------
-  scenarios <- if (!is.null(closures)) closures else list(list(scenario = "Data_Modification", 
-                                                               zone = NULL))
+  # Load closures from YAML -----------------------------------------------------------------------
+  if (!is.null(closures)) {
+    yaml_file <- paste0(locoutput(project), pull_output(project, type = "zone", fun = "closures"))
+    
+    if (utils::file_test("-f", yaml_file)) {
+      all_closures <- yaml::read_yaml(yaml_file)
+      scenarios <- all_closures[vapply(all_closures, 
+                                       function(x) x$scenario %in% unlist(closures), logical(1))]
+      
+      if (length(scenarios) == 0) {
+        available_scens <- vapply(all_closures, function(x) x$scenario, character(1))
+        stop(paste0("None of the specified scenario names in 'closures' were found in ",
+                    "the YAML file.\n Available scenarios are: '", 
+                    paste(available_scens, collapse = "', '"), "'"), call. = FALSE)
+      }
+    } else {
+      stop("No policy scenario YAML file found. Run the zone_closure() function first.")
+    }
+    
+  } else {
+    scenarios <- list(list(scenario = "Data_Modification", zone = NULL))
+  }
+  
+  has_mods <- !is.null(data_modifiers)
+  
+  # Find theta index
+  if (!is_epm) {
+    if (is.null(marg_util_income)) stop("Standard logit requires 'marg_util_income'.")
+    theta_idx <- which(colnames(X_base) == marg_util_income)
+    if (length(theta_idx) == 0) stop(paste("Coefficient", marg_util_income, "not found."))
+  }
+  
   results_list <- list()
-  
-  # Extract zone identifiers to map closures mathematically
   zone_vec <- as.character(design$ids$zone)
-  unique_zones <- levels(as.factor(zone_vec))
-  if (length(unique_zones) == 0) unique_zones <- unique(zone_vec)
-  
   
   # Run simulation --------------------------------------------------------------------------------
   for (scen in scenarios) {
     scenario_name <- scen$scenario
     closed_zones <- if (!is.null(scen$zone)) gsub("Zone_", "", scen$zone) else character(0)
-    
-    # Identify row indices in the flattened X matrix that belong to closed zones
     closed_idx <- which(zone_vec %in% closed_zones)
     
-    # Storage for this scenario
     draw_welfare <- numeric(betadraws)
     
     for (d in 1:betadraws) {
       b_d <- beta_draws[d, ]
       
-      # Standard logit models
       if (!is_epm) {
-        V_base <- as.vector(X_base %*% b_d)
-        V_new  <- as.vector(X_new %*% b_d)
+        V_base <- as.numeric(X_base %*% b_d)
+        if (has_mods) V_new <- as.numeric(X_new %*% b_d)
         
-        # Marginal Utility of Income Extraction
-        if (is.null(marg_util_income)) stop(paste("Standard logit requires 'marg_util_income'",
-                                                  "to calculate welfare."))
-        theta_idx <- which(colnames(X_base) == marg_util_income)
-        if (length(theta_idx) == 0) stop(paste("Coefficient", 
-                                               marg_util_income, 
-                                               "not found in model."))
         theta <- b_d[theta_idx]
         if (income_cost) theta <- -theta
         
-        # EPMs
-      } else {
-        n_c <- ncol(X_catch_base)
-        b_c <- b_d[1:n_c]
-        b_u <- b_d[(n_c + 1):(length(b_d) - J_alts - 1)] 
+        # Unscale theta if necessary
+        if (!is.null(design$scalers)) {
+          # Combine all potential stdev scalers
+          sds <- c(design$scalers$X1$sd, unlist(design$scalers$X2$sd))
+          
+          # If marg_util_income was scaled, divide by its stdev
+          if (marg_util_income %in% names(sds)) {
+            theta <- theta / sds[marg_util_income]
+          }
+        }
         
-        # Extract distribution parameters
+        # Error check: marginal utility of income must be positive
+        if (theta <= 0) {
+          draw_welfare[d] <- NA
+          next # skip and go to the next draw
+        }
+        
+      } else {
+        # Extract parameters
+        n_c <- ncol(X_catch_base)
+        n_var <- length(grep("log_sigma|Sigma|Sdlog|Shape", names(b_d), ignore.case = TRUE))
+        n_u <- length(b_d) - n_c - n_var
+        
+        # Catch parameters are always the first n_c elements
+        b_c <- b_d[1:n_c]
+        
+        # If X_base has columns, pull the matching parameters; otherwise leave empty
+        if (n_u > 0) {
+          b_u <- b_d[(n_c + 1):(n_c + n_u)]
+        } else {
+          b_u <- numeric(0)
+        }
+        
         sig_c <- exp(b_d[grep("log_sigma_c", names(b_d))])
         sig_e <- exp(b_d[grep("log_sigma_e", names(b_d))])
         
-        # Compute Linear Predictors
-        lin_pred_base <- as.vector(X_catch_base %*% b_c)
-        lin_pred_new  <- as.vector(X_catch_new %*% b_c)
+        lin_pred_base <- as.numeric(X_catch_base %*% b_c)
+        if (has_mods) lin_pred_new <- as.numeric(X_catch_new %*% b_c)
+        
+        # Explicitly expand sig_c to match the length of the dataset
+        zone_seq <- ((0:(length(lin_pred_base) - 1)) %% J_alts) + 1
+        sig_c_full <- sig_c[zone_seq]
         
         if (distribution == "normal") {
           mu_catch_base <- lin_pred_base
-          mu_catch_new  <- lin_pred_new
-          
+          if (has_mods) mu_catch_new <- lin_pred_new
         } else if (distribution == "lognormal") {
           mu_catch_base <- exp(lin_pred_base + 0.5 * (sig_c^2))
-          mu_catch_new  <- exp(lin_pred_new + 0.5 * (sig_c^2))
-          
+          if (has_mods) mu_catch_new <- exp(lin_pred_new + 0.5 * (sig_c^2))
         } else if (distribution == "weibull") {
           mu_catch_base <- exp(lin_pred_base) * exp(lgamma(1 + 1 / sig_c))
-          mu_catch_new  <- exp(lin_pred_new) * exp(lgamma(1 + 1 / sig_c))
-          
-        } else {
-          stop(paste("Unsupported EPM distribution:", distribution))
+          if (has_mods) mu_catch_new <- exp(lin_pred_new) * exp(lgamma(1 + 1 / sig_c))
         }
         
-        # Calculate base and counterfactual utilities
         rev_base <- price_base * mu_catch_base
-        rev_new  <- price_new * mu_catch_new
-        
-        cost_base <- if (length(b_u) > 0) as.vector(X_base %*% b_u) else 0
-        cost_new  <- if (length(b_u) > 0) as.vector(X_new %*% b_u) else 0
-        
+        cost_base <- if (length(b_u) > 0) as.numeric(X_cost_base %*% b_u) else 0
         V_base <- (1 / sig_e) * (rev_base + cost_base)
-        V_new  <- (1 / sig_e) * (rev_new + cost_new)
         
-        theta <- (1 / sig_e) # Scale parameter acts as implicit MU of income
+        if (has_mods) {
+          rev_new <- price_new * mu_catch_new
+          cost_new <- if (length(b_u) > 0) as.numeric(X_cost_new %*% b_u) else 0
+          V_new <- (1 / sig_e) * (rev_new + cost_new)
+        }
+        theta <- (1 / sig_e)
       }
       
-      # Apply closures
-      if (length(closed_idx) > 0) {
-        V_new[closed_idx] <- -Inf
-      }
-      
-      # Reshape and compute welfare (log-sum matrix math)
       dim(V_base) <- c(J_alts, N_obs)
-      dim(V_new)  <- c(J_alts, N_obs)
       
-      max_V_base <- apply(V_base, 2, max)
-      max_V_new  <- apply(V_new, 2, max)
+      # Fast Max for Base
+      max_V_base <- V_base[1, ]
+      for (j in 2:J_alts) {
+        curr_base <- V_base[j, ]
+        
+        # which() filters out NA and NaN values to prevent subscript errors
+        idx_base <- which(curr_base > max_V_base)
+        if (length(idx_base) > 0) {
+          max_V_base[idx_base] <- curr_base[idx_base]
+        }
+      }
       
-      logsum_base <- log(colSums(exp(sweep(V_base, 2, max_V_base, "-")))) + max_V_base
-      logsum_new  <- log(colSums(exp(sweep(V_new, 2, max_V_new, "-")))) + max_V_new
+      # Shift and exp Base
+      for (j in 1:J_alts) {
+        V_base[j, ] <- V_base[j, ] - max_V_base
+      }
+      V_base <- exp(V_base)
+      
+      # Base logsum (Bypass S3 Overhead)
+      logsum_base <- log(.colSums(V_base, m = J_alts, n = N_obs, na.rm = FALSE)) + max_V_base
+      
+      if (!has_mods) {
+        # Skip V_new for data modifiers
+        if (length(closed_idx) > 0) {
+          V_base[closed_idx] <- 0 
+        }
+        logsum_new <- log(.colSums(V_base, m = J_alts, n = N_obs, na.rm = FALSE)) + max_V_base
+        
+      } else {
+        # If data changed, we must do the full CPU math for V_new
+        if (length(closed_idx) > 0) V_new[closed_idx] <- -Inf
+        dim(V_new) <- c(J_alts, N_obs)
+        
+        max_V_new <- V_new[1, ]
+        for (j in 2:J_alts) {
+          curr_new <- V_new[j, ]
+          
+          # Safely filter NAs for the counterfactual matrix
+          idx_new <- which(curr_new > max_V_new)
+          if (length(idx_new) > 0) {
+            max_V_new[idx_new] <- curr_new[idx_new]
+          }
+        }
+        
+        for (j in 1:J_alts) {
+          V_new[j, ] <- V_new[j, ] - max_V_new
+        }
+        
+        V_new <- exp(V_new)
+        logsum_new <- log(.colSums(V_new, m = J_alts, n = N_obs, na.rm = FALSE)) + max_V_new
+      }
       
       welfare_diff <- (1 / theta) * (logsum_new - logsum_base)
+      
+      if (is_epm) {
+        welfare_diff <- welfare_diff * epm_welfare_multiplier
+      }
+      
       draw_welfare[d] <- mean(welfare_diff, na.rm = TRUE)
     }
     
     # Store scenario summaries
     results_list[[scenario_name]] <- list(
       welfare_draws = draw_welfare,
-      mean_welfare_loss = mean(draw_welfare),
-      quantiles = quantile(draw_welfare, probs = c(0.025, 0.05, 0.5, 0.95, 0.975))
+      mean_welfare_loss = mean(draw_welfare, na.rm = TRUE),
+      quantiles = quantile(draw_welfare, probs = c(0.025, 0.05, 0.5, 0.95, 0.975), na.rm = TRUE)
     )
   }
   
@@ -266,13 +359,25 @@ run_simulation <- function(project,
   class(sim_obj) <- "fishset_policy"
   
   table_name <- paste0(project, "PolicySimulations")
-  DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", 
-                                   table_name, 
-                                   "(name TEXT UNIQUE, data BLOB)"))
   
+  # Explicitly send and clear the CREATE TABLE statement
+  res_create <- DBI::dbSendStatement(fishset_db, paste("CREATE TABLE IF NOT EXISTS", 
+                                                       table_name, 
+                                                       "(name TEXT UNIQUE, data BLOB)"))
+  DBI::dbClearResult(res_create)
+  
+  # Serialize the massive object
   sim_name <- paste0("Sim_", mod_name, "_", format(Sys.time(), "%Y%m%d_%H%M%S"))
-  DBI::dbExecute(fishset_db,
-                 paste("INSERT OR REPLACE INTO", table_name, "(name, data) VALUES (:name, :data)"),
-                 params = list(name = sim_name, data = list(serialize(sim_obj, NULL))))
-  return(sim_obj)
+  serialized_data <- list(serialize(sim_obj, NULL))
+  
+  # Explicitly send and clear the heavy BLOB INSERT statement
+  insert_query <- paste("INSERT OR REPLACE INTO", table_name, "(name, data) VALUES (:name, :data)")
+  res_insert <- DBI::dbSendStatement(fishset_db, 
+                                     insert_query, 
+                                     params = list(name = sim_name, data = serialized_data))
+  DBI::dbClearResult(res_insert)
+  
+  # Force R to clean up temporary matrices and return RAM to the OS
+  gc() 
+  return(invisible(TRUE))
 }
