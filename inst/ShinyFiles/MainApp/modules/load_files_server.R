@@ -364,6 +364,42 @@ select_data_server <- function(id, data_type, rv_project_name){
     rv_data_input_type <- reactiveVal() # indicates which input value to return
     rv_port_name <- reactiveVal() # indicates port name in port tables
     
+    # Reactive values to store the actual file data
+    rv_upload_val <- reactiveVal(NULL)
+    rv_spat_file_val <- reactiveVal(NULL)
+    rv_spat_shp_val <- reactiveVal(NULL)
+    
+    # Listen to file inputs and store their values
+    if (data_type != "spat") {
+      observeEvent(input[[paste0(data_type, "_upload_input")]], {
+        rv_upload_val(input[[paste0(data_type, "_upload_input")]])
+      })
+    } else {
+      observeEvent(input$spat_file_input, {
+        rv_spat_file_val(input$spat_file_input)
+      })
+      observeEvent(input$spat_shp_input, {
+        rv_spat_shp_val(input$spat_shp_input)
+      })
+    }
+    
+    # Clear buttons - reset the UI AND the reactive value
+    if (data_type != "spat") {
+      observeEvent(input[[paste0(data_type, "_clear_btn")]], {
+        shinyjs::reset(paste0(data_type, "_upload_input"))
+        rv_upload_val(NULL) # Explicitly clear the data
+      })
+    } else {
+      observeEvent(input$spat_file_clear_btn, {
+        shinyjs::reset("spat_file_input")
+        rv_spat_file_val(NULL) # Explicitly clear the data
+      })
+      observeEvent(input$spat_shp_clear_btn, {
+        shinyjs::reset("spat_shp_input")
+        rv_spat_shp_val(NULL) # Explicitly clear the data
+      })
+    }
+    
     # Observer project name reactive
     observeEvent(rv_project_name(), {
       req(rv_project_name()) # Check to ensure reactive is available
@@ -469,19 +505,22 @@ select_data_server <- function(id, data_type, rv_project_name){
         
       } else if(rv_data_input_type() == "upload"){
         if(data_type != "port"){
-          list(type = "upload", value = input[[paste0(data_type, "_upload_input")]]) 
+          # Returning the intercepted reactiveVal
+          list(type = "upload", value = rv_upload_val()) 
           
-          # Need to include port name for load_port() function
         } else {
-          list(type = "upload", value = input[[paste0(data_type, "_upload_input")]],
+          # Returning the intercepted reactiveVal
+          list(type = "upload", value = rv_upload_val(),
                port_name = rv_port_name)  
         }
         
       } else if(rv_data_input_type() == "spat_file"){
-        list(type = "upload", value = input$spat_file_input, spat_type = "spat_file")
+        # Returning the intercepted reactiveVal
+        list(type = "upload", value = rv_spat_file_val(), spat_type = "spat_file")
         
       } else if(rv_data_input_type() == "spat_shp"){
-        list(type = "upload", value = input$spat_shp_input, spat_type = "spat_shp")  
+        # Returning the intercepted reactiveVal
+        list(type = "upload", value = rv_spat_shp_val(), spat_type = "spat_shp")  
       }
     }))
   })
