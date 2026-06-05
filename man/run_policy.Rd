@@ -2,67 +2,70 @@
 % Please edit documentation in R/run_policy.R
 \name{run_policy}
 \alias{run_policy}
-\title{Runs policy scenarios}
+\title{Run policy simulations}
 \usage{
 run_policy(
   project,
-  mod.name = NULL,
-  policy.name = NULL,
+  mod_name = NULL,
+  policy_name = NULL,
   betadraws = 1000,
   marg_util_income = NULL,
   income_cost = NULL,
-  zone.dat = NULL,
+  zone_dat = NULL,
   group_var = NULL,
   enteredPrice = NULL,
-  expected.catch = NULL,
-  use.scalers = FALSE,
-  scaler.func = NULL
+  expected_catch = NULL,
+  use_scalers = FALSE,
+  scaler_func = NULL
 )
 }
 \arguments{
 \item{project}{Name of project}
 
-\item{mod.name}{Model name. Argument can be the name of the model or the name 
-can be pulled the `modelChosen` table. Leave \code{mod.name} empty to use 
+\item{mod_name}{Model name. Argument can be the name of the model or the name 
+can be pulled the `modelChosen` table. Leave \code{mod_name} empty to use 
 the name of the saved `best` model. If more than one model is saved, 
-\code{mod.name} should be the numeric indicator of which model to use.
+\code{mod_name} should be the numeric indicator of which model to use.
 Use \code{table_view("modelChosen", project)} to view a table of saved models.}
 
-\item{policy.name}{List of policy scenario names created in zone_closure function}
+\item{policy_name}{List of policy scenario names created in zone_closure function}
 
-\item{betadraws}{Integer indicating the number of times to run the welfare simulation. Default value is
-\code{betadraws = 1000}}
+\item{betadraws}{Integer indicating the number of times to run the welfare simulation. 
+Default value is \code{betadraws = 1000}}
 
-\item{marg_util_income}{For conditional and zonal logit models. Name of the coefficient to use as 
-marginal utility of income.}
+\item{marg_util_income}{For conditional and zonal logit models. Name of the coefficient to use 
+as marginal utility of income.}
 
-\item{income_cost}{For conditional and zonal logit models. Logical indicating whether the coefficient
-for the marginal utility of income relates to cost (\code{TRUE}) or revenue (\code{FALSE}).}
+\item{income_cost}{For conditional and zonal logit models. Logical indicating whether the 
+coefficient for the marginal utility of income relates to cost (\code{TRUE}) or 
+revenue (\code{FALSE}).}
 
-\item{zone.dat}{Variable in primary data table that contains unique zone ID.}
+\item{zone_dat}{Variable in primary data table that contains unique zone ID.}
 
 \item{group_var}{Categorical variable from primary data table to group welfare outputs.}
 
 \item{enteredPrice}{Price data. Leave as NULL if using price data from primary 
 dataset.}
 
-\item{expected.catch}{Required for conditional logit (\code{logit_c}) model.
+\item{expected_catch}{Required for conditional logit (\code{logit_c}) model.
 Name of expected catch table to use. Can be the expected catch from the 
 short-term scenario (\code{short}), the medium-term scenario (\code{med}), 
 the long-term scenario (\code{long}), or the user-defined temporal parameters 
 (\code{user}).}
 
-\item{use.scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? Defaults to \code{FALSE}. Rescaling factors are the mean of the 
-numeric vector unless specified with \code{scaler.func}.}
+\item{use_scalers}{Input for \code{create_model_input()}. Logical, should data be normalized? 
+Defaults to \code{FALSE}. Rescaling factors are the mean of the numeric vector unless 
+specified with \code{scaler_func}.}
 
-\item{scaler.func}{Input for \code{create_model_input()}. Function to calculate rescaling factors.}
+\item{scaler_func}{Input for \code{create_model_input()}. Function to calculate rescaling 
+factors.}
 }
 \description{
-Estimate redistributed fishing effort and welfare loss/gain from changes in policy or change in other factors that
-influence fisher location choice.
+Estimate redistributed fishing effort and welfare loss/gain from changes in policy or change in 
+other factors that influence fisher location choice.
 }
 \details{
-\code{run_policy} is a wrapper function for \code{\link{model_prediction}} and \code{\link{welfare_predict}}.
-   \code{model_prediction} estimates redistributed fishing effort after policy changes, and \code{welfare_predict}
-   simulates welfare loss/gain.
+\code{run_policy} is a wrapper function for \code{\link{model_prediction}} and 
+  \code{\link{welfare_predict}}. \code{model_prediction} estimates redistributed fishing 
+  effort after policy changes, and \code{welfare_predict} simulates welfare loss/gain.
 }

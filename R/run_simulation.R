@@ -3,6 +3,31 @@
 #' Simulates the impact of policy changes (e.g., area closures) or changes in exogenous 
 #' variables (e.g., fuel prices, expected catch) on redistributed fishing effort and 
 #' economic welfare.
+#' 
+#' \strong{How to use \code{data_modifiers}:}
+#' To create counterfactual data vectors, be sure to include
+#' your unique observation ID (e.g., trip or haul ID) and zone ID when formatting your data with 
+#' \code{format_model_data()}. To guarantee the math aligns perfectly with the simulation matrices:
+#' 
+#' \enumerate{
+#'   \item Load your saved long-format dataset.
+#'   \item Apply your mathematical transformation or merge in your external counterfactual data.
+#'   \item Pass the raw, modified vector into the \code{data_modifiers} argument as a named list 
+#'    where the name exactly matches the column in the model 
+#'    (e.g., \code{list(distance = new_dist)}). For EPM price modifications, strictly use 
+#'    the name \code{"price"}.
+#' }
+#'
+#' \strong{Analyzing results:}
+#' Once your simulations have successfully run, use the companion summary functions to extract 
+#' cleaned data frames and \code{ggplot2} visualizations:
+#' \itemize{
+#'   \item \code{\link{summarize_policy_welfare}}: Extracts compensating variation (economic 
+#'   impact) metrics and generates bar and density plots.
+#'   \item \code{\link{summarize_policy_effort}}: Extracts spatial effort redistribution and 
+#'   generates absolute, percentage, and spillover scatter plots.
+#' }
+#'
 #'
 #' @param project Character. Name of the project.
 #' @param mod_name Character. Name of the fitted model to use for the simulation.
@@ -16,11 +41,66 @@
 #' @param income_cost Logical. Default FALSE. Set to TRUE if the `marg_util_income` parameter 
 #'   represents a cost (flips the sign of the coefficient).
 #'
-#' @return An object of class `fishset_policy` containing simulation results.
+#' @return An object of class `fishset_policy` containing simulation results saved in the project
+#'   database with the name [project]PolicySimulations.
 #' @export
+#' @seealso \code{\link{summarize_policy_welfare}}, \code{\link{summarize_policy_effort}}
 #' @importFrom DBI dbConnect dbDisconnect dbExecute dbGetQuery
 #' @importFrom RSQLite SQLite
 #' @importFrom MASS mvrnorm
+#' @examples
+#' \dontrun{
+#' # -----------------------------------------------------------------------
+#' # Example 1: Standard Logit - Baseline & Closures
+#' # -----------------------------------------------------------------------
+#' # Run a baseline simulation (no closures)
+#' run_simulation(
+#'   project = "MyProject",
+#'   mod_name = "clogit_model1",
+#'   marg_util_income = "expected_catch"
+#' )
+#' 
+#' # Run simulations for two separate spatial closures defined in your YAML
+#' run_simulation(
+#'   project = "MyProject",
+#'   mod_name = "clogit_model1",
+#'   closures = c("closure_1", "closure_2"),
+#'   marg_util_income = "expected_catch"
+#' )
+#' 
+#' # -----------------------------------------------------------------------
+#' # Example 2: Standard Logit - Data Modifiers (e.g., Fuel Spike)
+#' # -----------------------------------------------------------------------
+#' library(data.table)
+#' 
+#' # 1. Load the formatted data to ensure perfect matrix alignment
+#' lf_data <- readRDS("MyProject/Models/FormattedData/MyProjectLongFormatData.rds")[["format1"]]
+#' new_distance <- as.numeric(lf_data$distance) * 1.5
+#' 
+#' # 2. Run the simulation
+#' run_simulation(
+#'   project = "MyProject",
+#'   mod_name = "clogit_model1",
+#'   data_modifiers = list(distance = new_distance), 
+#'   marg_util_income = "expected_catch"
+#' )
+#' 
+#' # -----------------------------------------------------------------------
+#' # Example 3: Expected Profit Model - Closures AND Price Drop Combined
+#' # -----------------------------------------------------------------------
+#' # EPMs automatically calculate marginal utility of income, so it is omitted.
+#' # The keyword "price" must be used for EPM revenue modifications.
+#' 
+#' new_price <- as.numeric(lf_data$price) * 0.80 # 20% price drop
+#' 
+#' run_simulation(
+#'   project = "MyProject",
+#'   mod_name = "epm_model1",
+#'   closures = c("closure_1"),
+#'   data_modifiers = list(price = new_price),
+#'   betadraws = 1000
+#' )
+#' }
 
 run_simulation <- function(project,
                            mod_name,
@@ -106,16 +186,15 @@ run_simulation <- function(project,
   X_new <- X_base
   if (is_epm) {
     X_catch_new <- X_catch_base
-    X_cost_new <- X_new[, cost_cols, drop = FALSE]
     price_new <- price_base
-
   }
   
   if (!is.null(data_modifiers)) {
     for (var_name in names(data_modifiers)) {
-      new_vec <- data_modifiers[[var_name]]
+      new_vec <- as.numeric(data_modifiers[[var_name]])
+      var_found <- FALSE # set flag to false
       
-      # Helper to apply FishSET scaling
+      # Helper to apply scaling
       scale_new_data <- function(vec, var, scalers) {
         if (!is.null(scalers)) {
           # Check X1/X2 scalers
@@ -133,37 +212,56 @@ run_simulation <- function(project,
       # Modify standard matrix
       if (var_name %in% colnames(X_new)) {
         X_new[, var_name] <- scale_new_data(new_vec, var_name, design$scalers)
+        var_found <- TRUE # set flag
       }
       
       # Modify EPM matrices
       if (is_epm) {
         if (var_name %in% colnames(X_catch_new)) {
           X_catch_new[, var_name] <- scale_new_data(new_vec, var_name, design$scalers)
+          var_found <- TRUE # set flag
         }
         if (var_name == "price") {
           p_div <- if (!is.null(design$scalers$price_divisor)) design$scalers$price_divisor else 1
           price_new <- new_vec / p_div
+          var_found <- TRUE # set flag
         }
+      }
+      
+      # Throw an error if the variable was not found
+      if (!var_found) {
+        stop(paste0(
+          "Data modifier error. '", var_name, "' was not found in the model's dseign matrix ",
+          "(or as 'price' in an EPM). Check for typos and ensure the variable name exactly ",
+          "matches a column in your formatted data."
+        ))
       }
     }
   }
   
   if (is_epm) {
+    # Slice X_cost_new after X_new has been fully modified by the loop
+    X_cost_new <- X_new[, cost_cols, drop = FALSE]
+    
     y_div <- if (!is.null(design$scalers$Y_catch_divisor)) design$scalers$Y_catch_divisor else 1
     p_div <- if (!is.null(design$scalers$price_divisor)) design$scalers$price_divisor else 1
     epm_welfare_multiplier <- y_div * p_div
   }
   
   # Load closures from YAML -----------------------------------------------------------------------
+  base_scenarios <- list()
+  
   if (!is.null(closures)) {
-    yaml_file <- paste0(locoutput(project), pull_output(project, type = "zone", fun = "closures"))
-    
+    yaml_file <- paste0(locoutput(project), pull_output(project, 
+                                                        type = "zone", 
+                                                        fun = "closures"))
     if (utils::file_test("-f", yaml_file)) {
       all_closures <- yaml::read_yaml(yaml_file)
-      scenarios <- all_closures[vapply(all_closures, 
-                                       function(x) x$scenario %in% unlist(closures), logical(1))]
+      base_scenarios <- all_closures[vapply(
+        all_closures, 
+        function(x) x$scenario %in% unlist(closures), logical(1))]
       
-      if (length(scenarios) == 0) {
+      if (length(base_scenarios) == 0) {
         available_scens <- vapply(all_closures, function(x) x$scenario, character(1))
         stop(paste0("None of the specified scenario names in 'closures' were found in ",
                     "the YAML file.\n Available scenarios are: '", 
@@ -174,20 +272,48 @@ run_simulation <- function(project,
     }
     
   } else {
-    scenarios <- list(list(scenario = "Data_Modification", zone = NULL))
+    # Fallback base scenario if no closures are provided
+    base_scenarios <- list(list(scenario = "baseline", zone = NULL))
   }
   
+  # Merge data modifiers into the scenario names
   has_mods <- !is.null(data_modifiers)
+  
+  if (has_mods) {
+    mod_vars <- paste(names(data_modifiers), collapse = "_")
+    
+    for (i in seq_along(base_scenarios)) {
+      if (base_scenarios[[i]]$scenario == "baseline") {
+        base_scenarios[[i]]$scenario <- mod_vars
+      } else {
+        # Combine the closure name and modifier name (e.g., "closure1_price")
+        base_scenarios[[i]]$scenario <- paste0(base_scenarios[[i]]$scenario, "_", mod_vars)
+      }
+    }
+  }
   
   # Find theta index
   if (!is_epm) {
     if (is.null(marg_util_income)) stop("Standard logit requires 'marg_util_income'.")
     theta_idx <- which(colnames(X_base) == marg_util_income)
     if (length(theta_idx) == 0) stop(paste("Coefficient", marg_util_income, "not found."))
+    
+  } else {
+    # Warn the user if they mistakenly passed marginal utility of income for EPM
+    if (!is.null(marg_util_income)) {
+      warning(paste(
+        "The 'marg_util_income' argument is ignored for Expected Profit Models (EPM).",
+        "EPMs automatically calculate the marginal utility of income internally",
+        "using the error variance parameter (1 / sigma_e)."
+      ), call. = FALSE, immediate. = TRUE)
+    }
   }
   
+  scenarios <- base_scenarios
   results_list <- list()
   zone_vec <- as.character(design$ids$zone)
+  # Extract the exact zone ID names for the J_alts
+  real_zone_names <- zone_vec[1:J_alts]
   
   # Run simulation --------------------------------------------------------------------------------
   for (scen in scenarios) {
@@ -196,6 +322,9 @@ run_simulation <- function(project,
     closed_idx <- which(zone_vec %in% closed_zones)
     
     draw_welfare <- numeric(betadraws)
+    # Trackers for expected trips
+    draw_trips_base <- matrix(0, nrow = betadraws, ncol = J_alts)
+    draw_trips_new  <- matrix(0, nrow = betadraws, ncol = J_alts)
     
     for (d in 1:betadraws) {
       b_d <- beta_draws[d, ]
@@ -211,7 +340,6 @@ run_simulation <- function(project,
         if (!is.null(design$scalers)) {
           # Combine all potential stdev scalers
           sds <- c(design$scalers$X1$sd, unlist(design$scalers$X2$sd))
-          
           # If marg_util_income was scaled, divide by its stdev
           if (marg_util_income %in% names(sds)) {
             theta <- theta / sds[marg_util_income]
@@ -254,11 +382,11 @@ run_simulation <- function(project,
           mu_catch_base <- lin_pred_base
           if (has_mods) mu_catch_new <- lin_pred_new
         } else if (distribution == "lognormal") {
-          mu_catch_base <- exp(lin_pred_base + 0.5 * (sig_c^2))
-          if (has_mods) mu_catch_new <- exp(lin_pred_new + 0.5 * (sig_c^2))
+          mu_catch_base <- exp(lin_pred_base + 0.5 * (sig_c_full^2))
+          if (has_mods) mu_catch_new <- exp(lin_pred_new + 0.5 * (sig_c_full^2))
         } else if (distribution == "weibull") {
-          mu_catch_base <- exp(lin_pred_base) * exp(lgamma(1 + 1 / sig_c))
-          if (has_mods) mu_catch_new <- exp(lin_pred_new) * exp(lgamma(1 + 1 / sig_c))
+          mu_catch_base <- exp(lin_pred_base) * exp(lgamma(1 + 1 / sig_c_full))
+          if (has_mods) mu_catch_new <- exp(lin_pred_new) * exp(lgamma(1 + 1 / sig_c_full))
         }
         
         rev_base <- price_base * mu_catch_base
@@ -293,15 +421,23 @@ run_simulation <- function(project,
       }
       V_base <- exp(V_base)
       
-      # Base logsum (Bypass S3 Overhead)
-      logsum_base <- log(.colSums(V_base, m = J_alts, n = N_obs, na.rm = FALSE)) + max_V_base
+      # Base logsum and effort (Bypass S3 Overhead)
+      sum_V_base <- .colSums(V_base, m = J_alts, n = N_obs, na.rm = FALSE)
+      logsum_base <- log(sum_V_base) + max_V_base
+      
+      # Calculate expected trips/hauls per zone (sum of probabilities)
+      draw_trips_base[d, ] <- rowSums(sweep(V_base, 2, sum_V_base, "/"), na.rm = TRUE)
       
       if (!has_mods) {
         # Skip V_new for data modifiers
         if (length(closed_idx) > 0) {
           V_base[closed_idx] <- 0 
         }
-        logsum_new <- log(.colSums(V_base, m = J_alts, n = N_obs, na.rm = FALSE)) + max_V_base
+        sum_V_new <- .colSums(V_base, m = J_alts, n = N_obs, na.rm = FALSE)
+        logsum_new <- log(sum_V_new) + max_V_base
+        
+        # Calculate counterfactual expected trips/hauls
+        draw_trips_new[d, ] <- rowSums(sweep(V_base, 2, sum_V_new, "/"), na.rm = TRUE)
         
       } else {
         # If data changed, we must do the full CPU math for V_new
@@ -311,12 +447,9 @@ run_simulation <- function(project,
         max_V_new <- V_new[1, ]
         for (j in 2:J_alts) {
           curr_new <- V_new[j, ]
-          
-          # Safely filter NAs for the counterfactual matrix
+          # Filter NAs for the counterfactual matrix
           idx_new <- which(curr_new > max_V_new)
-          if (length(idx_new) > 0) {
-            max_V_new[idx_new] <- curr_new[idx_new]
-          }
+          if (length(idx_new) > 0) max_V_new[idx_new] <- curr_new[idx_new]
         }
         
         for (j in 1:J_alts) {
@@ -324,7 +457,11 @@ run_simulation <- function(project,
         }
         
         V_new <- exp(V_new)
-        logsum_new <- log(.colSums(V_new, m = J_alts, n = N_obs, na.rm = FALSE)) + max_V_new
+        sum_V_new <- .colSums(V_new, m = J_alts, n = N_obs, na.rm = FALSE)
+        logsum_new <- log(sum_V_new) + max_V_new
+        
+        # Calculate counterfactual expected trips/hauls
+        draw_trips_new[d, ] <- rowSums(sweep(V_new, 2, sum_V_new, "/"), na.rm = TRUE)
       }
       
       welfare_diff <- (1 / theta) * (logsum_new - logsum_base)
@@ -337,47 +474,85 @@ run_simulation <- function(project,
     }
     
     # Store scenario summaries
+    avg_trips_base <- colMeans(draw_trips_base, na.rm = TRUE)
+    avg_trips_new  <- colMeans(draw_trips_new, na.rm = TRUE)
+    names(avg_trips_base) <- real_zone_names
+    names(avg_trips_new)  <- real_zone_names
+    
     results_list[[scenario_name]] <- list(
       welfare_draws = draw_welfare,
       mean_welfare_loss = mean(draw_welfare, na.rm = TRUE),
-      quantiles = quantile(draw_welfare, probs = c(0.025, 0.05, 0.5, 0.95, 0.975), na.rm = TRUE)
+      quantiles = quantile(draw_welfare, probs = c(0.025, 0.05, 0.5, 0.95, 0.975), na.rm = TRUE),
+      effort_base = avg_trips_base, 
+      effort_new = avg_trips_new
     )
   }
   
   # Package and save ------------------------------------------------------------------------------
-  sim_obj <- list(
-    model_name = mod_name,
-    scenarios = results_list,
-    metadata = list(
-      N_obs = N_obs,
-      J_alts = J_alts,
-      betadraws = betadraws,
-      distribution = if (is_epm) distribution else "logit",
-      timestamp = Sys.time()
-    )
-  )
-  class(sim_obj) <- "fishset_policy"
-  
   table_name <- paste0(project, "PolicySimulations")
   
-  # Explicitly send and clear the CREATE TABLE statement
-  res_create <- DBI::dbSendStatement(fishset_db, paste("CREATE TABLE IF NOT EXISTS", 
-                                                       table_name, 
-                                                       "(name TEXT UNIQUE, data BLOB)"))
-  DBI::dbClearResult(res_create)
+  # Load existing simulations master list
+  full_sim_list <- tryCatch({
+    unserialize_table(table_name, project)
+  }, error = function(e) {
+    list()
+  })
   
-  # Serialize the massive object
-  sim_name <- paste0("Sim_", mod_name, "_", format(Sys.time(), "%Y%m%d_%H%M%S"))
-  serialized_data <- list(serialize(sim_obj, NULL))
+  # Initialize the wrapper with the existing list
+  sim_wrapper <- full_sim_list
   
-  # Explicitly send and clear the heavy BLOB INSERT statement
-  insert_query <- paste("INSERT OR REPLACE INTO", table_name, "(name, data) VALUES (:name, :data)")
-  res_insert <- DBI::dbSendStatement(fishset_db, 
-                                     insert_query, 
-                                     params = list(name = sim_name, data = serialized_data))
-  DBI::dbClearResult(res_insert)
+  # Package each scenario as its own independent top-level object
+  for (scen_name in names(results_list)) {
+    
+    sim_obj <- list(
+      model_name = mod_name,
+      scenario = scen_name,
+      results = results_list[[scen_name]],
+      metadata = list(
+        N_obs = N_obs,
+        J_alts = J_alts,
+        betadraws = betadraws,
+        distribution = if (is_epm) distribution else "logit",
+        timestamp = Sys.time()
+      )
+    )
+    class(sim_obj) <- "fishset_policy"
+    
+    # Create the exact naming convention: "modelName_scenarioName"
+    sim_name <- paste0(mod_name, "_", scen_name)
+    
+    # Overwrite if exact name exists, otherwise append to the master list
+    sim_wrapper[[sim_name]] <- sim_obj
+  }
+  
+  # Save the updated master list back to the database
+  if (table_exists(table_name, project)) {
+    table_remove(table_name, project)
+  }
+  
+  # Define the column type as BLOB
+  DBI::dbExecute(fishset_db, 
+                 paste("CREATE TABLE IF NOT EXISTS",
+                       table_name,
+                       "(data BLOB)"))
+  
+  # Explicitly map the insert to the 'data' column
+  DBI::dbExecute(fishset_db,
+                 paste("INSERT INTO",
+                       table_name,
+                       "(data) VALUES (:data)"),
+                 params = list(data = list(serialize(sim_wrapper, NULL))))
+  
+  # Log the function call -------------------------------------------------------------------------
+  fishset_sim_function <- list()
+  fishset_sim_function$functionID <- "run_simulation"
+  fishset_sim_function$args <- as.list(match.call())[-1]
+  fishset_sim_function$kwargs <- list()
+  
+  # Assuming log_call is your internal package function
+  log_call(project, fishset_sim_function)
   
   # Force R to clean up temporary matrices and return RAM to the OS
   gc() 
-  return(invisible(TRUE))
+  return(invisible(results_list))
 }

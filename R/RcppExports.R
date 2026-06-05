@@ -25,13 +25,6 @@ rcpp_sparse_interaction <- function(mat, zone_int, J) {
     .Call(`_FishSET_rcpp_sparse_interaction`, mat, zone_int, J)
 }
 
-#' Calculate Mean Welfare Difference for All Draws (Multi-Threaded)
-NULL
-
-rcpp_calc_welfare <- function(V_base, V_new, theta, closed_idx, J, N, betadraws, has_mods) {
-    .Call(`_FishSET_rcpp_calc_welfare`, V_base, V_new, theta, closed_idx, J, N, betadraws, has_mods)
-}
-
 shift_sort_xcpp <- function(x, ch, y, distance, alts, ab) {
     .Call(`_FishSET_shift_sort_xcpp`, x, ch, y, distance, alts, ab)
 }
