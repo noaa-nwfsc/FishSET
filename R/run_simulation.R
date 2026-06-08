@@ -323,8 +323,8 @@ run_simulation <- function(project,
     
     draw_welfare <- numeric(betadraws)
     # Trackers for expected trips
-    draw_trips_base <- matrix(0, nrow = betadraws, ncol = J_alts)
-    draw_trips_new  <- matrix(0, nrow = betadraws, ncol = J_alts)
+    draw_trips_base <- matrix(NA_real_, nrow = betadraws, ncol = J_alts)
+    draw_trips_new  <- matrix(NA_real_, nrow = betadraws, ncol = J_alts)
     
     for (d in 1:betadraws) {
       b_d <- beta_draws[d, ]
