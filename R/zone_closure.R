@@ -36,19 +36,39 @@ zone_closure <- function(project,
                          zone_spat, 
                          lon_spat = NULL,
                          lat_spat = NULL, 
-                         epsg = NULL) {
+                         epsg = NULL) { 
   
-  # Set these values to NULL to appease RCMD checks
-  zone <- display <- NULL
+  # Load alt matrix -------------------------------------------------------------------------------
+  alt_table <- paste0(project, "AltMatrix")
   
+  # Stop function if the alt matrix table doesn't exist
+  if (!table_exists(alt_table, project)) {
+    stop(paste0("Error: The table of alternative choice matrices does not exist for project ",
+                project, 
+                ". Run `create_alternative_choice()` to define your valid zones."))
+  } else {
+    alt_list <- unserialize_table(alt_table, project)
+    
+    # Ensure the table is not empty
+    if (is.null(alt_list)) {
+      stop(paste0("Error: The table of alternative choice matrices is empty. Create an ",
+                  "alternative choice matrix to continue with zone_closure()."))
+    }
+  }
+  
+  # Default to first alt_matrix in the list
+  alt_matrix <- alt_list[[1]]
+  
+  
+  # Set zone closure shiny path -------------------------------------------------------------------
   zone_closure_dir <- system.file("ShinyFiles", "MainApp", "modules", package = "FishSET")
   if (zone_closure_dir == "") {
     stop("Could not find example directory. Try re-installing `FishSET`.", call. = FALSE)
   }
-  
   source(file.path(zone_closure_dir, "zone_closure_module.R"), local = TRUE)
   
-  # Pull spatial data if needed
+  
+  # Pull spatial data if needed -------------------------------------------------------------------
   spat_out <- data_pull(spatname, project)
   spatdat <- spat_out$dataset
   
