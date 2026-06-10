@@ -45,8 +45,9 @@ economic welfare.
 \details{
 \strong{How to use \code{data_modifiers}:}
 To create counterfactual data vectors, be sure to include
-your unique observation ID (e.g., trip or haul ID) and zone ID when formatting your data with 
-\code{format_model_data()}. To guarantee the math aligns perfectly with the simulation matrices:
+your unique observation ID (e.g., trip or haul ID), date, and zone ID variables when 
+formatting your data with \code{format_model_data()}. To guarantee the math aligns perfectly 
+with the simulation matrices:
 
 \enumerate{
   \item Load your saved long-format dataset.
