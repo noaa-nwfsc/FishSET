@@ -15,13 +15,18 @@
 #' reallocating their effort to the next-best available fishing grounds.
 #'
 #' @param project Character. Name of the project.
+#' @param plot_scenarios Character vector. Optional. Specific Scenario or Simulation names 
+#'   to include in the plots. If \code{NULL} (the default), scenarios are not filtered.
+#' @param plot_models Character vector. Optional. Specific Model names to include in 
+#'   the plots (e.g., "zonal_logit", "clogit"). If \code{NULL} (the default), models are not
+#'   filtered.
 #'
 #' @return A list containing three elements: \code{summary_data} (a data frame of welfare impacts), 
 #'   \code{plot_bar} (mean per-trip changes), and \code{plot_density} (distribution of uncertainty).
 #' @export
 #' @import ggplot2
 
-summarize_policy_welfare <- function(project) {
+summarize_policy_welfare <- function(project, plot_scenarios = NULL, plot_models = NULL) {
   
   # Load policy simulations -----------------------------------------------------------------------
   table_name <- paste0(project, "PolicySimulations")
@@ -61,6 +66,7 @@ summarize_policy_welfare <- function(project) {
       draws_df_list[[sim_name]] <- data.frame(
         Simulation = sim_name,
         Model = sim_list[[sim_name]]$model_name,
+        Scenario = sim_list[[sim_name]]$scenario, 
         Welfare_Change = res$welfare_draws,
         row.names = NULL
       )
@@ -73,10 +79,37 @@ summarize_policy_welfare <- function(project) {
   # Format data for plotting ----------------------------------------------------------------------
   plot_data <- welfare_df[welfare_df$Scenario != "baseline", ]
   
+  # Filter for specific models if requested
+  if (!is.null(plot_models)) {
+    plot_data <- plot_data[plot_data$Model %in% plot_models, ]
+    draws_df <- draws_df[draws_df$Model %in% plot_models, ]
+    
+    if (nrow(plot_data) == 0) {
+      warning("None of the provided 'plot_models' were found in the data. Plots will be empty.")
+    }
+  }
+  
+  # Filter for specific scenarios if requested
+  if (!is.null(plot_scenarios)) {
+    plot_data <- plot_data[plot_data$Scenario %in% plot_scenarios | 
+                             plot_data$Simulation %in% plot_scenarios, ]
+    draws_df <- draws_df[draws_df$Scenario %in% plot_scenarios | 
+                           draws_df$Simulation %in% plot_scenarios, ]
+    
+    if (nrow(plot_data) == 0) {
+      warning("None of the provided 'plot_scenarios' were found in the remaining data. 
+              Plots will be empty.")
+    }
+  }
+  
   # Order simulations by severity of mean impact
   sim_levels <- plot_data$Simulation[order(plot_data$Mean_Welfare_Per_Trip)]
   plot_data$Simulation <- factor(plot_data$Simulation, levels = sim_levels)
-  draws_df$Simulation <- factor(draws_df$Simulation, levels = sim_levels)
+  
+  # Ensure draws_df factor levels match plot_data exactly to avoid plotting issues
+  if (nrow(draws_df) > 0) {
+    draws_df$Simulation <- factor(draws_df$Simulation, levels = sim_levels)
+  }
   
   # Generate the bar plot -------------------------------------------------------------------------
   p_bar <- ggplot2::ggplot(plot_data, ggplot2::aes(x = Simulation, y = Mean_Welfare_Per_Trip, 
@@ -121,7 +154,7 @@ summarize_policy_welfare <- function(project) {
   
   # Return data and plots -------------------------------------------------------------------------
   return(list(
-    summary_data = welfare_df,
+    summary_data = welfare_df, 
     plot_bar = p_bar,
     plot_density = p_density
   ))
