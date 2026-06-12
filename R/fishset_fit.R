@@ -229,7 +229,7 @@ fishset_fit <- function(project,
     if(length(util_vars) > 0) {
       X_util <- design$X[, util_vars, drop = FALSE]
     } else {
-      X_util <- matrix(0, nrow = length(Y_catch), ncol = 0)
+      X_util <- matrix(0, nrow = length(design$epm$Y_catch), ncol = 0)
     }
     
     Y_catch_chosen = as.double(as.vector(design$epm$Y_catch[chosen_lin_idx]))
