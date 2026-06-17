@@ -4,10 +4,17 @@
 \alias{summarize_policy_welfare}
 \title{Summarize and Plot Policy Welfare Impacts}
 \usage{
-summarize_policy_welfare(project)
+summarize_policy_welfare(project, plot_scenarios = NULL, plot_models = NULL)
 }
 \arguments{
 \item{project}{Character. Name of the project.}
+
+\item{plot_scenarios}{Character vector (optional). Specific Scenario or Simulation names 
+to include in the plots. If \code{NULL} (the default), scenarios are not filtered.}
+
+\item{plot_models}{Character vector (optional). Specific Model names to include in 
+the plots (e.g., "zonal_logit", "clogit"). If \code{NULL} (the default), models are not
+filtered.}
 }
 \value{
 A list containing three elements: \code{summary_data} (a data frame of welfare impacts), 
