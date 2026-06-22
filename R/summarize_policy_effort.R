@@ -11,25 +11,27 @@
 #' @param project Character. Name of the project.
 #' @param spat Character. Name of the spatial dataset containing the fishing zones.
 #' @param zone_spat Character. The ID column in the spatial data matching simulation zone IDs.
-#' @param output_type Character. Either "static" (ggplot2) or "dynamic" (leaflet/plotly). Default is "static".
-#' @param plot_scenarios Character vector. Optional. Specific Scenario or Simulation names 
+#' @param output_type Character. Either "static" (ggplot2) or "dynamic" (leaflet/plotly). 
+#'   Default is "static".
+#' @param plot_scenarios Character vector (optional). Specific Scenario or Simulation names 
 #'   to include in the plots. If \code{NULL} (the default), scenarios are not filtered.
-#' @param plot_models Character vector. Optional. Specific Model names to include in 
-#'   the plots (e.g., "zonal_logit", "clogit"). If \code{NULL} (the default), models are not filtered.
+#' @param plot_models Character vector (optional). Specific Model names to include in 
+#'   the plots (e.g., "zonal_logit", "clogit"). If \code{NULL} (the default), models are not 
+#'   filtered.
 #'
 #' @return A list containing \code{summary_data} and three nested lists of plot objects:
 #'   \code{plots_absolute_map}, \code{plots_percent_map}, and \code{plots_scatter}.
 #' @export
-#' @import ggplot2
-#' @import leaflet
-#' @import plotly
 #' @importFrom sf st_as_sf st_bbox st_transform
 
-summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("static", "dynamic"), 
+summarize_policy_effort <- function(project, spat, zone_spat, output_type = "static", 
                                     plot_scenarios = NULL, plot_models = NULL) {
   
   # Validate output type
-  output_type <- match.arg(output_type)
+  output_type <- tolower(output_type)
+  if(!(output_type %in% c("static", "dynamic"))) {
+    stop("The 'output_type' should be 'static' or 'dynamic'. Check input spelling.")
+  }
   
   # Load policy simulations and spatial data ------------------------------------------------------
   table_name <- paste0(project, "PolicySimulations")
@@ -70,15 +72,17 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("s
   if (!is.null(plot_models)) {
     plot_data <- plot_data[plot_data$Model %in% plot_models, ]
     if (nrow(plot_data) == 0) {
-      warning("None of the provided 'plot_models' were found in the data. Plots will be empty.")
+      stop("None of the provided 'plot_models' were found in the data.")
     }
   }
   
   # Filter for specific scenarios if requested
   if (!is.null(plot_scenarios)) {
-    plot_data <- plot_data[plot_data$Scenario %in% plot_scenarios | plot_data$Simulation %in% plot_scenarios, ]
+    scen_string <- paste(plot_scenarios, collapse = "|")
+    filtered_scenarios <- grep(scen_string, plot_data$Scenario)
+    plot_data <- plot_data[filtered_scenarios, ]
     if (nrow(plot_data) == 0) {
-      warning("None of the provided 'plot_scenarios' were found in the remaining data. Plots will be empty.")
+      stop("None of the provided 'plot_scenarios' were found in the data.")
     }
   }
   
@@ -103,7 +107,8 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("s
     merged_spat <- merge(spat_sf, sub_data, by.x = zone_spat, by.y = "Zone", all.x = TRUE)
     
     # Partition Data: Identify closed vs open areas for mapping
-    closed_idx_map <- which(merged_spat$Counterfactual_Effort == 0 & merged_spat$Baseline_Effort > 0)
+    closed_idx_map <- which(merged_spat$Counterfactual_Effort == 0 & 
+                              merged_spat$Baseline_Effort > 0)
     if (length(closed_idx_map) > 0) {
       open_spat <- merged_spat[-closed_idx_map, ]
       closed_spat <- merged_spat[closed_idx_map, ]
@@ -113,7 +118,8 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("s
     }
     
     # Partition Data: Identify closed vs open areas for the scatter plot
-    closed_idx_scatter <- which(sub_data$Counterfactual_Effort == 0 & sub_data$Baseline_Effort > 0)
+    closed_idx_scatter <- which(sub_data$Counterfactual_Effort == 0 & 
+                                  sub_data$Baseline_Effort > 0)
     if (length(closed_idx_scatter) > 0) {
       open_sub <- sub_data[-closed_idx_scatter, ]
       closed_sub <- sub_data[closed_idx_scatter, ]
@@ -122,9 +128,7 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("s
       closed_sub <- NULL
     }
     
-    # ---------------------------------------------------------------------------------------------
-    # STATIC FIGURES (ggplot2)
-    # ---------------------------------------------------------------------------------------------
+    ## static figures (ggplot2) -------------------------------------------------------------------
     if (output_type == "static") {
       
       map_theme <- list(
@@ -196,14 +200,13 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("s
                                                               color = "Closed Area"), 
                               fill = "tomato", shape = 21, size = 3, alpha = 0.8) +
           ggplot2::scale_color_manual(name = NULL, values = c("Closed Area" = "black")) +
-          ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(fill = "tomato", color = "black")))
+          ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(fill = "tomato", 
+                                                                            color = "black")))
       }
       
       plot_scatter[[s_name]] <- p_s
       
-    # ---------------------------------------------------------------------------------------------
-    # DYNAMIC FIGURES (leaflet & plotly)
-    # ---------------------------------------------------------------------------------------------
+      ## dynamic figures (leaflet & plotly) -------------------------------------------------------
     } else if (output_type == "dynamic") {
       
       # Transform to WGS84 for leaflet
@@ -212,9 +215,11 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("s
       
       ## HTML Title block for Absolute Map
       html_title_abs <- paste0(
-        "<div style='background-color: rgba(255, 255, 255, 0.9); padding: 5px 10px; border-radius: 4px; border: 1px solid #ccc;'>",
-        "<strong style='font-size: 14px;'>Absolute Effort Redistribution: ", s_name, "</strong><br>",
-        "<span style='font-size: 12px; color: #555;'>Net change in expected trips/hauls by zone</span>",
+        "<div style='background-color: rgba(255, 255, 255, 0.9); padding: 5px 10px;",
+        " border-radius: 4px; border: 1px solid #ccc;'>",
+        " <strong style='font-size: 14px;'>Absolute Effort Redistribution: ", s_name, 
+        " </strong><br>", "<span style='font-size: 12px; color: #555;'>Net change in",
+        " expected trips/hauls by zone</span>",
         "</div>"
       )
       
@@ -226,15 +231,18 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("s
         domain_abs <- open_spat_wgs$Effort_Change
       }
       
-      pal_abs <- leaflet::colorNumeric(palette = "viridis", domain = domain_abs, na.color = "#e5e5e5")
+      pal_abs <- leaflet::colorNumeric(palette = "viridis", domain = domain_abs,
+                                       na.color = "#e5e5e5")
       
       l_a <- leaflet::leaflet()
       l_a <- leaflet::addProviderTiles(l_a, leaflet::providers$CartoDB.Positron)
       l_a <- leaflet::addPolygons(l_a, data = open_spat_wgs,
                                   fillColor = ~pal_abs(Effort_Change),
                                   fillOpacity = 0.7, color = "black", weight = 1,
-                                  popup = ~paste("<b>Zone:</b>", open_spat_wgs[[zone_spat]], 
-                                                 "<br><b>Abs Change:</b>", round(Effort_Change, 2)))
+                                  popup = ~paste("<b>Zone:</b>", 
+                                                 open_spat_wgs[[zone_spat]], 
+                                                 "<br><b>Abs Change:</b>", 
+                                                 round(Effort_Change, 2)))
       
       l_a <- leaflet::addLegend(l_a, pal = pal_abs, values = na.omit(domain_abs),
                                 title = "Net Effort Change", position = "bottomright")
@@ -245,19 +253,22 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("s
         l_a <- leaflet::addPolygons(l_a, data = closed_spat_wgs,
                                     fillColor = "tomato",
                                     fillOpacity = 0.7, color = "black", weight = 1,
-                                    popup = ~paste("<b>Zone:</b>", closed_spat_wgs[[zone_spat]], "<br><b>Status:</b> Closed"))
+                                    popup = ~paste("<b>Zone:</b>", closed_spat_wgs[[zone_spat]], 
+                                                   "<br><b>Status:</b> Closed"))
         
-        l_a <- leaflet::addLegend(l_a, colors = "tomato", labels = "Closed Area", position = "bottomright")
+        l_a <- leaflet::addLegend(l_a, colors = "tomato", labels = "Closed Area", 
+                                  position = "bottomright")
       }
       
       plot_abs[[s_name]] <- l_a
       
       ## HTML Title block for Percentage Map
       html_title_pct <- paste0(
-        "<div style='background-color: rgba(255, 255, 255, 0.9); padding: 5px 10px; border-radius: 4px; border: 1px solid #ccc;'>",
-        "<strong style='font-size: 14px;'>Relative Effort Redistribution: ", s_name, "</strong><br>",
-        "<span style='font-size: 12px; color: #555;'>Percentage change in expected trips/hauls relative to baseline</span>",
-        "</div>"
+        "<div style='background-color: rgba(255, 255, 255, 0.9); padding: 5px 10px; ",
+        "border-radius: 4px; border: 1px solid #ccc;'>",
+        "<strong style='font-size: 14px;'>Relative Effort Redistribution: ", s_name, 
+        "</strong><br>", "<span style='font-size: 12px; color: #555;'>Percentage change ",
+        "in expected trips/hauls relative to baseline</span>", "</div>"
       )
       
       ## Dynamic Percentage change map (Leaflet)
@@ -268,7 +279,8 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("s
         domain_pct <- open_spat_wgs$Pct_Effort_Change
       }
       
-      pal_pct <- leaflet::colorNumeric(palette = "viridis", domain = domain_pct, na.color = "#e5e5e5")
+      pal_pct <- leaflet::colorNumeric(palette = "viridis", domain = domain_pct, 
+                                       na.color = "#e5e5e5")
       
       l_p <- leaflet::leaflet()
       l_p <- leaflet::addProviderTiles(l_p, leaflet::providers$CartoDB.Positron)
@@ -276,7 +288,8 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("s
                                   fillColor = ~pal_pct(Pct_Effort_Change),
                                   fillOpacity = 0.7, color = "black", weight = 1,
                                   popup = ~paste("<b>Zone:</b>", open_spat_wgs[[zone_spat]], 
-                                                 "<br><b>% Change:</b>", round(Pct_Effort_Change, 2), "%"))
+                                                 "<br><b>% Change:</b>", 
+                                                 round(Pct_Effort_Change, 2), "%"))
       
       l_p <- leaflet::addLegend(l_p, pal = pal_pct, values = na.omit(domain_pct),
                                 title = "% Effort Change", position = "bottomright")
@@ -287,9 +300,11 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("s
         l_p <- leaflet::addPolygons(l_p, data = closed_spat_wgs,
                                     fillColor = "tomato",
                                     fillOpacity = 0.7, color = "black", weight = 1,
-                                    popup = ~paste("<b>Zone:</b>", closed_spat_wgs[[zone_spat]], "<br><b>Status:</b> Closed"))
+                                    popup = ~paste("<b>Zone:</b>", closed_spat_wgs[[zone_spat]], 
+                                                   "<br><b>Status:</b> Closed"))
         
-        l_p <- leaflet::addLegend(l_p, colors = "tomato", labels = "Closed Area", position = "bottomright")
+        l_p <- leaflet::addLegend(l_p, colors = "tomato", labels = "Closed Area", 
+                                  position = "bottomright")
       }
       
       plot_pct[[s_name]] <- l_p
@@ -305,18 +320,23 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("s
       p_s_dyn <- plotly::add_markers(p_s_dyn, data = open_sub, 
                                      x = ~Baseline_Effort, y = ~Counterfactual_Effort,
                                      color = ~Effort_Change, colors = "viridis",
-                                     marker = list(size = 8, line = list(color = 'black', width = 1)),
+                                     marker = list(size = 8, line = list(color = 'black', 
+                                                                         width = 1)),
                                      text = ~paste("Zone:", Zone,
-                                                   "<br>Baseline:", round(Baseline_Effort, 2),
-                                                   "<br>Counterfactual:", round(Counterfactual_Effort, 2),
-                                                   "<br>Net Change:", round(Effort_Change, 2)),
+                                                   "<br>Baseline:", 
+                                                   round(Baseline_Effort, 2),
+                                                   "<br>Counterfactual:", 
+                                                   round(Counterfactual_Effort, 2),
+                                                   "<br>Net Change:", 
+                                                   round(Effort_Change, 2)),
                                      hoverinfo = "text",
                                      name = "Open Zones")
       
       if (!is.null(closed_sub)) {
         p_s_dyn <- plotly::add_markers(p_s_dyn, data = closed_sub, 
                                        x = ~Baseline_Effort, y = ~Counterfactual_Effort,
-                                       marker = list(color = "tomato", size = 8, line = list(color = 'black', width = 1)),
+                                       marker = list(color = "tomato", size = 8, 
+                                                     line = list(color = 'black', width = 1)),
                                        text = ~paste("Zone:", Zone,
                                                      "<br>Baseline:", round(Baseline_Effort, 2),
                                                      "<br>Status: Closed"),
@@ -326,8 +346,10 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = c("s
       
       p_s_dyn <- plotly::layout(p_s_dyn, 
                                 title = list(
-                                  text = paste0("<b>Effort Spillover Dynamics: ", s_name, "</b><br>",
-                                                "<sup style='color:#555;'>Points above the line gained effort; points below lost effort.</sup>")
+                                  text = paste0("<b>Effort Spillover Dynamics: ", s_name, 
+                                                "</b><br>", "<sup style='color:#555;'>Points ",
+                                                "above the line gained effort; points below lost ",
+                                                "effort.</sup>")
                                 ),
                                 xaxis = list(title = "Baseline Expected Effort"),
                                 yaxis = list(title = "Counterfactual Expected Effort"),

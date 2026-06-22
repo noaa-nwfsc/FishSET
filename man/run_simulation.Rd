@@ -28,10 +28,12 @@ model. Names must match variables in the model's design matrix or price vector.}
 Default is 1000.}
 
 \item{marg_util_income}{Character. For standard/zonal logit models: Name of the coefficient 
-to use as the marginal utility of income to calculate welfare in dollars.}
+to use as the marginal utility of income to calculate welfare in dollars. Note this
+input will be ignored for EPMs.}
 
 \item{income_cost}{Logical. Default FALSE. Set to TRUE if the `marg_util_income` parameter 
-represents a cost (flips the sign of the coefficient).}
+represents a cost (flips the sign of the coefficient). Note this
+input will be ignored for EPMs.}
 }
 \value{
 An object of class `fishset_policy` containing simulation results saved in the project
@@ -94,7 +96,12 @@ run_simulation(
 library(data.table)
 
 # 1. Load the formatted data to ensure perfect matrix alignment
-lf_data <- readRDS("MyProject/Models/FormattedData/MyProjectLongFormatData.rds")[["format1"]]
+# Note that this saves as a qs2 file if the package is available, and as a .rds file if not.
+lf_data <- 
+  qs2::qs_read("MyProject/Models/FormattedData/MyProjectLongFormatData.rds")[["format1"]]
+# OR #
+lf_data <- 
+  readRDS("MyProject/Models/FormattedData/MyProjectLongFormatData.rds")[["format1"]]
 new_distance <- as.numeric(lf_data$distance) * 1.5
 
 # 2. Run the simulation

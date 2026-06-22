@@ -4,7 +4,14 @@
 \alias{summarize_policy_effort}
 \title{Summarize and Plot Policy Effort Redistribution}
 \usage{
-summarize_policy_effort(project, spat, zone_spat)
+summarize_policy_effort(
+  project,
+  spat,
+  zone_spat,
+  output_type = "static",
+  plot_scenarios = NULL,
+  plot_models = NULL
+)
 }
 \arguments{
 \item{project}{Character. Name of the project.}
@@ -12,9 +19,19 @@ summarize_policy_effort(project, spat, zone_spat)
 \item{spat}{Character. Name of the spatial dataset containing the fishing zones.}
 
 \item{zone_spat}{Character. The ID column in the spatial data matching simulation zone IDs.}
+
+\item{output_type}{Character. Either "static" (ggplot2) or "dynamic" (leaflet/plotly). 
+Default is "static".}
+
+\item{plot_scenarios}{Character vector (optional). Specific Scenario or Simulation names 
+to include in the plots. If \code{NULL} (the default), scenarios are not filtered.}
+
+\item{plot_models}{Character vector (optional). Specific Model names to include in 
+the plots (e.g., "zonal_logit", "clogit"). If \code{NULL} (the default), models are not 
+filtered.}
 }
 \value{
-A list containing \code{summary_data} and three nested lists of \code{ggplot} objects:
+A list containing \code{summary_data} and three nested lists of plot objects:
   \code{plots_absolute_map}, \code{plots_percent_map}, and \code{plots_scatter}.
 }
 \description{

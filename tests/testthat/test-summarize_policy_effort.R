@@ -19,9 +19,8 @@
 # Create simple mock spatial polygons using sf
 p1 <- sf::st_polygon(list(matrix(c(0,0, 1,0, 1,1, 0,1, 0,0), ncol=2, byrow=TRUE)))
 p2 <- sf::st_polygon(list(matrix(c(1,0, 2,0, 2,1, 1,1, 1,0), ncol=2, byrow=TRUE)))
-mock_sf <- sf::st_sf(zone_id = c("zone_1", "zone_2"), geometry = sf::st_sfc(p1, p2))
+mock_sf <- sf::st_sf(zone_id = c("zone_1", "zone_2"), geometry = sf::st_sfc(p1, p2, crs = 4326))
 
-# Create synthetic policy simulation output
 mock_sims <- list(
   mod_1_baseline = list(
     model_name = "mod_1",
@@ -36,14 +35,14 @@ mock_sims <- list(
     scenario = "closure_1",
     results = list(
       effort_base = c(zone_1 = 100, zone_2 = 200),
-      effort_new  = c(zone_1 = 0,   zone_2 = 300) # Zone 1 closes, spills 100 trips to Zone 2
+      effort_new  = c(zone_1 = 0,   zone_2 = 300) 
     )
   ),
-  mod_1_zero_base = list(
-    model_name = "mod_1",
+  mod_2_zero_base = list(
+    model_name = "mod_2", # changed to mod_2 to test model filtering
     scenario = "zero_base",
     results = list(
-      effort_base = c(zone_1 = 0,  zone_2 = 200), # Zone 1 starts at 0 to test division by zero
+      effort_base = c(zone_1 = 0,  zone_2 = 200), 
       effort_new  = c(zone_1 = 50, zone_2 = 150)
     )
   )
@@ -68,29 +67,37 @@ restore_mocks <- function() {
   assignInNamespace("check_spatdat", orig_functions$check_spatdat, ns = "FishSET")
 }
 
-# Test expected structure and plots ---------------------------------------------------------------
-test_that("summarize_policy_effort returns expected structure and valid plots", {
+# Test expected structure and static plots --------------------------------------------------------
+test_that("summarize_policy_effort returns expected structure and static plots", {
   setup_mocks()
   on.exit(restore_mocks(), add = TRUE)
   
   res <- summarize_policy_effort(
-    project = "test_proj", 
-    spat = "mock_spat", 
-    zone_spat = "zone_id"
+    project = "test_proj", spat = "mock_spat", zone_spat = "zone_id", output_type = "static"
   )
   
-  # Structure checks
   expect_type(res, "list")
   expect_named(res, c("summary_data", "plots_absolute_map", "plots_percent_map", "plots_scatter"))
-  
-  # Data frame checks
   expect_s3_class(res$summary_data, "data.frame")
-  expect_equal(nrow(res$summary_data), 6) # 3 scenarios * 2 zones = 6 rows
+  expect_equal(nrow(res$summary_data), 6) 
   
-  # Plot generation checks
   expect_s3_class(res$plots_absolute_map$mod_1_closure_1, "ggplot")
   expect_s3_class(res$plots_percent_map$mod_1_closure_1, "ggplot")
   expect_s3_class(res$plots_scatter$mod_1_closure_1, "ggplot")
+})
+
+# Test dynamic plots ------------------------------------------------------------------------------
+test_that("summarize_policy_effort handles dynamic plotting correctly", {
+  setup_mocks()
+  on.exit(restore_mocks(), add = TRUE)
+  
+  res <- summarize_policy_effort(
+    project = "test_proj", spat = "mock_spat", zone_spat = "zone_id", output_type = "dynamic"
+  )
+  
+  expect_s3_class(res$plots_absolute_map$mod_1_closure_1, "leaflet")
+  expect_s3_class(res$plots_percent_map$mod_1_closure_1, "leaflet")
+  expect_s3_class(res$plots_scatter$mod_1_closure_1, "plotly")
 })
 
 # Test output values ------------------------------------------------------------------------------
@@ -98,38 +105,66 @@ test_that("summarize_policy_effort calculates percentages correctly and handles 
   setup_mocks()
   on.exit(restore_mocks(), add = TRUE)
   
-  res <- summarize_policy_effort(
-    project = "test_proj", 
-    spat = "mock_spat", 
-    zone_spat = "zone_id"
-  )
+  res <- summarize_policy_effort(project = "test_proj", spat = "mock", zone_spat = "zone_id")
   df <- res$summary_data
   
-  # closure_1, zone_1 (100 -> 0) should equal exactly -100%
   pct_closure_z1 <- df$Pct_Effort_Change[df$Simulation == "mod_1_closure_1" & df$Zone == "zone_1"]
   expect_equal(pct_closure_z1, -100)
   
-  # closure_1, zone_2 (200 -> 300) should equal exactly +50%
   pct_closure_z2 <- df$Pct_Effort_Change[df$Simulation == "mod_1_closure_1" & df$Zone == "zone_2"]
   expect_equal(pct_closure_z2, 50)
   
-  # zero_base, zone_1 (0 -> 50) should gracefully return NA to avoid Inf
-  pct_zero_z1 <- df$Pct_Effort_Change[df$Simulation == "mod_1_zero_base" & df$Zone == "zone_1"]
+  pct_zero_z1 <- df$Pct_Effort_Change[df$Simulation == "mod_2_zero_base" & df$Zone == "zone_1"]
   expect_true(is.na(pct_zero_z1))
 })
 
-# Test missing policy simulations -----------------------------------------------------------------
-test_that("Error Handling: Missing policy simulations triggers error", {
-  # Pass an empty list to simulate an empty or un-run database
-  setup_mocks(return_sims = list()) 
+# Test Scenario and Model Filtering ---------------------------------------------------------------
+test_that("summarize_policy_effort filters correctly by model and scenario", {
+  setup_mocks()
   on.exit(restore_mocks(), add = TRUE)
   
+  # Filter by Scenario
+  res_scen <- summarize_policy_effort(
+    project = "test", spat = "mock", zone_spat = "zone_id", plot_scenarios = "closure_1"
+  )
+  # Check if the plot list only contains the filtered scenario
+  expect_false("mod_2_zero_base" %in% names(res_scen$plots_absolute_map))
+  expect_true("mod_1_closure_1" %in% names(res_scen$plots_absolute_map))
+  
+  # Filter by Model
+  res_mod <- summarize_policy_effort(
+    project = "test", spat = "mock", zone_spat = "zone_id", plot_models = "mod_2"
+  )
+  # Check if the plot list only contains the filtered model
+  expect_false("mod_1_closure_1" %in% names(res_mod$plots_absolute_map))
+  expect_true("mod_2_zero_base" %in% names(res_mod$plots_absolute_map))
+})
+
+# Test Error Handling -----------------------------------------------------------------------------
+test_that("Error Handling triggers correctly for bad inputs", {
+  setup_mocks()
+  on.exit(restore_mocks(), add = TRUE)
+  
+  # Bad output_type
   expect_error(
-    summarize_policy_effort(
-      project = "test_proj", 
-      spat = "mock_spat", 
-      zone_spat = "zone_id"
-    ),
+    summarize_policy_effort(project = "t", spat = "m", zone_spat = "z", output_type = "invalid"),
+    "The 'output_type' should be 'static' or 'dynamic'"
+  )
+  
+  # Bad filter matches
+  expect_error(
+    summarize_policy_effort(project = "t", spat = "m", zone_spat = "z", plot_models = "fake"),
+    "None of the provided 'plot_models' were found"
+  )
+  expect_error(
+    summarize_policy_effort(project = "t", spat = "m", zone_spat = "z", plot_scenarios = "fake"),
+    "None of the provided 'plot_scenarios' were found"
+  )
+  
+  # Missing simulations
+  setup_mocks(return_sims = list())
+  expect_error(
+    summarize_policy_effort(project = "test", spat = "mock", zone_spat = "zone"),
     "No policy simulations found"
   )
 })

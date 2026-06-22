@@ -38,9 +38,11 @@
 #' @param betadraws Integer. Number of multivariate normal draws for the simulation. 
 #'   Default is 1000.
 #' @param marg_util_income Character. For standard/zonal logit models: Name of the coefficient 
-#'   to use as the marginal utility of income to calculate welfare in dollars.
+#'   to use as the marginal utility of income to calculate welfare in dollars. Note this
+#'   input will be ignored for EPMs.
 #' @param income_cost Logical. Default FALSE. Set to TRUE if the `marg_util_income` parameter 
-#'   represents a cost (flips the sign of the coefficient).
+#'   represents a cost (flips the sign of the coefficient). Note this
+#'   input will be ignored for EPMs.
 #'
 #' @return An object of class `fishset_policy` containing simulation results saved in the project
 #'   database with the name [project]PolicySimulations.
@@ -75,7 +77,12 @@
 #' library(data.table)
 #' 
 #' # 1. Load the formatted data to ensure perfect matrix alignment
-#' lf_data <- readRDS("MyProject/Models/FormattedData/MyProjectLongFormatData.rds")[["format1"]]
+#' # Note that this saves as a qs2 file if the package is available, and as a .rds file if not.
+#' lf_data <- 
+#'   qs2::qs_read("MyProject/Models/FormattedData/MyProjectLongFormatData.rds")[["format1"]]
+#' # OR #
+#' lf_data <- 
+#'   readRDS("MyProject/Models/FormattedData/MyProjectLongFormatData.rds")[["format1"]]
 #' new_distance <- as.numeric(lf_data$distance) * 1.5
 #' 
 #' # 2. Run the simulation
@@ -134,7 +141,7 @@ run_simulation <- function(project,
     stop(paste("Model fit", fit_name, "not found. Run fishset_fit() first."))
   }
   fit <- fit_list[[fit_name]]
-
+  
   # Delete the full fit_list
   rm(fit_list)
   
@@ -258,16 +265,49 @@ run_simulation <- function(project,
                                                         fun = "closures"))
     if (utils::file_test("-f", yaml_file)) {
       all_closures <- yaml::read_yaml(yaml_file)
-      base_scenarios <- all_closures[vapply(
+      
+      # Filter to user-selected closures
+      raw_scenarios <- all_closures[vapply(
         all_closures, 
         function(x) x$scenario %in% unlist(closures), logical(1))]
       
-      if (length(base_scenarios) == 0) {
+      if (length(raw_scenarios) == 0) {
         available_scens <- vapply(all_closures, function(x) x$scenario, character(1))
         stop(paste0("None of the specified scenario names in 'closures' were found in ",
                     "the YAML file.\n Available scenarios are: '", 
                     paste(available_scens, collapse = "', '"), "'"), call. = FALSE)
       }
+      
+      # Validate that all the closure zones exist in the model design
+      available_design_zones <- as.character(unique(design$ids$zone))
+      
+      for (scen in raw_scenarios) {
+        if (!is.null(scen$zone)) {
+          # Strip the 'Zone_' prefix from the YAML definitions to match model ID format
+          requested_zones <- gsub("Zone_", "", scen$zone)
+          missing_zones <- setdiff(requested_zones, available_design_zones)
+          
+          if (length(missing_zones) > 0) {
+            warning(sprintf(
+              paste0("Closure scenario '%s' will not be simulated because one or more zones ",
+                     "identified are not available in the model design choice set. ",
+                     "Missing zones: %s"), 
+              scen$scenario, 
+              paste(missing_zones, collapse = ", ")
+            ), call. = FALSE, immediate. = TRUE)
+            next # Skip adding this scenario to base_scenarios
+          }
+        }
+        # If valid, append to the final scenario list
+        base_scenarios[[length(base_scenarios) + 1]] <- scen
+      }
+      
+      # Safety check in case ALL selected scenarios were dropped due to invalid zones
+      if (length(base_scenarios) == 0) {
+        stop(paste0("Simulation aborted. None of the specified closure scenarios contain valid ",
+                    "zones for this model design."), call. = FALSE)
+      }
+      
     } else {
       stop("No policy scenario YAML file found. Run the zone_closure() function first.")
     }
@@ -322,6 +362,8 @@ run_simulation <- function(project,
     closed_zones <- if (!is.null(scen$zone)) gsub("Zone_", "", scen$zone) else character(0)
     closed_idx <- which(zone_vec %in% closed_zones)
     
+    theta_flag <- FALSE
+    
     draw_welfare <- numeric(betadraws)
     # Trackers for expected trips
     draw_trips_base <- matrix(NA_real_, nrow = betadraws, ncol = J_alts)
@@ -349,6 +391,7 @@ run_simulation <- function(project,
         
         # Error check: marginal utility of income must be positive
         if (theta <= 0) {
+          theta_flag <- TRUE
           draw_welfare[d] <- NA
           next # skip and go to the next draw
         }
@@ -486,6 +529,16 @@ run_simulation <- function(project,
       quantiles = quantile(draw_welfare, probs = c(0.025, 0.05, 0.5, 0.95, 0.975), na.rm = TRUE),
       effort_base = avg_trips_base, 
       effort_new = avg_trips_new
+    )
+  }
+  
+  # Report theta_flag
+  if (theta_flag) {
+    warning(
+      paste0("One or more draws for the marginal utility of income were <= 0, which returns NA ",
+             "values. If the marginal utility of income is represented with a cost coefficient ",
+             "(negative), then set income_cost = TRUE."
+      )
     )
   }
   

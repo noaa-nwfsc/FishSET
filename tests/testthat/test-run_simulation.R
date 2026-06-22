@@ -142,11 +142,15 @@ test_that("Standard Logit runs baseline correctly", {
     restore_mocks()
   }, add = TRUE)
   
-  res <- run_simulation(
-    project = "Proj_Std", 
-    mod_name = "mod1", 
-    betadraws = betadraws_test, 
-    marg_util_income = "Var1"
+  # Explicitly expect the negative draw warning
+  expect_warning(
+    res <- run_simulation(
+      project = "Proj_Std", 
+      mod_name = "mod1", 
+      betadraws = betadraws_test, 
+      marg_util_income = "Var1"
+    ),
+    "One or more draws for the marginal utility of income were <= 0"
   )
   
   # Assertions
@@ -172,12 +176,16 @@ test_that("Standard Logit handles spatial closures", {
     restore_mocks()
   }, add = TRUE)
   
-  res <- run_simulation(
-    project = "Proj_Closure", 
-    mod_name = "mod1", 
-    closures = c("closure_1"), 
-    betadraws = betadraws_test, 
-    marg_util_income = "Var1"
+  # Explicitly expect the negative draw warning
+  expect_warning(
+    res <- run_simulation(
+      project = "Proj_Closure", 
+      mod_name = "mod1", 
+      closures = c("closure_1"), 
+      betadraws = betadraws_test, 
+      marg_util_income = "Var1"
+    ),
+    "One or more draws for the marginal utility of income were <= 0"
   )
   
   expect_true("closure_1" %in% names(res))
@@ -207,12 +215,16 @@ test_that("Standard Logit processes data modifiers", {
   # Create a massive penalty for Var2 to force behavior change
   new_var2 <- rep(-50, N_obs * J_alts)
   
-  res <- run_simulation(
-    project = "Proj_Mods", 
-    mod_name = "mod1", 
-    data_modifiers = list(Var2 = new_var2),
-    betadraws = betadraws_test, 
-    marg_util_income = "Var1"
+  # Explicitly expect the negative draw warning
+  expect_warning(
+    res <- run_simulation(
+      project = "Proj_Mods", 
+      mod_name = "mod1", 
+      data_modifiers = list(Var2 = new_var2),
+      betadraws = betadraws_test, 
+      marg_util_income = "Var1"
+    ),
+    "One or more draws for the marginal utility of income were <= 0"
   )
   
   mod_res <- res$Var2 # Dynamic naming automatically set it to 'Var2'

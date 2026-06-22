@@ -15,9 +15,9 @@
 #' reallocating their effort to the next-best available fishing grounds.
 #'
 #' @param project Character. Name of the project.
-#' @param plot_scenarios Character vector. Optional. Specific Scenario or Simulation names 
+#' @param plot_scenarios Character vector (optional). Specific Scenario or Simulation names 
 #'   to include in the plots. If \code{NULL} (the default), scenarios are not filtered.
-#' @param plot_models Character vector. Optional. Specific Model names to include in 
+#' @param plot_models Character vector (optional). Specific Model names to include in 
 #'   the plots (e.g., "zonal_logit", "clogit"). If \code{NULL} (the default), models are not
 #'   filtered.
 #'
@@ -85,20 +85,21 @@ summarize_policy_welfare <- function(project, plot_scenarios = NULL, plot_models
     draws_df <- draws_df[draws_df$Model %in% plot_models, ]
     
     if (nrow(plot_data) == 0) {
-      warning("None of the provided 'plot_models' were found in the data. Plots will be empty.")
+      stop("None of the provided 'plot_models' were found in the data.")
     }
   }
   
   # Filter for specific scenarios if requested
   if (!is.null(plot_scenarios)) {
-    plot_data <- plot_data[plot_data$Scenario %in% plot_scenarios | 
-                             plot_data$Simulation %in% plot_scenarios, ]
-    draws_df <- draws_df[draws_df$Scenario %in% plot_scenarios | 
-                           draws_df$Simulation %in% plot_scenarios, ]
+    scen_string <- paste(plot_scenarios, collapse = "|")
+    filtered_scenarios <- grep(scen_string, plot_data$Scenario)
+    plot_data <- plot_data[filtered_scenarios, ]
+    filtered_draws <- grep(scen_string, draws_df$Scenario)
+    draws_df <- draws_df[filtered_draws, ]
     
     if (nrow(plot_data) == 0) {
-      warning("None of the provided 'plot_scenarios' were found in the remaining data. 
-              Plots will be empty.")
+      stop("None of the provided 'plot_scenarios' were found in the remaining data. 
+           Plots will be empty.")
     }
   }
   
@@ -129,7 +130,8 @@ summarize_policy_welfare <- function(project, plot_scenarios = NULL, plot_models
     ggplot2::theme(
       plot.title = ggplot2::element_text(face = "bold"),
       legend.position = "top",
-      axis.text = ggplot2::element_text(color = "black")
+      axis.text = ggplot2::element_text(color = "black"),
+      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
     )
   
   # Generate the density (violin) plot ------------------------------------------------------------
@@ -149,7 +151,8 @@ summarize_policy_welfare <- function(project, plot_scenarios = NULL, plot_models
     ggplot2::theme(
       plot.title = ggplot2::element_text(face = "bold"),
       legend.position = "none",
-      axis.text = ggplot2::element_text(color = "black")
+      axis.text = ggplot2::element_text(color = "black"),
+      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
     )
   
   # Return data and plots -------------------------------------------------------------------------
