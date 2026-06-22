@@ -27,91 +27,241 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     rv_available_fits <- reactiveVal(character(0))
     rv_available_closures <- reactiveVal(character(0))
     
-    # 1. Load Available Model Fits ----------------------------------------------------------------
-    load_model_fits <- function() {
-      req(rv_project_name())
+    # NEW: Caching structures to speed up UI
+    rv_fit_list <- reactiveVal(list())
+    rv_model_meta_cache <- reactiveVal(list())
+    
+    # State for dynamic Marginal Utility of Income UI
+    rv_current_vars <- reactiveVal(character(0))
+    rv_is_epm <- reactiveVal(FALSE)
+    
+    # 1. Real-time Polling Setup ------------------------------------------------------------------
+    
+    # Shared check function for the SQLite database (used for Fits and Simulations)
+    db_check_func <- function() {
+      if (is.null(rv_project_name())) return(NULL)
       project <- rv_project_name()$value
+      if (is.null(project) || project == "") return(NULL)
       
-      tryCatch({
-        fit_list <- unserialize_table(paste0(project, "ModelFit"), project)
-        if (length(fit_list) > 0) {
-          # Strip "_fit" from the names to match mod_name convention
-          fit_names <- gsub("_fit$", "", names(fit_list))
-          rv_available_fits(fit_names)
-        } else {
-          rv_available_fits(character(0))
-        }
-      }, error = function(e) {
-        rv_available_fits(character(0))
-      })
+      db_path <- tryCatch(locdatabase(project), error = function(e) NULL)
+      if (is.null(db_path) || !file.exists(db_path)) return(NULL)
+      
+      # Return the database file's modification time
+      return(file.info(db_path)$mtime)
     }
     
-    # 2. Load Available Closures ------------------------------------------------------------------
-    load_closures <- function() {
-      req(rv_project_name())
-      project <- rv_project_name()$value
-      
-      tryCatch({
-        # Mirror the logic used in run_simulation to find the YAML
-        yaml_file <- paste0(locoutput(project), pull_output(project, 
-                                                            type = "zone", 
-                                                            fun = "closures"))
-        if (utils::file_test("-f", yaml_file)) {
+    # Poll for Model Fits
+    poll_available_fits <- reactivePoll(
+      intervalMillis = 1000,
+      session = session,
+      checkFunc = db_check_func,
+      valueFunc = function() {
+        if (is.null(rv_project_name())) return(character(0))
+        project <- rv_project_name()$value
+        if (is.null(project) || project == "") return(character(0))
+        
+        tryCatch({
+          fit_list <- unserialize_table(paste0(project, "ModelFit"), project)
+          # Cache the full table in memory so we don't have to read it on click
+          rv_fit_list(fit_list) 
+          
+          if (length(fit_list) > 0) {
+            return(gsub("_fit$", "", names(fit_list)))
+          }
+          return(character(0))
+        }, error = function(e) character(0))
+      }
+    )
+    
+    # Poll for Policy Simulations
+    poll_existing_sims <- reactivePoll(
+      intervalMillis = 1000,
+      session = session,
+      checkFunc = db_check_func,
+      valueFunc = function() {
+        if (is.null(rv_project_name())) return(character(0))
+        project <- rv_project_name()$value
+        if (is.null(project) || project == "") return(character(0))
+        
+        tryCatch({
+          sim_list <- unserialize_table(paste0(project, "PolicySimulations"), project)
+          if (length(sim_list) > 0) {
+            return(names(sim_list))
+          }
+          return(character(0))
+        }, error = function(e) character(0))
+      }
+    )
+    
+    # Poll for Closures (YAML file)
+    poll_closures <- reactivePoll(
+      intervalMillis = 1000,
+      session = session,
+      checkFunc = function() {
+        if (is.null(rv_project_name())) return(NULL)
+        project <- rv_project_name()$value
+        if (is.null(project) || project == "") return(NULL)
+        
+        yaml_file <- tryCatch(
+          paste0(locoutput(project), pull_output(project, type = "zone", fun = "closures")), 
+          error = function(e) NULL
+        )
+        if (is.null(yaml_file) || !utils::file_test("-f", yaml_file)) return(NULL)
+        
+        # Return the YAML file's modification time
+        return(file.info(yaml_file)$mtime)
+      },
+      valueFunc = function() {
+        if (is.null(rv_project_name())) return(character(0))
+        project <- rv_project_name()$value
+        if (is.null(project) || project == "") return(character(0))
+        
+        yaml_file <- tryCatch(
+          paste0(locoutput(project), pull_output(project, type = "zone", fun = "closures")), 
+          error = function(e) NULL
+        )
+        if (is.null(yaml_file) || !utils::file_test("-f", yaml_file)) return(character(0))
+        
+        tryCatch({
           all_closures <- yaml::read_yaml(yaml_file)
-          scen_names <- vapply(all_closures, function(x) x$scenario, character(1))
-          rv_available_closures(scen_names)
-        } else {
-          rv_available_closures(character(0))
-        }
-      }, error = function(e) {
-        rv_available_closures(character(0))
-      })
-    }
+          return(vapply(all_closures, function(x) x$scenario, character(1)))
+        }, error = function(e) character(0))
+      }
+    )
     
-    # 3. Load Existing Simulations (Manage Table) -------------------------------------------------
-    load_simulations <- function() {
-      req(rv_project_name())
+    # 2. Update UI State Reactively ---------------------------------------------------------------
+    observe({
+      fits <- poll_available_fits()
+      rv_available_fits(fits)
+      
+      # Retain current selection if it still exists
+      current_sel <- isolate(input$mod_name_input)
+      selected <- if (!is.null(current_sel) && current_sel %in% fits) current_sel else ""
+      updateSelectizeInput(session, "mod_name_input", choices = fits, selected = selected)
+    })
+    
+    observe({
+      closures <- poll_closures()
+      rv_available_closures(closures)
+      
+      current_sel <- isolate(input$closures_input)
+      selected <- if (!is.null(current_sel) && all(current_sel %in% closures)) current_sel else character(0)
+      updateSelectizeInput(session, "closures_input", choices = closures, selected = selected)
+    })
+    
+    observe({
+      sims <- poll_existing_sims()
+      rv_existing_sims(sims)
+      
+      current_sel <- isolate(input$sim_to_remove)
+      selected <- if (!is.null(current_sel) && current_sel %in% sims) current_sel else ""
+      updateSelectizeInput(session, "sim_to_remove", choices = sims, selected = selected)
+    })
+    
+    # NEW: Build a lightweight cache of variables and EPM status in the background
+    observe({
+      fit_list <- rv_fit_list()
       project <- rv_project_name()$value
       
-      tryCatch({
-        sim_list <- unserialize_table(paste0(project, "PolicySimulations"), project)
-        if (length(sim_list) > 0) {
-          rv_existing_sims(names(sim_list))
-        } else {
-          rv_existing_sims(character(0))
+      if (is.null(project) || length(fit_list) == 0) return()
+      
+      cache <- list()
+      db_path <- tryCatch(locdatabase(project), error = function(e) NULL)
+      designs_dir <- if (!is.null(db_path)) file.path(dirname(db_path), "Models", "ModelDesigns") else NULL
+      
+      # Pre-compute the UI needs for every available model
+      for (fit_name in names(fit_list)) {
+        mod <- fit_list[[fit_name]]
+        
+        # 1. Get variables
+        vars <- if (!is.null(rownames(mod$coef_table))) rownames(mod$coef_table) else character(0)
+        
+        # 2. Get EPM Status by reading the file
+        is_epm <- FALSE
+        d_name <- mod$model_name
+        if (is.null(d_name)) d_name <- mod$metadata$model_name
+        if (is.null(d_name)) d_name <- gsub("_fit$", "", fit_name)
+        
+        if (!is.null(designs_dir)) {
+          qs2_path <- file.path(designs_dir, paste0(d_name, ".qs2"))
+          rds_path <- file.path(designs_dir, paste0(d_name, ".rds"))
+          
+          tryCatch({
+            if (file.exists(qs2_path) && requireNamespace("qs2", quietly = TRUE)) {
+              d_obj <- qs2::qs_read(qs2_path)
+              if (isTRUE(d_obj$epm$is_epm)) is_epm <- TRUE
+            } else if (file.exists(rds_path)) {
+              d_obj <- readRDS(rds_path)
+              if (isTRUE(d_obj$epm$is_epm)) is_epm <- TRUE
+            }
+          }, error = function(e) {})
         }
-      }, error = function(e) {
-        rv_existing_sims(character(0))
-      })
-    }
-    
-    # Initialize data on project load
-    observeEvent(rv_data$main, {
-      load_model_fits()
-      load_closures()
-      load_simulations()
+        
+        # Fallback check
+        distro <- if(!is.null(mod$distribution)) mod$distribution else mod$metadata$distribution
+        if (!is_epm && !is.null(distro) && distro != "none" && distro != "") {
+          is_epm <- TRUE
+        }
+        
+        # Save to dictionary using the clean name
+        clean_name <- gsub("_fit$", "", fit_name)
+        cache[[clean_name]] <- list(vars = vars, is_epm = is_epm)
+      }
+      
+      rv_model_meta_cache(cache)
     })
     
-    # Update UI Dropdowns dynamically
-    observe({
-      updateSelectizeInput(session, "mod_name_input", choices = rv_available_fits(), selected = "")
+    # UPDATED: React to model selection instantly using the pre-built cache
+    observeEvent(input$mod_name_input, {
+      # Reset to defaults
+      rv_current_vars(character(0))
+      rv_is_epm(FALSE)
+      
+      if (is.null(input$mod_name_input) || input$mod_name_input == "") {
+        return()
+      }
+      
+      # Pull instantly from memory instead of the database
+      cache <- rv_model_meta_cache()
+      target <- input$mod_name_input
+      
+      if (!is.null(cache[[target]])) {
+        rv_current_vars(cache[[target]]$vars)
+        rv_is_epm(cache[[target]]$is_epm)
+      }
+      
+    }, ignoreInit = TRUE, ignoreNULL = FALSE)
+
+    # NEW: Render the Inputs ONLY if it is a Standard Logit
+    output$marg_util_ui <- renderUI({
+      if (rv_is_epm()) return(NULL) # If it's an EPM, render absolutely nothing
+      
+      tagList(
+        selectizeInput(ns("marg_util_income_input"), 
+                       label = tags$span(
+                         "Marginal Utility of Income ", 
+                         bslib::tooltip(shiny::icon("info-circle"), 
+                                        "Select the variable representing the marginal utility of income.")),
+                       choices = c("", rv_current_vars()), # Add blank option at top
+                       selected = "", 
+                       width = "100%"),
+        
+        checkboxInput(ns("income_cost_input"), 
+                      label = tags$span(
+                        "Treat Income Parameter as a Cost? ",
+                        bslib::tooltip(shiny::icon("info-circle"), 
+                                       "Check this if the specified marginal utility of income represents a cost (flips the sign).")),
+                      value = FALSE)
+      )
     })
     
-    observe({
-      updateSelectizeInput(session, "closures_input", choices = rv_available_closures(), selected = character(0))
-    })
-    
-    observe({
-      updateSelectizeInput(session, "sim_to_remove", choices = rv_existing_sims(), selected = "")
-    })
-    
-    # 4. Execution Logic (Run Simulation) ---------------------------------------------------------
+    # 3. Execution Logic (Run Simulation) ---------------------------------------------------------
     observeEvent(input$run_sim_btn, {
       req(rv_project_name(), rv_folderpath())
       project_name <- rv_project_name()$value
       
       # Validation
-      if (input$mod_name_input == "") {
+      if (is.null(input$mod_name_input) || input$mod_name_input == "") {
         showNotification("Please select a fitted model.", type = "warning")
         return()
       }
@@ -128,7 +278,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
           project = project_name,
           mod_name = input$mod_name_input,
           betadraws = input$betadraws_input,
-          income_cost = input$income_cost_input
+          income_cost = isTRUE(input$income_cost_input)
         )
         
         # Add optional arguments
@@ -136,7 +286,8 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
           args$closures <- input$closures_input
         }
         
-        if (input$marg_util_income_input != "") {
+        # Handle dynamic input properly
+        if (!is.null(input$marg_util_income_input) && input$marg_util_income_input != "") {
           args$marg_util_income <- input$marg_util_income_input
         }
         
@@ -148,9 +299,6 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
           "Success: Policy simulations completed and saved to the database."
         })
         shinyjs::show("sim_success_message")
-        
-        # Refresh the management table
-        load_simulations()
         
       }, error = function(e) {
         output$sim_error_out <- renderText({
@@ -164,7 +312,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       })
     })
     
-    # 5. Manage Table Logic -----------------------------------------------------------------------
+    # 4. Manage Table Logic -----------------------------------------------------------------------
     output$existing_sims_table <- DT::renderDataTable({
       s_names <- rv_existing_sims()
       
@@ -282,7 +430,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
                          params = list(data = list(serialize(sim_list, NULL))))
           
           showNotification("Simulation removed successfully.", type = "message")
-          load_simulations()
+          # No manual reload call needed here; reactivePoll handles the UI update
         }
       }, error = function(e) {
         showNotification(paste("Error removing simulation:", e$message), type = "error")
@@ -345,19 +493,8 @@ policy_sim_ui <- function(id) {
                                                 "Number of draws for the simulation. Higher numbers increase accuracy but slow computation.")),
                                value = 500, min = 10, step = 100, width = "100%"),
                   
-                  textInput(ns("marg_util_income_input"), 
-                            label = tags$span(
-                              "Marginal Utility of Income (Standard Logit Only) ", 
-                              bslib::tooltip(shiny::icon("info-circle"), 
-                                             "Name of the coefficient representing the marginal utility of income. Ignore if using an Expected Profit Model (EPM).")),
-                            placeholder = "e.g., expected_catch", width = "100%"),
-                  
-                  checkboxInput(ns("income_cost_input"), 
-                                label = tags$span(
-                                  "Treat Income Parameter as a Cost? ",
-                                  bslib::tooltip(shiny::icon("info-circle"), 
-                                                 "Check this if the specified marginal utility of income represents a cost (flips the sign).")),
-                                value = FALSE)
+                  # Rendered dynamically: Hidden if model is an EPM
+                  uiOutput(ns("marg_util_ui"))
               )
             )
           ),
