@@ -351,13 +351,21 @@ format_model_data <- function(project,
         }
         
         # Check numeric value (Unix timestamps or YYYYMMDD integers)
-        if (is.numeric(col_data) && !all(is.na(col_data))) {
-          med_val <- median(col_data, na.rm = TRUE)
+        if (is.numeric(col_data)) {
+          # Fast check: use the first 100 non-NA rows as a proxy
+          non_na_vals <- head(col_data[!is.na(col_data)], 100)
+          if (length(non_na_vals) == 0) next
+          
+          proxy_val <- median(non_na_vals)
+          
           # Unix timestamp check: ~1980 (3e8) to ~2050 (2.5e9)
-          is_unix <- (med_val > 300000000 && med_val < 2500000000)
+          is_unix <- (proxy_val > 300000000 && proxy_val < 2500000000)
           # YYYYMMDD integer check (e.g., 20231025)
-          is_yyyymmdd <- (med_val > 19800000 && med_val < 20509999)
-          if (is_unix || is_yyyymmdd) {
+          is_yyyymmdd <- (proxy_val > 19800000 && proxy_val < 20509999)
+          # Stata daily date check
+          is_stata_daily <- (proxy_val >= 7305 && proxy_val <= 32872)
+          
+          if (is_unix || is_yyyymmdd || is_stata_daily) {
             date_vars <- c(date_vars, col)
             next
           }
@@ -418,10 +426,28 @@ format_model_data <- function(project,
           if (col %in% grid_date_cols) {
             # Format gridded_df date
             if (is.numeric(gridded_df[[col]])) {
-              gridded_df[[col]] <- as.Date(as.POSIXct(gridded_df[[col]], 
-                                                      origin = "1970-01-01", 
-                                                      tz = "UTC"))
+              
+              # Fast format check using a small sample proxy
+              non_na_vals <- head(gridded_df[[col]][!is.na(gridded_df[[col]])], 100)
+              proxy_val <- if (length(non_na_vals) > 0) median(non_na_vals) else NA
+              
+              if (!is.na(proxy_val) && proxy_val >= 7305 && proxy_val <= 32872) {
+                # STATA Daily Format (Days since 1960-01-01)
+                gridded_df[[col]] <- as.Date(gridded_df[[col]], origin = "1960-01-01")
+                
+              } else if (!is.na(proxy_val) && proxy_val > 19800000 && proxy_val < 20509999) {
+                # YYYYMMDD Integer Format
+                gridded_df[[col]] <- as.Date(as.character(gridded_df[[col]]), format = "%Y%m%d")
+                
+              } else {
+                # Default: Unix timestamp (Seconds since 1970-01-01)
+                gridded_df[[col]] <- as.Date(as.POSIXct(gridded_df[[col]], 
+                                                        origin = "1970-01-01", 
+                                                        tz = "UTC"))
+              }
+              
             } else {
+              # If it's a character string, parse normally
               gridded_df[[col]] <- as.Date(gridded_df[[col]])
             }
             
