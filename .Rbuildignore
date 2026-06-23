@@ -10,3 +10,5 @@ LICENSE.md
 ^docs$
 ^pkgdown$
 _\.new\.png$
+^\.positai$
+^\.claude$

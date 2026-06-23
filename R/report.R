@@ -1346,7 +1346,8 @@ table_type <- function(tab) {
                  "MainDataTable", "ExpectedCatch", "AltMatrix", "PortTable", "port", 
                  "LDGlobalCheck", "FleetTable", "ModelOut", "ModelFit", "ModelInputData", 
                  "modelDesignTable", "FilterTable", "GridTable", "AuxTable", "SpatTable", 
-                 "spat", "predictOutput", "LongFormatData", "ModelDesigns")
+                 "spat", "predictOutput", "LongFormatData", "ModelDesigns",
+                 "PolicySimulations")
     
     t_regex <- paste0(db_type, collapse = "|")
     t_str <- stringi::stri_extract_first_regex(tab, t_regex)
@@ -1375,7 +1376,8 @@ table_type <- function(tab) {
                   "spat" = "spatial", 
                   "predictOutput" = "predict output",
                   "LongFormatData" = "long format data",
-                  "ModelDesigns" = "model designs")
+                  "ModelDesigns" = "model designs",
+                  "PolicySimulations" = "policy simulations")
     
     out
   }
