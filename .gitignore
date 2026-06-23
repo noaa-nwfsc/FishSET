@@ -16,3 +16,4 @@ tests/testthat/*.pdf
 tests/testthat/testdata/FishSETFolder/s1/output/*.csv
 tests/testthat/testdata/FishSETFolder/s1/output/*.png
 tests/testthat/testdata/FishSETFolder/s1/src/*.json
+.positai

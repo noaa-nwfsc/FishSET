@@ -63,5 +63,15 @@ utils::globalVariables(c(
   'mean_residual',
   'geometry',
   'zone_closure_ui',
-  'zone_closure_server'
+  'zone_closure_server',
+  'Baseline_Effort',
+  'Counterfactual_Effort',
+  'Effort_Change',
+  'Lower_95',
+  'Mean_Welfare_Per_Trip',
+  'Model',
+  'Pct_Effort_Change',
+  'Simulation',
+  'Upper_95',
+  'Welfare_Change'
 ))
