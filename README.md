@@ -54,10 +54,6 @@ Refer to the [FishSET R Package User Manual](https://noaa-nwfsc.github.io/FishSE
 
 We also offer a [video tutorial](https://bcove.video/3WCSb5N) that demonstrates how to use the FishSET GUI.
 
-## Issues and Bug Reports
-
-Add issues in GitHub [https://github.com/noaa-nwfsc/FishSET/issues](https://github.com/noaa-nwfsc/FishSET/issues). Or contact nmfs.fishset@noaa.gov.
-
 ## <a name="cite"> Citation </a>
 
 If you use FishSET results in publications, please cite the the package:
@@ -85,6 +81,10 @@ This error could appear when your last package installation was interrupted, whe
 3. If this still doesn't work, try using ``pacman::p_unlock(lib.lock=path_to_directory)``
 
 </details> 
+
+## Issues and Bug Reports
+
+Add issues in GitHub [https://github.com/noaa-nwfsc/FishSET/issues](https://github.com/noaa-nwfsc/FishSET/issues). Or contact nmfs.fishset@noaa.gov.
 
 ## Disclaimer
 
