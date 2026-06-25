@@ -56,7 +56,7 @@ We also offer a [video tutorial](https://bcove.video/3WCSb5N) that demonstrates 
 
 ## Publications
 
-Carvalho P., Pfeiffer L., Abelman A., Lee M.-Y., and Haynie A. The Spatial Economics Toolbox for Fisheries (FishSET) is an R package for modeling fisher behavior and simulating policy scenarios. *ICES J Mar Sci* 2026; 83(3) fsag032. [https://doi.org/10.1093/icesjms/fsag032](https://noaa-nwfsc.github.io/FishSET/inst/publications/Carvalho_et_al_2026.pdf)
+Carvalho P., Pfeiffer L., Abelman A., Lee M.-Y., and Haynie A. The Spatial Economics Toolbox for Fisheries (FishSET) is an R package for modeling fisher behavior and simulating policy scenarios. *ICES J Mar Sci* 2026; 83(3) fsag032. [https://doi.org/10.1093/icesjms/fsag032](https://academic.oup.com/icesjms/article/83/3/fsag032/8540085)
 
 ## <a name="cite"> Citation </a>
 
