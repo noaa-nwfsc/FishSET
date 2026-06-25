@@ -54,9 +54,9 @@ Refer to the [FishSET R Package User Manual](https://noaa-nwfsc.github.io/FishSE
 
 We also offer a [video tutorial](https://bcove.video/3WCSb5N) that demonstrates how to use the FishSET GUI.
 
-## Issues and Bug Reports
+## Publications
 
-Add issues in GitHub [https://github.com/noaa-nwfsc/FishSET/issues](https://github.com/noaa-nwfsc/FishSET/issues). Or contact nmfs.fishset@noaa.gov.
+Carvalho P., Pfeiffer L., Abelman A., Lee M.-Y., and Haynie A. The Spatial Economics Toolbox for Fisheries (FishSET) is an R package for modeling fisher behavior and simulating policy scenarios. *ICES J Mar Sci* 2026; 83(3) fsag032. [https://doi.org/10.1093/icesjms/fsag032](https://academic.oup.com/icesjms/article/83/3/fsag032/8540085)
 
 ## <a name="cite"> Citation </a>
 
@@ -85,6 +85,10 @@ This error could appear when your last package installation was interrupted, whe
 3. If this still doesn't work, try using ``pacman::p_unlock(lib.lock=path_to_directory)``
 
 </details> 
+
+## Issues and Bug Reports
+
+Add issues in GitHub [https://github.com/noaa-nwfsc/FishSET/issues](https://github.com/noaa-nwfsc/FishSET/issues). Or contact nmfs.fishset@noaa.gov.
 
 ## Disclaimer
 
