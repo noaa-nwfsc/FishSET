@@ -2,6 +2,12 @@
 #'
 #' Extracts and visualizes the spatial redistribution of fishing effort.
 #' 
+#' @details 
+#' \strong{What does "Effort" represent?}
+#' 
+#' In this simulation framework, "effort" represents the expected number of fishing 
+#' choice occasions (e.g., trips or hauls) allocated to each spatial zone. 
+#'
 #' @param project Character. Name of the project.
 #' @param spat Character. Name of the spatial dataset containing the fishing zones.
 #' @param zone_spat Character. The ID column in the spatial data matching simulation zone IDs.
@@ -354,12 +360,12 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = "sta
       
       p_s_dyn <- plotly::event_register(p_s_dyn, 'plotly_click')
       p_s_dyn <- plotly::event_register(p_s_dyn, 'plotly_doubleclick')
-      
+
       plot_scatter[[s_name]] <- p_s_dyn
     }
   }
   
-  # Return data and plots (FIXED BUG HERE: now passing plot_data instead of unfiltered effort_df)
+  # Return data and plots 
   return(list(
     summary_data = plot_data,
     plots_absolute_map = plot_abs,
