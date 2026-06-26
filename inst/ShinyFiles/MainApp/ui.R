@@ -33,11 +33,10 @@ source("modules/format_data/format_model_data_module.R", local = TRUE)
 source("modules/model_design_module.R", local = TRUE)
 source("modules/model_fit_module.R", local = TRUE)
 source("modules/model_cv_module.R", local = TRUE)
-source("modules/zone_closure_module.R", local = TRUE)
-source("modules/zone_closure_module.R", local = TRUE)
+source("modules/policy/zone_closure_module.R", local = TRUE)
 source("modules/policy/policy_sim_module.R", local = TRUE)
-#source("modules/policy/policy_effort_module.R", local = TRUE)
-#source("modules/policy/policy_welfare_module.R", local = TRUE)
+source("modules/policy/policy_effort_module.R", local = TRUE)
+source("modules/policy/policy_welfare_module.R", local = TRUE)
 
 
 
@@ -475,7 +474,7 @@ ui <- function(request){
             ),
             
             ### Main panel
-           # policy_effort_ui("policy_effort")    
+            policy_effort_ui("policy_effort")    
           )
         )
         
@@ -502,7 +501,7 @@ ui <- function(request){
             ),
             
             ### Main panel
-           # policy_welfare_ui("policy_welfare")    
+            policy_welfare_ui("policy_welfare")    
           )
         )
         

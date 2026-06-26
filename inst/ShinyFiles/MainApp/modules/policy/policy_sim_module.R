@@ -41,7 +41,8 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     db_check_func <- function() {
       if (is.null(rv_project_name())) return(NULL)
       project <- rv_project_name()$value
-      if (is.null(project) || project == "") return(NULL)
+      
+      if (is.null(project) || trimws(project) == "") return(NULL)
       
       db_path <- tryCatch(locdatabase(project), error = function(e) NULL)
       if (is.null(db_path) || !file.exists(db_path)) return(NULL)
@@ -58,7 +59,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       valueFunc = function() {
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
-        if (is.null(project) || project == "") return(character(0))
+        if (is.null(project) || trimws(project) == "") return(character(0))
         
         tryCatch({
           fit_list <- unserialize_table(paste0(project, "ModelFit"), project)
@@ -81,7 +82,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       valueFunc = function() {
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
-        if (is.null(project) || project == "") return(character(0))
+        if (is.null(project) || trimws(project) == "") return(character(0))
         
         tryCatch({
           sim_list <- unserialize_table(paste0(project, "PolicySimulations"), project)
@@ -100,12 +101,13 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       checkFunc = function() {
         if (is.null(rv_project_name())) return(NULL)
         project <- rv_project_name()$value
-        if (is.null(project) || project == "") return(NULL)
+        if (is.null(project) || trimws(project) == "") return(NULL)
         
-        yaml_file <- tryCatch(
+        yaml_file <- suppressMessages(suppressWarnings(tryCatch(
           paste0(locoutput(project), pull_output(project, type = "zone", fun = "closures")), 
           error = function(e) NULL
-        )
+        )))
+        
         if (is.null(yaml_file) || !utils::file_test("-f", yaml_file)) return(NULL)
         
         # Return the YAML file's modification time
@@ -114,12 +116,13 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       valueFunc = function() {
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
-        if (is.null(project) || project == "") return(character(0))
+        if (is.null(project) || trimws(project) == "") return(character(0))
         
-        yaml_file <- tryCatch(
+        yaml_file <- suppressMessages(suppressWarnings(tryCatch(
           paste0(locoutput(project), pull_output(project, type = "zone", fun = "closures")), 
           error = function(e) NULL
-        )
+        )))
+        
         if (is.null(yaml_file) || !utils::file_test("-f", yaml_file)) return(character(0))
         
         tryCatch({
@@ -128,7 +131,6 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         }, error = function(e) character(0))
       }
     )
-    
     # 2. Update UI State Reactively ---------------------------------------------------------------
     observe({
       fits <- poll_available_fits()
@@ -145,7 +147,8 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       rv_available_closures(closures)
       
       current_sel <- isolate(input$closures_input)
-      selected <- if (!is.null(current_sel) && all(current_sel %in% closures)) current_sel else character(0)
+      selected <- if (!is.null(current_sel) && all(current_sel %in% closures)) current_sel else 
+        character(0)
       updateSelectizeInput(session, "closures_input", choices = closures, selected = selected)
     })
     
@@ -167,7 +170,8 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       
       cache <- list()
       db_path <- tryCatch(locdatabase(project), error = function(e) NULL)
-      designs_dir <- if (!is.null(db_path)) file.path(dirname(db_path), "Models", "ModelDesigns") else NULL
+      designs_dir <- 
+        if (!is.null(db_path)) file.path(dirname(db_path), "Models", "ModelDesigns") else NULL
       
       # Pre-compute the UI needs for every available model
       for (fit_name in names(fit_list)) {
@@ -211,7 +215,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       rv_model_meta_cache(cache)
     })
     
-    # UPDATED: React to model selection instantly using the pre-built cache
+    # React to model selection instantly using the pre-built cache
     observeEvent(input$mod_name_input, {
       # Reset to defaults
       rv_current_vars(character(0))
@@ -231,27 +235,30 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       }
       
     }, ignoreInit = TRUE, ignoreNULL = FALSE)
-
-    # NEW: Render the Inputs ONLY if it is a Standard Logit
+    
+    # Render the Inputs ONLY if it is a Standard Logit
     output$marg_util_ui <- renderUI({
       if (rv_is_epm()) return(NULL) # If it's an EPM, render absolutely nothing
       
       tagList(
-        selectizeInput(ns("marg_util_income_input"), 
-                       label = tags$span(
-                         "Marginal Utility of Income ", 
-                         bslib::tooltip(shiny::icon("info-circle"), 
-                                        "Select the variable representing the marginal utility of income.")),
-                       choices = c("", rv_current_vars()), # Add blank option at top
-                       selected = "", 
-                       width = "100%"),
+        selectizeInput(
+          ns("marg_util_income_input"), 
+          label = tags$span(
+            "Marginal Utility of Income ", 
+            bslib::tooltip(shiny::icon("info-circle"), 
+                           "Select the variable representing the marginal utility of income.")),
+          choices = c("", rv_current_vars()), # Add blank option at top
+          selected = "", 
+          width = "100%"),
         
-        checkboxInput(ns("income_cost_input"), 
-                      label = tags$span(
-                        "Treat Income Parameter as a Cost? ",
-                        bslib::tooltip(shiny::icon("info-circle"), 
-                                       "Check this if the specified marginal utility of income represents a cost (flips the sign).")),
-                      value = FALSE)
+        checkboxInput(
+          ns("income_cost_input"), 
+          label = tags$span(
+            "Treat Income Parameter as a Cost? ",
+            bslib::tooltip(shiny::icon("info-circle"), 
+                           "Check this if the specified marginal utility of income represents a 
+                           cost (flips the sign).")),
+          value = FALSE)
       )
     })
     
@@ -260,9 +267,17 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       req(rv_project_name(), rv_folderpath())
       project_name <- rv_project_name()$value
       
-      # Validation
+      # Proactive UI Validation
       if (is.null(input$mod_name_input) || input$mod_name_input == "") {
-        showNotification("Please select a fitted model.", type = "warning")
+        showNotification("Please select a fitted model.", type = "error")
+        return()
+      }
+      
+      # Catch missing marginal utility BEFORE running the function
+      if (!rv_is_epm() && (is.null(input$marg_util_income_input) || 
+                           input$marg_util_income_input == "")) {
+        showNotification("Standard Logit models require a Marginal Utility of Income variable.
+                         Please select one.", type = "error")
         return()
       }
       
@@ -291,8 +306,15 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
           args$marg_util_income <- input$marg_util_income_input
         }
         
-        # Execute the simulation
-        do.call(run_simulation, args)
+        # Execute the simulation and catch non-fatal warnings
+        withCallingHandlers({
+          do.call(run_simulation, args)
+        }, warning = function(w) {
+          # Display the warning as a toast notification for the user
+          showNotification(paste("Simulation Warning:", w$message), type = "warning",
+                           duration = 15)
+          invokeRestart("muffleWarning") # Prevent it from printing to the console twice
+        })
         
         # Success Feedback
         output$sim_success_out <- renderText({
@@ -459,7 +481,8 @@ policy_sim_ui <- function(id) {
           bslib::card_header('Run Policy & Data Simulation'),
           bslib::card_body(
             class = "card-overflow",
-            p("Simulate the impact of policy changes (e.g., area closures) on redistributed fishing effort and economic welfare."),
+            p("Simulate the impact of policy changes (e.g., area closures) on redistributed fishing
+              effort and economic welfare."),
             
             bslib::layout_columns(
               col_widths = c(6, 6),
@@ -468,19 +491,23 @@ policy_sim_ui <- function(id) {
               # LEFT COLUMN: Core Setup
               div(class = "d-flex flex-column gap-3",
                   
-                  selectizeInput(ns("mod_name_input"), 
-                                 label = tags$span(
-                                   "Fitted Model ", 
-                                   bslib::tooltip(shiny::icon("info-circle"), 
-                                                  "Select the fitted model to use as the simulation baseline.")),
-                                 choices = NULL, width = "100%"),
+                  selectizeInput(
+                    ns("mod_name_input"), 
+                    label = tags$span(
+                      "Fitted Model ", 
+                      bslib::tooltip(
+                        shiny::icon("info-circle"), 
+                        "Select the fitted model to use as the simulation baseline.")),
+                    choices = NULL, width = "100%"),
                   
-                  selectizeInput(ns("closures_input"), 
-                                 label = tags$span(
-                                   "Closure Scenarios (Optional) ", 
-                                   bslib::tooltip(shiny::icon("info-circle"), 
-                                                  "Select one or more spatial closure scenarios generated via zone_closure(). Leave blank for a baseline run.")),
-                                 choices = NULL, multiple = TRUE, width = "100%")
+                  selectizeInput(
+                    ns("closures_input"), 
+                    label = tags$span(
+                      "Closure Scenarios (Optional) ", 
+                      bslib::tooltip(shiny::icon("info-circle"), 
+                                     "Select one or more spatial closure scenarios generated via 
+                                     zone_closure(). Leave blank for a baseline run.")),
+                    choices = NULL, multiple = TRUE, width = "100%")
               ),
               
               # RIGHT COLUMN: Econ Parameters
@@ -490,7 +517,8 @@ policy_sim_ui <- function(id) {
                                label = tags$span(
                                  "Multivariate Normal Draws ", 
                                  bslib::tooltip(shiny::icon("info-circle"), 
-                                                "Number of draws for the simulation. Higher numbers increase accuracy but slow computation.")),
+                                                "Number of draws for the simulation. Higher numbers
+                                                increase accuracy but slow computation.")),
                                value = 500, min = 10, step = 100, width = "100%"),
                   
                   # Rendered dynamically: Hidden if model is an EPM

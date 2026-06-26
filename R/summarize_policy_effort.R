@@ -2,30 +2,20 @@
 #'
 #' Extracts and visualizes the spatial redistribution of fishing effort.
 #' 
-#' @details 
-#' \strong{What does "Effort" represent?}
-#' 
-#' In this simulation framework, "effort" represents the expected number of fishing 
-#' choice occasions (e.g., trips or hauls) allocated to each spatial zone. 
-#'
 #' @param project Character. Name of the project.
 #' @param spat Character. Name of the spatial dataset containing the fishing zones.
 #' @param zone_spat Character. The ID column in the spatial data matching simulation zone IDs.
 #' @param output_type Character. Either "static" (ggplot2) or "dynamic" (leaflet/plotly). 
 #'   Default is "static".
-#' @param plot_scenarios Character vector (optional). Specific Scenario or Simulation names 
-#'   to include in the plots. If \code{NULL} (the default), scenarios are not filtered.
-#' @param plot_models Character vector (optional). Specific Model names to include in 
-#'   the plots (e.g., "zonal_logit", "clogit"). If \code{NULL} (the default), models are not 
-#'   filtered.
+#' @param plot_scenarios Character vector (optional). Specific Scenario names to include.
+#' @param plot_models Character vector (optional). Specific Model names to include.
+#' @param plotly_source Character (optional). Unique ID for plotly cross-talk mapping.
 #'
-#' @return A list containing \code{summary_data} and three nested lists of plot objects:
-#'   \code{plots_absolute_map}, \code{plots_percent_map}, and \code{plots_scatter}.
+#' @return A list containing \code{summary_data} and three nested lists of plot objects.
 #' @export
-#' @importFrom sf st_as_sf st_bbox st_transform
-
 summarize_policy_effort <- function(project, spat, zone_spat, output_type = "static", 
-                                    plot_scenarios = NULL, plot_models = NULL) {
+                                    plot_scenarios = NULL, plot_models = NULL,
+                                    plotly_source = "effort_scatter") {
   
   # Validate output type
   output_type <- tolower(output_type)
@@ -237,6 +227,7 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = "sta
       l_a <- leaflet::leaflet()
       l_a <- leaflet::addProviderTiles(l_a, leaflet::providers$CartoDB.Positron)
       l_a <- leaflet::addPolygons(l_a, data = open_spat_wgs,
+                                  layerId = open_spat_wgs[[zone_spat]], # Added Layer ID for targeting clicks
                                   fillColor = ~pal_abs(Effort_Change),
                                   fillOpacity = 0.7, color = "black", weight = 1,
                                   popup = ~paste("<b>Zone:</b>", 
@@ -251,6 +242,7 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = "sta
       
       if (!is.null(closed_spat)) {
         l_a <- leaflet::addPolygons(l_a, data = closed_spat_wgs,
+                                    layerId = closed_spat_wgs[[zone_spat]],
                                     fillColor = "tomato",
                                     fillOpacity = 0.7, color = "black", weight = 1,
                                     popup = ~paste("<b>Zone:</b>", closed_spat_wgs[[zone_spat]], 
@@ -285,6 +277,7 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = "sta
       l_p <- leaflet::leaflet()
       l_p <- leaflet::addProviderTiles(l_p, leaflet::providers$CartoDB.Positron)
       l_p <- leaflet::addPolygons(l_p, data = open_spat_wgs,
+                                  layerId = open_spat_wgs[[zone_spat]], # Added Layer ID for targeting clicks
                                   fillColor = ~pal_pct(Pct_Effort_Change),
                                   fillOpacity = 0.7, color = "black", weight = 1,
                                   popup = ~paste("<b>Zone:</b>", open_spat_wgs[[zone_spat]], 
@@ -298,6 +291,7 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = "sta
       
       if (!is.null(closed_spat)) {
         l_p <- leaflet::addPolygons(l_p, data = closed_spat_wgs,
+                                    layerId = closed_spat_wgs[[zone_spat]],
                                     fillColor = "tomato",
                                     fillOpacity = 0.7, color = "black", weight = 1,
                                     popup = ~paste("<b>Zone:</b>", closed_spat_wgs[[zone_spat]], 
@@ -312,7 +306,8 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = "sta
       ## Dynamic Scatter plot (Plotly)
       max_val <- max(c(sub_data$Baseline_Effort, sub_data$Counterfactual_Effort), na.rm = TRUE)
       
-      p_s_dyn <- plotly::plot_ly()
+      # Tied specific unique source ID to this plot to capture standard crosstalk
+      p_s_dyn <- plotly::plot_ly(source = plotly_source)
       p_s_dyn <- plotly::add_lines(p_s_dyn, x = c(0, max_val), y = c(0, max_val), 
                                    line = list(dash = "dash", color = "grey"), 
                                    name = "1:1 Reference", hoverinfo = "none")
@@ -320,6 +315,7 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = "sta
       p_s_dyn <- plotly::add_markers(p_s_dyn, data = open_sub, 
                                      x = ~Baseline_Effort, y = ~Counterfactual_Effort,
                                      color = ~Effort_Change, colors = "viridis",
+                                     customdata = ~Zone, # Embedded zone variable into the marker point
                                      marker = list(size = 8, line = list(color = 'black', 
                                                                          width = 1)),
                                      text = ~paste("Zone:", Zone,
@@ -335,6 +331,7 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = "sta
       if (!is.null(closed_sub)) {
         p_s_dyn <- plotly::add_markers(p_s_dyn, data = closed_sub, 
                                        x = ~Baseline_Effort, y = ~Counterfactual_Effort,
+                                       customdata = ~Zone, # Embedded zone variable here too
                                        marker = list(color = "tomato", size = 8, 
                                                      line = list(color = 'black', width = 1)),
                                        text = ~paste("Zone:", Zone,
@@ -355,13 +352,16 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = "sta
                                 yaxis = list(title = "Counterfactual Expected Effort"),
                                 margin = list(t = 60))
       
+      p_s_dyn <- plotly::event_register(p_s_dyn, 'plotly_click')
+      p_s_dyn <- plotly::event_register(p_s_dyn, 'plotly_doubleclick')
+      
       plot_scatter[[s_name]] <- p_s_dyn
     }
   }
   
-  # Return data and plots -------------------------------------------------------------------------
+  # Return data and plots (FIXED BUG HERE: now passing plot_data instead of unfiltered effort_df)
   return(list(
-    summary_data = effort_df,
+    summary_data = plot_data,
     plots_absolute_map = plot_abs,
     plots_percent_map = plot_pct,
     plots_scatter = plot_scatter

@@ -32,10 +32,10 @@ source("modules/format_data/format_model_data_module.R", local = TRUE)
 source("modules/model_design_module.R", local = TRUE)
 source("modules/model_fit_module.R", local = TRUE)
 source("modules/model_cv_module.R", local = TRUE)
-source("modules/zone_closure_module.R", local = TRUE)
+source("modules/policy/zone_closure_module.R", local = TRUE)
 source("modules/policy/policy_sim_module.R", local = TRUE)
-#source("modules/policy/policy_effort_module.R", local = TRUE)
-#source("modules/policy/policy_welfare_module.R", local = TRUE)
+source("modules/policy/policy_effort_module.R", local = TRUE)
+source("modules/policy/policy_welfare_module.R", local = TRUE)
 
 
 # Server settings ---------------------------------------------------------------------------------
@@ -351,7 +351,10 @@ server <- function(input, output, session) {
   
   
   ### Main panel 
-  # policy_effort_server("policy_effort") 
+  policy_effort_server("policy_effort",
+                       rv_folderpath = rv_folderpath, 
+                       rv_project_name = rv_project_name,
+                       rv_data = rv_data) 
   
   ## Policy Welfare Impacts -----------------------------------------------------------------------
   ### Sidebar
@@ -366,5 +369,8 @@ server <- function(input, output, session) {
   
   
   ### Main panel 
-  # policy_welfare_server("policy_welfare") 
+  policy_welfare_server("policy_welfare",
+                        rv_folderpath = rv_folderpath, 
+                        rv_project_name = rv_project_name,
+                        rv_data = rv_data) 
 }
