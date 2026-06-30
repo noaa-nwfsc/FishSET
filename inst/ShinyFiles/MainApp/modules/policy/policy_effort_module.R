@@ -432,7 +432,7 @@ policy_effort_ui <- function(id) {
           div(id = ns("results_container"), class = "mt-4",
               bslib::navset_card_pill(
                 id = ns("results_tabs"),
-                title = "Effort Summaries & Visualizations",
+                title = "Fishing Effort Redistribution",
                 
                 bslib::nav_spacer(),
                 
@@ -441,7 +441,8 @@ policy_effort_ui <- function(id) {
                   "Visualizations", 
                   div(class = "mt-3 mb-2",
                       selectizeInput(ns("sim_viewer_input"), 
-                                     label = "Simulation Run:", choices = NULL, width = "50%")
+                                     label = "Select policy simulation:", 
+                                     choices = NULL, width = "50%")
                   ),
                   
                   bslib::layout_columns(
@@ -471,7 +472,7 @@ policy_effort_ui <- function(id) {
                       height = "550px", 
                       bslib::card_header(
                         class = "py-2",
-                        tags$span("Effort Dynamics Relationship", style = "font-weight: bold;")
+                        tags$span("Effort Relative to Baseline", style = "font-weight: bold;")
                       ),
                       bslib::card_body(
                         plotly::plotlyOutput(ns("scatter_dyn"), height = "100%")
