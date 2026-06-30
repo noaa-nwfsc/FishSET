@@ -515,7 +515,7 @@ zone_closure_ui <- function(id) {
     # Instructions
     div(
       class = "mb-3",
-      h4("Zone Closure Management"),
+      h4("Design Spatial Closures"),
       p(class = "text-muted",
         "Click on the map to highlight zones for your scenario. Enter a scenario name below ",
         "the map, adjust the allowable TAC percentage for each selected zone in the table, and ",
@@ -539,7 +539,8 @@ zone_closure_ui <- function(id) {
                       "Alternative Matrix ", 
                       bslib::tooltip(
                         shiny::icon("info-circle"), 
-                        "Select a saved alternative matrix to display the valid zones on the map."
+                        "Select a saved alternative coice matrix to display the valid zones on 
+                        the map."
                       )
                     ), 
                     choices = c("Initializing..." = "init"), # Default prevents double-renders
