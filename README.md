@@ -13,6 +13,8 @@ The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools develope
 
 Check out our informational [FishSET flyer](https://github.com/noaa-nwfsc/FishSET/blob/master/docs/fishset_flyer.png) for a quick overview.
 
+**IMPORTANT NOTE:** *We are currently developing FishSET 2.0, which restructures the package and deprecates several functions from version 1.0. You can try out the new FishSET ("FishSET Lite") by installing it from the development branch using the instructions below.*
+
 ## GitHub Install
 
 Run the following lines of code in R:
@@ -33,6 +35,19 @@ If the "pak" method fails to install FishSET, try using the "devtools" method be
 install.packages("devtools")
 options(download.file.method = "wininet")
 devtools::install_github("noaa-nwfsc/FishSET")
+```
+### Install FishSET "Lite" from the Development Branch
+
+Install the ```remotes``` package in R, then run the following code.
+
+```
+# Install FishSET from the development branch
+remotes::install_github("noaa-nwfsc/FishSET",
+                        ref = "fishset-lite-dev",
+                        dependencies = TRUE,
+                        force = TRUE,
+                        upgrade = "never",
+                        build_vignettes = FALSE)
 ```
 
 ## Local Install
