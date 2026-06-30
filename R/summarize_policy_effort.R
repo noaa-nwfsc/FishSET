@@ -233,7 +233,7 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = "sta
       l_a <- leaflet::leaflet()
       l_a <- leaflet::addProviderTiles(l_a, leaflet::providers$CartoDB.Positron)
       l_a <- leaflet::addPolygons(l_a, data = open_spat_wgs,
-                                  layerId = open_spat_wgs[[zone_spat]], # Added Layer ID for targeting clicks
+                                  layerId = open_spat_wgs[[zone_spat]], # Added Layer ID 
                                   fillColor = ~pal_abs(Effort_Change),
                                   fillOpacity = 0.7, color = "black", weight = 1,
                                   popup = ~paste("<b>Zone:</b>", 
@@ -283,7 +283,7 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = "sta
       l_p <- leaflet::leaflet()
       l_p <- leaflet::addProviderTiles(l_p, leaflet::providers$CartoDB.Positron)
       l_p <- leaflet::addPolygons(l_p, data = open_spat_wgs,
-                                  layerId = open_spat_wgs[[zone_spat]], # Added Layer ID for targeting clicks
+                                  layerId = open_spat_wgs[[zone_spat]], # Added Layer ID 
                                   fillColor = ~pal_pct(Pct_Effort_Change),
                                   fillOpacity = 0.7, color = "black", weight = 1,
                                   popup = ~paste("<b>Zone:</b>", open_spat_wgs[[zone_spat]], 
@@ -321,7 +321,7 @@ summarize_policy_effort <- function(project, spat, zone_spat, output_type = "sta
       p_s_dyn <- plotly::add_markers(p_s_dyn, data = open_sub, 
                                      x = ~Baseline_Effort, y = ~Counterfactual_Effort,
                                      color = ~Effort_Change, colors = "viridis",
-                                     customdata = ~Zone, # Embedded zone variable into the marker point
+                                     customdata = ~Zone, # Embedded zone variable into the marker
                                      marker = list(size = 8, line = list(color = 'black', 
                                                                          width = 1)),
                                      text = ~paste("Zone:", Zone,
