@@ -556,7 +556,7 @@ zone_closure_ui <- function(id) {
       full_screen = TRUE,
       bslib::card_header(
         class = "d-flex justify-content-between align-items-center",
-        "Spatial Zone Selection"
+        "Zone Selection"
       ),
       bslib::card_body(
         class = "p-0",
