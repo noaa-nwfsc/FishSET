@@ -454,7 +454,7 @@ ui <- function(request){
       
       # Policy Effort ----------------------------------------------------------------------------
       bslib::nav_panel(
-        title = "Visualize Policy Effort", 
+        title = "Summarize Effort Redistribution", 
         id = "policy_effort",
         value = "policy_effort",
         bslib::page_fillable(
@@ -481,7 +481,7 @@ ui <- function(request){
       ),
       # Policy Welfare Impacts --------------------------------------------------------------------
       bslib::nav_panel(
-        title = "Visulize Welfare Impacts", 
+        title = "Summarize Welfare Impacts", 
         id = "welfare_impact",
         value = "welfare_impact",
         bslib::page_fillable(

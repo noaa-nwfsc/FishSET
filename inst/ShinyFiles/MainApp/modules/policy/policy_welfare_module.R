@@ -328,7 +328,7 @@ policy_welfare_ui <- function(id) {
             id = ns("results_container"), class = "mt-4",
             bslib::navset_card_pill(
               id = ns("results_tabs"),
-              title = "Welfare Summaries & Visualizations",
+              title = "Welfare Analysis",
               bslib::nav_spacer(),
               
               # Tab A: Interactive Graphic Panels
