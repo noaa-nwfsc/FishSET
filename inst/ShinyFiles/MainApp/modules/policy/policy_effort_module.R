@@ -30,7 +30,7 @@ policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     rv_effort_stat <- reactiveVal(NULL)
     rv_highlight_zone <- reactiveVal(NULL)
     
-    # 1. Real-time Polling Setup ------------------------------------------------------------------
+    # Real-time Polling Setup ---------------------------------------------------------------------
     db_check_func <- function() {
       if (is.null(rv_project_name())) return(NULL)
       project <- rv_project_name()$value
@@ -114,7 +114,7 @@ policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       updateSelectizeInput(session, "scenarios_filter", selected = rv_available_scenarios())
     })
     
-    # 2. Execution Logic --------------------------------------------------------------------------
+    # Run Summarize Policy Effort Logic -----------------------------------------------------------
     observeEvent(input$run_summary_btn, {
       req(rv_project_name())
       project_name <- rv_project_name()$value
@@ -196,7 +196,7 @@ policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       })
     })
     
-    # 3. Render Data Table ------------------------------------------------------------------------
+    # Render Data Table ---------------------------------------------------------------------------
     output$effort_table <- DT::renderDataTable({
       req(rv_effort_dyn())
       df <- rv_effort_dyn()$summary_data 
@@ -216,7 +216,7 @@ policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       rv_highlight_zone(NULL)
     })
     
-    # 4. Connect Dynamic Renderers ----------------------------------------------------------------
+    # Connect Dynamic Renderers -------------------------------------------------------------------
     output$selected_map_dyn <- leaflet::renderLeaflet({
       req(rv_effort_dyn(), input$sim_viewer_input, input$map_type_input)
       
@@ -255,9 +255,8 @@ policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       return(p)
     })
     
-    # 5. Interactive Cross-Talk Logic -------------------------------------------------------------
-    
-    # 5A. Update state on click
+    # Interactive Cross-Talk Logic ----------------------------------------------------------------
+    # Update state on click
     observeEvent(input$scatter_click, {
       new_zone <- input$scatter_click
       req(new_zone)
@@ -272,12 +271,12 @@ policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       }
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
     
-    # 5B. Reset state on double click (Backup mechanism)
+    # Reset state on double click (Backup mechanism)
     observeEvent(input$scatter_dblclick, {
       rv_highlight_zone(NULL)
     }, ignoreNULL = TRUE, ignoreInit = TRUE)
     
-    # 5C. Execute Map Draw 
+    # Execute Map Draw 
     observe({
       clicked_zone <- rv_highlight_zone()
       leaflet::leafletProxy("selected_map_dyn") %>% leaflet::clearGroup("click_highlight")
@@ -309,7 +308,7 @@ policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       }, error = function(e) { })
     })
     
-    # 6. Static Plots Modal -----------------------------------------------------------------------
+    # Static Plots Modal --------------------------------------------------------------------------
     observeEvent(input$view_static_btn, {
       req(rv_effort_stat(), input$sim_viewer_input)
       
@@ -421,10 +420,12 @@ policy_effort_ui <- function(id) {
         ),
         div(id = ns("summary_success_message"), 
             style = "color: green; display: none; margin-top: 10px; padding-left: 15px;", 
-            textOutput(ns("summary_success_out"))),
+            textOutput(ns("summary_success_out"))
+        ),
         div(id = ns("summary_error_message"), 
             style = "color: red; display: none; margin-top: 10px; padding-left: 15px;", 
-            textOutput(ns("summary_error_out"))),
+            textOutput(ns("summary_error_out"))
+        ),
         
         # CARD 2: Output Presentation
         shinyjs::hidden(

@@ -26,7 +26,7 @@ policy_welfare_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     # Cache for results
     rv_welfare <- reactiveVal(NULL)
     
-    # 1. Real-time Polling Setup ------------------------------------------------------------------
+    # Real-time Polling Setup ---------------------------------------------------------------------
     db_check_func <- function() {
       if (is.null(rv_project_name())) return(NULL)
       project <- rv_project_name()$value
@@ -110,7 +110,7 @@ policy_welfare_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       updateSelectizeInput(session, "scenarios_filter", selected = rv_available_scenarios())
     })
     
-    # 2. Execution Logic --------------------------------------------------------------------------
+    # Run Summarize Welfare Logic -----------------------------------------------------------------
     observeEvent(input$run_welfare_btn, {
       req(rv_project_name())
       project_name <- rv_project_name()$value
@@ -158,7 +158,7 @@ policy_welfare_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       })
     })
     
-    # 3. Render Data Table ------------------------------------------------------------------------
+    # Render Data Table ---------------------------------------------------------------------------
     output$welfare_table <- DT::renderDataTable({
       req(rv_welfare())
       df <- rv_welfare()$summary_data 
@@ -173,7 +173,7 @@ policy_welfare_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
                     class = 'cell-border stripe hover')
     })
     
-    # 4. Connect Dynamic Plot Renderers -----------------------------------------------------------
+    # Connect Dynamic Plot Renderers --------------------------------------------------------------
     output$welfare_bar_plot <- plotly::renderPlotly({
       req(rv_welfare())
       
@@ -231,7 +231,7 @@ policy_welfare_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         )
     })
     
-    # 5. Download Logic ---------------------------------------------------------------------------
+    # Download Logic ------------------------------------------------------------------------------
     output$download_welfare_btn <- downloadHandler(
       filename = function() { paste0("Policy_Welfare_Static_", Sys.Date(), ".pdf") },
       content = function(file) {

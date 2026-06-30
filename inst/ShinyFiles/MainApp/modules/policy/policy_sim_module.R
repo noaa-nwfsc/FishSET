@@ -27,7 +27,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     rv_available_fits <- reactiveVal(character(0))
     rv_available_closures <- reactiveVal(character(0))
     
-    # NEW: Caching structures to speed up UI
+    # Caching structures to speed up UI
     rv_fit_list <- reactiveVal(list())
     rv_model_meta_cache <- reactiveVal(list())
     
@@ -35,8 +35,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     rv_current_vars <- reactiveVal(character(0))
     rv_is_epm <- reactiveVal(FALSE)
     
-    # 1. Real-time Polling Setup ------------------------------------------------------------------
-    
+    # Real-time model fits, closures, sims --------------------------------------------------------
     # Shared check function for the SQLite database (used for Fits and Simulations)
     db_check_func <- function() {
       if (is.null(rv_project_name())) return(NULL)
@@ -131,7 +130,8 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         }, error = function(e) character(0))
       }
     )
-    # 2. Update UI State Reactively ---------------------------------------------------------------
+    
+    # Update UI State Reactively ------------------------------------------------------------------
     observe({
       fits <- poll_available_fits()
       rv_available_fits(fits)
@@ -161,7 +161,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       updateSelectizeInput(session, "sim_to_remove", choices = sims, selected = selected)
     })
     
-    # NEW: Build a lightweight cache of variables and EPM status in the background
+    # Build a lightweight cache of variables and EPM status in the background
     observe({
       fit_list <- rv_fit_list()
       project <- rv_project_name()$value
@@ -177,10 +177,10 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       for (fit_name in names(fit_list)) {
         mod <- fit_list[[fit_name]]
         
-        # 1. Get variables
+        # Get variables
         vars <- if (!is.null(rownames(mod$coef_table))) rownames(mod$coef_table) else character(0)
         
-        # 2. Get EPM Status by reading the file
+        # Get EPM Status by reading the file
         is_epm <- FALSE
         d_name <- mod$model_name
         if (is.null(d_name)) d_name <- mod$metadata$model_name
@@ -238,7 +238,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     
     # Render the Inputs ONLY if it is a Standard Logit
     output$marg_util_ui <- renderUI({
-      if (rv_is_epm()) return(NULL) # If it's an EPM, render absolutely nothing
+      if (rv_is_epm()) return(NULL) # If it's an EPM, render nothing
       
       tagList(
         selectizeInput(
@@ -262,7 +262,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       )
     })
     
-    # 3. Execution Logic (Run Simulation) ---------------------------------------------------------
+    # Run Simulation Logic ------------------------------------------------------------------------
     observeEvent(input$run_sim_btn, {
       req(rv_project_name(), rv_folderpath())
       project_name <- rv_project_name()$value
@@ -334,7 +334,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       })
     })
     
-    # 4. Manage Table Logic -----------------------------------------------------------------------
+    # Table Logic ---------------------------------------------------------------------------------
     output$existing_sims_table <- DT::renderDataTable({
       s_names <- rv_existing_sims()
       
@@ -415,7 +415,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       ))
     })
     
-    # Remove Simulation Logic
+    # Remove Simulation
     observeEvent(input$remove_sim_btn, {
       req(input$sim_to_remove)
       showModal(modalDialog(
@@ -447,8 +447,10 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
           
           if (table_exists(table_name, project)) table_remove(table_name, project)
           
-          DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", table_name, "(data BLOB)"))
-          DBI::dbExecute(fishset_db, paste("INSERT INTO", table_name, "(data) VALUES (:data)"),
+          DBI::dbExecute(fishset_db, 
+                         paste("CREATE TABLE IF NOT EXISTS", table_name, "(data BLOB)"))
+          DBI::dbExecute(fishset_db, 
+                         paste("INSERT INTO", table_name, "(data) VALUES (:data)"),
                          params = list(data = list(serialize(sim_list, NULL))))
           
           showNotification("Simulation removed successfully.", type = "message")
