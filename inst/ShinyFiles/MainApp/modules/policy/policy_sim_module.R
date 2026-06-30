@@ -244,9 +244,11 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         selectizeInput(
           ns("marg_util_income_input"), 
           label = tags$span(
-            "Marginal Utility of Income ", 
+            "Marginal Utility of Income (MUI) ", 
             bslib::tooltip(shiny::icon("info-circle"), 
-                           "Select the variable representing the marginal utility of income.")),
+                           "The marginal utility of income should be a coefficient for a variable
+                           with monetary units such as cost, revenue, or profit. If using a cost
+                           coefficient, select the checkbox below.")),
           choices = c("", rv_current_vars()), # Add blank option at top
           selected = "", 
           width = "100%"),
@@ -254,10 +256,10 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         checkboxInput(
           ns("income_cost_input"), 
           label = tags$span(
-            "Treat Income Parameter as a Cost? ",
+            "Treat MUI as Cost? ",
             bslib::tooltip(shiny::icon("info-circle"), 
-                           "Check this if the specified marginal utility of income represents a 
-                           cost (flips the sign).")),
+                           "Check this box if the specified marginal utility of income represents 
+                           a cost variable.")),
           value = FALSE)
       )
     })
@@ -496,7 +498,7 @@ policy_sim_ui <- function(id) {
                   selectizeInput(
                     ns("mod_name_input"), 
                     label = tags$span(
-                      "Fitted Model ", 
+                      "Select Model ", 
                       bslib::tooltip(
                         shiny::icon("info-circle"), 
                         "Select the fitted model to use as the simulation baseline.")),
@@ -517,10 +519,12 @@ policy_sim_ui <- function(id) {
                   
                   numericInput(ns("betadraws_input"), 
                                label = tags$span(
-                                 "Multivariate Normal Draws ", 
+                                 "Simulation Draws ", 
                                  bslib::tooltip(shiny::icon("info-circle"), 
-                                                "Number of draws for the simulation. Higher numbers
-                                                increase accuracy but slow computation.")),
+                                                "The simulation function draws coefficient values 
+                                                from a Multivariate Normal Distribution. Note that
+                                                increasing the number of draws will increase
+                                                compute time.")),
                                value = 500, min = 10, step = 100, width = "100%"),
                   
                   # Rendered dynamically: Hidden if model is an EPM
