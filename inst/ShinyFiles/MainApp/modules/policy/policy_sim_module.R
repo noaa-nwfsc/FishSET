@@ -482,7 +482,7 @@ policy_sim_ui <- function(id) {
         # CARD 1: Run Simulation
         bslib::card(
           class = "card-overflow",
-          bslib::card_header('Run Policy & Data Simulation'),
+          bslib::card_header('Run Policy Simulations'),
           bslib::card_body(
             class = "card-overflow",
             p("Simulate the impact of policy changes (e.g., area closures) on redistributed fishing
@@ -560,7 +560,7 @@ policy_sim_ui <- function(id) {
         # CARD 2: Manage Simulations
         bslib::card(
           class = "card-overflow mt-4",
-          bslib::card_header("Manage Simulation Results"),
+          bslib::card_header("Manage Simulation Scenarios"),
           bslib::card_body(
             class = "card-overflow",
             DT::dataTableOutput(ns("existing_sims_table"), fill = FALSE),
