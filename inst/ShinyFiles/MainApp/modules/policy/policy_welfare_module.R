@@ -60,8 +60,12 @@ policy_welfare_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
               (!is.null(x$metadata$model_name)) as.character(x$metadata$model_name)[1] else NA
               scen <- if (!is.null(x$scenario)) as.character(x$scenario)[1] else if
               (!is.null(x$metadata$scenario)) as.character(x$metadata$scenario)[1] else NA
-              if (!is.na(mod)) all_models <- c(all_models, mod)
-              if (!is.na(scen)) all_scenarios <- c(all_scenarios, scen)
+              
+              # Automatically filter out baseline models/scenarios
+              if (!is.na(mod) && 
+                  !grepl("baseline", mod, ignore.case = TRUE)) all_models <- c(all_models, mod)
+              if (!is.na(scen) && !grepl("baseline", scen, 
+                                         ignore.case = TRUE)) all_scenarios <- c(all_scenarios, scen)
             }
             return(list(models = unique(all_models), scenarios = unique(all_scenarios)))
           }
@@ -162,6 +166,14 @@ policy_welfare_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     output$welfare_table <- DT::renderDataTable({
       req(rv_welfare())
       df <- rv_welfare()$summary_data 
+      
+      # Clean baseline from the data table as a safeguard
+      if ("Simulation" %in% names(df)) {
+        df <- df[!grepl("baseline", df$Simulation, ignore.case = TRUE), ]
+      } else if ("Scenario" %in% names(df)) {
+        df <- df[!grepl("baseline", df$Scenario, ignore.case = TRUE), ]
+      }
+      
       numeric_cols <- c("Mean_Welfare_Per_Trip", "Lower_95", "Median", "Upper_95")
       for (col in numeric_cols) {
         if (col %in% names(df)) df[[col]] <- round(df[[col]], 2)

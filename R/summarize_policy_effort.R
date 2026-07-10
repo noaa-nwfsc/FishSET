@@ -11,14 +11,29 @@
 #' @param project Character. Name of the project.
 #' @param spat Character. Name of the spatial dataset containing the fishing zones.
 #' @param zone_spat Character. The ID column in the spatial data matching simulation zone IDs.
-#' @param output_type Character. Either "static" (ggplot2) or "dynamic" (leaflet/plotly). 
-#'   Default is "static".
-#' @param plot_scenarios Character vector (optional). Specific Scenario names to include.
-#' @param plot_models Character vector (optional). Specific Model names to include.
-#' @param plotly_source Character (optional). Unique ID for plotly cross-talk mapping.
-#'
-#' @return A list containing \code{summary_data} and three nested lists of plot objects.
+#' @param output_type Character. Dictates the rendering engine: "static" (ggplot2) for standard 
+#'   R plots, or "dynamic" (leaflet/plotly) for interactive HTML widgets. Default is "static".
+#' @param plot_scenarios Character vector (optional). Filters plots for specific scenarios using 
+#'   partial string matching (grep).
+#' @param plot_models Character vector (optional). Filters plots for specific models using 
+#'   exact matching.
+#' @param plotly_source Character. A unique identifier string utilized by the \code{crosstalk} 
+#'   package to enable cross-widget interactivity (e.g., capturing a click on the scatter plot 
+#'   to highlight a zone on the map). The default is \code{"effort_scatter"}. Note: There is 
+#'   no strict menu of alternative options; rather, you can provide \strong{any custom string} 
+#'   here to match the namespace or \code{SharedData} group ID defined within your specific 
+#'   Shiny app or RMarkdown document.
+#'   
+#' @return A named list containing four main elements:
+#' \itemize{
+#'   \item \code{summary_data}: A data frame of all raw metrics for the requested simulations.
+#'   \item \code{plots_absolute_map}: A list of map objects showing raw net change in effort.
+#'   \item \code{plots_percent_map}: A list of map objects showing percentage change.
+#'   \item \code{plots_scatter}: A list of 1:1 scatter plot objects comparing baseline vs. 
+#'   counterfactual effort.
+#' }
 #' @export
+
 summarize_policy_effort <- function(project, spat, zone_spat, output_type = "static", 
                                     plot_scenarios = NULL, plot_models = NULL,
                                     plotly_source = "effort_scatter") {

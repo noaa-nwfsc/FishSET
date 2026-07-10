@@ -126,7 +126,16 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         
         tryCatch({
           all_closures <- yaml::read_yaml(yaml_file)
-          return(vapply(all_closures, function(x) x$scenario, character(1)))
+          
+          # Auto-filter out any scenario containing the word "baseline"
+          valid_scenarios <- c()
+          for (x in all_closures) {
+            if (!grepl("baseline", x$scenario, ignore.case = TRUE)) {
+              valid_scenarios <- c(valid_scenarios, x$scenario)
+            }
+          }
+          return(valid_scenarios)
+          
         }, error = function(e) character(0))
       }
     )
@@ -154,11 +163,14 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     
     observe({
       sims <- poll_existing_sims()
-      rv_existing_sims(sims)
+      
+      # Filter out baseline simulations from the dropdown
+      filtered_sims <- sims[!grepl("baseline", sims, ignore.case = TRUE)]
+      rv_existing_sims(filtered_sims)
       
       current_sel <- isolate(input$sim_to_remove)
-      selected <- if (!is.null(current_sel) && current_sel %in% sims) current_sel else ""
-      updateSelectizeInput(session, "sim_to_remove", choices = sims, selected = selected)
+      selected <- if (!is.null(current_sel) && current_sel %in% filtered_sims) current_sel else ""
+      updateSelectizeInput(session, "sim_to_remove", choices = filtered_sims, selected = selected)
     })
     
     # Build a lightweight cache of variables and EPM status in the background
@@ -279,7 +291,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       if (!rv_is_epm() && (is.null(input$marg_util_income_input) || 
                            input$marg_util_income_input == "")) {
         showNotification("Standard Logit models require a Marginal Utility of Income variable.
-                         Please select one.", type = "error")
+                          Please select one.", type = "error")
         return()
       }
       
@@ -294,18 +306,21 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         args <- list(
           project = project_name,
           mod_name = input$mod_name_input,
-          betadraws = input$betadraws_input,
-          income_cost = isTRUE(input$income_cost_input)
+          betadraws = input$betadraws_input
         )
         
-        # Add optional arguments
-        if (!is.null(input$closures_input) && length(input$closures_input) > 0) {
-          args$closures <- input$closures_input
+        # STRICT GATEKEEPER: Only pass MUI parameters if it is NOT an EPM.
+        # This prevents hidden inputs from being passed into the backend.
+        if (!rv_is_epm()) {
+          args$income_cost <- isTRUE(input$income_cost_input)
+          if (!is.null(input$marg_util_income_input) && input$marg_util_income_input != "") {
+            args$marg_util_income <- input$marg_util_income_input
+          }
         }
         
-        # Handle dynamic input properly
-        if (!is.null(input$marg_util_income_input) && input$marg_util_income_input != "") {
-          args$marg_util_income <- input$marg_util_income_input
+        # Add optional closures
+        if (!is.null(input$closures_input) && length(input$closures_input) > 0) {
+          args$closures <- input$closures_input
         }
         
         # Execute the simulation and catch non-fatal warnings
@@ -391,6 +406,28 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       
       meta <- sim_obj$metadata
       
+      # Double-check if this simulation is an EPM.
+      is_epm_sim <- (!is.null(meta$distribution) && meta$distribution != "logit") || 
+                    grepl("epm", sim_obj$model_name, ignore.case = TRUE)
+      
+      if (is_epm_sim) {
+        # Force N/A to bypass any default FALSE/NA arguments accidentally saved by older function 
+        # runs
+        mui_str <- "N/A"
+        cost_str <- "N/A"
+      } else {
+        mui_val <- meta$marg_util_income
+        cost_val <- meta$income_cost
+        
+        # Format strings for Standard Logits
+        mui_str <- 
+          if (is.null(mui_val) || is.na(mui_val) || as.character(mui_val) == "") "N/A" else 
+            as.character(mui_val)
+        cost_str <-
+          if (is.null(cost_val) || is.na(cost_val) || as.character(cost_val) == "") "N/A" else
+            as.character(cost_val)
+      }
+
       details_ui <- tagList(
         tags$div(
           class = "table-responsive",
@@ -401,6 +438,8 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
                        tags$tr(tags$td("Scenario Name"), tags$td(sim_obj$scenario)),
                        tags$tr(tags$td("Distribution"), tags$td(meta$distribution)),
                        tags$tr(tags$td("Beta Draws"), tags$td(meta$betadraws)),
+                       tags$tr(tags$td("Marginal Util. of Income"), tags$td(mui_str)),
+                       tags$tr(tags$td("MUI Treated as Cost?"), tags$td(cost_str)),
                        tags$tr(tags$td("Observations (N)"), tags$td(meta$N_obs)),
                        tags$tr(tags$td("Alternatives (J)"), tags$td(meta$J_alts)),
                        tags$tr(tags$td("Timestamp"), tags$td(as.character(meta$timestamp)))
