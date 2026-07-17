@@ -61,7 +61,7 @@ zone_closure <- function(project,
   
   
   # Set zone closure shiny path -------------------------------------------------------------------
-  zone_closure_dir <- system.file("ShinyFiles", "MainApp", "modules", package = "FishSET")
+  zone_closure_dir <- system.file("ShinyFiles", "MainApp", "modules", "policy", package = "FishSET")
   if (zone_closure_dir == "") {
     stop("Could not find example directory. Try re-installing `FishSET`.", call. = FALSE)
   }
