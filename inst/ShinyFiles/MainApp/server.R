@@ -32,7 +32,10 @@ source("modules/format_data/format_model_data_module.R", local = TRUE)
 source("modules/model_design_module.R", local = TRUE)
 source("modules/model_fit_module.R", local = TRUE)
 source("modules/model_cv_module.R", local = TRUE)
-source("modules/zone_closure_module.R", local = TRUE)
+source("modules/policy/zone_closure_module.R", local = TRUE)
+source("modules/policy/policy_sim_module.R", local = TRUE)
+source("modules/policy/policy_effort_module.R", local = TRUE)
+source("modules/policy/policy_welfare_module.R", local = TRUE)
 
 
 # Server settings ---------------------------------------------------------------------------------
@@ -315,4 +318,59 @@ server <- function(input, output, session) {
                       rv_data = rv_data,
                       spat_zone_id = NULL)
   
+  
+  ## Policy Simulation ---------------------------------------------------------------------------
+  ### Sidebar
+  checklist_server("policy_sim_checklist", rv_project_name, rv_data, rv_folderpath)
+  
+  other_actions_server("policy_sim_actions",
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
+  
+  
+  ### Main panel 
+  policy_sim_server("policy_simulation",
+                    rv_folderpath = rv_folderpath, 
+                    rv_project_name = rv_project_name,
+                    rv_data = rv_data) 
+  
+  
+  ## Policy Effort --------------------------------------------------------------------------------
+  ### Sidebar
+  checklist_server("policy_effort_checklist", rv_project_name, rv_data, rv_folderpath)
+  
+  other_actions_server("policy_effort_actions",
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
+  
+  
+  ### Main panel 
+  policy_effort_server("policy_effort",
+                       rv_folderpath = rv_folderpath, 
+                       rv_project_name = rv_project_name,
+                       rv_data = rv_data) 
+  
+  ## Policy Welfare Impacts -----------------------------------------------------------------------
+  ### Sidebar
+  checklist_server("policy_welfare_checklist", rv_project_name, rv_data, rv_folderpath)
+  
+  other_actions_server("policy_welfare_actions",
+                       values = list(project_name = rv_project_name,
+                                     data = rv_data),
+                       rv_project_name = rv_project_name,
+                       rv_data_load_error = reactive(rv_data_load_error()),
+                       current_tab = reactive(input$tabs))
+  
+  
+  ### Main panel 
+  policy_welfare_server("policy_welfare",
+                        rv_folderpath = rv_folderpath, 
+                        rv_project_name = rv_project_name,
+                        rv_data = rv_data) 
 }

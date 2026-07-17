@@ -33,7 +33,11 @@ source("modules/format_data/format_model_data_module.R", local = TRUE)
 source("modules/model_design_module.R", local = TRUE)
 source("modules/model_fit_module.R", local = TRUE)
 source("modules/model_cv_module.R", local = TRUE)
-source("modules/zone_closure_module.R", local = TRUE)
+source("modules/policy/zone_closure_module.R", local = TRUE)
+source("modules/policy/policy_sim_module.R", local = TRUE)
+source("modules/policy/policy_effort_module.R", local = TRUE)
+source("modules/policy/policy_welfare_module.R", local = TRUE)
+
 
 
 
@@ -394,7 +398,7 @@ ui <- function(request){
     bslib::nav_menu(
       title = "Policy",
       
-      ## Model design -------------------------------------------------------------------------------
+      ## Zone closure -----------------------------------------------------------------------------
       bslib::nav_panel(
         title = "Zone Closures", 
         id = "zone_closures",
@@ -417,6 +421,87 @@ ui <- function(request){
             
             ### Main panel
             zone_closure_ui("zone_closure")    
+          )
+        )
+        
+      ),
+      ## Run policy simulation --------------------------------------------------------------------
+      bslib::nav_panel(
+        title = "Run Policy Simulation", 
+        id = "policy_sim",
+        value = "policy_sim",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE,
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+              
+              checklist_ui("policy_sim_checklist"),
+              hr(),
+              other_actions_ui("policy_sim_actions")
+            ),
+            
+            ### Main panel
+            policy_sim_ui("policy_simulation")    
+          )
+        )
+      ),
+      
+      # Policy Effort ----------------------------------------------------------------------------
+      bslib::nav_panel(
+        title = "Summarize Effort Redistribution", 
+        id = "policy_effort",
+        value = "policy_effort",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE,
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+              
+              checklist_ui("policy_effort_checklist"),
+              hr(),
+              other_actions_ui("policy_effort_actions")
+            ),
+            
+            ### Main panel
+            policy_effort_ui("policy_effort")    
+          )
+        )
+        
+      ),
+      # Policy Welfare Impacts --------------------------------------------------------------------
+      bslib::nav_panel(
+        title = "Summarize Welfare Impacts", 
+        id = "welfare_impact",
+        value = "welfare_impact",
+        bslib::page_fillable(
+          bslib::layout_sidebar(
+            fillable = TRUE,
+            fill = TRUE,
+            
+            ### Sidebar
+            sidebar = bslib::sidebar( 
+              fillable = TRUE, 
+              fill = TRUE, 
+              width = 400,
+              
+              checklist_ui("policy_welfare_checklist"),
+              hr(),
+              other_actions_ui("policy_welfare_actions")
+            ),
+            
+            ### Main panel
+            policy_welfare_ui("policy_welfare")    
           )
         )
         

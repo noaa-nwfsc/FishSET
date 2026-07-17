@@ -10,7 +10,8 @@ summarize_policy_effort(
   zone_spat,
   output_type = "static",
   plot_scenarios = NULL,
-  plot_models = NULL
+  plot_models = NULL,
+  plotly_source = "effort_scatter"
 )
 }
 \arguments{
@@ -20,19 +21,31 @@ summarize_policy_effort(
 
 \item{zone_spat}{Character. The ID column in the spatial data matching simulation zone IDs.}
 
-\item{output_type}{Character. Either "static" (ggplot2) or "dynamic" (leaflet/plotly). 
-Default is "static".}
+\item{output_type}{Character. Dictates the rendering engine: "static" (ggplot2) for standard 
+R plots, or "dynamic" (leaflet/plotly) for interactive HTML widgets. Default is "static".}
 
-\item{plot_scenarios}{Character vector (optional). Specific Scenario or Simulation names 
-to include in the plots. If \code{NULL} (the default), scenarios are not filtered.}
+\item{plot_scenarios}{Character vector (optional). Filters plots for specific scenarios using 
+partial string matching (grep).}
 
-\item{plot_models}{Character vector (optional). Specific Model names to include in 
-the plots (e.g., "zonal_logit", "clogit"). If \code{NULL} (the default), models are not 
-filtered.}
+\item{plot_models}{Character vector (optional). Filters plots for specific models using 
+exact matching.}
+
+\item{plotly_source}{Character. A unique identifier string utilized by the \code{crosstalk} 
+package to enable cross-widget interactivity (e.g., capturing a click on the scatter plot 
+to highlight a zone on the map). The default is \code{"effort_scatter"}. Note: There is 
+no strict menu of alternative options; rather, you can provide \strong{any custom string} 
+here to match the namespace or \code{SharedData} group ID defined within your specific 
+Shiny app or RMarkdown document.}
 }
 \value{
-A list containing \code{summary_data} and three nested lists of plot objects:
-  \code{plots_absolute_map}, \code{plots_percent_map}, and \code{plots_scatter}.
+A named list containing four main elements:
+\itemize{
+  \item \code{summary_data}: A data frame of all raw metrics for the requested simulations.
+  \item \code{plots_absolute_map}: A list of map objects showing raw net change in effort.
+  \item \code{plots_percent_map}: A list of map objects showing percentage change.
+  \item \code{plots_scatter}: A list of 1:1 scatter plot objects comparing baseline vs. 
+  counterfactual effort.
+}
 }
 \description{
 Extracts and visualizes the spatial redistribution of fishing effort.
