@@ -65,7 +65,8 @@ policy_welfare_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
               if (!is.na(mod) && 
                   !grepl("baseline", mod, ignore.case = TRUE)) all_models <- c(all_models, mod)
               if (!is.na(scen) && !grepl("baseline", scen, 
-                                         ignore.case = TRUE)) all_scenarios <- c(all_scenarios, scen)
+                                         ignore.case = TRUE)) all_scenarios <- c(all_scenarios, 
+                                                                                 scen)
             }
             return(list(models = unique(all_models), scenarios = unique(all_scenarios)))
           }

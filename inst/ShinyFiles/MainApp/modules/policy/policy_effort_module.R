@@ -273,7 +273,6 @@ policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     
     # Setup Logic for all 4 Viewers ---------------------------------------------------------------
     setup_viewer_logic <- function(index) {
-      
       sim_id         <- if(index == 1) "sim_viewer_input" else paste0("sim_viewer_input_", index)
       map_type_id    <- if(index == 1) "map_type_input" else paste0("map_type_input_", index)
       map_out_id     <- if(index == 1) "selected_map_dyn" else paste0("selected_map_dyn_", index)
@@ -357,7 +356,6 @@ policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     }
     
     for(i in 1:4) setup_viewer_logic(i)
-    
     # Static Plots Modal --------------------------------------------------------------------------
     observeEvent(input$view_static_btn, {
       req(rv_effort_stat())

@@ -557,7 +557,6 @@ run_simulation <- function(project,
   
 # Package each scenario as its own independent top-level object
   for (scen_name in names(results_list)) {
-    
     sim_obj <- list(
       model_name = mod_name,
       scenario = scen_name,
