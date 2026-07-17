@@ -26,6 +26,7 @@ library(testthat)
 module_path <- system.file("ShinyFiles", 
                            "MainApp", 
                            "modules", 
+                           "policy",
                            "zone_closure_module.R", 
                            package = "FishSET")
 
@@ -37,6 +38,7 @@ if (module_path == "") {
                            "ShinyFiles", 
                            "MainApp", 
                            "modules", 
+                           "policy",
                            "zone_closure_module.R")
 }
 

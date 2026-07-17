@@ -10,7 +10,8 @@ summarize_policy_effort(
   zone_spat,
   output_type = "static",
   plot_scenarios = NULL,
-  plot_models = NULL
+  plot_models = NULL,
+  plotly_source = "effort_scatter"
 )
 }
 \arguments{
@@ -23,16 +24,14 @@ summarize_policy_effort(
 \item{output_type}{Character. Either "static" (ggplot2) or "dynamic" (leaflet/plotly). 
 Default is "static".}
 
-\item{plot_scenarios}{Character vector (optional). Specific Scenario or Simulation names 
-to include in the plots. If \code{NULL} (the default), scenarios are not filtered.}
+\item{plot_scenarios}{Character vector (optional). Specific Scenario names to include.}
 
-\item{plot_models}{Character vector (optional). Specific Model names to include in 
-the plots (e.g., "zonal_logit", "clogit"). If \code{NULL} (the default), models are not 
-filtered.}
+\item{plot_models}{Character vector (optional). Specific Model names to include.}
+
+\item{plotly_source}{Character (optional). Unique ID for plotly cross-talk mapping.}
 }
 \value{
-A list containing \code{summary_data} and three nested lists of plot objects:
-  \code{plots_absolute_map}, \code{plots_percent_map}, and \code{plots_scatter}.
+A list containing \code{summary_data} and three nested lists of plot objects.
 }
 \description{
 Extracts and visualizes the spatial redistribution of fishing effort.
