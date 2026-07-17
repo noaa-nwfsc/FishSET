@@ -555,9 +555,8 @@ run_simulation <- function(project,
   # Initialize the wrapper with the existing list
   sim_wrapper <- full_sim_list
   
-  # Package each scenario as its own independent top-level object
+# Package each scenario as its own independent top-level object
   for (scen_name in names(results_list)) {
-    
     sim_obj <- list(
       model_name = mod_name,
       scenario = scen_name,
@@ -567,6 +566,8 @@ run_simulation <- function(project,
         J_alts = J_alts,
         betadraws = betadraws,
         distribution = if (is_epm) distribution else "logit",
+        marg_util_income = if (is.null(marg_util_income)) NA else marg_util_income, 
+        income_cost = income_cost, 
         timestamp = Sys.time()
       )
     )
