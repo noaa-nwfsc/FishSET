@@ -74,7 +74,8 @@ scallop_clean <- na_filter(
 
 Next we run the spatial checks to identify observations that fall on land
 or outside the intended zone system. This also parses the date column so
-we can summarize spatial issues over time.
+we can summarize spatial issues over time. Note: spatial QAQC is easier 
+to run in the GUI.
 
 ```{r}
 qaqc_out <- spatial_qaqc(
@@ -275,9 +276,7 @@ well specified.
 ```{r eval=FALSE}
 clogit1_iia <- fishset_iia_test(project = project, model_name = "clogit1")
 print(clogit1_iia)
-```
 
-```{r eval=FALSE}
 zlogit1_iia <- fishset_iia_test(project = project, model_name = "zlogit1")
 print(zlogit1_iia)
 ```
