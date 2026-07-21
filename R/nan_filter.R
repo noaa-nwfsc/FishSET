@@ -326,20 +326,34 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
           
           dataset[x_na] <- lapply(x_na, function(i) {
             
-            if (is.numeric(dataset[[i]])) {
-              mean_function <- mean
-              if (rep.value == "mean") {
-                rep.value <- do.call(mean_function, list(dataset[[i]], na.rm = TRUE))
+            if (inherits(dataset[[i]], "Date")) {
+              rep_val <- rep.value
+              if (is.character(rep_val) && rep_val == "mean") {
+                rep_val <- mean(as.numeric(dataset[[i]]), na.rm = TRUE)
               }
               
+              if (!is.numeric(rep_val)) {
+                stop("Replacement value must be numeric.", call. = FALSE)
+              }
               
-              if (!is.numeric(rep.value)) {
-                
+              out <- dataset[[i]]
+              out[is.na(out)] <- as.Date(rep_val, origin = "1970-01-01")
+              cat("All NAs in", i, "have been replaced with", rep_val, "\n",
+                  file = tmp, append = TRUE)
+
+              out
+            } else if (is.numeric(dataset[[i]])) {
+              rep_val <- rep.value
+              if (is.character(rep_val) && rep_val == "mean") {
+                rep_val <- mean(dataset[[i]], na.rm = TRUE)
+              }
+
+              if (!is.numeric(rep_val)) {
                 stop("Replacement value must be numeric.", call. = FALSE)
               }
               out <- dataset[[i]]
-              out[is.na(out)] <- rep.value
-              cat("All NAs in", i, "have been replaced with", rep.value, "\n", 
+              out[is.na(out)] <- rep_val
+              cat("All NAs in", i, "have been replaced with", rep_val, "\n",
                   file = tmp, append = TRUE)
               
               out

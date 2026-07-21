@@ -145,6 +145,22 @@ test_that("it replaces NAs with a specific numeric value", {
   
 })
 
+# preserves Date columns when replacing NA values -------------------------------------------------
+test_that("it preserves Date columns when replacing NA values", {
+  with_mocked_bindings(
+    {
+      date_df <- data.frame(
+        DATE_TRIP = as.Date(c("2007-05-01", NA, "2007-05-03")),
+        val = c(1, 2, 3)
+      )
+      result <- na_filter(date_df, "test", x = "DATE_TRIP", replace = TRUE)
+      expect_s3_class(result$DATE_TRIP, "Date")
+      expect_equal(result$DATE_TRIP[2], as.Date("2007-05-02"))
+    },
+    msg_print = function(...) invisible(NULL),
+  )
+})
+
 # does not replace NAs in a non-numeric column ----------------------------------------------------
 test_that("it does not replace NAs in a non-numeric column", {
   with_mocked_bindings(
@@ -188,4 +204,3 @@ test_that("it warns when a specified column has no NAs", {
   )
   
 })
-
