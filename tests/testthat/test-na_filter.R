@@ -161,6 +161,39 @@ test_that("it preserves Date columns when replacing NA values", {
   )
 })
 
+# preserves Date columns when overwriting the database table ---------------------------------------
+test_that("it preserves Date columns when overwriting the database table", {
+  with_mocked_bindings(
+    {
+      test_folder <- testthat::test_path("testdata/FishSETFolder")
+      temp_root <- file.path(tempdir(), paste0("FishSET-", format(Sys.time(), "%Y%m%d%H%M%S")))
+      dir.create(temp_root, recursive = TRUE, showWarnings = FALSE)
+      file.copy(file.path(test_folder, "s1"), temp_root, recursive = TRUE)
+      on.exit(unlink(temp_root, recursive = TRUE), add = TRUE)
+
+      old_option <- getOption("test_folder_path")
+      options(test_folder_path = temp_root)
+      on.exit(options(test_folder_path = old_option), add = TRUE)
+
+      date_df <- data.frame(
+        DATE_TRIP = as.Date(c("2007-05-01", NA, "2007-05-03")),
+        val = c(1, 2, 3)
+      )
+
+      result <- na_filter(date_df, "s1", x = "DATE_TRIP", replace = TRUE, over_write = TRUE)
+
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase("s1"))
+      on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+      raw_db <- DBI::dbReadTable(fishset_db, "date_df")
+
+      expect_s3_class(result$DATE_TRIP, "Date")
+      expect_type(raw_db$DATE_TRIP, "character")
+      expect_equal(raw_db$DATE_TRIP[2], "2007-05-02")
+    },
+    msg_print = function(...) invisible(NULL),
+  )
+})
+
 # does not replace NAs in a non-numeric column ----------------------------------------------------
 test_that("it does not replace NAs in a non-numeric column", {
   with_mocked_bindings(
