@@ -83,6 +83,7 @@ model_resid_corr <- function(project,
   
   # Predict probabilities -------------------------------------------------------------------------
   is_epm <- isTRUE(design$epm$is_epm)
+  is_poisson <- isTRUE(design$settings$model_type == "poisson")
   J <- design$settings$J_alts
   N <- design$settings$N_obs
   
@@ -141,8 +142,6 @@ model_resid_corr <- function(project,
   }
   
   # Calculate residuals for each zone -------------------------------------------------------------
-  is_poisson <- isTRUE(design$settings$model_type == "poisson")
-  
   if (is_poisson) {
     # Actual counts vs expected counts
     y_mat <- t(matrix(design$y, nrow = J, ncol = N))
