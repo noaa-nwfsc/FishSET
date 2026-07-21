@@ -108,7 +108,7 @@ Suggests:
     withr
 VignetteBuilder:
     knitr
-BuildVignettes: no
+BuildVignettes: yes
 ByteCompile: TRUE
 Encoding: UTF-8
 RoxygenNote: 7.3.2
