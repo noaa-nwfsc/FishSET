@@ -736,9 +736,17 @@ date_parser <- function(dates, args=NULL) {
   #' @keywords internal
   #' @export
   #' @importFrom lubridate dym ymd myd ydm dmy mdy
-  
-  dates <- trimws(dates)
-  dates <- sub(" .*", "\\1", dates)
+
+  if (inherits(dates, c("Date", "POSIXct", "POSIXt"))) {
+    return(as.Date(dates))
+  }
+
+  if (is.numeric(dates)) {
+    return(as.Date(dates, origin = "1970-01-01"))
+  }
+
+  dates <- trimws(as.character(dates))
+  dates <- sub("\\s.*$", "", dates)
   if (!all(is.na(suppressWarnings(lubridate::mdy(dates))))) {
     lubridate::mdy(dates, args)
   } else if (!all(is.na(suppressWarnings(lubridate::dmy(dates))))) {
@@ -2809,4 +2817,3 @@ fishset_viridis <- function(n) {
   cols <- fn_cols(seq(0, 1, length.out = n))/255
   grDevices::rgb(cols[, 1], cols[, 2], cols[, 3], alpha = 1)
 }
-
