@@ -273,21 +273,32 @@ correlation. These diagnostics help determine whether the final model is
 well specified.
 
 ```{r eval=FALSE}
-fishset_iia_test(project = project, model_name = "clogit1")
-fishset_iia_test(project = project, model_name = "zlogit1")
+clogit1_iia <- fishset_iia_test(project = project, model_name = "clogit1")
+print(clogit1_iia)
+```
 
-model_resid_corr(
+```{r eval=FALSE}
+zlogit1_iia <- fishset_iia_test(project = project, model_name = "zlogit1")
+print(zlogit1_iia)
+```
+
+```{r eval=FALSE}
+clogit1_resid <- model_resid_corr(
   project = project,
   model_name = "clogit1",
   spat = "scallop_vignettetenMNSQRSpatTable",
   spat_id = "TEN_ID"
 )
+print(clogit1_resid)
+plot(clogit1_resid)
+```
 
-model_resid_corr(
+```{r eval=FALSE}
+zlogit1_resid <- model_resid_corr(
   project = project,
   model_name = "zlogit1",
   spat = "scallop_vignettetenMNSQRSpatTable",
   spat_id = "TEN_ID"
 )
+print(zlogit1_resid)
 ```
-
