@@ -2633,6 +2633,7 @@ date_cols <- function(dat, out = "names", type = 'both') {
   
   date_helper <- function(dates, fun) {
     
+    if (inherits(dates, c("Date", "POSIXct", "POSIXt"))) return(TRUE)
     if (all(is.na(dates))) return(FALSE)
     # track NAs before converting
     na_ind <-is.na(dates)
@@ -2666,8 +2667,14 @@ date_cols <- function(dat, out = "names", type = 'both') {
   else dat_slice <- nr
   
   # find cols that can be successfully converted to date
-  # numeric cols excluded for efficiency and to prevent false positives  
-  date_cols <- purrr::map_lgl(dat[!numeric_cols(dat, "logical")][seq_len(dat_slice), ], date_apply)
+  # numeric cols excluded for efficiency and to prevent false positives, but
+  # keep existing Date/POSIX columns so they are preserved.
+  date_like <- vapply(dat, function(x) inherits(x, c("Date", "POSIXct", "POSIXt")),
+                      logical(1))
+  date_cols <- purrr::map_lgl(
+    dat[seq_len(dat_slice), (!numeric_cols(dat, "logical") | date_like), drop = FALSE],
+    date_apply
+  )
   
   date_cols <- date_cols[date_cols]
   
