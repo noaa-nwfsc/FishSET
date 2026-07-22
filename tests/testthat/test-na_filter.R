@@ -190,7 +190,7 @@ test_that("it preserves Date columns when overwriting the database table", {
       expect_type(raw_db$DATE_TRIP, "character")
       expect_equal(raw_db$DATE_TRIP[2], "2007-05-02")
     },
-    msg_print = function(...) invisible(NULL),
+    msg_print = function(...) invisible(NULL)
   )
 })
 
