@@ -73,9 +73,9 @@ scallop_clean <- na_filter(
 ```
 
 Next we run the spatial checks to identify observations that fall on land
-or outside the intended zone system. This also parses the date column so
-we can summarize spatial issues over time. Note: spatial QAQC is easier 
-to run in the GUI.
+or outside the intended zone domain. This also parses the date column so
+we can summarize spatial issues over time. Note: removing observations
+on land or outside the zone polygons is easier in the FishSET GUI.
 
 ```{r}
 qaqc_out <- spatial_qaqc(
@@ -158,9 +158,10 @@ create_alternative_choice(
 )
 ```
 
-Expected catch matrices translate the recent catch history into model
-inputs. We create one matrix for each alternative-choice definition so the
-later model specification can use the matching expectation set.
+Expected catch matrices translate the recent catch history into moving 
+window averages for model inputs. We create one matrix for each 
+alternative-choice definition so the later model specification can use 
+the matching expectation set.
 
 ```{r}
 create_expectations(
@@ -195,9 +196,9 @@ create_expectations(
 ```
 
 The formatted data step reshapes the project tables into the long format
-used by the RTMB model code. We keep the variables needed for the choice
-model and distance calculation, then repeat the process for the second
-alternative-choice set.
+used by the RTMB model code within fishset_fit(). We keep the variables 
+needed for the choice model and distance calculation, then repeat the 
+process for the second alternative-choice set.
 
 ```{r}
 format_model_data(
@@ -228,7 +229,7 @@ format_model_data(
 ## Model design and fit
 
 The first design is a standard conditional logit with expected catch and
-distance as fixed effects. The second adds zone-specific constants so we
+distance as fixed effects. The second adds area-specific constants so we
 can compare a more flexible zonal logit specification.
 
 ```{r}
@@ -256,7 +257,8 @@ fishset_design(
 The model-fitting step can take longer than a vignette render budget, so
 we keep the fitting code in the document but do not evaluate it here. This
 still shows the exact commands a user would run locally to estimate and
-print both model tables.
+print both model tables. The printed tables include estimated coefficients,
+standard errors, p-values, log-likelihood, AIC, Pseudo R2, and accuracy.
 
 ```{r eval=FALSE}
 clogit1_fit <- fishset_fit(project = project, model_name = "clogit1")
@@ -290,9 +292,7 @@ clogit1_resid <- model_resid_corr(
 )
 print(clogit1_resid)
 plot(clogit1_resid)
-```
 
-```{r eval=FALSE}
 zlogit1_resid <- model_resid_corr(
   project = project,
   model_name = "zlogit1",
