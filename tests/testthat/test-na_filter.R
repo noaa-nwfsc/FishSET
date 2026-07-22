@@ -157,7 +157,7 @@ test_that("it preserves Date columns when replacing NA values", {
       expect_s3_class(result$DATE_TRIP, "Date")
       expect_equal(result$DATE_TRIP[2], as.Date("2007-05-02"))
     },
-    msg_print = function(...) invisible(NULL),
+    msg_print = function(...) invisible(NULL)
   )
 })
 
