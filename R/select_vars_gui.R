@@ -108,7 +108,7 @@ select_vars <- function(dat, project) {
         values[, c(input$columns, "linkID"), drop = FALSE]
       })
 
-      output$data_table <- renderTable(head(data_table()))
+      output$data_table <- renderTable(utils::head(data_table()))
 
 
       # When the Submit button is clicked, save the form data
