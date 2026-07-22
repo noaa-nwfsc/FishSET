@@ -5,8 +5,8 @@ vignette: >
   %\VignetteIndexEntry{Scallop End-to-End Workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  editor_options: 
-  markdown: 
+editor_options:
+  markdown:
     wrap: 72
 ---
 
