@@ -146,6 +146,7 @@ run_simulation <- function(project,
   rm(fit_list)
   
   is_epm <- isTRUE(design$epm$is_epm)
+  is_poisson <- isTRUE(design$settings$model_type == "poisson")
   N_obs <- design$settings$N_obs
   J_alts <- design$settings$J_alts
   
@@ -565,7 +566,7 @@ run_simulation <- function(project,
         N_obs = N_obs,
         J_alts = J_alts,
         betadraws = betadraws,
-        distribution = if (is_epm) distribution else "logit",
+        distribution = if (is_epm) distribution else if (is_poisson) "poisson" else "logit",
         marg_util_income = if (is.null(marg_util_income)) NA else marg_util_income, 
         income_cost = income_cost, 
         timestamp = Sys.time()

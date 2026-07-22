@@ -131,6 +131,45 @@ setup_sim_env <- function(project_name, model_name, design_obj, fit_obj) {
   return(list(base_dir = test_base_dir, db_path = db_path, out_dir = out_dir))
 }
 
+setup_poisson_sim_env <- function(project_name) {
+  test_base_dir <- normalizePath(file.path(tempdir(),
+                                           paste0("FishSET_PoisSimTests_", sample(1:10000, 1))),
+                                 winslash = "/", mustWork = FALSE)
+  project_dir <- file.path(test_base_dir, project_name)
+
+  md_dir <- file.path(project_dir, "Models", "ModelDesigns")
+  fd_dir <- file.path(project_dir, "Models", "FormattedData")
+  out_dir <- file.path(project_dir, "Output")
+  dir.create(md_dir, recursive = TRUE, showWarnings = FALSE)
+  dir.create(fd_dir, recursive = TRUE, showWarnings = FALSE)
+  dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+
+  poisson_data <- data.frame(
+    haul_id = rep(1:N_obs, each = J_alts),
+    zone_id = factor(rep(1:J_alts, times = N_obs)),
+    count = as.integer(round(1 + 2 * (
+      rep(seq(0.4, 1.2, length.out = J_alts), times = N_obs) +
+        rep(seq(0, 0.3, length.out = N_obs), each = J_alts)
+    ))),
+    util = rep(seq(0.4, 1.2, length.out = J_alts), times = N_obs) +
+      rep(seq(0, 0.3, length.out = N_obs), each = J_alts)
+  )
+
+  saveRDS(list(my_formatted_data = poisson_data),
+          file.path(fd_dir, paste0(project_name, "LongFormatData.rds")))
+
+  yaml::write_yaml(
+    list(list(scenario = "closure_1", zone = "Zone_1")),
+    file.path(out_dir, "closures.yaml")
+  )
+
+  list(
+    base_dir = test_base_dir,
+    db_path = file.path(project_dir, "database.sqlite"),
+    out_dir = out_dir
+  )
+}
+
 # Test baseline (no closures) for standard logit --------------------------------------------------
 test_that("Standard Logit runs baseline correctly", {
   env <- setup_sim_env("Proj_Std", "mod1", std_design, std_fit)
@@ -264,6 +303,81 @@ test_that("Expected Profit Model (EPM) runs successfully", {
   )
   
   expect_equal(unname(res_cl$closure_2$effort_new["2"]), 0)
+})
+
+# Test Poisson equivalence model -------------------------------------------------------------------
+test_that("Poisson equivalence model runs through run_simulation", {
+  env <- setup_poisson_sim_env("Proj_Pois")
+
+  old_opts <- options(test_folder_path = env$base_dir)
+  setup_mocks(env$db_path, env$out_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+
+  suppressMessages(
+    fishset_design(
+      formula = count ~ util,
+      project = "Proj_Pois",
+      model_name = "pois_mod",
+      formatted_data_name = "my_formatted_data",
+      unique_obs_id = "haul_id",
+      zone_id = "zone_id",
+      model_type = "poisson"
+    )
+  )
+
+  expect_no_error(
+    fishset_fit(
+      project = "Proj_Pois",
+      model_name = "pois_mod",
+      overwrite = TRUE
+    )
+  )
+
+  fit_list <- FishSET:::unserialize_table("Proj_PoisModelFit", "Proj_Pois")
+  fit_obj <- fit_list[["pois_mod_fit"]]
+  fit_obj$opt$par[1] <- abs(fit_obj$opt$par[1]) + 0.5
+  fit_obj$coefficients[1] <- abs(fit_obj$coefficients[1]) + 0.5
+  fit_obj$diagnostics$hessian <- diag(length(fit_obj$opt$par)) * 1000
+  fit_list[["pois_mod_fit"]] <- fit_obj
+
+  db <- DBI::dbConnect(RSQLite::SQLite(), env$db_path)
+  DBI::dbExecute(
+    db,
+    "UPDATE Proj_PoisModelFit SET data = :data",
+    params = list(data = list(serialize(fit_list, NULL)))
+  )
+  DBI::dbDisconnect(db)
+
+  expect_silent(
+    res <- run_simulation(
+      project = "Proj_Pois",
+      mod_name = "pois_mod",
+      closures = c("closure_1"),
+      betadraws = betadraws_test,
+      marg_util_income = "util"
+    )
+  )
+
+  expect_true("closure_1" %in% names(res))
+  pois_res <- res$closure_1
+
+  expect_named(
+    pois_res,
+    c("welfare_draws", "mean_welfare_loss", "quantiles", "effort_base", "effort_new")
+  )
+  expect_named(pois_res$quantiles, c("2.5%", "5%", "50%", "95%", "97.5%"))
+  expect_length(pois_res$welfare_draws, betadraws_test)
+  expect_true(is.numeric(pois_res$mean_welfare_loss))
+  expect_false(is.na(pois_res$mean_welfare_loss))
+  expect_true(all(is.finite(pois_res$welfare_draws)))
+  expect_equal(length(pois_res$effort_base), J_alts)
+  expect_equal(length(pois_res$effort_new), J_alts)
+  expect_equal(names(pois_res$effort_base), as.character(1:J_alts))
+  expect_equal(names(pois_res$effort_new), as.character(1:J_alts))
+  expect_equal(unname(pois_res$effort_new["1"]), 0)
 })
 
 # Test missing marg_util_income -------------------------------------------------------------------
