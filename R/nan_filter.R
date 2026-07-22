@@ -201,8 +201,11 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
                                                       locdatabase(project = project)))
         on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-        
-        DBI::dbWriteTable(fishset_db, dat, dataset, overwrite = over_write)
+        dataset_db <- dataset
+        d_cols <- date_cols(dataset_db)
+        dataset_db[d_cols] <- lapply(d_cols, function(d) as.character(dataset_db[[d]]))
+
+        DBI::dbWriteTable(fishset_db, dat, dataset_db, overwrite = over_write)
       }
     }
   }
@@ -326,20 +329,34 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
           
           dataset[x_na] <- lapply(x_na, function(i) {
             
-            if (is.numeric(dataset[[i]])) {
-              mean_function <- mean
-              if (rep.value == "mean") {
-                rep.value <- do.call(mean_function, list(dataset[[i]], na.rm = TRUE))
+            if (inherits(dataset[[i]], "Date")) {
+              rep_val <- rep.value
+              if (is.character(rep_val) && rep_val == "mean") {
+                rep_val <- mean(as.numeric(dataset[[i]]), na.rm = TRUE)
               }
               
+              if (!is.numeric(rep_val)) {
+                stop("Replacement value must be numeric.", call. = FALSE)
+              }
               
-              if (!is.numeric(rep.value)) {
-                
+              out <- dataset[[i]]
+              out[is.na(out)] <- as.Date(rep_val, origin = "1970-01-01")
+              cat("All NAs in", i, "have been replaced with", rep_val, "\n",
+                  file = tmp, append = TRUE)
+
+              out
+            } else if (is.numeric(dataset[[i]])) {
+              rep_val <- rep.value
+              if (is.character(rep_val) && rep_val == "mean") {
+                rep_val <- mean(dataset[[i]], na.rm = TRUE)
+              }
+
+              if (!is.numeric(rep_val)) {
                 stop("Replacement value must be numeric.", call. = FALSE)
               }
               out <- dataset[[i]]
-              out[is.na(out)] <- rep.value
-              cat("All NAs in", i, "have been replaced with", rep.value, "\n", 
+              out[is.na(out)] <- rep_val
+              cat("All NAs in", i, "have been replaced with", rep_val, "\n",
                   file = tmp, append = TRUE)
               
               out
@@ -368,7 +385,10 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
                                                       locdatabase(project = project)))
         on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-        DBI::dbWriteTable(fishset_db, dat, dataset, overwrite = TRUE)
+        dataset_db <- dataset
+        d_cols <- date_cols(dataset_db)
+        dataset_db[d_cols] <- lapply(d_cols, function(d) as.character(dataset_db[[d]]))
+        DBI::dbWriteTable(fishset_db, dat, dataset_db, overwrite = TRUE)
       }
     }
   }

@@ -84,6 +84,7 @@ test_that("test spatial_qaqc() works", {
   
   # Save a sample of the data
   test_df <- head(table_view("s1MainDataTable", "s1"), 20)
+  test_df$DATE_TRIP <- as.numeric(test_df$DATE_TRIP)
   
   # Save tail of data to modify coordinates for spatial checks
   tmp_df <- tail(table_view("s1MainDataTable", "s1"), 4)
@@ -117,6 +118,7 @@ test_that("test spatial_qaqc() works", {
   # Check flagged columns
   expect_true("ON_LAND" %in% names(result$dataset))
   expect_true("OUTSIDE_ZONE" %in% names(result$dataset))
+  expect_s3_class(result$dataset$DATE_TRIP, "Date")
   
   # Check rows for on boundary, land, and outside zone
   expect_true(all(result$dataset$ON_ZONE_BOUNDARY[4]))
