@@ -182,41 +182,23 @@ table_view <- function(table, project, convert_dates = TRUE) {
   #' }
 
   if (table_exists(table, project) == FALSE) {
-
     stop("Table not found. Check spelling.", call. = FALSE)
 
   } else {
-
     if (table_type(table) == "spatial") {
-
       filename <- file.path(loc_data(project), "spat", paste0(table, ".geojson"))
       sf::st_read(filename, quiet=TRUE) 
 
     } else {
-
       suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
       on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
 
       tab_out <- DBI::dbGetQuery(fishset_db,
                                  paste0("SELECT * FROM", paste0("'", noquote(table), "'")))
 
-      # TODO: convert date-time columns to date-time
-      # # # convert date and date-time from numeric
-      # dt_cols <- grep("date.*time", names(tab_out), ignore.case = TRUE, value = TRUE)
-      #
-      # dt_numeric <- numeric_cols(tab_out[dt_cols], out = "names")
-      #
-      # if (length(dt_numeric) > 0) {
-      #   # date-time saved as secs since 1970-01-01
-      #   tab_out[dt_numeric] <- lapply(tab_out[dt_numeric], lubridate::as_datetime)
-      # }
-
-      if (convert_dates) {
-        # convert date variables back to date
-        d_cols <- date_cols(tab_out)
-        tab_out[d_cols] <- lapply(tab_out[d_cols], date_parser)
-      }
-      
+      # convert date variables back to date
+      d_cols <- date_cols(tab_out)
+      tab_out[d_cols] <- lapply(tab_out[d_cols], date_parser)
       tibble::as_tibble(tab_out)
     }
   }
@@ -244,7 +226,7 @@ unserialize_table <- function(table, project) {
   
   serial_tabs <- c("alt choice matrix", "expected catch matrix", "model data",
                    "model fit", "predict output", "global check", "model output", 
-                   "long format data")
+                   "long format data", "policy simulations")
   
   if (!tab_type %in% serial_tabs) {
     
@@ -260,6 +242,7 @@ unserialize_table <- function(table, project) {
                     "model data" = "ModelInputData", # Note: check for consistency, seen lowercase version 
                                                      # (depends on whether created in app or console)
                     "predict output" = "PredictOutput",
+                    "policy simulations" = "data",
                     "long format data" = "data")
   
   sql_qry <- paste0("SELECT ", tab_qry, " FROM ", table, " LIMIT 1")

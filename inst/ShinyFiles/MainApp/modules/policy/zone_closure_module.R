@@ -7,7 +7,6 @@
 # =================================================================================================
 
 # zone closure server -----------------------------------------------------------------------------
-
 #' zone_closure_server
 #'
 #' @param id A character string that is unique to this module instance.
@@ -15,9 +14,10 @@
 #' @param rv_project_name Reactive value for the current project.
 #' @param rv_data Reactive list containing spatial data (rv_data$spat).
 #' @param spat_zone_id Optional string passed directly from the console wrapper to bypass GUI 
-#' loader.
+#'                     loader.
 #' @return This module does not return a value.
-zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spat_zone_id = NULL) {
+zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, 
+                                spat_zone_id = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -27,14 +27,25 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
     rv_saved_closures  <- reactiveValues(saved = list())      
     rv_selected_vars   <- reactiveValues(vars = NULL)
     
+    # Trackers for database polling and initialization state to prevent double-loading
+    rv_db_state        <- reactiveValues(mtime = NULL, choices = NULL, initialized = FALSE)
+    rv_last_matrix     <- reactiveValues(val = NULL)
+    
     # Main App Logic: Only run GUI loader if NOT in standalone console mode
     if (is.null(spat_zone_id)) {
       observe({
         req(current_project(), rv_folderpath())
-        selected_vars <- load_gui_variables(current_project(), rv_folderpath())
         
-        if (!is.null(selected_vars)) {
-          rv_selected_vars$vars <- selected_vars
+        # Tell Shiny to re-run this check every 2.5 seconds
+        shiny::invalidateLater(5000, session)
+        
+        # Read the current state of the file from the disk
+        new_vars <- load_gui_variables(current_project(), rv_folderpath())
+        
+        # If valid data is found AND it's different from what we currently have in memory
+        if (!is.null(new_vars) && !identical(new_vars, rv_selected_vars$vars)) {
+          # Overwrite the old memory with the new disk data
+          rv_selected_vars$vars <- new_vars
         }
       })
     }
@@ -50,6 +61,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
     get_zone_id <- reactive({
       if (!is.null(spat_zone_id)) {
         return(spat_zone_id) 
+        
       } else {
         req(rv_selected_vars$vars$spat$spat_zone_id)
         return(rv_selected_vars$vars$spat$spat_zone_id) 
@@ -58,47 +70,135 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
     
     # Process spatial data
     zone_df <- reactive({
-      req(rv_data$spat, get_zone_id())
+      req(rv_data$spat, get_zone_id() )
       
       spat_data <- rv_data$spat
       z_id <- get_zone_id()
       
       spat_data %>%
         sf::st_transform(., "+proj=longlat +datum=WGS84") %>%
-        mutate(secondLocationID = paste0("Zone_", as.character(spat_data[[z_id]]))) %>%
-        mutate(zone = as.character(spat_data[[z_id]]))
+        mutate(second_location_id = paste0("Zone_", as.character(.data[[z_id]]))) %>%
+        mutate(zone = as.character(.data[[z_id]]))
     })
     
-    # Extract Modeled Zones (Evaluates lazily) ----------------------------------------------------
-    modeled_zones <- reactive({
+    # Render Missing Matrix Warning ---------------------------------------------------------------
+    output$alt_matrix_warning <- renderUI({
+      req(rv_db_state$initialized)
+      req(!is.null(input$alt_matrix_ui), input$alt_matrix_ui != "init") # Wait until UI updates
+      
+      # Check if the database genuinely has no matrices
+      if (length(rv_db_state$choices) == 1 && rv_db_state$choices == "") {
+        div(
+          class = "alert alert-warning mb-3",
+          role = "alert",
+          shiny::icon("triangle-exclamation"),
+          tags$strong(" No Alternative Matrix selected. "),
+          "Please select a matrix from the dropdown. If none exist, run ", 
+          tags$code("create_alternative_choice()"), " in the console to define your valid zones. ",
+          "Once created, the map will automatically detect it and highlight the available zones."
+        )
+      } else {
+        NULL
+      }
+    })
+    
+    # Populate & Auto-Refresh the Alternative Matrix Dropdown -------------------------------------
+    observe({
       req(current_project())
+      shiny::invalidateLater(2500, session) # Lightly poll every 2.5 seconds
+      
       proj <- current_project()
+      db_path <- locdatabase(project = proj)
       
-      designs_dir <- file.path(locproject(), proj, "Models", "ModelDesigns")
-      design_files <- list.files(designs_dir, pattern = "\\.(qs2|rds)$", full.names = TRUE)
+      current_mtime <- if (file.exists(db_path)) file.info(db_path)$mtime else "missing"
       
-      if (length(design_files) == 0) return(NULL)
-      
-      all_zones <- list()
-      for (f in design_files) {
-        if (grepl("\\.qs2$", f) && requireNamespace("qs2", quietly = TRUE)) {
-          d <- qs2::qs_read(f)
-        } else {
-          d <- readRDS(f)
+      if (!identical(current_mtime, rv_db_state$mtime)) {
+        rv_db_state$mtime <- current_mtime
+        
+        alt_table <- paste0(proj, "AltMatrix")
+        
+        dropdown_choices <- c("No matrices available" = "")
+        table_is_present <- tryCatch({
+          table_exists(alt_table, proj)
+        }, error = function(e) {
+          FALSE # If an error is thrown, silently assume the table does not exist
+        })
+        
+        if (table_is_present) {
+          alt_list <- unserialize_table(alt_table, proj)
+          if (length(names(alt_list)) > 0) {
+            dropdown_choices <- stats::setNames(names(alt_list), names(alt_list))
+          } 
         }
-        if (!is.null(d$ids$zone)) {
-          all_zones <- append(all_zones, list(as.character(unique(d$ids$zone))))
+        
+        if (!identical(dropdown_choices, rv_db_state$choices)) {
+          rv_db_state$choices <- dropdown_choices
+          current_selection <- shiny::isolate(input$alt_matrix_ui)
+          
+          if (!isTruthy(current_selection) || current_selection == "init" || 
+              !(current_selection %in% dropdown_choices)) {
+            current_selection <- dropdown_choices[1]
+          }
+          
+          updateSelectInput(session, "alt_matrix_ui", choices = dropdown_choices, 
+                            selected = current_selection)
         }
       }
       
-      res <- unique(unlist(all_zones))
-      if (length(res) == 0) return(NULL)
-      return(res)
+      # Un-pause downstream map rendering once the first DB fetch finishes
+      if (!rv_db_state$initialized) {
+        rv_db_state$initialized <- TRUE
+      }
+    })
+    
+    # Clear user selections ONLY when the selected matrix actually changes ------------------------
+    observeEvent(input$alt_matrix_ui, {
+      current_val <- input$alt_matrix_ui
+      req(!is.null(current_val), current_val != "init") # Ignore the initial loading state
+      
+      if (is.null(rv_last_matrix$val)) {
+        rv_last_matrix$val <- current_val
+      } else if (current_val != rv_last_matrix$val) {
+        rv_clicked_zones$ids <- character(0)
+        rv_last_matrix$val <- current_val
+      }
+    }, ignoreInit = TRUE)
+    
+    # Extract Modeled Zones (Evaluates lazily - NO FALLBACK) --------------------------------------
+    modeled_zones <- reactive({
+      req(rv_db_state$choices, rv_db_state$mtime)
+      req(current_project(), rv_db_state$initialized)
+      req(!is.null(input$alt_matrix_ui), input$alt_matrix_ui != "init") # Hold until updates
+      
+      proj <- current_project()
+      selected_matrix <- input$alt_matrix_ui
+      
+      if (selected_matrix == "") {
+        return(NULL)
+      }
+      
+      # Standard logic: Grab character-based names from database
+      alt_table <- paste0(proj, "AltMatrix")
+      table_is_present <- tryCatch({
+        table_exists(alt_table, proj)
+      }, error = function(e) { FALSE })
+      
+      if (table_is_present) {
+        alt_list <- tryCatch({
+          unserialize_table(alt_table, proj)
+        }, error = function(e) list())
+        
+        if (selected_matrix %in% names(alt_list)) {
+          return(as.character(unique(alt_list[[selected_matrix]]$greaterNZ)))
+        }
+      }
+      
+      return(NULL)
     })
     
     # Output Leaflet Map (Combined Plotting Logic) ------------------------------------------------
     output$zone_map_output <- leaflet::renderLeaflet({
-      req(zone_df()) 
+      req(!is.null(input$alt_matrix_ui), input$alt_matrix_ui != "init") # Prevent double-rendering
       
       z_df <- zone_df()
       m_zones <- modeled_zones()
@@ -106,11 +206,9 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
       showNotification("Map rendering, this may take a few moments...", type = "default",
                        duration = 5)
       
-      # Determine if we are plotting points (CSV) or polygons (Shapefiles)
       is_point_data <- any(sf::st_geometry_type(z_df) %in% c("POINT", "MULTIPOINT"))
       bounds <- sf::st_bbox(z_df)
       
-      # Base Map Setup
       map <- leaflet::leaflet() %>%
         leaflet::addProviderTiles("OpenStreetMap") %>%
         leaflet::fitBounds(lng1 = bounds[["xmin"]], lat1 = bounds[["ymin"]], 
@@ -122,17 +220,17 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
           leaflet::addCircleMarkers(data = z_df, radius = 6, fillColor = "white", 
                                     fillOpacity = 0.6,
                                     color = "black", stroke = TRUE, weight = 1,
-                                    layerId = ~secondLocationID, group = "regions", 
-                                    label = ~secondLocationID)
+                                    layerId = ~second_location_id, group = "regions", 
+                                    label = ~second_location_id)
       } else {
         map <- map %>%
           leaflet::addPolygons(data = z_df, fillColor = "white", fillOpacity = 0.5,
                                color = "black", stroke = TRUE, weight = 1,
-                               layerId = ~secondLocationID, group = "regions", 
-                               label = ~secondLocationID)
+                               layerId = ~second_location_id, group = "regions", 
+                               label = ~second_location_id)
       }
       
-      # Add Highlights Layer (Yellow Fill) if models exist
+      # Add Highlights Layer (Yellow Fill) if matrix exists
       if (!is.null(m_zones) && length(m_zones) > 0) {
         highlight_data <- z_df %>% filter(zone %in% m_zones)
         
@@ -142,14 +240,14 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
               leaflet::addCircleMarkers(data = highlight_data, radius = 6, fillColor = "#FFC107",
                                         fillOpacity = 0.7,
                                         color = "#FFC107", stroke = TRUE, weight = 1,
-                                        layerId = ~secondLocationID, group = "regions", 
-                                        label = ~secondLocationID)
+                                        layerId = ~second_location_id, group = "regions", 
+                                        label = ~second_location_id)
           } else {
             map <- map %>% 
               leaflet::addPolygons(data = highlight_data, fillColor = "#FFC107", fillOpacity = 0.5,
                                    color = "#FFC107", stroke = TRUE, weight = 1,
-                                   layerId = ~secondLocationID, group = "regions", 
-                                   label = ~secondLocationID)
+                                   layerId = ~second_location_id, group = "regions", 
+                                   label = ~second_location_id)
           }
         }
       }
@@ -162,7 +260,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
       click <- input$zone_map_output_shape_click
       req(click$id)
       
-      sec_id <- "secondLocationID"
+      sec_id <- "second_location_id"
       proxy <- leaflet::leafletProxy("zone_map_output")
       is_point_data <- any(sf::st_geometry_type(zone_df()) %in% c("POINT", "MULTIPOINT"))
       
@@ -174,18 +272,21 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
       } else {
         # SELECTING
         clicked_poly <- zone_df() %>% filter(.data[[sec_id]] == click$id)
-        
-        # IS ZONE HIGHLIGHTED?
         m_zones <- modeled_zones()
         
-        # If no zones are modeled, OR if the clicked zone isn't in the modeled list: throw error
-        if (is.null(m_zones) || !(clicked_poly$zone[1] %in% m_zones)) {
-          showNotification("Error: You can only select highlighted zones.", 
+        if (is.null(m_zones)) {
+          showNotification("Error: Please select an Alternative Matrix first.", 
                            type = "error", duration = 4)
-          return() # Instantly halts the function so it doesn't turn red
+          return()
         }
         
-        # If it passes the check, proceed with selection (Red Fill)
+        if (!(clicked_poly$zone[1] %in% m_zones)) {
+          showNotification("Error: You can only select valid highlighted zones from the chosen
+                           Alternative Matrix.", 
+                           type = "error", duration = 4)
+          return()
+        }
+        
         rv_clicked_zones$ids <- unique(c(rv_clicked_zones$ids, click$id))
         
         if (is_point_data) {
@@ -209,6 +310,12 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
     observeEvent(input$add_closure_btn, {
       req(current_project())
       proj <- current_project()
+      
+      if (!isTruthy(input$alt_matrix_ui) || input$alt_matrix_ui == "init") {
+        showNotification("An Alternative Matrix must be selected before saving.", type = "error",
+                         duration = 5)
+        return()
+      }
       
       if (!isTruthy(input$scenario_name_input)) { 
         showNotification("Please enter a scenario name.", type = "warning", duration = 5)
@@ -237,7 +344,8 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
         date = as.character(Sys.Date()),
         zone = rv_clicked_zones$ids,
         tac = rv_tac_table$data$`% allowable TAC`,
-        grid_name = grid_nm
+        grid_name = grid_nm,
+        alt_matrix = input$alt_matrix_ui
       )
       
       current_saved <- append(current_saved, list(new_scenario))
@@ -262,6 +370,10 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
       df <- data.frame(
         Scenario = vapply(saved_list, function(x) x$scenario, character(1)),
         Date = vapply(saved_list, function(x) x$date, character(1)),
+        Alt_Matrix = vapply(saved_list, function(x) {
+          val <- x$alt_matrix
+          if (is.null(val) || val == "") "Unknown (Legacy)" else val
+        }, character(1)),
         Zones = vapply(saved_list, function(x) paste(x$zone, collapse = ", "), character(1)),
         TAC_Percents = vapply(saved_list, function(x) paste(x$tac, collapse = ", "), character(1)),
         stringsAsFactors = FALSE
@@ -315,7 +427,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, spa
         zones_to_show <- unique(unlist(lapply(selected_scenarios, function(x) x$zone)))
         
         if (length(zones_to_show) > 0) {
-          sec_id <- "secondLocationID"
+          sec_id <- "second_location_id"
           poly_to_show <- zone_df() %>% filter(.data[[sec_id]] %in% zones_to_show)
           
           if (is_point_data) {
@@ -403,7 +515,7 @@ zone_closure_ui <- function(id) {
     # Instructions
     div(
       class = "mb-3",
-      h4("Zone Closure Management"),
+      h4("Design Spatial Closures"),
       p(class = "text-muted",
         "Click on the map to highlight zones for your scenario. Enter a scenario name below ",
         "the map, adjust the allowable TAC percentage for each selected zone in the table, and ",
@@ -411,19 +523,44 @@ zone_closure_ui <- function(id) {
       )
     ),
     
+    # Missing Matrix Warning (only displays if no matrices are selected)
+    uiOutput(ns("alt_matrix_warning")),
+    
+    # Alternative Matrix Selection Card (with overflow settings to prevent clipping)
+    bslib::card(
+      class = "mb-3",
+      fill = FALSE,
+      style = "overflow: visible;", 
+      bslib::card_body(
+        class = "p-3",
+        style = "overflow: visible;", 
+        selectInput(ns('alt_matrix_ui'), 
+                    label = tags$span(
+                      "Alternative Matrix ", 
+                      bslib::tooltip(
+                        shiny::icon("info-circle"), 
+                        "Select a saved alternative coice matrix to display the valid zones on 
+                        the map."
+                      )
+                    ), 
+                    choices = c("Initializing..." = "init"), # Default prevents double-renders
+                    width = "100%")
+      )
+    ),
+    
     # Main Map Card
     bslib::card(
       class = "mb-3",
-      height = "700px",  # Explicit string to force container height
-      fill = FALSE,      # Prevents the parent page layout from compressing the card
+      height = "700px",  
+      fill = FALSE,      
       full_screen = TRUE,
       bslib::card_header(
         class = "d-flex justify-content-between align-items-center",
-        "Spatial Zone Selection"
+        "Zone Selection"
       ),
       bslib::card_body(
         class = "p-0",
-        style = "overflow: hidden;", # Forces map to stay cleanly within rounded borders
+        style = "overflow: hidden;", 
         shinycssloaders::withSpinner(
           leaflet::leafletOutput(ns("zone_map_output"), height = 650), 
           type = 6, color = "#007bc2"
@@ -454,7 +591,6 @@ zone_closure_ui <- function(id) {
           column(
             width = 4, 
             div(
-              # Align button vertically with the text input box
               style = "margin-top: 32px;", 
               actionButton(ns('add_closure_btn'), 'Add closure', 
                            icon = shiny::icon("plus"),
@@ -473,7 +609,7 @@ zone_closure_ui <- function(id) {
       full_screen = TRUE,
       bslib::card_header("Allowable TAC by Zone"),
       bslib::card_body(
-        style = "overflow-y: auto; overflow-x: auto;", # Enables internal scrolling for large tables
+        style = "overflow-y: auto; overflow-x: auto;", 
         DT::dataTableOutput(ns("tac_table_output"))
       )
     ),

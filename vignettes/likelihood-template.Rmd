@@ -1,6 +1,6 @@
 ---
-title: "Create your own likelihood function"
-author: "Paul Carvalho"
+title: "Create and Integrate Your Custom Model"
+author: "FishSET Development Team"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
@@ -21,119 +21,141 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-The FishSET R package currently features six statistical functions for maximum likelihood estimation, detailed in section 8.3 of the [user manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html). These functions offer a solid foundation for a variety of analyses. However, we recognize that these built-in functions may not suit your specific modeling needs. We encourage users with more specialized modeling requirements to develop their own likelihood functions that can be integrated into the FishSET R package. By doing so, users will not only be able to take advantage of other FishSET features such as policy simulation tools but also contribute to a richer toolkit for the FishSET user community. 
+The FishSET R package provides a robust framework for discrete choice
+modeling (DCM), utilizing `RTMB` (R Template Model Builder) for
+automatic differentiation and optimized parameter estimation. While
+functions like `fishset_design()` and `fishset_fit()` offer a solid
+foundation for conditional logit and expected profit models, we
+recognize that specialized research often requires custom model
+structures.
 
-Here we provide a template for developing a likelihood function that can be seamlessly integrated into the FishSET package. Feel free to reach out to our team at [nmfs.fishset@noaa.gov](mailto:nmfs@fishset.gov) with any questions about developing your own likelihood function.
+To maximize computational performance and ensure compatibility with
+downstream FishSET tools (like our policy function and database
+loggers), custom models must be integrated directly into the `RTMB`
+framework. We encourage users to develop their own objective functions
+and submit them to be merged into the official FishSET toolkit.
+
+This vignette outlines the workflow for developing a custom model by
+leveraging existing FishSET data pipelines and writing an `RTMB`
+negative log-likelihood function. Reach out to our team at
+[nmfs.fishset\@noaa.gov](mailto:nmfs@fishset.gov) with any questions.
 
 ## Development guidelines
-1. Fork the [FishSET repo](https://github.com/noaa-nwfsc/FishSET) and clone the forked repository to your computer. More information on "forking" repositories and the GitHub workflow can be found [here](https://git-scm.com/book/en/v2/GitHub-Contributing-to-a-Project).
 
-2. Open the FishSET_RPackage.Rproj file.
+1.  Fork the [FishSET repo](https://github.com/noaa-nwfsc/FishSET) and
+    clone the forked repository to your computer. More information on
+    "forking" repositories and the GitHub workflow can be found
+    [here](https://git-scm.com/book/en/v2/GitHub-Contributing-to-a-Project).
 
-3. Create a new script for your likelihood function following the template below.  Save it in the `R` folder. 
+2.  Open the FishSET_RPackage.Rproj file.
 
-4. Commit and push changes.
+3.  Develop your custom data processing and `RTMB` objective function
+    following the steps below.
 
-5. Review and test code.
+4.  Modify `fishset_fit.R` and `fishset_design.R` locally to include
+    your model.
 
-6. If you have gone through the steps above but it has been a while since you worked on the code, pull changes from the original FishSET repo to your clone.
+5.  Review and test code on local datasets.
 
-7. Submit a [pull request](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project#making-a-pull-request).
+6.  Commit, push changes, and submit a [pull
+    request](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project#making-a-pull-request).
 
-## Create a likelihood function
+## Step 1: Extract Formatted Data
+
+Rather than formatting data manually, rely on the built-in
+`format_model_data()` function to aggregate your main dataset, distance
+matrices, expectations, and gridded data.
+
+This function saves the combined dataset as a `.qs2` or `.rds` file in
+the `Models/FormattedData` directory inside your project folder. Load
+this dataset into your environment to begin designing your model matrix.
 
 ```{r function1, eval = FALSE}
-likelihood_function <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
+# Example: Loading formatted data
+project_dir <- file.path(locproject(), "MyProject")
+formatted_dir <- file.path(project_dir, "Models", "FormattedData")
+my_data <- qs2::qs_read(file.path(formatted_dir, "MyProjectLongFormatData.qs2"))
 ```
 
-Give your likelihood function an informative name (replace `likelihood_function` in the code chunk above) and save the script with the same name. Only include code for the likelihood function in the R script. 
+## Step 2: Mock the Design Object
 
-The names and order of input arguments must match the code above. These inputs are created within the [`make_model_design()`](https://noaa-nwfsc.github.io/FishSET/reference/make_model_design.html) and [`discretefish_subroutine()`](https://noaa-nwfsc.github.io/FishSET/reference/discretefish_subroutine.html) functions and described in detail below.
+The `fishset_fit()` function expects a specific list structure, of class
+`fishset_design`, to perform estimations. If your model requires
+predictors or matrix shapes that the standard `fishset_design()`
+function cannot currently generate, write a custom data processing
+script that builds a list mirroring this required structure.
 
-### Input arguments
+Your design object must contain the following elements:
 
-- **starts3**: Numeric vector that contains starting parameter values. The length and order of parameter values will depend on your model structure. For example, the order of `starts3` for the [conditional logit model](https://noaa-nwfsc.github.io/FishSET/reference/logit_c.html) is `c([alternative-specific parameters], [travel-distance parameters])`, and the length of each depends on the number of variables included in the [model design](https://noaa-nwfsc.github.io/FishSET/reference/make_model_design.html).
+-   `y`: A numeric vector indicating the binary choice variable (0 or
+    1).
 
-- **dat**: Numeric matrix that is generated in the `shift_sort_xcpp()` function. The first column contains catch (thus rows represent observations); the second column indicates the zone fished; columns 3 to the square of alternatives + 2 (example, if there are 4 alternatives/zones, then columns 3-18) contains a flattened identity matrix that has been shifted and sorted such that the zone selected is moved to the first column position of the matrix (see example below); and the last x columns, where x equals the number of alternatives/zones, contains distances from the starting location to each alternative (distances have also been shifted such that the distance to the zone selected is first - see example below).
+-   `X`: A sparse model matrix containing your formatted predictors.
 
-|           Here is an example row from a `dat` matrix:.
+-   `settings`: A list containing dimensions such as `N_obs` (number of
+    observations), `J_alts` (number of alternatives), and `K_vars`
+    (number of parameters).
 
-```{r matrix1, echo = FALSE, results = 'asis'}
-write_matex <- function(x) {
-  begin <- "$$\\begin{bmatrix}"
-  end <- "\\end{bmatrix}$$"
-  X <-
-    apply(x, 1, function(x) {
-      paste(
-        paste(x, collapse = "&"),
-        "\\\\"
-      )
-    })
-  writeLines(c(begin, X, end))
-}
+-   `ids`: A list containing unique observation IDs and zone identifiers
+    to be used for post-estimation predictions.
 
-# Create matrix 
-mat1 <- matrix(c(17,2,0,0,1,1,0,0,0,1,0,5,10,15), nrow = 1, byrow=TRUE)
-write_matex(mat1)
-```
+## Step 3: Write the RTMB Objective Function
 
-|           This row indicates that the catch is **17**, from zone **2**, and the shifted, flattened matrix can be rewritten as:
+The core of FishSET's speed relies on `RTMB::MakeADFun` and
+`stats::nlminb`. To integrate your model, you must write a negative
+log-likelihood (NLL) function compatible with this framework.
 
-```{r matrix2, echo = FALSE, results = 'asis'}
-# Create matrix 
-mat2 <- matrix(c(0,0,1,1,0,0,0,1,0), nrow = 3, byrow=TRUE)
-write_matex(mat2)
-```
+Inside `fishset_fit()`, parameter estimation relies on two main
+components passed to `RTMB`:
 
-|           where the columns of the identity matrix have been shifted such that the second column is now in the first 
-|           position (because zone 2 was fished), followed by 3 and 1. Finally, the distances from the starting location 
-|           to zones 2, 3, and 1 are 5, 10, and 15, repectively.
-\
+-   `data_list`: A list containing all known data (`X` matrix,
+    observations, dimensions).
 
-- **otherdat**: A list that contains variables used in the model. For example, `otherdat` for conditional logit models contains `intdat` variables (as a list object) that interact with travel distance and `griddat` variables (as a list object) that vary across alternatives. The `otherdat` list is generated in the [`make_model_design()`](https://noaa-nwfsc.github.io/FishSET/reference/make_model_design.html) function. If your input variables are not compatible with the current version of `make_model_design()`, reach out to our team at  [nmfs.fishset@noaa.gov](mailto:nmfs.fishset@noaa.gov) and we will do our best to update the function to accommodate your modeling requirements.
+-   `start_pars`: A list of initial parameter values to be optimized
+    (e.g., `betas`).
 
-- **alts**: Integer representing the total number of zones included in the model.
+Your custom function must extract these elements using `RTMB::getAll()`
+and calculate the NLL.
 
-- **project**: Name of project.
+### Template: Custom Objective Function
 
-- **expname**: Name of expected catch table(s). This input is used for conditional logit models.
-
-- **mod.name**: Name of the model, which is designated in the `make_model_design()` function.
-
-
-### Function body
-
-Use base R functions to calculate the negative log-likelihood (nll) and comprehensively document code.  
-
-Save the nll value to a variable named `ld`, and insert the following code at then end of your function to log inputs and outputs of the function call:
-
-```{r function_body1, eval = FALSE}
-  if (is.nan(ld) == TRUE) {
-    ld <- .Machine$double.xmax
-  }
-
-  ldsumglobalcheck <- ld
-  paramsglobalcheck <- starts3
-  LDGlobalCheck <- unlist(as.matrix(ldchoice))
-
-  LDGlobalCheck <- list(model = paste0(project, expname, mod.name), 
-                        ldsumglobalcheck = ldsumglobalcheck, 
-                        paramsglobalcheck = paramsglobalcheck, 
-                        LDGlobalCheck = LDGlobalCheck)
-
-  pos <- 1
-  envir = as.environment(pos)
-  assign("LDGlobalCheck", value = LDGlobalCheck, envir = envir)
+```{r function2, eval = FALSE}
+# Example custom model template for an RTMB NLL function
+nll_func_custom <- function(pars) {
+  # Unpack data_list and parameters into the function environment
+  RTMB::getAll(data_list, pars)
   
-  return(ld)
+  # Perform matrix multiplication (e.g., sparse design matrix %*% parameters)
+  v <- X %*% betas
+  
+  # Extract utility of chosen alternatives
+  v_chosen <- v[chosen_lin_idx]
+  
+  # Reshape utility vector for log-sum-exp calculations
+  dim(v) <- c(J_alts, N_obs)
+  
+  # Calculate log-sum-exp (consider robust numeric scaling if necessary)
+  log_sum_exp <- log(RTMB::colSums(exp(v)))
+  
+  # Calculate the negative log-likelihood
+  nll <- -sum(v_chosen - log_sum_exp)
+  
+  return(nll)
+}
 ```
 
-## Integrating your function with FishSET
+**Important Note**: When writing an `RTMB` function, you must use `RTMB`
+compatible math functions (e.g., `RTMB::dnorm`, `RTMB::rowSums`) rather
+than standard base R variants to ensure automatic differentiation works
+properly.
 
-### Review code and test function
-Before submitting a Pull Request, we ask contributors to thoroughly review code and test likelihood functions (ideally on multiple datasets if possible). Also, verify that the function is well-documented and remove unnecessary or redundant code that might have been left behind during development. Please reach out to the FishSET team ([nmfs.fishset@noaa.gov](mailto:nmfs@fishset.gov)) if any questions come up during the review and testing process.
+## Step 4: Integrate and Submit
 
-### Create a pull request
-Give the Pull Request the same name as the likelihood function you just created and provide a brief description. Once the FishSET team receives the Pull Request we will do our best to review the function in a timely manner and notify you if we merge it with the main package or request any changes to the function prior to merging.
+Once you have a working design object and an `RTMB` objecive function,
+you can integrate your code into the package.
 
-The Pull Request for your likelihood function should not change any other code in the FishSET package. If changes to the package outside of your function are necessary, please contact the FishSET development team ([nmfs.fishset@noaa.gov](mailto:nmfs@fishset.gov)) to resolve any issues.
+1.  **Modify** `fishset_fit.R`: Add a new `if/else` block within the `fishset_fit()` function to handle your custom model type. Set up your unique `data_list` and `start_pars`, and define your custom `nll_func` within this block.
+
+2.  **Standardize Outputs**: Ensure your code allows `RTMB::MakeADFun` and `stats::nlminb` to run, producing a result formatted as class `fishset_fit`. This guarantees your model outputs a coefficient table, diagnostics, AIC/BIC, and predicted probabilities that seamlessly integrate with the project database.
+
+3.  **Submit a Pull Request**: Give the Pull Request an informative name and provide a brief description of the mathematical structure of your model. Our team will review the code and notify you of any requested changes prior to merging.
