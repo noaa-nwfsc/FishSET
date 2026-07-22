@@ -76,7 +76,7 @@ parse_meta_delim <- function(file, sep = NULL, comment = "#", is_list = FALSE,
         tmp <- tempfile()
         on.exit(unlink(tmp), add = TRUE)
         writeLines(m_lines, con = tmp)
-        m_lines <- read.delim(tmp, sep = sep, ...)
+        m_lines <- utils::read.delim(tmp, sep = sep, ...)
       }
       
     m_lines

@@ -255,7 +255,7 @@ write_dat <- function (dat, project, path=NULL, file_type = "csv",  ...) {
   
   if (file_type == "csv") {
     
-    write.csv(dataset, file = path, row.names = FALSE, ...)
+    utils::write.csv(dataset, file = path, row.names = FALSE, ...)
     
   } else if (file_type == "txt") { 
     

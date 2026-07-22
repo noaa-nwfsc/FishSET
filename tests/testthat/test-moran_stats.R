@@ -44,7 +44,7 @@ test_that("Test moran_stats() works", {
   # This folder should contain the subfolder named "s1" to pass the test
   test_folder <- testthat::test_path("testdata/FishSETFolder")
   
-  # Override the folder path used by locproject() which is nested within predict_map()
+  # Override the folder path used by locproject()
   # This isolates the test env from the default paths
   old_option <- getOption("test_folder_path")
   options(test_folder_path = test_folder)
@@ -82,7 +82,7 @@ test_that("Test moran_stats() throws errors appropriately", {
   # This folder should contain the subfolder named "s1" to pass the test
   test_folder <- testthat::test_path("testdata/FishSETFolder")
   
-  # Override the folder path used by locproject() which is nested within predict_map()
+  # Override the folder path used by locproject()
   # This isolates the test env from the default paths
   old_option <- getOption("test_folder_path")
   options(test_folder_path = test_folder)

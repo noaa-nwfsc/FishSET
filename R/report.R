@@ -409,13 +409,13 @@ table_format <- function(x, project) {
 
   if (length(x) == 1) {
     
-    tab_int <- read.csv(paste0(locoutput(project = project), x))
+    tab_int <- utils::read.csv(paste0(locoutput(project = project), x))
   
   } else {
     
     tab_int <- lapply(x, function(i) {
       
-      read.csv(file = paste0(locoutput(project = project), i))
+      utils::read.csv(file = paste0(locoutput(project = project), i))
     })
     
   }
@@ -500,7 +500,7 @@ insert_table <- function(out, project) {
       
     } else {
       
-      read.csv(paste0(get_user_locoutput(project), out))
+      utils::read.csv(paste0(get_user_locoutput(project), out))
     }
   }
 }
@@ -632,7 +632,7 @@ summary_table <- function(project, output = "print") {
   
   } else {
 
-    sum_tab <- read.csv(paste0(locoutput(project = project), sum_out),
+    sum_tab <- utils::read.csv(paste0(locoutput(project = project), sum_out),
       strip.white = TRUE, check.names = FALSE)
   
     rownames(sum_tab) <- c("Min", "Median", "Mean", "Max", "Missing", "Unique Obs.", 
