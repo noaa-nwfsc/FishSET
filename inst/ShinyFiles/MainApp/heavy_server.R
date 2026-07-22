@@ -7149,8 +7149,8 @@ heavy_server <- function(input, output, session) {
       
     }, escape = FALSE)
     
-    outsample_plot <- predict_map(project = project$name, spat = spatdat$dataset, zone.spat = all_variables()$sz_id,
-                                  outsample = TRUE, outsample_pred = outsample_predouts$pred_probs)
+    # outsample_plot <- predict_map(project = project$name, spat = spatdat$dataset, zone.spat = all_variables()$sz_id,
+                                  # outsample = TRUE, outsample_pred = outsample_predouts$pred_probs)
     
     if(length(outsample_plot) == 1){
       showNotification("Unable to create a map of predicted fishing probabilities. Check settings and rerun prediction.",

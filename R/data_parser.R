@@ -255,7 +255,7 @@ write_dat <- function (dat, project, path=NULL, file_type = "csv",  ...) {
   
   if (file_type == "csv") {
     
-    write.csv(dataset, file = path, row.names = FALSE, ...)
+    utils::write.csv(dataset, file = path, row.names = FALSE, ...)
     
   } else if (file_type == "txt") { 
     
@@ -1072,12 +1072,11 @@ load_grid <- function(grid, name, project, over_write = TRUE) {
   #' 
   
   if (project_exists(project) == FALSE) {
-    
     stop("Project '", project, "' does not exist. Check spelling or create a",
          " new project with load_maindata().", call. = TRUE)
   }
   
-  # table name check
+  # Table name check
   stopifnot("Name cannot contain spaces." = !grepl("\\s", name),
             "Name cannot be empty." = !is_value_empty(name))
   
@@ -1099,25 +1098,21 @@ load_grid <- function(grid, name, project, over_write = TRUE) {
   grid <- tibble::as_tibble(grid)
   
   if (check == FALSE) { 
-    
     warning("Grid table not saved.")
     invisible(FALSE)
     
   } else {
-    
-    # TODO: Use name_check() 
-    #unique column names
+    # Unique column names
     if(length(toupper(colnames(grid))) != length(unique(toupper(colnames(grid))))){
       print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
       colnames(grid)[which(duplicated(colnames(grid)))] <- paste0(colnames(grid)[which(duplicated(colnames(grid)))], '.1')
     }
     
-    #empty variables
+    # Empty variables
     grid <- empty_vars(grid, remove = TRUE)
     
     # save grid
     if (table_exists(paste0(project, name, "GridTable"), project) == FALSE | over_write == TRUE) {
-      
       fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), 
                                                     locdatabase(project = project)))
       on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)

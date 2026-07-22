@@ -183,7 +183,7 @@ fishset_fit <- function(project,
     if(length(util_vars) > 0) {
       X_util <- design$X[, util_vars, drop = FALSE]
     } else {
-      X_util <- matrix(0, nrow = length(Y_catch), ncol = 0)
+      X_util <- matrix(0, nrow = length(design$epm$Y_catch), ncol = 0)
     }
     
     Y_catch_chosen = as.double(as.vector(design$epm$Y_catch[chosen_lin_idx]))
@@ -196,10 +196,10 @@ fishset_fit <- function(project,
     }
     
     # Assign numeric zone ID 
-    zone_id <- ((chosen_lin_idx - 1) %% J_alts) + 1
+    zone_id <- as.integer(((chosen_lin_idx - 1) %% J_alts) + 1)
     
     # Create a sequence to map zonal parameters to the full flattened X_catch matrix
-    zone_seq <- ((0:(nrow(design$epm$X_catch) - 1)) %% J_alts) + 1
+    zone_seq <- as.integer(((0:(nrow(design$epm$X_catch) - 1)) %% J_alts) + 1)
     dist_code <- switch(distribution, "normal" = 1, "lognormal" = 2, "weibull" = 3)
     
     data_list <- list(

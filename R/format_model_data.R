@@ -35,7 +35,7 @@
 #'   and zones. Defaults to 'TRUE'.
 #' @param distance_units String representing the units of measurement for distance ("km" or "mi").
 #' @param impute Method for imputing missing values (NAs). Options are `"mean"`, 
-#'   `"median"`, `"mode"`, or `"remove"`. `"Remove"` will completely remove zones from the dataset
+#'   `"median"`, `"mode"`, or `"remove"`. `"remove"` will completely remove zones from the dataset
 #'   that contain any NAs in corresponding data. If NULL, the function stops if NAs are detected.
 #' @param crs Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
 #'   are required.
@@ -81,6 +81,7 @@
 #' @importFrom DBI dbConnect dbDisconnect dbExecute
 #' @importFrom RSQLite SQLite
 #' @importFrom stats complete.cases
+#' @importFrom purrr map2_lgl
 
 format_model_data <- function(project, 
                               name, 
@@ -151,9 +152,16 @@ format_model_data <- function(project,
   }
   
   # Check impute method
-  if (!is.null(impute) && !(impute %in% c("mean", "median", "mode", "remove"))){
-    stop(paste0("Impute method must be one of 'mean', 'median', or 'mode'."))
+  if (!is.null(impute)) {
+    # Force the input to lowercase
+    impute <- tolower(impute)
+    
+    # Validation check
+    if (!(impute %in% c("mean", "median", "mode", "remove"))){
+      stop(paste0("Impute method must be one of 'mean', 'median', or 'mode'."))
+    }
   }
+  
   
   # Format main data ------------------------------------------------------------------------------
   # Load main data table
@@ -355,7 +363,53 @@ format_model_data <- function(project,
   }
   
   # Add gridded data ------------------------------------------------------------------------------
-  if (!all(is_empty(gridded_data))) {
+  if(!is_empty(gridded_data)){
+    # Helper function to detect dates using heuristics
+    detect_date_cols <- function(df_to_check) {
+      cols <- names(df_to_check)
+      date_vars <- c()
+      
+      for (col in cols) {
+        if (col == "zones") next # skip spatial join key
+        
+        col_data = df_to_check[[col]]
+        
+        # Check by class
+        if (inherits(col_data, c("Date", "POSIXt", "POSIXct", "POSIXlt"))) {
+          date_vars <- c(date_vars, col)
+          next
+        }
+        
+        # Check by name (contains 'date')
+        if (grepl("date", col, ignore.case = TRUE)) {
+          date_vars <- c(date_vars, col)
+          next
+        }
+        
+        # Check numeric value (Unix timestamps or YYYYMMDD integers)
+        if (is.numeric(col_data)) {
+          # Fast check: use the first 100 non-NA rows as a proxy
+          non_na_vals <- utils::head(col_data[!is.na(col_data)], 100)
+          if (length(non_na_vals) == 0) next
+          
+          proxy_val <- median(non_na_vals)
+          
+          # Unix timestamp check: ~1980 (3e8) to ~2050 (2.5e9)
+          is_unix <- (proxy_val > 300000000 && proxy_val < 2500000000)
+          # YYYYMMDD integer check (e.g., 20231025)
+          is_yyyymmdd <- (proxy_val > 19800000 && proxy_val < 20509999)
+          # Stata daily date check
+          is_stata_daily <- (proxy_val >= 7305 && proxy_val <= 32872)
+          
+          if (is_unix || is_yyyymmdd || is_stata_daily) {
+            date_vars <- c(date_vars, col)
+            next
+          }
+        }
+      }
+      return(date_vars)
+    }
+    
     # Loop through each table name provided
     for (grid_table in gridded_data) {
       
@@ -367,26 +421,92 @@ format_model_data <- function(project,
         gridded_df <- gridded_df %>% rename(zones = !!sym(zone_id))
       }
       
-
-      common_cols <- intersect(names(df), names(gridded_df))  
-      
-      if(class(df$zones) != class(gridded_df$zones)) {
-        class(gridded_df$zones) <- class(df$zones)
-      }
-      
       common_cols <- intersect(names(df), names(gridded_df))
-    
+      
       if (length(common_cols) == 0) {
         stop(paste0("Could not join gridded table '", 
                     grid_table, 
                     "'. No matching column names found. Ensure your spatial",
                     " and temporal variables match."))
       }
+    
+      # Execute date validation
+      grid_date_cols <- detect_date_cols(gridded_df)
       
-      # Remove duplicate non-join columns to prevent .x/.y suffixes
-      duplicate_vars <- setdiff(intersect(names(df), names(gridded_df)), common_cols)
-      if (length(duplicate_vars) > 0) {
-        gridded_df <- gridded_df %>% select(-all_of(duplicate_vars))
+      # If temporal columns exist in the grid, ensure they are in common_cols
+      if (length(grid_date_cols) > 0) {
+        missing_dates <- setdiff(grid_date_cols, common_cols)
+        
+        if (length(missing_dates) > 0) {
+          stop(paste0(
+            "Merge aborted to prevent join explosion. ",
+            "The gridded table '", grid_table, "' contains temporal data (e.g., ",
+            paste(missing_dates, collapse = ", "), 
+            "), but a matching date variable was not found in your target dataframe. ",
+            "The date variable must be included in the 'select_vars' input."
+          ))
+        }
+      }
+      
+      # Check class of common cols
+      class_matches <- purrr::map2_lgl(
+        df[common_cols], 
+        gridded_df[common_cols], 
+        ~ identical(class(.x), class(.y))
+      )
+      mismatched_cols <- common_cols[!class_matches]
+      
+      # Resolve the mismatches
+      if (length(mismatched_cols) > 0) {
+        for (col in mismatched_cols) {
+          if (col %in% grid_date_cols) {
+            # Format gridded_df date
+            if (is.numeric(gridded_df[[col]])) {
+              
+              # Fast format check using a small sample proxy
+              non_na_vals <- utils::head(gridded_df[[col]][!is.na(gridded_df[[col]])], 100)
+              proxy_val <- if (length(non_na_vals) > 0) median(non_na_vals) else NA
+              
+              if (!is.na(proxy_val) && proxy_val >= 7305 && proxy_val <= 32872) {
+                # STATA Daily Format (Days since 1960-01-01)
+                gridded_df[[col]] <- as.Date(gridded_df[[col]], origin = "1960-01-01")
+                
+              } else if (!is.na(proxy_val) && proxy_val > 19800000 && proxy_val < 20509999) {
+                # YYYYMMDD Integer Format
+                gridded_df[[col]] <- as.Date(as.character(gridded_df[[col]]), format = "%Y%m%d")
+                
+              } else {
+                # Default: Unix timestamp (Seconds since 1970-01-01)
+                gridded_df[[col]] <- as.Date(as.POSIXct(gridded_df[[col]], 
+                                                        origin = "1970-01-01", 
+                                                        tz = "UTC"))
+              }
+              
+            } else {
+              # If it's a character string, parse normally
+              gridded_df[[col]] <- as.Date(gridded_df[[col]])
+            }
+            
+            # Format target df date to ensure both match explicitly
+            df[[col]] <- as.Date(df[[col]])
+            
+          } else {
+            # Extract the primary class from df for non-date variables
+            target_class <- class(df[[col]])[1] 
+            
+            # Safely route the coercion based on the target class
+            if (target_class == "factor") {
+              gridded_df[[col]] <- as.factor(gridded_df[[col]])
+              
+            } else if (target_class %in% c("POSIXct", "POSIXt")) {
+              gridded_df[[col]] <- as.POSIXct(gridded_df[[col]])
+              
+            } else {
+              # For standard atomic vectors (numeric, integer, character, logical, etc.)
+              gridded_df[[col]] <- methods::as(gridded_df[[col]], target_class)
+            }
+          }
+        }
       }
       
       # Perform automated join

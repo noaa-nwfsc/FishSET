@@ -64,7 +64,7 @@ and zones. Defaults to 'TRUE'.}
 \item{distance_units}{String representing the units of measurement for distance ("km" or "mi").}
 
 \item{impute}{Method for imputing missing values (NAs). Options are `"mean"`, 
-`"median"`, `"mode"`, or `"remove"`. `"Remove"` will completely remove zones from the dataset
+`"median"`, `"mode"`, or `"remove"`. `"remove"` will completely remove zones from the dataset
 that contain any NAs in corresponding data. If NULL, the function stops if NAs are detected.}
 
 \item{crs}{Coordinate reference system. Only used if 'distance = TRUE' and spatial calculations
