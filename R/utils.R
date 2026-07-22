@@ -1668,7 +1668,7 @@ save_table <- function(table, project, func_name, ...) {
   
   fn <- 
     paste0(locoutput(project=project), project, "_", func_name, "_", Sys.Date(), ".csv")
-  write.csv(table, fn, ...)
+  utils::write.csv(table, fn, ...)
 }
 
 save_ntable <- function(table, project, func_name, id = "num", ...) {

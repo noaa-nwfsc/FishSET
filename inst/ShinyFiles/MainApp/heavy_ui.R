@@ -1738,7 +1738,7 @@ heavy_ui <- function(request){
   
                                             bslib::accordion_panel(
                                               "To create predicted probabilities map", icon = bsicons::bs_icon("map"),
-                                              predict_map_sidebarUI("run_policy")
+                                              # predict_map_sidebarUI("run_policy")
                                             ),
                                             bslib::accordion_panel(
                                               "Other actions", icon = bsicons::bs_icon("menu-app"),
@@ -1768,7 +1768,7 @@ heavy_ui <- function(request){
                                        bslib::page_fillable(
                                          bslib::accordion(
                                            pred_plotsUI("run_policy"),
-                                           predict_map_mainUI("run_policy"),
+                                           # predict_map_mainUI("run_policy"),
                                            plot_welfareModuleUI("run_policy")
 
                                      )
