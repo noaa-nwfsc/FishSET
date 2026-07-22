@@ -52,7 +52,6 @@ Imports:
     grDevices,
     grid,
     gridExtra,
-    gt,
     htmltools,
     jsonlite,
     kableExtra,

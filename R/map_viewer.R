@@ -100,7 +100,7 @@ map_viewer <- function(dat, project, spat, avd, avm, num_vars, temp_vars, id_var
                                   lon_start, lat_start, lon_end, lat_end)])
     dataset$uniqueID <- 1:nrow(dataset)
     
-    write.csv(dataset, paste0(loc_map(project=project), "datafile.csv"))
+    utils::write.csv(dataset, paste0(loc_map(project=project), "datafile.csv"))
     
     
     # 3. Create map config
@@ -133,7 +133,7 @@ map_viewer <- function(dat, project, spat, avd, avm, num_vars, temp_vars, id_var
     dataset$uniqueID <- 1:nrow(dataset) # create a new unique id based on row number
     
     # Write data file
-    write.csv(dataset, paste0(loc_map(project=project), "datafile.csv"))
+    utils::write.csv(dataset, paste0(loc_map(project=project), "datafile.csv"))
     
     # Create map configuration list
     map_config <- list()

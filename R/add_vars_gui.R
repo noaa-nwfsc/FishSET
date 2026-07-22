@@ -120,7 +120,7 @@ add_vars_gui <- function(working_dat, raw_dat, project){
       })
       
       
-      output$data_table <- renderTable(head(data_table_update()))
+      output$data_table <- renderTable(utils::head(data_table_update()))
       
       
       # When the Submit button is clicked, save the form data
