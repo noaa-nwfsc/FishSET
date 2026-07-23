@@ -1,0 +1,45 @@
+<style>
+body { max-width: 1100px; margin: 0 auto; padding: 0.5rem 1rem 2rem; }
+.quickstart-hero { background: linear-gradient(135deg, #f7fbff 0%, #edf4fb 100%); border-left: 6px solid #41729F; border-radius: .75rem; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+.quickstart-hero h1 { color: #274472; margin-top: 0; }
+.quickstart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0 1.5rem; }
+.quickstart-card { border: 1px solid #d9e6f2; border-radius: .75rem; padding: 1rem 1.25rem; background: #fff; height: 100%; box-sizing: border-box; }
+.quickstart-card h3 { color: #41729F; margin-top: 0; }
+details { border: 1px solid #d9e6f2; border-radius: .5rem; margin: .6rem 0; padding: .8rem 1rem; background: #fff; }
+summary { color: #274472; cursor: pointer; font-size: 1.05rem; font-weight: 600; }
+li { margin-bottom: .4rem; }
+.quickstart-note { background: #f9fbfd; border: 1px solid #d9e6f2; border-radius: .75rem; padding: 1rem 1.25rem; margin: 1rem 0; }
+</style>
+
+<div class="quickstart-hero">
+<h1>FishSET GUI Quickstart Guide</h1>
+<p>FishSET is a set of statistical programming and data management tools for organizing fishery data, creating model inputs, and evaluating policy scenarios. This guide gives new users a practical path through the FishSET GUI.</p>
+<p><strong>Recommended path:</strong> Upload Data &rarr; Select variables &rarr; QAQC &rarr; Explore the data &rarr; Format Data &rarr; Modeling &rarr; Policy</p>
+</div>
+
+<div class="quickstart-grid">
+<div class="quickstart-card"><h3>What the GUI does</h3><p>The GUI helps you move from raw data to model-ready outputs without writing code. It guides data loading, quality checks, derived variables, model fitting, and policy analysis.</p></div>
+<div class="quickstart-card"><h3>Before you start</h3><ul><li>Have your main data file ready. Port, spatial, gridded, and auxiliary files are optional.</li><li>Choose a FishSET folder where project files can be saved.</li><li>For mapping or policy tabs, make sure your spatial data contain the required zone information.</li></ul></div>
+<div class="quickstart-card"><h3>What gets saved</h3><ul><li>Project data and edits are stored in the local FishSET database.</li><li>Plots and tables are written to the project output folder.</li><li>Function calls and input values are written to the project logs.</li><li>The report template is stored in the project <code>doc</code> folder.</li></ul></div>
+</div>
+
+<div class="quickstart-note"><strong>Open the app:</strong> run <code>library(FishSET)</code> and then <code>run_fishset_gui()</code> in R or RStudio. The main data table is required; supporting files depend on your workflow.</div>
+
+<h2>Quick path through the app</h2>
+
+<details><summary>1. Upload Data</summary><p>Set your FishSET folder, create or select a project, and load the files you want to use.</p><ul><li>Use <strong>Load files</strong> to set the folder and project.</li><li>Load the main data first; add port, spatial, gridded, or auxiliary data when needed.</li><li>Existing projects can reload tables from the FishSET database.</li></ul></details>
+
+<details><summary>2. Select variables</summary><p>Map the important columns used throughout the app.</p><ul><li>Assign IDs, dates, coordinates, and zone variables.</li><li>Create trip, haul, or zone IDs if they do not already exist.</li><li>Save the mapping once; repeat it only for a new project.</li></ul></details>
+
+<details><summary>3. QAQC and Explore the data</summary><p>Check and understand the data before modeling.</p><ul><li>Run the QAQC checks that match your dataset, including missing values, duplicates, outliers, and spatial checks.</li><li>Use <strong>Explore the data</strong> to inspect tables, plots, temporal patterns, correlations, and spatial summaries.</li><li>Save corrected data back to the database before continuing.</li></ul></details>
+
+<details><summary>4. Format Data</summary><p>Build the derived variables and model inputs required for analysis.</p><ul><li>Use <strong>Compute New Variables</strong> for CPUE, trip summaries, spatial metrics, and other derived fields.</li><li>Define alternative fishing choices before generating expected catch or revenue.</li><li>Run <strong>Format Model Data</strong> after the supporting matrices are ready.</li></ul></details>
+
+<details><summary>5. Modeling</summary><p>Create, fit, and evaluate a discrete choice model.</p><ul><li><strong>Model Design</strong> defines the model structure and formulas.</li><li><strong>Model Fit</strong> estimates parameters and saves the model object.</li><li><strong>Model Cross Validation</strong> checks out-of-sample predictive performance.</li></ul></details>
+
+<details><summary>6. Policy</summary><p>Evaluate management scenarios and their effects.</p><ul><li>Use <strong>Zone Closure</strong> to define closed or restricted areas.</li><li>Run <strong>Policy Simulations</strong> to estimate effort and welfare effects.</li><li>Review <strong>Summarize Effort Redistribution</strong> and <strong>Summarize Welfare Impacts</strong>.</li></ul></details>
+
+<details><summary>7. Bookmark Choices</summary><p><strong>Bookmark Choices</strong> is currently under development and will eventually store and reload actions taken in the GUI.</p></details>
+
+<h2>Need more help?</h2>
+<ul><li><a href="https://bcove.video/3WCSb5N" target="_blank">FishSET video tutorial</a></li><li><a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank">FishSET User Manual</a></li><li>Questions: <a href="mailto:nmfs.fishset@noaa.gov">nmfs.fishset@noaa.gov</a></li></ul>
