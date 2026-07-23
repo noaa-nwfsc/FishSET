@@ -146,6 +146,7 @@ run_simulation <- function(project,
   rm(fit_list)
   
   is_epm <- isTRUE(design$epm$is_epm)
+  is_poisson <- isTRUE(design$settings$model_type == "poisson")
   N_obs <- design$settings$N_obs
   J_alts <- design$settings$J_alts
   
@@ -355,6 +356,36 @@ run_simulation <- function(project,
   zone_vec <- as.character(design$ids$zone)
   # Extract the exact zone ID names for the J_alts
   real_zone_names <- zone_vec[1:J_alts]
+  occ_trips <- if (is_poisson) {
+    as.numeric(colSums(matrix(design$y, nrow = J_alts, ncol = N_obs), na.rm = TRUE))
+  } else {
+    rep(1, N_obs)
+  }
+  calc_choice_stats <- function(V_vec, closed_idx = integer(0)) {
+    if (length(closed_idx) > 0) {
+      V_vec[closed_idx] <- -Inf
+    }
+    dim(V_vec) <- c(J_alts, N_obs)
+    
+    max_V <- V_vec[1, ]
+    for (j in 2:J_alts) {
+      curr_V <- V_vec[j, ]
+      idx <- which(curr_V > max_V)
+      if (length(idx) > 0) {
+        max_V[idx] <- curr_V[idx]
+      }
+    }
+    
+    for (j in 1:J_alts) {
+      V_vec[j, ] <- V_vec[j, ] - max_V
+    }
+    V_vec <- exp(V_vec)
+    sum_V <- .colSums(V_vec, m = J_alts, n = N_obs, na.rm = FALSE)
+    logsum <- log(sum_V) + max_V
+    prob_mat <- sweep(V_vec, 2, sum_V, "/")
+    effort <- rowSums(sweep(prob_mat, 2, occ_trips, "*"), na.rm = TRUE)
+    list(logsum = logsum, effort = effort)
+  }
   
   # Run simulation --------------------------------------------------------------------------------
   for (scen in scenarios) {
@@ -374,8 +405,8 @@ run_simulation <- function(project,
       
       if (!is_epm) {
         V_base <- as.numeric(X_base %*% b_d)
-        if (has_mods) V_new <- as.numeric(X_new %*% b_d)
-        
+        V_new <- if (has_mods) as.numeric(X_new %*% b_d) else V_base
+
         theta <- b_d[theta_idx]
         if (income_cost) theta <- -theta
         
@@ -441,72 +472,17 @@ run_simulation <- function(project,
           rev_new <- price_new * mu_catch_new
           cost_new <- if (length(b_u) > 0) as.numeric(X_cost_new %*% b_u) else 0
           V_new <- (1 / sig_e) * (rev_new + cost_new)
+        } else {
+          V_new <- V_base
         }
         theta <- (1 / sig_e)
       }
-      
-      dim(V_base) <- c(J_alts, N_obs)
-      
-      # Fast Max for Base
-      max_V_base <- V_base[1, ]
-      for (j in 2:J_alts) {
-        curr_base <- V_base[j, ]
-        
-        # which() filters out NA and NaN values to prevent subscript errors
-        idx_base <- which(curr_base > max_V_base)
-        if (length(idx_base) > 0) {
-          max_V_base[idx_base] <- curr_base[idx_base]
-        }
-      }
-      
-      # Shift and exp Base
-      for (j in 1:J_alts) {
-        V_base[j, ] <- V_base[j, ] - max_V_base
-      }
-      V_base <- exp(V_base)
-      
-      # Base logsum and effort (Bypass S3 Overhead)
-      sum_V_base <- .colSums(V_base, m = J_alts, n = N_obs, na.rm = FALSE)
-      logsum_base <- log(sum_V_base) + max_V_base
-      
-      # Calculate expected trips/hauls per zone (sum of probabilities)
-      draw_trips_base[d, ] <- rowSums(sweep(V_base, 2, sum_V_base, "/"), na.rm = TRUE)
-      
-      if (!has_mods) {
-        # Skip V_new for data modifiers
-        if (length(closed_idx) > 0) {
-          V_base[closed_idx] <- 0 
-        }
-        sum_V_new <- .colSums(V_base, m = J_alts, n = N_obs, na.rm = FALSE)
-        logsum_new <- log(sum_V_new) + max_V_base
-        
-        # Calculate counterfactual expected trips/hauls
-        draw_trips_new[d, ] <- rowSums(sweep(V_base, 2, sum_V_new, "/"), na.rm = TRUE)
-        
-      } else {
-        # If data changed, we must do the full CPU math for V_new
-        if (length(closed_idx) > 0) V_new[closed_idx] <- -Inf
-        dim(V_new) <- c(J_alts, N_obs)
-        
-        max_V_new <- V_new[1, ]
-        for (j in 2:J_alts) {
-          curr_new <- V_new[j, ]
-          # Filter NAs for the counterfactual matrix
-          idx_new <- which(curr_new > max_V_new)
-          if (length(idx_new) > 0) max_V_new[idx_new] <- curr_new[idx_new]
-        }
-        
-        for (j in 1:J_alts) {
-          V_new[j, ] <- V_new[j, ] - max_V_new
-        }
-        
-        V_new <- exp(V_new)
-        sum_V_new <- .colSums(V_new, m = J_alts, n = N_obs, na.rm = FALSE)
-        logsum_new <- log(sum_V_new) + max_V_new
-        
-        # Calculate counterfactual expected trips/hauls
-        draw_trips_new[d, ] <- rowSums(sweep(V_new, 2, sum_V_new, "/"), na.rm = TRUE)
-      }
+      base_stats <- calc_choice_stats(V_base)
+      new_stats <- calc_choice_stats(V_new, closed_idx)
+      logsum_base <- base_stats$logsum
+      logsum_new <- new_stats$logsum
+      draw_trips_base[d, ] <- base_stats$effort
+      draw_trips_new[d, ] <- new_stats$effort
       
       welfare_diff <- (1 / theta) * (logsum_new - logsum_base)
       
@@ -514,7 +490,11 @@ run_simulation <- function(project,
         welfare_diff <- welfare_diff * epm_welfare_multiplier
       }
       
-      draw_welfare[d] <- mean(welfare_diff, na.rm = TRUE)
+      draw_welfare[d] <- if (is_poisson) {
+        sum(welfare_diff * occ_trips, na.rm = TRUE)
+      } else {
+        mean(welfare_diff, na.rm = TRUE)
+      }
     }
     
     # Store scenario summaries
@@ -565,7 +545,8 @@ run_simulation <- function(project,
         N_obs = N_obs,
         J_alts = J_alts,
         betadraws = betadraws,
-        distribution = if (is_epm) distribution else "logit",
+        model_type = design$settings$model_type,
+        distribution = if (is_epm) distribution else if (is_poisson) "poisson" else "logit",
         marg_util_income = if (is.null(marg_util_income)) NA else marg_util_income, 
         income_cost = income_cost, 
         timestamp = Sys.time()
