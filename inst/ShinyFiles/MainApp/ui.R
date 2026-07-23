@@ -39,12 +39,12 @@ source("modules/policy/policy_effort_module.R", local = TRUE)
 source("modules/policy/policy_welfare_module.R", local = TRUE)
 
 quickstart_guide_ui <- function() {
-  guide_path <- file.path(getwd(), "FishSET_GUI_Quickstart_Guide.Rmd")
+  guide_path <- file.path(getwd(), "FishSET_GUI_Quickstart_Content.html")
   if (!file.exists(guide_path)) {
     stop("Could not find the FishSET GUI Quickstart Guide.", call. = FALSE)
   }
   bslib::page_fillable(
-    shiny::includeMarkdown(guide_path)
+    shiny::includeHTML(guide_path)
   )
 }
 

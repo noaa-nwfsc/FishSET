@@ -10,5 +10,8 @@ vignette: >
 ---
 
 ```{r quickstart, echo=FALSE, results='asis'}
-cat(readLines(file.path("..", "inst", "ShinyFiles", "MainApp", "FishSET_GUI_Quickstart_Guide.Rmd")), sep = "\n")
+guide_path <- file.path(
+  "..", "inst", "ShinyFiles", "MainApp", "FishSET_GUI_Quickstart_Content.html"
+)
+knitr::asis_output(paste(readLines(guide_path, encoding = "UTF-8"), collapse = "\n"))
 ```
