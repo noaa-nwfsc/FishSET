@@ -38,13 +38,13 @@ source("modules/policy/policy_sim_module.R", local = TRUE)
 source("modules/policy/policy_effort_module.R", local = TRUE)
 source("modules/policy/policy_welfare_module.R", local = TRUE)
 
-# 1. Find the file path ONCE
+# Find the file path to quickstart guide html document
 guide_path <- system.file("extdata", "FishSET_GUI_Quickstart_Content.html", package = "FishSET")
 if (guide_path == "") {
   guide_path <- "../../inst/extdata/FishSET_GUI_Quickstart_Content.html" 
 }
 
-# 2. Read the HTML into memory ONCE
+# Read the HTML into memory to speed up load time
 if (file.exists(guide_path)) {
   global_quickstart_html <- shiny::includeHTML(guide_path)
 } else {
