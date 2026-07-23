@@ -43,7 +43,7 @@ colnames(std_design$X) <- c("Var1", "Var2")
 # Synthetic Fit Object (Standard Logit)
 std_fit <- list(
   opt = list(par = c(Var1 = 0.5, Var2 = -0.8)),
-  diagnostics = list(hessian = diag(K_vars) * 0.001), # Tighten variance so draws stay positive
+  diagnostics = list(hessian = diag(K_vars) * 1000), # Tighten variance so draws stay positive
   coefficients = c(Var1 = 0.5, Var2 = -0.8)
 )
 
@@ -66,7 +66,7 @@ colnames(epm_design$epm$X_catch) <- c("CatchVar")
 epm_fit <- list(
   opt = list(par = c(CatchVar = 0.5, CostVar = -0.2, 
                      log_sigma_c_1 = log(0.5), log_sigma_e = log(1.2))),
-  diagnostics = list(hessian = diag(4) * 0.001), # Tighten variance
+  diagnostics = list(hessian = diag(4) * 1000), # Tighten variance
   coefficients = c(CatchVar = 0.5, CostVar = -0.2, Sigma_Catch_1 = 0.5, Sigma_Error = 1.2) 
 )
 
@@ -131,6 +131,45 @@ setup_sim_env <- function(project_name, model_name, design_obj, fit_obj) {
   return(list(base_dir = test_base_dir, db_path = db_path, out_dir = out_dir))
 }
 
+setup_poisson_sim_env <- function(project_name) {
+  test_base_dir <- normalizePath(file.path(tempdir(),
+                                           paste0("FishSET_PoisSimTests_", sample(1:10000, 1))),
+                                 winslash = "/", mustWork = FALSE)
+  project_dir <- file.path(test_base_dir, project_name)
+
+  md_dir <- file.path(project_dir, "Models", "ModelDesigns")
+  fd_dir <- file.path(project_dir, "Models", "FormattedData")
+  out_dir <- file.path(project_dir, "Output")
+  dir.create(md_dir, recursive = TRUE, showWarnings = FALSE)
+  dir.create(fd_dir, recursive = TRUE, showWarnings = FALSE)
+  dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+
+  poisson_data <- data.frame(
+    haul_id = rep(1:N_obs, each = J_alts),
+    zone_id = factor(rep(1:J_alts, times = N_obs)),
+    count = as.integer(round(1 + 2 * (
+      rep(seq(0.4, 1.2, length.out = J_alts), times = N_obs) +
+        rep(seq(0, 0.3, length.out = N_obs), each = J_alts)
+    ))),
+    util = rep(seq(0.4, 1.2, length.out = J_alts), times = N_obs) +
+      rep(seq(0, 0.3, length.out = N_obs), each = J_alts)
+  )
+
+  saveRDS(list(my_formatted_data = poisson_data),
+          file.path(fd_dir, paste0(project_name, "LongFormatData.rds")))
+
+  yaml::write_yaml(
+    list(list(scenario = "closure_1", zone = "Zone_1")),
+    file.path(out_dir, "closures.yaml")
+  )
+
+  list(
+    base_dir = test_base_dir,
+    db_path = file.path(project_dir, "database.sqlite"),
+    out_dir = out_dir
+  )
+}
+
 # Test baseline (no closures) for standard logit --------------------------------------------------
 test_that("Standard Logit runs baseline correctly", {
   env <- setup_sim_env("Proj_Std", "mod1", std_design, std_fit)
@@ -142,15 +181,13 @@ test_that("Standard Logit runs baseline correctly", {
     restore_mocks()
   }, add = TRUE)
   
-  # Explicitly expect the negative draw warning
-  expect_warning(
+  expect_silent(
     res <- run_simulation(
       project = "Proj_Std", 
       mod_name = "mod1", 
       betadraws = betadraws_test, 
       marg_util_income = "Var1"
-    ),
-    "One or more draws for the marginal utility of income were <= 0"
+    )
   )
   
   # Assertions
@@ -176,16 +213,14 @@ test_that("Standard Logit handles spatial closures", {
     restore_mocks()
   }, add = TRUE)
   
-  # Explicitly expect the negative draw warning
-  expect_warning(
+  expect_silent(
     res <- run_simulation(
       project = "Proj_Closure", 
       mod_name = "mod1", 
       closures = c("closure_1"), 
       betadraws = betadraws_test, 
       marg_util_income = "Var1"
-    ),
-    "One or more draws for the marginal utility of income were <= 0"
+    )
   )
   
   expect_true("closure_1" %in% names(res))
@@ -215,16 +250,14 @@ test_that("Standard Logit processes data modifiers", {
   # Create a massive penalty for Var2 to force behavior change
   new_var2 <- rep(-50, N_obs * J_alts)
   
-  # Explicitly expect the negative draw warning
-  expect_warning(
+  expect_silent(
     res <- run_simulation(
       project = "Proj_Mods", 
       mod_name = "mod1", 
       data_modifiers = list(Var2 = new_var2),
       betadraws = betadraws_test, 
       marg_util_income = "Var1"
-    ),
-    "One or more draws for the marginal utility of income were <= 0"
+    )
   )
   
   mod_res <- res$Var2 # Dynamic naming automatically set it to 'Var2'
@@ -264,6 +297,100 @@ test_that("Expected Profit Model (EPM) runs successfully", {
   )
   
   expect_equal(unname(res_cl$closure_2$effort_new["2"]), 0)
+})
+
+# Test Poisson equivalence model -------------------------------------------------------------------
+test_that("Poisson equivalence model runs through run_simulation", {
+  env <- setup_poisson_sim_env("Proj_Pois")
+
+  old_opts <- options(test_folder_path = env$base_dir)
+  setup_mocks(env$db_path, env$out_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+
+  suppressMessages(
+    fishset_design(
+      formula = count ~ util,
+      project = "Proj_Pois",
+      model_name = "pois_mod",
+      formatted_data_name = "my_formatted_data",
+      unique_obs_id = "haul_id",
+      zone_id = "zone_id",
+      model_type = "poisson"
+    )
+  )
+
+  expect_no_error(
+    fishset_fit(
+      project = "Proj_Pois",
+      model_name = "pois_mod",
+      overwrite = TRUE
+    )
+  )
+
+  fit_list <- FishSET:::unserialize_table("Proj_PoisModelFit", "Proj_Pois")
+  fit_obj <- fit_list[["pois_mod_fit"]]
+  fit_obj$opt$par[1] <- abs(fit_obj$opt$par[1]) + 0.5
+  fit_obj$coefficients[1] <- abs(fit_obj$coefficients[1]) + 0.5
+  fit_obj$diagnostics$hessian <- diag(length(fit_obj$opt$par)) * 1000
+  fit_list[["pois_mod_fit"]] <- fit_obj
+
+  db <- DBI::dbConnect(RSQLite::SQLite(), env$db_path)
+  DBI::dbExecute(
+    db,
+    "UPDATE Proj_PoisModelFit SET data = :data",
+    params = list(data = list(serialize(fit_list, NULL)))
+  )
+  DBI::dbDisconnect(db)
+
+  expect_silent(
+    res <- run_simulation(
+      project = "Proj_Pois",
+      mod_name = "pois_mod",
+      closures = c("closure_1"),
+      betadraws = betadraws_test,
+      marg_util_income = "util"
+    )
+  )
+
+  expect_true("closure_1" %in% names(res))
+  pois_res <- res$closure_1
+
+  expect_named(
+    pois_res,
+    c("welfare_draws", "mean_welfare_loss", "quantiles", "effort_base", "effort_new")
+  )
+  expect_named(pois_res$quantiles, c("2.5%", "5%", "50%", "95%", "97.5%"))
+  expect_length(pois_res$welfare_draws, betadraws_test)
+  expect_true(is.numeric(pois_res$mean_welfare_loss))
+  expect_false(is.na(pois_res$mean_welfare_loss))
+  expect_true(all(is.finite(pois_res$welfare_draws)))
+  expect_equal(length(pois_res$effort_base), J_alts)
+  expect_equal(length(pois_res$effort_new), J_alts)
+  expect_equal(names(pois_res$effort_base), as.character(1:J_alts))
+  expect_equal(names(pois_res$effort_new), as.character(1:J_alts))
+  expect_equal(unname(pois_res$effort_new["1"]), 0)
+  sim_list <- FishSET:::unserialize_table("Proj_PoisPolicySimulations", "Proj_Pois")
+  expect_equal(sim_list[["pois_mod_closure_1"]]$metadata$model_type, "poisson")
+  pois_design_paths <- file.path(
+    env$base_dir,
+    "Proj_Pois",
+    "Models",
+    "ModelDesigns",
+    c("pois_mod.qs2", "pois_mod.rds")
+  )
+  pois_design_path <- pois_design_paths[file.exists(pois_design_paths)][1]
+  expect_false(is.na(pois_design_path))
+  pois_design <- if (grepl("\\.qs2$", pois_design_path)) {
+    qs2::qs_read(pois_design_path)
+  } else {
+    readRDS(pois_design_path)
+  }
+  expected_total_trips <- sum(colSums(matrix(pois_design$y, nrow = J_alts, ncol = N_obs), na.rm = TRUE))
+  expect_equal(sum(pois_res$effort_base), expected_total_trips, tolerance = 1e-6)
+  expect_equal(sum(pois_res$effort_new), expected_total_trips, tolerance = 1e-6)
 })
 
 # Test missing marg_util_income -------------------------------------------------------------------
