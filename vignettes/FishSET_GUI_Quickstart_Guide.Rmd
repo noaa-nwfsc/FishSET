@@ -2,7 +2,8 @@
 title: "FishSET GUI Quickstart Guide"
 date: "`r Sys.Date()`"
 output:
-  rmarkdown::html_vignette
+  rmarkdown::html_vignette:
+    md_extensions: +raw_html
 vignette: >
   %\VignetteIndexEntry{FishSET GUI Quickstart Guide}
   %\VignetteEncoding{UTF-8}
