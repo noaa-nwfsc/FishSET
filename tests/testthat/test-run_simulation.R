@@ -373,11 +373,16 @@ test_that("Poisson equivalence model runs through run_simulation", {
   expect_true(is.numeric(pois_res$mean_welfare_loss))
   expect_false(is.na(pois_res$mean_welfare_loss))
   expect_true(all(is.finite(pois_res$welfare_draws)))
+  expect_equal(pois_res$metadata$model_type, "poisson")
   expect_equal(length(pois_res$effort_base), J_alts)
   expect_equal(length(pois_res$effort_new), J_alts)
   expect_equal(names(pois_res$effort_base), as.character(1:J_alts))
   expect_equal(names(pois_res$effort_new), as.character(1:J_alts))
   expect_equal(unname(pois_res$effort_new["1"]), 0)
+  pois_design <- readRDS(file.path(env$base_dir, "Proj_Pois", "Models", "ModelDesigns", "pois_mod.rds"))
+  expected_total_trips <- sum(colSums(matrix(pois_design$y, nrow = J_alts, ncol = N_obs), na.rm = TRUE))
+  expect_equal(sum(pois_res$effort_base), expected_total_trips, tolerance = 1e-6)
+  expect_equal(sum(pois_res$effort_new), expected_total_trips, tolerance = 1e-6)
 })
 
 # Test missing marg_util_income -------------------------------------------------------------------
