@@ -97,7 +97,7 @@ margin-bottom: 0.5rem;
 <div class="quickstart-wrapper">
 
 <div class="quickstart-hero">
-<h1>&#128031; FishSET GUI Quickstart Guide</h1>
+<h1>FishSET GUI Quickstart Guide</h1>
 <p>FishSET is a set of statistical programming and data management tools developed to improve fishery modeling.
 The tools standardize data management and organization, enable the use of location choice models to provide input into fishery management, and provide various other modeling and visualization tools.
 
@@ -109,11 +109,11 @@ The FishSET toolbox is provided as a set of R functions that can be run in an R 
 
 <div class="quickstart-grid">
 <div class="quickstart-card">
-<h3>&#10024; What the GUI does</h3>
+<h3>What the GUI does</h3>
 <p>The FishSET GUI is a user-friendly interface that guides users through the steps necessary to run discrete choice models. The FishSET GUI requires no knowledge of coding or the R programming language as all steps to prepare and run discrete choice models can be run in a graphical user interface.</p>
 </div>
 <div class="quickstart-card">
-<h3>&#9989; Before you start</h3>
+<h3>Before you start</h3>
 <ul>
 <li>Have your main and spatial data files ready. Port, gridded, and auxiliary files are optional.</li>
 <li>Choose a FishSET folder where project files can be saved.</li>
@@ -121,7 +121,7 @@ The FishSET toolbox is provided as a set of R functions that can be run in an R 
 </ul>
 </div>
 <div class="quickstart-card">
-<h3>&#128194; What gets saved</h3>
+<h3>What gets saved</h3>
 <ul>
 <li>Project data and edits are stored in a local SQLite database on the users computer (data not shared with other users or FishSET developers) known as the FishSET database.</li>
 <li>The database is housed in the project's directory within the FishSET R package directory (FishSETFolder).</li>
@@ -133,21 +133,21 @@ The FishSET toolbox is provided as a set of R functions that can be run in an R 
 </div>
 
 <div class="quickstart-note">
-<strong>&#128640; Open the GUI:</strong> run <code>library(FishSET)</code> and then <code>run_fishset_gui()</code> in R or RStudio. The main data table is required; supporting files depend on your workflow.
+<strong>Open the GUI:</strong> run <code>library(FishSET)</code> and then <code>run_fishset_gui()</code> in R or RStudio. The main data table is required; supporting files depend on your workflow.
 </div>
 
-<h2>&#129517; Quick path through the GUI</h2>
+<h2>Quick path through the GUI</h2>
 
 <div class="quickstart-path">
 <p><em>Click any step below to expand the instructions.</em></p>
 
 <details>
-<summary>&#8505;&#65039; Information across all tabs</summary>
+<summary>Information across all tabs</summary>
 <p>All tabs include controls to close the GUI, manage database tables, record notes, and run an R expression. Within the GUI, the primary data frame is called <code>values$dataset</code>.</p>
 </details>
 
 <details>
-<summary>&#128228; Upload Data</summary>
+<summary>Upload Data</summary>
 <h4>Load Files</h4>
 <ol>
 <li>Click <strong>Change FishSET Folder</strong> to set where project files will be stored.</li>
@@ -162,7 +162,7 @@ The FishSET toolbox is provided as a set of R functions that can be run in an R 
 </details>
 
 <details>
-<summary>&#128269; QAQC</summary>
+<summary>QAQC</summary>
 <h4>Data Quality Checks</h4>
 <p>Use the sidebar to check for missing values, empty variables, duplicate data, incorrect classes, outliers, and invalid spatial coordinates. Use <strong>Preview data</strong> and <strong>Summary table</strong> before applying corrections.</p>
 <p>See the recommended data quality checks in <a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank">Chapter 4 of the FishSET User Manual</a></p>
@@ -172,7 +172,7 @@ The FishSET toolbox is provided as a set of R functions that can be run in an R 
 </details>
 
 <details>
-<summary>&#9881;&#65039; Format Data</summary>
+<summary>Format Data</summary>
 <h4>Compute New Variables</h4>
 <p>Use the radio buttons in the left sidebar to access various tools for creating new data columns. You can apply custom R expressions, calculate spatial metrics (like trip distances or centroids), aggregate your data (such as rolling hauls into trips), or generate group-level statistics (like quantiles, percentages, and cumulative sums). Follow the on-screen prompts for each selected tool to compute and save your new variables to the dataset.</p>
 <h4>Define Alternative Fishing Choices</h4>
@@ -204,7 +204,7 @@ The FishSET toolbox is provided as a set of R functions that can be run in an R 
 </details>
 
 <details>
-<summary>&#128202; Modeling</summary>
+<summary>Modeling</summary>
 <h4>Model Design</h4>
 <p>Use this tab to construct the design matrices (the mathematical structures) required to actually run your discrete choice models.</p>
 <ol>
@@ -222,7 +222,7 @@ The FishSET toolbox is provided as a set of R functions that can be run in an R 
 </details>
 
 <details>
-<summary>&#128220; Policy</summary>
+<summary>Policy</summary>
 <h4>Zone Closure</h4>
 <p>Use this tab to create management scenarios where specific fishing zones are closed or have restricted catch limits.</p>
 <ol>
@@ -249,13 +249,13 @@ The FishSET toolbox is provided as a set of R functions that can be run in an R 
 </details>
 
 <details>
-<summary>&#128278; Bookmark Choices</summary>
+<summary>Bookmark Choices</summary>
 <p><em>Under development.</em> Store choices and actions made in the FishSET GUI so they can be reloaded later.</p>
 </details>
 
 </div>
 
-<h2>&#128172; Need more help?</h2>
+<h2>Need more help?</h2>
 <ul>
 <li><a href="https://bcove.video/3WCSb5N" target="_blank">FishSET video tutorial</a></li>
 <li><a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank">FishSET User Manual</a></li>

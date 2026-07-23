@@ -100,7 +100,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         d_obj <- NULL
         tryCatch({
           if (file.exists(qs2_path) && requireNamespace("qs2", quietly = TRUE)) {
-            d_obj <- qs2::qs_read(qs2_path)
+            d_obj <- read_qs2_utf8(qs2_path)
           } else if (file.exists(rds_path)) {
             d_obj <- readRDS(rds_path)
           }

@@ -20,23 +20,23 @@ library(bslib)
 library(DT)
 
 # Source module scripts ---------------------------------------------------------------------------
-source("modules/spinner.R", local = TRUE) # Reusable spinner
-source("modules/load_files_ui.R", local = TRUE) # Upload data - load files subtab
-source("modules/other_actions_ui.R", local = TRUE) # Other actions in sidebar 
-source("modules/select_variables_ui.R", local = TRUE) # Other actions in sidebar 
-source("modules/qaqc_module.R", local = TRUE)
-source("modules/explore_data_module.R", local = TRUE)
-source("modules/format_data/compute_new_var_module.R", local = TRUE)
-source("modules/format_data/define_alternatives_module.R", local = TRUE)
-source("modules/format_data/create_expectations_module.R", local = TRUE)
-source("modules/format_data/format_model_data_module.R", local = TRUE)
-source("modules/model_design_module.R", local = TRUE)
-source("modules/model_fit_module.R", local = TRUE)
-source("modules/model_cv_module.R", local = TRUE)
-source("modules/policy/zone_closure_module.R", local = TRUE)
-source("modules/policy/policy_sim_module.R", local = TRUE)
-source("modules/policy/policy_effort_module.R", local = TRUE)
-source("modules/policy/policy_welfare_module.R", local = TRUE)
+source("modules/spinner.R", local = TRUE, encoding = "UTF-8") # Reusable spinner
+source("modules/load_files_ui.R", local = TRUE, encoding = "UTF-8") # Upload data - load files subtab
+source("modules/other_actions_ui.R", local = TRUE, encoding = "UTF-8") # Other actions in sidebar 
+source("modules/select_variables_ui.R", local = TRUE, encoding = "UTF-8") # Other actions in sidebar 
+source("modules/qaqc_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/explore_data_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/format_data/compute_new_var_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/format_data/define_alternatives_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/format_data/create_expectations_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/format_data/format_model_data_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/model_design_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/model_fit_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/model_cv_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/policy/zone_closure_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/policy/policy_sim_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/policy/policy_effort_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/policy/policy_welfare_module.R", local = TRUE, encoding = "UTF-8")
 
 quickstart_guide_ui <- function() {
   guide_path <- file.path(getwd(), "FishSET_GUI_Quickstart_Content.html")

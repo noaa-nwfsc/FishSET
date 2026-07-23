@@ -54,22 +54,22 @@ read_qs2_utf8 <- function(path) {
 }
 
 # Source module scripts ---------------------------------------------------------------------------
-source("modules/load_files_server.R", local = TRUE) # Upload data - load files subtab
-source("modules/other_actions_server.R", local = TRUE) # Other actions in sidebar 
-source("modules/select_variables_server.R", local = TRUE) # Other actions in sidebar 
-source("modules/qaqc_module.R", local = TRUE)
-source("modules/explore_data_module.R", local = TRUE)
-source("modules/format_data/compute_new_var_module.R", local = TRUE)
-source("modules/format_data/define_alternatives_module.R", local = TRUE)
-source("modules/format_data/create_expectations_module.R", local = TRUE)
-source("modules/format_data/format_model_data_module.R", local = TRUE)
-source("modules/model_design_module.R", local = TRUE)
-source("modules/model_fit_module.R", local = TRUE)
-source("modules/model_cv_module.R", local = TRUE)
-source("modules/policy/zone_closure_module.R", local = TRUE)
-source("modules/policy/policy_sim_module.R", local = TRUE)
-source("modules/policy/policy_effort_module.R", local = TRUE)
-source("modules/policy/policy_welfare_module.R", local = TRUE)
+source("modules/load_files_server.R", local = TRUE, encoding = "UTF-8") # Upload data - load files subtab
+source("modules/other_actions_server.R", local = TRUE, encoding = "UTF-8") # Other actions in sidebar 
+source("modules/select_variables_server.R", local = TRUE, encoding = "UTF-8") # Other actions in sidebar 
+source("modules/qaqc_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/explore_data_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/format_data/compute_new_var_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/format_data/define_alternatives_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/format_data/create_expectations_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/format_data/format_model_data_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/model_design_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/model_fit_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/model_cv_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/policy/zone_closure_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/policy/policy_sim_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/policy/policy_effort_module.R", local = TRUE, encoding = "UTF-8")
+source("modules/policy/policy_welfare_module.R", local = TRUE, encoding = "UTF-8")
 
 
 # Server settings ---------------------------------------------------------------------------------

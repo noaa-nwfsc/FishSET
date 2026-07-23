@@ -204,7 +204,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
           
           tryCatch({
             if (file.exists(qs2_path) && requireNamespace("qs2", quietly = TRUE)) {
-              d_obj <- qs2::qs_read(qs2_path)
+              d_obj <- read_qs2_utf8(qs2_path)
               if (isTRUE(d_obj$epm$is_epm)) is_epm <- TRUE
             } else if (file.exists(rds_path)) {
               d_obj <- readRDS(rds_path)
