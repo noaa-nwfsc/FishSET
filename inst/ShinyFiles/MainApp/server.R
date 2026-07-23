@@ -19,6 +19,40 @@
 library(tidyr)
 library(dplyr)
 
+read_qs2_utf8 <- function(path) {
+  value <- withCallingHandlers(
+    qs2::qs_read(path),
+    warning = function(w) {
+      if (identical(
+        conditionMessage(w),
+        "strings not representable in native encoding will be translated to UTF-8."
+      )) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+  normalize_encoding <- function(x) {
+    if (is.character(x)) {
+      return(enc2utf8(x))
+    }
+    if (is.factor(x)) {
+      levels(x) <- enc2utf8(levels(x))
+      return(x)
+    }
+    if (is.data.frame(x)) {
+      names(x) <- enc2utf8(names(x))
+      x[] <- lapply(x, normalize_encoding)
+      return(x)
+    }
+    if (is.list(x) && is.null(class(x))) {
+      names(x) <- enc2utf8(names(x))
+      return(lapply(x, normalize_encoding))
+    }
+    x
+  }
+  normalize_encoding(value)
+}
+
 # Source module scripts ---------------------------------------------------------------------------
 source("modules/load_files_server.R", local = TRUE) # Upload data - load files subtab
 source("modules/other_actions_server.R", local = TRUE) # Other actions in sidebar 

@@ -59,7 +59,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       paths <- get_long_format_paths(project)
       
       if (file.exists(paths$qs2) && requireNamespace("qs2", quietly = TRUE)) {
-        return(tryCatch(qs2::qs_read(paths$qs2), error = function(e) list()))
+        return(tryCatch(read_qs2_utf8(paths$qs2), error = function(e) list()))
       } else if (file.exists(paths$rds)) {
         return(tryCatch(readRDS(paths$rds), error = function(e) list()))
       }

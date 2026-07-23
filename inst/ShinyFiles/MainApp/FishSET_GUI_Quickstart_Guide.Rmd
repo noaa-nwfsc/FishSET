@@ -1,11 +1,10 @@
-```{=html}
 <style>
 /* Scoped Wrapper - Prevents styles from leaking to other Shiny tabs */
 .quickstart-wrapper { 
   max-width: 1100px; 
   margin: 0 auto; 
   padding: 0.5rem 1rem 2rem; 
-  font-family: system-ui, -apple-system, sans-serif; 
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
 }
 
 /* Scoped Layout Styles */
@@ -207,10 +206,9 @@
 
   <h2>Need more help?</h2>
   <ul>
-    <li><a href="[https://bcove.video/3WCSb5N](https://bcove.video/3WCSb5N)" target="_blank">FishSET video tutorial</a></li>
-    <li><a href="[https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html)" target="_blank">FishSET User Manual</a></li>
+    <li><a href="https://bcove.video/3WCSb5N" target="_blank">FishSET video tutorial</a></li>
+    <li><a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank">FishSET User Manual</a></li>
     <li>Questions: <a href="mailto:nmfs.fishset@noaa.gov">nmfs.fishset@noaa.gov</a></li>
   </ul>
 
 </div>
-```

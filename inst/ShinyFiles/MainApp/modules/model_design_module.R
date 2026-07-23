@@ -40,7 +40,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       rds_path <- file.path(formatted_dir, paste0(table_name, ".rds"))
       
       if (file.exists(qs2_path) && requireNamespace("qs2", quietly = TRUE)) {
-        return(tryCatch(qs2::qs_read(qs2_path), error = function(e) list()))
+        return(tryCatch(read_qs2_utf8(qs2_path), error = function(e) list()))
       } else if (file.exists(rds_path)) {
         return(tryCatch(readRDS(rds_path), error = function(e) list()))
       }

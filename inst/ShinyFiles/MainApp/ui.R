@@ -59,6 +59,7 @@ ui <- function(request){
       preset = "cerulean"),
     id = "tabs",
     header = tags$head(
+      tags$meta(charset = "UTF-8"),
       includeCSS("styles.css"),
       tags$style(HTML("
         .navbar-nav .nav-link {
