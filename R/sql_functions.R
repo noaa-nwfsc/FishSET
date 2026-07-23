@@ -187,7 +187,9 @@ table_view <- function(table, project) {
       sf::st_read(filename, quiet=TRUE) 
 
     } else {
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
+                                                    locdatabase(project),
+                                                    extended_types = TRUE))
       on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
 
       tab_out <- DBI::dbGetQuery(fishset_db,
