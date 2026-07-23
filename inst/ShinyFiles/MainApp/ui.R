@@ -38,8 +38,18 @@ source("modules/policy/policy_sim_module.R", local = TRUE)
 source("modules/policy/policy_effort_module.R", local = TRUE)
 source("modules/policy/policy_welfare_module.R", local = TRUE)
 
+# 1. Find the file path ONCE
+guide_path <- system.file("extdata", "FishSET_GUI_Quickstart_Content.html", package = "FishSET")
+if (guide_path == "") {
+  guide_path <- "../../inst/extdata/FishSET_GUI_Quickstart_Content.html" 
+}
 
-
+# 2. Read the HTML into memory ONCE
+if (file.exists(guide_path)) {
+  global_quickstart_html <- shiny::includeHTML(guide_path)
+} else {
+  global_quickstart_html <- shiny::HTML("<p>Could not find the FishSET GUI Quickstart Guide.</p>")
+}
 
 # UI function definition
 ui <- function(request){
@@ -51,6 +61,16 @@ ui <- function(request){
       font_scale = 0.9,
       preset = "cerulean"),
     id = "tabs",
+    
+    # Quickstart Guide ----------------------------------------------------------------------------
+    bslib::nav_panel(
+      title = "Quickstart Guide", 
+      id = "quickstart",
+      value = "quickstart",
+      bslib::page_fillable(
+        global_quickstart_html
+      )
+    ),
     
     # Upload data ---------------------------------------------------------------------------------
     bslib::nav_menu(
@@ -509,4 +529,3 @@ ui <- function(request){
     )
   )
 }
-
