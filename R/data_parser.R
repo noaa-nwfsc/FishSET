@@ -1114,7 +1114,8 @@ load_grid <- function(grid, name, project, over_write = TRUE) {
     # save grid
     if (table_exists(paste0(project, name, "GridTable"), project) == FALSE | over_write == TRUE) {
       fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), 
-                                                    locdatabase(project = project)))
+                                                    locdatabase(project = project),
+                                                    extended_types = TRUE))
       on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
       
       DBI::dbWriteTable(fishset_db, paste0(project, name, "GridTable"), 
