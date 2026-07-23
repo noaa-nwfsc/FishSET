@@ -7,6 +7,8 @@ body { max-width: 1100px; margin: 0 auto; padding: 0.5rem 1rem 2rem; }
 .quickstart-card h3 { color: #41729F; margin-top: 0; }
 details { border: 1px solid #d9e6f2; border-radius: .5rem; margin: .6rem 0; padding: .8rem 1rem; background: #fff; }
 summary { color: #274472; cursor: pointer; font-size: 1.05rem; font-weight: 600; }
+.quickstart-path { max-width: 760px; margin: 0 auto 1.5rem; }
+.quickstart-path details { box-sizing: border-box; }
 li { margin-bottom: .4rem; }
 .quickstart-note { background: #f9fbfd; border: 1px solid #d9e6f2; border-radius: .75rem; padding: 1rem 1.25rem; margin: 1rem 0; }
 </style>
@@ -27,19 +29,37 @@ li { margin-bottom: .4rem; }
 
 <h2>Quick path through the app</h2>
 
-<details><summary>1. Upload Data</summary><p>Set your FishSET folder, create or select a project, and load the files you want to use.</p><ul><li>Use <strong>Load files</strong> to set the folder and project.</li><li>Load the main data first; add port, spatial, gridded, or auxiliary data when needed.</li><li>Existing projects can reload tables from the FishSET database.</li></ul></details>
+<div class="quickstart-path">
+<details><summary>1. Information across all tabs</summary><p>Every tab includes controls to refresh or close the app, save plots and tables to the project <code>output</code> folder, record notes, and run an R expression.</p><p>Within the app, the primary data frame is <code>values$dataset</code>. Refreshing restores the original loaded table unless a different table is selected on <strong>Upload Data</strong>.</p></details>
 
-<details><summary>2. Select variables</summary><p>Map the important columns used throughout the app.</p><ul><li>Assign IDs, dates, coordinates, and zone variables.</li><li>Create trip, haul, or zone IDs if they do not already exist.</li><li>Save the mapping once; repeat it only for a new project.</li></ul></details>
+<details><summary>2. Upload Data</summary><p>Set the FishSET folder, create or select a project, and load the files used in the analysis.</p><ul><li>The primary table is required; port, spatial, auxiliary, and gridded files are optional or workflow-specific.</li><li>Load files from a local location or from the FishSET database, then select <strong>Load data</strong>.</li><li>Use <strong>Manage Tables</strong>, <strong>Metadata</strong>, confidentiality settings, and <strong>Reset log</strong> to manage project files and records.</li></ul></details>
 
-<details><summary>3. QAQC and Explore the data</summary><p>Check and understand the data before modeling.</p><ul><li>Run the QAQC checks that match your dataset, including missing values, duplicates, outliers, and spatial checks.</li><li>Use <strong>Explore the data</strong> to inspect tables, plots, temporal patterns, correlations, and spatial summaries.</li><li>Save corrected data back to the database before continuing.</li></ul></details>
+<details><summary>3. Select Variables</summary><p>Identify the columns that FishSET uses throughout the workflow.</p><ul><li>Assign IDs, dates, coordinates, catch, price, and zone variables.</li><li>Create haul, trip, seasonal, or zone identifiers when they are not already present.</li><li>Check the saved mapping before moving to data checks or model preparation.</li></ul></details>
 
-<details><summary>4. Format Data</summary><p>Build the derived variables and model inputs required for analysis.</p><ul><li>Use <strong>Compute New Variables</strong> for CPUE, trip summaries, spatial metrics, and other derived fields.</li><li>Define alternative fishing choices before generating expected catch or revenue.</li><li>Run <strong>Format Model Data</strong> after the supporting matrices are ready.</li></ul></details>
+<details><summary>4. Data Quality Evaluation</summary><p>Find and correct common issues before analysis, including missing values, empty variables, duplicate records, incorrect classes, outliers, and invalid coordinates.</p><ul><li>Review the check results and use the available correction controls.</li><li>Spatial checks can identify points on land, outside zones, on boundaries, or at sea.</li><li>Save revised data to the FishSET database; <strong>Refresh data</strong> discards unsaved changes.</li></ul></details>
 
-<details><summary>5. Modeling</summary><p>Create, fit, and evaluate a discrete choice model.</p><ul><li><strong>Model Design</strong> defines the model structure and formulas.</li><li><strong>Model Fit</strong> estimates parameters and saves the model object.</li><li><strong>Model Cross Validation</strong> checks out-of-sample predictive performance.</li></ul></details>
+<details><summary>5. Data Exploration</summary><p>View loaded data as tables or plots before modeling.</p><ul><li>Edit cells, remove redundant columns, filter records, and save the revised table.</li><li>Use temporal, spatial, and x-y plots to examine patterns and relationships.</li><li>Gridded data can be aggregated and plotted by location; detailed interactive maps are available in <strong>Map Viewer</strong>.</li></ul></details>
 
-<details><summary>6. Policy</summary><p>Evaluate management scenarios and their effects.</p><ul><li>Use <strong>Zone Closure</strong> to define closed or restricted areas.</li><li>Run <strong>Policy Simulations</strong> to estimate effort and welfare effects.</li><li>Review <strong>Summarize Effort Redistribution</strong> and <strong>Summarize Welfare Impacts</strong>.</li></ul></details>
+<details><summary>6. Fleet Analysis and Assignment</summary><p>Define fleets, assign vessels, and summarize data at the fleet level.</p><ul><li>Build or load a fleet definition table, then assign vessels using string or dummy variables.</li><li>Fleet summaries include vessel counts, catch, bycatch, effort, trip duration, and density plots.</li><li>Run the selected summary function and save its plots or tables to the project output folder.</li></ul></details>
 
-<details><summary>7. Bookmark Choices</summary><p><strong>Bookmark Choices</strong> is currently under development and will eventually store and reload actions taken in the GUI.</p></details>
+<details><summary>7. Simple Analyses</summary><p>Explore correlations and simple linear regressions among selected variables.</p><ul><li>Select variables and review the correlation matrix or regression results.</li><li>Use the plots to assess relationships and potential transformations.</li><li>Both plot and table results can be downloaded.</li></ul></details>
+
+<details><summary>8. Compute New Variables</summary><p>Derive variables such as CPUE, identifiers, time measures, spatial measures, and trip summaries.</p><ul><li>Functions are grouped into arithmetic, transformations, dummy variables, nominal IDs, temporal, spatial, and trip-level categories.</li><li>Run a function, review the new column, provide a name if needed, and save the revised data.</li><li>Spatial functions require an appropriate spatial file; trip-level functions can calculate distance, centroids, or collapse haul data.</li></ul></details>
+
+<details><summary>9. Map Viewer</summary><p>Display the spatial distribution of hauls and related values on an interactive map.</p><ul><li>A spatial zone file and a zone identifier linking the primary data to the map are required.</li><li>Select numeric, temporal, ID, and point-or-path variables, then press <strong>Run</strong>.</li><li>Hover over map points for details and use the accompanying plots to explore patterns. The map itself cannot be saved.</li></ul></details>
+
+<details><summary>10. Define Alternative Fishing Choices</summary><p>Define the alternative locations and distance matrix used by choice models.</p><ul><li>Choose whether starting and alternative locations come from zone centroids, ports, or longitude/latitude variables.</li><li>The distance matrix can be generated from haul-level or gridded data and returned in miles, kilometers, or meters.</li><li>Use the haul-count summary to exclude zones with insufficient observations.</li></ul></details>
+
+<details><summary>11. Expected Catch/Revenue</summary><p>Calculate expected catch or revenue for alternative fishing zones. A catch variable is required; add price or value to calculate revenue.</p><ul><li>Choose fleet or grouped calculations and select the temporal sorting and averaging options.</li><li>The output includes standard short-, medium-, and long-term matrices used by the conditional logit model.</li><li>Review the sparsity table before filling missing values or choosing a broader time window.</li></ul></details>
+
+<details><summary>12. Format Model Data</summary><p>Assemble the distance, expected catch or revenue, and other matrices into the structure required by the models.</p><p>Run this step after the supporting variables and matrices have been created, and verify the resulting model data before designing a model.</p></details>
+
+<details><summary>13. Models</summary><p>Define, fit, and compare discrete choice models.</p><ul><li>Use <strong>Model Design</strong> to specify formulas, likelihoods, and other model parameters.</li><li>Use <strong>Model Fit</strong> to estimate and save model objects.</li><li>Use <strong>Model Cross Validation</strong> to assess out-of-sample performance and compare candidate models.</li></ul></details>
+
+<details><summary>14. Policy</summary><p>Evaluate management scenarios and their effects on effort and welfare.</p><ul><li>Use <strong>Zone Closure</strong> to define closed or restricted areas.</li><li>Run <strong>Policy Simulations</strong> to estimate effort redistribution and welfare impacts.</li><li>Review the effort and welfare summary tabs after each scenario.</li></ul></details>
+
+<details><summary>15. Bookmark Choices</summary><p>Save the current GUI selections so they can be restored later.</p><p>Reloading restores selections but does not reload data or rerun functions. Save the data first, then reload it after opening the bookmarked state.</p></details>
+</div>
 
 <h2>Need more help?</h2>
 <ul><li><a href="https://bcove.video/3WCSb5N" target="_blank">FishSET video tutorial</a></li><li><a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank">FishSET User Manual</a></li><li>Questions: <a href="mailto:nmfs.fishset@noaa.gov">nmfs.fishset@noaa.gov</a></li></ul>
