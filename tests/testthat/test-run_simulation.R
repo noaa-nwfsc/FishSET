@@ -43,7 +43,7 @@ colnames(std_design$X) <- c("Var1", "Var2")
 # Synthetic Fit Object (Standard Logit)
 std_fit <- list(
   opt = list(par = c(Var1 = 0.5, Var2 = -0.8)),
-  diagnostics = list(hessian = diag(K_vars) * 0.001), # Tighten variance so draws stay positive
+  diagnostics = list(hessian = diag(K_vars) * 1000), # Tighten variance so draws stay positive
   coefficients = c(Var1 = 0.5, Var2 = -0.8)
 )
 
@@ -66,7 +66,7 @@ colnames(epm_design$epm$X_catch) <- c("CatchVar")
 epm_fit <- list(
   opt = list(par = c(CatchVar = 0.5, CostVar = -0.2, 
                      log_sigma_c_1 = log(0.5), log_sigma_e = log(1.2))),
-  diagnostics = list(hessian = diag(4) * 0.001), # Tighten variance
+  diagnostics = list(hessian = diag(4) * 1000), # Tighten variance
   coefficients = c(CatchVar = 0.5, CostVar = -0.2, Sigma_Catch_1 = 0.5, Sigma_Error = 1.2) 
 )
 
@@ -181,15 +181,13 @@ test_that("Standard Logit runs baseline correctly", {
     restore_mocks()
   }, add = TRUE)
   
-  # Explicitly expect the negative draw warning
-  expect_warning(
+  expect_silent(
     res <- run_simulation(
       project = "Proj_Std", 
       mod_name = "mod1", 
       betadraws = betadraws_test, 
       marg_util_income = "Var1"
-    ),
-    "One or more draws for the marginal utility of income were <= 0"
+    )
   )
   
   # Assertions
@@ -215,16 +213,14 @@ test_that("Standard Logit handles spatial closures", {
     restore_mocks()
   }, add = TRUE)
   
-  # Explicitly expect the negative draw warning
-  expect_warning(
+  expect_silent(
     res <- run_simulation(
       project = "Proj_Closure", 
       mod_name = "mod1", 
       closures = c("closure_1"), 
       betadraws = betadraws_test, 
       marg_util_income = "Var1"
-    ),
-    "One or more draws for the marginal utility of income were <= 0"
+    )
   )
   
   expect_true("closure_1" %in% names(res))
@@ -254,16 +250,14 @@ test_that("Standard Logit processes data modifiers", {
   # Create a massive penalty for Var2 to force behavior change
   new_var2 <- rep(-50, N_obs * J_alts)
   
-  # Explicitly expect the negative draw warning
-  expect_warning(
+  expect_silent(
     res <- run_simulation(
       project = "Proj_Mods", 
       mod_name = "mod1", 
       data_modifiers = list(Var2 = new_var2),
       betadraws = betadraws_test, 
       marg_util_income = "Var1"
-    ),
-    "One or more draws for the marginal utility of income were <= 0"
+    )
   )
   
   mod_res <- res$Var2 # Dynamic naming automatically set it to 'Var2'
@@ -373,13 +367,27 @@ test_that("Poisson equivalence model runs through run_simulation", {
   expect_true(is.numeric(pois_res$mean_welfare_loss))
   expect_false(is.na(pois_res$mean_welfare_loss))
   expect_true(all(is.finite(pois_res$welfare_draws)))
-  expect_equal(pois_res$metadata$model_type, "poisson")
   expect_equal(length(pois_res$effort_base), J_alts)
   expect_equal(length(pois_res$effort_new), J_alts)
   expect_equal(names(pois_res$effort_base), as.character(1:J_alts))
   expect_equal(names(pois_res$effort_new), as.character(1:J_alts))
   expect_equal(unname(pois_res$effort_new["1"]), 0)
-  pois_design <- readRDS(file.path(env$base_dir, "Proj_Pois", "Models", "ModelDesigns", "pois_mod.rds"))
+  sim_list <- FishSET:::unserialize_table("Proj_PoisPolicySimulations", "Proj_Pois")
+  expect_equal(sim_list[["pois_mod_closure_1"]]$metadata$model_type, "poisson")
+  pois_design_paths <- file.path(
+    env$base_dir,
+    "Proj_Pois",
+    "Models",
+    "ModelDesigns",
+    c("pois_mod.qs2", "pois_mod.rds")
+  )
+  pois_design_path <- pois_design_paths[file.exists(pois_design_paths)][1]
+  expect_false(is.na(pois_design_path))
+  pois_design <- if (grepl("\\.qs2$", pois_design_path)) {
+    qs2::qs_read(pois_design_path)
+  } else {
+    readRDS(pois_design_path)
+  }
   expected_total_trips <- sum(colSums(matrix(pois_design$y, nrow = J_alts, ncol = N_obs), na.rm = TRUE))
   expect_equal(sum(pois_res$effort_base), expected_total_trips, tolerance = 1e-6)
   expect_equal(sum(pois_res$effort_new), expected_total_trips, tolerance = 1e-6)
