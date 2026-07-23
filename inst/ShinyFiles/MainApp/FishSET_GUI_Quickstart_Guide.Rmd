@@ -1,51 +1,216 @@
+```{=html}
 <style>
-body { max-width: 1100px; margin: 0 auto; padding: 0.5rem 1rem 2rem; }
-.quickstart-hero { background: linear-gradient(135deg, #f7fbff 0%, #edf4fb 100%); border-left: 6px solid #41729F; border-radius: .75rem; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
-.quickstart-hero h1 { color: #274472; margin-top: 0; }
-.quickstart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0 1.5rem; }
-.quickstart-card { border: 1px solid #d9e6f2; border-radius: .75rem; padding: 1rem 1.25rem; background: #fff; height: 100%; box-sizing: border-box; }
-.quickstart-card h3 { color: #41729F; margin-top: 0; }
-details { border: 1px solid #d9e6f2; border-radius: .5rem; margin: .6rem 0; padding: .8rem 1rem; background: #fff; }
-summary { color: #274472; cursor: pointer; font-size: 1.05rem; font-weight: 600; }
-.quickstart-path { max-width: 900px; margin: 0 auto 1.5rem; }
-.quickstart-path details { box-sizing: border-box; width: fit-content; max-width: 100%; }
-.quickstart-path details[open] { width: 100%; }
-li { margin-bottom: .4rem; }
-.quickstart-note { background: #f9fbfd; border: 1px solid #d9e6f2; border-radius: .75rem; padding: 1rem 1.25rem; margin: 1rem 0; }
+/* Scoped Wrapper - Prevents styles from leaking to other Shiny tabs */
+.quickstart-wrapper { 
+  max-width: 1100px; 
+  margin: 0 auto; 
+  padding: 0.5rem 1rem 2rem; 
+  font-family: system-ui, -apple-system, sans-serif; 
+}
+
+/* Scoped Layout Styles */
+.quickstart-wrapper .quickstart-hero { background: linear-gradient(135deg, #f7fbff 0%, #edf4fb 100%); border-left: 6px solid #41729F; border-radius: .75rem; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+.quickstart-wrapper .quickstart-hero h1 { color: #274472; margin-top: 0; }
+.quickstart-wrapper .quickstart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0 1.5rem; }
+.quickstart-wrapper .quickstart-card { border: 1px solid #d9e6f2; border-radius: .75rem; padding: 1rem 1.25rem; background: #fff; height: 100%; box-sizing: border-box; }
+.quickstart-wrapper .quickstart-card h3 { color: #41729F; margin-top: 0; }
+.quickstart-wrapper .quickstart-note { background: #f9fbfd; border: 1px solid #d9e6f2; border-radius: .75rem; padding: 1rem 1.25rem; margin: 1rem 0; }
+.quickstart-wrapper li { margin-bottom: .4rem; }
+
+/* Scoped Accordion Styles */
+.quickstart-wrapper .quickstart-path { max-width: 900px; margin: 0 auto 1.5rem; width: 100%; }
+
+.quickstart-wrapper .quickstart-path details { 
+  border: 1px solid #d9e6f2; 
+  border-radius: .5rem; 
+  margin: .75rem 0; 
+  background: #fff; 
+  width: 100%; 
+  display: block; 
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  transition: all 0.2s ease;
+}
+
+.quickstart-wrapper .quickstart-path details:hover {
+  box-shadow: 0 4px 8px rgba(39, 68, 114, 0.1);
+  border-color: #41729F;
+}
+
+.quickstart-wrapper .quickstart-path summary { 
+  color: #274472; 
+  cursor: pointer; 
+  font-size: 1.25rem; 
+  font-weight: 600; 
+  padding: 1rem 1.25rem;
+  background: #f7fbff; 
+  border-radius: .5rem;
+  list-style: none; 
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quickstart-wrapper .quickstart-path summary::-webkit-details-marker { display: none; }
+.quickstart-wrapper .quickstart-path summary::after { content: '+'; color: #41729F; font-size: 1.5rem; line-height: 1; }
+.quickstart-wrapper .quickstart-path details[open] summary::after { content: '-'; }
+
+.quickstart-wrapper .quickstart-path details[open] summary {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: 1px solid #d9e6f2;
+}
+
+/* Scoped Internal Formatting */
+.quickstart-wrapper .quickstart-path details p {
+  margin: 1rem 1.25rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.quickstart-wrapper .quickstart-path details h4 {
+  color: #41729F;
+  font-size: 1.1rem;
+  margin: 1.5rem 1.25rem 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #edf4fb;
+}
+
+.quickstart-wrapper .quickstart-path details summary ~ h4:first-of-type,
+.quickstart-wrapper .quickstart-path details summary ~ p:first-of-type {
+  margin-top: 1rem;
+}
+
+.quickstart-wrapper .quickstart-path details ol, 
+.quickstart-wrapper .quickstart-path details ul {
+  margin: 0.5rem 1.25rem 1.5rem 2.5rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.quickstart-wrapper .quickstart-path details li {
+  margin-bottom: 0.5rem;
+}
 </style>
 
-<div class="quickstart-hero">
-<h1>FishSET GUI Quickstart Guide</h1>
-<p>FishSET is a set of statistical programming and data management tools for organizing fishery data, creating model inputs, and evaluating policy scenarios. This guide gives new users a practical path through the FishSET GUI.</p>
-<p><strong>Recommended path:</strong> Upload Data &rarr; Select variables &rarr; QAQC &rarr; Explore the data &rarr; Format Data &rarr; Modeling &rarr; Policy</p>
+<div class="quickstart-wrapper">
+
+  <div class="quickstart-hero">
+    <h1>FishSET GUI Quickstart Guide</h1>
+    <p>FishSET is a set of statistical programming and data management tools for organizing fishery data, creating model inputs, and evaluating policy scenarios. This guide gives new users a practical path through the FishSET GUI.</p>
+    <p><strong>Recommended path:</strong> Upload Data -> Select variables -> QAQC -> Explore the data -> Format Data -> Modeling -> Policy</p>
+  </div>
+
+  <div class="quickstart-grid">
+    <div class="quickstart-card">
+      <h3>What the GUI does</h3>
+      <p>The GUI helps you move from raw data to model-ready outputs without writing code. It guides data loading, quality checks, derived variables, model fitting, and policy analysis.</p>
+    </div>
+    <div class="quickstart-card">
+      <h3>Before you start</h3>
+      <ul>
+        <li>Have your main data file ready. Port, spatial, gridded, and auxiliary files are optional.</li>
+        <li>Choose a FishSET folder where project files can be saved.</li>
+        <li>For mapping or policy tabs, make sure your spatial data contain the required zone information.</li>
+      </ul>
+    </div>
+    <div class="quickstart-card">
+      <h3>What gets saved</h3>
+      <ul>
+        <li>Project data and edits are stored in the local FishSET database.</li>
+        <li>Plots and tables are written to the project output folder.</li>
+        <li>Function calls and input values are written to the project logs.</li>
+        <li>The report template is stored in the project <code>doc</code> folder.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="quickstart-note">
+    <strong>Open the app:</strong> run <code>library(FishSET)</code> and then <code>run_fishset_gui()</code> in R or RStudio. The main data table is required; supporting files depend on your workflow.
+  </div>
+
+  <h2>Quick path through the app</h2>
+
+  <div class="quickstart-path">
+    <p><em>Click any step below to expand the instructions.</em></p>
+    
+    <details>
+      <summary>Information across all tabs</summary>
+      <p>All tabs include controls to close the app, refresh data, save plots and tables to the project <code>output</code> folder, record notes, and run an R expression. Within the app, the primary data frame is called <code>values$dataset</code>. Refreshing restores the original loaded table unless another table is selected on the <strong>Upload Data</strong> tab.</p>
+    </details>
+
+    <details>
+      <summary>Upload Data</summary>
+      <h4>Load Files</h4>
+      <ol>
+        <li>Click <strong>Change FishSET Folder</strong> to set where project files will be stored.</li>
+        <li>Type a new project name or select an existing project.</li>
+        <li>Provide the primary data; port and auxiliary data are optional.</li>
+        <li>Provide spatial data as a standard file or shapefile; gridded data are optional.</li>
+        <li>Click <strong>Load data</strong>.</li>
+      </ol>
+      <h4>Select Variables</h4>
+      <p>Use the Main and Spatial data sections to assign IDs, coordinates, and dates, then click <strong>Save selected variables</strong>. Use the <strong>Create ID</strong> buttons if trip, haul, or zone IDs are missing.</p>
+      <p><strong>Tip:</strong> Confidentiality settings, log reset, metadata, table management, and full data refresh are also available in this tab.</p>
+    </details>
+
+    <details>
+      <summary>QAQC</summary>
+      <h4>Data Quality Checks</h4>
+      <p>Use the sidebar to check for missing values, empty variables, duplicate data, incorrect classes, outliers, and invalid spatial coordinates. Use <strong>Preview data</strong> and <strong>Summary table</strong> before applying corrections, and save revised data to the FishSET database when finished.</p>
+      <h4>Explore the Data</h4>
+      <p>Switch between tables and temporal, spatial, and correlation plots to understand the loaded data. Generated plots and tables are saved to the project output folder.</p>
+    </details>
+
+    <details>
+      <summary>Format Data</summary>
+      <h4>Compute New Variables</h4>
+      <p>Use the sidebar tools to create variables with R expressions, spatial metrics, trip summaries, aggregations, and group-level statistics. Follow the prompts, review the generated column, and save the revised data.</p>
+      <h4>Define Alternative Fishing Choices</h4>
+      <p>Define how the distance matrix between observed and alternative locations will be calculated. Select starting and alternative locations, set the minimum number of observations for a zone, name the matrix, and click <strong>Create alternative location matrix</strong>.</p>
+      <h4>Create Expected Catch Matrix</h4>
+      <p>Estimate expected catch or revenue for alternative fishing zones. Name the matrix, select the catch and optional price variables, link the alternative matrix, configure temporal and grouping settings, and click <strong>Create Expectations</strong>.</p>
+      <h4>Format Model Data</h4>
+      <p>Reshape project data into the long format required for modeling. Select variables and the alternative and expectations matrices, optionally integrate external data, configure missing-data handling, and click <strong>Run Format Data</strong>.</p>
+    </details>
+
+    <details>
+      <summary>Modeling</summary>
+      <h4>Model Design</h4>
+      <p>Create the design matrices for a discrete choice model. Name the design, select formatted data and model type, specify utility and optional catch formulas, and click <strong>Create Design Object</strong>.</p>
+      <h4>Model Fit</h4>
+      <p>Select a saved model design, provide an optional fit name, choose an EPM distribution when required, and click <strong>Fit Model</strong>. Use the model comparison controls to review saved fits side by side.</p>
+      <h4>Model Cross Validation</h4>
+      <p>Select a model design and number of folds, then click <strong>Run Cross-Validation</strong> to assess out-of-sample predictive performance. Review overall metrics, fold accuracy, and estimated coefficients.</p>
+    </details>
+
+    <details>
+      <summary>Policy</summary>
+      <h4>Zone Closure</h4>
+      <p>Select an alternative matrix, click zones on the map, adjust allowable catch percentages, enter a scenario name, and click <strong>Add closure</strong>.</p>
+      <h4>Run Policy Simulations</h4>
+      <p>Select a fitted model and closure scenarios, set simulation draws, provide the marginal utility of income when required, and click <strong>Run Simulation</strong>.</p>
+      <h4>Summarize Effort Redistribution</h4>
+      <p>Extract and visualize how fishing effort shifts geographically under policy simulations.</p>
+      <h4>Summarize Welfare Impacts</h4>
+      <p>Evaluate expected welfare changes or compensating variation resulting from policy simulations.</p>
+    </details>
+
+    <details>
+      <summary>Bookmark Choices</summary>
+      <p><em>Under development.</em> Store choices and actions made in the FishSET GUI so they can be reloaded later.</p>
+    </details>
+
+  </div>
+
+  <h2>Need more help?</h2>
+  <ul>
+    <li><a href="[https://bcove.video/3WCSb5N](https://bcove.video/3WCSb5N)" target="_blank">FishSET video tutorial</a></li>
+    <li><a href="[https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html)" target="_blank">FishSET User Manual</a></li>
+    <li>Questions: <a href="mailto:nmfs.fishset@noaa.gov">nmfs.fishset@noaa.gov</a></li>
+  </ul>
+
 </div>
-
-<div class="quickstart-grid">
-<div class="quickstart-card"><h3>What the GUI does</h3><p>The GUI helps you move from raw data to model-ready outputs without writing code. It guides data loading, quality checks, derived variables, model fitting, and policy analysis.</p></div>
-<div class="quickstart-card"><h3>Before you start</h3><ul><li>Have your main data file ready. Port, spatial, gridded, and auxiliary files are optional.</li><li>Choose a FishSET folder where project files can be saved.</li><li>For mapping or policy tabs, make sure your spatial data contain the required zone information.</li></ul></div>
-<div class="quickstart-card"><h3>What gets saved</h3><ul><li>Project data and edits are stored in the local FishSET database.</li><li>Plots and tables are written to the project output folder.</li><li>Function calls and input values are written to the project logs.</li><li>The report template is stored in the project <code>doc</code> folder.</li></ul></div>
-</div>
-
-<div class="quickstart-note"><strong>Open the app:</strong> run <code>library(FishSET)</code> and then <code>run_fishset_gui()</code> in R or RStudio. The main data table is required; supporting files depend on your workflow.</div>
-
-<h2>Quick path through the app</h2>
-
-<div class="quickstart-path">
-<p><em>Click any step below to expand the instructions.</em></p>
-<details><summary><strong>Information across all tabs</strong></summary><p>All tabs include controls to close the app, refresh data, save plots and tables to the project <code>output</code> folder, record notes, and run an R expression. Within the app, the primary data frame is called <code>values$dataset</code>. Refreshing restores the original loaded table unless another table is selected on the <strong>Upload Data</strong> tab.</p></details>
-
-<details><summary><strong>Upload Data</strong></summary><h4>Load Files</h4><ol><li>Click <strong>Change FishSET Folder</strong> to set where project files will be stored.</li><li>Type a new project name or select an existing project.</li><li>Provide the primary data; port and auxiliary data are optional.</li><li>Provide spatial data as a standard file or shapefile; gridded data are optional.</li><li>Click <strong>Load data</strong>.</li></ol><h4>Select Variables</h4><p>Use the Main and Spatial data sections to assign IDs, coordinates, and dates, then click <strong>Save selected variables</strong>. Use the <strong>Create ID</strong> buttons if trip, haul, or zone IDs are missing.</p><p><strong>Tip:</strong> Confidentiality settings, log reset, metadata, table management, and full data refresh are also available in this tab.</p></details>
-
-<details><summary><strong>QAQC</strong></summary><h4>Data Quality Checks</h4><p>Use the sidebar to check for missing values, empty variables, duplicate data, incorrect classes, outliers, and invalid spatial coordinates. Use <strong>Preview data</strong> and <strong>Summary table</strong> before applying corrections, and save revised data to the FishSET database when finished.</p><h4>Explore the Data</h4><p>Switch between tables and temporal, spatial, and correlation plots to understand the loaded data. Generated plots and tables are saved to the project output folder.</p></details>
-
-<details><summary><strong>Format Data</strong></summary><h4>Compute New Variables</h4><p>Use the sidebar tools to create variables with R expressions, spatial metrics, trip summaries, aggregations, and group-level statistics. Follow the prompts, review the generated column, and save the revised data.</p><h4>Define Alternative Fishing Choices</h4><p>Define how the distance matrix between observed and alternative locations will be calculated. Select starting and alternative locations, set the minimum number of observations for a zone, name the matrix, and click <strong>Create alternative location matrix</strong>.</p><h4>Create Expected Catch Matrix</h4><p>Estimate expected catch or revenue for alternative fishing zones. Name the matrix, select the catch and optional price variables, link the alternative matrix, configure temporal and grouping settings, and click <strong>Create Expectations</strong>.</p><h4>Format Model Data</h4><p>Reshape project data into the long format required for modeling. Select variables and the alternative and expectations matrices, optionally integrate external data, configure missing-data handling, and click <strong>Run Format Data</strong>.</p></details>
-
-<details><summary><strong>Modeling</strong></summary><h4>Model Design</h4><p>Create the design matrices for a discrete choice model. Name the design, select formatted data and model type, specify utility and optional catch formulas, and click <strong>Create Design Object</strong>.</p><h4>Model Fit</h4><p>Select a saved model design, provide an optional fit name, choose an EPM distribution when required, and click <strong>Fit Model</strong>. Use the model comparison controls to review saved fits side by side.</p><h4>Model Cross Validation</h4><p>Select a model design and number of folds, then click <strong>Run Cross-Validation</strong> to assess out-of-sample predictive performance. Review overall metrics, fold accuracy, and estimated coefficients.</p></details>
-
-<details><summary><strong>Policy</strong></summary><h4>Zone Closure</h4><p>Select an alternative matrix, click zones on the map, adjust allowable catch percentages, enter a scenario name, and click <strong>Add closure</strong>.</p><h4>Run Policy Simulations</h4><p>Select a fitted model and closure scenarios, set simulation draws, provide the marginal utility of income when required, and click <strong>Run Simulation</strong>.</p><h4>Summarize Effort Redistribution</h4><p>Extract and visualize how fishing effort shifts geographically under policy simulations.</p><h4>Summarize Welfare Impacts</h4><p>Evaluate expected welfare changes or compensating variation resulting from policy simulations.</p></details>
-
-<details><summary><strong>Bookmark Choices</strong></summary><p><em>Under development.</em> Store choices and actions made in the FishSET GUI so they can be reloaded later.</p></details>
-</div>
-
-<h2>Need more help?</h2>
-<ul><li><a href="https://bcove.video/3WCSb5N" target="_blank">FishSET video tutorial</a></li><li><a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank">FishSET User Manual</a></li><li>Questions: <a href="mailto:nmfs.fishset@noaa.gov">nmfs.fishset@noaa.gov</a></li></ul>
+```
