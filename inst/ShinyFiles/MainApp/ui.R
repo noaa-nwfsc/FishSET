@@ -41,7 +41,7 @@ source("modules/policy/policy_welfare_module.R", local = TRUE)
 # Find the file path to quickstart guide html document
 guide_path <- system.file("extdata", "FishSET_GUI_Quickstart_Content.html", package = "FishSET")
 if (guide_path == "") {
-  guide_path <- "../../inst/extdata/FishSET_GUI_Quickstart_Content.html" 
+  guide_path <- "../../extdata/FishSET_GUI_Quickstart_Content.html"
 }
 
 # Read the HTML into memory to speed up load time
