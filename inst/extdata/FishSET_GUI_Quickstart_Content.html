@@ -1,6 +1,30 @@
 
+<!-- Explicit CDN Link (Preserved by Pandoc & Shiny) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 <style>
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+/* Fallback import for standard browsers */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css');
+
+/* Force FontAwesome font-family rendering in RStudio Viewer / Shiny */
+.quickstart-wrapper .fa,
+.quickstart-wrapper .fas,
+.quickstart-wrapper .fa-solid,
+.quickstart-wrapper .far,
+.quickstart-wrapper .fa-regular {
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900;
+  display: inline-block;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  line-height: 1;
+}
+
+.quickstart-wrapper .fa-regular,
+.quickstart-wrapper .far {
+  font-weight: 400;
+}
 
 /* Scoped Wrapper - Prevents styles from leaking to other Shiny tabs */
 .quickstart-wrapper {

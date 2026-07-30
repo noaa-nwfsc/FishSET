@@ -1,6 +1,8 @@
 ---
 title: "FishSET GUI Quickstart Guide"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    self_contained: false
 vignette: >
   %\VignetteIndexEntry{FishSET GUI Quickstart Guide}
   %\VignetteEngine{knitr::rmarkdown}
@@ -20,5 +22,6 @@ if (!file.exists(guide_path)) {
   stop("Could not find FishSET_GUI_Quickstart_Content.html at: ", guide_path)
 }
 
-htmltools::includeHTML(guide_path)
+  htmltools::includeHTML(guide_path)
+
 ```
