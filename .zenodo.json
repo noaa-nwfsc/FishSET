@@ -1,0 +1,25 @@
+{
+  "upload_type": "software", 
+  "description": "The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools for organizing data; developing, improving and disseminating modeling best practices.",
+  "title": "FishSET",
+  "creators": [
+     {
+       "affiliation": "NOAA NMFS",
+       "name": "Lisa Pfeiffer"
+     },
+     {
+       "affiliation": "PSMFC, NOAA NMFS",
+       "name": "Paul Carvalho"
+     },
+     {
+       "affiliation": "PSMFC, NOAA NMFS",
+       "name": "Anna Abelman"
+     },
+     {
+       "affiliation": "ICES Secretariat",
+       "name": "Alan Haynie"
+     }
+  ],
+  "keywords": ["R", "R-package", "software", "econometrics", "spatial analysis", "data visualization", "discrete choice model"],
+  "license": "MIT"
+}
