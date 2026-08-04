@@ -63,7 +63,7 @@ Carvalho P., Pfeiffer L., Abelman A., Lee M.-Y., and Haynie A. The Spatial Econo
 
 If you use FishSET results in publications, please cite the package:
 
-Lisa Pfeiffer, Paul Carvalho, Anna Abelman, Alan Haynie. (2026). FishSET: Spatial Economics Toolbox for Fisheries. R package version 2.0.
+Lisa Pfeiffer, Paul Carvalho, Anna Abelman, Alan Haynie. (2026). FishSET: Spatial Economics Toolbox for Fisheries. R package version 2.0.0 https://doi.org/10.5281/zenodo.21796076
 
 ## Troubleshooting
 
