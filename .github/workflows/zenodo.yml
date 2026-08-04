@@ -1,0 +1,17 @@
+name: Zenodo Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Run Zenodo Deploy
+      uses: nmfs-opensci/zenodo-gha@main
+      with:
+        token: ${{ secrets.ZENODO_TOKEN }}
+        zenodo_json: .zenodo.json   # either a .zenodo.json file or CITATION.cff
