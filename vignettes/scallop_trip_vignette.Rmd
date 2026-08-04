@@ -25,7 +25,6 @@ database-backed workflow as a real project.
 
 ```{r setup, include=FALSE}
 library(FishSET)
-library(tidyverse)
 
 folderpath <- tempdir()
 project <- "scallop_vignette"
@@ -92,10 +91,11 @@ qaqc_out$spatial_summary
 qaqc_out$land_plot
 
 # Remove observations on land
-scallop_spat_clean <- qaqc_out$dataset %>% 
-  filter(ON_LAND != TRUE) %>% 
-  # Removing extra variables that are no longer needed helps speed up the modeling process
-  select(-YEAR, -ON_LAND, -ON_ZONE_BOUNDARY, -EXPECTED_LOC)
+scallop_spat_clean <- qaqc_out$dataset[which(qaqc_out$dataset$ON_LAND != TRUE), ]
+
+# Removing extra variables that are no longer needed helps speed up the modeling process
+cols_to_drop <- c("YEAR", "ON_LAND", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
+scallop_spat_clean <- scallop_spat_clean[, !(names(scallop_spat_clean) %in% cols_to_drop)]
 
 # Save updated data to FishSET database
 load_maindata( scallop_spat_clean, project = project, over_write=TRUE)
