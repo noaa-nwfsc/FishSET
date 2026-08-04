@@ -1,0 +1,40 @@
+name: Publish release to Zenodo Sandbox
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  publish-zenodo-sandbox:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    env:
+      ZENODO_API_BASE_URL: https://sandbox.zenodo.org/api/deposit/depositions
+      ZENODO_SANDBOX_TOKEN: ${{ secrets.ZENODO_SANDBOX_TOKEN }}
+      ZENODO_CONCEPT_REC_ID: ${{ vars.ZENODO_CONCEPT_REC_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+
+      - name: Install R dependencies
+        run: |
+          install.packages(c("desc", "httr2", "jsonlite"), repos = "https://cloud.r-project.org")
+        shell: Rscript {0}
+
+      - name: Create release archive
+        run: |
+          VERSION="$(Rscript -e 'cat(desc::desc_get_version(file = "DESCRIPTION"))')"
+          git archive --format=zip --output="FishSET-${VERSION}.zip" HEAD
+          echo "ZENODO_ARCHIVE_PATH=${GITHUB_WORKSPACE}/FishSET-${VERSION}.zip" >> "$GITHUB_ENV"
+
+      - name: Publish to Zenodo Sandbox
+        run: Rscript .github/scripts/publish_zenodo.R
