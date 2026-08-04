@@ -94,4 +94,4 @@ The zone ID variable in the primary data table can be reassigned to match the zo
 
 Use the [`assignment_column()`](https://noaa-nwfsc.github.io/FishSET/reference/assignment_column.html) function in FishSET to reassign zone IDs in the primary data table. 
 
-If using the FishSET GUI, navigate to *Compute New Variables*, select *Spatial functions* and *Assign observations to zones* in the side panel, then complete the inputs and click *Run function* to reassign zone IDs in the primary data table.
+If using the FishSET GUI: navigate to the **Select variables** tab, use the *Create zone ID column* button, and follow the directions to reassign zone IDs in the primary data table.
