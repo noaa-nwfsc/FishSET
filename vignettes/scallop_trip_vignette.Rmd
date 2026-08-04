@@ -5,7 +5,7 @@ vignette: >
   %\VignetteIndexEntry{Scallop End-to-End Workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-editor_options:
+  editor_options:
   markdown:
     wrap: 72
 ---
@@ -29,9 +29,9 @@ library(FishSET)
 folderpath <- tempdir()
 project <- "scallop_vignette"
 
-data("scallop")
-data("scallop_ports")
-data("tenMNSQR")
+data("scallop") # main data
+data("scallop_ports") # port data
+data("tenMNSQR") # spatial data
 ```
 
 The example data cover three pieces of the workflow: trip-level records,
@@ -89,6 +89,16 @@ qaqc_out <- spatial_qaqc(
 
 qaqc_out$spatial_summary
 qaqc_out$land_plot
+
+# Remove observations on land
+scallop_spat_clean <- qaqc_out$dataset[which(qaqc_out$dataset$ON_LAND != TRUE), ]
+
+# Removing extra variables that are no longer needed helps speed up the modeling process
+cols_to_drop <- c("YEAR", "ON_LAND", "ON_ZONE_BOUNDARY", "EXPECTED_LOC")
+scallop_spat_clean <- scallop_spat_clean[, !(names(scallop_spat_clean) %in% cols_to_drop)]
+
+# Save updated data to FishSET database
+load_maindata( scallop_spat_clean, project = project, over_write=TRUE)
 ```
 
 To see how the cleaned trips are distributed across zones, we summarize
@@ -112,6 +122,42 @@ zone_out <- zone_summary(
 zone_out$table
 zone_out$plot
 ```
+
+FishSET provides several other exploratory functions. Here are a few examples:
+
+```{r}
+# Vessel count by year
+vessel_count(scallop_vignetteMainDataTable, 
+             project,
+             v_id = "PERMIT.y",
+             date = "DATE_TRIP",
+             period = "year", 
+             type = "line",
+             output= "plot")
+
+# Scale LANDED_OBSCURED to thousands of pounds
+scallop_vignetteMainDataTable$landed_thousands <- 
+  scallop_vignetteMainDataTable$LANDED_OBSCURED / 1000
+
+# Create Catch per Unit Effort variables
+cpue_out <- cpue(dat =scallop_vignetteMainDataTable, 
+                 project,
+                 xWeight = "landed_thousands",
+                 xTime = "TRIP_LENGTH",
+                 name = "cpue")
+
+# Average CPUE by year and gear code
+species_catch(cpue_out, project,
+              species = "cpue",
+              date = "DATE_TRIP", 
+              group = "GEARCODE",
+              period = "year",
+              fun = "mean",
+              type = "line",
+              output= "plot")
+```
+
+More FishSET functions can be found on the [references page](https://noaa-nwfsc.github.io/FishSET/reference/index.html). 
 
 ## Prepare and format data
 
@@ -196,7 +242,7 @@ create_expectations(
 ```
 
 The formatted data step reshapes the project tables into the long format
-used by the RTMB model code within fishset_fit(). We keep the variables 
+used by the RTMB model code within `fishset_fit()`. We keep the variables 
 needed for the choice model and distance calculation, then repeat the 
 process for the second alternative-choice set.
 
@@ -288,8 +334,8 @@ clogit1_resid <- model_resid_corr(
   project = project,
   model_name = "clogit1",
   spat = "scallop_vignettetenMNSQRSpatTable",
-  spat_id = "TEN_ID"
-)
+  spat_id = "TEN_ID")
+
 print(clogit1_resid)
 plot(clogit1_resid)
 
@@ -300,4 +346,58 @@ zlogit1_resid <- model_resid_corr(
   spat_id = "TEN_ID"
 )
 print(zlogit1_resid)
+
 ```
+
+
+## Reproducibility
+
+FishSET was designed with the aim of reproducibility. All function calls
+are logged in a dated file. Log files are stored in the `src` folder.
+Each log call has a functionID and a list of parameters supplies (args).
+Some logged functions includes kwargs, optional arguments, an output, or
+a message. The message section is used to save text output from a
+function call that users may want to reference later, such as the number
+of number of rows with missing data.
+
+For example, the function call
+
+```{r eval=FALSE}
+filter_table(dat = 'scallop_vignetteMainDataTable',
+             project = project, 
+             x = 'GEARCODE', 
+             exp = 'GEARCODE==1')
+```
+
+returns the following log entry:
+
+```{r eval=FALSE}
+{
+  "functionID": "filter_table",
+  "args": [
+    "scallop_vignetteMainDataTable",
+    "scallop_vignette",
+    "GEARCODE",
+    "GEARCODE=='DREDGE-SCALLOP'"
+  ],
+  "kwargs": [],
+  "output": "",
+  "msg": [
+    {
+      "dataframe": "scallop_vignetteMainDataTable",
+      "vector": "GEARCODE",
+      "FilterFunction": "GEARCODE=='DREDGE-SCALLOP'"
+    }
+  ]
+}
+```
+
+Log entries are written in JSON. Future version of FishSET will include
+a function that will read the log files and rerun function calls with
+current or updated data.
+
+Logging is built into FishSET functions. However, it is possible to
+start a new log file using `log_reset`. New log files are started each
+day. User-created functions, such as likelihoods, can be saved for
+future use and logged using `log_func_model`.
+

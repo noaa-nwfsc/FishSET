@@ -151,7 +151,7 @@ properly.
 
 ## Step 4: Integrate and Submit
 
-Once you have a working design object and an `RTMB` objecive function,
+Once you have a working design object and an `RTMB` objective function,
 you can integrate your code into the package.
 
 1.  **Modify** `fishset_fit.R`: Add a new `if/else` block within the `fishset_fit()` function to handle your custom model type. Set up your unique `data_list` and `start_pars`, and define your custom `nll_func` within this block.
