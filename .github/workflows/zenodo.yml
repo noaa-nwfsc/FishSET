@@ -15,3 +15,4 @@ jobs:
       with:
         token: ${{ secrets.ZENODO_TOKEN }}
         zenodo_json: .zenodo.json   # either a .zenodo.json file or CITATION.cff
+        doi: 10.5281/zenodo.21796076
