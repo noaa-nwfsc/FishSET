@@ -171,7 +171,7 @@
     <h3><i class="fa-solid fa-list-check"></i> Before you start</h3>
     <ul>
       <li>Have your main and spatial data files ready. Port, gridded, and auxiliary files are optional.</li>
-      <li>Choose a FishSET folder where project files can be saved.</li>
+      <li>Choose a FishSETFolder where project files can be saved.</li>
       <li>For mapping or policy tabs, make sure your spatial data contain the required zone information.</li>
     </ul>
   </div>
@@ -216,7 +216,7 @@
     </ol>
     <p><strong>Tip:</strong> Confidentiality settings, log reset, table management, and full data refresh are also available in this tab. Refreshing restores the original loaded table unless another table is selected on the <strong>Upload Data</strong> tab.</p>
     <h4>Select Variables</h4>
-    <p>Use the Main and Spatial data sections to assign IDs, coordinates, and dates, then click <strong>Save selected variables</strong>. Use the <strong>Create ID</strong> buttons if trip, haul, or zone IDs are missing. These selections are saved to the database and only need to be selected when starting a new project.</p>
+    <p>Use the Main and Spatial data sections to assign IDs, coordinates, and dates, then click <strong>Save selected variables</strong>. Use the <strong>Create ID</strong> buttons if trip, haul, or zone IDs were not included in your uploaded dataset. These selections are saved to the database and only need to be selected when starting a new project.</p>
   </details>
   
   <details>
@@ -232,7 +232,7 @@
   <details>
     <summary><span><i class="fa-solid fa-table-columns"></i> Format Data</span></summary>
     <h4>Compute New Variables</h4>
-    <p>Use the radio buttons in the left sidebar to access various tools for creating new data columns. You can apply custom R expressions, calculate spatial metrics (like trip distances or centroids), aggregate your data (such as rolling hauls into trips), or generate group-level statistics (like quantiles, percentages, and cumulative sums). Follow the on-screen prompts for each selected tool to compute and save your new variables to the dataset.</p>
+    <p>Use the radio buttons in the left sidebar to access various tools for creating new data columns. You can apply custom R expressions, calculate spatial metrics (like trip distances or centroids), aggregate your data (such as collapsing haul-level data into trip-level data), or generate group-level statistics (like quantiles, percentages, and cumulative sums). Follow the on-screen prompts for each selected tool to compute and save your new variables to the dataset.</p>
     <h4>Define Alternative Fishing Choices</h4>
     <p>Use this tab to define how the distance matrix between observed and alternative fishing locations should be calculated for your choice model.</p>
     <ol>
@@ -266,7 +266,7 @@
     <p>Use this tab to construct the design matrices (the mathematical structures) required to actually run your discrete choice models.</p>
     <ol>
       <li>Under <strong>Source Data & Naming</strong>, provide a unique name for this design, select your newly formatted dataset from the dropdown, and choose your Model Type (Standard Logit or Expected Profit Model). </li>
-      <li>Under <strong>Model Specification</strong>, type in your Utility Formula (e.g., <code>chosen ~ catch + distance | vessel_length</code>). If you selected the Expected Profit Model, you will also need to provide a Catch Formula and select a Price Variable. You can also check the box to automatically scale your numeric covariates for better model stability.</li>
+      <li>Under <strong>Model Specification</strong>, type in your Utility Formula (e.g., <code>chosen ~ catch + distance | vessel_length</code>). You can also check the box to automatically scale your numeric covariates for better model stability. If you selected the Expected Profit Model, you will also need to provide a Catch Formula and select a Price Variable.</li>
       <li>Click <strong>Create Design Object</strong> to generate and save the matrices to your project.</li>
     </ol>
     <h4>Model Fit</h4>
@@ -302,17 +302,11 @@
   
     <p><strong>For more information on simulating policy scenarios see <a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank"> Chapter 9 of the FishSET User Manual</a>.</strong></p>
   </details>
-  
-  <details>
-    <summary><span><i class="fa-regular fa-bookmark"></i> Bookmark Choices</span></summary>
-    <p><em>Under development.</em> Store choices and actions made in the FishSET GUI so they can be reloaded later.</p>
-  </details>
 
 </div>
 
 <h2>Need more help?</h2>
 <ul class="help-links">
-  <li><i class="fa-solid fa-circle-play"></i> <a href="https://bcove.video/3WCSb5N" target="_blank">FishSET video tutorial</a></li>
   <li><i class="fa-solid fa-book"></i> <a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank">FishSET User Manual</a></li>
   <li><i class="fa-solid fa-envelope"></i> Questions: <a href="mailto:nmfs.fishset@noaa.gov">nmfs.fishset@noaa.gov</a></li>
 </ul>
