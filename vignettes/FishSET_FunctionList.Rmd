@@ -135,8 +135,6 @@ filter_table()
 
 filter_dat()
 
-#Add variables back into the working data set
-add_vars()
 ```
 
 ##Data Exploration\
@@ -320,8 +318,6 @@ H1: The inverse hessian
 The output can be viewed using:
 
 ```{r  eval=FALSE}
-#Display errorExplain output
-globalcheck_view('pcodldglobalcheck20190604')
 #Display all other model output.
 model_out_view('pcod')
 ```
@@ -345,8 +341,6 @@ raw dataset.
 
 ```{r  eval=FALSE}
 run_fishset_gui()
-select_vars()
-add_vars()
 ```
 
 ## Reproducibility
