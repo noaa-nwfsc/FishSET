@@ -54,6 +54,7 @@ if (file.exists(guide_path)) {
 # UI function definition
 ui <- function(request){
   bslib::page_navbar(
+    title = "FishSET v2.0.0",
     theme = bslib::bs_theme(
       primary = "#41729F", 
       secondary = "#AACDE5", 

@@ -7747,7 +7747,6 @@ heavy_server <- function(input, output, session) {
   onStop(function() {
     
     # map viewer -- add check to see if run w/ servr::daemon_list()
-    servr::daemon_stop()
   }) 
   
   # policy -----
