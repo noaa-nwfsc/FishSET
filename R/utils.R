@@ -983,7 +983,7 @@ data_upload_helper <- function(dat, type, ...) {
         
       } else { # table/filepath not found
         
-        if (!is_value_empty(file_ext(dat))) { # contains a filepath extension
+        if (!is_value_empty(tools::file_ext(dat))) { # contains a filepath extension
           
           stop("File not found.", call. = FALSE)
           
