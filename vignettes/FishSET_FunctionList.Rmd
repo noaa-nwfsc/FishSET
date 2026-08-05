@@ -126,8 +126,7 @@ database and can be applied to any dataset using the `filter_dat`
 function. No function has been written to remove variables from the
 working data set. Users should use base R functions for this. Within the
 FishSET app variables can be removed from the working data set in the
-`Data Exploration` tab. Use the `add_vars` function to add variables
-from the raw data set back into the working data set.
+`Data Exploration` tab.
 
 ```{r  eval=FALSE}
 #Filter
@@ -335,9 +334,7 @@ FishSET functions described here can be run through a user interface
 with `run_fishset_gui`. The user interace guides users through loading
 data to model evaluation. In addition, users can use the `select_vars`
 function to open an interactive interface for selecting a subset of
-variables to keep in the working data set and the `add_vars` function to
-interactively select vars to add back into the working data set from the
-raw dataset.
+variables to keep in the working data set.
 
 ```{r  eval=FALSE}
 run_fishset_gui()
