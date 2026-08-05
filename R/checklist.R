@@ -37,7 +37,7 @@ checklist <- function(project, modDesignTab = NULL) {
   # check that map_plot, map_kernel, or map_viewer has been run
   sum_list <- function_summary(project = project, date = NULL, type = "dat_exploration")
   nms <- names(sum_list)
-  m_nms <- c("map_viewer", "map_plot", "map_kernel", "zone_summary")
+  m_nms <- c("map_plot", "map_kernel", "zone_summary")
   
   if (any(m_nms %in% nms)) {
     
@@ -47,7 +47,7 @@ checklist <- function(project, modDesignTab = NULL) {
   }  else {
     
     check$occur_pnts$msg <- 
-      paste("map_viewer(), map_plot(), map_kernel(), or zone_summary() functions have not been run.",
+      paste("map_plot(), map_kernel(), or zone_summary() functions have not been run.",
             "Run at least one of these functions to determine whether occurrence points",
             "are valid.")
   }
