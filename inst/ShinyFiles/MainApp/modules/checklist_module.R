@@ -155,7 +155,7 @@ pass_icon <- function(tab, checklist, previous_check = NULL) {
       out_icon <- icon_wrapper(icon_name = "file-lines", icon_color = "black")
       
       if (isTRUE(previous_check)) {
-        out_icon_message <- "NEXT STEP: Format data"
+        out_icon_message <- "NEXT STEP: Define alternative choice set"
       }
     }
   }
