@@ -337,7 +337,7 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_folderpath){
         } 
         
         # 3. Check spatial check status
-        if (!is.null(rv_folderpath)) {
+        if (!is.null(rv_folderpath) && !is.null(rv_folderpath())) {
           status_file_path <- file.path(rv_folderpath(),
                                         project_name,
                                         "data",
