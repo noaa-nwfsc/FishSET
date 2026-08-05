@@ -39,11 +39,10 @@ source("modules/policy/policy_effort_module.R", local = TRUE)
 source("modules/policy/policy_welfare_module.R", local = TRUE)
 
 
-
-
 # UI function definition
 ui <- function(request){
   bslib::page_navbar(
+    title = "FishSET v2.0.0",
     theme = bslib::bs_theme(
       primary = "#41729F", 
       secondary = "#AACDE5", 
