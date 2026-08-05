@@ -42,8 +42,7 @@
 #'   time window.
 #' @param Alt Alternative choice list loaded from the FishSET database.
 #' @keywords internal
-#' @importFrom data.table := as.data.table .I .GRP fcoalesce dcast setnames 
-#'             setcolorder setkey .SD data.table set copy rbindlist setorder
+#' @importFrom data.table := as.data.table .I .GRP fcoalesce dcast setnames setcolorder setkey .SD data.table set copy rbindlist setorder
 #' @importFrom lubridate floor_date year years %m-%
 #' @importFrom stats aggregate lm coef na.pass ar.ols predict
 #' @returns Returns a list containing the expected catch/revenue matrix, 

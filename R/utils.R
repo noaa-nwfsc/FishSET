@@ -189,11 +189,6 @@ check_proj <- function(project = NULL) {
       
       create_proj_settings(project)
       
-      #MapViewer
-      fs_mv <- system.file("MapViewer", package = "FishSET")
-      file.copy(from = fs_mv, to = file.path(proj_dir), recursive = TRUE)
-      
-      
     } else {
       #Cases where the root folder exists but the subfolders have been deleted.
       if (!file.exists(paste0(locproject(),  project, "/src"))) {
@@ -221,18 +216,6 @@ check_proj <- function(project = NULL) {
       if (!file.exists(paste0(locproject(),  project, "/doc"))) {
         
         dir.create(file.path(paste0(proj_dir, '/doc')), showWarnings = FALSE)
-        file.copy(appDir, paste0(locproject(), project, "/doc/report_template.Rmd"))
-      }
-      
-      if (!file.exists(paste0(locproject(),  project, "/MapViewer"))) {
-        
-        fs_mv <- system.file("MapViewer", package = "FishSET")
-        file.copy(from = fs_mv, to = file.path(proj_dir), recursive = TRUE)
-      }
-      
-      if (!file.exists(paste0(locproject(), project, "/doc/report_template.Rmd"))) {
-        
-        file.copy(appDir, paste0(locproject(), project, "/doc/report_template.Rmd"))
       }
     }
     
