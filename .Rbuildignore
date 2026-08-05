@@ -12,3 +12,4 @@ LICENSE.md
 _\.new\.png$
 ^\.positai$
 ^\.claude$
+^archive$
