@@ -154,7 +154,7 @@ pass_icon <- function(tab, checklist, previous_check = NULL) {
       # No checks passed: black icon
       out_icon <- icon_wrapper(icon_name = "file-lines", icon_color = "black")
       
-      if (previous_check) {
+      if (isTRUE(previous_check)) {
         out_icon_message <- "NEXT STEP: Format data"
       }
     }
