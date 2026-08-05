@@ -73,5 +73,6 @@ utils::globalVariables(c(
   'Pct_Effort_Change',
   'Simulation',
   'Upper_95',
-  'Welfare_Change'
+  'Welfare_Change',
+  'file_ext'
 ))
