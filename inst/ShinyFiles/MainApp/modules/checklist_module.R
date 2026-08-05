@@ -146,6 +146,9 @@ pass_icon <- function(tab, checklist, previous_check = NULL) {
       if ("alt_check" %in% failed_checks) {
         out_icon_message <- "NEXT STEP: Define alternative choice set"
         
+      } else if ("expcatch_check" %in% failed_checks) {
+        out_icon_message <- "NEXT STEP: Create an expected catch matrix"
+        
       } else if ("format_check" %in% failed_checks) {
         out_icon_message <- "NEXT STEP: Create a long formatted data table"
       }
@@ -274,6 +277,7 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_folderpath){
         
         format_data = list(
           alt_check = FALSE,
+          expcatch_check = FALSE,
           format_check = FALSE),
         
         models = list(
@@ -388,7 +392,21 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_folderpath){
           rv_project_checklist$checklist$format_data$alt_check <- FALSE
         }
         
-        # 2. Check that a formatted data table was created
+        # 2. Check that exp catch matrix has been created
+        expcatch_table_name <- paste0(project_name, "ExpectedCatch")
+        exp_mats <- tryCatch({
+          unserialize_table(expcatch_table_name, project_name)
+        }, error = function(e) {
+          list()
+        })
+        
+        if (!is.null(exp_mats) && length(exp_mats) > 0) {
+          rv_project_checklist$checklist$format_data$expcatch_check <- TRUE
+        } else {
+          rv_project_checklist$checklist$format_data$expcatch_check <- FALSE
+        }
+        
+        # 3. Check that a formatted data table was created
         if (!is.null(rv_folderpath)) {
           project_dir <- file.path(rv_folderpath(), project_name)
           formatted_dir <- file.path(project_dir, "Models", "FormattedData")
