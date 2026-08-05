@@ -99,6 +99,30 @@ This error could appear when your last package installation was interrupted, whe
 
 </details>
 
+<details>
+
+<summary>Error: object 'attr' is not exported by 'namespace:[package]'...</summary>
+
+This error indicates a namespace version mismatch between an updated package and an older dependency installed in your local R library. It occurs when an upstream package updates and deprecates or renames an internal export that a downstream dependency is still trying to call. 
+
+1. Update the affected package and its dependencies
+Reinstall the offending package alongside its primary dependencies simultaneously:
+```
+# Replace 'package_name' with the package named in the error (e.g., xfun, rlang, cli)
+install.packages(c("package_name", "knitr", "rmarkdown"), dependencies = TRUE)
+```
+
+2. Update all installed R packages:
+```
+update.packages(ask = FALSE, checkBuilt = TRUE)
+```
+
+3. Upgrade R
+If issues continue, upgrading to the latest version of R will build a clean package library and eliminate stale dependency conflicts.
+
+</details>
+
+
 ## Issues and Bug Reports
 
 Add issues in GitHub <https://github.com/noaa-nwfsc/FishSET/issues>. Or contact [nmfs.fishset\@noaa.gov](mailto:nmfs.fishset@noaa.gov){.email}.
