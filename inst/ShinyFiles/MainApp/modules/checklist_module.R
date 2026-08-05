@@ -580,7 +580,7 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_folderpath){
             p(
               style = "margin-bottom: 3px;", # Reduced bottom margin
               tags$b("QAQC: "),
-              status_text(all(unlist(rv_project_checklist$checklist$qaqc))),
+              status_text(all(unlist(rv_project_checklist$checklist$qaqc)))
             ),
             
             p(
