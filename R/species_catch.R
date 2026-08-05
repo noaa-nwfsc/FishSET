@@ -131,8 +131,7 @@
 #' @importFrom stats reformulate
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom rlang expr sym
-#' @importFrom scales label_percent breaks_extended log_breaks label_number 
-#'   label_scientific
+#' @importFrom scales label_percent breaks_extended log_breaks label_number label_scientific
 
 species_catch <- function(dat,
                           project,
