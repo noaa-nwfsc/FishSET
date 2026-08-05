@@ -97,7 +97,6 @@ pass_icon <- function(tab, checklist, previous_check = NULL) {
   }
   
   # QAQC
-  # TODO: add more checks
   if (tab == 'qaqc') {
     if (all(unlist(list_checks))) {
       # All qaqc checks passed: green icon
@@ -133,21 +132,93 @@ pass_icon <- function(tab, checklist, previous_check = NULL) {
   }
   
   # Format data
-  # TODO: add checks
   if (tab == "format_data"){
-    out_icon <- icon_wrapper(icon_name = "file-lines", icon_color = "black")
+    if (all(unlist(list_checks))) {
+      # All format data checks passed
+      out_icon <- icon_wrapper(icon_name = "file-lines", icon_color = "green")
+      
+    } else if (any(unlist(list_checks))) {
+      out_icon <- icon_wrapper(icon_name = "file-lines", icon_color = "#F5CF27")
+      
+      # Identify failed checks
+      failed_checks <- names(which(!unlist(list_checks)))
+      
+      if ("alt_check" %in% failed_checks) {
+        out_icon_message <- "NEXT STEP: Define alternative choice set"
+        
+      } else if ("expcatch_check" %in% failed_checks) {
+        out_icon_message <- "NEXT STEP: Create an expected catch matrix"
+        
+      } else if ("format_check" %in% failed_checks) {
+        out_icon_message <- "NEXT STEP: Create a long formatted data table"
+      }
+      
+    } else {
+      # No checks passed: black icon
+      out_icon <- icon_wrapper(icon_name = "file-lines", icon_color = "black")
+      
+      if (isTRUE(previous_check)) {
+        out_icon_message <- "NEXT STEP: Define alternative choice set"
+      }
+    }
   }
   
   # Models data
-  # TODO: add checks
   if (tab == "models"){
-    out_icon <- icon_wrapper(icon_name = "gears", icon_color = "black")
+    if (all(unlist(list_checks))) {
+      # All model checks passed
+      out_icon <- icon_wrapper(icon_name = "gears", icon_color = "green")
+      
+    } else if (any(unlist(list_checks))) {
+      out_icon <- icon_wrapper(icon_name = "gears", icon_color = "#F5CF27")
+      
+      # Identify failed checks
+      failed_checks <- names(which(list_checks == FALSE))
+      
+      if ("design_check" %in% failed_checks) {
+        out_icon_message <- "NEXT STEP: Design a model"
+        
+      } else if ("fit_check" %in% failed_checks) {
+        out_icon_message <- "NEXT STEP: Fit model parameters"
+      }
+      
+    } else {
+      # No checks passed: black icon
+      out_icon <- icon_wrapper(icon_name = "gears", icon_color = "black")
+      
+      if (previous_check) {
+        out_icon_message <- "NEXT STEP: Design and fit model"
+      }
+    }
   }
   
   # Policy data
-  # TODO: add checks
   if (tab == "policy"){
-    out_icon <- icon_wrapper(icon_name = "fish-fins", icon_color = "black")
+    if (all(unlist(list_checks))) {
+      # All policy checks passed
+      out_icon <- icon_wrapper(icon_name = "fish-fins", icon_color = "green")
+      
+    } else if (any(unlist(list_checks))) {
+      out_icon <- icon_wrapper(icon_name = "fish-fins", icon_color = "#F5CF27")
+      
+      # Identify failed checks
+      failed_checks <- names(which(list_checks == FALSE))
+      
+      if ("closure_check" %in% failed_checks) {
+        out_icon_message <- "NEXT STEP: Design a closure scenario"
+        
+      } else if ("simulation_check" %in% failed_checks) {
+        out_icon_message <- "NEXT STEP: Run policy simulation"
+      }
+      
+    } else {
+      # No checks passed: black icon
+      out_icon <- icon_wrapper(icon_name = "fish-fins", icon_color = "black")
+      
+      if (previous_check) {
+        out_icon_message <- "NEXT STEP: Policy design and simulation"
+      }
+    } 
   }
   
   # Return the icon and any corresponding message 
@@ -205,13 +276,17 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_folderpath){
           spatial_check = FALSE),
         
         format_data = list(
-          tmp_check = FALSE),
+          alt_check = FALSE,
+          expcatch_check = FALSE,
+          format_check = FALSE),
         
         models = list(
-          tmp_check = FALSE),
+          design_check = FALSE,
+          fit_check = FALSE),
         
         policy = list(
-          tmp_check = FALSE)
+          closure_check = FALSE,
+          simulation_check = FALSE)
       )
     )
     
@@ -266,9 +341,9 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_folderpath){
         } 
         
         # 3. Check spatial check status
-        if (!is.null(rv_folderpath)) {
+        if (!is.null(rv_folderpath) && !is.null(rv_folderpath())) {
           status_file_path <- file.path(rv_folderpath(),
-                                        rv_project_name()$value,
+                                        project_name,
                                         "data",
                                         "SpatialChecksStatus.rds")
           
@@ -300,23 +375,162 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_folderpath){
       }
       
       ## Format data checks -----------------------------------------------------------------------
-      #TODO
+      # First check that all qaqc checks have passed
+      if (all(unlist(rv_project_checklist$checklist$qaqc))) {
+        
+        # 1. Check that an alternative choice matrix was created
+        test_alt <- tryCatch({
+          unserialize_table(paste0(project_name, "AltMatrix"), project_name)
+        }, error = function(e) {
+          NULL
+        })
+        
+        # Check that it isn't NULL and has at least one element in the list
+        if (!is.null(test_alt) && length(test_alt) > 0) {
+          rv_project_checklist$checklist$format_data$alt_check <- TRUE
+        } else {
+          rv_project_checklist$checklist$format_data$alt_check <- FALSE
+        }
+        
+        # 2. Check that exp catch matrix has been created
+        expcatch_table_name <- paste0(project_name, "ExpectedCatch")
+        exp_mats <- tryCatch({
+          unserialize_table(expcatch_table_name, project_name)
+        }, error = function(e) {
+          list()
+        })
+        
+        if (!is.null(exp_mats) && length(exp_mats) > 0) {
+          rv_project_checklist$checklist$format_data$expcatch_check <- TRUE
+        } else {
+          rv_project_checklist$checklist$format_data$expcatch_check <- FALSE
+        }
+        
+        # 3. Check that a formatted data table was created
+        if (!is.null(rv_folderpath)) {
+          project_dir <- file.path(rv_folderpath(), project_name)
+          formatted_dir <- file.path(project_dir, "Models", "FormattedData")
+          table_name <- paste0(project_name, "LongFormatData")
+          
+          qs2_path <- file.path(formatted_dir, paste0(table_name, ".qs2"))
+          rds_path <- file.path(formatted_dir, paste0(table_name, ".rds"))
+          
+          # Pass check if either file format exists
+          if (file.exists(qs2_path) || file.exists(rds_path)) {
+            rv_project_checklist$checklist$format_data$format_check <- TRUE
+          } else {
+            rv_project_checklist$checklist$format_data$format_check <- FALSE
+          }
+          
+        } else {
+          rv_project_checklist$checklist$format_data$format_check <- FALSE
+        }
+        
+      } else {
+        # If QAQC checks are no longer fully passed, reset format data checks
+        rv_project_checklist$checklist$format_data$alt_check <- FALSE
+        rv_project_checklist$checklist$format_data$format_check <- FALSE
+      }
       
       ## Models checks ----------------------------------------------------------------------------
-      #TODO
+      # First check that all format data checks have passed
+      if (all(unlist(rv_project_checklist$checklist$format_data))) {
+        
+        # 1. Check that a design matrix has been created
+        if (!is.null(rv_folderpath)) {
+          project_dir <- file.path(rv_folderpath(), project_name)
+          designs_dir <- file.path(project_dir, "Models", "ModelDesigns")
+          
+          if (dir.exists(designs_dir)) {
+            design_files <- list.files(designs_dir, pattern = "\\.(rds|qs2)$")
+            if (length(design_files) > 0) {
+              rv_project_checklist$checklist$models$design_check <- TRUE
+            } else {
+              rv_project_checklist$checklist$models$design_check <- FALSE
+            }
+          } else {
+            rv_project_checklist$checklist$models$design_check <- FALSE
+          }
+        } else {
+          rv_project_checklist$checklist$models$design_check <- FALSE
+        }
+        
+        # 2. Check that model parameters have been estimated for a model
+        table_name <- paste0(project_name, "ModelFit")
+        fits <- tryCatch({
+          unserialize_table(table_name, project_name)
+        }, error = function(e) {
+          list()
+        })
+        
+        if (!is.null(fits) && length(fits) > 0) {
+          rv_project_checklist$checklist$models$fit_check <- TRUE
+        } else {
+          rv_project_checklist$checklist$models$fit_check <- FALSE
+        }
+        
+      } else {
+        rv_project_checklist$checklist$models$design_check <- FALSE
+        rv_project_checklist$checklist$models$fit_check <- FALSE
+      }
       
       ## Policy checks ----------------------------------------------------------------------------
-      #TODO
+      # First check that all model checks have passed
+      if (all(unlist(rv_project_checklist$checklist$models))) {
+        
+        # 1. Check that closure scenarios have been created
+        closures <- tryCatch({
+          get_closure_scenario(project_name)
+        }, error = function(e) {
+          list()
+        })
+        
+        if (!is.null(closures) && length(closures) > 0) {
+          rv_project_checklist$checklist$policy$closure_check <- TRUE
+        } else {
+          rv_project_checklist$checklist$policy$closure_check <- FALSE
+        }
+        
+        # 2. Check that simulations have been run
+        sim_table_name <- paste0(project_name, "PolicySimulations")
+        sims <- tryCatch({
+          unserialize_table(sim_table_name, project_name)
+        }, error = function(e) {
+          list()
+        })
+        
+        if (!is.null(sims) && length(sims) > 0) {
+          rv_project_checklist$checklist$policy$simulation_check <- TRUE
+        } else {
+          rv_project_checklist$checklist$policy$simulation_check <- FALSE
+        }
+        
+      } else {
+        rv_project_checklist$checklist$policy$closure_check <- FALSE
+        rv_project_checklist$checklist$policy$simulation_check <- FALSE
+      }
       
       # Generate check list icons based on checks
-      load_icon <- pass_icon("load_data", 
-                             rv_project_checklist$checklist)
-      qaqc_icon <- pass_icon("qaqc", 
-                             rv_project_checklist$checklist, 
-                             all(unlist(rv_project_checklist$checklist$load_data)))
-      format_icon <- pass_icon("format_data", rv_project_checklist$checklist)
-      models_icon <- pass_icon("models", rv_project_checklist$checklist)
-      policy_icon <- pass_icon("policy", rv_project_checklist$checklist)
+      load_icon <- 
+        pass_icon("load_data", 
+                  rv_project_checklist$checklist)
+      qaqc_icon <- 
+        pass_icon("qaqc", 
+                  rv_project_checklist$checklist, 
+                  all(unlist(rv_project_checklist$checklist$load_data)))
+      format_icon <- 
+        pass_icon("format_data", 
+                  rv_project_checklist$checklist,
+                  all(unlist(rv_project_checklist$checklist$qaqc)))
+      models_icon <- 
+        pass_icon("models", 
+                  rv_project_checklist$checklist,
+                  all(unlist(rv_project_checklist$checklist$format_data)))
+      
+      policy_icon <- 
+        pass_icon("policy", 
+                  rv_project_checklist$checklist,
+                  all(unlist(rv_project_checklist$checklist$models)))
       
       # Display progress check UI
       showModal(
@@ -331,13 +545,13 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_folderpath){
               p(qaqc_icon[[2]], style = "color: black; font-size: 16px;")
               
             } else if (!is_empty(format_icon[[2]])) {
-              p(format_icon[[2]], style = "color: #F5CF27;")
+              p(format_icon[[2]], style = "color: black; font-size: 16px;")
               
             } else if (!is_empty(models_icon[[2]])) {
-              p(models_icon[[2]], style = "color: #F5CF27;")
+              p(models_icon[[2]], style = "color: black; font-size: 16px;")
               
             } else if (!is_empty(policy_icon[[2]])) {
-              p(policy_icon[[2]], style = "color: #F5CF27;")
+              p(policy_icon[[2]], style = "color: black; font-size: 16px;")
               
             },
             
@@ -384,7 +598,25 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_folderpath){
             p(
               style = "margin-bottom: 3px;", # Reduced bottom margin
               tags$b("QAQC: "),
-              status_text(all(unlist(rv_project_checklist$checklist$qaqc))),
+              status_text(all(unlist(rv_project_checklist$checklist$qaqc)))
+            ),
+            
+            p(
+              style = "margin-bottom: 3px;", # Reduced bottom margin
+              tags$b("Format data: "),
+              status_text(all(unlist(rv_project_checklist$checklist$format_data))),
+            ), 
+            
+            p(
+              style = "margin-bottom: 3px;", # Reduced bottom margin
+              tags$b("Models: "),
+              status_text(all(unlist(rv_project_checklist$checklist$models))),
+            ),
+            
+            p(
+              style = "margin-bottom: 3px;", # Reduced bottom margin
+              tags$b("Policy: "),
+              status_text(all(unlist(rv_project_checklist$checklist$policy))),
             )
           ),
           
@@ -393,17 +625,6 @@ checklist_server <- function(id, rv_project_name, rv_data, rv_folderpath){
             modalButton("Close")
           ))
       )
-      
-      # # Run through checks for each section in project
-      # q_test <- quietly_test(checklist)
-      # project_checklist <- q_test(project_name(), project_data())
-      #
-      # # Store output from checklist() in a reactive
-      # rv_project_checklist(project_checklist)
-      #
-      # # Overall status - TRUE if all checks have passed
-      # checklist_status <- all(vapply(project_checklist, function(x) x$pass, logical(1)))
-      
     })
   })
 } 
