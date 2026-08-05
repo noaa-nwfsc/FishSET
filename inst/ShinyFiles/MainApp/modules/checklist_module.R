@@ -141,7 +141,7 @@ pass_icon <- function(tab, checklist, previous_check = NULL) {
       out_icon <- icon_wrapper(icon_name = "file-lines", icon_color = "#F5CF27")
       
       # Identify failed checks
-      failed_checks <- names(which(list_checks == FALSE))
+      failed_checks <- names(which(!unlist(list_checks)))
       
       if ("alt_check" %in% failed_checks) {
         out_icon_message <- "NEXT STEP: Define alternative choice set"
