@@ -192,7 +192,7 @@ pass_icon <- function(tab, checklist, previous_check = NULL) {
   # Policy data
   if (tab == "policy"){
     if (all(unlist(list_checks))) {
-      # All model checks passed
+      # All policy checks passed
       out_icon <- icon_wrapper(icon_name = "fish-fins", icon_color = "green")
       
     } else if (any(unlist(list_checks))) {
