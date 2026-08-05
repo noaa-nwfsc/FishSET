@@ -485,8 +485,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   #' @param include_total_col Logical, whether to remove the "group_total" variable
   #'   created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
-  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup
-  #'   rename_with
+  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup rename_with
   #' @importFrom shiny isRunning
   #' @details \code{group_diff} creates a grouped lagged difference variable. \code{value}
   #'   is first summed by the variable(s) in \code{group}, then the difference within-group is
@@ -564,8 +563,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   #' @param include_total_col Logical, whether to remove the "group_total" variable
   #'   created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
-  #' @importFrom dplyr across all_of arrange left_join mutate group_by select summarize ungroup %>%
-  #'   rename_with
+  #' @importFrom dplyr across all_of arrange left_join mutate group_by select summarize ungroup %>% rename_with
   #' @importFrom shiny isRunning
   #' @importFrom tidyr replace_na
   #' @importFrom rlang sym !!
