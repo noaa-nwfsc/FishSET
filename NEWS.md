@@ -1,4 +1,4 @@
-# FishSET 2.0.0
+# FishSET v2.0.0 Release (August 7, 2026)
 
 * Complete overhaul of the `FishSET` package.
 * Updated core function syntax and workflows.
