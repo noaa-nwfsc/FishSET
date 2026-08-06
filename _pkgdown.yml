@@ -2,4 +2,8 @@ url: ~
 destination: _site
 template:
   bootstrap: 5
-
+navbar:
+  components:
+    news:
+      text: "News"
+      href: news/index.html
