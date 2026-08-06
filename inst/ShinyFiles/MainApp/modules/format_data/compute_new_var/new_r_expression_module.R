@@ -138,8 +138,17 @@ new_r_express_server <- function(id, rv_data_load_error,
         load_maindata(dat = rv_data[[selected_df_name]], project = rv_project_name()$value, 
                       over_write = TRUE)
       } else if(selected_df_name == "spat"){
-        load_spatial(dat = rv_data[[selected_df_name]], project = rv_project_name()$value, 
+        # Fetch existing spatial tables in the project
+        existing_spat <- list_tables(rv_project_name()$value, "spat")
+        
+        # Use the first existing spatial table name, fallback to "modified" if none exist
+        spat_name_to_use <- if (length(existing_spat) > 0) existing_spat[1] else "modified"
+        
+        load_spatial(spat = rv_data[[selected_df_name]], 
+                     name = spat_name_to_use, 
+                     project = rv_project_name()$value, 
                      over_write = TRUE)
+        
       } else if(selected_df_name == "port"){
         load_port(dat = rv_data[[selected_df_name]], project = rv_project_name()$value, 
                   over_write = TRUE)

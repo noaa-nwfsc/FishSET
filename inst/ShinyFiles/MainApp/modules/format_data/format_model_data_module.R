@@ -134,13 +134,13 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       }
       updateSelectInput(session, "aux_data", choices = aux_choices)
       
-      # Update Gridded Data Dropdown
-      grid_choices <- c("None" = "")
+      # Update Gridded Data Dropdown 
       if (!is.null(rv_data$grid)) {
-        label <- list_tables(project, "grid")[1]
-        grid_choices <- c("None" = "", label)
+        grid_choices <- list_tables(project, "grid")
+      } else {
+        grid_choices <- NULL
       }
-      updateSelectInput(session, "gridded_data", choices = grid_choices)
+      updateSelectizeInput(session, "gridded_data", choices = grid_choices)
     })
     
     
@@ -213,15 +213,10 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       }
       
       # Prepare Gridded Data
-      if (input$gridded_data != "" && !is.null(rv_data$grid)) {
+      if (!is.null(input$gridded_data) && length(input$gridded_data) > 0 && !is.null(rv_data$grid)) {
         final_grid_data <- input$gridded_data 
-        
-        final_grid_var  <- empty_to_null(input$grid_var_name)
-        final_grid_time <- empty_to_null(rv_selected_vars$vars$grid$grid_time)
       } else {
         final_grid_data <- NULL
-        final_grid_var  <- NULL
-        final_grid_time <- NULL
       }
       
       
@@ -266,7 +261,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       if (input$impute_input == "None") {
         impute_option <- NULL
       } else {
-        impute_option <- input$impute_input
+        impute_option <- tolower(input$impute_input)
       }
       
       # Run Formatting Function
@@ -284,8 +279,8 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
           expectations   = input$expectations_name_input,
           distance       = input$distance_input,
           distance_units = if(input$distance_input) input$distance_units_input else NULL,
-          crs            = 
-            if(input$distance_input && input$crs_input != "") as.numeric(input$crs_input) else NULL,
+          crs            = if(input$distance_input && 
+                              input$crs_input != "") as.numeric(input$crs_input) else NULL,
           impute         = impute_option
         )
         
@@ -598,21 +593,12 @@ format_model_data_ui <- function(id) {
                         h6(tags$span(
                           "Gridded Data (optional) ", 
                           bslib::tooltip(shiny::icon("info-circle"),
-                                         "Name of the gridded data table to join.")),
+                                         "Select one or more gridded data tables to join.")),
                           class = "mb-0")),
-                    selectInput(ns("gridded_data"), NULL, choices = NULL, width = "100%"),
-                    conditionalPanel(
-                      condition = "input.gridded_data != ''",
-                      ns = ns,
-                      div(class = "mt-2 pt-2 border-top",
-                          textInput(ns("grid_var_name"), 
-                                    label = tags$span(
-                                      "New Variable Name ",
-                                      bslib::tooltip(shiny::icon("info-circle"),
-                                                     "Name to use for the new variable 
-                                                     representing the value in the gridded data.")), 
-                                    placeholder = "e.g., sst_avg", width = "100%"))
-                    )
+                    selectizeInput(ns("gridded_data"), NULL, choices = NULL, multiple = TRUE,
+                                   width = "100%",
+                                   options = list(placeholder = "Select table(s)", 
+                                                  plugins = list("remove_button")))
                   )
                 )
               ),
