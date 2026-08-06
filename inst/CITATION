@@ -18,7 +18,7 @@ citEntry(entry="Manual",
          textVersion =
            paste("Lisa Pfeiffer, Paul Carvalho, Anna Abelman, and Alan Haynie (", year,
                  "). FishSET: Spatial Economics Toolbox for Fisheries. ",
-                 vers, ".", sep="") )
+                 vers, ".", "DOI: 10.5281/zenodo.21796076", sep="") )
 
 citEntry(entry="Manual",
          title = paste0("Introduction to FishSET", meta$Version),
