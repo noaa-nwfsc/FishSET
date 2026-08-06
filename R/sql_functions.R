@@ -421,39 +421,6 @@ model_params <- function(project, output = 'list') {
   }
 }
 
-
-globalcheck_view <- function(table, project) {
-  #' View error output from discrete choice model for the defined project
-  #'
-  #' Returns error output from running the \code{discretefish_subroutine} 
-  #' function. The table argument must be the full name of the table name in the 
-  #' FishSET database. Use \code{\link{tables_database}}to view table names in 
-  #' FishSET database.
-  #'
-  #' @param table  Table name in FishSET database. Should contain the project, the 
-  #'    phrase 'LDGlobalCheck', and a date in YMD format (20200101). 
-  #'  Table name must be in quotes.
-  #' @param project Name of project
-  #' @export
-  #' @examples
-  #' \dontrun{
-  #' globalcheck_view('pcodLDGlobalCheck20190604', 'pcod')
-  #' }
-
-  if (table_exists(table, project) == FALSE) {
-    
-    return("Table not found. Check spelling or view available tables with 'tables_database()'.")
-    
-  } else {
-    
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
-    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-    
-    x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
-    return(x)
-  }
-}
-
 model_fit <- function(project, CV = FALSE) {
   #' Load model comparison metrics to console for the defined project
   #'
