@@ -1,0 +1,314 @@
+
+<!-- Explicit CDN Link (Preserved by Pandoc & Shiny) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+/* Fallback import for standard browsers */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css');
+
+/* Force FontAwesome font-family rendering in RStudio Viewer / Shiny */
+.quickstart-wrapper .fa,
+.quickstart-wrapper .fas,
+.quickstart-wrapper .fa-solid,
+.quickstart-wrapper .far,
+.quickstart-wrapper .fa-regular {
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900;
+  display: inline-block;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  line-height: 1;
+}
+
+.quickstart-wrapper .fa-regular,
+.quickstart-wrapper .far {
+  font-weight: 400;
+}
+
+/* Scoped Wrapper - Prevents styles from leaking to other Shiny tabs */
+.quickstart-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.5rem 1rem 2rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+}
+
+/* Icon Spacing */
+.quickstart-wrapper i { margin-right: 0.5rem; }
+.quickstart-wrapper .help-links i { margin-right: 0.75rem; color: #41729F; }
+
+/* Scoped Layout Styles */
+.quickstart-wrapper .quickstart-hero { background: linear-gradient(135deg, #f7fbff 0%, #edf4fb 100%); border-left: 6px solid #41729F; border-radius: .75rem; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+.quickstart-wrapper .quickstart-hero h1 { color: #274472; margin-top: 0; display: flex; align-items: center; }
+.quickstart-wrapper .quickstart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0 1.5rem; }
+.quickstart-wrapper .quickstart-card { border: 1px solid #d9e6f2; border-radius: .75rem; padding: 1rem 1.25rem; background: #fff; height: 100%; box-sizing: border-box; }
+.quickstart-wrapper .quickstart-card h3 { color: #41729F; margin-top: 0; display: flex; align-items: center; }
+.quickstart-wrapper .quickstart-note { background: #f9fbfd; border: 1px solid #d9e6f2; border-radius: .75rem; padding: 1rem 1.25rem; margin: 1rem 0; display: flex; align-items: center; }
+.quickstart-wrapper .quickstart-note i { color: #41729F; font-size: 1.2rem; }
+.quickstart-wrapper li { margin-bottom: .4rem; }
+
+/* Scoped Accordion Styles */
+.quickstart-wrapper .quickstart-path { max-width: 900px; margin: 0 auto 1.5rem; width: 100%; }
+
+.quickstart-wrapper .quickstart-path details {
+  border: 1px solid #d9e6f2;
+  border-radius: .5rem;
+  margin: .75rem 0;
+  background: #fff;
+  width: 100%;
+  display: block;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  transition: all 0.2s ease;
+}
+
+.quickstart-wrapper .quickstart-path details:hover {
+  box-shadow: 0 4px 8px rgba(39, 68, 114, 0.1);
+  border-color: #41729F;
+}
+
+.quickstart-wrapper .quickstart-path summary {
+  color: #274472;
+  cursor: pointer;
+  font-size: 1.25rem;
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+  background: #f7fbff;
+  border-radius: .5rem;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quickstart-wrapper .quickstart-path summary::-webkit-details-marker { display: none; }
+
+/* Animated Chevron */
+.quickstart-wrapper .quickstart-path summary::after { 
+  content: '\f078'; /* FontAwesome chevron-down */
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  color: #41729F; 
+  font-size: 1.25rem; 
+  line-height: 1; 
+  transition: transform 0.3s ease;
+}
+.quickstart-wrapper .quickstart-path details[open] summary::after { 
+  transform: rotate(-180deg); 
+}
+
+.quickstart-wrapper .quickstart-path details[open] summary {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: 1px solid #d9e6f2;
+}
+
+/* Scoped Internal Formatting */
+.quickstart-wrapper .quickstart-path details p {
+  margin: 1rem 1.25rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.quickstart-wrapper .quickstart-path details h4 {
+  color: #41729F;
+  font-size: 1.1rem;
+  margin: 1.5rem 1.25rem 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #edf4fb;
+}
+
+.quickstart-wrapper .quickstart-path details summary ~ h4:first-of-type,
+.quickstart-wrapper .quickstart-path details summary ~ p:first-of-type {
+  margin-top: 1rem;
+}
+
+.quickstart-wrapper .quickstart-path details ol,
+.quickstart-wrapper .quickstart-path details ul {
+  margin: 0.5rem 1.25rem 1.5rem 2.5rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.quickstart-wrapper .quickstart-path details li {
+  margin-bottom: 0.5rem;
+}
+
+/* Help List Styling */
+.quickstart-wrapper .help-links {
+  list-style: none;
+  padding-left: 0;
+}
+.quickstart-wrapper .help-links li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+</style>
+
+<div class="quickstart-wrapper">
+
+<div class="quickstart-hero">
+  <h1><i class="fa-solid fa-fish-fins"></i> FishSET GUI Quickstart Guide</h1>
+  <p>FishSET is a set of statistical programming and data management tools developed to improve fishery modeling.
+  The tools standardize data management and organization, enable the use of location choice models to provide input into fishery management, and provide various other modeling and visualization tools.
+  
+  The FishSET toolbox is provided as a set of R functions that can be run in an R console or here in this FishSET Graphical User Interface (FishSET GUI). This guide gives new users a practical path through the FishSET GUI.</p>
+  <p><strong><i class="fa-solid fa-route"></i> Recommended path:</strong> Upload Data -> Select variables -> QAQC -> Explore the data -> Format Data -> Modeling -> Policy</p>
+  
+  <p>This document includes basic instructions on how to use the FishSET GUI. Refer to the <a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank">FishSET User Manual</a> for information on installing R software and to the <a href="https://noaa-nwfsc.github.io/FishSET/index.html" target="_blank">main page</a> of this website for FishSET installation instructions.</p>
+</div>
+
+<div class="quickstart-grid">
+  <div class="quickstart-card">
+    <h3><i class="fa-solid fa-laptop-code"></i> What the GUI does</h3>
+    <p>The FishSET GUI is a user-friendly interface that guides users through the steps necessary to run discrete choice models. The FishSET GUI requires no knowledge of coding or the R programming language as all steps to prepare and run discrete choice models can be run in a graphical user interface.</p>
+  </div>
+  <div class="quickstart-card">
+    <h3><i class="fa-solid fa-list-check"></i> Before you start</h3>
+    <ul>
+      <li>Have your main and spatial data files ready. Port, gridded, and auxiliary files are optional.</li>
+      <li>Choose a FishSETFolder where project files can be saved.</li>
+      <li>For mapping or policy tabs, make sure your spatial data contain the required zone information.</li>
+    </ul>
+  </div>
+  <div class="quickstart-card">
+    <h3><i class="fa-solid fa-database"></i> What gets saved</h3>
+    <ul>
+      <li>Project data and edits are stored in a local SQLite database on the user's computer (data not shared with other users or FishSET developers) known as the FishSET database.</li>
+      <li>The database is housed in the project's directory within the FishSET R package directory (FishSETFolder).</li>
+      <li>Plots and tables are written to the project output folder.</li>
+      <li>Function calls and input values are written to the project logs.</li>
+      <li>The report template is stored in the project <code>doc</code> folder.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="quickstart-note">
+  <i class="fa-solid fa-power-off"></i>
+  <div>
+    <strong>Open the GUI:</strong> run <code>library(FishSET)</code> and then <code>run_fishset_gui()</code> in R or RStudio. The main and spatial data tables are required; supporting files depend on your workflow.
+  </div>
+</div>
+
+<h2>Quick path through the GUI</h2>
+
+<div class="quickstart-path">
+  <p><em>Click any step below to expand the instructions.</em></p>
+  
+  <details>
+    <summary><span><i class="fa-solid fa-circle-info"></i> Information across all tabs</span></summary>
+    <p>All tabs include controls to close the GUI, manage database tables, record notes, and run an R expression. Within the GUI, the primary data frame is called <code>values$dataset</code>.</p>
+  </details>
+  
+  <details>
+    <summary><span><i class="fa-solid fa-cloud-arrow-up"></i> Upload Data</span></summary>
+    <h4>Load Files</h4>
+    <ol>
+      <li>Click <strong>Change FishSET Folder</strong> to set where project files will be stored.</li>
+      <li>Type a new project name or select an existing project and select it from the dropdown.</li>
+      <li>Provide the primary data; port and auxiliary data are optional. If loading an existing project, select tables from the dropdown menus; otherwise, upload your files.</li>
+      <li>Provide your spatial files. You can upload a standard spatial file (CSV, GeoJSON), or check the "Uploading shape file instead?" box to upload a multi-file shapefile. Gridded data is optional. (See <a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank">Chapter 4 of the FishSET User Manual</a> for more information on the different types of data.)</li>
+      <li>Click <strong>Load data</strong>.</li>
+    </ol>
+    <p><strong>Tip:</strong> Confidentiality settings, log reset, table management, and full data refresh are also available in this tab. Refreshing restores the original loaded table unless another table is selected on the <strong>Upload Data</strong> tab.</p>
+    <h4>Select Variables</h4>
+    <p>Use the Main and Spatial data sections to assign IDs, coordinates, and dates, then click <strong>Save selected variables</strong>. Use the <strong>Create ID</strong> buttons if trip, haul, or zone IDs were not included in your uploaded dataset. These selections are saved to the database and only need to be selected when starting a new project.</p>
+  </details>
+  
+  <details>
+    <summary><span><i class="fa-solid fa-magnifying-glass-chart"></i> QAQC</span></summary>
+    <h4>Data Quality Checks</h4>
+    <p>Use the sidebar to check for missing values, empty variables, duplicate data, incorrect classes, outliers, and invalid spatial coordinates. Use <strong>Preview data</strong> and <strong>Summary table</strong> before applying corrections.</p>
+    <p>See the recommended data quality checks in <a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank">Chapter 4 of the FishSET User Manual</a></p>
+    <h4>Explore the Data</h4>
+    <p>Switch between tables and temporal, spatial, and correlation plots to understand the loaded data. Generated plots and tables are saved to the project output folder.</p>
+    <p>For more details see <a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank"> Chapter 6 of the FishSET User Manual</a></p>
+  </details>
+  
+  <details>
+    <summary><span><i class="fa-solid fa-table-columns"></i> Format Data</span></summary>
+    <h4>Compute New Variables</h4>
+    <p>Use the radio buttons in the left sidebar to access various tools for creating new data columns. You can apply custom R expressions, calculate spatial metrics (like trip distances or centroids), aggregate your data (such as collapsing haul-level data into trip-level data), or generate group-level statistics (like quantiles, percentages, and cumulative sums). Follow the on-screen prompts for each selected tool to compute and save your new variables to the dataset.</p>
+    <h4>Define Alternative Fishing Choices</h4>
+    <p>Use this tab to define how the distance matrix between observed and alternative fishing locations should be calculated for your choice model.</p>
+    <ol>
+      <li>Set your <strong>Starting location</strong> (Port, Lagged haul, or Coordinates). </li>
+      <li>Set your inclusion threshold (the minimum number of observations needed for a zone to be included as an alternative). </li>
+      <li>Type a unique name for your matrix and click <strong>Create alternative location matrix</strong> to generate and save it to your project database.</li>
+    </ol>
+    <h4>Create Expected Catch Matrix</h4>
+    <p>Use this tab to estimate the expected catch (or revenue) for the alternative fishing zones you defined in the previous step (zones where fishing could have happened but did not). </p>
+    <ol>
+      <li>Under <strong>Core Inputs</strong>, name your new matrix, select your catch variable, and link it to your saved Alternative Matrix (select a price variable as well if you want to calculate revenue). </li>
+      <li>Adjust the <strong>Temporal Settings</strong>, <strong>Grouping & Calculation</strong>, and <strong>Data Handling</strong> sections to define how the moving averages should be calculated and how empty data should be treated.</li>
+      <li>Click <strong>Create Expectations</strong> to calculate and save the matrix to your project database.</li>
+    </ol>
+  
+    <h4>Format Model Data</h4>
+    <p>Reshape project data into the long format required for modeling. </p>
+    <ol>
+      <li>Under <strong>Core Inputs</strong>, provide a unique name for this dataset, select which variables to retain, and select the Alternative Choice and Expectations matrices you created in the previous steps. </li>
+      <li>Under <strong>External Data Integration</strong>, you can optionally join auxiliary or gridded datasets to your model data. </li>
+      <li>Under <strong>Configuration</strong>, select how to handle missing data (imputation) and whether to calculate spatial distances between observations and zones.</li>
+      <li> Click <strong>Run Format Data</strong> to process and save the formatted dataset to your project.</li>
+    </ol>
+  
+    <p><strong>See <a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank"> Chapter 8 of the FishSET User Manual</a> for more information on defining alternative choices, how expected catch/revenue is calculated, and model development.</strong></p>
+  </details>
+  
+  <details>
+    <summary><span><i class="fa-solid fa-diagram-project"></i> Modeling</span></summary>
+    <h4>Model Design</h4>
+    <p>Use this tab to construct the design matrices (the mathematical structures) required to actually run your discrete choice models.</p>
+    <ol>
+      <li>Under <strong>Source Data & Naming</strong>, provide a unique name for this design, select your newly formatted dataset from the dropdown, and choose your Model Type (Standard Logit or Expected Profit Model). </li>
+      <li>Under <strong>Model Specification</strong>, type in your Utility Formula (e.g., <code>chosen ~ catch + distance | vessel_length</code>). You can also check the box to automatically scale your numeric covariates for better model stability. If you selected the Expected Profit Model, you will also need to provide a Catch Formula and select a Price Variable.</li>
+      <li>Click <strong>Create Design Object</strong> to generate and save the matrices to your project.</li>
+    </ol>
+    <h4>Model Fit</h4>
+    <p>Select a saved model design, provide an optional fit name, choose an EPM distribution when required, and click <strong>Fit Model</strong>. Use the model comparison controls to review saved fits side by side.</p>
+    <h4>Model Cross Validation</h4>
+    <p>Use this tab to perform k-fold cross-validation to assess the out-of-sample predictive performance of your model. Cross-validation can take a few minutes to run depending on your fold count. Once finished, scroll down to review the Overall Out-of-Sample Performance summary, as well as the detailed accuracy metrics and estimated coefficients broken down by each individual fold.</p>
+  
+    <p><strong>See <a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank"> Chapter 8 of the FishSET User Manual</a> for more information on model development.</strong></p>
+  </details>
+  
+  <details>
+    <summary><span><i class="fa-solid fa-scale-balanced"></i> Policy</span></summary>
+    <h4>Zone Closure</h4>
+    <p>Use this tab to create management scenarios where specific fishing zones are closed or have restricted catch limits.</p>
+    <ol>
+      <li>Select an <strong>Alternative Matrix</strong> from the dropdown to load your valid fishing zones onto the interactive map. </li>
+      <li>Click directly on the map to select the specific zones you want to include in your closure scenario.</li>
+      <li>In the <strong>Allowable TAC by Zone</strong> table, adjust the total allowable catch percentage (0-100%) for each zone you selected.</li>
+      <li>Enter a unique <strong>Scenario Name</strong> and click <strong>Add closure</strong> to save the scenario to your project database.</li>
+    </ol>
+    <h4>Run Policy Simulations</h4>
+    <p>Use this tab to simulate redistributed fishing effort and calculate welfare changes following implementation of the policy scenarios.</p>
+    <ol>
+      <li>Under the first column, select your baseline fitted <strong>Model</strong> and choose one or more <strong>Closure Scenarios</strong> to apply (or leave this blank to run a baseline simulation). </li>
+      <li>Under the second column, set your <strong>Simulation Draws</strong>. If you are using a Standard Logit model, you must also select your <strong>Marginal Utility of Income (MUI)</strong> variable and check the box if it represents a cost. (This option is automatically hidden if you are using an Expected Profit Model).</li>
+      <li>Click <strong>Run Simulation</strong> to calculate the expected welfare and save the results to your project database.</li>
+    </ol>
+  
+    <h4>Summarize Effort Redistribution</h4>
+    <p>Extract and visualize how fishing effort shifts geographically under policy simulations.</p>
+    <h4>Summarize Welfare Impacts</h4>
+    <p>Evaluate expected welfare changes or compensating variation resulting from policy simulations.</p>
+  
+    <p><strong>For more information on simulating policy scenarios see <a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank"> Chapter 9 of the FishSET User Manual</a>.</strong></p>
+  </details>
+
+</div>
+
+<h2>Need more help?</h2>
+<ul class="help-links">
+  <li><i class="fa-solid fa-book"></i> <a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" target="_blank">FishSET User Manual</a></li>
+  <li><i class="fa-solid fa-envelope"></i> Questions: <a href="mailto:nmfs.fishset@noaa.gov">nmfs.fishset@noaa.gov</a></li>
+</ul>
+
+</div>
