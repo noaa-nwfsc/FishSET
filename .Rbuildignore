@@ -14,3 +14,4 @@ _\.new\.png$
 ^\.claude$
 ^archive$
 ^\.zenodo\.json$
+^_site$
