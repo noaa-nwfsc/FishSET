@@ -159,7 +159,6 @@ format_model_data <- function(project,
     }
   }
   
-  
   # Format main data ------------------------------------------------------------------------------
   # Load main data table
   original_dataset <- table_view(paste0(project, "MainDataTable"), project)
