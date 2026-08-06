@@ -1,9 +1,10 @@
 # FishSET <img src="man/figures/logo.png" align="right" width="20%" hspace="0" vspace="0"/>
 
 <!-- badges: start -->
-
-[![R-CMD-check](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml) [![gitleaks](https://github.com/noaa-nwfsc/FishSET/actions/workflows/secretScan.yml/badge.svg)](https://github.com/noaa-nwfsc/FishSET/actions/workflows/secretScan.yml) [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-
+[![R-CMD-check](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml) 
+[![gitleaks](https://github.com/noaa-nwfsc/FishSET/actions/workflows/secretScan.yml/badge.svg)](https://github.com/noaa-nwfsc/FishSET/actions/workflows/secretScan.yml) 
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21796076.svg)](https://doi.org/10.5281/zenodo.21796076)
 <!-- badges: end -->
 
 Contact [nmfs.fishset\@noaa.gov](mailto:nmfs.fishset@noaa.gov){.email} with any questions regarding the FishSET R package and to report issues.
@@ -11,6 +12,8 @@ Contact [nmfs.fishset\@noaa.gov](mailto:nmfs.fishset@noaa.gov){.email} with any 
 ## Overview
 
 The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools developed as an R package for organizing and visualizing data; developing, improving and disseminating modeling best practices; and simulating policy scenarios to explore the welfare consequences of management decisions.
+
+Check out our informational [FishSET flyer](https://github.com/noaa-nwfsc/FishSET/blob/master/docs/fishset_flyer.png) for a quick overview.
 
 ## GitHub Install
 
