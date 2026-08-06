@@ -13,3 +13,4 @@ _\.new\.png$
 ^\.positai$
 ^\.claude$
 ^archive$
+^\.zenodo\.json$
