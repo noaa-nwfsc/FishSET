@@ -8,41 +8,26 @@ vers <- paste("R package version", meta$Version)
 
 citEntry(entry="Manual",
          title = "FishSET: Spatial Economics Toolbox for Fisheries",
-         author = personList(as.person("Alan Haynie"),
-                             as.person("Melanie Harsch"),
-                             as.person("Bryce McManus")),
+         author = personList(as.person("Lisa Pfeiffer"),
+                             as.person("Paul Carvalho"),
+                             as.person("Anna Abelman"),
+                             as.person("Alan Haynie")),
          year = year,
          note = vers,
          url = "",
          textVersion =
-           paste("Alan Haynie, Melanie Harsch and Bryce McManus (", year,
+           paste("Lisa Pfeiffer, Paul Carvalho, Anna Abelman, and Alan Haynie (", year,
                  "). FishSET: Spatial Economics Toolbox for Fisheries. ",
                  vers, ".", sep="") )
 
 citEntry(entry="Manual",
          title = paste0("Introduction to FishSET", meta$Version),
-         author = personList(as.person("Alan Haynie"),
-                             as.person("Melanie Harsch"),
-                             as.person("Bryce McManus")),
+         author = personList(as.person("Lisa Pfeiffer"),
+                             as.person("Paul Carvalho"),
+                             as.person("Anna Abelman"),
+                             as.person("Alan Haynie")),
          year = year,
          note = vers,
          url = "",
          textVersion =
-           paste0("Haynie, A., M. Harsch, and A. B. McManus (", year, ") Introduction to FishSET", meta$Version, ". NOAA Fisheries, Alaska Fisheries Science Center, 7600 Sand Point Way NE, Seattle, WA 98115" ) )
-
-#citEntry(entry="Article",
-#         title = "FishSET: Spatial Economics Toolbox for Fisheries",
-##         author = personList(as.person("Alan Haynie"),
-#                             as.person("Melanie Harsch"),
-#                             as.person("Bryce McManus")),
-#         year     = {2022},
-#         journal = "The R Journal",
-#         volume     = {X},
-#         number     = {X},
-#         pages     = {xx--xx},
-#         
-#         textVersion =
-#           paste("Haynie, A., Harsch, M. & McManus, B. (2022)",
-#                 "FishSET: Spatial Economics Toolbox for Fisheriesa.", "The R Journal. X(X):xx-xx")
-#)
-
+           paste0("Pfeiffer, L., Carvalho, P., Abelman, A., and A. Haynie (", year, ") Introduction to FishSET v", meta$Version, "DOI: 10.5281/zenodo.21796076" ) )
