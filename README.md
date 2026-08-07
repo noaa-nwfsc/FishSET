@@ -1,13 +1,12 @@
 # FishSET <img src="man/figures/logo.png" align="right" width="20%" hspace="0" vspace="0"/>
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml) 
-[![gitleaks](https://github.com/noaa-nwfsc/FishSET/actions/workflows/secretScan.yml/badge.svg)](https://github.com/noaa-nwfsc/FishSET/actions/workflows/secretScan.yml) 
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21796076.svg)](https://doi.org/10.5281/zenodo.21796076)
+
+[![R-CMD-check](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/noaa-nwfsc/FishSET/actions/workflows/R-CMD-check.yaml) [![gitleaks](https://github.com/noaa-nwfsc/FishSET/actions/workflows/secretScan.yml/badge.svg)](https://github.com/noaa-nwfsc/FishSET/actions/workflows/secretScan.yml) [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21796076.svg)](https://doi.org/10.5281/zenodo.21796076)
+
 <!-- badges: end -->
 
-Contact [nmfs.fishset\@noaa.gov](mailto:nmfs.fishset@noaa.gov){.email} with any questions regarding the FishSET R package and to report issues.
+Contact [nmfs.fishset\@noaa.gov](mailto:nmfs.fishset@noaa.gov) with any questions regarding the FishSET R package and to report issues.
 
 ## Overview
 
@@ -66,7 +65,7 @@ Carvalho P., Pfeiffer L., Abelman A., Lee M.-Y., and Haynie A. The Spatial Econo
 
 If you use FishSET results in publications, please cite the package:
 
-Lisa Pfeiffer, Paul Carvalho, Anna Abelman, Alan Haynie. (2026). FishSET: Spatial Economics Toolbox for Fisheries. R package version 2.0.0 https://doi.org/10.5281/zenodo.21796076
+Lisa Pfeiffer, Paul Carvalho, Anna Abelman, Alan Haynie. (2026). FishSET: Spatial Economics Toolbox for Fisheries. R package version 2.0.0 <https://doi.org/10.5281/zenodo.21796076>
 
 ## Troubleshooting
 
@@ -106,25 +105,24 @@ This error could appear when your last package installation was interrupted, whe
 
 <summary>Error: object 'attr' is not exported by 'namespace:[package]'...</summary>
 
-This error indicates a namespace version mismatch between an updated package and an older dependency installed in your local R library. It occurs when an upstream package updates and deprecates or renames an internal export that a downstream dependency is still trying to call. 
+This error indicates a namespace version mismatch between an updated package and an older dependency installed in your local R library. It occurs when an upstream package updates and deprecates or renames an internal export that a downstream dependency is still trying to call.
 
-1. Update the affected package and its dependencies
-Reinstall the offending package alongside its primary dependencies simultaneously:
-```
+1.  Update the affected package and its dependencies Reinstall the offending package alongside its primary dependencies simultaneously:
+
+```         
 # Replace 'package_name' with the package named in the error (e.g., xfun, rlang, cli)
 install.packages(c("package_name", "knitr", "rmarkdown"), dependencies = TRUE)
 ```
 
-2. Update all installed R packages:
-```
+2.  Update all installed R packages:
+
+```         
 update.packages(ask = FALSE, checkBuilt = TRUE)
 ```
 
-3. Upgrade R
-If issues continue, upgrading to the latest version of R will build a clean package library and eliminate stale dependency conflicts.
+3.  Upgrade R If issues continue, upgrading to the latest version of R will build a clean package library and eliminate stale dependency conflicts.
 
 </details>
-
 
 ## Issues and Bug Reports
 
