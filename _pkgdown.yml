@@ -2,8 +2,23 @@ url: ~
 destination: _site
 template:
   bootstrap: 5
+  bslib:
+    font-size-base: 0.85rem
 navbar:
   components:
     news:
       text: "News"
       href: news/index.html
+    articles:
+      text: "Articles"
+      menu:
+        - text: "User Manual"
+          href: user_manual.pdf
+        - text: "Getting Started with FishSET"
+          href: articles/FishSET_GUI_Quickstart_Guide.html
+        - text: "Making a spatial grid file"
+          href: articles/making_a_spatial_grid.html
+        - text: "Custom likelihood template"
+          href: articles/likelihood-template.html
+        - text: "Scallop end-to-end example"
+          href: articles/scallop_trip_vignette.html
