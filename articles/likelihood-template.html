@@ -5,75 +5,58 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="FishSET">
-<title>Create your own likelihood function • FishSET</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
+<title>Create and Integrate Your Custom Model • FishSET</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
-<meta property="og:title" content="Create your own likelihood function">
-<meta property="og:description" content="FishSET">
-<meta property="og:image" content="/logo.png">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<meta property="og:title" content="Create and Integrate Your Custom Model">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">FishSET</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../user_manual.pdf">User Manual</a></li>
+    <li><a class="dropdown-item" href="../articles/FishSET_GUI_Quickstart_Guide.html">Getting Started with FishSET</a></li>
+    <li><a class="dropdown-item" href="../articles/making_a_spatial_grid.html">Making a spatial grid file</a></li>
+    <li><a class="dropdown-item" href="../articles/likelihood-template.html">Custom likelihood template</a></li>
+    <li><a class="dropdown-item" href="../articles/scallop_trip_vignette.html">Scallop end-to-end example</a></li>
+  </ul>
 </li>
-<li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/FishSET_User_Manual.html">FishSET User Manual</a>
-    <a class="dropdown-item" href="../articles/FishSET_FunctionList.html">FishSET R package functions</a>
-    <a class="dropdown-item" href="../articles/FishSET_GUI_Quickstart_Guide.html">FishSET GUI Quickstart Guide</a>
-    <a class="dropdown-item" href="../articles/likelihood-template.html">Create your own likelihood function</a>
-    <a class="dropdown-item" href="../articles/making_a_spatial_grid.html">Making a spatial grid file</a>
-    <a class="dropdown-item" href="../articles/scallop-example.html">Scallop Example</a>
-    <a class="dropdown-item" href="../articles/scallop-mod-example.html">Scallop Conditional Logit Model Example</a>
-  </div>
-</li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">News</a></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/noaa-nwfsc/FishSET/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/noaa-nwfsc/FishSET/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -82,11 +65,11 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Create your own likelihood function</h1>
-                        <h4 data-toc-skip class="author">Paul
-Carvalho</h4>
+      <img src="../logo.png" class="logo" alt=""><h1>Create and Integrate Your Custom Model</h1>
+                        <h4 data-toc-skip class="author">FishSET
+Development Team</h4>
             
-            <h4 data-toc-skip class="date">2024-11-13</h4>
+            <h4 data-toc-skip class="date">2026-08-07</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/noaa-nwfsc/FishSET/blob/HEAD/vignettes/likelihood-template.Rmd" class="external-link"><code>vignettes/likelihood-template.Rmd</code></a></small>
       <div class="d-none name"><code>likelihood-template.Rmd</code></div>
@@ -97,20 +80,24 @@ Carvalho</h4>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>The FishSET R package currently features six statistical functions
-for maximum likelihood estimation, detailed in section 8.3 of the <a href="https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html" class="external-link">user
-manual</a>. These functions offer a solid foundation for a variety of
-analyses. However, we recognize that these built-in functions may not
-suit your specific modeling needs. We encourage users with more
-specialized modeling requirements to develop their own likelihood
-functions that can be integrated into the FishSET R package. By doing
-so, users will not only be able to take advantage of other FishSET
-features such as policy simulation tools but also contribute to a richer
-toolkit for the FishSET user community.</p>
-<p>Here we provide a template for developing a likelihood function that
-can be seamlessly integrated into the FishSET package. Feel free to
-reach out to our team at <a href="mailto:nmfs@fishset.gov">nmfs.fishset@noaa.gov</a> with any
-questions about developing your own likelihood function.</p>
+<p>The FishSET R package provides a robust framework for discrete choice
+modeling (DCM), utilizing <code>RTMB</code> (R Template Model Builder)
+for automatic differentiation and optimized parameter estimation. While
+functions like <code><a href="../reference/fishset_design.html">fishset_design()</a></code> and
+<code><a href="../reference/fishset_fit.html">fishset_fit()</a></code> offer a solid foundation for conditional
+logit and expected profit models, we recognize that specialized research
+often requires custom model structures.</p>
+<p>To maximize computational performance and ensure compatibility with
+downstream FishSET tools (like our policy function and database
+loggers), custom models must be integrated directly into the
+<code>RTMB</code> framework. We encourage users to develop their own
+objective functions and submit them to be merged into the official
+FishSET toolkit.</p>
+<p>This vignette outlines the workflow for developing a custom model by
+leveraging existing FishSET data pipelines and writing an
+<code>RTMB</code> negative log-likelihood function. Reach out to our
+team at <a href="mailto:nmfs@fishset.gov">nmfs.fishset@noaa.gov</a> with
+any questions.</p>
 </div>
 <div class="section level2">
 <h2 id="development-guidelines">Development guidelines<a class="anchor" aria-label="anchor" href="#development-guidelines"></a>
@@ -121,172 +108,147 @@ repo</a> and clone the forked repository to your computer. More
 information on “forking” repositories and the GitHub workflow can be
 found <a href="https://git-scm.com/book/en/v2/GitHub-Contributing-to-a-Project" class="external-link">here</a>.</p></li>
 <li><p>Open the FishSET_RPackage.Rproj file.</p></li>
-<li><p>Create a new script for your likelihood function following the
-template below. Save it in the <code>R</code> folder.</p></li>
-<li><p>Commit and push changes.</p></li>
-<li><p>Review and test code.</p></li>
-<li><p>If you have gone through the steps above but it has been a while
-since you worked on the code, pull changes from the original FishSET
-repo to your clone.</p></li>
-<li><p>Submit a <a href="https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project#making-a-pull-request" class="external-link">pull
+<li><p>Develop your custom data processing and <code>RTMB</code>
+objective function following the steps below.</p></li>
+<li><p>Modify <code>fishset_fit.R</code> and
+<code>fishset_design.R</code> locally to include your model.</p></li>
+<li><p>Review and test code on local datasets.</p></li>
+<li><p>Commit, push changes, and submit a <a href="https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project#making-a-pull-request" class="external-link">pull
 request</a>.</p></li>
 </ol>
 </div>
 <div class="section level2">
-<h2 id="create-a-likelihood-function">Create a likelihood function<a class="anchor" aria-label="anchor" href="#create-a-likelihood-function"></a>
+<h2 id="step-1-extract-formatted-data">Step 1: Extract Formatted Data<a class="anchor" aria-label="anchor" href="#step-1-extract-formatted-data"></a>
 </h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>likelihood_function <span class="ot">&lt;-</span> <span class="cf">function</span>(starts3, dat, otherdat, alts, project, expname, mod.name) {</span></code></pre></div>
-<p>Give your likelihood function an informative name (replace
-<code>likelihood_function</code> in the code chunk above) and save the
-script with the same name. Only include code for the likelihood function
-in the R script.</p>
-<p>The names and order of input arguments must match the code above.
-These inputs are created within the <a href="https://noaa-nwfsc.github.io/FishSET/reference/make_model_design.html" class="external-link"><code>make_model_design()</code></a>
-and <a href="https://noaa-nwfsc.github.io/FishSET/reference/discretefish_subroutine.html" class="external-link"><code>discretefish_subroutine()</code></a>
-functions and described in detail below.</p>
-<div class="section level3">
-<h3 id="input-arguments">Input arguments<a class="anchor" aria-label="anchor" href="#input-arguments"></a>
-</h3>
+<p>Rather than formatting data manually, rely on the built-in
+<code><a href="../reference/format_model_data.html">format_model_data()</a></code> function to aggregate your main
+dataset, distance matrices, expectations, and gridded data.</p>
+<p>This function saves the combined dataset as a <code>.qs2</code> or
+<code>.rds</code> file in the <code>Models/FormattedData</code>
+directory inside your project folder. Load this dataset into your
+environment to begin designing your model matrix.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Example: Loading formatted data</span></span>
+<span><span class="va">project_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="../reference/locproject.html">locproject</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"MyProject"</span><span class="op">)</span></span>
+<span><span class="va">formatted_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">project_dir</span>, <span class="st">"Models"</span>, <span class="st">"FormattedData"</span><span class="op">)</span></span>
+<span><span class="va">my_data</span> <span class="op">&lt;-</span> <span class="fu">qs2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/qs2/man/qs_read.html" class="external-link">qs_read</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">formatted_dir</span>, <span class="st">"MyProjectLongFormatData.qs2"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="step-2-mock-the-design-object">Step 2: Mock the Design Object<a class="anchor" aria-label="anchor" href="#step-2-mock-the-design-object"></a>
+</h2>
+<p>The <code><a href="../reference/fishset_fit.html">fishset_fit()</a></code> function expects a specific list
+structure, of class <code>fishset_design</code>, to perform estimations.
+If your model requires predictors or matrix shapes that the standard
+<code><a href="../reference/fishset_design.html">fishset_design()</a></code> function cannot currently generate, write
+a custom data processing script that builds a list mirroring this
+required structure.</p>
+<p>Your design object must contain the following elements:</p>
 <ul>
-<li><p><strong>starts3</strong>: Numeric vector that contains starting
-parameter values. The length and order of parameter values will depend
-on your model structure. For example, the order of <code>starts3</code>
-for the <a href="https://noaa-nwfsc.github.io/FishSET/reference/logit_c.html" class="external-link">conditional
-logit model</a> is
-<code>c([alternative-specific parameters], [travel-distance parameters])</code>,
-and the length of each depends on the number of variables included in
-the <a href="https://noaa-nwfsc.github.io/FishSET/reference/make_model_design.html" class="external-link">model
-design</a>.</p></li>
-<li><p><strong>dat</strong>: Numeric matrix that is generated in the
-<code><a href="../reference/shift_sort_x.html">shift_sort_x()</a></code> function. The first column contains catch
-(thus rows represent observations); the second column indicates the zone
-fished; columns 3 to the square of alternatives + 2 (example, if there
-are 4 alternatives/zones, then columns 3-18) contains a flattened
-identity matrix that has been shifted and sorted such that the zone
-selected is moved to the first column position of the matrix (see
-example below); and the last x columns, where x equals the number of
-alternatives/zones, contains distances from the starting location to
-each alternative (distances have also been shifted such that the
-distance to the zone selected is first - see example below).</p></li>
-</ul>
-<div class="line-block">          Here is an example row from a
-<code>dat</code> matrix:.</div>
-<p><span class="math display">\[\begin{bmatrix}
-17&amp;2&amp;0&amp;0&amp;1&amp;1&amp;0&amp;0&amp;0&amp;1&amp;0&amp;5&amp;10&amp;15
-\\
-\end{bmatrix}\]</span></p>
-<div class="line-block">          This row indicates that the catch is
-<strong>17</strong>, from zone <strong>2</strong>, and the shifted,
-flattened matrix can be rewritten as:</div>
-<p><span class="math display">\[\begin{bmatrix}
-0&amp;0&amp;1 \\
-1&amp;0&amp;0 \\
-0&amp;1&amp;0 \\
-\end{bmatrix}\]</span></p>
-<div class="line-block">          where the columns of the identity
-matrix have been shifted such that the second column is now in the
-first<br>
-          position (because zone 2 was fished), followed by 3 and 1.
-Finally, the distances from the starting location<br>
-          to zones 2, 3, and 1 are 5, 10, and 15, repectively.</div>
-<p><br></p>
-<ul>
-<li><p><strong>otherdat</strong>: A list that contains variables used in
-the model. For example, <code>otherdat</code> for conditional logit
-models contains <code>intdat</code> variables (as a list object) that
-interact with travel distance and <code>griddat</code> variables (as a
-list object) that vary across alternatives. The <code>otherdat</code>
-list is generated in the <a href="https://noaa-nwfsc.github.io/FishSET/reference/make_model_design.html" class="external-link"><code>make_model_design()</code></a>
-function. If your input variables are not compatible with the current
-version of <code><a href="../reference/make_model_design.html">make_model_design()</a></code>, reach out to our team at <a href="mailto:nmfs.fishset@noaa.gov">nmfs.fishset@noaa.gov</a> and we
-will do our best to update the function to accommodate your modeling
-requirements.</p></li>
-<li><p><strong>alts</strong>: Integer representing the total number of
-zones included in the model.</p></li>
-<li><p><strong>project</strong>: Name of project.</p></li>
-<li><p><strong>expname</strong>: Name of expected catch table(s). This
-input is used for conditional logit models.</p></li>
-<li><p><strong>mod.name</strong>: Name of the model, which is designated
-in the <code><a href="../reference/make_model_design.html">make_model_design()</a></code> function.</p></li>
+<li><p><code>y</code>: A numeric vector indicating the binary choice
+variable (0 or 1).</p></li>
+<li><p><code>X</code>: A sparse model matrix containing your formatted
+predictors.</p></li>
+<li><p><code>settings</code>: A list containing dimensions such as
+<code>N_obs</code> (number of observations), <code>J_alts</code> (number
+of alternatives), and <code>K_vars</code> (number of
+parameters).</p></li>
+<li><p><code>ids</code>: A list containing unique observation IDs and
+zone identifiers to be used for post-estimation predictions.</p></li>
 </ul>
 </div>
+<div class="section level2">
+<h2 id="step-3-write-the-rtmb-objective-function">Step 3: Write the RTMB Objective Function<a class="anchor" aria-label="anchor" href="#step-3-write-the-rtmb-objective-function"></a>
+</h2>
+<p>The core of FishSET’s speed relies on <code>RTMB::MakeADFun</code>
+and <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb</a></code>. To integrate your model, you must write
+a negative log-likelihood (NLL) function compatible with this
+framework.</p>
+<p>Inside <code><a href="../reference/fishset_fit.html">fishset_fit()</a></code>, parameter estimation relies on two
+main components passed to <code>RTMB</code>:</p>
+<ul>
+<li><p><code>data_list</code>: A list containing all known data
+(<code>X</code> matrix, observations, dimensions).</p></li>
+<li><p><code>start_pars</code>: A list of initial parameter values to be
+optimized (e.g., <code>betas</code>).</p></li>
+</ul>
+<p>Your custom function must extract these elements using
+<code><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">RTMB::getAll()</a></code> and calculate the NLL.</p>
 <div class="section level3">
-<h3 id="function-body">Function body<a class="anchor" aria-label="anchor" href="#function-body"></a>
+<h3 id="template-custom-objective-function">Template: Custom Objective Function<a class="anchor" aria-label="anchor" href="#template-custom-objective-function"></a>
 </h3>
-<p>Use base R functions to calculate the negative log-likelihood (nll)
-and comprehensively document code.</p>
-<p>Save the nll value to a variable named <code>ld</code>, and insert
-the following code at then end of your function to log inputs and
-outputs of the function call:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/is.finite.html" class="external-link">is.nan</a></span><span class="op">(</span><span class="va">ld</span><span class="op">)</span> <span class="op">==</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">ld</span> <span class="op">&lt;-</span> <span class="va">.Machine</span><span class="op">$</span><span class="va">double.xmax</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="va">ldsumglobalcheck</span> <span class="op">&lt;-</span> <span class="va">ld</span></span>
-<span>  <span class="va">paramsglobalcheck</span> <span class="op">&lt;-</span> <span class="va">starts3</span></span>
-<span>  <span class="va">LDGlobalCheck</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">ldchoice</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="va">LDGlobalCheck</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">project</span>, <span class="va">expname</span>, <span class="va">mod.name</span><span class="op">)</span>, </span>
-<span>                        ldsumglobalcheck <span class="op">=</span> <span class="va">ldsumglobalcheck</span>, </span>
-<span>                        paramsglobalcheck <span class="op">=</span> <span class="va">paramsglobalcheck</span>, </span>
-<span>                        LDGlobalCheck <span class="op">=</span> <span class="va">LDGlobalCheck</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="va">pos</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
-<span>  <span class="va">envir</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.environment.html" class="external-link">as.environment</a></span><span class="op">(</span><span class="va">pos</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/assign.html" class="external-link">assign</a></span><span class="op">(</span><span class="st">"LDGlobalCheck"</span>, value <span class="op">=</span> <span class="va">LDGlobalCheck</span>, envir <span class="op">=</span> <span class="va">envir</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># Example custom model template for an RTMB NLL function</span></span>
+<span><span class="va">nll_func_custom</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pars</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="co"># Unpack data_list and parameters into the function environment</span></span>
+<span>  <span class="fu">RTMB</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">data_list</span>, <span class="va">pars</span><span class="op">)</span></span>
 <span>  </span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">ld</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="co"># Perform matrix multiplication (e.g., sparse design matrix %*% parameters)</span></span>
+<span>  <span class="va">v</span> <span class="op">&lt;-</span> <span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">betas</span></span>
+<span>  </span>
+<span>  <span class="co"># Extract utility of chosen alternatives</span></span>
+<span>  <span class="va">v_chosen</span> <span class="op">&lt;-</span> <span class="va">v</span><span class="op">[</span><span class="va">chosen_lin_idx</span><span class="op">]</span></span>
+<span>  </span>
+<span>  <span class="co"># Reshape utility vector for log-sum-exp calculations</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">v</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">J_alts</span>, <span class="va">N_obs</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="co"># Calculate log-sum-exp (consider robust numeric scaling if necessary)</span></span>
+<span>  <span class="va">log_sum_exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu">RTMB</span><span class="fu">::</span><span class="fu">colSums</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">v</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="co"># Calculate the negative log-likelihood</span></span>
+<span>  <span class="va">nll</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">v_chosen</span> <span class="op">-</span> <span class="va">log_sum_exp</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">nll</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p><strong>Important Note</strong>: When writing an <code>RTMB</code>
+function, you must use <code>RTMB</code> compatible math functions
+(e.g., <code>RTMB::dnorm</code>, <code>RTMB::rowSums</code>) rather than
+standard base R variants to ensure automatic differentiation works
+properly.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="integrating-your-function-with-fishset">Integrating your function with FishSET<a class="anchor" aria-label="anchor" href="#integrating-your-function-with-fishset"></a>
+<h2 id="step-4-integrate-and-submit">Step 4: Integrate and Submit<a class="anchor" aria-label="anchor" href="#step-4-integrate-and-submit"></a>
 </h2>
-<div class="section level3">
-<h3 id="review-code-and-test-function">Review code and test function<a class="anchor" aria-label="anchor" href="#review-code-and-test-function"></a>
-</h3>
-<p>Before submitting a Pull Request, we ask contributors to thoroughly
-review code and test likelihood functions (ideally on multiple datasets
-if possible). Also, verify that the function is well-documented and
-remove unnecessary or redundant code that might have been left behind
-during development. Please reach out to the FishSET team (<a href="mailto:nmfs@fishset.gov">nmfs.fishset@noaa.gov</a>) if any
-questions come up during the review and testing process.</p>
+<p>Once you have a working design object and an <code>RTMB</code>
+objective function, you can integrate your code into the package.</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Modify</strong> <code>fishset_fit.R</code>: Add a new
+<code>if/else</code> block within the <code><a href="../reference/fishset_fit.html">fishset_fit()</a></code>
+function to handle your custom model type. Set up your unique
+<code>data_list</code> and <code>start_pars</code>, and define your
+custom <code>nll_func</code> within this block.</p></li>
+<li><p><strong>Standardize Outputs</strong>: Ensure your code allows
+<code>RTMB::MakeADFun</code> and <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb</a></code> to run,
+producing a result formatted as class <code>fishset_fit</code>. This
+guarantees your model outputs a coefficient table, diagnostics, AIC/BIC,
+and predicted probabilities that seamlessly integrate with the project
+database.</p></li>
+<li><p><strong>Submit a Pull Request</strong>: Give the Pull Request an
+informative name and provide a brief description of the mathematical
+structure of your model. Our team will review the code and notify you of
+any requested changes prior to merging.</p></li>
+</ol>
 </div>
-<div class="section level3">
-<h3 id="create-a-pull-request">Create a pull request<a class="anchor" aria-label="anchor" href="#create-a-pull-request"></a>
-</h3>
-<p>Give the Pull Request the same name as the likelihood function you
-just created and provide a brief description. Once the FishSET team
-receives the Pull Request we will do our best to review the function in
-a timely manner and notify you if we merge it with the main package or
-request any changes to the function prior to merging.</p>
-<p>The Pull Request for your likelihood function should not change any
-other code in the FishSET package. If changes to the package outside of
-your function are necessary, please contact the FishSET development team
-(<a href="mailto:nmfs@fishset.gov">nmfs.fishset@noaa.gov</a>) to resolve
-any issues.</p>
-</div>
-</div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Lisa Pfeiffer, Paul G Carvalho, Anna Abelman, Min-Yang Lee, Melanie Harsch, Bryce McManus, Alan Haynie.</p>
+  <p>Developed by Lisa Pfeiffer, Paul G Carvalho, Anna Abelman, Alan Haynie.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>

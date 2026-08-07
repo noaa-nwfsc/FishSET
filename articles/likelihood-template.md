@@ -1,0 +1,158 @@
+# Create and Integrate Your Custom Model
+
+## Introduction
+
+The FishSET R package provides a robust framework for discrete choice
+modeling (DCM), utilizing `RTMB` (R Template Model Builder) for
+automatic differentiation and optimized parameter estimation. While
+functions like [`fishset_design()`](../reference/fishset_design.md) and
+[`fishset_fit()`](../reference/fishset_fit.md) offer a solid foundation
+for conditional logit and expected profit models, we recognize that
+specialized research often requires custom model structures.
+
+To maximize computational performance and ensure compatibility with
+downstream FishSET tools (like our policy function and database
+loggers), custom models must be integrated directly into the `RTMB`
+framework. We encourage users to develop their own objective functions
+and submit them to be merged into the official FishSET toolkit.
+
+This vignette outlines the workflow for developing a custom model by
+leveraging existing FishSET data pipelines and writing an `RTMB`
+negative log-likelihood function. Reach out to our team at
+[nmfs.fishset@noaa.gov](mailto:nmfs@fishset.gov) with any questions.
+
+## Development guidelines
+
+1.  Fork the [FishSET repo](https://github.com/noaa-nwfsc/FishSET) and
+    clone the forked repository to your computer. More information on
+    “forking” repositories and the GitHub workflow can be found
+    [here](https://git-scm.com/book/en/v2/GitHub-Contributing-to-a-Project).
+
+2.  Open the FishSET_RPackage.Rproj file.
+
+3.  Develop your custom data processing and `RTMB` objective function
+    following the steps below.
+
+4.  Modify `fishset_fit.R` and `fishset_design.R` locally to include
+    your model.
+
+5.  Review and test code on local datasets.
+
+6.  Commit, push changes, and submit a [pull
+    request](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project#making-a-pull-request).
+
+## Step 1: Extract Formatted Data
+
+Rather than formatting data manually, rely on the built-in
+[`format_model_data()`](../reference/format_model_data.md) function to
+aggregate your main dataset, distance matrices, expectations, and
+gridded data.
+
+This function saves the combined dataset as a `.qs2` or `.rds` file in
+the `Models/FormattedData` directory inside your project folder. Load
+this dataset into your environment to begin designing your model matrix.
+
+``` r
+
+# Example: Loading formatted data
+project_dir <- file.path(locproject(), "MyProject")
+formatted_dir <- file.path(project_dir, "Models", "FormattedData")
+my_data <- qs2::qs_read(file.path(formatted_dir, "MyProjectLongFormatData.qs2"))
+```
+
+## Step 2: Mock the Design Object
+
+The [`fishset_fit()`](../reference/fishset_fit.md) function expects a
+specific list structure, of class `fishset_design`, to perform
+estimations. If your model requires predictors or matrix shapes that the
+standard [`fishset_design()`](../reference/fishset_design.md) function
+cannot currently generate, write a custom data processing script that
+builds a list mirroring this required structure.
+
+Your design object must contain the following elements:
+
+- `y`: A numeric vector indicating the binary choice variable (0 or 1).
+
+- `X`: A sparse model matrix containing your formatted predictors.
+
+- `settings`: A list containing dimensions such as `N_obs` (number of
+  observations), `J_alts` (number of alternatives), and `K_vars` (number
+  of parameters).
+
+- `ids`: A list containing unique observation IDs and zone identifiers
+  to be used for post-estimation predictions.
+
+## Step 3: Write the RTMB Objective Function
+
+The core of FishSET’s speed relies on `RTMB::MakeADFun` and
+[`stats::nlminb`](https://rdrr.io/r/stats/nlminb.html). To integrate
+your model, you must write a negative log-likelihood (NLL) function
+compatible with this framework.
+
+Inside [`fishset_fit()`](../reference/fishset_fit.md), parameter
+estimation relies on two main components passed to `RTMB`:
+
+- `data_list`: A list containing all known data (`X` matrix,
+  observations, dimensions).
+
+- `start_pars`: A list of initial parameter values to be optimized
+  (e.g., `betas`).
+
+Your custom function must extract these elements using
+[`RTMB::getAll()`](https://rdrr.io/pkg/RTMB/man/TMB-interface.html) and
+calculate the NLL.
+
+### Template: Custom Objective Function
+
+``` r
+
+# Example custom model template for an RTMB NLL function
+nll_func_custom <- function(pars) {
+  # Unpack data_list and parameters into the function environment
+  RTMB::getAll(data_list, pars)
+  
+  # Perform matrix multiplication (e.g., sparse design matrix %*% parameters)
+  v <- X %*% betas
+  
+  # Extract utility of chosen alternatives
+  v_chosen <- v[chosen_lin_idx]
+  
+  # Reshape utility vector for log-sum-exp calculations
+  dim(v) <- c(J_alts, N_obs)
+  
+  # Calculate log-sum-exp (consider robust numeric scaling if necessary)
+  log_sum_exp <- log(RTMB::colSums(exp(v)))
+  
+  # Calculate the negative log-likelihood
+  nll <- -sum(v_chosen - log_sum_exp)
+  
+  return(nll)
+}
+```
+
+**Important Note**: When writing an `RTMB` function, you must use `RTMB`
+compatible math functions (e.g., `RTMB::dnorm`, `RTMB::rowSums`) rather
+than standard base R variants to ensure automatic differentiation works
+properly.
+
+## Step 4: Integrate and Submit
+
+Once you have a working design object and an `RTMB` objective function,
+you can integrate your code into the package.
+
+1.  **Modify** `fishset_fit.R`: Add a new `if/else` block within the
+    [`fishset_fit()`](../reference/fishset_fit.md) function to handle
+    your custom model type. Set up your unique `data_list` and
+    `start_pars`, and define your custom `nll_func` within this block.
+
+2.  **Standardize Outputs**: Ensure your code allows `RTMB::MakeADFun`
+    and [`stats::nlminb`](https://rdrr.io/r/stats/nlminb.html) to run,
+    producing a result formatted as class `fishset_fit`. This guarantees
+    your model outputs a coefficient table, diagnostics, AIC/BIC, and
+    predicted probabilities that seamlessly integrate with the project
+    database.
+
+3.  **Submit a Pull Request**: Give the Pull Request an informative name
+    and provide a brief description of the mathematical structure of
+    your model. Our team will review the code and notify you of any
+    requested changes prior to merging.

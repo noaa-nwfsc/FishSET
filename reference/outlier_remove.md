@@ -1,0 +1,87 @@
+# Remove outliers from data table
+
+Remove outliers based on outlier measure.
+
+## Usage
+
+``` r
+outlier_remove(
+  dat,
+  project,
+  x,
+  dat.remove = "none",
+  sd_val = NULL,
+  over_write = FALSE
+)
+```
+
+## Arguments
+
+- dat:
+
+  Primary data containing information on hauls or trips. Table in the
+  FishSET database contains the string 'MainDataTable'.
+
+- project:
+
+  Project name.
+
+- x:
+
+  Variable in `dat` containing potential outliers.
+
+- dat.remove:
+
+  Defines measure to subset the data. Users can use the predefined
+  values (see below) or user-defined standard deviations from the mean.
+  For user-defined values, `dat.remove` should be a numeric value. For
+  example, `dat.remove=6` would would result in value outside 6SD from
+  the mean being class as outliers. User-defined standard deviations
+  from the mean can also be applied using `sd_val`. Predefined choices:
+  `"none"`, `"5_95_quant"`, `"25_75_quant"`, `"mean_2SD"`,
+  `"median_2SD"`, `"mean_3SD"`, `"median_3SD"`.
+
+- sd_val:
+
+  Optional. Number of standard deviations from mean defining outliers.
+  For example, `sd_val=6` would mean values outside +/- 6 SD from the
+  mean would be outliers.
+
+- over_write:
+
+  Logical, If `TRUE`, saves data over previously saved data table in the
+  FishSET database.
+
+## Value
+
+Returns the modified primary dataset. Modified dataset will be saved to
+the FishSET database.
+
+## Details
+
+The `dat.remove` choices are:
+
+- numeric value: Remove data points outside +/- \`x\`SD of the mean
+
+- none: No data points are removed
+
+- 5_95_quant: Removes data points outside the 5th and 95th quantiles
+
+- 25_75_quant: Removes data points outside the 25th and 75th quantiles
+
+- mean_2SD: Removes data points outside +/- 2SD of the mean
+
+- median_2SD: Removes data points outside +/- 2SD of the median
+
+- mean_3SD: Removes data points outside +/- 3SD of the mean
+
+- median_3SD: Removes data points outside +/- 3SD of the median
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+pollockMainDataTable <- outlier_remove(pollockMainDataTable, 'pollock', 'dist', 
+   dat.remove = 'mean_2SD', save.output = TRUE)
+} # }
+```

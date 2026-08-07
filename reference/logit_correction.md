@@ -1,0 +1,138 @@
+# Full information model with Dahl's correction function
+
+Full information model with Dahl's correction function
+
+## Usage
+
+``` r
+logit_correction(starts3, dat, otherdat, alts, project, expname, mod.name)
+```
+
+## Arguments
+
+- starts3:
+
+  Starting values as a vector (num). For this likelihood, the order
+  takes: c(\[marginal utility from catch\], \[catch-function
+  parameters\], \[polynomial starting parameters\], \[travel-distance
+  parameters\], \[catch sigma\]).  
+    
+  The number of polynomial interaction terms is currently set to 2, so
+  given the chosen degree 'polyn' there should be (((polyn+1)\*2) +
+  2)\*(k) polynomial starting parameters, where (k) equals the number of
+  alternatives. The marginal utility from catch and catch sigma are of
+  length equal to unity respectively. The catch-function and
+  travel-distance parameters are of length (# of catch variables)\*(k)
+  and (# of cost variables) respectively.
+
+- dat:
+
+  Data matrix, see output from shift_sort_xcpp, alternatives with
+  distance.
+
+- otherdat:
+
+  Other data used in model (as a list containing objects \`griddat\`,
+  \`intdat\`, \`startloc\`, \`polyn\`, and \`distance\`).  
+    
+  For catch-function variables (\`griddat\`) alternative-invariant
+  variables that are interacted with zonal constants to form the catch
+  portion of the likelihood. Each variable name therefore corresponds to
+  data with dimensions (number of observations) by (unity), and
+  returns (k) parameters where (k) equals the number of alternatives.
+  For travel-distance variables alternative-invariant variables that are
+  interacted with travel distance to form the cost portion of the
+  likelihood. Each variable name therefore corresponds to data with
+  dimensions (number of observations) by (unity), and returns a single
+  parameter. Any number of catch-function and travel-distance variables
+  are allowed, as a list of matrices. Note the variables (each as a
+  matrix) within \`griddat\` and \`intdat\` have no naming
+  restrictions.  
+    
+  Catch-function variables may correspond to variables that affect
+  catches across locations, or travel-distance variables may be vessel
+  characteristics that affect how much disutility is suffered by
+  traveling a greater distance. Note in this likelihood the
+  catch-function variables vary across observations but not for each
+  location: they are allowed to affect catches across locations due to
+  the location-specific coefficients. If there are no other data, the
+  user can set catch-function variables as ones with dimension (number
+  of observations) by (number of alternatives) and travel-distance
+  variables as ones with dimension (number of observations) by
+  (unity).  
+    
+  The variable startloc is a matrix of dimension (number of
+  observations) by (unity), that corresponds to the starting location
+  when the agent decides between alternatives.  
+    
+  The variable polyn is a vector of length equal to unity corresponding
+  to the chosen polynomial degree.  
+    
+  The variable distance is a matrix of dimension (number of
+  observations) by (number of alternatives) corresponding to the
+  distance to each alternative.
+
+- alts:
+
+  Number of alternative choices in model as length equal to unity (as a
+  numeric vector).
+
+- project:
+
+  Name of project
+
+- expname:
+
+  Expected catch table
+
+- mod.name:
+
+  Name of model run for model result output table
+
+## Value
+
+ld: negative log likelihood
+
+## Graphical examples
+
+![Figure:
+logit_correction_grid.png](figures/logit_correction_grid.png)  
+![Figure:
+logit_correction_travel.png](figures/logit_correction_travel.png)  
+![Figure: logit_correction_poly.png](figures/logit_correction_poly.png)
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+data(zi)
+data(catch)
+data(choice)
+data(distance)
+data(si)
+data(startloc)
+
+optimOpt <- c(1000,1.00000000000000e-08,1,0)
+
+methodname <- 'BFGS'
+
+polyn <- 3
+kk <- 4
+
+si2 <- sample(1:5,dim(si)[1],replace=TRUE)
+zi2 <- sample(1:10,dim(zi)[1],replace=TRUE)
+
+otherdat <- list(griddat=list(si=as.matrix(si),si2=as.matrix(si2)),
+    intdat=list(zi=as.matrix(zi),zi2=as.matrix(zi2)),
+    startloc=as.matrix(startloc),polyn=polyn,
+    distance=as.matrix(distance))
+
+initparams <- c(3, 0.5, 0.4, 0.3, 0.2, 0.55, 0.45, 0.35, 0.25,
+    rep(0, (((polyn+1)*2) + 2)*kk), -0.3,-0.4, 3)
+
+func <- logit_correction
+
+results <- discretefish_subroutine(catch,choice,distance,otherdat,
+    initparams,optimOpt,func,methodname)
+} # }
+```
