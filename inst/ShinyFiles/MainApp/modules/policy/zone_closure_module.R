@@ -3,7 +3,7 @@
 #              bar for inputs, a leaflet map for selecting spatial zones, and 
 #              interactive tables for managing closure scenarios and allowable catches.
 #              
-# Dependencies: shiny, DT, bslib, leaflet, sf, purrr, shinycssloaders, yaml
+# Dependencies: shiny, DT, bslib, leaflet, sf, purrr, shinycssloaders
 # =================================================================================================
 
 # zone closure server -----------------------------------------------------------------------------
@@ -30,6 +30,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     # Trackers for database polling and initialization state to prevent double-loading
     rv_db_state        <- reactiveValues(mtime = NULL, choices = NULL, initialized = FALSE)
     rv_last_matrix     <- reactiveValues(val = NULL)
+    rv_last_mode       <- reactiveValues(val = NULL)
     
     # Main App Logic: Only run GUI loader if NOT in standalone console mode
     if (is.null(spat_zone_id)) {
@@ -163,6 +164,14 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         rv_last_matrix$val <- current_val
       }
     }, ignoreInit = TRUE)
+
+    # Clear selections when switching between map and uploaded-shapefile modes --------------------
+    observeEvent(input$closure_mode, {
+      if (!is.null(rv_last_mode$val) && !identical(input$closure_mode, rv_last_mode$val)) {
+        rv_clicked_zones$ids <- character(0)
+      }
+      rv_last_mode$val <- input$closure_mode
+    }, ignoreInit = TRUE)
     
     # Extract Modeled Zones (Evaluates lazily - NO FALLBACK) --------------------------------------
     modeled_zones <- reactive({
@@ -257,6 +266,10 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     
     # Map Shape Selection Logic -------------------------------------------------------------------
     observeEvent(input$zone_map_output_shape_click, {
+      if (!identical(input$closure_mode, "map")) {
+        return()
+      }
+      
       click <- input$zone_map_output_shape_click
       req(click$id)
       
@@ -305,6 +318,43 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         }
       }
     })
+
+    # Uploaded Shapefile Selection Logic -----------------------------------------------------------
+    observeEvent(
+      list(input$closure_mode, input$closure_shapefile, input$overlap_threshold),
+      {
+        if (!identical(input$closure_mode, "upload") || is.null(input$closure_shapefile)) {
+          return()
+        }
+        
+        selected_zones <- tryCatch(
+          compute_closure_overlaps(
+            input$closure_shapefile,
+            zone_df(),
+            input$overlap_threshold
+          ),
+          error = function(e) {
+            showNotification(conditionMessage(e), type = "error", duration = 6)
+            NULL
+          }
+        )
+        if (is.null(selected_zones)) {
+          return()
+        }
+        
+        rv_clicked_zones$ids <- selected_zones
+        if (length(selected_zones) == 0) {
+          showNotification("No zones met the overlap threshold.", type = "warning", duration = 5)
+        } else {
+          showNotification(
+            paste(length(selected_zones), "zone(s) selected from the uploaded shapefile."),
+            type = "message",
+            duration = 5
+          )
+        }
+      },
+      ignoreInit = TRUE
+    )
     
     # Add & Instantly Save Closure Logic ----------------------------------------------------------
     observeEvent(input$add_closure_btn, {
@@ -345,7 +395,13 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         zone = rv_clicked_zones$ids,
         tac = rv_tac_table$data$`% allowable TAC`,
         grid_name = grid_nm,
-        alt_matrix = input$alt_matrix_ui
+        alt_matrix = input$alt_matrix_ui,
+        selection_method = input$closure_mode,
+        overlap_threshold = if (identical(input$closure_mode, "upload")) {
+          input$overlap_threshold
+        } else {
+          NULL
+        }
       )
       
       current_saved <- append(current_saved, list(new_scenario))
@@ -407,8 +463,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
                         function(x) x$scenario %in% scenarios_to_delete, logical(1))
       rv_saved_closures$saved[del_ind] <- NULL
       
-      filename <- paste0(locoutput(proj), proj, "_closures.yaml")
-      yaml::write_yaml(rv_saved_closures$saved, filename)
+      save_closure_scenario(proj, rv_saved_closures$saved)
       
       showNotification("Selected closure scenarios deleted.", type = "message")
     })
@@ -517,9 +572,9 @@ zone_closure_ui <- function(id) {
       class = "mb-3",
       h4("Design Spatial Closures"),
       p(class = "text-muted",
-        "Click on the map to highlight zones for your scenario. Enter a scenario name below ",
+        "Select zones by clicking the map or uploading a shapefile. Enter a scenario name below ",
         "the map, adjust the allowable TAC percentage for each selected zone in the table, and ",
-        "click 'Add closure' to instantly save it to your project database."
+        "click 'Add closure' to save it to your project database."
       )
     ),
     
@@ -545,6 +600,41 @@ zone_closure_ui <- function(id) {
                     ), 
                     choices = c("Initializing..." = "init"), # Default prevents double-renders
                     width = "100%")
+      )
+    ),
+
+    # Zone Selection Method ------------------------------------------------------------------------
+    bslib::card(
+      class = "mb-3",
+      fill = FALSE,
+      bslib::card_body(
+        class = "p-3",
+        radioButtons(
+          ns("closure_mode"),
+          "Zone selection method",
+          choices = c("Click on Map" = "map", "Upload Shapefile" = "upload"),
+          selected = "map",
+          inline = TRUE
+        ),
+        conditionalPanel(
+          condition = sprintf("input['%s'] === 'upload'", ns("closure_mode")),
+          fileInput(
+            ns("closure_shapefile"),
+            "Upload shapefile components",
+            accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg"),
+            multiple = TRUE,
+            width = "100%"
+          ),
+          numericInput(
+            ns("overlap_threshold"),
+            "Minimum zone overlap (%)",
+            value = 50,
+            min = 0,
+            max = 100,
+            step = 1,
+            width = "100%"
+          )
+        )
       )
     ),
     
