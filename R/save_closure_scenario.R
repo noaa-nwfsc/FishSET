@@ -61,7 +61,7 @@ unique_closure <- function(project, c_list, ind = TRUE) {
 save_closure_scenario <- function(project, c_list) {
   #' Save unique closure scenarios
   #' 
-  #' Saves closure scenarios in the project's internal database.
+  #' Saves closure scenarios in the project's internal SQLite database.
   #' 
   #' @param project Name of project.
   #' @param c_list List of closure scenarios to check and save. 

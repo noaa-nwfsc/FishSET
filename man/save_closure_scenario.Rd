@@ -12,7 +12,6 @@ save_closure_scenario(project, c_list)
 \item{c_list}{List of closure scenarios to check and save.}
 }
 \description{
-Used to save unique closures scenarios to the closures yaml file located in
-the project output folder.
+Used to save unique closure scenarios to the project's internal SQLite database.
 }
 \keyword{internal}
