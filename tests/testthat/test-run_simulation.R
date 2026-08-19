@@ -14,12 +14,12 @@
 #   - Optional Arguments: Validation that `income_cost = TRUE` correctly flips the theta sign.
 #   - Optional Arguments: Warning generation when `marg_util_income` is passed to an EPM.
 #   - Error Handling: Missing marg_util_income argument for standard logits.
-#   - Error Handling: Missing files and invalid YAML closure inputs.
+#   - Error Handling: Missing closure scenarios and invalid closure selections.
 #   - Error Handling: Data modifier variables not present in the model's design matrix.
 #
 # Notes: This test script isolates the function by using temporary directories and SQLite
 #        databases. It temporarily overrides internal FishSET namespace path functions
-#        (locdatabase, locoutput, pull_output) to safely control file I/O during tests.
+#        (locdatabase) to safely control file I/O during tests.
 #        It cleanly resets environment options between blocks to prevent test bleed.
 # -------------------------------------------------------------------------------------------------
 
@@ -73,23 +73,17 @@ epm_fit <- list(
 # Environment Setup -------------------------------------------------------------------------------
 orig_functions <- list(
   log_call = getFromNamespace("log_call", "FishSET"),
-  locdatabase = getFromNamespace("locdatabase", "FishSET"),
-  locoutput = getFromNamespace("locoutput", "FishSET"),
-  pull_output = getFromNamespace("pull_output", "FishSET")
+  locdatabase = getFromNamespace("locdatabase", "FishSET")
 )
 
-setup_mocks <- function(db_path, out_dir) {
+setup_mocks <- function(db_path) {
   assignInNamespace("log_call", function(...) invisible(NULL), ns = "FishSET")
   assignInNamespace("locdatabase", function(...) db_path, ns = "FishSET")
-  assignInNamespace("locoutput", function(...) paste0(out_dir, "/"), ns = "FishSET")
-  assignInNamespace("pull_output", function(...) "closures.yaml", ns = "FishSET")
 }
 
 restore_mocks <- function() {
   assignInNamespace("log_call", orig_functions$log_call, ns = "FishSET")
   assignInNamespace("locdatabase", orig_functions$locdatabase, ns = "FishSET")
-  assignInNamespace("locoutput", orig_functions$locoutput, ns = "FishSET")
-  assignInNamespace("pull_output", orig_functions$pull_output, ns = "FishSET")
 }
 
 # Helper: Build the complete isolated filesystem and SQLite DB for run_simulation
@@ -101,9 +95,7 @@ setup_sim_env <- function(project_name, model_name, design_obj, fit_obj) {
   
   # Create directory structure
   md_dir <- file.path(project_dir, "Models", "ModelDesigns")
-  out_dir <- file.path(project_dir, "Output")
   dir.create(md_dir, recursive = TRUE, showWarnings = FALSE)
-  dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
   
   # Save Design
   saveRDS(design_obj, file.path(md_dir, paste0(model_name, ".rds")))
@@ -119,16 +111,20 @@ setup_sim_env <- function(project_name, model_name, design_obj, fit_obj) {
   fit_list[[paste0(model_name, "_fit")]] <- fit_obj
   DBI::dbExecute(db, paste("INSERT INTO", table_name, "(data) VALUES (:data)"),
                  params = list(data = list(serialize(fit_list, NULL))))
-  DBI::dbDisconnect(db)
-  
-  # Create YAML closure file
-  yaml_content <- list(
+  closure_content <- list(
     list(scenario = "closure_1", zone = "Zone_1"),
     list(scenario = "closure_2", zone = "Zone_2")
   )
-  yaml::write_yaml(yaml_content, file.path(out_dir, "closures.yaml"))
-  
-  return(list(base_dir = test_base_dir, db_path = db_path, out_dir = out_dir))
+  closure_table <- paste0(project_name, "ClosureScenarios")
+  DBI::dbExecute(db, paste("CREATE TABLE", closure_table, "(data BLOB)"))
+  DBI::dbExecute(
+    db,
+    paste("INSERT INTO", closure_table, "(data) VALUES (:data)"),
+    params = list(data = list(serialize(closure_content, NULL)))
+  )
+  DBI::dbDisconnect(db)
+
+  return(list(base_dir = test_base_dir, db_path = db_path))
 }
 
 # Test baseline (no closures) for standard logit --------------------------------------------------
@@ -136,7 +132,7 @@ test_that("Standard Logit runs baseline correctly", {
   env <- setup_sim_env("Proj_Std", "mod1", std_design, std_fit)
   
   old_opts <- options(test_folder_path = env$base_dir)
-  setup_mocks(env$db_path, env$out_dir)
+  setup_mocks(env$db_path)
   on.exit({
     options(old_opts)
     restore_mocks()
@@ -170,7 +166,7 @@ test_that("Standard Logit handles spatial closures", {
   env <- setup_sim_env("Proj_Closure", "mod1", std_design, std_fit)
   
   old_opts <- options(test_folder_path = env$base_dir)
-  setup_mocks(env$db_path, env$out_dir)
+  setup_mocks(env$db_path)
   on.exit({
     options(old_opts)
     restore_mocks()
@@ -206,7 +202,7 @@ test_that("Standard Logit processes data modifiers", {
   env <- setup_sim_env("Proj_Mods", "mod1", std_design, std_fit)
   
   old_opts <- options(test_folder_path = env$base_dir)
-  setup_mocks(env$db_path, env$out_dir)
+  setup_mocks(env$db_path)
   on.exit({
     options(old_opts)
     restore_mocks()
@@ -238,7 +234,7 @@ test_that("Expected Profit Model (EPM) runs successfully", {
   env <- setup_sim_env("Proj_EPM", "epm1", epm_design, epm_fit)
   
   old_opts <- options(test_folder_path = env$base_dir)
-  setup_mocks(env$db_path, env$out_dir)
+  setup_mocks(env$db_path)
   on.exit({
     options(old_opts)
     restore_mocks()
@@ -271,7 +267,7 @@ test_that("Error Handling: Standard Logit missing marg_util_income", {
   env <- setup_sim_env("Proj_Err", "mod1", std_design, std_fit)
   
   old_opts <- options(test_folder_path = env$base_dir)
-  setup_mocks(env$db_path, env$out_dir)
+  setup_mocks(env$db_path)
   on.exit({
     options(old_opts)
     restore_mocks()
@@ -297,7 +293,7 @@ test_that("Expected Profit Model (EPM) auto-detects and runs lognormal distribut
   
   env <- setup_sim_env("Proj_EPM_Log", "epm_log", epm_design, epm_fit_lognorm)
   old_opts <- options(test_folder_path = env$base_dir)
-  setup_mocks(env$db_path, env$out_dir)
+  setup_mocks(env$db_path)
   on.exit({ options(old_opts); restore_mocks() }, add = TRUE)
   
   expect_no_error(
@@ -307,23 +303,34 @@ test_that("Expected Profit Model (EPM) auto-detects and runs lognormal distribut
   )
 })
 
-# Test missing files and bad YAML -----------------------------------------------------------------
-test_that("Error Handling: Missing files and bad YAML inputs", {
+# Test missing closure scenarios and invalid selections --------------------------------------------
+test_that("Error Handling: missing closure scenarios and invalid selections", {
   env <- setup_sim_env("Proj_IO_Err", "mod1", std_design, std_fit)
   old_opts <- options(test_folder_path = env$base_dir)
   
-  # Missing YAML file (Override the mock to point to a nonexistent file)
-  setup_mocks(env$db_path, env$out_dir)
-  assignInNamespace("pull_output", function(...) "does_not_exist.yaml", ns = "FishSET")
+  setup_mocks(env$db_path)
+  db <- DBI::dbConnect(RSQLite::SQLite(), env$db_path)
+  DBI::dbRemoveTable(db, "Proj_IO_ErrClosureScenarios")
+  DBI::dbDisconnect(db)
   
   expect_error(
     run_simulation("Proj_IO_Err", "mod1", closures = c("closure_1"), marg_util_income = "Var1"),
-    "No policy scenario YAML file found"
+    "No saved closure scenarios found"
   )
   
-  # YAML exists, but user asks for a scenario not in the YAML
-  restore_mocks()
-  setup_mocks(env$db_path, env$out_dir) # Reset to closures.yaml
+  # Restore closure scenarios, then request a scenario that does not exist
+  db <- DBI::dbConnect(RSQLite::SQLite(), env$db_path)
+  DBI::dbExecute(db, "CREATE TABLE Proj_IO_ErrClosureScenarios (data BLOB)")
+  closure_content <- list(
+    list(scenario = "closure_1", zone = "Zone_1"),
+    list(scenario = "closure_2", zone = "Zone_2")
+  )
+  DBI::dbExecute(
+    db,
+    "INSERT INTO Proj_IO_ErrClosureScenarios (data) VALUES (:data)",
+    params = list(data = list(serialize(closure_content, NULL)))
+  )
+  DBI::dbDisconnect(db)
   
   expect_error(
     run_simulation("Proj_IO_Err", "mod1", 
@@ -345,7 +352,7 @@ test_that("Error Handling: Missing files and bad YAML inputs", {
 test_that("Error Handling: Data modifier variable not in design matrix", {
   env <- setup_sim_env("Proj_Mod_Err", "mod1", std_design, std_fit)
   old_opts <- options(test_folder_path = env$base_dir)
-  setup_mocks(env$db_path, env$out_dir)
+  setup_mocks(env$db_path)
   on.exit({ options(old_opts); restore_mocks() }, add = TRUE)
   
   expect_error(
@@ -365,7 +372,7 @@ test_that("Optional Arguments: income_cost flips theta sign correctly", {
   env <- setup_sim_env("Proj_Opt", "mod1", std_design, std_fit)
   
   old_opts <- options(test_folder_path = env$base_dir)
-  setup_mocks(env$db_path, env$out_dir)
+  setup_mocks(env$db_path)
   on.exit({ options(old_opts); restore_mocks() }, add = TRUE)
   
   # Test income_cost = TRUE (If Var1 is negative, income_cost flips it to positive)
@@ -397,7 +404,7 @@ test_that("Optional Arguments: EPM warns if marg_util_income is provided", {
   
   # Properly set the test_folder_path specifically for the EPM environment
   old_opts <- options(test_folder_path = env$base_dir)
-  setup_mocks(env$db_path, env$out_dir)
+  setup_mocks(env$db_path)
   on.exit({ options(old_opts); restore_mocks() }, add = TRUE)
   
   expect_warning(

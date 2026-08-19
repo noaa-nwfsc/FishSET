@@ -81,6 +81,26 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         mutate(second_location_id = paste0("Zone_", as.character(.data[[z_id]]))) %>%
         mutate(zone = as.character(.data[[z_id]]))
     })
+
+    # Populate selectable closure variables from the loaded spatial and grid data
+    observe({
+      req(rv_data$spat)
+
+      datasets <- list(rv_data$spat)
+      if (!is.null(rv_data$grid)) {
+        datasets <- c(datasets, list(rv_data$grid))
+      }
+
+      choices <- sort(unique(unlist(lapply(datasets, names))))
+      selected <- isolate(input$existing_var_name)
+
+      updateSelectInput(
+        session,
+        "existing_var_name",
+        choices = choices,
+        selected = if (selected %in% choices) selected else NULL
+      )
+    })
     
     # Render Missing Matrix Warning ---------------------------------------------------------------
     output$alt_matrix_warning <- renderUI({
@@ -355,6 +375,39 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       },
       ignoreInit = TRUE
     )
+
+    # Existing Variable Selection Logic -------------------------------------------------------------
+    observeEvent(
+      list(input$closure_mode, input$existing_var_name, input$existing_var_val),
+      {
+        if (!identical(input$closure_mode, "existing")) {
+          return()
+        }
+
+        req(input$existing_var_name, nzchar(input$existing_var_val))
+
+        selected_data <- if (input$existing_var_name %in% names(rv_data$spat)) {
+          zone_df()
+        } else if (!is.null(rv_data$grid) &&
+                   input$existing_var_name %in% names(rv_data$grid)) {
+          rv_data$grid %>%
+            mutate(second_location_id = paste0(
+              "Zone_", as.character(.data[[get_zone_id()]])
+            ))
+        } else {
+          return()
+        }
+
+        rv_clicked_zones$ids <- selected_data %>%
+          filter(
+            as.character(.data[[input$existing_var_name]]) ==
+              input$existing_var_val
+          ) %>%
+          pull(second_location_id) %>%
+          unique()
+      },
+      ignoreInit = FALSE
+    )
     
     # Add & Instantly Save Closure Logic ----------------------------------------------------------
     observeEvent(input$add_closure_btn, {
@@ -612,7 +665,11 @@ zone_closure_ui <- function(id) {
         radioButtons(
           ns("closure_mode"),
           "Zone selection method",
-          choices = c("Click on Map" = "map", "Upload Shapefile" = "upload"),
+          choices = c(
+            "Click on Map" = "map",
+            "Upload Shapefile" = "upload",
+            "Select Existing Variable" = "existing"
+          ),
           selected = "map",
           inline = TRUE
         ),
@@ -632,6 +689,21 @@ zone_closure_ui <- function(id) {
             min = 0,
             max = 100,
             step = 1,
+            width = "100%"
+          )
+        ),
+        conditionalPanel(
+          condition = sprintf("input['%s'] === 'existing'", ns("closure_mode")),
+          selectInput(
+            ns("existing_var_name"),
+            "Existing closure variable",
+            choices = character(0),
+            width = "100%"
+          ),
+          textInput(
+            ns("existing_var_val"),
+            "Closure value",
+            value = "1",
             width = "100%"
           )
         )

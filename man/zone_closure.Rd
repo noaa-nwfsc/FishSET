@@ -37,7 +37,7 @@ If epsg is not specified but is defined for \code{spat}.
 See \url{http://spatialreference.org/} to help identify the optimal epsg number.}
 }
 \value{
-Returns a yaml file to the project output folder.
+Returns a Shiny application object.
 }
 \description{
 Define zone closure scenarios
