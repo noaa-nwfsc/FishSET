@@ -2,7 +2,8 @@ get_closure_scenario <- function(project) {
   #' Retrieve closure scenario by project
   #' 
   #' @param project Name of project.
-  #' @importFrom yaml read_yaml
+  #' @importFrom DBI dbConnect dbDisconnect dbGetQuery dbExecute dbQuoteIdentifier
+  #' @importFrom RSQLite SQLite
   #' @export
   #' @examples 
   #' \dontrun{
@@ -60,12 +61,12 @@ unique_closure <- function(project, c_list, ind = TRUE) {
 save_closure_scenario <- function(project, c_list) {
   #' Save unique closure scenarios
   #' 
-  #' Used to save unique closures scenarios to the closures yaml file located in
-  #' the project output folder.
+  #' Saves closure scenarios in the project's internal database.
   #' 
   #' @param project Name of project.
   #' @param c_list List of closure scenarios to check and save. 
-  #' @importFrom yaml write_yaml read_yaml
+  #' @importFrom DBI dbConnect dbDisconnect dbExecute dbQuoteIdentifier
+  #' @importFrom RSQLite SQLite
   #' @keywords internal
   #' @export
   
