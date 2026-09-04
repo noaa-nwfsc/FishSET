@@ -77,7 +77,7 @@ load_maindata(dat = scallop, project = project, over_write = TRUE)
     ## Table saved to database
 
     ## 
-    ## ! Data saved to database as scallop_vignetteMainDataTable20260807 (raw) and scallop_vignetteMainDataTable (working). 
+    ## ! Data saved to database as scallop_vignetteMainDataTable20260904 (raw) and scallop_vignetteMainDataTable (working). 
     ## Table is also in the working environment. !
 
 ``` r
@@ -93,10 +93,10 @@ load_spatial(spat = tenMNSQR, project = project, name = "tenMNSQR")
 ```
 
     ## Writing layer `scallop_vignettetenMNSQRSpatTable' to data source 
-    ##   `C:\Users\Paul.Carvalho\AppData\Local\Temp\Rtmpcl6DMi//scallop_vignette/data/spat/scallop_vignettetenMNSQRSpatTable.geojson' using driver `GeoJSON'
+    ##   `C:\Users\Paul.Carvalho\AppData\Local\Temp\RtmpqUr8Xy//scallop_vignette/data/spat/scallop_vignettetenMNSQRSpatTable.geojson' using driver `GeoJSON'
     ## Writing 5267 features with 9 fields and geometry type Polygon.
-    ## Writing layer `scallop_vignettetenMNSQRSpatTable20260807' to data source 
-    ##   `C:\Users\Paul.Carvalho\AppData\Local\Temp\Rtmpcl6DMi//scallop_vignette/data/spat/scallop_vignettetenMNSQRSpatTable20260807.geojson' using driver `GeoJSON'
+    ## Writing layer `scallop_vignettetenMNSQRSpatTable20260904' to data source 
+    ##   `C:\Users\Paul.Carvalho\AppData\Local\Temp\RtmpqUr8Xy//scallop_vignette/data/spat/scallop_vignettetenMNSQRSpatTable20260904.geojson' using driver `GeoJSON'
     ## Writing 5267 features with 9 fields and geometry type Polygon.
 
     ## Spatial table saved to project folder as scallop_vignettetenMNSQRSpatTable
@@ -206,7 +206,7 @@ load_maindata( scallop_spat_clean, project = project, over_write=TRUE)
     ## Table saved to database
 
     ## 
-    ## ! Data saved to database as scallop_vignetteMainDataTable20260807 (raw) and scallop_vignetteMainDataTable (working). 
+    ## ! Data saved to database as scallop_vignetteMainDataTable20260904 (raw) and scallop_vignetteMainDataTable (working). 
     ## Table is also in the working environment. !
 
 To see how the cleaned trips are distributed across zones, we summarize
@@ -445,7 +445,7 @@ format_model_data(
 
     ## Linking to GEOS 3.14.1, GDAL 3.12.1, PROJ 9.7.1; sf_use_s2() is FALSE
 
-    ## Design object saved to: C:\Users\Paul.Carvalho\AppData\Local\Temp\Rtmpcl6DMi//scallop_vignette/Models/FormattedData/scallop_vignetteLongFormatData.qs2
+    ## Design object saved to: C:\Users\Paul.Carvalho\AppData\Local\Temp\RtmpqUr8Xy//scallop_vignette/Models/FormattedData/scallop_vignetteLongFormatData.qs2
 
 ``` r
 
@@ -465,7 +465,7 @@ format_model_data(
     ## Warning: CRS is not specfied, distance matrix will be created using WGS 84
     ## (4326).
 
-    ## Design object saved to: C:\Users\Paul.Carvalho\AppData\Local\Temp\Rtmpcl6DMi//scallop_vignette/Models/FormattedData/scallop_vignetteLongFormatData.qs2
+    ## Design object saved to: C:\Users\Paul.Carvalho\AppData\Local\Temp\RtmpqUr8Xy//scallop_vignette/Models/FormattedData/scallop_vignetteLongFormatData.qs2
 
 ## Model design and fit
 
@@ -486,7 +486,7 @@ fishset_design(
 )
 ```
 
-    ## Design object saved to: C:\Users\Paul.Carvalho\AppData\Local\Temp\Rtmpcl6DMi//scallop_vignette/Models/ModelDesigns/clogit1.qs2
+    ## Design object saved to: C:\Users\Paul.Carvalho\AppData\Local\Temp\RtmpqUr8Xy//scallop_vignette/Models/ModelDesigns/clogit1.qs2
 
 ``` r
 
@@ -501,7 +501,7 @@ fishset_design(
 )
 ```
 
-    ## Design object saved to: C:\Users\Paul.Carvalho\AppData\Local\Temp\Rtmpcl6DMi//scallop_vignette/Models/ModelDesigns/zlogit1.qs2
+    ## Design object saved to: C:\Users\Paul.Carvalho\AppData\Local\Temp\RtmpqUr8Xy//scallop_vignette/Models/ModelDesigns/zlogit1.qs2
 
 The model-fitting step can take longer than a vignette render budget, so
 we keep the fitting code in the document but do not evaluate it here.

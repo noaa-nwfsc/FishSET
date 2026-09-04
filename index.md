@@ -59,9 +59,8 @@ console.
 ## Documentation and Tutorials
 
 Refer to the [FishSET R Package User
-Manual](https://noaa-nwfsc.github.io/FishSET/articles/FishSET_User_Manual.html)
-for more package information, quickstart guides, and troubleshooting
-tips.
+Manual](https://noaa-nwfsc.github.io/FishSET/user_manual.pdf) for more
+package information, quickstart guides, and troubleshooting tips.
 
 ## Publications
 
