@@ -293,17 +293,10 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       click <- input$zone_map_output_shape_click
       req(click$id)
       
-      sec_id <- "second_location_id"
-      proxy <- leaflet::leafletProxy("zone_map_output")
-      is_point_data <- any(sf::st_geometry_type(zone_df()) %in% c("POINT", "MULTIPOINT"))
-      
       if (click$id %in% rv_clicked_zones$ids) {
-        # DESELECTING
         rv_clicked_zones$ids <- setdiff(rv_clicked_zones$ids, click$id)
-        proxy %>% leaflet::removeShape(layerId = paste0(click$id, "_selected"))
-        
       } else {
-        # SELECTING
+        sec_id <- "second_location_id"
         clicked_poly <- zone_df() %>% filter(.data[[sec_id]] == click$id)
         m_zones <- modeled_zones()
         
@@ -321,23 +314,38 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         }
         
         rv_clicked_zones$ids <- unique(c(rv_clicked_zones$ids, click$id))
-        
-        if (is_point_data) {
-          proxy %>% leaflet::addCircleMarkers(data = clicked_poly, radius = 6, fillColor = "red", 
-                                              fillOpacity = 0.8,
-                                              weight = 2, color = "black", stroke = TRUE,
-                                              layerId = paste0(click$id, "_selected"), 
-                                              group = "selected_zones",
-                                              options = leaflet::pathOptions(interactive = FALSE))
-        } else {
-          proxy %>% leaflet::addPolygons(data = clicked_poly, fillColor = "red", fillOpacity = 0.5,
-                                         weight = 2, color = "black", stroke = TRUE,
-                                         layerId = paste0(click$id, "_selected"), 
-                                         group = "selected_zones",
-                                         options = leaflet::pathOptions(interactive = FALSE))
-        }
       }
     })
+
+    # Selected Zone Highlighting ------------------------------------------------------------------
+    observeEvent(rv_clicked_zones$ids, {
+      proxy <- leaflet::leafletProxy("zone_map_output")
+      proxy %>% leaflet::clearGroup("selected_zones")
+
+      if (length(rv_clicked_zones$ids) == 0) {
+        return()
+      }
+
+      selected_zones <- zone_df() %>%
+        filter(second_location_id %in% rv_clicked_zones$ids)
+      is_point_data <- any(
+        sf::st_geometry_type(selected_zones) %in% c("POINT", "MULTIPOINT")
+      )
+
+      if (is_point_data) {
+        proxy %>% leaflet::addCircleMarkers(
+          data = selected_zones, radius = 6, fillColor = "red", fillOpacity = 0.8,
+          weight = 2, color = "black", stroke = TRUE, group = "selected_zones",
+          options = leaflet::pathOptions(interactive = FALSE)
+        )
+      } else {
+        proxy %>% leaflet::addPolygons(
+          data = selected_zones, fillColor = "red", fillOpacity = 0.5,
+          weight = 2, color = "black", stroke = TRUE, group = "selected_zones",
+          options = leaflet::pathOptions(interactive = FALSE)
+        )
+      }
+    }, ignoreNULL = FALSE)
 
     # Uploaded Shapefile Selection Logic -----------------------------------------------------------
     observeEvent(
@@ -677,8 +685,8 @@ zone_closure_ui <- function(id) {
           condition = sprintf("input['%s'] === 'upload'", ns("closure_mode")),
           fileInput(
             ns("closure_shapefile"),
-            "Upload shapefile components",
-            accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg"),
+            "Upload spatial file or shapefile components",
+            accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg", ".geojson", ".json", ".gpkg"),
             multiple = TRUE,
             width = "100%"
           ),
