@@ -36,6 +36,7 @@ compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold) {
       quiet = TRUE
     )
   } else {
+    rds_index <- which(tolower(tools::file_ext(uploaded_files$name)) == "rds")
     single_file_index <- which(
       tolower(tools::file_ext(uploaded_files$name)) %in%
         c("geojson", "json", "gpkg", "rds", "csv")
@@ -50,16 +51,18 @@ compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold) {
       )
     }
 
-    file_path <- uploaded_files$datapath[[single_file_index]]
     file_extension <- tolower(tools::file_ext(uploaded_files$name[[single_file_index]]))
 
     if (identical(file_extension, "rds")) {
-      uploaded_shape <- readRDS(file_path)
+      uploaded_shape <- readRDS(uploaded_files$datapath[rds_index])
       if (!inherits(uploaded_shape, "sf")) {
-        stop("The RDS file must contain an sf object.", call. = FALSE)
+        stop("The uploaded .rds file must contain an 'sf' spatial object.", call. = FALSE)
       }
     } else if (identical(file_extension, "csv")) {
-      uploaded_data <- utils::read.csv(file_path, stringsAsFactors = FALSE)
+      uploaded_data <- utils::read.csv(
+        uploaded_files$datapath[[single_file_index]],
+        stringsAsFactors = FALSE
+      )
       column_names <- tolower(names(uploaded_data))
       wkt_index <- match("geometry", column_names, nomatch = 0)
       if (wkt_index == 0) {
@@ -92,7 +95,7 @@ compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold) {
         )
       }
     } else {
-      uploaded_shape <- sf::st_read(file_path, quiet = TRUE)
+      uploaded_shape <- sf::st_read(uploaded_files$datapath[[single_file_index]], quiet = TRUE)
     }
   }
   if (is.na(sf::st_crs(uploaded_shape))) {
