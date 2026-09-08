@@ -1,6 +1,6 @@
-#' Identify model zones overlapped by an uploaded shapefile
+#' Identify model zones overlapped by an uploaded spatial file
 #'
-#' @param uploaded_files The data frame returned by a Shiny shapefile `fileInput`.
+#' @param uploaded_files The data frame returned by a Shiny spatial `fileInput`.
 #' @param zones An `sf` object with a `second_location_id` column.
 #' @param overlap_threshold Minimum percentage of a zone that must be covered.
 #' @return A character vector of selected `second_location_id` values.
@@ -8,7 +8,7 @@
 compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold) {
   if (!is.data.frame(uploaded_files) ||
       !all(c("name", "datapath") %in% names(uploaded_files))) {
-    stop("Upload all required shapefile components.", call. = FALSE)
+    stop("Upload a valid spatial file.", call. = FALSE)
   }
   if (!is.numeric(overlap_threshold) || length(overlap_threshold) != 1 ||
       is.na(overlap_threshold) || overlap_threshold < 0 || overlap_threshold > 100) {
@@ -19,23 +19,37 @@ compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold) {
   }
 
   shp_index <- which(tolower(tools::file_ext(uploaded_files$name)) == "shp")
-  if (length(shp_index) != 1) {
-    stop("Upload exactly one .shp file and its companion files.", call. = FALSE)
+  if (length(shp_index) > 0) {
+    if (length(shp_index) != 1) {
+      stop("Upload exactly one .shp file and its companion files.", call. = FALSE)
+    }
+
+    upload_dir <- tempfile("closure_shapefile_")
+    dir.create(upload_dir)
+    on.exit(unlink(upload_dir, recursive = TRUE), add = TRUE)
+
+    file.copy(uploaded_files$datapath,
+              file.path(upload_dir, uploaded_files$name),
+              overwrite = TRUE)
+    uploaded_shape <- sf::st_read(
+      file.path(upload_dir, uploaded_files$name[[shp_index]]),
+      quiet = TRUE
+    )
+  } else {
+    single_file_index <- which(
+      tolower(tools::file_ext(uploaded_files$name)) %in% c("geojson", "json", "gpkg")
+    )
+    if (length(single_file_index) != 1) {
+      stop(
+        "Upload one GeoJSON, JSON, or GeoPackage file, or a shapefile with its companion files.",
+        call. = FALSE
+      )
+    }
+
+    uploaded_shape <- sf::st_read(uploaded_files$datapath[[single_file_index]], quiet = TRUE)
   }
-
-  upload_dir <- tempfile("closure_shapefile_")
-  dir.create(upload_dir)
-  on.exit(unlink(upload_dir, recursive = TRUE), add = TRUE)
-
-  file.copy(uploaded_files$datapath,
-            file.path(upload_dir, uploaded_files$name),
-            overwrite = TRUE)
-  uploaded_shape <- sf::st_read(
-    file.path(upload_dir, uploaded_files$name[[shp_index]]),
-    quiet = TRUE
-  )
   if (is.na(sf::st_crs(uploaded_shape))) {
-    stop("The uploaded shapefile must define a coordinate reference system.", call. = FALSE)
+    stop("The uploaded spatial file must define a coordinate reference system.", call. = FALSE)
   }
 
   zones <- sf::st_make_valid(zones)

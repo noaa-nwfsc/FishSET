@@ -36,3 +36,33 @@ test_that("compute_closure_overlaps selects zones meeting the threshold", {
     character(0)
   )
 })
+
+test_that("compute_closure_overlaps accepts a single GeoJSON file", {
+  zones <- sf::st_as_sf(
+    data.frame(second_location_id = c("Zone_1", "Zone_2"), wkt = c(
+      "POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))",
+      "POLYGON ((1 0, 2 0, 2 1, 1 1, 1 0))"
+    )),
+    wkt = "wkt",
+    crs = 4326
+  )
+  closure <- sf::st_as_sf(
+    data.frame(id = 1, wkt = "POLYGON ((0 0, 0.6 0, 0.6 1, 0 1, 0 0))"),
+    wkt = "wkt",
+    crs = 4326
+  )
+  geojson <- tempfile(fileext = ".geojson")
+  sf::st_write(closure, geojson, quiet = TRUE)
+  on.exit(unlink(geojson), add = TRUE)
+
+  uploaded_files <- data.frame(
+    name = basename(geojson),
+    datapath = geojson,
+    stringsAsFactors = FALSE
+  )
+
+  expect_equal(
+    FishSET:::compute_closure_overlaps(uploaded_files, zones, 50),
+    "Zone_1"
+  )
+})
