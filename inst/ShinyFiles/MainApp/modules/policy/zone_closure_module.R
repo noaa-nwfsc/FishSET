@@ -354,7 +354,14 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         if (!identical(input$closure_mode, "upload") || is.null(input$closure_shapefile)) {
           return()
         }
-        
+
+        processing_notification <- showNotification(
+          "Processing uploaded file and calculating overlaps. This may take a moment...",
+          type = "message",
+          duration = NULL
+        )
+        on.exit(removeNotification(processing_notification), add = TRUE)
+
         selected_zones <- tryCatch(
           compute_closure_overlaps(
             input$closure_shapefile,
