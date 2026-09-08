@@ -347,13 +347,9 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       }
     }, ignoreNULL = FALSE)
 
-    # Uploaded Shapefile Selection Logic -----------------------------------------------------------
-    observeEvent(
-      list(input$closure_mode, input$closure_shapefile, input$overlap_threshold),
-      {
-        if (!identical(input$closure_mode, "upload") || is.null(input$closure_shapefile)) {
-          return()
-        }
+    # Uploaded Spatial File Selection Logic --------------------------------------------------------
+    observeEvent(input$process_upload_btn, {
+        req(input$closure_shapefile)
 
         processing_notification <- showNotification(
           "Processing uploaded file and calculating overlaps. This may take a moment...",
@@ -390,18 +386,11 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
           )
         }
       },
-      ignoreInit = TRUE
-    )
+      ignoreInit = TRUE)
 
     # Existing Variable Selection Logic -------------------------------------------------------------
-    observeEvent(
-      list(input$closure_mode, input$existing_var_name, input$existing_var_val),
-      {
-        if (!identical(input$closure_mode, "existing")) {
-          return()
-        }
-
-        req(input$existing_var_name, nzchar(input$existing_var_val))
+    observeEvent(input$process_existing_btn, {
+        req(input$existing_var_name, input$existing_var_val)
         shinyjs::show("closure_processing_spinner_container")
         on.exit(shinyjs::hide("closure_processing_spinner_container"), add = TRUE)
 
@@ -425,8 +414,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
           pull(second_location_id) %>%
           unique()
       },
-      ignoreInit = FALSE
-    )
+      ignoreInit = TRUE)
     
     # Add & Instantly Save Closure Logic ----------------------------------------------------------
     observeEvent(input$add_closure_btn, {
@@ -712,6 +700,12 @@ zone_closure_ui <- function(id) {
             max = 100,
             step = 1,
             width = "100%"
+          ),
+          actionButton(
+            ns("process_upload_btn"),
+            "Calculate Overlaps",
+            class = "btn-primary mt-2",
+            icon = icon("calculator")
           )
         ),
         conditionalPanel(
@@ -727,6 +721,12 @@ zone_closure_ui <- function(id) {
             "Closure value",
             value = "1",
             width = "100%"
+          ),
+          actionButton(
+            ns("process_existing_btn"),
+            "Select Zones",
+            class = "btn-primary mt-2",
+            icon = icon("check")
           )
         )
       )
