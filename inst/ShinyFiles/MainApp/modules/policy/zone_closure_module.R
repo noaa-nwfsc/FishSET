@@ -361,6 +361,8 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
           duration = NULL
         )
         on.exit(removeNotification(processing_notification), add = TRUE)
+        shinyjs::show("closure_processing_spinner_container")
+        on.exit(shinyjs::hide("closure_processing_spinner_container"), add = TRUE)
 
         selected_zones <- tryCatch(
           compute_closure_overlaps(
@@ -400,6 +402,8 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         }
 
         req(input$existing_var_name, nzchar(input$existing_var_val))
+        shinyjs::show("closure_processing_spinner_container")
+        on.exit(shinyjs::hide("closure_processing_spinner_container"), add = TRUE)
 
         selected_data <- if (input$existing_var_name %in% names(rv_data$spat)) {
           zone_df()
@@ -741,9 +745,19 @@ zone_closure_ui <- function(id) {
       bslib::card_body(
         class = "p-0",
         style = "overflow: hidden;", 
-        shinycssloaders::withSpinner(
-          leaflet::leafletOutput(ns("zone_map_output"), height = 650), 
-          type = 6, color = "#007bc2"
+        div(
+          leaflet::leafletOutput(ns("zone_map_output"), height = 650),
+          div(
+            id = ns("closure_processing_spinner_container"),
+            style = "display: none;",
+            spinner_ui(
+              ns("closure_processing_spinner"),
+              spinner_type = "circle",
+              size = "large",
+              message = "Processing spatial closure...",
+              overlay = TRUE
+            )
+          )
         )
       )
     ),
