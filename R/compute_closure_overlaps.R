@@ -6,6 +6,9 @@
 #' @return A character vector of selected `second_location_id` values.
 #' @keywords internal
 compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold) {
+  old_s2 <- sf::sf_use_s2(FALSE)
+  on.exit(sf::sf_use_s2(old_s2), add = TRUE)
+
   if (!is.data.frame(uploaded_files) ||
       !all(c("name", "datapath") %in% names(uploaded_files))) {
     stop("Upload a valid spatial file.", call. = FALSE)
@@ -98,18 +101,19 @@ compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold) {
       uploaded_shape <- sf::st_read(uploaded_files$datapath[[single_file_index]], quiet = TRUE)
     }
   }
+  uploaded_shape <- sf::st_zm(uploaded_shape, drop = TRUE, what = "ZM")
+  zones <- sf::st_zm(zones, drop = TRUE, what = "ZM")
+
   if (is.na(sf::st_crs(uploaded_shape))) {
     stop("The uploaded spatial file must define a coordinate reference system.", call. = FALSE)
   }
 
-  uploaded_shape <- sf::st_make_valid(uploaded_shape)
-  polygonal <- sf::st_geometry_type(uploaded_shape) %in% c("POLYGON", "MULTIPOLYGON")
-  if (any(polygonal)) {
-    uploaded_shape[polygonal, ] <- sf::st_buffer(uploaded_shape[polygonal, ], dist = 0)
-  }
-
-  zones <- sf::st_make_valid(zones)
-  uploaded_shape <- sf::st_make_valid(sf::st_transform(uploaded_shape, sf::st_crs(zones)))
+  uploaded_shape <- sf::st_buffer(sf::st_make_valid(uploaded_shape), dist = 0)
+  zones <- sf::st_buffer(sf::st_make_valid(zones), dist = 0)
+  uploaded_shape <- sf::st_buffer(
+    sf::st_make_valid(sf::st_transform(uploaded_shape, sf::st_crs(zones))),
+    dist = 0
+  )
   if (any(sf::st_geometry_type(zones) %in% c("POINT", "MULTIPOINT"))) {
     overlaps <- lengths(sf::st_intersects(zones, uploaded_shape)) > 0
     return(as.character(zones$second_location_id[overlaps]))
