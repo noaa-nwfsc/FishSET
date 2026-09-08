@@ -1,0 +1,151 @@
+#' Identify model zones overlapped by an uploaded spatial file
+#'
+#' @param uploaded_files The data frame returned by a Shiny spatial `fileInput`.
+#' @param zones An `sf` object with a `second_location_id` column.
+#' @param overlap_threshold Minimum percentage of a zone that must be covered.
+#' @return A character vector of selected `second_location_id` values.
+#' @keywords internal
+compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold) {
+  old_s2 <- sf::sf_use_s2(FALSE)
+  on.exit(sf::sf_use_s2(old_s2), add = TRUE)
+
+  if (!is.data.frame(uploaded_files) ||
+      !all(c("name", "datapath") %in% names(uploaded_files))) {
+    stop("Upload a valid spatial file.", call. = FALSE)
+  }
+  if (!is.numeric(overlap_threshold) || length(overlap_threshold) != 1 ||
+      is.na(overlap_threshold) || overlap_threshold < 0 || overlap_threshold > 100) {
+    stop("Overlap threshold must be between 0 and 100.", call. = FALSE)
+  }
+  if (!inherits(zones, "sf") || !"second_location_id" %in% names(zones)) {
+    stop("Zones must be an sf object with second_location_id values.", call. = FALSE)
+  }
+
+  shp_index <- which(tolower(tools::file_ext(uploaded_files$name)) == "shp")
+  if (length(shp_index) > 0) {
+    if (length(shp_index) != 1) {
+      stop("Upload exactly one .shp file and its companion files.", call. = FALSE)
+    }
+
+    upload_dir <- tempfile("closure_shapefile_")
+    dir.create(upload_dir)
+    on.exit(unlink(upload_dir, recursive = TRUE), add = TRUE)
+
+    file.copy(uploaded_files$datapath,
+              file.path(upload_dir, uploaded_files$name),
+              overwrite = TRUE)
+    uploaded_shape <- sf::st_read(
+      file.path(upload_dir, uploaded_files$name[[shp_index]]),
+      quiet = TRUE
+    )
+  } else {
+    rds_index <- which(tolower(tools::file_ext(uploaded_files$name)) == "rds")
+    single_file_index <- which(
+      tolower(tools::file_ext(uploaded_files$name)) %in%
+        c("geojson", "json", "gpkg", "rds", "csv")
+    )
+    if (length(single_file_index) != 1) {
+      stop(
+        paste(
+          "Upload one GeoJSON, JSON, GeoPackage, RDS, or CSV file,",
+          "or a shapefile with its companion files."
+        ),
+        call. = FALSE
+      )
+    }
+
+    file_extension <- tolower(tools::file_ext(uploaded_files$name[[single_file_index]]))
+
+    if (identical(file_extension, "rds")) {
+      uploaded_shape <- readRDS(uploaded_files$datapath[rds_index])
+      if (!inherits(uploaded_shape, "sf")) {
+        stop("The uploaded .rds file must contain an 'sf' spatial object.", call. = FALSE)
+      }
+    } else if (identical(file_extension, "csv")) {
+      uploaded_data <- utils::read.csv(
+        uploaded_files$datapath[[single_file_index]],
+        stringsAsFactors = FALSE
+      )
+      column_names <- tolower(names(uploaded_data))
+      wkt_index <- match("geometry", column_names, nomatch = 0)
+      if (wkt_index == 0) {
+        wkt_index <- match("wkt", column_names, nomatch = 0)
+      }
+
+      if (wkt_index > 0) {
+        uploaded_shape <- sf::st_as_sf(
+          uploaded_data,
+          wkt = names(uploaded_data)[[wkt_index]],
+          crs = 4326
+        )
+      } else {
+        lon_index <- match(c("lon", "longitude"), column_names, nomatch = 0)
+        lat_index <- match(c("lat", "latitude"), column_names, nomatch = 0)
+        lon_index <- lon_index[lon_index > 0][1]
+        lat_index <- lat_index[lat_index > 0][1]
+
+        if (is.na(lon_index) || is.na(lat_index)) {
+          stop(
+            "CSV files must contain a geometry/WKT column or longitude and latitude columns.",
+            call. = FALSE
+          )
+        }
+
+        uploaded_shape <- sf::st_as_sf(
+          uploaded_data,
+          coords = c(names(uploaded_data)[[lon_index]], names(uploaded_data)[[lat_index]]),
+          crs = 4326
+        )
+      }
+    } else {
+      uploaded_shape <- sf::st_read(uploaded_files$datapath[[single_file_index]], quiet = TRUE)
+    }
+  }
+  uploaded_shape <- sf::st_zm(uploaded_shape, drop = TRUE, what = "ZM")
+  zones <- sf::st_zm(zones, drop = TRUE, what = "ZM")
+
+  if (is.na(sf::st_crs(uploaded_shape))) {
+    stop("The uploaded spatial file must define a coordinate reference system.", call. = FALSE)
+  }
+
+  uploaded_shape <- sf::st_buffer(sf::st_make_valid(uploaded_shape), dist = 0)
+  zones <- sf::st_buffer(sf::st_make_valid(zones), dist = 0)
+  uploaded_shape <- sf::st_buffer(
+    sf::st_make_valid(sf::st_transform(uploaded_shape, sf::st_crs(zones))),
+    dist = 0
+  )
+  if (any(sf::st_geometry_type(zones) %in% c("POINT", "MULTIPOINT"))) {
+    overlaps <- lengths(sf::st_intersects(zones, uploaded_shape)) > 0
+    return(as.character(zones$second_location_id[overlaps]))
+  }
+
+  zone_area <- as.numeric(sf::st_area(zones))
+  intersections <- sf::st_intersection(
+    zones[, "second_location_id", drop = FALSE],
+    sf::st_union(uploaded_shape)
+  )
+  if (nrow(intersections) == 0) {
+    return(character(0))
+  }
+
+  overlap_area <- stats::aggregate(
+    as.numeric(sf::st_area(intersections)),
+    by = list(second_location_id = intersections$second_location_id),
+    FUN = sum
+  )
+  names(overlap_area)[2] <- "area"
+  zone_overlap <- data.frame(
+    second_location_id = as.character(zones$second_location_id),
+    area = zone_area,
+    stringsAsFactors = FALSE
+  )
+  zone_overlap <- merge(zone_overlap, overlap_area,
+                        by = "second_location_id", all.x = TRUE,
+                        suffixes = c("_zone", "_overlap"))
+  zone_overlap$area_overlap[is.na(zone_overlap$area_overlap)] <- 0
+
+  zone_overlap$second_location_id[
+    zone_overlap$area_zone > 0 &
+      (100 * zone_overlap$area_overlap / zone_overlap$area_zone) >= overlap_threshold
+  ]
+}

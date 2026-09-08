@@ -17,7 +17,6 @@
 #'   If epsg is not specified but is defined for \code{spat}. 
 #'   See \url{http://spatialreference.org/} to help identify the optimal epsg number.
 #' @importFrom sf st_crs st_transform
-#' @importFrom yaml write_yaml
 #' @importFrom grDevices topo.colors
 #' @importFrom shiny dataTableOutput renderDataTable
 #' @import leaflet
@@ -29,7 +28,7 @@
 #'   Clicking 'Add closure' instantly saves the scenario to the project database. 
 #'   These saved choices are later called in the policy scenario function.
 #' @export
-#' @return Returns a yaml file to the project output folder.
+#' @return A Shiny application object.
 
 zone_closure <- function(project, 
                          spatname, 

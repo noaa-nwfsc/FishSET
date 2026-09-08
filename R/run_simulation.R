@@ -63,7 +63,7 @@
 #'   marg_util_income = "expected_catch"
 #' )
 #' 
-#' # Run simulations for two separate spatial closures defined in your YAML
+#' # Run simulations for two saved spatial closure scenarios
 #' run_simulation(
 #'   project = "MyProject",
 #'   mod_name = "clogit_model1",
@@ -256,62 +256,55 @@ run_simulation <- function(project,
     epm_welfare_multiplier <- y_div * p_div
   }
   
-  # Load closures from YAML -----------------------------------------------------------------------
+  # Load closures from the project database -------------------------------------------------------
   base_scenarios <- list()
   
   if (!is.null(closures)) {
-    yaml_file <- paste0(locoutput(project), pull_output(project, 
-                                                        type = "zone", 
-                                                        fun = "closures"))
-    if (utils::file_test("-f", yaml_file)) {
-      all_closures <- yaml::read_yaml(yaml_file)
-      
-      # Filter to user-selected closures
-      raw_scenarios <- all_closures[vapply(
-        all_closures, 
-        function(x) x$scenario %in% unlist(closures), logical(1))]
-      
-      if (length(raw_scenarios) == 0) {
-        available_scens <- vapply(all_closures, function(x) x$scenario, character(1))
-        stop(paste0("None of the specified scenario names in 'closures' were found in ",
-                    "the YAML file.\n Available scenarios are: '", 
-                    paste(available_scens, collapse = "', '"), "'"), call. = FALSE)
-      }
-      
-      # Validate that all the closure zones exist in the model design
-      available_design_zones <- as.character(unique(design$ids$zone))
-      
-      for (scen in raw_scenarios) {
-        if (!is.null(scen$zone)) {
-          # Strip the 'Zone_' prefix from the YAML definitions to match model ID format
-          requested_zones <- gsub("Zone_", "", scen$zone)
-          missing_zones <- setdiff(requested_zones, available_design_zones)
-          
-          if (length(missing_zones) > 0) {
-            warning(sprintf(
-              paste0("Closure scenario '%s' will not be simulated because one or more zones ",
-                     "identified are not available in the model design choice set. ",
-                     "Missing zones: %s"), 
-              scen$scenario, 
-              paste(missing_zones, collapse = ", ")
-            ), call. = FALSE, immediate. = TRUE)
-            next # Skip adding this scenario to base_scenarios
-          }
-        }
-        # If valid, append to the final scenario list
-        base_scenarios[[length(base_scenarios) + 1]] <- scen
-      }
-      
-      # Safety check in case ALL selected scenarios were dropped due to invalid zones
-      if (length(base_scenarios) == 0) {
-        stop(paste0("Simulation aborted. None of the specified closure scenarios contain valid ",
-                    "zones for this model design."), call. = FALSE)
-      }
-      
-    } else {
-      stop("No policy scenario YAML file found. Run the zone_closure() function first.")
+    all_closures <- get_closure_scenario(project)
+    if (is.null(all_closures) || length(all_closures) == 0) {
+      stop("No saved closure scenarios found. Run zone_closure() first.", call. = FALSE)
     }
-    
+
+    # Filter to user-selected closures
+    raw_scenarios <- all_closures[vapply(
+      all_closures,
+      function(x) x$scenario %in% unlist(closures), logical(1)
+    )]
+
+    if (length(raw_scenarios) == 0) {
+      available_scens <- vapply(all_closures, function(x) x$scenario, character(1))
+      stop(paste0("None of the specified scenario names in 'closures' were found. ",
+                  "Available scenarios are: '",
+                  paste(available_scens, collapse = "', '"), "'"), call. = FALSE)
+    }
+
+    # Validate that all the closure zones exist in the model design
+    available_design_zones <- as.character(unique(design$ids$zone))
+
+    for (scen in raw_scenarios) {
+      if (!is.null(scen$zone)) {
+        # Strip the Zone_ prefix to match model ID format
+        requested_zones <- gsub("Zone_", "", scen$zone)
+        missing_zones <- setdiff(requested_zones, available_design_zones)
+
+        if (length(missing_zones) > 0) {
+          warning(sprintf(
+            paste0("Closure scenario '%s' will not be simulated because one or more zones ",
+                   "identified are not available in the model design choice set. ",
+                   "Missing zones: %s"),
+            scen$scenario,
+            paste(missing_zones, collapse = ", ")
+          ), call. = FALSE, immediate. = TRUE)
+          next
+        }
+      }
+      base_scenarios[[length(base_scenarios) + 1]] <- scen
+    }
+
+    if (length(base_scenarios) == 0) {
+      stop(paste0("Simulation aborted. None of the specified closure scenarios contain valid ",
+                  "zones for this model design."), call. = FALSE)
+    }
   } else {
     # Fallback base scenario if no closures are provided
     base_scenarios <- list(list(scenario = "baseline", zone = NULL))

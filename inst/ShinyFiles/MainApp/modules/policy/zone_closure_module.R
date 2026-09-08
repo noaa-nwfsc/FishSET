@@ -3,7 +3,7 @@
 #              bar for inputs, a leaflet map for selecting spatial zones, and 
 #              interactive tables for managing closure scenarios and allowable catches.
 #              
-# Dependencies: shiny, DT, bslib, leaflet, sf, purrr, shinycssloaders, yaml
+# Dependencies: shiny, DT, bslib, leaflet, sf, purrr, shinycssloaders
 # =================================================================================================
 
 # zone closure server -----------------------------------------------------------------------------
@@ -30,6 +30,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     # Trackers for database polling and initialization state to prevent double-loading
     rv_db_state        <- reactiveValues(mtime = NULL, choices = NULL, initialized = FALSE)
     rv_last_matrix     <- reactiveValues(val = NULL)
+    rv_last_mode       <- reactiveValues(val = NULL)
     
     # Main App Logic: Only run GUI loader if NOT in standalone console mode
     if (is.null(spat_zone_id)) {
@@ -79,6 +80,26 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         sf::st_transform(., "+proj=longlat +datum=WGS84") %>%
         mutate(second_location_id = paste0("Zone_", as.character(.data[[z_id]]))) %>%
         mutate(zone = as.character(.data[[z_id]]))
+    })
+
+    # Populate selectable closure variables from the loaded spatial and grid data
+    observe({
+      req(rv_data$spat)
+
+      datasets <- list(rv_data$spat)
+      if (!is.null(rv_data$grid)) {
+        datasets <- c(datasets, list(rv_data$grid))
+      }
+
+      choices <- sort(unique(unlist(lapply(datasets, names))))
+      selected <- isolate(input$existing_var_name)
+
+      updateSelectInput(
+        session,
+        "existing_var_name",
+        choices = choices,
+        selected = if (selected %in% choices) selected else NULL
+      )
     })
     
     # Render Missing Matrix Warning ---------------------------------------------------------------
@@ -162,6 +183,14 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         rv_clicked_zones$ids <- character(0)
         rv_last_matrix$val <- current_val
       }
+    }, ignoreInit = TRUE)
+
+    # Clear selections when switching between map and uploaded-shapefile modes --------------------
+    observeEvent(input$closure_mode, {
+      if (!is.null(rv_last_mode$val) && !identical(input$closure_mode, rv_last_mode$val)) {
+        rv_clicked_zones$ids <- character(0)
+      }
+      rv_last_mode$val <- input$closure_mode
     }, ignoreInit = TRUE)
     
     # Extract Modeled Zones (Evaluates lazily - NO FALLBACK) --------------------------------------
@@ -257,20 +286,17 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     
     # Map Shape Selection Logic -------------------------------------------------------------------
     observeEvent(input$zone_map_output_shape_click, {
+      if (!identical(input$closure_mode, "map")) {
+        return()
+      }
+      
       click <- input$zone_map_output_shape_click
       req(click$id)
       
-      sec_id <- "second_location_id"
-      proxy <- leaflet::leafletProxy("zone_map_output")
-      is_point_data <- any(sf::st_geometry_type(zone_df()) %in% c("POINT", "MULTIPOINT"))
-      
       if (click$id %in% rv_clicked_zones$ids) {
-        # DESELECTING
         rv_clicked_zones$ids <- setdiff(rv_clicked_zones$ids, click$id)
-        proxy %>% leaflet::removeShape(layerId = paste0(click$id, "_selected"))
-        
       } else {
-        # SELECTING
+        sec_id <- "second_location_id"
         clicked_poly <- zone_df() %>% filter(.data[[sec_id]] == click$id)
         m_zones <- modeled_zones()
         
@@ -288,23 +314,107 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         }
         
         rv_clicked_zones$ids <- unique(c(rv_clicked_zones$ids, click$id))
-        
-        if (is_point_data) {
-          proxy %>% leaflet::addCircleMarkers(data = clicked_poly, radius = 6, fillColor = "red", 
-                                              fillOpacity = 0.8,
-                                              weight = 2, color = "black", stroke = TRUE,
-                                              layerId = paste0(click$id, "_selected"), 
-                                              group = "selected_zones",
-                                              options = leaflet::pathOptions(interactive = FALSE))
-        } else {
-          proxy %>% leaflet::addPolygons(data = clicked_poly, fillColor = "red", fillOpacity = 0.5,
-                                         weight = 2, color = "black", stroke = TRUE,
-                                         layerId = paste0(click$id, "_selected"), 
-                                         group = "selected_zones",
-                                         options = leaflet::pathOptions(interactive = FALSE))
-        }
       }
     })
+
+    # Selected Zone Highlighting ------------------------------------------------------------------
+    observeEvent(rv_clicked_zones$ids, {
+      proxy <- leaflet::leafletProxy("zone_map_output")
+      proxy %>% leaflet::clearGroup("selected_zones")
+
+      if (length(rv_clicked_zones$ids) == 0) {
+        return()
+      }
+
+      selected_zones <- zone_df() %>%
+        filter(second_location_id %in% rv_clicked_zones$ids)
+      is_point_data <- any(
+        sf::st_geometry_type(selected_zones) %in% c("POINT", "MULTIPOINT")
+      )
+
+      if (is_point_data) {
+        proxy %>% leaflet::addCircleMarkers(
+          data = selected_zones, radius = 6, fillColor = "red", fillOpacity = 0.8,
+          weight = 2, color = "black", stroke = TRUE, group = "selected_zones",
+          options = leaflet::pathOptions(interactive = FALSE)
+        )
+      } else {
+        proxy %>% leaflet::addPolygons(
+          data = selected_zones, fillColor = "red", fillOpacity = 0.5,
+          weight = 2, color = "black", stroke = TRUE, group = "selected_zones",
+          options = leaflet::pathOptions(interactive = FALSE)
+        )
+      }
+    }, ignoreNULL = FALSE)
+
+    # Uploaded Spatial File Selection Logic --------------------------------------------------------
+    observeEvent(input$process_upload_btn, {
+        req(input$closure_shapefile)
+
+        processing_notification <- showNotification(
+          "Processing uploaded file and calculating overlaps. This may take a moment...",
+          type = "message",
+          duration = NULL
+        )
+        on.exit(removeNotification(processing_notification), add = TRUE)
+        shinyjs::show("closure_processing_spinner_container")
+        on.exit(shinyjs::hide("closure_processing_spinner_container"), add = TRUE)
+
+        selected_zones <- tryCatch(
+          compute_closure_overlaps(
+            input$closure_shapefile,
+            zone_df(),
+            input$overlap_threshold
+          ),
+          error = function(e) {
+            showNotification(conditionMessage(e), type = "error", duration = 6)
+            NULL
+          }
+        )
+        if (is.null(selected_zones)) {
+          return()
+        }
+        
+        rv_clicked_zones$ids <- selected_zones
+        if (length(selected_zones) == 0) {
+          showNotification("No zones met the overlap threshold.", type = "warning", duration = 5)
+        } else {
+          showNotification(
+            paste(length(selected_zones), "zone(s) selected from the uploaded shapefile."),
+            type = "message",
+            duration = 5
+          )
+        }
+      },
+      ignoreInit = TRUE)
+
+    # Existing Variable Selection Logic -------------------------------------------------------------
+    observeEvent(input$process_existing_btn, {
+        req(input$existing_var_name, input$existing_var_val)
+        shinyjs::show("closure_processing_spinner_container")
+        on.exit(shinyjs::hide("closure_processing_spinner_container"), add = TRUE)
+
+        selected_data <- if (input$existing_var_name %in% names(rv_data$spat)) {
+          zone_df()
+        } else if (!is.null(rv_data$grid) &&
+                   input$existing_var_name %in% names(rv_data$grid)) {
+          rv_data$grid %>%
+            mutate(second_location_id = paste0(
+              "Zone_", as.character(.data[[get_zone_id()]])
+            ))
+        } else {
+          return()
+        }
+
+        rv_clicked_zones$ids <- selected_data %>%
+          filter(
+            as.character(.data[[input$existing_var_name]]) ==
+              input$existing_var_val
+          ) %>%
+          pull(second_location_id) %>%
+          unique()
+      },
+      ignoreInit = TRUE)
     
     # Add & Instantly Save Closure Logic ----------------------------------------------------------
     observeEvent(input$add_closure_btn, {
@@ -345,7 +455,13 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         zone = rv_clicked_zones$ids,
         tac = rv_tac_table$data$`% allowable TAC`,
         grid_name = grid_nm,
-        alt_matrix = input$alt_matrix_ui
+        alt_matrix = input$alt_matrix_ui,
+        selection_method = input$closure_mode,
+        overlap_threshold = if (identical(input$closure_mode, "upload")) {
+          input$overlap_threshold
+        } else {
+          NULL
+        }
       )
       
       current_saved <- append(current_saved, list(new_scenario))
@@ -407,8 +523,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
                         function(x) x$scenario %in% scenarios_to_delete, logical(1))
       rv_saved_closures$saved[del_ind] <- NULL
       
-      filename <- paste0(locoutput(proj), proj, "_closures.yaml")
-      yaml::write_yaml(rv_saved_closures$saved, filename)
+      save_closure_scenario(proj, rv_saved_closures$saved)
       
       showNotification("Selected closure scenarios deleted.", type = "message")
     })
@@ -517,9 +632,9 @@ zone_closure_ui <- function(id) {
       class = "mb-3",
       h4("Design Spatial Closures"),
       p(class = "text-muted",
-        "Click on the map to highlight zones for your scenario. Enter a scenario name below ",
+        "Select zones by clicking the map or uploading a shapefile. Enter a scenario name below ",
         "the map, adjust the allowable TAC percentage for each selected zone in the table, and ",
-        "click 'Add closure' to instantly save it to your project database."
+        "click 'Add closure' to save it to your project database."
       )
     ),
     
@@ -547,6 +662,75 @@ zone_closure_ui <- function(id) {
                     width = "100%")
       )
     ),
+
+    # Zone Selection Method ------------------------------------------------------------------------
+    bslib::card(
+      class = "mb-3",
+      fill = FALSE,
+      bslib::card_body(
+        class = "p-3",
+        radioButtons(
+          ns("closure_mode"),
+          "Zone selection method",
+          choices = c(
+            "Click on Map" = "map",
+            "Upload Shapefile" = "upload",
+            "Select Existing Variable" = "existing"
+          ),
+          selected = "map",
+          inline = TRUE
+        ),
+        conditionalPanel(
+          condition = sprintf("input['%s'] === 'upload'", ns("closure_mode")),
+          fileInput(
+            ns("closure_shapefile"),
+            "Upload spatial file or shapefile components",
+            accept = c(
+              ".shp", ".shx", ".dbf", ".prj", ".cpg",
+              ".geojson", ".json", ".gpkg", ".rds", ".csv"
+            ),
+            multiple = TRUE,
+            width = "100%"
+          ),
+          numericInput(
+            ns("overlap_threshold"),
+            "Minimum zone overlap (%)",
+            value = 50,
+            min = 0,
+            max = 100,
+            step = 1,
+            width = "100%"
+          ),
+          actionButton(
+            ns("process_upload_btn"),
+            "Calculate Overlaps",
+            class = "btn-primary mt-2",
+            icon = icon("calculator")
+          )
+        ),
+        conditionalPanel(
+          condition = sprintf("input['%s'] === 'existing'", ns("closure_mode")),
+          selectInput(
+            ns("existing_var_name"),
+            "Existing closure variable",
+            choices = character(0),
+            width = "100%"
+          ),
+          textInput(
+            ns("existing_var_val"),
+            "Closure value",
+            value = "1",
+            width = "100%"
+          ),
+          actionButton(
+            ns("process_existing_btn"),
+            "Select Zones",
+            class = "btn-primary mt-2",
+            icon = icon("check")
+          )
+        )
+      )
+    ),
     
     # Main Map Card
     bslib::card(
@@ -561,9 +745,19 @@ zone_closure_ui <- function(id) {
       bslib::card_body(
         class = "p-0",
         style = "overflow: hidden;", 
-        shinycssloaders::withSpinner(
-          leaflet::leafletOutput(ns("zone_map_output"), height = 650), 
-          type = 6, color = "#007bc2"
+        div(
+          leaflet::leafletOutput(ns("zone_map_output"), height = 650),
+          div(
+            id = ns("closure_processing_spinner_container"),
+            style = "display: none;",
+            spinner_ui(
+              ns("closure_processing_spinner"),
+              spinner_type = "circle",
+              size = "large",
+              message = "Processing spatial closure...",
+              overlay = TRUE
+            )
+          )
         )
       )
     ),
