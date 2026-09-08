@@ -37,19 +37,72 @@ compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold) {
     )
   } else {
     single_file_index <- which(
-      tolower(tools::file_ext(uploaded_files$name)) %in% c("geojson", "json", "gpkg")
+      tolower(tools::file_ext(uploaded_files$name)) %in%
+        c("geojson", "json", "gpkg", "rds", "csv")
     )
     if (length(single_file_index) != 1) {
       stop(
-        "Upload one GeoJSON, JSON, or GeoPackage file, or a shapefile with its companion files.",
+        paste(
+          "Upload one GeoJSON, JSON, GeoPackage, RDS, or CSV file,",
+          "or a shapefile with its companion files."
+        ),
         call. = FALSE
       )
     }
 
-    uploaded_shape <- sf::st_read(uploaded_files$datapath[[single_file_index]], quiet = TRUE)
+    file_path <- uploaded_files$datapath[[single_file_index]]
+    file_extension <- tolower(tools::file_ext(uploaded_files$name[[single_file_index]]))
+
+    if (identical(file_extension, "rds")) {
+      uploaded_shape <- readRDS(file_path)
+      if (!inherits(uploaded_shape, "sf")) {
+        stop("The RDS file must contain an sf object.", call. = FALSE)
+      }
+    } else if (identical(file_extension, "csv")) {
+      uploaded_data <- utils::read.csv(file_path, stringsAsFactors = FALSE)
+      column_names <- tolower(names(uploaded_data))
+      wkt_index <- match("geometry", column_names, nomatch = 0)
+      if (wkt_index == 0) {
+        wkt_index <- match("wkt", column_names, nomatch = 0)
+      }
+
+      if (wkt_index > 0) {
+        uploaded_shape <- sf::st_as_sf(
+          uploaded_data,
+          wkt = names(uploaded_data)[[wkt_index]],
+          crs = 4326
+        )
+      } else {
+        lon_index <- match(c("lon", "longitude"), column_names, nomatch = 0)
+        lat_index <- match(c("lat", "latitude"), column_names, nomatch = 0)
+        lon_index <- lon_index[lon_index > 0][1]
+        lat_index <- lat_index[lat_index > 0][1]
+
+        if (is.na(lon_index) || is.na(lat_index)) {
+          stop(
+            "CSV files must contain a geometry/WKT column or longitude and latitude columns.",
+            call. = FALSE
+          )
+        }
+
+        uploaded_shape <- sf::st_as_sf(
+          uploaded_data,
+          coords = c(names(uploaded_data)[[lon_index]], names(uploaded_data)[[lat_index]]),
+          crs = 4326
+        )
+      }
+    } else {
+      uploaded_shape <- sf::st_read(file_path, quiet = TRUE)
+    }
   }
   if (is.na(sf::st_crs(uploaded_shape))) {
     stop("The uploaded spatial file must define a coordinate reference system.", call. = FALSE)
+  }
+
+  uploaded_shape <- sf::st_make_valid(uploaded_shape)
+  polygonal <- sf::st_geometry_type(uploaded_shape) %in% c("POLYGON", "MULTIPOLYGON")
+  if (any(polygonal)) {
+    uploaded_shape[polygonal, ] <- sf::st_buffer(uploaded_shape[polygonal, ], dist = 0)
   }
 
   zones <- sf::st_make_valid(zones)

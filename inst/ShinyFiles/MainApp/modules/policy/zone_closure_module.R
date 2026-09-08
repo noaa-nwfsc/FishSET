@@ -686,7 +686,10 @@ zone_closure_ui <- function(id) {
           fileInput(
             ns("closure_shapefile"),
             "Upload spatial file or shapefile components",
-            accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg", ".geojson", ".json", ".gpkg"),
+            accept = c(
+              ".shp", ".shx", ".dbf", ".prj", ".cpg",
+              ".geojson", ".json", ".gpkg", ".rds", ".csv"
+            ),
             multiple = TRUE,
             width = "100%"
           ),

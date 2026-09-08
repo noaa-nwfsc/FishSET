@@ -66,3 +66,58 @@ test_that("compute_closure_overlaps accepts a single GeoJSON file", {
     "Zone_1"
   )
 })
+
+test_that("compute_closure_overlaps accepts an sf RDS file", {
+  zones <- sf::st_as_sf(
+    data.frame(second_location_id = c("Zone_1", "Zone_2"), wkt = c(
+      "POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))",
+      "POLYGON ((1 0, 2 0, 2 1, 1 1, 1 0))"
+    )),
+    wkt = "wkt",
+    crs = 4326
+  )
+  closure <- sf::st_as_sf(
+    data.frame(id = 1, wkt = "POLYGON ((0 0, 0.6 0, 0.6 1, 0 1, 0 0))"),
+    wkt = "wkt",
+    crs = 4326
+  )
+  rds <- tempfile(fileext = ".rds")
+  saveRDS(closure, rds)
+  on.exit(unlink(rds), add = TRUE)
+
+  expect_equal(
+    FishSET:::compute_closure_overlaps(
+      data.frame(name = basename(rds), datapath = rds),
+      zones,
+      50
+    ),
+    "Zone_1"
+  )
+})
+
+test_that("compute_closure_overlaps accepts CSV WKT data", {
+  zones <- sf::st_as_sf(
+    data.frame(second_location_id = c("Zone_1", "Zone_2"), wkt = c(
+      "POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))",
+      "POLYGON ((1 0, 2 0, 2 1, 1 1, 1 0))"
+    )),
+    wkt = "wkt",
+    crs = 4326
+  )
+  csv <- tempfile(fileext = ".csv")
+  utils::write.csv(
+    data.frame(geometry = "POLYGON ((0 0, 0.6 0, 0.6 1, 0 1, 0 0))"),
+    csv,
+    row.names = FALSE
+  )
+  on.exit(unlink(csv), add = TRUE)
+
+  expect_equal(
+    FishSET:::compute_closure_overlaps(
+      data.frame(name = basename(csv), datapath = csv),
+      zones,
+      50
+    ),
+    "Zone_1"
+  )
+})
