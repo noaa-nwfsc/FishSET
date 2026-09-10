@@ -31,6 +31,10 @@
 #' @param scale Logical. Default = FALSE. If TRUE, numeric predictors in the design matrix (X) 
 #'   are centered and scaled (z-score normalization) before saving. Scaling factors are stored to 
 #'   allow unscaling of parameters after estimation. Recommended for numerical stability.
+#' @param spatial_weights Logical. Default = FALSE. If TRUE, construct row-normalized Queen
+#'   contiguity spatial weights for the project's spatial zones.
+#' @param svc_vars Character vector of design-matrix column names to model with spatially varying
+#'   coefficients. Supplying this enables \code{spatial_weights}.
 #' @param overwrite Logical. Default FALSE. If TRUE, overwrites an existing model design 
 #'   if \code{model_name} already exists in the project folder.
 #' 
@@ -88,6 +92,18 @@
 #'   price_var = "price_var",
 #'   scale = TRUE
 #' ) 
+#'
+#' # 5. Spatial logit design with a spatially varying SST coefficient
+#' fishset_design(
+#'   formula = chosen ~ expected_catch + sst,
+#'   project = "MyProject",
+#'   model_name = "spatial_logit",
+#'   formatted_data_name = "my_formatted_data",
+#'   unique_obs_id = "haul_id",
+#'   zone_id = "zone_id",
+#'   spatial_weights = TRUE,
+#'   svc_vars = "sst"
+#' )
 #' }
 #' 
 #' @export
@@ -96,7 +112,8 @@
 #' @importFrom DBI dbConnect dbDisconnect dbExecute
 #' @importFrom RSQLite SQLite
 #' @importFrom data.table setDT setorderv setDF
-#' @importFrom Matrix sparse.model.matrix
+#' @importFrom Matrix sparse.model.matrix Diagonal rowSums
+#' @importFrom sf st_read st_relate st_union
 #' @importFrom methods as
 
 fishset_design <- function(formula,
@@ -108,6 +125,8 @@ fishset_design <- function(formula,
                            catch_formula = NULL,
                            price_var = NULL,
                            scale = FALSE,
+                           spatial_weights = FALSE,
+                           svc_vars = NULL,
                            overwrite = FALSE){
   
   # Setup and validate data -----------------------------------------------------------------------
@@ -390,6 +409,68 @@ fishset_design <- function(formula,
   } else {
     epm_components <- list(is_epm = FALSE)
   }
+
+  # Spatial components -------------------------------------------------------------------------------
+  if (!is.null(svc_vars)) {
+    if (!is.character(svc_vars) || !length(svc_vars)) {
+      stop("'svc_vars' must be a non-empty character vector when supplied.", call. = FALSE)
+    }
+    spatial_weights <- TRUE
+  }
+
+  svc_indices <- NULL
+  if (!is.null(svc_vars)) {
+    missing_svc <- setdiff(svc_vars, colnames(X_final))
+    if (length(missing_svc)) {
+      stop("The following 'svc_vars' are not columns in the design matrix: ",
+           paste(missing_svc, collapse = ", "), call. = FALSE)
+    }
+    svc_indices <- match(svc_vars, colnames(X_final))
+  }
+
+  W_ss <- NULL
+  if (spatial_weights) {
+    zone_levels <- levels(data[[zone_id]])
+    spatial_dir <- file.path(loc_data(project), "spat")
+    spatial_files <- list.files(spatial_dir, pattern = "\\.geojson$", full.names = TRUE)
+    # Raw dated copies are duplicates of their corresponding project spatial table.
+    spatial_files <- spatial_files[!grepl("[0-9]{8}\\.geojson$", spatial_files)]
+    if (!length(spatial_files)) {
+      stop("No project spatial data found. Load zone polygons with load_spatial() before ",
+           "requesting spatial weights.", call. = FALSE)
+    }
+
+    grids <- lapply(spatial_files, function(path) {
+      tryCatch(sf::st_read(path, quiet = TRUE), error = function(e) NULL)
+    })
+    matches <- vapply(grids, function(grid) {
+      !is.null(grid) && zone_id %in% names(grid) &&
+        all(zone_levels %in% as.character(grid[[zone_id]]))
+    }, logical(1))
+    if (sum(matches) != 1L) {
+      stop("Expected exactly one project spatial object containing the design's '",
+           zone_id, "' zones; found ", sum(matches), ".", call. = FALSE)
+    }
+
+    grid_sf <- grids[[which(matches)]]
+    grid_sf <- grid_sf[as.character(grid_sf[[zone_id]]) %in% zone_levels, c(zone_id, "geometry")]
+    # One geometry per model zone is required for a zone-level spatial random effect.
+    grid_sf <- do.call(rbind, lapply(zone_levels, function(zone) {
+      rows <- grid_sf[as.character(grid_sf[[zone_id]]) == zone, ]
+      rows[1, ]$geometry <- sf::st_union(rows$geometry)
+      rows[1, ]
+    }))
+    grid_sf <- grid_sf[match(zone_levels, as.character(grid_sf[[zone_id]])), ]
+
+    A_ss <- sf::st_relate(grid_sf, grid_sf, pattern = "F***1****", sparse = TRUE)
+    A_ss <- methods::as(A_ss, "sparseMatrix")
+    neighbor_count <- Matrix::rowSums(A_ss)
+    if (any(neighbor_count == 0)) {
+      stop("Cannot create row-normalized spatial weights: one or more model zones have no ",
+           "Queen-contiguous neighbors.", call. = FALSE)
+    }
+    W_ss <- Matrix::Diagonal(n = nrow(A_ss), x = 1 / neighbor_count) %*% A_ss
+  }
   
   # Package results -------------------------------------------------------------------------------
   design_obj <- list(
@@ -397,6 +478,7 @@ fishset_design <- function(formula,
     X = X_final,
     formula = F_formula,
     epm = epm_components,
+    spatial = list(W = W_ss, svc_vars = svc_vars, svc_indices = svc_indices),
     scalers = scalers,
     # Metadata used by the fit function
     settings = list(

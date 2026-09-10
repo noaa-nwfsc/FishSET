@@ -18,6 +18,9 @@
 #'   to save memory on large datasets.
 #' @param se_calc Logical. Set \code{"se_calc" = TRUE} (default) to calculate standard errors.
 #'   Set to FALSE for faster runtime during model selection.
+#' @param spatial_type Character string. One of \code{NULL}, \code{"error"}, \code{"svc"}, or
+#'   \code{"both"}. Spatial specifications require a design created with
+#'   \code{spatial_weights = TRUE}.
 #' @param overwrite Logical. Default FALSE. If TRUE, overwrites an existing model fit 
 #'   if \code{fit_name} already exists in the project database.
 #' @param ... Additional arguments passed to the optimization control.
@@ -92,6 +95,7 @@ fishset_fit <- function(project,
                         robust = FALSE,
                         return_full_prob_mat = FALSE,
                         se_calc = TRUE,
+                        spatial_type = NULL,
                         overwrite = FALSE,
                         ...) {
   
@@ -144,6 +148,17 @@ fishset_fit <- function(project,
   
   # Check if this is an EPM
   is_epm <- isTRUE(design$epm$is_epm)
+  if (!is.null(spatial_type)) {
+    spatial_type <- match.arg(spatial_type, c("error", "svc", "both"))
+    if (is_epm) stop("Spatial logit components are not supported for Expected Profit Models.",
+                     call. = FALSE)
+    if (is.null(design$spatial$W)) {
+      stop("Spatial models require fishset_design(..., spatial_weights = TRUE).", call. = FALSE)
+    }
+    if (spatial_type %in% c("svc", "both") && !length(design$spatial$svc_indices)) {
+      stop("SVC models require 'svc_vars' in fishset_design().", call. = FALSE)
+    }
+  }
   if (is_epm) {
     if (is.null(distribution)) stop("EPMs require a distribution for the catch function.")
     valid_dists <- c("normal", "lognormal", "weibull")
@@ -172,6 +187,7 @@ fishset_fit <- function(project,
   }
   
   # STANDARD LOGIT SETUP --------------------------------------------------------------------------
+  random_effects <- NULL
   if (!is_epm) {
     K_vars <- design$settings$K_vars
     # Initial betas
@@ -187,10 +203,26 @@ fishset_fit <- function(project,
       X = design$X,
       chosen_lin_idx = chosen_lin_idx,
       N_obs = N_obs,
-      J_alts = J_alts
+      J_alts = J_alts,
+      zone_index = as.integer(design$ids$zone)
     )
     
     start_pars <- list(betas = init_beta)
+    if (!is.null(spatial_type)) {
+      data_list$W <- design$spatial$W
+      data_list$svc_indices <- as.integer(design$spatial$svc_indices)
+      start_pars$logkappa <- log(0.1)
+      start_pars$logtau <- log(1)
+      if (spatial_type %in% c("error", "both")) {
+        start_pars$omega_s_error <- rep(0, J_alts)
+        random_effects <- c(random_effects, "omega_s_error")
+      }
+      if (spatial_type %in% c("svc", "both")) {
+        start_pars$omega_s_svc <- matrix(0, nrow = J_alts,
+                                         ncol = length(design$spatial$svc_indices))
+        random_effects <- c(random_effects, "omega_s_svc")
+      }
+    }
     
     # Objective function
     nll_func <- function(pars) {
@@ -198,6 +230,27 @@ fishset_fit <- function(project,
       
       # Sparse Matrix Multiply (Zonal)
       v <- X %*% betas
+      loglik_spatial <- 0
+      if (!is.null(spatial_type)) {
+        kappa <- plogis(logkappa)
+        tau2 <- exp(2 * logtau)
+        I <- Matrix::Diagonal(n = J_alts)
+        # Expand crossprod(I - kappa * W) so RTMB retains derivatives of kappa.
+        Q <- tau2 * (I - kappa * (W + Matrix::t(W)) +
+                       kappa^2 * Matrix::crossprod(W))
+        if (spatial_type %in% c("error", "both")) {
+          v <- v + omega_s_error[zone_index]
+          loglik_spatial <- loglik_spatial + RTMB::dgmrf(omega_s_error, Q = Q, log = TRUE)
+        }
+        if (spatial_type %in% c("svc", "both")) {
+          X_svc <- X[, svc_indices, drop = FALSE]
+          v <- v + rowSums(X_svc * omega_s_svc[zone_index, , drop = FALSE])
+          for (k in seq_len(ncol(omega_s_svc))) {
+            loglik_spatial <- loglik_spatial +
+              RTMB::dgmrf(omega_s_svc[, k], Q = Q, log = TRUE)
+          }
+        }
+      }
       
       v_chosen <- v[chosen_lin_idx]
       
@@ -216,7 +269,7 @@ fishset_fit <- function(project,
         log_sum_exp <- log(RTMB::colSums(exp(v)))
       }
       
-      nll <- -sum(v_chosen - log_sum_exp)
+      nll <- -sum(v_chosen - log_sum_exp) - loglik_spatial
       return(nll)
     }
     
@@ -370,12 +423,13 @@ fishset_fit <- function(project,
   
   # Optimization ----------------------------------------------------------------------------------
   # Enable sparse Hessian compression (crucial for zonal logit)
-  use_sparse_hess <- (design$settings$K_vars >= 50)
+  use_sparse_hess <- !is.null(spatial_type) || (design$settings$K_vars >= 50)
   TMB::config(tmbad.sparse_hessian_compress = use_sparse_hess, DLL="RTMB")
   
   obj <- RTMB::MakeADFun(func = nll_func,
                          data = data_list,
                          parameters = start_pars,
+                         random = random_effects,
                          silent = TRUE)
   
   # Proactive gradient check
@@ -449,12 +503,12 @@ fishset_fit <- function(project,
   if (!is_epm) {
     ### standard logit reporting ###
     coef_names <- colnames(design$X)
-    if(length(estimated_coefs) == ncol(design$X)) names(estimated_coefs) <- coef_names
+    names(estimated_coefs)[seq_along(coef_names)] <- coef_names
     report_coefs <- estimated_coefs
     
     if (!is.null(design$scalers) && length(design$scalers) > 0) {
-      scale_factors <- rep(1, length(report_coefs))
-      names(scale_factors) <- names(report_coefs)
+      scale_factors <- rep(1, length(coef_names))
+      names(scale_factors) <- coef_names
       
       if (!is.null(design$scalers$X1)) {
         s <- design$scalers$X1$sd
@@ -469,8 +523,8 @@ fishset_fit <- function(project,
           scale_factors[idx] <- s2[[var]]
         }
       }
-      report_coefs <- report_coefs / scale_factors
-      if (se_calc) report_se <- report_se / scale_factors
+      report_coefs[seq_along(scale_factors)] <- report_coefs[seq_along(scale_factors)] / scale_factors
+      if (se_calc) report_se[seq_along(scale_factors)] <- report_se[seq_along(scale_factors)] / scale_factors
     }
     
   } else {
@@ -562,7 +616,19 @@ fishset_fit <- function(project,
   
   # Predictions (Recalculate with original X outside AD tape)
   if (!is_epm) {
-    final_v <- as.vector(design$X %*% opt$par)
+    fixed_par <- opt$par[seq_len(ncol(design$X))]
+    final_v <- as.vector(design$X %*% fixed_par)
+    if (!is.null(spatial_type)) {
+      par_list <- obj$env$parList()
+      zone_index <- as.integer(design$ids$zone)
+      if (spatial_type %in% c("error", "both")) {
+        final_v <- final_v + par_list$omega_s_error[zone_index]
+      }
+      if (spatial_type %in% c("svc", "both")) {
+        X_svc <- design$X[, design$spatial$svc_indices, drop = FALSE]
+        final_v <- final_v + rowSums(X_svc * par_list$omega_s_svc[zone_index, , drop = FALSE])
+      }
+    }
     dim(final_v) <- c(J_alts, N_obs)
     v_max <- apply(final_v, 2, max)
     exp_v <- exp(t(t(final_v) - v_max))
@@ -638,6 +704,16 @@ fishset_fit <- function(project,
       condition_number = cond_num
     )
   )
+  if (!is.null(spatial_type)) {
+    full_pars <- obj$env$parList()
+    result$random_effects <- list()
+    if (spatial_type %in% c("error", "both")) {
+      result$random_effects$omega_s_error <- full_pars$omega_s_error
+    }
+    if (spatial_type %in% c("svc", "both")) {
+      result$random_effects$omega_s_svc <- full_pars$omega_s_svc
+    }
+  }
   
   # OPTIONAL: Include full probability matrix (Heavy!)
   if (return_full_prob_mat) {

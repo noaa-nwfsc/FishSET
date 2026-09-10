@@ -14,6 +14,8 @@ fishset_design(
   catch_formula = NULL,
   price_var = NULL,
   scale = FALSE,
+  spatial_weights = FALSE,
+  svc_vars = NULL,
   overwrite = FALSE
 )
 }
@@ -47,6 +49,12 @@ created in the \code{\link{format_model_data}} function.}
 \item{scale}{Logical. Default = FALSE. If TRUE, numeric predictors in the design matrix (X) 
 are centered and scaled (z-score normalization) before saving. Scaling factors are stored to 
 allow unscaling of parameters after estimation. Recommended for numerical stability.}
+
+\item{spatial_weights}{Logical. Default = FALSE. If TRUE, construct row-normalized Queen
+contiguity spatial weights for the project's spatial zones.}
+
+\item{svc_vars}{Character vector of design-matrix column names to model with spatially varying
+coefficients. Supplying this enables \code{spatial_weights}.}
 
 \item{overwrite}{Logical. Default FALSE. If TRUE, overwrites an existing model design 
 if \code{model_name} already exists in the project folder.}
@@ -118,6 +126,18 @@ fishset_design(
   price_var = "price_var",
   scale = TRUE
 ) 
+
+# 5. Spatial logit design with a spatially varying SST coefficient
+fishset_design(
+  formula = chosen ~ expected_catch + sst,
+  project = "MyProject",
+  model_name = "spatial_logit",
+  formatted_data_name = "my_formatted_data",
+  unique_obs_id = "haul_id",
+  zone_id = "zone_id",
+  spatial_weights = TRUE,
+  svc_vars = "sst"
+)
 }
 
 }
