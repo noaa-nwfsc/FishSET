@@ -12,6 +12,7 @@ fishset_fit(
   robust = FALSE,
   return_full_prob_mat = FALSE,
   se_calc = TRUE,
+  spatial_type = NULL,
   overwrite = FALSE,
   ...
 )
@@ -36,6 +37,10 @@ to save memory on large datasets.}
 
 \item{se_calc}{Logical. Set \code{"se_calc" = TRUE} (default) to calculate standard errors.
 Set to FALSE for faster runtime during model selection.}
+
+\item{spatial_type}{Character string. One of \code{NULL}, \code{"error"}, \code{"svc"}, or
+\code{"both"}. Spatial specifications require a design created with
+\code{spatial_weights = TRUE}.}
 
 \item{overwrite}{Logical. Default FALSE. If TRUE, overwrites an existing model fit 
 if \code{fit_name} already exists in the project database.}
