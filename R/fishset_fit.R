@@ -231,6 +231,7 @@ fishset_fit <- function(project,
       # Sparse Matrix Multiply (Zonal)
       v <- X %*% betas
       loglik_spatial <- 0
+      
       if (!is.null(spatial_type)) {
         kappa <- plogis(logkappa)
         tau2 <- exp(2 * logtau)
