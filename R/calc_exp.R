@@ -172,7 +172,7 @@ calc_exp <- function(dataset,
         yearly_means <- df[, .(mean_c = mean(catch_val, na.rm = TRUE)), by = year]
         df[yearly_means, on = "year", catch_val := fcoalesce(catch_val, i.mean_c)]
         
-      } else if (empty_catch == "groupedCatch") {
+      } else if (empty_catch %in% c("groupCatch", "groupedCatch")) {
         df[, year := lubridate::year(dateFloor)]
         grouped_means <- df[, .(mean_c = mean(catch_val, na.rm = TRUE)), by = .(year, fleet)]
         df[grouped_means, on = c("year", "fleet"), catch_val := fcoalesce(catch_val, i.mean_c)]
