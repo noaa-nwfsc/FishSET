@@ -73,5 +73,12 @@ utils::globalVariables(c(
   'Pct_Effort_Change',
   'Simulation',
   'Upper_95',
-  'Welfare_Change'
+  'Welfare_Change',
+  'exp_val',
+  'i.dateFloor',
+  'i.exp_val',
+  'i.fleet',
+  'i.mean_catch',
+  'i.zones',
+  'temp_date'
 ))

@@ -123,19 +123,22 @@ test_that("'defineGroup' correctly calculates expectations by group", {
     Alt = Alt,
     weight_avg = FALSE
   )
-
+  
   exp_matrix <- result$exp
-
-  # Expect 4 columns: F1A, F1B, F2A, F2B (names are coerced to 1A, 1B, etc.)
-  expect_equal(ncol(exp_matrix), 4)
-  expect_equal(sort(colnames(exp_matrix)), c("1A", "1B", "2A", "2B"))
-
-  # Check for obs on 2023-01-05 (row 7), which is fleet F2.
+  
+  # Expect 2 columns: A and B
+  expect_equal(ncol(exp_matrix), 2)
+  expect_equal(sort(colnames(exp_matrix)), c("A", "B"))
+  
+  # Check for obs on 2023-01-05 (row 7), which is fleet F1.
   # Window: 2023-01-03, 2023-01-04, 2023-01-05.
   # Exp for F1, Zone A: 16 (on 01-05).
+  expect_equal(unname(exp_matrix[7, "A"]), 16)
+  
+  # Check for obs on 2023-01-04 (row 6), which is fleet F2.
+  # Window: 2023-01-02, 2023-01-03, 2023-01-04.
   # Exp for F2, Zone B: 22 (on 01-03).
-  expect_equal(unname(exp_matrix[7, "1A"]), 16)
-  expect_equal(unname(exp_matrix[7, "2B"]), 22)
+  expect_equal(unname(exp_matrix[6, "B"]), 22)
 })
 
 test_that("'day_lag' and 'year_lag' work correctly", {
