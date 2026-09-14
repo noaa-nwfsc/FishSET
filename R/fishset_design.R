@@ -410,7 +410,7 @@ fishset_design <- function(formula,
     epm_components <- list(is_epm = FALSE)
   }
 
-  # Spatial components -------------------------------------------------------------------------------
+  # Spatial components ----------------------------------------------------------------------------
   if (!is.null(svc_vars)) {
     if (!is.character(svc_vars) || !length(svc_vars)) {
       stop("'svc_vars' must be a non-empty character vector when supplied.", call. = FALSE)
@@ -431,6 +431,15 @@ fishset_design <- function(formula,
   W_ss <- NULL
   if (spatial_weights) {
     zone_levels <- levels(data[[zone_id]])
+    
+    # Load spatial data from project database
+    all_spat_tables <- list_tables(project, "spat")
+    spat_name <- all_spat_tables[!grepl("[0-9]{8}$", all_spat_tables)]
+    
+    spat <- table_view(table = spat_name, project = project)
+    
+    # Validate the 
+    
     spatial_dir <- file.path(loc_data(project), "spat")
     spatial_files <- list.files(spatial_dir, pattern = "\\.geojson$", full.names = TRUE)
     # Raw dated copies are duplicates of their corresponding project spatial table.
@@ -451,7 +460,11 @@ fishset_design <- function(formula,
       stop("Expected exactly one project spatial object containing the design's '",
            zone_id, "' zones; found ", sum(matches), ".", call. = FALSE)
     }
-
+    
+    
+    
+    
+    
     grid_sf <- grids[[which(matches)]]
     grid_sf <- grid_sf[as.character(grid_sf[[zone_id]]) %in% zone_levels, c(zone_id, "geometry")]
     # One geometry per model zone is required for a zone-level spatial random effect.
