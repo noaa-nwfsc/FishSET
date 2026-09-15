@@ -228,8 +228,7 @@ server <- function(input, output, session) {
                              rv_project_name = rv_project_name, 
                              rv_data = rv_data,
                              rv_shared_exp_names =rv_exp_names,
-                             rv_shared_alt_names = rv_alt_names,
-                             current_tab = reactive(input$tabs))
+                             rv_shared_alt_names = rv_alt_names)
   
   ## Format model data ----------------------------------------------------------------------------
   ### Sidebar
@@ -248,7 +247,8 @@ server <- function(input, output, session) {
                            rv_project_name = rv_project_name, 
                            rv_data = rv_data,
                            rv_shared_exp_names =rv_exp_names,
-                           rv_shared_alt_names = rv_alt_names)
+                           rv_shared_alt_names = rv_alt_names,
+                           current_tab = reactive(input$tabs))
   
   # Modeling --------------------------------------------------------------------------------------
   ## Model design ---------------------------------------------------------------------------------
