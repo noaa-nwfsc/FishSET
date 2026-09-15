@@ -87,6 +87,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       intervalMillis = 1000, 
       session = session,
       checkFunc = function() {
+        if (is.null(rv_data$main)) return("data_not_loaded")
         if (is.null(rv_project_name())) return("")
         project <- rv_project_name()$value
         if (is.null(project) || project == "") return("")
@@ -107,6 +108,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
         return(paste(state_qs2, state_rds, sep = "|")) 
       },
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || project == "") return(character(0))
