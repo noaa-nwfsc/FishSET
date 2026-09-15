@@ -574,8 +574,10 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
         if (type == "MainDataTable") tables <- tables[!grepl("MainDataTableInfo", tables)]
         tables
       })
-      table_choices$spat <- grep("\\.geojson$", all_tables, value = TRUE)
-      table_choices$spat <- sub("\\.geojson$", "", table_choices$spat)
+      table_choices$spat <- tryCatch(
+        list_tables(project$value, "spat"),
+        error = function(e) character(0)
+      )
       rv_project_tables(table_choices)
     }, ignoreInit = FALSE, priority = 50)
     
