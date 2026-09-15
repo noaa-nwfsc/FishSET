@@ -302,7 +302,7 @@ format_model_data <- function(project,
       new_col_name <- expectations[i]
       
       tmp_df <- as.data.frame(exp_mats[[i]]) %>%
-        mutate(!!unique_obs_id := dataset[[unique_obs_id]]) %>%
+        mutate(!!unique_obs_id := original_dataset[[unique_obs_id]]) %>%
         pivot_longer(cols = -all_of(unique_obs_id),
                      names_to = "zones",
                      values_to = new_col_name)
