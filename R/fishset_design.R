@@ -268,7 +268,7 @@ fishset_design <- function(formula,
     X2_interacted <- rcpp_sparse_interaction(X2_base, zone_int, J_alts)
     
     # Fix names
-    var_names <- rhs2_vars
+    var_names <- colnames(X2_base)
     zone_names <- levels(data[[zone_id]])[-1] # Drop ref (zone 1)
     int_names <- as.vector(outer(zone_names, var_names, function(z, v) paste0(v, ":", zone_id, z)))
     colnames(X2_interacted) <- int_names
@@ -343,7 +343,7 @@ fishset_design <- function(formula,
       X2_catch_interacted <- rcpp_sparse_interaction(X2_catch_base, zone_int, J_alts)
       
       # Fix names
-      var_names <- rhs2_vars
+      var_names <- colnames(X2_catch_base)
       zone_names <- levels(data[[zone_id]])[-1] # Drop ref (zone 1)
       int_names <- as.vector(outer(zone_names, var_names, function(z, v) paste0(v, ":Zone", z)))
       colnames(X2_catch_interacted) <- int_names
