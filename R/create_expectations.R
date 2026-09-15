@@ -14,7 +14,7 @@
 #'   Price is multiplied against \code{catch} to generated revenue. If revenue exists 
 #'   in \code{dat} and you wish to use this revenue instead of price, then \code{catch} 
 #'   must be a vector of 1 of length equal to \code{dat}. Defaults to \code{NULL}.
-#' @param defineGroup Optional, variable from \code{dat} that defines how to split 
+#' @param define_group Optional, variable from \code{dat} that defines how to split 
 #'   the fleet. Defaults to treating entire dataframe \code{dat} as a fleet.
 #' @param temp_var Optional, temporal variable from \code{dat}. Set to \code{NULL} 
 #'   if temporal patterns in catch should not be considered.
@@ -63,7 +63,7 @@
 #'   function. \code{\link{create_alternative_choice}} must be called first as observed 
 #'   catch and zone inclusion requirements are defined there.\cr 
 #'   The primary choices are whether to treat data as a fleet or to group the data 
-#'   (\code{defineGroup}) and the time frame of catch data for calculating expected catch. 
+#'   (\code{define_group}) and the time frame of catch data for calculating expected catch. 
 #'   Catch is averaged along a daily or sequential timeline (\code{temporal}) using a rolling 
 #'   average. \code{temp_window} and \code{day_lag} determine the window size and temporal 
 #'   lag of the window for averaging. Use \code{\link{temp_obs_table}} before using 
@@ -78,7 +78,7 @@
 #' @examples
 #' \dontrun{
 #' create_expectations(pollockMainDataTable, "pollock", "exp1", "OFFICIAL_TOTAL_CATCH_MT",
-#'   price = NULL, defineGroup = "fleet", temp_var = "DATE_FISHING_BEGAN",
+#'   price = NULL, define_group = "fleet", temp_var = "DATE_FISHING_BEGAN",
 #'   temporal = "daily", calc_method = "standardAverage", 
 #'   empty_catch = "allCatch", empty_expectation = 0.0001, temp_window = 4,
 #'   day_lag = 2, year_lag = 0, dummy_exp = FALSE, 
@@ -92,7 +92,7 @@ create_expectations <- function(dat,
                                 alt_name,
                                 catch,
                                 price = NULL,
-                                defineGroup = NULL,
+                                define_group = NULL,
                                 temp_var = NULL,
                                 temporal = "daily",
                                 calc_method = "standardAverage",
@@ -139,16 +139,16 @@ create_expectations <- function(dat,
   }
   
   # Perform initial data quality and parameter checks ---------------------------------------------
-  column_check(dataset, c(catch, price, defineGroup))
+  column_check(dataset, c(catch, price, define_group))
   
   if (all(is_empty(date_cols(dataset)))) {
     warning("No time variable found, only averaging in groups and per zone is capable",
             call. = FALSE)
   }
   
-  if (!is_value_empty(defineGroup)) {
-    if (!all(defineGroup %in% names(dataset))) { # Check that groups exist in the dataset
-      stop("One or more values for defineGroup input not found in the main data table",
+  if (!is_value_empty(define_group)) {
+    if (!all(define_group %in% names(dataset))) { # Check that groups exist in the dataset
+      stop("One or more values for define_group input not found in the main data table",
            call. = FALSE)
     }
   }
@@ -178,7 +178,7 @@ create_expectations <- function(dat,
                        alt_name = alt_name,
                        catch = catch, 
                        price = price,
-                       defineGroup = defineGroup, 
+                       define_group = define_group, 
                        temp_var = temp_var, 
                        temp_window = temp_window, 
                        day_lag = day_lag, 
@@ -269,7 +269,7 @@ create_expectations <- function(dat,
          alt_name,
          catch, 
          price, 
-         defineGroup, 
+         define_group, 
          temp_var, 
          temporal, 
          calc_method, 
