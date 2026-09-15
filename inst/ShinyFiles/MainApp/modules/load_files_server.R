@@ -539,6 +539,15 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
     rv_load_success_message <- reactiveVal("") # Store success message
     rv_all_data_output <- reactiveValues() # Store all of the loaded data - return to main server
     rv_data_names <- reactiveValues() # Data file/table names for uploading
+
+    # A selected project is not loaded until the user clicks "Load data".
+    # Discard data from a previously loaded project before project-specific
+    # observers can use it for the newly selected project.
+    observeEvent(rv_project_name(), {
+      invisible(lapply(c("main", "port", "aux", "spat", "grid"),
+                       function(x) rv_all_data_output[[x]] <- NULL))
+      rv_all_data_output$error <- TRUE
+    }, ignoreInit = TRUE, priority = 100)
     
     # Outputs for error and success messages - initially hidden
     output$load_error_message_out <- renderText({

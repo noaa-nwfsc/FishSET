@@ -31,6 +31,10 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
     
     # Reactive to store the currently loaded formatted dataframe (for column extraction)
     rv_current_formatted_data <- reactiveVal(NULL)
+
+    observeEvent(rv_project_name(), {
+      rv_current_formatted_data(NULL)
+    }, ignoreInit = TRUE, priority = 100)
     
     # Helper to read formatted data from flat files -----------------------------------------------
     read_long_format_file <- function(project_dir, project_name) {

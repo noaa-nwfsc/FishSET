@@ -34,10 +34,18 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     # State for dynamic Marginal Utility of Income UI
     rv_current_vars <- reactiveVal(character(0))
     rv_is_epm <- reactiveVal(FALSE)
+
+    observeEvent(rv_project_name(), {
+      rv_fit_list(list())
+      rv_model_meta_cache(list())
+      rv_current_vars(character(0))
+      rv_is_epm(FALSE)
+    }, ignoreInit = TRUE, priority = 100)
     
     # Real-time model fits, closures, sims --------------------------------------------------------
     # Shared check function for the SQLite database (used for Fits and Simulations)
     db_check_func <- function() {
+      if (is.null(rv_data$main)) return("data_not_loaded")
       if (is.null(rv_project_name())) return(NULL)
       project <- rv_project_name()$value
       
@@ -56,6 +64,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       session = session,
       checkFunc = db_check_func,
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || trimws(project) == "") return(character(0))
@@ -79,6 +88,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       session = session,
       checkFunc = db_check_func,
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || trimws(project) == "") return(character(0))
@@ -98,6 +108,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       intervalMillis = 1000,
       session = session,
       checkFunc = function() {
+        if (is.null(rv_data$main)) return("data_not_loaded")
         if (is.null(rv_project_name())) return(NULL)
         project <- rv_project_name()$value
         if (is.null(project) || trimws(project) == "") return(NULL)
@@ -113,6 +124,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         return(file.info(yaml_file)$mtime)
       },
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || trimws(project) == "") return(character(0))

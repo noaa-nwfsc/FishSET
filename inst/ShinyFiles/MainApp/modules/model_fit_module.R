@@ -28,12 +28,19 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     
     # Server-side state for selected models to prevent double-loading tables
     rv_selected_models <- reactiveVal(character(0))
+
+    observeEvent(rv_project_name(), {
+      rv_fit_list(list())
+      rv_existing_fits(character(0))
+      rv_selected_models(character(0))
+    }, ignoreInit = TRUE, priority = 100)
     
     # 1. Real-time Polling for Model Designs ------------------------------------------------------
     available_designs <- reactivePoll(
       intervalMillis = 1000, 
       session = session,
       checkFunc = function() {
+        if (is.null(rv_data$main)) return("data_not_loaded")
         if (is.null(rv_project_name())) return(NULL)
         project <- rv_project_name()$value
         if (is.null(project) || project == "") return(NULL)
@@ -50,6 +57,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         return("no_dir")
       },
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || project == "") return(character(0))
@@ -166,7 +174,10 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       rv_selected_models(input$models_to_compare)
     }, ignoreNULL = FALSE, ignoreInit = TRUE)
     
-    observeEvent(rv_data$main, { load_fits() })
+    observeEvent(rv_data$main, {
+      if (is.null(rv_data$main)) return()
+      load_fits()
+    })
     
     # 3. Dynamically Show/Hide EPM Distribution Input ---------------------------------------------
     observeEvent(input$design_input, {

@@ -28,6 +28,11 @@ policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     # Caches
     rv_effort_dyn <- reactiveVal(NULL)
     rv_effort_stat <- reactiveVal(NULL)
+
+    observeEvent(rv_project_name(), {
+      rv_effort_dyn(NULL)
+      rv_effort_stat(NULL)
+    }, ignoreInit = TRUE, priority = 100)
     
     # Interaction state for up to 4 dynamic viewers
     rv_viewer_count <- reactiveVal(1)
@@ -35,6 +40,7 @@ policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     
     # Real-time Polling Setup ---------------------------------------------------------------------
     db_check_func <- function() {
+      if (is.null(rv_data$main)) return("data_not_loaded")
       if (is.null(rv_project_name())) return(NULL)
       project <- rv_project_name()$value
       if (is.null(project) || trimws(project) == "") return(NULL)
@@ -48,6 +54,8 @@ policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       session = session,
       checkFunc = db_check_func,
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(list(models = character(0),
+                                                scenarios = character(0)))
         if (is.null(rv_project_name())) return(list(models = character(0),
                                                     scenarios = character(0)))
         project <- rv_project_name()$value
