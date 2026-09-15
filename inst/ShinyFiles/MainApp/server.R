@@ -298,7 +298,8 @@ server <- function(input, output, session) {
   ### Main panel
   model_cv_server("model_cv",
                   rv_folderpath = rv_folderpath, 
-                  rv_project_name = rv_project_name)
+                  rv_project_name = rv_project_name,
+                  rv_data = rv_data)
   
   # Policy ---------------------------------------------------------------------------------------
   ## Zone Closure --------------------------------------------------------------------------------

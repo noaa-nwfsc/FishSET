@@ -13,9 +13,10 @@
 #' @param id A character string that is unique to this module instance.
 #' @param rv_folderpath A reactive value containing the current root folder path.
 #' @param rv_project_name A reactive value containing the current project name.
+#' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-model_cv_server <- function(id, rv_folderpath, rv_project_name) {
+model_cv_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
