@@ -99,7 +99,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
                            choices = choices)
       updateSelectizeInput(session, "price_input", 
                            choices = numeric_choices, selected = "None")
-      updateSelectizeInput(session, "defineGroup_input", 
+      updateSelectizeInput(session, "define_group_input", 
                            choices = c("None", choices), selected = "None")
       updateSelectizeInput(session, "temp_var_input", 
                            choices = date_choices, selected = "None")
@@ -157,7 +157,7 @@ create_expectations_server <- function(id, rv_folderpath, rv_project_name, rv_da
           alt_name = input$alt_name_input, 
           catch = input$catch_input,
           price = to_null(input$price_input),
-          defineGroup = to_null(input$defineGroup_input),
+          define_group = to_null(input$define_group_input),
           temp_var = input$temp_var_input,
           temporal = input$temporal_input,
           calc_method = input$calc_method_input,
@@ -605,7 +605,7 @@ create_expectations_ui <- function(id){
                          column(
                            6,
                            selectizeInput(
-                             ns("defineGroup_input"),
+                             ns("define_group_input"),
                              tagList(
                                span(
                                  style = 
