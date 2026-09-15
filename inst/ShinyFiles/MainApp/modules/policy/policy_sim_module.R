@@ -191,6 +191,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     
     # Build a lightweight cache of variables and EPM status in the background
     observe({
+      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
       fit_list <- rv_fit_list()
       project <- rv_project_name()$value
       
@@ -263,6 +264,24 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       }
       
     }, ignoreInit = TRUE, ignoreNULL = FALSE)
+
+    # Refresh MUI choices after either the selected model or its metadata changes.
+    observe({
+      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
+      selected_model <- input$mod_name_input
+      cache <- rv_model_meta_cache()
+      model_meta <- if (is.null(selected_model) || selected_model == "") NULL else {
+        cache[[selected_model]]
+      }
+
+      if (is.null(model_meta)) {
+        rv_current_vars(character(0))
+        rv_is_epm(FALSE)
+      } else {
+        rv_current_vars(model_meta$vars)
+        rv_is_epm(model_meta$is_epm)
+      }
+    })
     
     # Render the Inputs ONLY if it is a Standard Logit
     output$marg_util_ui <- renderUI({

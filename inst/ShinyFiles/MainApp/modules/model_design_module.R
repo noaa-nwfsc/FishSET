@@ -80,8 +80,9 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
                            choices = just_names, selected = "")
     }
     
-    # Load data on init
-    observeEvent(rv_project_name()$value, {
+    # Refresh existing designs after data is loaded or when this tab becomes active.
+    observe({
+      req(rv_data$main, rv_project_name())
       if (!is.null(current_tab) && current_tab() != "model_design") return()
       load_designs()
     })
