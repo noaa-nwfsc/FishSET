@@ -17,7 +17,8 @@
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
+model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
+                             current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -76,6 +77,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     )
     
     observe({
+      if (!is.null(current_tab) && current_tab() != "model_fit") return()
       d_names <- available_designs()
       rv_existing_designs(d_names) 
       
@@ -174,8 +176,9 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       rv_selected_models(input$models_to_compare)
     }, ignoreNULL = FALSE, ignoreInit = TRUE)
     
-    observeEvent(rv_data$main, {
-      if (is.null(rv_data$main)) return()
+    observe({
+      req(rv_data$main)
+      if (!is.null(current_tab) && current_tab() != "model_fit") return()
       load_fits()
     })
     

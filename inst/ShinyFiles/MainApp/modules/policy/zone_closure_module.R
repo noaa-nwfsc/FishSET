@@ -17,7 +17,7 @@
 #'                     loader.
 #' @return This module does not return a value.
 zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, 
-                                spat_zone_id = NULL) {
+                                spat_zone_id = NULL, current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -45,6 +45,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     # Main App Logic: Only run GUI loader if NOT in standalone console mode
     if (is.null(spat_zone_id)) {
       observe({
+        if (!is.null(current_tab) && current_tab() != "zone_closures") return()
         req(rv_data$main)
         req(current_project(), rv_folderpath())
         
@@ -116,6 +117,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     
     # Populate & Auto-Refresh the Alternative Matrix Dropdown -------------------------------------
     observe({
+      if (!is.null(current_tab) && current_tab() != "zone_closures") return()
       req(rv_data$main)
       req(current_project())
       shiny::invalidateLater(2500, session) # Lightly poll every 2.5 seconds

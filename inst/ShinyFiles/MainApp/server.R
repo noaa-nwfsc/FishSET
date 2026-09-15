@@ -228,7 +228,8 @@ server <- function(input, output, session) {
                              rv_project_name = rv_project_name, 
                              rv_data = rv_data,
                              rv_shared_exp_names =rv_exp_names,
-                             rv_shared_alt_names = rv_alt_names)
+                             rv_shared_alt_names = rv_alt_names,
+                             current_tab = reactive(input$tabs))
   
   ## Format model data ----------------------------------------------------------------------------
   ### Sidebar
@@ -265,7 +266,8 @@ server <- function(input, output, session) {
   model_design_server("model_design_data",
                       rv_folderpath = rv_folderpath, 
                       rv_project_name = rv_project_name,
-                      rv_data = rv_data)
+                      rv_data = rv_data,
+                      current_tab = reactive(input$tabs))
   
   ## Model fit ---------------------------------------------------------------------------------
   ### Sidebar 
@@ -282,7 +284,8 @@ server <- function(input, output, session) {
   model_fit_server("model_fit_data",
                    rv_folderpath = rv_folderpath, 
                    rv_project_name = rv_project_name,
-                   rv_data = rv_data)
+                   rv_data = rv_data,
+                   current_tab = reactive(input$tabs))
   
   ## Model Cross Validation  ---------------------------------------------------------------------
   ### Sidebar 
@@ -299,7 +302,8 @@ server <- function(input, output, session) {
   model_cv_server("model_cv",
                   rv_folderpath = rv_folderpath, 
                   rv_project_name = rv_project_name,
-                  rv_data = rv_data)
+                  rv_data = rv_data,
+                  current_tab = reactive(input$tabs))
   
   # Policy ---------------------------------------------------------------------------------------
   ## Zone Closure --------------------------------------------------------------------------------
@@ -317,7 +321,8 @@ server <- function(input, output, session) {
   zone_closure_server("zone_closure", rv_folderpath = rv_folderpath, 
                       rv_project_name = rv_project_name,
                       rv_data = rv_data,
-                      spat_zone_id = NULL)
+                      spat_zone_id = NULL,
+                      current_tab = reactive(input$tabs))
   
   
   ## Policy Simulation ---------------------------------------------------------------------------
@@ -336,7 +341,8 @@ server <- function(input, output, session) {
   policy_sim_server("policy_simulation",
                     rv_folderpath = rv_folderpath, 
                     rv_project_name = rv_project_name,
-                    rv_data = rv_data) 
+                    rv_data = rv_data,
+                    current_tab = reactive(input$tabs))
   
   
   ## Policy Effort --------------------------------------------------------------------------------
@@ -355,7 +361,8 @@ server <- function(input, output, session) {
   policy_effort_server("policy_effort",
                        rv_folderpath = rv_folderpath, 
                        rv_project_name = rv_project_name,
-                       rv_data = rv_data) 
+                       rv_data = rv_data,
+                       current_tab = reactive(input$tabs))
   
   ## Policy Welfare Impacts -----------------------------------------------------------------------
   ### Sidebar
@@ -373,5 +380,6 @@ server <- function(input, output, session) {
   policy_welfare_server("policy_welfare",
                         rv_folderpath = rv_folderpath, 
                         rv_project_name = rv_project_name,
-                        rv_data = rv_data) 
+                        rv_data = rv_data,
+                        current_tab = reactive(input$tabs))
 }

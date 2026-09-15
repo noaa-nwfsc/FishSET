@@ -18,7 +18,8 @@
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
+policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data,
+                              current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -154,6 +155,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     
     # Update UI State Reactively ------------------------------------------------------------------
     observe({
+      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
       fits <- poll_available_fits()
       rv_available_fits(fits)
       
@@ -164,6 +166,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     })
     
     observe({
+      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
       closures <- poll_closures()
       rv_available_closures(closures)
       
@@ -174,6 +177,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     })
     
     observe({
+      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
       sims <- poll_existing_sims()
       
       # Filter out baseline simulations from the dropdown

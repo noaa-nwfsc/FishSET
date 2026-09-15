@@ -19,7 +19,8 @@
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
+model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
+                                current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -81,6 +82,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
     
     # Load data on init
     observeEvent(rv_project_name()$value, {
+      if (!is.null(current_tab) && current_tab() != "model_design") return()
       load_designs()
     })
     
@@ -132,6 +134,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
     )
     
     observe({
+      if (!is.null(current_tab) && current_tab() != "model_design") return()
       choices <- formatted_data_choices()
       current_selection <- isolate(input$formatted_data_input)
       

@@ -16,7 +16,8 @@
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-model_cv_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
+model_cv_server <- function(id, rv_folderpath, rv_project_name, rv_data,
+                            current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -69,6 +70,7 @@ model_cv_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     )
     
     observe({
+      if (!is.null(current_tab) && current_tab() != "model_cv_id") return()
       d_names <- available_designs()
       rv_existing_designs(d_names) 
       
