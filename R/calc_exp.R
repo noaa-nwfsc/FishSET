@@ -8,7 +8,7 @@
 #'   Price is multiplied against \code{catch} to generated revenue. If revenue exists 
 #'   in \code{dataset} and you wish to use this revenue instead of price, then \code{catch} 
 #'   must be a vector of 1 of length equal to \code{dataset}. Defaults to \code{NULL}.
-#' @param defineGroup Optional, variable from \code{dataset} that defines how to split 
+#' @param define_group Optional, variable from \code{dataset} that defines how to split 
 #'   the fleet. Defaults to treating entire dataframe \code{dataset} as a fleet.
 #' @param temp_var Optional, temporal variable from \code{dataset}. Set to \code{NULL} 
 #'   if temporal patterns in catch should not be considered.
@@ -53,7 +53,7 @@ calc_exp <- function(dataset,
                      alt_name = NULL,
                      catch,
                      price = NULL,
-                     defineGroup = NULL,
+                     define_group = NULL,
                      temp_var = NULL,
                      temporal = "daily",
                      calc_method = "standardAverage", 
@@ -78,15 +78,15 @@ calc_exp <- function(dataset,
   dt[, occasion_id := .I]
   
   # Determine fleet/grouping structure
-  if ("fleet" %in% names(dt) && (is_value_empty(defineGroup) || defineGroup != "fleet")) {
+  if ("fleet" %in% names(dt) && (is_value_empty(define_group) || define_group != "fleet")) {
     dt[, fleet := NULL] # Drop existing column to prevent type coercion
   }
   
-  if (is_value_empty(defineGroup)) {
+  if (is_value_empty(define_group)) {
     dt[, fleet := 1L]
   } else {
-    # If defineGroup == "fleet", this groups by the original string column and safely overwrites it
-    dt[, fleet := .GRP, by = defineGroup]
+    # If define_group == "fleet", this groups by the original string column and safely overwrites it
+    dt[, fleet := .GRP, by = define_group]
   }
   
   # Subset to relevant data zone and create core calculation table
@@ -111,7 +111,7 @@ calc_exp <- function(dataset,
     }
     
     # Calculate overall mean per group/area
-    if (is_value_empty(defineGroup)) {
+    if (is_value_empty(define_group)) {
       allCatch <- df_no_temp[, .(mean_catch = mean(catch_val, na.rm = TRUE)), by = zones]
       allCatch[, fleet := 1L] # Add dummy fleet for consistent joining
       
@@ -160,7 +160,7 @@ calc_exp <- function(dataset,
     
     df[, dateFloor := floor_date(date, unit = "day")]
     
-    df[, ID := if (is_value_empty(defineGroup)) as.character(zones) else paste0(fleet, zones)]
+    df[, ID := if (is_value_empty(define_group)) as.character(zones) else paste0(fleet, zones)]
   
     # Handle empty catch values with joins
     if (!is_value_empty(empty_catch) && anyNA(df$catch_val)) {
@@ -281,7 +281,7 @@ calc_exp <- function(dataset,
       settings = list("catch" = catch_name, 
                       "alt_name" = alt_name,
                       "price" = price, 
-                      "defineGroup" = defineGroup, 
+                      "define_group" = define_group, 
                       "temp_var" = temp_var, 
                       "temporal" = temporal, 
                       "calc_method" = calc_method, 

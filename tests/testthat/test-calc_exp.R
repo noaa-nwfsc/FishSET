@@ -9,7 +9,7 @@
 #   - Calculation without a temporal variable (simple overall mean).
 #   - Standard average with a daily temporal variable.
 #   - Revenue calculation using the 'price' argument.
-#   - Grouped calculations using the 'defineGroup' argument.
+#   - Grouped calculations using the 'define_group' argument.
 #   - Correct application of 'day_lag' and 'year_lag'.
 #   - Handling of missing data via 'empty_catch' and 'empty_expectation'.
 #   - Creation of a binary dummy matrix when 'dummy_exp' is TRUE.
@@ -111,11 +111,11 @@ test_that("Revenue is calculated when 'price' argument is provided", {
   expect_equal(unname(exp_matrix[7, "B"]), 69)
 })
 
-test_that("'defineGroup' correctly calculates expectations by group", {
+test_that("'define_group' correctly calculates expectations by group", {
   result <- calc_exp(
     dataset = test_data,
     catch = "catch",
-    defineGroup = "fleet",
+    define_group = "fleet",
     temp_var = "date",
     temporal = "daily",
     temp_window = 3,
