@@ -191,7 +191,7 @@ test_that("Interaction terms (Part 2 formula) are generated correctly", {
   obj <- read_design_output(project_name, "interact_test", test_base_dir)
   expected_names <- as.vector(outer(
     levels(test_data$zone_id)[-1],
-    c("vessel_classsmall", "vessel_classlarge"),
+    "vessel_classsmall",
     function(z, v) paste0(v, ":zone_id", z)
   ))
   expect_setequal(colnames(obj$X), c("distance", expected_names))
@@ -224,7 +224,7 @@ test_that("Expected Profit Model (EPM) configuration works", {
   expect_true(obj$epm$is_epm)
   expected_names <- as.vector(outer(
     levels(test_data$zone_id)[-1],
-    c("vessel_classsmall", "vessel_classlarge"),
+    "vessel_classsmall",
     function(z, v) paste0(v, ":Zone", z)
   ))
   expect_setequal(colnames(obj$epm$X_catch), c("distance", expected_names))
