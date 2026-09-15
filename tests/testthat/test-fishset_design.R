@@ -30,6 +30,7 @@ test_data <- data.frame(
   distance = runif(N_obs * J_alts, 10, 100), # Varying by alt
   expected_catch = runif(N_obs * J_alts, 50, 500), # Varying by alt
   vessel_len = rep(runif(N_obs, 20, 50), each = J_alts), # Fixed per haul
+  vessel_class = factor(rep(rep(c("small", "large"), length.out = N_obs), each = J_alts)),
   price = rep(runif(N_obs, 2, 5), each = J_alts), # Fixed per haul (for EPM)
   actual_catch = runif(N_obs * J_alts, 0, 1000) # Continuous outcome (for EPM)
 )
@@ -179,7 +180,7 @@ test_that("Interaction terms (Part 2 formula) are generated correctly", {
   }, add = TRUE)
 
   suppressMessages(
-    fishset_design(formula = chosen ~ distance | vessel_len,
+    fishset_design(formula = chosen ~ distance | vessel_class,
                    project = project_name,
                    model_name = "interact_test",
                    formatted_data_name = "my_formatted_data",
@@ -188,7 +189,12 @@ test_that("Interaction terms (Part 2 formula) are generated correctly", {
   )
 
   obj <- read_design_output(project_name, "interact_test", test_base_dir)
-  expect_true(any(grepl("vessel_len", colnames(obj$X))))
+  expected_names <- as.vector(outer(
+    levels(test_data$zone_id)[-1],
+    c("vessel_classsmall", "vessel_classlarge"),
+    function(z, v) paste0(v, ":zone_id", z)
+  ))
+  expect_setequal(colnames(obj$X), c("distance", expected_names))
 })
 
 
@@ -204,18 +210,24 @@ test_that("Expected Profit Model (EPM) configuration works", {
   }, add = TRUE)
 
   suppressMessages(
-    fishset_design(formula = chosen ~ distance | vessel_len,
+    fishset_design(formula = chosen ~ distance | vessel_class,
                    project = project_name,
                    model_name = "epm_test",
                    formatted_data_name = "my_formatted_data",
                    unique_obs_id = "haul_id",
                    zone_id = "zone_id",
-                   catch_formula = actual_catch ~ vessel_len:zone_id,
+                   catch_formula = actual_catch ~ distance | vessel_class,
                    price_var = "price")
   )
 
   obj <- read_design_output(project_name, "epm_test", test_base_dir)
   expect_true(obj$epm$is_epm)
+  expected_names <- as.vector(outer(
+    levels(test_data$zone_id)[-1],
+    c("vessel_classsmall", "vessel_classlarge"),
+    function(z, v) paste0(v, ":Zone", z)
+  ))
+  expect_setequal(colnames(obj$epm$X_catch), c("distance", expected_names))
 })
 
 
