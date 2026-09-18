@@ -26,6 +26,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     rv_tac_table       <- reactiveValues(data = NULL)        
     rv_saved_closures  <- reactiveValues(saved = list())      
     rv_selected_vars   <- reactiveValues(vars = NULL)
+    rv_uploaded_shape  <- reactiveValues(poly = NULL)
     
     # Trackers for database polling and initialization state to prevent double-loading
     rv_db_state        <- reactiveValues(mtime = NULL, choices = NULL, initialized = FALSE)
@@ -82,16 +83,17 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         mutate(zone = as.character(.data[[z_id]]))
     })
 
-    # Populate selectable closure variables from the loaded spatial and grid data
+    # Populate selectable closure variables from the selected data source
     observe({
-      req(rv_data$spat)
+      req(input$existing_data_source)
+      selected_data <- switch(
+        input$existing_data_source,
+        "main" = rv_data$main,
+        "spat" = rv_data$spat
+      )
+      req(selected_data)
 
-      datasets <- list(rv_data$spat)
-      if (!is.null(rv_data$grid)) {
-        datasets <- c(datasets, list(rv_data$grid))
-      }
-
-      choices <- sort(unique(unlist(lapply(datasets, names))))
+      choices <- sort(names(selected_data))
       selected <- isolate(input$existing_var_name)
 
       updateSelectInput(
@@ -185,10 +187,13 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       }
     }, ignoreInit = TRUE)
 
-    # Clear selections when switching between map and uploaded-shapefile modes --------------------
+    # Clear selections and uploaded geometry when switching modes -----------------------------------
     observeEvent(input$closure_mode, {
       if (!is.null(rv_last_mode$val) && !identical(input$closure_mode, rv_last_mode$val)) {
         rv_clicked_zones$ids <- character(0)
+      }
+      if (!identical(input$closure_mode, "upload")) {
+        rv_uploaded_shape$poly <- NULL
       }
       rv_last_mode$val <- input$closure_mode
     }, ignoreInit = TRUE)
@@ -321,6 +326,16 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     observeEvent(rv_clicked_zones$ids, {
       proxy <- leaflet::leafletProxy("zone_map_output")
       proxy %>% leaflet::clearGroup("selected_zones")
+      proxy %>% leaflet::clearGroup("uploaded_shape_layer")
+
+      if (identical(input$closure_mode, "upload") && !is.null(rv_uploaded_shape$poly)) {
+        proxy %>% leaflet::addPolygons(
+          data = rv_uploaded_shape$poly,
+          color = "blue",
+          fillOpacity = 0.3,
+          group = "uploaded_shape_layer"
+        )
+      }
 
       if (length(rv_clicked_zones$ids) == 0) {
         return()
@@ -331,17 +346,23 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       is_point_data <- any(
         sf::st_geometry_type(selected_zones) %in% c("POINT", "MULTIPOINT")
       )
+      selected_color <- switch(
+        input$closure_mode,
+        "upload" = "orange",
+        "existing" = "purple",
+        "red"
+      )
 
       if (is_point_data) {
         proxy %>% leaflet::addCircleMarkers(
-          data = selected_zones, radius = 6, fillColor = "red", fillOpacity = 0.8,
-          weight = 2, color = "black", stroke = TRUE, group = "selected_zones",
+          data = selected_zones, radius = 6, fillColor = selected_color, fillOpacity = 0.8,
+          weight = 2, color = selected_color, stroke = TRUE, group = "selected_zones",
           options = leaflet::pathOptions(interactive = FALSE)
         )
       } else {
         proxy %>% leaflet::addPolygons(
-          data = selected_zones, fillColor = "red", fillOpacity = 0.5,
-          weight = 2, color = "black", stroke = TRUE, group = "selected_zones",
+          data = selected_zones, fillColor = selected_color, fillOpacity = 0.5,
+          weight = 2, color = selected_color, stroke = TRUE, group = "selected_zones",
           options = leaflet::pathOptions(interactive = FALSE)
         )
       }
@@ -360,27 +381,29 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         shinyjs::show("closure_processing_spinner_container")
         on.exit(shinyjs::hide("closure_processing_spinner_container"), add = TRUE)
 
-        selected_zones <- tryCatch(
+        overlap_result <- tryCatch(
           compute_closure_overlaps(
             input$closure_shapefile,
             zone_df(),
-            input$overlap_threshold
+            input$overlap_threshold,
+            return_shape = TRUE
           ),
           error = function(e) {
             showNotification(conditionMessage(e), type = "error", duration = 6)
             NULL
           }
         )
-        if (is.null(selected_zones)) {
+        if (is.null(overlap_result)) {
           return()
         }
-        
-        rv_clicked_zones$ids <- selected_zones
-        if (length(selected_zones) == 0) {
+
+        rv_uploaded_shape$poly <- overlap_result$shape
+        rv_clicked_zones$ids <- overlap_result$ids
+        if (length(overlap_result$ids) == 0) {
           showNotification("No zones met the overlap threshold.", type = "warning", duration = 5)
         } else {
           showNotification(
-            paste(length(selected_zones), "zone(s) selected from the uploaded shapefile."),
+            paste(length(overlap_result$ids), "zone(s) selected from the uploaded shapefile."),
             type = "message",
             duration = 5
           )
@@ -394,25 +417,31 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         shinyjs::show("closure_processing_spinner_container")
         on.exit(shinyjs::hide("closure_processing_spinner_container"), add = TRUE)
 
-        selected_data <- if (input$existing_var_name %in% names(rv_data$spat)) {
-          zone_df()
-        } else if (!is.null(rv_data$grid) &&
-                   input$existing_var_name %in% names(rv_data$grid)) {
-          rv_data$grid %>%
-            mutate(second_location_id = paste0(
-              "Zone_", as.character(.data[[get_zone_id()]])
-            ))
-        } else {
+        selected_data <- switch(
+          input$existing_data_source,
+          "main" = rv_data$main,
+          "spat" = rv_data$spat
+        )
+        req(selected_data)
+        zone_id <- get_zone_id()
+        if (!zone_id %in% names(selected_data)) {
+          showNotification(
+            paste0("The selected ", input$existing_data_source,
+                   " data does not contain the zone ID column '", zone_id, "'."),
+            type = "error",
+            duration = 6
+          )
           return()
         }
 
-        rv_clicked_zones$ids <- selected_data %>%
+        zone_ids <- selected_data %>%
           filter(
             as.character(.data[[input$existing_var_name]]) ==
               input$existing_var_val
           ) %>%
-          pull(second_location_id) %>%
+          pull(.data[[zone_id]]) %>%
           unique()
+        rv_clicked_zones$ids <- paste0("Zone_", as.character(zone_ids))
       },
       ignoreInit = TRUE)
     
@@ -710,6 +739,13 @@ zone_closure_ui <- function(id) {
         ),
         conditionalPanel(
           condition = sprintf("input['%s'] === 'existing'", ns("closure_mode")),
+          radioButtons(
+            ns("existing_data_source"),
+            "Data Source:",
+            choices = c("Main Data" = "main", "Spatial Data" = "spat"),
+            selected = "spat",
+            inline = TRUE
+          ),
           selectInput(
             ns("existing_var_name"),
             "Existing closure variable",
