@@ -18,7 +18,8 @@
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
+policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data,
+                              current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -34,10 +35,18 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     # State for dynamic Marginal Utility of Income UI
     rv_current_vars <- reactiveVal(character(0))
     rv_is_epm <- reactiveVal(FALSE)
+
+    observeEvent(rv_project_name(), {
+      rv_fit_list(list())
+      rv_model_meta_cache(list())
+      rv_current_vars(character(0))
+      rv_is_epm(FALSE)
+    }, ignoreInit = TRUE, priority = 100)
     
     # Real-time model fits, closures, sims --------------------------------------------------------
     # Shared check function for the SQLite database (used for Fits and Simulations)
     db_check_func <- function() {
+      if (is.null(rv_data$main)) return("data_not_loaded")
       if (is.null(rv_project_name())) return(NULL)
       project <- rv_project_name()$value
       
@@ -56,6 +65,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       session = session,
       checkFunc = db_check_func,
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || trimws(project) == "") return(character(0))
@@ -79,6 +89,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       session = session,
       checkFunc = db_check_func,
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || trimws(project) == "") return(character(0))
@@ -98,6 +109,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       intervalMillis = 1000,
       session = session,
       checkFunc = function() {
+        if (is.null(rv_data$main)) return("data_not_loaded")
         if (is.null(rv_project_name())) return(NULL)
         project <- rv_project_name()$value
         if (is.null(project) || trimws(project) == "") return(NULL)
@@ -113,6 +125,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         return(file.info(yaml_file)$mtime)
       },
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || trimws(project) == "") return(character(0))
@@ -142,6 +155,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     
     # Update UI State Reactively ------------------------------------------------------------------
     observe({
+      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
       fits <- poll_available_fits()
       rv_available_fits(fits)
       
@@ -152,6 +166,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     })
     
     observe({
+      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
       closures <- poll_closures()
       rv_available_closures(closures)
       
@@ -162,6 +177,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     })
     
     observe({
+      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
       sims <- poll_existing_sims()
       
       # Filter out baseline simulations from the dropdown
@@ -175,6 +191,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     
     # Build a lightweight cache of variables and EPM status in the background
     observe({
+      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
       fit_list <- rv_fit_list()
       project <- rv_project_name()$value
       
@@ -247,6 +264,24 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       }
       
     }, ignoreInit = TRUE, ignoreNULL = FALSE)
+
+    # Refresh MUI choices after either the selected model or its metadata changes.
+    observe({
+      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
+      selected_model <- input$mod_name_input
+      cache <- rv_model_meta_cache()
+      model_meta <- if (is.null(selected_model) || selected_model == "") NULL else {
+        cache[[selected_model]]
+      }
+
+      if (is.null(model_meta)) {
+        rv_current_vars(character(0))
+        rv_is_epm(FALSE)
+      } else {
+        rv_current_vars(model_meta$vars)
+        rv_is_epm(model_meta$is_epm)
+      }
+    })
     
     # Render the Inputs ONLY if it is a Standard Logit
     output$marg_util_ui <- renderUI({
