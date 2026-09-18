@@ -118,7 +118,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     # Populate & Auto-Refresh the Alternative Matrix Dropdown -------------------------------------
     observe({
       if (!is.null(current_tab) && current_tab() != "zone_closures") return()
-      req(rv_data$main)
+      if (is.null(spat_zone_id)) req(rv_data$main)
       req(current_project())
       shiny::invalidateLater(2500, session) # Lightly poll every 2.5 seconds
       
