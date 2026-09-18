@@ -219,7 +219,7 @@ map_predicted_probs <- function(fit_name,
       hover_labels <- lapply(
         sprintf(
           "<strong>Zone ID:</strong> %s<br/><strong>Probability:</strong> %s",
-          spatdat[[zone_spat]], 
+          htmltools::htmlEscape(spatdat[[zone_spat]]),
           round(spatdat[[val_var]], 4)
         ),
         htmltools::HTML
