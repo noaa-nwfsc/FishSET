@@ -131,7 +131,7 @@ map_predicted_probs <- function(fit_name,
     
     # use WGS 84 if crs is missing
     if (is.na(sf::st_crs(spatdat))) {
-      spat_join <- sf::st_transform(spat_join, crs = 4326)
+      spat_join <- sf::st_set_crs(spat_join, 4326)
     }
     if (any(!(sf::st_is_valid(spatdat)))) {
       spat_join <- sf::st_make_valid(spat_join)
