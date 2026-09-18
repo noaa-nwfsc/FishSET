@@ -4,8 +4,8 @@
 #              Simulations. It allows users to simulate the impact of policy changes 
 #              on redistributed fishing effort and economic welfare.
 #              
-# Dependencies: shiny, DT, shinyjs, bslib, yaml
-# Notes: This module interacts with ModelFits (input), Policy YAMLs (input), and 
+# Dependencies: shiny, DT, shinyjs, bslib
+# Notes: This module interacts with ModelFits (input), ClosureScenarios (input), and
 #        PolicySimulations (output).
 # =================================================================================================
 
@@ -93,49 +93,30 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       }
     )
     
-    # Poll for Closures (YAML file)
+    # Poll for closure scenarios stored in SQLite
     poll_closures <- reactivePoll(
       intervalMillis = 1000,
       session = session,
-      checkFunc = function() {
-        if (is.null(rv_project_name())) return(NULL)
-        project <- rv_project_name()$value
-        if (is.null(project) || trimws(project) == "") return(NULL)
-        
-        yaml_file <- suppressMessages(suppressWarnings(tryCatch(
-          paste0(locoutput(project), pull_output(project, type = "zone", fun = "closures")), 
-          error = function(e) NULL
-        )))
-        
-        if (is.null(yaml_file) || !utils::file_test("-f", yaml_file)) return(NULL)
-        
-        # Return the YAML file's modification time
-        return(file.info(yaml_file)$mtime)
-      },
+      checkFunc = db_check_func,
       valueFunc = function() {
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || trimws(project) == "") return(character(0))
-        
-        yaml_file <- suppressMessages(suppressWarnings(tryCatch(
-          paste0(locoutput(project), pull_output(project, type = "zone", fun = "closures")), 
-          error = function(e) NULL
-        )))
-        
-        if (is.null(yaml_file) || !utils::file_test("-f", yaml_file)) return(character(0))
-        
+
         tryCatch({
-          all_closures <- yaml::read_yaml(yaml_file)
-          
-          # Auto-filter out any scenario containing the word "baseline"
-          valid_scenarios <- c()
-          for (x in all_closures) {
-            if (!grepl("baseline", x$scenario, ignore.case = TRUE)) {
-              valid_scenarios <- c(valid_scenarios, x$scenario)
-            }
+          all_closures <- get_closure_scenario(project)
+          if (is.null(all_closures) || length(all_closures) == 0) {
+            return(character(0))
           }
-          return(valid_scenarios)
-          
+
+          vapply(
+            Filter(
+              function(x) !grepl("baseline", x$scenario, ignore.case = TRUE),
+              all_closures
+            ),
+            function(x) x$scenario,
+            character(1)
+          )
         }, error = function(e) character(0))
       }
     )
