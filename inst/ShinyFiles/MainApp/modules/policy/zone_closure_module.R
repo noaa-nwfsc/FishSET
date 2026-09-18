@@ -246,7 +246,11 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       map <- leaflet::leaflet() %>%
         leaflet::addProviderTiles("OpenStreetMap") %>%
         leaflet::fitBounds(lng1 = bounds[["xmin"]], lat1 = bounds[["ymin"]], 
-                           lng2 = bounds[["xmax"]], lat2 = bounds[["ymax"]])
+                           lng2 = bounds[["xmax"]], lat2 = bounds[["ymax"]]) %>%
+        leaflet::addLayersControl(
+          overlayGroups = c("Uploaded Shapefile"),
+          options = leaflet::layersControlOptions(collapsed = FALSE)
+        )
       
       # Add Base Layer (White)
       if (is_point_data) {
@@ -326,14 +330,14 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     observeEvent(rv_clicked_zones$ids, {
       proxy <- leaflet::leafletProxy("zone_map_output")
       proxy %>% leaflet::clearGroup("selected_zones")
-      proxy %>% leaflet::clearGroup("uploaded_shape_layer")
+      proxy %>% leaflet::clearGroup("Uploaded Shapefile")
 
       if (identical(input$closure_mode, "upload") && !is.null(rv_uploaded_shape$poly)) {
         proxy %>% leaflet::addPolygons(
           data = rv_uploaded_shape$poly,
           color = "blue",
           fillOpacity = 0.3,
-          group = "uploaded_shape_layer"
+          group = "Uploaded Shapefile"
         )
       }
 
