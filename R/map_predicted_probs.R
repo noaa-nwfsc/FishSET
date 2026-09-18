@@ -157,7 +157,7 @@ map_predicted_probs <- function(fit_name,
     # Sub-functions for Plotting ------------------------------------------------
     var_sym <- rlang::sym(val_var)
     
-   z_plot_fun_static <- function(spatdat, legend_name) {
+    z_plot_fun_static <- function(spatdat, legend_name) {
       
       # Safely attempt to generate the base coastline map
       base_map <- tryCatch({
@@ -182,7 +182,7 @@ map_predicted_probs <- function(fit_name,
       } else {
         p <- ggplot2::ggplot() # Return empty base plot if in deep ocean
       }
-
+      
       full_data_range <- range(spatdat[[val_var]], na.rm = TRUE)
       
       p <- p +
@@ -192,13 +192,13 @@ map_predicted_probs <- function(fit_name,
         ggplot2::scale_fill_viridis_c(
           name = legend_name,
           limits = full_data_range,
-          option = "plasma",
+          option = "viridis",
           na.value = "grey80"
         ) +
         ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
                           expand = TRUE) +
         fishset_theme() +
-      ggplot2::theme(legend.key.size = grid::unit(1, "cm"),
+        ggplot2::theme(legend.key.size = grid::unit(1, "cm"),
                        legend.background = ggplot2::element_rect(fill = "grey90"))
       
       return(p)
@@ -208,13 +208,13 @@ map_predicted_probs <- function(fit_name,
       
       spatdat <- sf::st_transform(spatdat, "+proj=longlat +datum=WGS84")
       
-      pal <- colorBin(
+      pal <- leaflet::colorNumeric(
         palette = "viridis",
-        bins = 10,
-        domain = spatdat[[val_var]]
+        domain = spatdat[[val_var]], 
+        na.color = "grey80" # Match ggplot's na.value
       )
       
-      fill_colors <- pal(spat_join[[val_var]])
+      fill_colors <- pal(spatdat[[val_var]])
       
       hover_labels <- lapply(
         sprintf(
