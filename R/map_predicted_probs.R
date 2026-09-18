@@ -198,7 +198,7 @@ map_predicted_probs <- function(fit_name,
         ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
                           expand = TRUE) +
         fishset_theme() +
-        ggplot2::theme(legend.key.size = unit(1, "cm"),
+      ggplot2::theme(legend.key.size = grid::unit(1, "cm"),
                        legend.background = ggplot2::element_rect(fill = "grey90"))
       
       return(p)
