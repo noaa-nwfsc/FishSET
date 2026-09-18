@@ -219,3 +219,37 @@ test_that("Function logic executes correctly with mocked dependencies", {
   expect_s3_class(res_both$table, "data.frame")
   expect_s3_class(res_both$plot, "leaflet")
 })
+
+test_that("Static plot normalizes projected spatial data to lon/lat", {
+  skip_if_not_installed("maps")
+  
+  projected_spat <- sf::st_transform(dummy_spat, 3857)
+  
+  local_mocked_bindings(
+    unserialize_table = function(table, proj) mock_db_list,
+    data_pull = function(spat, proj) list(dataset = projected_spat),
+    parse_data_name = function(...) "mock_spat_name",
+    save_plot = function(...) TRUE,
+    save_table = function(...) TRUE,
+    log_call = function(...) TRUE,
+    shift_long = function(...) FALSE,
+    fishset_theme = function(...) ggplot2::theme_minimal()
+  )
+  
+  res_static <- map_predicted_probs(
+    fit_name = "clogit1_fit",
+    spat = "dummy_spat",
+    project = "proj",
+    zone_spat = "TEN_ID",
+    plot_type = "static",
+    output = "plot"
+  )
+  
+  zone_layer <- res_static$layers[[1]]$data
+  zone_bbox <- sf::st_bbox(zone_layer)
+  
+  expect_equal(sf::st_crs(zone_layer)$epsg, 4326)
+  expect_equal(unname(zone_bbox[c("xmin", "xmax", "ymin", "ymax")]), c(0, 3, 0, 1))
+  expect_equal(unname(res_static$coordinates$limits$x), c(0, 3))
+  expect_equal(unname(res_static$coordinates$limits$y), c(0, 1))
+})

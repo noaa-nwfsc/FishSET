@@ -137,22 +137,24 @@ map_predicted_probs <- function(fit_name,
       spat_join <- sf::st_make_valid(spat_join)
     }
     
-    # Base map generation limits -----------------------------------
-    if (dat_center) {
-      z_ind <- spatdat[[zone_spat]] %in% unique(prob_tab[[zone_spat]])
-      bbox <- sf::st_bbox(spatdat[z_ind, ])
-    } else {
-      bbox <- sf::st_bbox(spatdat) 
+    static_spat_join <- sf::st_transform(spat_join, 4326)
+    use_world2 <- shift_long(static_spat_join)
+    if (use_world2) {
+      static_spat_join <- sf::st_shift_longitude(static_spat_join)
     }
     
-    use_world2 <- shift_long(spatdat)
+    # Base map generation limits -----------------------------------
+    if (dat_center) {
+      z_ind <- static_spat_join[[zone_spat]] %in% unique(prob_tab[[zone_spat]])
+      bbox <- sf::st_bbox(static_spat_join[z_ind, ])
+    } else {
+      bbox <- sf::st_bbox(static_spat_join) 
+    }
+    
     map_name <- ifelse(use_world2, "world2", "world")
     
     x_limits <- c(bbox["xmin"], bbox["xmax"])
-    if (use_world2) {
-      x_limits <- ifelse(x_limits < 0, x_limits + 360, x_limits)
-      x_limits <- sort(x_limits)
-    }
+    x_limits <- sort(x_limits)
     
     # Sub-functions for Plotting ------------------------------------------------
     var_sym <- rlang::sym(val_var)
@@ -173,7 +175,7 @@ map_predicted_probs <- function(fit_name,
       if (nrow(base_map) > 0) {
         base_map <- sf::st_as_sf(base_map, 
                                  coords = c("long", "lat"),
-                                 crs = sf::st_crs(spatdat)) %>%
+                                 crs = sf::st_crs(static_spat_join)) %>%
           dplyr::group_by(group) %>%
           dplyr::summarize(do_union = FALSE, .groups = "drop") %>%
           sf::st_cast("POLYGON")
@@ -259,7 +261,9 @@ map_predicted_probs <- function(fit_name,
     if (plot_type == "dynamic") {
       z_plot <- z_plot_fun_dynamic(spat_join, legend_name = legend_name)
     } else {
-      z_plot <- suppressWarnings(z_plot_fun_static(spat_join, legend_name = legend_name))
+      z_plot <- suppressWarnings(
+        z_plot_fun_static(static_spat_join, legend_name = legend_name)
+      )
     }
     
     save_plot(project, "map_predicted_probs", z_plot)
