@@ -211,10 +211,10 @@ map_predicted_probs <- function(fit_name,
       pal <- colorBin(
         palette = "viridis",
         bins = 10,
-        domain = spatdat[[var_sym]] 
+        domain = spatdat[[val_var]]
       )
       
-      fill_colors <- pal(spat_join[[var_sym]])
+      fill_colors <- pal(spat_join[[val_var]])
       
       hover_labels <- lapply(
         sprintf(
