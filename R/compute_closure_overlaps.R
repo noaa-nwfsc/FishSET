@@ -3,9 +3,12 @@
 #' @param uploaded_files The data frame returned by a Shiny spatial `fileInput`.
 #' @param zones An `sf` object with a `second_location_id` column.
 #' @param overlap_threshold Minimum percentage of a zone that must be covered.
-#' @return A character vector of selected `second_location_id` values.
+#' @param return_shape Whether to also return the cleaned uploaded spatial object.
+#' @return A character vector of selected `second_location_id` values, or a list
+#'   containing the selected IDs and cleaned uploaded shape when `return_shape` is `TRUE`.
 #' @keywords internal
-compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold) {
+compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold,
+                                     return_shape = FALSE) {
   old_s2 <- sf::sf_use_s2(FALSE)
   on.exit(sf::sf_use_s2(old_s2), add = TRUE)
 
@@ -108,15 +111,22 @@ compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold) {
     stop("The uploaded spatial file must define a coordinate reference system.", call. = FALSE)
   }
 
-  uploaded_shape <- sf::st_buffer(sf::st_make_valid(uploaded_shape), dist = 0)
-  zones <- sf::st_buffer(sf::st_make_valid(zones), dist = 0)
-  uploaded_shape <- sf::st_buffer(
-    sf::st_make_valid(sf::st_transform(uploaded_shape, sf::st_crs(zones))),
-    dist = 0
-  )
+  clean_geometry <- function(x) {
+    x <- sf::st_make_valid(x)
+    polygonal <- sf::st_geometry_type(x) %in% c("POLYGON", "MULTIPOLYGON")
+    if (any(polygonal)) {
+      x[polygonal, ] <- sf::st_buffer(x[polygonal, ], dist = 0)
+    }
+    x
+  }
+
+  uploaded_shape <- clean_geometry(uploaded_shape)
+  zones <- clean_geometry(zones)
+  uploaded_shape <- clean_geometry(sf::st_transform(uploaded_shape, sf::st_crs(zones)))
   if (any(sf::st_geometry_type(zones) %in% c("POINT", "MULTIPOINT"))) {
     overlaps <- lengths(sf::st_intersects(zones, uploaded_shape)) > 0
-    return(as.character(zones$second_location_id[overlaps]))
+    selected_ids <- as.character(zones$second_location_id[overlaps])
+    return(if (return_shape) list(ids = selected_ids, shape = uploaded_shape) else selected_ids)
   }
 
   zone_area <- as.numeric(sf::st_area(zones))
@@ -125,7 +135,8 @@ compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold) {
     sf::st_union(uploaded_shape)
   )
   if (nrow(intersections) == 0) {
-    return(character(0))
+    selected_ids <- character(0)
+    return(if (return_shape) list(ids = selected_ids, shape = uploaded_shape) else selected_ids)
   }
 
   overlap_area <- stats::aggregate(
@@ -144,8 +155,9 @@ compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold) {
                         suffixes = c("_zone", "_overlap"))
   zone_overlap$area_overlap[is.na(zone_overlap$area_overlap)] <- 0
 
-  zone_overlap$second_location_id[
+  selected_ids <- zone_overlap$second_location_id[
     zone_overlap$area_zone > 0 &
       (100 * zone_overlap$area_overlap / zone_overlap$area_zone) >= overlap_threshold
   ]
+  if (return_shape) list(ids = selected_ids, shape = uploaded_shape) else selected_ids
 }

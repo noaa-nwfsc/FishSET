@@ -31,6 +31,14 @@ test_that("compute_closure_overlaps selects zones meeting the threshold", {
     FishSET:::compute_closure_overlaps(uploaded_files, zones, 50),
     "Zone_1"
   )
+  overlap_result <- FishSET:::compute_closure_overlaps(
+    uploaded_files,
+    zones,
+    50,
+    return_shape = TRUE
+  )
+  expect_equal(overlap_result$ids, "Zone_1")
+  expect_s3_class(overlap_result$shape, "sf")
   expect_equal(
     FishSET:::compute_closure_overlaps(uploaded_files, zones, 70),
     character(0)
@@ -115,6 +123,31 @@ test_that("compute_closure_overlaps accepts CSV WKT data", {
   expect_equal(
     FishSET:::compute_closure_overlaps(
       data.frame(name = basename(csv), datapath = csv),
+      zones,
+      50
+    ),
+    "Zone_1"
+  )
+})
+
+test_that("compute_closure_overlaps preserves point-zone selection", {
+  zones <- sf::st_as_sf(
+    data.frame(second_location_id = c("Zone_1", "Zone_2"), lon = c(0, 2), lat = c(0, 0)),
+    coords = c("lon", "lat"),
+    crs = 4326
+  )
+  closure <- sf::st_as_sf(
+    data.frame(id = 1, wkt = "POLYGON ((-1 -1, 1 -1, 1 1, -1 1, -1 -1))"),
+    wkt = "wkt",
+    crs = 4326
+  )
+  rds <- tempfile(fileext = ".rds")
+  saveRDS(closure, rds)
+  on.exit(unlink(rds), add = TRUE)
+
+  expect_equal(
+    FishSET:::compute_closure_overlaps(
+      data.frame(name = basename(rds), datapath = rds),
       zones,
       50
     ),
