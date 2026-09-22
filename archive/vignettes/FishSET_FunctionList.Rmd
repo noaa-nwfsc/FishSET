@@ -258,7 +258,7 @@ create_alternative_choice()
 Compute expected catch or expected revenue. The function creates the
 expected catch/revenue matrix based on user-provided parameters, and
 three default cases: Near-term: Movng window size of two days. In this
-case, vessels are grouped based on defineGroup parameter. Medium-term:
+case, vessels are grouped based on define_group parameter. Medium-term:
 Moving window size of seven days. In this case, there is no grouping and
 catch for entire fleet is used. Long-term: Moving window size of seven
 days from the previous year. In this case, there is no grouping and
