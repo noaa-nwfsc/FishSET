@@ -9,7 +9,7 @@ calc_exp(
   alt_name = NULL,
   catch,
   price = NULL,
-  defineGroup = NULL,
+  define_group = NULL,
   temp_var = NULL,
   temporal = "daily",
   calc_method = "standardAverage",
@@ -27,17 +27,19 @@ calc_exp(
 \item{dataset}{Primary data containing information on hauls or trips. Table in FishSET 
 database contains the string 'MainDataTable'.}
 
-\item{catch}{Variable from \code{dat} containing catch data.}
+\item{alt_name}{Optional character string. Name of the alternative structure. Defaults to \code{NULL}.}
 
-\item{price}{Optional, variable from \code{dat} containing price/value data.
+\item{catch}{Variable from \code{dataset} containing catch data.}
+
+\item{price}{Optional, variable from \code{dataset} containing price/value data.
 Price is multiplied against \code{catch} to generated revenue. If revenue exists 
-in \code{dat} and you wish to use this revenue instead of price, then \code{catch} 
-must be a vector of 1 of length equal to \code{dat}. Defaults to \code{NULL}.}
+in \code{dataset} and you wish to use this revenue instead of price, then \code{catch} 
+must be a vector of 1 of length equal to \code{dataset}. Defaults to \code{NULL}.}
 
-\item{defineGroup}{Optional, variable from \code{dat} that defines how to split 
-the fleet. Defaults to treating entire dataframe \code{dat} as a fleet.}
+\item{define_group}{Optional, variable from \code{dataset} that defines how to split 
+the fleet. Defaults to treating entire dataframe \code{dataset} as a fleet.}
 
-\item{temp_var}{Optional, temporal variable from \code{dat}. Set to \code{NULL} 
+\item{temp_var}{Optional, temporal variable from \code{dataset}. Set to \code{NULL} 
 if temporal patterns in catch should not be considered.}
 
 \item{temporal}{String, choices are \code{"daily"} or \code{"sequential"}. Should 
@@ -53,7 +55,7 @@ standard average (\code{"standardAverage"}), simple lag regression of means
 (\code{"simpleLag"}), or weights of regressed groups (\code{"weights"})}
 
 \item{temp_window}{Numeric, temporal window size. If \code{temp_var} is not \code{NULL}, 
-set the window size to average catch over. Defaults to 14 (14 days if \code{temporal} 
+set the window size to average catch over. Defaults to 7 (7 days if \code{temporal} 
 is \code{"daily"}).}
 
 \item{day_lag}{Numeric, temporal lag time. If \code{temp_var} is not \code{NULL}, 
