@@ -7,7 +7,9 @@
 zone_closure(
   project,
   spatname,
+  mainname = NULL,
   zone_spat,
+  zone_main = NULL,
   lon_spat = NULL,
   lat_spat = NULL,
   epsg = NULL
@@ -24,7 +26,13 @@ converted into geojson. This is done automatically when the file is loaded
 with \code{\link{read_dat}} with \code{is.map} set to true. \code{spat} 
 cannot, at this time, be loaded from the FishSET database. \cr}
 
-\item{zone_spat}{Variable in \code{spat} that identifies the individual areas or zones.}
+\item{mainname}{Optional, data file or character. The main dataset containing
+non-spatial records that can be used to select zones based on existing variables.}
+
+\item{zone_spat}{Variable in \code{spatname} that identifies the individual areas or zones.}
+
+\item{zone_main}{Variable in \code{mainname} that identifies the individual areas or zones.
+Required if \code{mainname} is provided.}
 
 \item{lon_spat}{Required for csv files. Variable or list from \code{spat} 
 containing longitude data. Leave as NULL if \code{spat} is a shape or json file.}
@@ -37,7 +45,7 @@ If epsg is not specified but is defined for \code{spat}.
 See \url{http://spatialreference.org/} to help identify the optimal epsg number.}
 }
 \value{
-Returns a Shiny application object.
+A Shiny application object.
 }
 \description{
 Define zone closure scenarios
