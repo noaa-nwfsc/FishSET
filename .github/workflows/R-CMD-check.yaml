@@ -44,13 +44,16 @@ jobs:
 
       - name: Install OpenMP (macOS)
         if: runner.os == 'macOS'
-        run: brew install libomp
+        run: |
+          curl -O https://raw.githubusercontent.com/coatless-shell/openmp/main/install-openmp.sh
+          chmod +x install-openmp.sh
+          ./install-openmp.sh
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
           needs: check
-          cache-version: 2
+          cache-version: 3
 
       - uses: r-lib/actions/setup-tinytex@v2
       
