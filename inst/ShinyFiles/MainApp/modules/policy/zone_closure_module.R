@@ -18,6 +18,7 @@
 #' @param spat_name Optional string for the name of the spatial dataset to display.
 #' @param main_name Optional string for the name of the main dataset to display.
 #' @return This module does not return a value.
+
 zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, 
                                 spat_zone_id = NULL, main_zone_id = NULL,
                                 spat_name = "Spatial Data", main_name = "Main Data") {
