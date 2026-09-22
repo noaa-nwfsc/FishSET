@@ -7,6 +7,7 @@
 #' @return A character vector of selected `second_location_id` values, or a list
 #'   containing the selected IDs and cleaned uploaded shape when `return_shape` is `TRUE`.
 #' @keywords internal
+#' 
 compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold,
                                      return_shape = FALSE) {
   old_s2 <- sf::sf_use_s2(FALSE)
@@ -112,10 +113,10 @@ compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold,
   }
 
   clean_geometry <- function(x) {
-    x <- sf::st_make_valid(x)
+    x <- suppressWarnings(suppressMessages(sf::st_make_valid(x)))
     polygonal <- sf::st_geometry_type(x) %in% c("POLYGON", "MULTIPOLYGON")
     if (any(polygonal)) {
-      x[polygonal, ] <- sf::st_buffer(x[polygonal, ], dist = 0)
+      x[polygonal, ] <- suppressWarnings(suppressMessages(sf::st_buffer(x[polygonal, ], dist = 0)))
     }
     x
   }
@@ -123,24 +124,26 @@ compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold,
   uploaded_shape <- clean_geometry(uploaded_shape)
   zones <- clean_geometry(zones)
   uploaded_shape <- clean_geometry(sf::st_transform(uploaded_shape, sf::st_crs(zones)))
+  
   if (any(sf::st_geometry_type(zones) %in% c("POINT", "MULTIPOINT"))) {
-    overlaps <- lengths(sf::st_intersects(zones, uploaded_shape)) > 0
+    overlaps <- suppressWarnings(suppressMessages(lengths(sf::st_intersects(zones, uploaded_shape)) > 0))
     selected_ids <- as.character(zones$second_location_id[overlaps])
     return(if (return_shape) list(ids = selected_ids, shape = uploaded_shape) else selected_ids)
   }
 
-  zone_area <- as.numeric(sf::st_area(zones))
-  intersections <- sf::st_intersection(
+  zone_area <- suppressWarnings(suppressMessages(as.numeric(sf::st_area(zones))))
+  intersections <- suppressWarnings(suppressMessages(sf::st_intersection(
     zones[, "second_location_id", drop = FALSE],
-    sf::st_union(uploaded_shape)
-  )
+    suppressWarnings(suppressMessages(sf::st_union(uploaded_shape)))
+  )))
+  
   if (nrow(intersections) == 0) {
     selected_ids <- character(0)
     return(if (return_shape) list(ids = selected_ids, shape = uploaded_shape) else selected_ids)
   }
 
   overlap_area <- stats::aggregate(
-    as.numeric(sf::st_area(intersections)),
+    suppressWarnings(suppressMessages(as.numeric(sf::st_area(intersections)))),
     by = list(second_location_id = intersections$second_location_id),
     FUN = sum
   )
