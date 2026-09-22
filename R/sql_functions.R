@@ -226,7 +226,7 @@ unserialize_table <- function(table, project) {
   
   serial_tabs <- c("alt choice matrix", "expected catch matrix", "model data",
                    "model fit", "predict output", "global check", "model output", 
-                   "long format data", "policy simulations")
+                   "long format data", "policy simulations", "closure scenarios")
   
   if (!tab_type %in% serial_tabs) {
     
@@ -243,6 +243,7 @@ unserialize_table <- function(table, project) {
                                                      # (depends on whether created in app or console)
                     "predict output" = "PredictOutput",
                     "policy simulations" = "data",
+                    "closure scenarios" = "data",
                     "long format data" = "data")
   
   sql_qry <- paste0("SELECT ", tab_qry, " FROM ", table, " LIMIT 1")
@@ -682,7 +683,8 @@ fishset_tables <- function(project = NULL) {
                  "MainDataTable", "ExpectedCatch", "AltMatrix", "PortTable\\d{8}",
                  "PortTable", "ldglobalcheck", "FleetTable", "ModelOut", "ModelFit",
                  "ModelInputData", "modelDesignTable", "FilterTable", "GridTable\\d{8}",  
-                 "GridTable", "AuxTable\\d{8}", "AuxTable", "SpatTable\\d{8}", "SpatTable")
+                 "GridTable", "AuxTable\\d{8}", "AuxTable", "SpatTable\\d{8}", "SpatTable",
+                 "ClosureScenarios", "PolicySimulations")
     
     raw <- c("MainDataTable\\d{8}", "PortTable\\d{8}", "GridTable\\d{8}", 
              "AuxTable\\d{8}", "SpatTable\\d{8}")
@@ -710,6 +712,8 @@ fishset_tables <- function(project = NULL) {
                "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
                "FleetTable" = "fleet table", "ModelOut" = "model output", 
                "ModelFit" = "model fit", "ModelInputData" = "model data", 
+               "ClosureScenarios" = "closure scenarios",
+               "PolicySimulations" = "policy simulations",
                "other" = "other", "GridTable_raw" = "raw grid table",  "GridTable" = "grid table",
                "AuxTable_raw" = "raw aux table", "AuxTable" = "aux table", 
                "SpatTable_raw" = "raw spat table",  "SpatTable" = "spat table")

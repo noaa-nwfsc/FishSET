@@ -78,7 +78,6 @@ Imports:
     TMB,
     vctrs,
     xml2,
-    yaml,
     zoo
 Suggests:
     foreign,
