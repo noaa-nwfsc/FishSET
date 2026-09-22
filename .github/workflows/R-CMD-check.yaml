@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macos-latest,   r: 'release'}
+          - {os: macos-14,       r: 'release'} # Pinned from macos-latest
           - {os: windows-latest, r: 'release'}
           - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-latest,   r: 'release'}
@@ -42,18 +42,11 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
-      - name: Install OpenMP (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          curl -O https://raw.githubusercontent.com/coatless-shell/openmp/main/install-openmp.sh
-          chmod +x install-openmp.sh
-          ./install-openmp.sh
-
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
           needs: check
-          cache-version: 3
+          cache-version: 4
 
       - uses: r-lib/actions/setup-tinytex@v2
       
