@@ -12,6 +12,6 @@ save_closure_scenario(project, c_list)
 \item{c_list}{List of closure scenarios to check and save.}
 }
 \description{
-Used to save unique closure scenarios to the project's internal SQLite database.
+Saves closure scenarios in the project's internal SQLite database.
 }
 \keyword{internal}
