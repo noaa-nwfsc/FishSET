@@ -15,7 +15,7 @@
 # =================================================================================================
 
 other_actions_server <- function(id, rv_project_name, rv_data_load_error, 
-                                 current_tab, values = NULL){
+                                 rv_current_tab, values = NULL){
   moduleServer(id, function(input, output, session){
     
     ns <- session$ns
@@ -146,9 +146,9 @@ other_actions_server <- function(id, rv_project_name, rv_data_load_error,
       req(rv_project_name()) # Ensure rv_project_name is not NULL
       project_name <- rv_project_name() # Retrieve current project info
       
-      req(current_tab())
+      req(rv_current_tab())
       
-      notes_file_path <- paste0(locoutput(project_name$value), current_tab(), "_upload_notes.txt")
+      notes_file_path <- paste0(locoutput(project_name$value), rv_current_tab(), "_upload_notes.txt")
       
       # File already exists
       if(file.exists(notes_file_path)) {
