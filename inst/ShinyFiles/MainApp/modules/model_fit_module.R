@@ -18,7 +18,7 @@
 #'
 #' @return This module does not return a value.
 model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
-                             current_tab = NULL) {
+                             rv_current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -77,7 +77,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     )
     
     observe({
-      if (!is.null(current_tab) && current_tab() != "model_fit") return()
+      if (!is.null(rv_current_tab) && rv_current_tab() != "model_fit") return()
       d_names <- available_designs()
       rv_existing_designs(d_names) 
       
@@ -178,7 +178,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     
     observe({
       req(rv_data$main)
-      if (!is.null(current_tab) && current_tab() != "model_fit") return()
+      if (!is.null(rv_current_tab) && rv_current_tab() != "model_fit") return()
       load_fits()
     })
     

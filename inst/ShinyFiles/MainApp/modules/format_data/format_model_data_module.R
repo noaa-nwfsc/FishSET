@@ -25,7 +25,7 @@
 format_model_data_server <- function(id, rv_folderpath, rv_project_name, 
                                      rv_data, rv_shared_alt_names = NULL,
                                      rv_shared_exp_names = NULL,
-                                     current_tab = NULL) {
+                                     rv_current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -97,7 +97,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
     # Load data on init
     observe({
       req(rv_data$main)
-      if (!is.null(current_tab) && current_tab() != "format_model_data") return()
+      if (!is.null(rv_current_tab) && rv_current_tab() != "format_model_data") return()
       load_formatted_data()
     })
     
@@ -127,7 +127,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
     
     # Update Aux and Grid Dropdowns based on available data
     observe({
-      if (!is.null(current_tab) && current_tab() != "format_model_data") return()
+      if (!is.null(rv_current_tab) && rv_current_tab() != "format_model_data") return()
       req(rv_project_name())
       project <- rv_project_name()$value
       

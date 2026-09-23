@@ -17,7 +17,7 @@
 #' @return This module does not return a value.
 
 policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data,
-                                 current_tab = NULL) {
+                                 rv_current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -93,7 +93,7 @@ policy_effort_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     )
     
     observe({
-      if (!is.null(current_tab) && current_tab() != "policy_effort") return()
+      if (!is.null(rv_current_tab) && rv_current_tab() != "policy_effort") return()
       sim_data <- poll_simulations()
       models <- sim_data$models
       scenarios <- sim_data$scenarios

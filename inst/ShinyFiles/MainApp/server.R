@@ -94,7 +94,7 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   ### Main panel 
   #### Change folderpath
@@ -129,7 +129,7 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   ### Main panel
   #### Save all selected variables to project data folder 
@@ -148,7 +148,7 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   ### Main panel
   qaqc_server("qaqc_checks", rv_project_name, rv_data, rv_folderpath)
@@ -163,7 +163,7 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   ### Main panel
   explore_data_server("explore_data", 
@@ -181,7 +181,7 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   ### Main panel
   compute_new_var_server("compute_new_var",
@@ -200,7 +200,7 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   ### Main panel
   define_alt_server("define_alternatives",
@@ -219,7 +219,7 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   
   ### Main panel
@@ -239,7 +239,7 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   ### Main panel
   format_model_data_server("format_mod_data",
@@ -248,7 +248,7 @@ server <- function(input, output, session) {
                            rv_data = rv_data,
                            rv_shared_exp_names =rv_exp_names,
                            rv_shared_alt_names = rv_alt_names,
-                           current_tab = reactive(input$tabs))
+                           rv_current_tab = reactive(input$tabs))
   
   # Modeling --------------------------------------------------------------------------------------
   ## Model design ---------------------------------------------------------------------------------
@@ -260,14 +260,14 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   ### Main panel
   model_design_server("model_design_data",
                       rv_folderpath = rv_folderpath, 
                       rv_project_name = rv_project_name,
                       rv_data = rv_data,
-                      current_tab = reactive(input$tabs))
+                      rv_current_tab = reactive(input$tabs))
   
   ## Model fit ---------------------------------------------------------------------------------
   ### Sidebar 
@@ -278,14 +278,14 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   ### Main panel
   model_fit_server("model_fit_data",
                    rv_folderpath = rv_folderpath, 
                    rv_project_name = rv_project_name,
                    rv_data = rv_data,
-                   current_tab = reactive(input$tabs))
+                   rv_current_tab = reactive(input$tabs))
   
   ## Model Cross Validation  ---------------------------------------------------------------------
   ### Sidebar 
@@ -296,14 +296,14 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   ### Main panel
   model_cv_server("model_cv",
                   rv_folderpath = rv_folderpath, 
                   rv_project_name = rv_project_name,
                   rv_data = rv_data,
-                  current_tab = reactive(input$tabs))
+                  rv_current_tab = reactive(input$tabs))
   
   # Policy ---------------------------------------------------------------------------------------
   ## Zone Closure --------------------------------------------------------------------------------
@@ -315,14 +315,14 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   ### Main panel 
   zone_closure_server("zone_closure", rv_folderpath = rv_folderpath, 
                       rv_project_name = rv_project_name,
                       rv_data = rv_data,
                       spat_zone_id = NULL,
-                      current_tab = reactive(input$tabs))
+                      rv_current_tab = reactive(input$tabs))
   
   
   ## Policy Simulation ---------------------------------------------------------------------------
@@ -334,7 +334,7 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   
   ### Main panel 
@@ -342,7 +342,7 @@ server <- function(input, output, session) {
                     rv_folderpath = rv_folderpath, 
                     rv_project_name = rv_project_name,
                     rv_data = rv_data,
-                    current_tab = reactive(input$tabs))
+                    rv_current_tab = reactive(input$tabs))
   
   
   ## Policy Effort --------------------------------------------------------------------------------
@@ -354,7 +354,7 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   
   ### Main panel 
@@ -362,7 +362,7 @@ server <- function(input, output, session) {
                        rv_folderpath = rv_folderpath, 
                        rv_project_name = rv_project_name,
                        rv_data = rv_data,
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   ## Policy Welfare Impacts -----------------------------------------------------------------------
   ### Sidebar
@@ -373,7 +373,7 @@ server <- function(input, output, session) {
                                      data = rv_data),
                        rv_project_name = rv_project_name,
                        rv_data_load_error = reactive(rv_data_load_error()),
-                       current_tab = reactive(input$tabs))
+                       rv_current_tab = reactive(input$tabs))
   
   
   ### Main panel 
@@ -381,5 +381,5 @@ server <- function(input, output, session) {
                         rv_folderpath = rv_folderpath, 
                         rv_project_name = rv_project_name,
                         rv_data = rv_data,
-                        current_tab = reactive(input$tabs))
+                        rv_current_tab = reactive(input$tabs))
 }

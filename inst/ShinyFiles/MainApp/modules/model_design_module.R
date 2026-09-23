@@ -20,7 +20,7 @@
 #'
 #' @return This module does not return a value.
 model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
-                                current_tab = NULL) {
+                                rv_current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -83,7 +83,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     # Refresh existing designs after data is loaded or when this tab becomes active.
     observe({
       req(rv_data$main, rv_project_name())
-      if (!is.null(current_tab) && current_tab() != "model_design") return()
+      if (!is.null(rv_current_tab) && rv_current_tab() != "model_design") return()
       load_designs()
     })
     
@@ -135,7 +135,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     )
     
     observe({
-      if (!is.null(current_tab) && current_tab() != "model_design") return()
+      if (!is.null(rv_current_tab) && rv_current_tab() != "model_design") return()
       choices <- formatted_data_choices()
       current_selection <- isolate(input$formatted_data_input)
       

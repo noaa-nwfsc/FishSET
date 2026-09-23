@@ -19,7 +19,7 @@
 #'
 #' @return This module does not return a value.
 policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data,
-                              current_tab = NULL) {
+                              rv_current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -155,7 +155,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     
     # Update UI State Reactively ------------------------------------------------------------------
     observe({
-      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
+      if (!is.null(rv_current_tab) && rv_current_tab() != "policy_sim") return()
       fits <- poll_available_fits()
       rv_available_fits(fits)
       
@@ -166,7 +166,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     })
     
     observe({
-      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
+      if (!is.null(rv_current_tab) && rv_current_tab() != "policy_sim") return()
       closures <- poll_closures()
       rv_available_closures(closures)
       
@@ -177,7 +177,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     })
     
     observe({
-      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
+      if (!is.null(rv_current_tab) && rv_current_tab() != "policy_sim") return()
       sims <- poll_existing_sims()
       
       # Filter out baseline simulations from the dropdown
@@ -191,7 +191,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     
     # Build a lightweight cache of variables and EPM status in the background
     observe({
-      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
+      if (!is.null(rv_current_tab) && rv_current_tab() != "policy_sim") return()
       fit_list <- rv_fit_list()
       project <- rv_project_name()$value
       
@@ -267,7 +267,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data,
 
     # Refresh MUI choices after either the selected model or its metadata changes.
     observe({
-      if (!is.null(current_tab) && current_tab() != "policy_sim") return()
+      if (!is.null(rv_current_tab) && rv_current_tab() != "policy_sim") return()
       selected_model <- input$mod_name_input
       cache <- rv_model_meta_cache()
       model_meta <- if (is.null(selected_model) || selected_model == "") NULL else {
