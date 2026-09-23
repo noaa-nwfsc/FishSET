@@ -4,11 +4,11 @@
 #' an interactive leaflet map. Integrates directly with FishSET project databases for data loading 
 #' and saving.
 #'
+#' @param project Character string. Name of the project.
 #' @param fit_name Character string. Name of the specific model fit saved in 
 #'   the project's 'ModelFit' table.
 #' @param spat A spatial data file name or object containing information on fishery 
 #'   management or regulatory zones boundaries.
-#' @param project Character string. Name of the project.
 #' @param zone_spat Name of zone ID column in `spat`. Must match the zone IDs 
 #'   modeled in the probabilities.
 #' @param obs_index Integer (Optional). If provided, maps the predicted probabilities 
@@ -29,9 +29,9 @@
 #' @importFrom rlang sym
 #' @importFrom htmltools HTML
 #' 
-map_predicted_probs <- function(fit_name,
+map_predicted_probs <- function(project,
+                                fit_name,
                                 spat,
-                                project,
                                 zone_spat,
                                 obs_index = NULL,
                                 dat_center = TRUE,
