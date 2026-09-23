@@ -19,6 +19,7 @@
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #' @param rv_shared_alt_names Reactive values for alternative choices.
 #' @param rv_shared_exp_names Reactive values for expectations.
+#' @param current_tab 
 #'
 #' @return This module does not return a value.
 format_model_data_server <- function(id, rv_folderpath, rv_project_name, 
@@ -217,7 +218,9 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       }
       
       # Prepare Gridded Data
-      if (!is.null(input$gridded_data) && length(input$gridded_data) > 0 && !is.null(rv_data$grid)) {
+      if (!is.null(input$gridded_data) && 
+          length(input$gridded_data) > 0 && 
+          !is.null(rv_data$grid)) {
         final_grid_data <- input$gridded_data 
       } else {
         final_grid_data <- NULL
