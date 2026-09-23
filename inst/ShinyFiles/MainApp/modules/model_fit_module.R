@@ -1,3 +1,4 @@
+# =================================================================================================
 # File: model_fit_module.R
 # Description: This module defines the UI and server logic for fitting FishSET Discrete Choice 
 #              Models. It takes a saved model design, optimizes the negative log-likelihood via 
@@ -84,8 +85,6 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         updateSelectizeInput(session, "design_input", choices = d_names, selected = "")
       }
     })
-    
-    
     
     # 1.5 Cache metadata --------------------------------------------------------------------------
     rv_design_metadata <- reactive({
@@ -416,10 +415,9 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     })
     
     # 7. Generate Predicted Probabilities Map -----------------------------------------------------
-    
     observeEvent(input$generate_map_btn, {
       
-      # 1. Noisy validation checks (replaces silent req() checks)
+      # Noisy validation checks (replaces silent req() checks)
       if (is.null(rv_project_name()) || rv_project_name()$value == "") {
         showNotification("Project name missing.", type = "error")
         return()
@@ -436,7 +434,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       project_name <- rv_project_name()$value
       folderpath <- rv_folderpath()
       
-      # 2. Load variables
+      # Load variables
       selected_vars <- load_gui_variables(project_name, folderpath)
       if (is.null(selected_vars)) {
         showNotification("Error: Selected variables file missing. Please ensure variables
@@ -458,7 +456,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         return()
       }
       
-      # 3. Check for probability matrix
+      # Check for probability matrix
       full_fit_list <- unserialize_table(paste0(project_name, "ModelFit"), project_name)
       fit <- full_fit_list[[input$map_fit_input]]
       
@@ -469,9 +467,8 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         return()
       }
       
-      # 4. Generate the map
+      # Generate the map
       tryCatch({
-        # Optional: notify the user it's starting
         showNotification("Generating map... please wait.", type = "message", duration = 2)
         
         map_res <- map_predicted_probs(
@@ -491,14 +488,13 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       })
     })
     
-    # 5. Render watches rv_map_holder
+    # Render watches rv_map_holder
     output$map_leaflet_out <- leaflet::renderLeaflet({
       req(rv_map_holder()) # Waits silently until rv_map_holder has data
       rv_map_holder()      # Renders the map
     })
     
     # 8. Save and Preview Static Map --------------------------------------------------------------
-    
     # Create a reactive container to hold the static map for the modal
     rv_static_map_holder <- reactiveVal(NULL)
     
@@ -744,7 +740,7 @@ model_fit_ui <- function(id) {
           )
         ),
         
-        # Predicted Probability Map Component ----------------------------------------------
+        # Predicted Probability Map Component -----------------------------------------------------
         bslib::card(
           class = "card-overflow mt-4",
           bslib::card_header(
