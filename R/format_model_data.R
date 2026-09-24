@@ -15,6 +15,8 @@
 #' @param zone_id Variable name in the dataset representing the zone identifier.
 #' @param unique_obs_id Variable name in the dataset representing the unique observation
 #'   identifier (unique rows in the main data table).
+#' @param group_id Optional. Variable name representing the panel or grouping identifier
+#'   (e.g., vessel or fisher) for mixed logit models with random effects.
 #' @param select_vars Character vector of variable names to retain from the main data table.
 #'   Although this input is optional, it is recommended to limit the final format to necessary
 #'   variables for computational efficiency. IMPORTANT NOTE: if modeling multi-haul data, 
@@ -86,6 +88,7 @@ format_model_data <- function(project,
                               alt_name, 
                               zone_id, 
                               unique_obs_id,
+                              group_id = NULL,
                               select_vars = NULL,
                               aux_data = NULL, 
                               aux_key = NULL, 
@@ -108,14 +111,11 @@ format_model_data <- function(project,
   # Input argument validation ---------------------------------------------------------------------
   # Use qs2 for saving if available - this will speed up the function
   use_qs2 <- requireNamespace("qs2", quietly = TRUE)
-  
   # Define nested directory paths
   table_name <- paste0(project, "LongFormatData")
   project_dir <- file.path(locproject(), project)
-  
   # This nests FormattedData INSIDE the Models folder
   designs_dir <- file.path(project_dir, "Models", "FormattedData") 
-  
   file_name_qs2 <- paste0(table_name, ".qs2")
   file_name_rds <- paste0(table_name, ".rds")
   
@@ -177,7 +177,6 @@ format_model_data <- function(project,
   }
   
   alt_list <- alt_list_all[[which(names(alt_list_all) == alt_name)]]
-  
   # Select variables and filter main data
   unique_zones <- unique(alt_list$greaterNZ)
   dataset <- original_dataset %>% filter(!!sym(zone_id) %in% unique_zones)
@@ -186,6 +185,12 @@ format_model_data <- function(project,
   if (length(select_vars) > 0) {
     column_check(dataset, select_vars) # Check that columns are in the dataset
     select_vars_combined <- c(select_vars, zone_id, unique_obs_id)
+    
+    # Ensure group_id is kept if using a mixed model
+    if (!is.null(group_id) && !(group_id %in% select_vars_combined)) {
+      column_check(dataset, group_id)
+      select_vars_combined <- c(select_vars_combined, group_id)
+    }
     
     # Check if aux_key is in the dataset and add to columns to filter
     if (!is_empty(aux_key) && !(aux_key %in% select_vars_combined)) {
@@ -196,7 +201,7 @@ format_model_data <- function(project,
     dataset <- dataset %>% select(all_of(select_vars_combined))
   }
   
-  ## Create a long format data frame for all possible choices ----
+  # Create a long format data frame for all possible choices
   # Data frame of unique zones
   zones_df <- dplyr::tibble(zones = unique_zones)
   # Cross join to create Cartesian product of dataset and zones
