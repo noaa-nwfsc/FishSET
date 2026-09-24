@@ -773,6 +773,7 @@ fishset_fit <- function(project,
 #' Formats and prints the output of a FishSET discrete choice model fit.
 #' Displays the model formula (if available), coefficients table with significance stars,
 #' and key goodness-of-fit statistics (Log-Likelihood, AIC, BIC, Pseudo-R2, Accuracy).
+#' For mixed logit models, coefficient outputs are split into Fixed and Random effects.
 #'
 #' @param x A \code{fishset_fit} object returned by \code{\link{fishset_fit}}.
 #' @param digits Integer. The number of significant digits to use when printing
@@ -790,7 +791,7 @@ print.fishset_fit <- function(x, digits = 4, ...) {
   cat("\nFishSET Model Fit\n")
   cat("========================================================\n")
   
-  # Metadata (if available in settings, otherwise check formula)
+  # Metadata
   if (!is.null(x$formula)) {
     cat("Formula:      ", deparse(x$formula), "\n")
   }
@@ -803,22 +804,41 @@ print.fishset_fit <- function(x, digits = 4, ...) {
     cat("Price Units:   Modeled in 1 /", format(x$price_divisor, scientific = FALSE), "units\n")
   }
   
-  # Coefficients table
-  cat("\nCoefficients:\n")
-  cat("--------------------------------------------------------\n")
+  # Coefficients table formatting
   if (!is.null(x$coef_table)) {
-    # Check if the table includes P-values
     has_pvals <- "Pr_z" %in% colnames(x$coef_table)
     
-    stats::printCoefmat(x$coef_table,
-                        digits = digits,
-                        signif.stars = has_pvals,
-                        P.values = has_pvals,
-                        has.Pvalue = has_pvals)
+    # Check if this is a mixed logit by looking for the "Sd_" prefix
+    is_mixed <- any(grepl("^Sd_", rownames(x$coef_table)))
     
-    cat("--------------------------------------------------------\n")
+    if (is_mixed) {
+      idx_ran <- grep("^Sd_", rownames(x$coef_table))
+      fix_table <- x$coef_table[-idx_ran, , drop = FALSE]
+      ran_table <- x$coef_table[idx_ran, , drop = FALSE]
+      
+      cat("\nFixed Effects:\n")
+      cat("--------------------------------------------------------\n")
+      stats::printCoefmat(fix_table, digits = digits, signif.stars = has_pvals, 
+                          P.values = has_pvals, has.Pvalue = has_pvals)
+      
+      cat("\nRandom Effects (Standard Deviations):\n")
+      cat("--------------------------------------------------------\n")
+      stats::printCoefmat(ran_table, digits = digits, signif.stars = has_pvals, 
+                          P.values = has_pvals, has.Pvalue = has_pvals)
+      cat("--------------------------------------------------------\n")
+      
+    } else {
+      # Standard Logit / EPM print
+      cat("\nCoefficients:\n")
+      cat("--------------------------------------------------------\n")
+      stats::printCoefmat(x$coef_table, digits = digits, signif.stars = has_pvals, 
+                          P.values = has_pvals, has.Pvalue = has_pvals)
+      cat("--------------------------------------------------------\n")
+    }
     
   } else {
+    cat("\nCoefficients:\n")
+    cat("--------------------------------------------------------\n")
     print(x$coefficients)
     cat("--------------------------------------------------------\n")
   }
