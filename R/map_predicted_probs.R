@@ -1,14 +1,14 @@
 #' Map FishSET Predicted Probabilities
 #' 
-#' Maps the predicted probabilities from a fitted FishSET model using either a 
-#' static ggplot map or an interactive leaflet map. Integrates directly with 
-#' FishSET project databases for data loading and saving.
+#' Maps the predicted probabilities from a fitted FishSET model using either a static ggplot map or
+#' an interactive leaflet map. Integrates directly with FishSET project databases for data loading 
+#' and saving.
 #'
+#' @param project Character string. Name of the project.
 #' @param fit_name Character string. Name of the specific model fit saved in 
 #'   the project's 'ModelFit' table.
 #' @param spat A spatial data file name or object containing information on fishery 
 #'   management or regulatory zones boundaries.
-#' @param project Character string. Name of the project.
 #' @param zone_spat Name of zone ID column in `spat`. Must match the zone IDs 
 #'   modeled in the probabilities.
 #' @param obs_index Integer (Optional). If provided, maps the predicted probabilities 
@@ -28,16 +28,17 @@
 #' @import leaflet
 #' @importFrom rlang sym
 #' @importFrom htmltools HTML
-map_predicted_probs <- function(fit_name,
+#' 
+map_predicted_probs <- function(project,
+                                fit_name,
                                 spat,
-                                project,
                                 zone_spat,
                                 obs_index = NULL,
                                 dat_center = TRUE,
                                 plot_type = "dynamic",
                                 output = "plot") {
   
-  # 1. Input Validation and Missing Checks --------------------------------------
+  # Input Validation and Missing Checks -----------------------------------------------------------
   if (missing(fit_name)) stop("Argument 'fit_name' is missing. Please provide the name of the
                               model fit.")
   if (missing(spat)) stop("Argument 'spat' is missing. Please provide the spatial data.")
@@ -50,7 +51,7 @@ map_predicted_probs <- function(fit_name,
          (e.g., fit_name = 'clogit1_fit').")
   }
   
-  # Pull in model fit -----------------------------------------------------------
+  # Pull in model fit -----------------------------------------------------------------------------
   full_fit_list <- tryCatch({
     unserialize_table(paste0(project, "ModelFit"), project)
   }, error = function(e) list())
@@ -67,7 +68,7 @@ map_predicted_probs <- function(fit_name,
          return_full_prob_mat = TRUE.")
   }
   
-  # Pull in spatial dataset -----------------------------------------------------
+  # Pull in spatial dataset -----------------------------------------------------------------------
   spatout <- data_pull(spat, project)
   spatdat <- spatout$dataset
   spat_name <- parse_data_name(spat, "spat", project)
@@ -82,11 +83,12 @@ map_predicted_probs <- function(fit_name,
                  zone_spat, paste(colnames(spatdat), collapse = ", ")))
   }
   
-  # Calculate probabilities -----------------------------------------------------
+  # Calculate probabilities -----------------------------------------------------------------------
   if (is.null(obs_index)) {
     probs <- colMeans(fit$prob_matrix, na.rm = TRUE)
     val_var <- "mean_prob"
     legend_name <- "Avg Predicted\nProbability"
+    
   } else {
     if (obs_index < 1 || obs_index > nrow(fit$prob_matrix)) {
       stop("obs_index is out of bounds for the probability matrix.")
@@ -112,7 +114,7 @@ map_predicted_probs <- function(fit_name,
   names(prob_tab)[names(prob_tab) == "zone_id"] <- zone_spat
   names(prob_tab)[names(prob_tab) == "prob_val"] <- val_var
   
-  # Merge with Spatial Data -----------------------------------------------------
+  # Merge with Spatial Data -----------------------------------------------------------------------
   if (output %in% c("plot", "tab_plot")) {
     
     prob_tab[[zone_spat]] <- as.character(prob_tab[[zone_spat]])
@@ -122,12 +124,8 @@ map_predicted_probs <- function(fit_name,
     
     # Check for empty join (Bad Zone IDs)
     if (all(is.na(spat_join[[val_var]]))) {
-      stop("All joined probability values are NA. This means the Zone IDs in the model did 
-           not match any Zone IDs in the spatial dataset.")
+      stop("All joined probability values are NA...")
     }
-    
-    # ---> FILTER OUT NA ZONES HERE <---
-    spat_join <- spat_join[!is.na(spat_join[[val_var]]), ]
     
     # use WGS 84 if crs is missing
     if (is.na(sf::st_crs(spatdat))) {
@@ -137,28 +135,35 @@ map_predicted_probs <- function(fit_name,
       spat_join <- sf::st_make_valid(spat_join)
     }
     
-    # Base map generation limits -----------------------------------
-    if (dat_center) {
-      z_ind <- spatdat[[zone_spat]] %in% unique(prob_tab[[zone_spat]])
-      bbox <- sf::st_bbox(spatdat[z_ind, ])
-    } else {
-      bbox <- sf::st_bbox(spatdat) 
+    static_spat_join <- sf::st_transform(spat_join, 4326)
+    use_world2 <- shift_long(static_spat_join)
+    if (use_world2) {
+      static_spat_join <- sf::st_shift_longitude(static_spat_join)
     }
     
-    use_world2 <- shift_long(spatdat)
+    # Base map generation limits ------------------------------------------------------------------
+    if (dat_center) {
+      # Get bounding box of ONLY the modeled zones
+      z_ind <- !is.na(static_spat_join[[val_var]])
+      bbox <- sf::st_bbox(static_spat_join[z_ind, ])
+    } else {
+      # Get bounding box of the ENTIRE spatial dataset
+      bbox <- sf::st_bbox(static_spat_join) 
+    }
+    
+    # filter out NA zones so they do not draw on the map
+    static_spat_join <- static_spat_join[!is.na(static_spat_join[[val_var]]), ]
+    spat_join <- spat_join[!is.na(spat_join[[val_var]]), ]
+    
     map_name <- ifelse(use_world2, "world2", "world")
     
     x_limits <- c(bbox["xmin"], bbox["xmax"])
-    if (use_world2) {
-      x_limits <- ifelse(x_limits < 0, x_limits + 360, x_limits)
-      x_limits <- sort(x_limits)
-    }
+    x_limits <- sort(x_limits)
     
-    # Sub-functions for Plotting ------------------------------------------------
+    # Sub-functions for Plotting ------------------------------------------------------------------
     var_sym <- rlang::sym(val_var)
     
     z_plot_fun_static <- function(spatdat, legend_name) {
-      
       # Safely attempt to generate the base coastline map
       base_map <- tryCatch({
         ggplot2::map_data(map = map_name,
@@ -173,7 +178,7 @@ map_predicted_probs <- function(fit_name,
       if (nrow(base_map) > 0) {
         base_map <- sf::st_as_sf(base_map, 
                                  coords = c("long", "lat"),
-                                 crs = sf::st_crs(spatdat)) %>%
+                                 crs = sf::st_crs(static_spat_join)) %>%
           dplyr::group_by(group) %>%
           dplyr::summarize(do_union = FALSE, .groups = "drop") %>%
           sf::st_cast("POLYGON")
@@ -255,17 +260,19 @@ map_predicted_probs <- function(fit_name,
         )
     }
     
-    # Generate and save Plot ----------------------------------------------------
+    # Generate and save Plot ----------------------------------------------------------------------
     if (plot_type == "dynamic") {
       z_plot <- z_plot_fun_dynamic(spat_join, legend_name = legend_name)
     } else {
-      z_plot <- suppressWarnings(z_plot_fun_static(spat_join, legend_name = legend_name))
+      z_plot <- suppressWarnings(
+        z_plot_fun_static(static_spat_join, legend_name = legend_name)
+      )
     }
     
     save_plot(project, "map_predicted_probs", z_plot)
   }
   
-  # Save table and log call -----------------------------------------------------
+  # Save table and log call -----------------------------------------------------------------------
   save_table(prob_tab, project, "map_predicted_probs")
   
   map_probs_function <- list()
@@ -274,7 +281,7 @@ map_predicted_probs <- function(fit_name,
                                   obs_index, dat_center, plot_type, output)
   log_call(project, map_probs_function)
   
-  # Output return logic ---------------------------------------------------------
+  # Output return logic ---------------------------------------------------------------------------
   if (output == "plot") return(z_plot)
   else if (output == "tab_plot") return(list(table = prob_tab, plot = z_plot))
   else return(prob_tab)

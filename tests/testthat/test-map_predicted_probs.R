@@ -11,6 +11,7 @@
 #                        leaflet).
 #   - Data Integrity: Validates that mean probabilities and observation-specific probabilities
 #                     are calculated and joined to the spatial data accurately.
+#   - Spatial Bounds: Verifies that 'dat_center' correctly sets bounding box limits.
 #
 # Notes: This test mocks internal FishSET functions and database connections (unserialize_table,
 #        data_pull, etc.) using `local_mocked_bindings()` to tightly isolate the mapping logic 
@@ -49,8 +50,11 @@ dummy_prob_mat <- matrix(
 )
 colnames(dummy_prob_mat) <- c("Zone_A", "Zone_B", "Zone_C")
 
+# Create a subset matrix containing ONLY Zone_A to test bounding box zoom limits (dat_center)
+dummy_prob_mat_subset <- dummy_prob_mat[, "Zone_A", drop = FALSE]
+
 # 3. Create synthetic model fit objects
-# One perfectly formed, one missing the critical probability matrix
+# One perfectly formed, one missing the critical probability matrix, and one partial match
 dummy_fit <- list(
   prob_matrix = dummy_prob_mat
 )
@@ -59,10 +63,15 @@ dummy_fit_missing <- list(
   coefficients = c(0.1, 0.5)
 )
 
-# 4. Mock project SQLite database list containing both models
+dummy_fit_subset <- list(
+  prob_matrix = dummy_prob_mat_subset
+)
+
+# 4. Mock project SQLite database list containing all models
 mock_db_list <- list(
   "clogit1_fit" = dummy_fit,
-  "bad_fit" = dummy_fit_missing
+  "bad_fit" = dummy_fit_missing,
+  "subset_fit" = dummy_fit_subset
 )
 
 # Test Input Validation ---------------------------------------------------------------------------
@@ -218,4 +227,81 @@ test_that("Function logic executes correctly with mocked dependencies", {
   expect_named(res_both, c("table", "plot"))
   expect_s3_class(res_both$table, "data.frame")
   expect_s3_class(res_both$plot, "leaflet")
+})
+
+test_that("Static plot normalizes projected spatial data to lon/lat", {
+  skip_if_not_installed("maps")
+  
+  projected_spat <- sf::st_transform(dummy_spat, 3857)
+  
+  local_mocked_bindings(
+    unserialize_table = function(table, proj) mock_db_list,
+    data_pull = function(spat, proj) list(dataset = projected_spat),
+    parse_data_name = function(...) "mock_spat_name",
+    save_plot = function(...) TRUE,
+    save_table = function(...) TRUE,
+    log_call = function(...) TRUE,
+    shift_long = function(...) FALSE,
+    fishset_theme = function(...) ggplot2::theme_minimal()
+  )
+  
+  res_static <- map_predicted_probs(
+    fit_name = "clogit1_fit",
+    spat = "dummy_spat",
+    project = "proj",
+    zone_spat = "TEN_ID",
+    plot_type = "static",
+    output = "plot"
+  )
+  
+  zone_layer <- res_static$layers[[1]]$data
+  zone_bbox <- sf::st_bbox(zone_layer)
+  
+  expect_equal(sf::st_crs(zone_layer)$epsg, 4326)
+  expect_equal(unname(zone_bbox[c("xmin", "xmax", "ymin", "ymax")]), c(0, 3, 0, 1))
+  expect_equal(unname(res_static$coordinates$limits$x), c(0, 3))
+  expect_equal(unname(res_static$coordinates$limits$y), c(0, 1))
+})
+
+test_that("dat_center parameter correctly toggles plot bounding box limits", {
+  skip_if_not_installed("maps")
+  
+  local_mocked_bindings(
+    unserialize_table = function(table, proj) mock_db_list,
+    data_pull = function(spat, proj) list(dataset = dummy_spat),
+    parse_data_name = function(...) "mock_spat_name",
+    save_plot = function(...) TRUE,
+    save_table = function(...) TRUE,
+    log_call = function(...) TRUE,
+    shift_long = function(...) FALSE,
+    fishset_theme = function(...) ggplot2::theme_minimal()
+  )
+  
+  # Test with dat_center = TRUE (should bound closely to only Zone_A)
+  p_centered <- map_predicted_probs(
+    fit_name = "subset_fit",        # We use the subset fit (only Zone_A)
+    spat = "dummy_spat",
+    project = "proj",
+    zone_spat = "TEN_ID",
+    dat_center = TRUE,              # TRUE flag
+    plot_type = "static",
+    output = "plot"
+  )
+  
+  # Test with dat_center = FALSE (should bound to the entire dummy_spat: Zones A, B, and C)
+  p_full <- map_predicted_probs(
+    fit_name = "subset_fit", 
+    spat = "dummy_spat",
+    project = "proj",
+    zone_spat = "TEN_ID",
+    dat_center = FALSE,             # FALSE flag
+    plot_type = "static",
+    output = "plot"
+  )
+  
+  # Zone A has an x-limit of c(0, 1) based on poly1
+  expect_equal(unname(p_centered$coordinates$limits$x), c(0, 1))
+  
+  # The full spatial dataset has an x-limit of c(0, 3) spanning all 3 polys
+  expect_equal(unname(p_full$coordinates$limits$x), c(0, 3))
 })

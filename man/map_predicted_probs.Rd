@@ -5,9 +5,9 @@
 \title{Map FishSET Predicted Probabilities}
 \usage{
 map_predicted_probs(
+  project,
   fit_name,
   spat,
-  project,
   zone_spat,
   obs_index = NULL,
   dat_center = TRUE,
@@ -16,32 +16,32 @@ map_predicted_probs(
 )
 }
 \arguments{
-\item{fit_name}{Character string. Name of the specific model fit saved in
-the project's 'ModelFit' table.}
-
-\item{spat}{A spatial data file name or object containing information on fishery
-management or regulatory zones boundaries.}
-
 \item{project}{Character string. Name of the project.}
 
-\item{zone_spat}{Name of zone ID column in \code{spat}. Must match the zone IDs
+\item{fit_name}{Character string. Name of the specific model fit saved in 
+the project's 'ModelFit' table.}
+
+\item{spat}{A spatial data file name or object containing information on fishery 
+management or regulatory zones boundaries.}
+
+\item{zone_spat}{Name of zone ID column in `spat`. Must match the zone IDs 
 modeled in the probabilities.}
 
-\item{obs_index}{Integer (Optional). If provided, maps the predicted probabilities
-for a specific observation (row). If \code{NULL} (default), maps the average
+\item{obs_index}{Integer (Optional). If provided, maps the predicted probabilities 
+for a specific observation (row). If `NULL` (default), maps the average 
 predicted probability for each zone across all observations.}
 
-\item{dat_center}{Logical, whether the static plot should center on the zones
-present in the model predictions (\code{TRUE}) or the entire spatial dataset (\code{FALSE}).}
+\item{dat_center}{Logical, whether the static plot should center on the zones 
+present in the model predictions (`TRUE`) or the entire spatial dataset (`FALSE`).}
 
-\item{plot_type}{Type of plot output; dynamic (\code{"dynamic"}) using leaflet
-or static (\code{"static"}) using ggplot2.}
+\item{plot_type}{Type of plot output; dynamic (`"dynamic"`) using leaflet 
+or static (`"static"`) using ggplot2.}
 
-\item{output}{Output a \code{"plot"}, \code{"table"}, or both (\code{"tab_plot"}).
-Defaults to \code{"plot"}.}
+\item{output}{Output a `"plot"`, `"table"`, or both (`"tab_plot"`). 
+Defaults to `"plot"`.}
 }
 \description{
-Maps the predicted probabilities from a fitted FishSET model using either a
-static ggplot map or an interactive leaflet map. Integrates directly with
-FishSET project databases for data loading and saving.
+Maps the predicted probabilities from a fitted FishSET model using either a static ggplot map or
+an interactive leaflet map. Integrates directly with FishSET project databases for data loading 
+and saving.
 }
