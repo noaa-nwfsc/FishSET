@@ -4,7 +4,7 @@
 #' framework. This function parses the model formula, validates the formatted data, and generates 
 #' the design matrix (X) and choice vector (y). It handles both alternative-specific variables and 
 #' trip- or haul-specific variables (automatically creating interactions with zone constants). 
-#' This function als supports random parameters for mixed logit models using (var | group_id) 
+#' This function also supports random parameters for mixed logit models using (var | group_id) 
 #' syntax.
 #'
 #' The resulting design object is saved as a compressed file in the 'Models/ModelDesigns' folder,
