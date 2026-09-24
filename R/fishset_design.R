@@ -3,22 +3,18 @@
 #' Constructs the design object required for discrete choice model fitting within the FishSET 
 #' framework. This function parses the model formula, validates the formatted data, and generates 
 #' the design matrix (X) and choice vector (y). It handles both alternative-specific variables and 
-#' trip- or haul-specific variables (automatically creating interactions with zone constants). The 
-#' resulting design object is the primary input for the \code{\link{fishset_fit}} function, 
-#' which performs the parameter estimation.
-#' 
+#' trip- or haul-specific variables (automatically creating interactions with zone constants). 
+#' This function als supports random parameters for mixed logit models using (var | group_id) 
+#' syntax.
+#'
 #' The resulting design object is saved as a compressed file in the 'Models/ModelDesigns' folder,
 #' which is located inside the project folder.
 #' 
 #' @param formula A two-part formula specifying the model structure (e.g., 
-#'   \code{chosen ~ expected_catch + distance | income}). The left-hand side specifies the 
-#'   binary choice variable, which is always specified as \code{chosen} from the 
-#'   \code{\link{format_model_data}} function. The right-hand side is separated by a pipe (|):
-#'   Part 1 contains alternative-specific variables, and 
-#'   Part 2 contains trip- or haul-specific variables (i.e., do not vary across fishing zones).
+#'   \code{chosen ~ expected_catch + distance | income}). For random parameters, use the 
+#'   standard mixed model syntax: \code{chosen ~ var1 + (1 + var1 | group_id)}.
 #' @param project Name of the project.
-#' @param model_name Name for this specific model design instance. Must be unique within the 
-#'   project's design list.
+#' @param model_name Name for this specific model design instance.
 #' @param formatted_data_name Name of the formatted data object to use. This must correspond to a 
 #'   name previously created by \code{\link{format_model_data}}.
 #' @param unique_obs_id Variable name in the dataset representing the unique observation 
@@ -28,6 +24,8 @@
 #' @param price_var Variable name in the dataset representing price. This input is only used for
 #'   Expected Profit Models, and the price variable must be included in the formatted dataset 
 #'   created in the \code{\link{format_model_data}} function.
+#' @param random_dists Optional. Named vector specifying the distribution for random parameters.
+#'   (e.g., \code{c(distance = "lognormal", SST = "normal")}). Defaults to "normal".
 #' @param scale Logical. Default = FALSE. If TRUE, numeric predictors in the design matrix (X) 
 #'   are centered and scaled (z-score normalization) before saving. Scaling factors are stored to 
 #'   allow unscaling of parameters after estimation. Recommended for numerical stability.
@@ -107,6 +105,7 @@ fishset_design <- function(formula,
                            zone_id,
                            catch_formula = NULL,
                            price_var = NULL,
+                           random_dists = NULL,
                            scale = FALSE,
                            overwrite = FALSE){
   
@@ -130,11 +129,9 @@ fishset_design <- function(formula,
   
   # Use qs2 for saving/loading if available - this will speed up the function
   use_qs2 <- requireNamespace("qs2", quietly = TRUE)
-
   # Load Formatted Data from nested Models/FormattedData
   project_dir <- file.path(locproject(), project)
   formatted_dir <- file.path(project_dir, "Models", "FormattedData")
-
   table_name <- paste0(project, "LongFormatData")
   file_name_qs2 <- paste0(table_name, ".qs2")
   file_name_rds <- paste0(table_name, ".rds")
@@ -186,6 +183,53 @@ fishset_design <- function(formula,
   data[[zone_id]] <- as.factor(data[[zone_id]])
   J_alts <- length(levels(data[[zone_id]]))
   
+  # Check for random parameters (mixed logit syntax) ----------------------------------------------
+  f_char <- paste(deparse(formula), collapse = " ")
+  ranef_matches <- regmatches(f_char, gregexpr("\\([^)]+\\|[^)]+\\)", f_char))[[1]]
+  
+  has_random_effects <- length(ranef_matches) > 0
+  group_id <- NULL
+  X_random <- NULL
+  random_dist_codes <- NULL
+  
+  if (has_random_effects) {
+    ranef_inner <- gsub("^\\(|\\)$", "", ranef_matches[1])
+    parts <- strsplit(ranef_inner, "\\|")[[1]]
+    ranef_vars_str <- trimws(parts[1])
+    group_id <- trimws(parts[2])
+    
+    # Strip random effect from main formula
+    clean_f_char <- f_char
+    for (rmatch in ranef_matches) clean_f_char <- sub(rmatch, "", clean_f_char, fixed = TRUE)
+    clean_f_char <- gsub("\\s+", " ", clean_f_char)
+    clean_f_char <- gsub("\\+\\s*\\|", "|", clean_f_char)
+    clean_f_char <- gsub("\\+\\s*$", "", clean_f_char)
+    clean_f_char <- gsub("\\~\\s*\\+", "~", clean_f_char)
+    clean_f_char <- gsub("\\+\\s*\\+", "+", clean_f_char)
+    
+    formula <- as.formula(clean_f_char)
+    
+    if (!(group_id %in% names(data))) {
+      stop(paste0("Group identifier '", group_id, "' specified in formula not found in data."))
+    }
+    
+    X_random <- stats::model.matrix(as.formula(paste("~", ranef_vars_str)), data = data)
+    
+    # Map distributions (1 = Normal, 2 = Lognormal)
+    ranef_names <- colnames(X_random)
+    random_dist_codes <- rep(1, length(ranef_names))
+    names(random_dist_codes) <- ranef_names
+    
+    if (!is.null(random_dists)) {
+      for (v in names(random_dists)) {
+        if (v %in% ranef_names) {
+          random_dist_codes[v] <- switch(tolower(random_dists[[v]]),
+                                         "normal" = 1, "lognormal" = 2, 1)
+        }
+      }
+    }
+  }
+  
   # Formula parsing -------------------------------------------------------------------------------
   if (!inherits(formula, "formula")) formula <- as.formula(formula)
   F_formula <- Formula::Formula(formula) # Use Formula package to handle multi-part formulas
@@ -204,7 +248,6 @@ fishset_design <- function(formula,
   # Process matrix helper function
   process_matrix <- function(f_str, data_source, do_scale, scale_name) {
     if (is.null(f_str)) return(NULL)
-    
     # Check variables exist in data_source
     req_vars <- all.vars(as.formula(f_str))
     missing_vars <- setdiff(req_vars, names(data_source))
@@ -244,7 +287,6 @@ fishset_design <- function(formula,
   if (length(rhs1_vars) == 0) {
     X1 <- NULL
   } else {
-    f1_str <- paste("~", paste(rhs1_vars, collapse = " + "))
     X1 <- process_matrix(f1_str, data, scale, "X1")
   }
   
@@ -255,30 +297,15 @@ fishset_design <- function(formula,
   if (!has_part_2) {
     # If no zone-specific vars, X is just Part 1
     X_final <- X1
-    
   } else {
-    rhs2_vars <- attr(terms(F_formula, lhs = 0, rhs = 2), "term.labels")
-    f2_str <- paste("~", paste(rhs2_vars, collapse = " + "))
-    
-    # Get base matrix (scaled)
-    X2_base <- process_matrix(f2_str, data, scale, "X2")
-    
-    # Zone interaction
+    rhs2_vars <- attr(stats::terms(F_formula, lhs = 0, rhs = 2), "term.labels")
+    X2_base <- process_matrix(paste("~", paste(rhs2_vars, collapse = " + ")), data, scale, "X2")
     zone_int <- as.integer(data[[zone_id]])
     X2_interacted <- rcpp_sparse_interaction(X2_base, zone_int, J_alts)
-    
-    # Fix names
-    var_names <- rhs2_vars
-    zone_names <- levels(data[[zone_id]])[-1] # Drop ref (zone 1)
-    int_names <- as.vector(outer(zone_names, var_names, function(z, v) paste0(v, ":", zone_id, z)))
+    int_names <- as.vector(outer(levels(data[[zone_id]])[-1], rhs2_vars, 
+                                 function(z, v) paste0(v, ":", zone_id, z)))
     colnames(X2_interacted) <- int_names
-    
-    # Combine
-    if (is.null(X1)) {
-      X_final <- X2_interacted
-    } else {
-      X_final <- cbind(X1, X2_interacted)
-    }
+    X_final <- if (is.null(X1)) X2_interacted else cbind(X1, X2_interacted)
   }
   
   # Process EPM components ------------------------------------------------------------------------
@@ -398,6 +425,11 @@ fishset_design <- function(formula,
     formula = F_formula,
     epm = epm_components,
     scalers = scalers,
+    random_effects = if (has_random_effects) list(
+      X_random = X_random,
+      group_id = group_id,
+      dist_codes = random_dist_codes
+    ) else NULL,
     # Metadata used by the fit function
     settings = list(
       project = project,
@@ -413,7 +445,8 @@ fishset_design <- function(formula,
     # Store ids for post-estimation/prediction
     ids = list(
       obs = data[[unique_obs_id]],
-      zone = data[[zone_id]]
+      zone = data[[zone_id]],
+      group = if (has_random_effects) data[[group_id]] else NULL
     )
   )
   
