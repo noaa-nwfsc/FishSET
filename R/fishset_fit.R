@@ -3,7 +3,7 @@
 #' Estimates parameters for logit models using the RTMB (R Template Model Builder) 
 #' framework. This function takes a design object created by \code{\link{fishset_design}}, 
 #' optimizes the negative log-likelihood, and returns a comprehensive list of model results, 
-#' fit statistics, and diagnostics.
+#' fit statistics, and diagnostics. Also supports mixed logit estimation via Laplace approximation.
 #'
 #' @param project Character string. Name of the project.
 #' @param model_name Character string. Name of the specific model design to fit. 
@@ -142,8 +142,15 @@ fishset_fit <- function(project,
     }
   }
   
-  # Check if this is an EPM
+  # Check if this is an EPM or mixed logit
   is_epm <- isTRUE(design$epm$is_epm)
+  is_mixed <- !is.null(design$random_effects)
+  
+  if (is_epm && is_mixed) {
+    stop("Mixed logit modeling is currently restricted to standard conditional logits. ",
+         "Random parameters are not yet supported for Expected Profit Models (EPMs).")
+  }
+  
   if (is_epm) {
     if (is.null(distribution)) stop("EPMs require a distribution for the catch function.")
     valid_dists <- c("normal", "lognormal", "weibull")
@@ -187,20 +194,59 @@ fishset_fit <- function(project,
       X = design$X,
       chosen_lin_idx = chosen_lin_idx,
       N_obs = N_obs,
-      J_alts = J_alts
+      J_alts = J_alts,
+      is_mixed = as.integer(is_mixed)
     )
     
     start_pars <- list(betas = init_beta)
+    random_map <- NULL
+    
+    ## Mixed logit architecture -------------------------------------------------------------------
+    if (is_mixed) {
+      group_factor <- as.factor(design$ids$group)
+      N_groups <- length(levels(group_factor))
+      K_random <- ncol(design$random_effects$X_random)
+      
+      data_list$X_random <- design$random_effects$X_random
+      data_list$group_idx <- as.integer(group_factor)
+      data_list$dist_codes <- design$random_effects$dist_codes
+      
+      # Initialize variance params and local betas
+      start_pars$log_sigma_random <- rep(log(0.1), K_random)
+      start_pars$beta_random <- matrix(0, nrow = N_groups, ncol = K_random)
+      
+      # Triggers Laplace approximation for beta_random
+      random_map <- "beta_random"
+    }
     
     # Objective function
     nll_func <- function(pars) {
       RTMB::getAll(data_list, pars)
+      nll <- 0
       
       # Sparse Matrix Multiply (Zonal)
       v <- X %*% betas
       
-      v_chosen <- v[chosen_lin_idx]
+      if (is_mixed == 1) {
+        # Apply standard normal prior mapping
+        nll <- nll - sum(RTMB::dnorm(beta_random, 0, 1, log = TRUE))
+        
+        sigma_random <- exp(log_sigma_random)
+        beta_random_obs <- beta_random[group_idx, , drop = FALSE]
+        
+        # Scale the random effects for each group and apply distributions
+        for (k in 1:length(dist_codes)) {
+          if (dist_codes[k] == 1) {
+            # Normal distribution mapping: local deviation * standard deviation
+            v <- v + X_random[, k] * (beta_random_obs[, k] * sigma_random[k])
+          } else if (dist_codes[k] == 2) {
+            # Lognormal mapping
+            v <- v + X_random[, k] * exp(beta_random_obs[, k] * sigma_random[k])
+          }
+        }
+      }
       
+      v_chosen <- v[chosen_lin_idx]
       dim(v) <- c(J_alts, N_obs)
       
       if (robust) {
@@ -216,10 +262,9 @@ fishset_fit <- function(project,
         log_sum_exp <- log(RTMB::colSums(exp(v)))
       }
       
-      nll <- -sum(v_chosen - log_sum_exp)
+      nll <- nll - sum(v_chosen - log_sum_exp)
       return(nll)
     }
-    
     
     # EPM LOGIT SETUP -----------------------------------------------------------------------------
   } else {
@@ -376,6 +421,7 @@ fishset_fit <- function(project,
   obj <- RTMB::MakeADFun(func = nll_func,
                          data = data_list,
                          parameters = start_pars,
+                         random = random_map,
                          silent = TRUE)
   
   # Proactive gradient check
@@ -449,7 +495,29 @@ fishset_fit <- function(project,
   if (!is_epm) {
     ### standard logit reporting ###
     coef_names <- colnames(design$X)
-    if(length(estimated_coefs) == ncol(design$X)) names(estimated_coefs) <- coef_names
+    
+    if (is_mixed) {
+      # Append standard deviations of random parameters to report
+      K_ran <- ncol(design$random_effects$X_random)
+      ran_names <- paste0("Sd_", colnames(design$random_effects$X_random))
+      
+      idx_log_sig <- grep("log_sigma_random", names(estimated_coefs))
+      sig_ran_est <- exp(estimated_coefs[idx_log_sig])
+      
+      # Transform standard errors via Delta method for the standard deviations
+      if (se_calc) {
+        se_log_sig <- report_se[idx_log_sig]
+        se_sig_ran <- se_log_sig * sig_ran_est
+        report_se[idx_log_sig] <- se_sig_ran
+      }
+      
+      # Overwrite names
+      names(estimated_coefs)[1:length(coef_names)] <- coef_names
+      names(estimated_coefs)[idx_log_sig] <- ran_names
+    } else {
+      if(length(estimated_coefs) == ncol(design$X)) names(estimated_coefs) <- coef_names  
+    }
+    
     report_coefs <- estimated_coefs
     
     if (!is.null(design$scalers) && length(design$scalers) > 0) {
@@ -562,7 +630,10 @@ fishset_fit <- function(project,
   
   # Predictions (Recalculate with original X outside AD tape)
   if (!is_epm) {
-    final_v <- as.vector(design$X %*% opt$par)
+    final_v <- as.vector(design$X %*% opt$par[names(opt$par) %in% colnames(design$X)])
+    
+    # Out-of-sample predictions generally set random effects to 0 (the mean)
+    # The expected utility calculation only uses the fixed parameter components
     dim(final_v) <- c(J_alts, N_obs)
     v_max <- apply(final_v, 2, max)
     exp_v <- exp(t(t(final_v) - v_max))
