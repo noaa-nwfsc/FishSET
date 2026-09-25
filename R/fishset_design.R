@@ -287,6 +287,7 @@ fishset_design <- function(formula,
   if (length(rhs1_vars) == 0) {
     X1 <- NULL
   } else {
+    f1_str <- paste("~", paste(rhs1_vars, collapse = " + "))
     X1 <- process_matrix(f1_str, data, scale, "X1")
   }
   
