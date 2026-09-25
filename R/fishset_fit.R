@@ -514,6 +514,7 @@ fishset_fit <- function(project,
       # Overwrite names
       names(estimated_coefs)[1:length(coef_names)] <- coef_names
       names(estimated_coefs)[idx_log_sig] <- ran_names
+      estimated_coefs[idx_log_sig] <- sig_ran_est
     } else {
       if(length(estimated_coefs) == ncol(design$X)) names(estimated_coefs) <- coef_names  
     }
@@ -630,7 +631,9 @@ fishset_fit <- function(project,
   
   # Predictions (Recalculate with original X outside AD tape)
   if (!is_epm) {
-    final_v <- as.vector(design$X %*% opt$par[names(opt$par) %in% colnames(design$X)])
+    # Extract only the fixed-effect betas (the first K_vars parameters)
+    fixed_betas <- opt$par[1:ncol(design$X)]
+    final_v <- as.vector(design$X %*% fixed_betas)
     
     # Out-of-sample predictions generally set random effects to 0 (the mean)
     # The expected utility calculation only uses the fixed parameter components
