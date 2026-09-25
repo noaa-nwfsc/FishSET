@@ -178,6 +178,9 @@ fishset_fit <- function(project,
                "Ensure data is sorted by Obs/Zone."))
   }
   
+  # Set random map default
+  random_map <- NULL
+  
   # STANDARD LOGIT SETUP --------------------------------------------------------------------------
   if (!is_epm) {
     K_vars <- design$settings$K_vars
@@ -199,7 +202,6 @@ fishset_fit <- function(project,
     )
     
     start_pars <- list(betas = init_beta)
-    random_map <- NULL
     
     ## Mixed logit architecture -------------------------------------------------------------------
     if (is_mixed) {
