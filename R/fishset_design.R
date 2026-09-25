@@ -303,7 +303,9 @@ fishset_design <- function(formula,
     X2_base <- process_matrix(paste("~", paste(rhs2_vars, collapse = " + ")), data, scale, "X2")
     zone_int <- as.integer(data[[zone_id]])
     X2_interacted <- rcpp_sparse_interaction(X2_base, zone_int, J_alts)
-    int_names <- as.vector(outer(levels(data[[zone_id]])[-1], rhs2_vars, 
+    var_names <- colnames(X2_base)
+    zone_names <- levels(data[[zone_id]])[-1] 
+    int_names <- as.vector(outer(zone_names, var_names, 
                                  function(z, v) paste0(v, ":", zone_id, z)))
     colnames(X2_interacted) <- int_names
     X_final <- if (is.null(X1)) X2_interacted else cbind(X1, X2_interacted)
@@ -360,19 +362,13 @@ fishset_design <- function(formula,
       X_catch_final <- X1_catch
       
     } else {
-      rhs2_vars <- attr(terms(catch_formula, lhs = 0, rhs = 2), "term.labels")
+      rhs2_vars <- attr(stats::terms(catch_formula, lhs = 0, rhs = 2), "term.labels")
       f2_str <- paste("~", paste(rhs2_vars, collapse = " + "))
-      
-      # Get base matrix (scaled)
       X2_catch_base <- process_matrix(f2_str, data, scale, "X2_catch")
-      
-      # Zone interaction
       zone_int <- as.integer(data[[zone_id]])
       X2_catch_interacted <- rcpp_sparse_interaction(X2_catch_base, zone_int, J_alts)
-      
-      # Fix names
-      var_names <- rhs2_vars
-      zone_names <- levels(data[[zone_id]])[-1] # Drop ref (zone 1)
+      var_names <- colnames(X2_catch_base)
+      zone_names <- levels(data[[zone_id]])[-1] 
       int_names <- as.vector(outer(zone_names, var_names, function(z, v) paste0(v, ":Zone", z)))
       colnames(X2_catch_interacted) <- int_names
       
