@@ -689,11 +689,25 @@ fishset_fit <- function(project,
   y_div <- if (!is.null(design$scalers$Y_catch_divisor)) design$scalers$Y_catch_divisor else 1
   p_div <- if (!is.null(design$scalers$price_divisor)) design$scalers$price_divisor else 1
   
+  # Extract group-level random deviations if mixed logit
+  random_effects_estimates <- NULL
+  if (is_mixed) {
+    raw_beta_ran <- obj$env$parList()$beta_random
+    group_levels <- levels(as.factor(design$ids$group))
+    
+    if (!is.null(raw_beta_ran) && length(group_levels) == nrow(raw_beta_ran)) {
+      rownames(raw_beta_ran) <- as.character(group_levels)
+      colnames(raw_beta_ran) <- colnames(design$random_effects$X_random)
+      random_effects_estimates <- raw_beta_ran
+    }
+  }
+  
   # Output and save -------------------------------------------------------------------------------
   result <- list(
     opt = opt,
     coefficients = report_coefs,
     coef_table = coef_table,
+    random_effects = random_effects_estimates,
     logLik = -nll,
     null_logLik = null_logLik,
     AIC = aic,
