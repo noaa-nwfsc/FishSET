@@ -363,7 +363,7 @@ format_model_data <- function(project,
   }
   
   # Add gridded data ------------------------------------------------------------------------------
-  if(!is_empty(gridded_data)){
+  if(all(!is_empty(gridded_data))){
     # Helper function to detect dates using heuristics
     detect_date_cols <- function(df_to_check) {
       cols <- names(df_to_check)
