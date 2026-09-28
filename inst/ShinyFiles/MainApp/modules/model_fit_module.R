@@ -89,9 +89,8 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       }
     })
     
-    # 1.5 Cache metadata --------------------------------------------------------------------------
-    rv_design_metadata <- reactive({
-      d_names <- available_designs() 
+    # 1.5 Read metadata only when it is needed ----------------------------------------------------
+    read_design_metadata <- function(d_names) {
       project <- rv_project_name()$value
       
       meta <- list(catch_cols = character(0), zone_cols = character(0), epm_designs = character(0))
@@ -138,7 +137,19 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       meta$zone_cols <- unique(meta$zone_cols)
       meta$catch_cols <- unique(setdiff(meta$catch_cols, meta$zone_cols))
       
-      return(meta)
+      meta
+    }
+
+    rv_selected_design_metadata <- reactive({
+      selected_design <- input$design_input
+      if (is.null(selected_design) || selected_design == "") {
+        return(list(catch_cols = character(0), zone_cols = character(0), epm_designs = character(0)))
+      }
+      read_design_metadata(selected_design)
+    })
+
+    rv_design_metadata <- reactive({
+      read_design_metadata(available_designs())
     })
     
     # 2. Load Manage Table Data (Model Fits) ------------------------------------------------------
@@ -185,7 +196,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     # 3. Dynamically Show/Hide EPM Distribution Input ---------------------------------------------
     observeEvent(input$design_input, {
       req(input$design_input)
-      meta <- rv_design_metadata()
+      meta <- rv_selected_design_metadata()
       
       if (input$design_input %in% meta$epm_designs) {
         shinyjs::show("distribution_container")
