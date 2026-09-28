@@ -13,21 +13,28 @@
 #' @param id A character string that is unique to this module instance.
 #' @param rv_folderpath A reactive value containing the current root folder path.
 #' @param rv_project_name A reactive value containing the current project name.
+#' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-model_cv_server <- function(id, rv_folderpath, rv_project_name) {
+model_cv_server <- function(id, rv_folderpath, rv_project_name, rv_data,
+                            rv_current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # Reactive value to store names of existing designs and the cv results
     rv_existing_designs <- reactiveVal(character(0))
     rv_cv_results <- reactiveVal(NULL)
+
+    observeEvent(rv_project_name(), {
+      rv_cv_results(NULL)
+    }, ignoreInit = TRUE, priority = 100)
     
     # 1. Real-time Polling for Model Designs ------------------------------------------------------
     available_designs <- reactivePoll(
       intervalMillis = 1000, 
       session = session,
       checkFunc = function() {
+        if (is.null(rv_data$main)) return("data_not_loaded")
         if (is.null(rv_project_name())) return(NULL)
         project <- rv_project_name()$value
         if (is.null(project) || project == "") return(NULL)
@@ -44,6 +51,7 @@ model_cv_server <- function(id, rv_folderpath, rv_project_name) {
         return("no_dir")
       },
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || project == "") return(character(0))
@@ -62,6 +70,7 @@ model_cv_server <- function(id, rv_folderpath, rv_project_name) {
     )
     
     observe({
+      if (!is.null(rv_current_tab) && rv_current_tab() != "model_cv_id") return()
       d_names <- available_designs()
       rv_existing_designs(d_names) 
       

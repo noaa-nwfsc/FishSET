@@ -358,7 +358,7 @@ select_project_server <- function(id, rv_folderpath){
 ##              tables exist in the project folder. If this is a new project, or a data type
 ##              is not present in an existing project, give a file input. Return the table name 
 ##              and type of input.
-select_data_server <- function(id, data_type, rv_project_name){
+select_data_server <- function(id, data_type, rv_project_name, rv_project_tables = NULL){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     rv_data_input_type <- reactiveVal() # indicates which input value to return
@@ -424,7 +424,11 @@ select_data_server <- function(id, data_type, rv_project_name){
         
         # Select an existing table
       } else if (project_name$type == "select" & !is.null(project_name$value)) {
-        data_table_list <- list_tables(project_name$value, data_type) # Get existing tables
+        data_table_list <- if (is.null(rv_project_tables)) {
+          list_tables(project_name$value, data_type)
+        } else {
+          rv_project_tables()[[data_type]]
+        }
         
         # if no tables previously loaded, show the file input
         if (all(FishSET::is_empty(data_table_list))){
@@ -539,6 +543,43 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
     rv_load_success_message <- reactiveVal("") # Store success message
     rv_all_data_output <- reactiveValues() # Store all of the loaded data - return to main server
     rv_data_names <- reactiveValues() # Data file/table names for uploading
+    rv_project_tables <- reactiveVal(NULL)
+
+    # A selected project is not loaded until the user clicks "Load data".
+    # Discard data from a previously loaded project before project-specific
+    # observers can use it for the newly selected project.
+    observeEvent(rv_project_name(), {
+      invisible(lapply(c("main", "port", "aux", "spat", "grid"),
+                       function(x) rv_all_data_output[[x]] <- NULL))
+      rv_all_data_output$error <- TRUE
+    }, ignoreInit = TRUE, priority = 100)
+
+    # Read project table names once, then share them across all five selectors.
+    # This avoids repeatedly opening the same SQLite database while the upload
+    # controls are being populated.
+    observeEvent(rv_project_name(), {
+      project <- rv_project_name()
+      if (is.null(project) || project$type != "select" || is.null(project$value)) {
+        rv_project_tables(NULL)
+        return()
+      }
+
+      table_types <- c(
+        main = "MainDataTable", port = "PortTable", aux = "AuxTable",
+        grid = "GridTable"
+      )
+      all_tables <- tryCatch(tables_database(project$value), error = function(e) character(0))
+      table_choices <- lapply(table_types, function(type) {
+        tables <- grep(paste0("^", project$value, ".*", type), all_tables, value = TRUE)
+        if (type == "MainDataTable") tables <- tables[!grepl("MainDataTableInfo", tables)]
+        tables
+      })
+      table_choices$spat <- tryCatch(
+        list_tables(project$value, "spat"),
+        error = function(e) character(0)
+      )
+      rv_project_tables(table_choices)
+    }, ignoreInit = FALSE, priority = 50)
     
     # Outputs for error and success messages - initially hidden
     output$load_error_message_out <- renderText({
@@ -551,27 +592,32 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
     ### Select main data
     rv_data_names$main <- select_data_server("select_main",
                                              data_type = "main",
-                                             rv_project_name = rv_project_name)
+                                             rv_project_name = rv_project_name,
+                                             rv_project_tables = rv_project_tables)
     
     ### Select port data (optional)
     rv_data_names$port <- select_data_server("select_port",
                                              data_type = "port",
-                                             rv_project_name = rv_project_name)
+                                             rv_project_name = rv_project_name,
+                                             rv_project_tables = rv_project_tables)
     
     ### Select aux data (optional)
     rv_data_names$aux <- select_data_server("select_aux",
                                             data_type = "aux",
-                                            rv_project_name = rv_project_name)
+                                            rv_project_name = rv_project_name,
+                                            rv_project_tables = rv_project_tables)
     
     ### Select spatial data
     rv_data_names$spat <- select_data_server("select_spatial",
                                              data_type = "spat",
-                                             rv_project_name = rv_project_name)
+                                             rv_project_name = rv_project_name,
+                                             rv_project_tables = rv_project_tables)
     
     ### Select gridded data (optional)
     rv_data_names$grid <- select_data_server("select_grid",
                                              data_type = "grid",
-                                             rv_project_name = rv_project_name)
+                                             rv_project_name = rv_project_name,
+                                             rv_project_tables = rv_project_tables)
     
     ### Loading helper functions ------------------------------------------------------------------
     # Check validity of project name
