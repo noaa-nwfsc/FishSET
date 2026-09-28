@@ -18,7 +18,8 @@
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
+policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data,
+                              rv_current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -29,15 +30,21 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     
     # Caching structures to speed up UI
     rv_fit_list <- reactiveVal(list())
-    rv_model_meta_cache <- reactiveVal(list())
     
     # State for dynamic Marginal Utility of Income UI
     rv_current_vars <- reactiveVal(character(0))
     rv_is_epm <- reactiveVal(FALSE)
+
+    observeEvent(rv_project_name(), {
+      rv_fit_list(list())
+      rv_current_vars(character(0))
+      rv_is_epm(FALSE)
+    }, ignoreInit = TRUE, priority = 100)
     
     # Real-time model fits, closures, sims --------------------------------------------------------
     # Shared check function for the SQLite database (used for Fits and Simulations)
     db_check_func <- function() {
+      if (is.null(rv_data$main)) return("data_not_loaded")
       if (is.null(rv_project_name())) return(NULL)
       project <- rv_project_name()$value
       
@@ -56,6 +63,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       session = session,
       checkFunc = db_check_func,
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || trimws(project) == "") return(character(0))
@@ -79,6 +87,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       session = session,
       checkFunc = db_check_func,
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || trimws(project) == "") return(character(0))
@@ -98,6 +107,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       intervalMillis = 1000,
       session = session,
       checkFunc = function() {
+        if (is.null(rv_data$main)) return("data_not_loaded")
         if (is.null(rv_project_name())) return(NULL)
         project <- rv_project_name()$value
         if (is.null(project) || trimws(project) == "") return(NULL)
@@ -113,6 +123,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         return(file.info(yaml_file)$mtime)
       },
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || trimws(project) == "") return(character(0))
@@ -142,6 +153,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     
     # Update UI State Reactively ------------------------------------------------------------------
     observe({
+      if (!is.null(rv_current_tab) && rv_current_tab() != "policy_sim") return()
       fits <- poll_available_fits()
       rv_available_fits(fits)
       
@@ -152,6 +164,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     })
     
     observe({
+      if (!is.null(rv_current_tab) && rv_current_tab() != "policy_sim") return()
       closures <- poll_closures()
       rv_available_closures(closures)
       
@@ -162,6 +175,7 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     })
     
     observe({
+      if (!is.null(rv_current_tab) && rv_current_tab() != "policy_sim") return()
       sims <- poll_existing_sims()
       
       # Filter out baseline simulations from the dropdown
@@ -173,80 +187,56 @@ policy_sim_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       updateSelectizeInput(session, "sim_to_remove", choices = filtered_sims, selected = selected)
     })
     
-    # Build a lightweight cache of variables and EPM status in the background
+    # Load metadata only for the selected model, not every saved model.
     observe({
+      if (!is.null(rv_current_tab) && rv_current_tab() != "policy_sim") return()
+      target <- input$mod_name_input
       fit_list <- rv_fit_list()
       project <- rv_project_name()$value
-      
-      if (is.null(project) || length(fit_list) == 0) return()
-      
-      cache <- list()
-      db_path <- tryCatch(locdatabase(project), error = function(e) NULL)
-      designs_dir <- 
-        if (!is.null(db_path)) file.path(dirname(db_path), "Models", "ModelDesigns") else NULL
-      
-      # Pre-compute the UI needs for every available model
-      for (fit_name in names(fit_list)) {
-        mod <- fit_list[[fit_name]]
-        
-        # Get variables
-        vars <- if (!is.null(rownames(mod$coef_table))) rownames(mod$coef_table) else character(0)
-        
-        # Get EPM Status by reading the file
-        is_epm <- FALSE
-        d_name <- mod$model_name
-        if (is.null(d_name)) d_name <- mod$metadata$model_name
-        if (is.null(d_name)) d_name <- gsub("_fit$", "", fit_name)
-        
-        if (!is.null(designs_dir)) {
-          qs2_path <- file.path(designs_dir, paste0(d_name, ".qs2"))
-          rds_path <- file.path(designs_dir, paste0(d_name, ".rds"))
-          
-          tryCatch({
-            if (file.exists(qs2_path) && requireNamespace("qs2", quietly = TRUE)) {
-              d_obj <- qs2::qs_read(qs2_path)
-              if (isTRUE(d_obj$epm$is_epm)) is_epm <- TRUE
-            } else if (file.exists(rds_path)) {
-              d_obj <- readRDS(rds_path)
-              if (isTRUE(d_obj$epm$is_epm)) is_epm <- TRUE
-            }
-          }, error = function(e) {})
-        }
-        
-        # Fallback check
-        distro <- if(!is.null(mod$distribution)) mod$distribution else mod$metadata$distribution
-        if (!is_epm && !is.null(distro) && distro != "none" && distro != "") {
-          is_epm <- TRUE
-        }
-        
-        # Save to dictionary using the clean name
-        clean_name <- gsub("_fit$", "", fit_name)
-        cache[[clean_name]] <- list(vars = vars, is_epm = is_epm)
-      }
-      
-      rv_model_meta_cache(cache)
-    })
-    
-    # React to model selection instantly using the pre-built cache
-    observeEvent(input$mod_name_input, {
-      # Reset to defaults
+
       rv_current_vars(character(0))
       rv_is_epm(FALSE)
-      
-      if (is.null(input$mod_name_input) || input$mod_name_input == "") {
-        return()
+
+      if (is.null(project) || is.null(target) || target == "" || length(fit_list) == 0) return()
+
+      fit_names <- names(fit_list)
+      fit_index <- match(target, gsub("_fit$", "", fit_names))
+      if (is.na(fit_index)) return()
+
+      mod <- fit_list[[fit_index]]
+      vars <- if (!is.null(rownames(mod$coef_table))) rownames(mod$coef_table) else character(0)
+      is_epm <- FALSE
+      db_path <- tryCatch(locdatabase(project), error = function(e) NULL)
+      designs_dir <- if (!is.null(db_path)) {
+        file.path(dirname(db_path), "Models", "ModelDesigns")
+      } else {
+        NULL
       }
-      
-      # Pull instantly from memory instead of the database
-      cache <- rv_model_meta_cache()
-      target <- input$mod_name_input
-      
-      if (!is.null(cache[[target]])) {
-        rv_current_vars(cache[[target]]$vars)
-        rv_is_epm(cache[[target]]$is_epm)
+
+      d_name <- mod$model_name
+      if (is.null(d_name)) d_name <- mod$metadata$model_name
+      if (is.null(d_name)) d_name <- gsub("_fit$", "", fit_names[[fit_index]])
+      if (!is.null(designs_dir)) {
+        qs2_path <- file.path(designs_dir, paste0(d_name, ".qs2"))
+        rds_path <- file.path(designs_dir, paste0(d_name, ".rds"))
+
+        tryCatch({
+          if (file.exists(qs2_path) && requireNamespace("qs2", quietly = TRUE)) {
+            is_epm <- isTRUE(qs2::qs_read(qs2_path)$epm$is_epm)
+          } else if (file.exists(rds_path)) {
+            is_epm <- isTRUE(readRDS(rds_path)$epm$is_epm)
+          }
+        }, error = function(e) {})
       }
-      
-    }, ignoreInit = TRUE, ignoreNULL = FALSE)
+
+      distro <- if (!is.null(mod$distribution)) mod$distribution else mod$metadata$distribution
+      if (!is_epm && !is.null(distro) && distro != "none" && distro != "") {
+        is_epm <- TRUE
+      }
+
+      rv_current_vars(vars)
+      rv_is_epm(is_epm)
+    })
     
     # Render the Inputs ONLY if it is a Standard Logit
     output$marg_util_ui <- renderUI({

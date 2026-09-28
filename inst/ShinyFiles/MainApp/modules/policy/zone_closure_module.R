@@ -17,7 +17,7 @@
 #'                     loader.
 #' @return This module does not return a value.
 zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data, 
-                                spat_zone_id = NULL) {
+                                spat_zone_id = NULL, rv_current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -30,10 +30,23 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     # Trackers for database polling and initialization state to prevent double-loading
     rv_db_state        <- reactiveValues(mtime = NULL, choices = NULL, initialized = FALSE)
     rv_last_matrix     <- reactiveValues(val = NULL)
+
+    observeEvent(rv_project_name(), {
+      rv_clicked_zones$ids <- character(0)
+      rv_tac_table$data <- NULL
+      rv_saved_closures$saved <- list()
+      rv_selected_vars$vars <- NULL
+      rv_db_state$mtime <- NULL
+      rv_db_state$choices <- NULL
+      rv_db_state$initialized <- FALSE
+      rv_last_matrix$val <- NULL
+    }, ignoreInit = TRUE, priority = 100)
     
     # Main App Logic: Only run GUI loader if NOT in standalone console mode
     if (is.null(spat_zone_id)) {
       observe({
+        if (!is.null(rv_current_tab) && rv_current_tab() != "zone_closures") return()
+        req(rv_data$main)
         req(current_project(), rv_folderpath())
         
         # Tell Shiny to re-run this check every 2.5 seconds
@@ -104,6 +117,8 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     
     # Populate & Auto-Refresh the Alternative Matrix Dropdown -------------------------------------
     observe({
+      if (!is.null(rv_current_tab) && rv_current_tab() != "zone_closures") return()
+      if (is.null(spat_zone_id)) req(rv_data$main)
       req(current_project())
       shiny::invalidateLater(2500, session) # Lightly poll every 2.5 seconds
       
