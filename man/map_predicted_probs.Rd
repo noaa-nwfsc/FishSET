@@ -41,7 +41,7 @@ or static (`"static"`) using ggplot2.}
 Defaults to `"plot"`.}
 }
 \description{
-Maps the predicted probabilities from a fitted FishSET model using either a static ggplot map or
+Maps the predicted probabilities from of a FishSET model using either a static ggplot map or
 an interactive leaflet map. Integrates directly with FishSET project databases for data loading 
 and saving.
 }
