@@ -19,11 +19,13 @@
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #' @param rv_shared_alt_names Reactive values for alternative choices.
 #' @param rv_shared_exp_names Reactive values for expectations.
+#' @param current_tab 
 #'
 #' @return This module does not return a value.
 format_model_data_server <- function(id, rv_folderpath, rv_project_name, 
                                      rv_data, rv_shared_alt_names = NULL,
-                                     rv_shared_exp_names = NULL) {
+                                     rv_shared_exp_names = NULL,
+                                     rv_current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -93,9 +95,11 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
     }
     
     # Load data on init
-    observeEvent(rv_data$main, {
+    observe({
+      req(rv_data$main)
+      if (!is.null(rv_current_tab) && rv_current_tab() != "format_model_data") return()
       load_formatted_data()
-    }, once = TRUE)
+    })
     
     
     # 2. Dropdown Logic ---------------------------------------------------------------------------
@@ -123,6 +127,7 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
     
     # Update Aux and Grid Dropdowns based on available data
     observe({
+      if (!is.null(rv_current_tab) && rv_current_tab() != "format_model_data") return()
       req(rv_project_name())
       project <- rv_project_name()$value
       
@@ -213,7 +218,9 @@ format_model_data_server <- function(id, rv_folderpath, rv_project_name,
       }
       
       # Prepare Gridded Data
-      if (!is.null(input$gridded_data) && length(input$gridded_data) > 0 && !is.null(rv_data$grid)) {
+      if (!is.null(input$gridded_data) && 
+          length(input$gridded_data) > 0 && 
+          !is.null(rv_data$grid)) {
         final_grid_data <- input$gridded_data 
       } else {
         final_grid_data <- NULL
