@@ -1,9 +1,10 @@
+# =================================================================================================
 # File: model_fit_module.R
 # Description: This module defines the UI and server logic for fitting FishSET Discrete Choice 
 #              Models. It takes a saved model design, optimizes the negative log-likelihood via 
 #              RTMB, and saves the results to the project database.
 #              
-# Dependencies: shiny, DT, shinyjs, bslib, RSQLite, DBI, Formula, stats, shinycssloaders
+# Dependencies: shiny, DT, shinyjs, bslib, RSQLite, DBI, Formula, stats, shinycssloaders, leaflet
 # Notes: This module interacts with Models/ModelDesigns (input) and 
 #        the project SQLite Database '<Project>ModelFit' table (output).
 # =================================================================================================
@@ -17,7 +18,8 @@
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
+model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
+                             rv_current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -26,14 +28,27 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     rv_existing_fits <- reactiveVal(character(0))
     rv_fit_list <- reactiveVal(list())
     
+    # Reactive value to store selected variables from project settings
+    rv_selected_vars <- reactiveValues(vars = NULL)
+    
     # Server-side state for selected models to prevent double-loading tables
     rv_selected_models <- reactiveVal(character(0))
+
+    observeEvent(rv_project_name(), {
+      rv_fit_list(list())
+      rv_existing_fits(character(0))
+      rv_selected_models(character(0))
+    }, ignoreInit = TRUE, priority = 100)
+    
+    # Create a reactive container to hold the map
+    rv_map_holder <- reactiveVal(NULL)
     
     # 1. Real-time Polling for Model Designs ------------------------------------------------------
     available_designs <- reactivePoll(
       intervalMillis = 1000, 
       session = session,
       checkFunc = function() {
+        if (is.null(rv_data$main)) return("data_not_loaded")
         if (is.null(rv_project_name())) return(NULL)
         project <- rv_project_name()$value
         if (is.null(project) || project == "") return(NULL)
@@ -50,6 +65,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         return("no_dir")
       },
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || project == "") return(character(0))
@@ -68,6 +84,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
     )
     
     observe({
+      if (!is.null(rv_current_tab) && rv_current_tab() != "model_fit") return()
       d_names <- available_designs()
       rv_existing_designs(d_names) 
       
@@ -79,9 +96,8 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       }
     })
     
-    # 1.5 Cache metadata --------------------------------------------------------------------------
-    rv_design_metadata <- reactive({
-      d_names <- available_designs() 
+    # 1.5 Read metadata only when it is needed ----------------------------------------------------
+    read_design_metadata <- function(d_names) {
       project <- rv_project_name()$value
       
       meta <- list(catch_cols = character(0), zone_cols = character(0), epm_designs = character(0))
@@ -128,7 +144,19 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       meta$zone_cols <- unique(meta$zone_cols)
       meta$catch_cols <- unique(setdiff(meta$catch_cols, meta$zone_cols))
       
-      return(meta)
+      meta
+    }
+
+    rv_selected_design_metadata <- reactive({
+      selected_design <- input$design_input
+      if (is.null(selected_design) || selected_design == "") {
+        return(list(catch_cols = character(0), zone_cols = character(0), epm_designs = character(0)))
+      }
+      read_design_metadata(selected_design)
+    })
+
+    rv_design_metadata <- reactive({
+      read_design_metadata(available_designs())
     })
     
     # 2. Load Manage Table Data (Model Fits) ------------------------------------------------------
@@ -159,6 +187,10 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       # Push updates to the UI
       updateSelectizeInput(session, "fit_to_remove", choices = fit_names, selected = "")
       updateSelectizeInput(session, "models_to_compare", choices = fit_names, selected = new_sel)
+      
+      # Update mapping dropdown
+      updateSelectizeInput(session, "map_fit_input", choices = fit_names, 
+                           selected = if(length(fit_names) > 0) fit_names[1] else "")
     }
     
     # Sync manual user clicks on the dropdown to the server-side state
@@ -166,12 +198,16 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
       rv_selected_models(input$models_to_compare)
     }, ignoreNULL = FALSE, ignoreInit = TRUE)
     
-    observeEvent(rv_data$main, { load_fits() })
+    observe({
+      req(rv_data$main)
+      if (!is.null(rv_current_tab) && rv_current_tab() != "model_fit") return()
+      load_fits()
+    })
     
     # 3. Dynamically Show/Hide EPM Distribution Input ---------------------------------------------
     observeEvent(input$design_input, {
       req(input$design_input)
-      meta <- rv_design_metadata()
+      meta <- rv_selected_design_metadata()
       
       if (input$design_input %in% meta$epm_designs) {
         shinyjs::show("distribution_container")
@@ -203,11 +239,13 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         fit_val <- if (trimws(input$fit_name_input) == "") NULL else trimws(input$fit_name_input)
         dist_val <- if (input$distribution_input == "none") NULL else input$distribution_input
         
+        # Capture the UI checkbox to decide whether to save the massive prob_matrix
         res <- fishset_fit(
           project = project_name,
           model_name = input$design_input,
           fit_name = fit_val,
-          distribution = dist_val
+          distribution = dist_val,
+          return_full_prob_mat = isTRUE(input$return_prob_mat) 
         )
         
         saved_name <- if (is.null(fit_val)) paste0(input$design_input, "_fit") else fit_val
@@ -400,6 +438,173 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data) {
         showNotification(paste("Error removing:", e$message), type = "error")
       })
     })
+    
+    # 7. Generate Predicted Probabilities Map -----------------------------------------------------
+    observeEvent(input$generate_map_btn, {
+      
+      # Noisy validation checks (replaces silent req() checks)
+      if (is.null(rv_project_name()) || rv_project_name()$value == "") {
+        showNotification("Project name missing.", type = "error")
+        return()
+      }
+      if (is.null(input$map_fit_input) || input$map_fit_input == "") {
+        showNotification("Please select a model fit from the dropdown.", type = "warning")
+        return()
+      }
+      if (is.null(rv_folderpath())) {
+        showNotification("Folder path is missing.", type = "error")
+        return()
+      }
+      
+      project_name <- rv_project_name()$value
+      folderpath <- rv_folderpath()
+      
+      # Load variables
+      selected_vars <- load_gui_variables(project_name, folderpath)
+      if (is.null(selected_vars)) {
+        showNotification("Error: Selected variables file missing. Please ensure variables
+                         were selected in previous steps.", type = "error")
+        return()
+      }
+      
+      zone_col <- selected_vars$spat$spat_zone_id
+      spat_name <- rv_data$spat
+      
+      if (is.null(zone_col)) {
+        showNotification("Mapping Failed: Zone ID column (spat_zone_id) was not found in
+                         project variables.", type = "error")
+        return()
+      }
+      if (is.null(spat_name)) {
+        showNotification("Mapping Failed: Spatial dataset could not be found in memory
+                         (rv_data$spat).", type = "error")
+        return()
+      }
+      
+      # Check for probability matrix
+      full_fit_list <- unserialize_table(paste0(project_name, "ModelFit"), project_name)
+      fit <- full_fit_list[[input$map_fit_input]]
+      
+      if (is.null(fit$prob_matrix)) {
+        showNotification("This model was saved WITHOUT the full probability matrix.
+                         Please check the 'Save Full Probability Matrix' box above and
+                         re-fit the model.", type = "error", duration = 10)
+        return()
+      }
+      
+      # Generate the map
+      tryCatch({
+        showNotification("Generating map... please wait.", type = "message", duration = 2)
+        
+        map_res <- map_predicted_probs(
+          fit_name = input$map_fit_input,
+          spat = spat_name,
+          project = project_name,
+          zone_spat = zone_col,
+          plot_type = "dynamic",
+          output = "plot"
+        )
+        
+        # Save output to reactiveVal state, which triggers the renderLeaflet below
+        rv_map_holder(map_res)
+        
+      }, error = function(e) {
+        showNotification(paste("Mapping Failed:", e$message), type = "error", duration = 10)
+      })
+    })
+    
+    # Render watches rv_map_holder
+    output$map_leaflet_out <- leaflet::renderLeaflet({
+      req(rv_map_holder()) # Waits silently until rv_map_holder has data
+      rv_map_holder()      # Renders the map
+    })
+    
+    # 8. Save and Preview Static Map --------------------------------------------------------------
+    # Create a reactive container to hold the static map for the modal
+    rv_static_map_holder <- reactiveVal(NULL)
+    
+    observeEvent(input$save_static_map_btn, {
+      
+      # Validation checks
+      if (is.null(rv_project_name()) || rv_project_name()$value == "") {
+        showNotification("Project name missing.", type = "error")
+        return()
+      }
+      if (is.null(input$map_fit_input) || input$map_fit_input == "") {
+        showNotification("Please select a model fit from the dropdown.", type = "warning")
+        return()
+      }
+      if (is.null(rv_folderpath())) {
+        showNotification("Folder path is missing.", type = "error")
+        return()
+      }
+      
+      project_name <- rv_project_name()$value
+      folderpath <- rv_folderpath()
+      
+      # Load variables
+      selected_vars <- load_gui_variables(project_name, folderpath)
+      if (is.null(selected_vars)) {
+        showNotification("Error: Selected variables file missing.", type = "error")
+        return()
+      }
+      
+      zone_col <- selected_vars$spat$spat_zone_id
+      spat_name <- rv_data$spat
+      
+      if (is.null(zone_col) || is.null(spat_name)) {
+        showNotification("Mapping Failed: Zone ID column or spatial dataset missing.",
+                         type = "error")
+        return()
+      }
+      
+      # Check for probability matrix
+      full_fit_list <- unserialize_table(paste0(project_name, "ModelFit"), project_name)
+      fit <- full_fit_list[[input$map_fit_input]]
+      
+      if (is.null(fit$prob_matrix)) {
+        showNotification("This model was saved WITHOUT the full probability matrix. 
+                         Please check the 'Save Full Probability Matrix' box above and
+                         re-fit the model.", type = "error", duration = 10)
+        return()
+      }
+      
+      # Generate the static map
+      tryCatch({
+        showNotification("Generating and saving static map... please wait.", 
+                         type = "message", duration = 2)
+        
+        map_res <- map_predicted_probs(
+          fit_name = input$map_fit_input,
+          spat = spat_name,
+          project = project_name,
+          zone_spat = zone_col,
+          plot_type = "static", # <--- Forces the static ggplot workflow
+          output = "plot"
+        )
+        
+        # Save output to reactiveVal state
+        rv_static_map_holder(map_res)
+        
+        # Pop the preview modal
+        showModal(modalDialog(
+          title = "Preview saved static map",
+          plotOutput(ns("preview_static_map_out"), height = "450px"),
+          footer = modalButton("Close"),
+          easyClose = TRUE,
+          size = "l" 
+        ))
+        
+      }, error = function(e) {
+        showNotification(paste("Static Mapping Failed:", e$message), type = "error", duration = 10)
+      })
+    })
+    
+    # Render watches rv_static_map_holder for the modal
+    output$preview_static_map_out <- renderPlot({
+      req(rv_static_map_holder())
+      rv_static_map_holder()
+    })
   })
 }
 
@@ -435,8 +640,7 @@ model_fit_ui <- function(id) {
                                    "Model Design ", 
                                    bslib::tooltip(
                                      shiny::icon("info-circle"), 
-                                     "Select a design matrix created 
-                                                     in the Model Design module.")),
+                                     "Select a design matrix created in the Model Design module.")),
                                  choices = NULL, width = "100%"),
                   textInput(ns("fit_name_input"), 
                             label = tags$span(
@@ -460,6 +664,20 @@ model_fit_ui <- function(id) {
                       )
                     )
                   )
+                ),
+                # Optional Checkbox for Saving the Prob Matrix
+                div(class = "mt-2",
+                    checkboxInput(
+                      ns("return_prob_mat"), 
+                      label = tags$span(
+                        tags$strong("Save Full Probability Matrix"), 
+                        bslib::tooltip(
+                          shiny::icon("triangle-exclamation"), 
+                          "Check this to enable spatial mapping. Doing this for models with 
+                          massive datasets can cause memory constraints or slow down 
+                          the application.")
+                      ),
+                      value = FALSE)
                 )
               )
             ),
@@ -518,19 +736,7 @@ model_fit_ui <- function(id) {
                 "Cells show: Estimate (Standard Error) Significance. Codes:  0 '***' 0.001 '**'
                 0.01 '*' 0.05 '.' 0.1 ' ' 1"),
             uiOutput(ns("scaling_alerts_ui")),
-            hr(class = "my-4", style = "clear: both;"),
-            fluidRow(
-              column(8,
-                     selectizeInput(ns("fit_to_remove"),
-                                    "Select fit to permanently remove from database:", 
-                                    choices = NULL, width = "100%")),
-              column(4,
-                     style = "margin-top: 25px;", 
-                     actionButton(ns("remove_fit_btn"), 
-                                  "Remove Selected",
-                                  icon = icon("trash"), 
-                                  class = "btn-danger w-100"))
-            )
+            
           )
         ),
         
@@ -542,6 +748,53 @@ model_fit_ui <- function(id) {
             div(style = "width: 100%; overflow-x: auto;", 
                 shinycssloaders::withSpinner(
                   DT::dataTableOutput(ns("combined_stats_table")), type = 8, color = "#007bc2")
+            )
+          ),
+          hr(class = "my-4", style = "clear: both;"),
+          fluidRow(
+            column(8,
+                   selectizeInput(ns("fit_to_remove"),
+                                  "Select fit to permanently remove from database:", 
+                                  choices = NULL, width = "100%")),
+            column(4,
+                   style = "margin-top: 25px;", 
+                   actionButton(ns("remove_fit_btn"), 
+                                "Remove Selected",
+                                icon = icon("trash"), 
+                                class = "btn-danger w-100"))
+          )
+        ),
+        
+        # Predicted Probability Map Component -----------------------------------------------------
+        bslib::card(
+          class = "card-overflow mt-4",
+          bslib::card_header(
+            tags$span(shiny::icon("map-location-dot"), " Map Predicted Probabilities")
+          ),
+          bslib::card_body(
+            fluidRow(
+              column(6,
+                     selectizeInput(ns("map_fit_input"), 
+                                    "Select Model Fit", 
+                                    choices = NULL, width = "100%")
+              ),
+              column(3,
+                     style = "margin-top: 24px;",
+                     actionButton(ns("generate_map_btn"), "Generate Map",
+                                  icon = icon("map"), class = "btn-primary w-100")
+              ),
+              column(3,
+                     style = "margin-top: 24px;",
+                     actionButton(ns("save_static_map_btn"), "Save as static map",
+                                  icon = icon("save"), class = "btn-secondary w-100")
+              )
+            ),
+            hr(class = "my-4"),
+            
+            # The spinner now directly watches the leaflet output
+            shinycssloaders::withSpinner(
+              leaflet::leafletOutput(ns("map_leaflet_out"), height = "500px"), 
+              type = 8, color = "#007bc2"
             )
           )
         )
