@@ -31,7 +31,8 @@ test_data <- data.frame(
   expected_catch = runif(N_obs * J_alts, 50, 500), # Varying by alt
   vessel_len = rep(runif(N_obs, 20, 50), each = J_alts), # Fixed per haul
   price = rep(runif(N_obs, 2, 5), each = J_alts), # Fixed per haul (for EPM)
-  actual_catch = runif(N_obs * J_alts, 0, 1000) # Continuous outcome (for EPM)
+  actual_catch = runif(N_obs * J_alts, 0, 1000), # Continuous outcome (for EPM)
+  vessel_id = rep(sample(1:5, N_obs, replace = TRUE), each = J_alts) # Group identifier
 )
 
 # Ensure one choice per haul
@@ -315,3 +316,39 @@ test_that("Magnitude scalers for Catch and Price are correctly generated", {
   expect_equal(obj$scalers$Y_catch_divisor, 1000)
   expect_equal(obj$scalers$price_divisor, 10)
 })
+
+
+# Test mixed logit parameter parsing --------------------------------------------------------------
+test_that("Mixed logit random parameters and distributions are parsed correctly", {
+  setup_mocks()
+  test_base_dir <- setup_test_env(project_name)
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+  
+  suppressMessages(
+    fishset_design(formula = chosen ~ distance + (1 + expected_catch | vessel_id),
+                   project = project_name,
+                   model_name = "mixed_test",
+                   formatted_data_name = "my_formatted_data",
+                   unique_obs_id = "haul_id",
+                   zone_id = "zone_id",
+                   random_dists = c(expected_catch = "lognormal"))
+  )
+  
+  obj <- read_design_output(project_name, "mixed_test", test_base_dir)
+  
+  expect_true(!is.null(obj$random_effects))
+  expect_equal(obj$random_effects$group_id, "vessel_id")
+  
+  # Check that expected_catch was parsed into the random effects matrix
+  expect_true("expected_catch" %in% colnames(obj$random_effects$X_random))
+  
+  # Check distribution mapping (1 = normal, 2 = lognormal)
+  expect_equal(unname(obj$random_effects$dist_codes["expected_catch"]), 2)
+  expect_equal(unname(obj$random_effects$dist_codes["(Intercept)"]), 1)
+})
+
