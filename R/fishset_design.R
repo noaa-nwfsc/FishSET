@@ -86,6 +86,21 @@
 #'   price_var = "price_var",
 #'   scale = TRUE
 #' ) 
+#' 
+#' # 5. Mixed Logit Model (Random Parameters)
+#' # Use the standard mixed model syntax (var | group_id) to specify parameters
+#' # that vary across groups. In this example, the effect of 'distance' varies 
+#' # randomly across vessels, and we assign it a lognormal distribution.
+#' fishset_design(
+#'   formula = chosen ~ expected_catch + distance + (0 + distance | vessel_id),
+#'   project = "MyProject",
+#'   model_name = "mixed_logit1",
+#'   formatted_data_name = "my_formatted_data",
+#'   unique_obs_id = "haul_id",
+#'   zone_id = "zone_id",
+#'   random_dists = c(distance = "lognormal"),
+#'   scale = TRUE
+#' )
 #' }
 #' 
 #' @export
