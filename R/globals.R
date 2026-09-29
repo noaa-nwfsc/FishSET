@@ -80,5 +80,10 @@ utils::globalVariables(c(
   'i.fleet',
   'i.mean_catch',
   'i.zones',
-  'temp_date'
+  'temp_date',
+  'X_random',
+  'beta_random',
+  'dist_codes',
+  'group_idx',
+  'log_sigma_random'
 ))
