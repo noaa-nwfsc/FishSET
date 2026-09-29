@@ -76,6 +76,16 @@
 #'   fit_name = "epm_fit1",
 #'   distribution = "normal"
 #' )
+#' 
+#' # 4. Mixed Logit Model
+#' # The function automatically detects the random parameter architecture from 
+#' # the design object and uses a Laplace approximation to fit the model.
+#' mixed_fit <- fishset_fit(
+#'   project = "MyProject",
+#'   model_name = "mixed_logit1",
+#'   fit_name = "mixed_fit_results",
+#'   se_calc = TRUE # Ensures standard errors for the random deviations are computed
+#' )
 #' }
 #'
 #' @seealso \code{\link{fishset_design}} for creating the input design object.
