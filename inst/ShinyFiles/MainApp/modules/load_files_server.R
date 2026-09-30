@@ -22,6 +22,7 @@ source("modules/checklist_module.R", local = TRUE) # Checklist/progress module
 load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+
     
     # Initialize reactives
     rv_log_overwrite <- reactiveVal(NULL) # Reactive value for resetting log (T/F for overwriting 
@@ -628,6 +629,24 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
       return(TRUE)
     }
     
+    remove_empty_rows <- function(dat, file_name) {
+      empty_rows <- apply(is.na(dat), 1, all)
+      rows_removed <- sum(empty_rows)
+
+      if (rows_removed > 0) {
+        showNotification(
+          paste0(rows_removed, " completely empty row",
+                 if (rows_removed == 1) "" else "s",
+                 " removed from ", file_name, "."),
+          type = "warning",
+          duration = 60
+        )
+        dat <- dat[!empty_rows, , drop = FALSE]
+      }
+
+      dat
+    }
+
     # Load all of the selected data
     load_project_data <- function(data_type, load_data_input, project_name){
       # Skip the function if optional data input is empty
@@ -665,6 +684,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
           tryCatch(
             {
               data_out <- suppressWarnings(read_dat(load_data_input$value$datapath))
+              data_out <- remove_empty_rows(data_out, load_data_input$value$name)
             },
             error = function(e) {
               load_warning_error <<- TRUE
