@@ -126,7 +126,8 @@ compute_closure_overlaps <- function(uploaded_files, zones, overlap_threshold,
   uploaded_shape <- clean_geometry(sf::st_transform(uploaded_shape, sf::st_crs(zones)))
   
   if (any(sf::st_geometry_type(zones) %in% c("POINT", "MULTIPOINT"))) {
-    overlaps <- suppressWarnings(suppressMessages(lengths(sf::st_intersects(zones, uploaded_shape)) > 0))
+    overlaps <- suppressWarnings(suppressMessages(
+      lengths(sf::st_intersects(zones, uploaded_shape)) > 0))
     selected_ids <- as.character(zones$second_location_id[overlaps])
     return(if (return_shape) list(ids = selected_ids, shape = uploaded_shape) else selected_ids)
   }
