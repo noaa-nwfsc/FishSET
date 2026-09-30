@@ -664,15 +664,7 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
         if (data_type != "spat"){
           tryCatch(
             {
-              data_out <- read_dat(load_data_input$value$datapath)
-            },
-            warning = function(w) {
-              load_warning_error <<- TRUE
-              rv_load_error_message(
-                paste0("⚠️ ", load_data_input$value$name, 
-                       " failed to load. Check data file for compatibility with FishSET.")
-              )
-              shinyjs::show("load_error_message")
+              data_out <- suppressWarnings(read_dat(load_data_input$value$datapath))
             },
             error = function(e) {
               load_warning_error <<- TRUE
@@ -699,15 +691,9 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
             } else {
               tryCatch(
                 {
-                  data_out <- read_dat(load_data_input$value$datapath, is.map = TRUE)
-                },
-                warning = function(w) {
-                  load_warning_error <<- TRUE
-                  rv_load_error_message(
-                    paste0("⚠️ ", load_data_input$value$name, 
-                           " failed to load. Check data file for compatibility with FishSET.")
+                  data_out <- suppressWarnings(
+                    read_dat(load_data_input$value$datapath, is.map = TRUE)
                   )
-                  shinyjs::show("load_error_message")
                 },
                 error = function(e) {
                   load_warning_error <<- TRUE
@@ -994,10 +980,19 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
       # Show local spinner
       shinyjs::show("load_data_spinner_container")
       
-      # Load each data type
-      rv_all_data_output$main <- load_project_data(data_type = "main",
-                                                   load_data_input = main_data_info,
-                                                   project_name = project_name$value)
+      # Clear prior data before loading the selected project
+      invisible(lapply(names(rv_all_data_output),
+                       function(x) rv_all_data_output[[x]] <<- NULL))
+
+      # Load main data before dependent data types
+      main_data <- load_project_data(data_type = "main",
+                                     load_data_input = main_data_info,
+                                     project_name = project_name$value)
+      if (is.character(main_data)) {
+        shinyjs::hide("load_data_spinner_container")
+        return(rv_all_data_output$error <- TRUE)
+      }
+      rv_all_data_output$main <- main_data
       
       rv_all_data_output$port <- load_project_data(data_type = "port",
                                                    load_data_input = port_data_info,
