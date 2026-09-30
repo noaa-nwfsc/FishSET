@@ -800,13 +800,15 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
                          y = NULL)
           table_name <- paste0(project_name, "MainDataTable")
           
-          # Save package version and recent git commit to the output folder
-          fishset_commit <- packageDescription("FishSET")$GithubSHA1
-          fishset_version <- packageDescription("FishSET")$Version
-          fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
-          version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
-          cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"),
-              file = version_file, append = TRUE)
+          if (isTRUE(pass)) {
+            # Save package version and recent git commit to the output folder
+            fishset_commit <- packageDescription("FishSET")$GithubSHA1
+            fishset_version <- packageDescription("FishSET")$Version
+            fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
+            version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
+            cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"),
+                file = version_file, append = TRUE)
+          }
           
           if (is.null(pass)) {
             rv_load_error_message(
