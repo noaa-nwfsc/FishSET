@@ -133,7 +133,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       }
     })
     
-    # Dynamically update the Data Source radio buttons to hide 'Main Data' if missing ---------------
+    # Dynamically update the Data Source radio buttons to hide 'Main Data' if missing -------------
     observe({
       choices <- c("Spatial Data" = "spat")
       if (!is.null(rv_data$main)) {
@@ -235,7 +235,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       }
     }, ignoreInit = TRUE)
     
-    # Clear selections and uploaded geometry when switching modes -----------------------------------
+    # Clear selections and uploaded geometry when switching modes ---------------------------------
     observeEvent(input$closure_mode, {
       if (!is.null(rv_last_mode$val) && !identical(input$closure_mode, rv_last_mode$val)) {
         rv_clicked_zones$ids <- character(0)
@@ -545,7 +545,7 @@ zone_closure_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     },
     ignoreInit = TRUE)
     
-    # Existing Variable Selection Logic -------------------------------------------------------------
+    # Existing Variable Selection Logic -----------------------------------------------------------
     observeEvent(input$process_existing_btn, {
       req(input$existing_var_name, input$existing_var_val)
       
