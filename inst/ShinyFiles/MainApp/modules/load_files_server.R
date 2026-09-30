@@ -22,6 +22,7 @@ source("modules/checklist_module.R", local = TRUE) # Checklist/progress module
 load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+
     
     # Initialize reactives
     rv_log_overwrite <- reactiveVal(NULL) # Reactive value for resetting log (T/F for overwriting 
@@ -628,6 +629,24 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
       return(TRUE)
     }
     
+    remove_empty_rows <- function(dat, file_name) {
+      empty_rows <- apply(is.na(dat), 1, all)
+      rows_removed <- sum(empty_rows)
+
+      if (rows_removed > 0) {
+        showNotification(
+          paste0(rows_removed, " completely empty row",
+                 if (rows_removed == 1) "" else "s",
+                 " removed from ", file_name, "."),
+          type = "warning",
+          duration = 60
+        )
+        dat <- dat[!empty_rows, , drop = FALSE]
+      }
+
+      dat
+    }
+
     # Load all of the selected data
     load_project_data <- function(data_type, load_data_input, project_name){
       # Skip the function if optional data input is empty
@@ -664,15 +683,8 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
         if (data_type != "spat"){
           tryCatch(
             {
-              data_out <- read_dat(load_data_input$value$datapath)
-            },
-            warning = function(w) {
-              load_warning_error <<- TRUE
-              rv_load_error_message(
-                paste0("⚠️ ", load_data_input$value$name, 
-                       " failed to load. Check data file for compatibility with FishSET.")
-              )
-              shinyjs::show("load_error_message")
+              data_out <- suppressWarnings(read_dat(load_data_input$value$datapath))
+              data_out <- remove_empty_rows(data_out, load_data_input$value$name)
             },
             error = function(e) {
               load_warning_error <<- TRUE
@@ -699,15 +711,9 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
             } else {
               tryCatch(
                 {
-                  data_out <- read_dat(load_data_input$value$datapath, is.map = TRUE)
-                },
-                warning = function(w) {
-                  load_warning_error <<- TRUE
-                  rv_load_error_message(
-                    paste0("⚠️ ", load_data_input$value$name, 
-                           " failed to load. Check data file for compatibility with FishSET.")
+                  data_out <- suppressWarnings(
+                    read_dat(load_data_input$value$datapath, is.map = TRUE)
                   )
-                  shinyjs::show("load_error_message")
                 },
                 error = function(e) {
                   load_warning_error <<- TRUE
@@ -800,13 +806,15 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
                          y = NULL)
           table_name <- paste0(project_name, "MainDataTable")
           
-          # Save package version and recent git commit to the output folder
-          fishset_commit <- packageDescription("FishSET")$GithubSHA1
-          fishset_version <- packageDescription("FishSET")$Version
-          fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
-          version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
-          cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"),
-              file = version_file, append = TRUE)
+          if (isTRUE(pass)) {
+            # Save package version and recent git commit to the output folder
+            fishset_commit <- packageDescription("FishSET")$GithubSHA1
+            fishset_version <- packageDescription("FishSET")$Version
+            fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
+            version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
+            cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"),
+                file = version_file, append = TRUE)
+          }
           
           if (is.null(pass)) {
             rv_load_error_message(
@@ -992,10 +1000,19 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
       # Show local spinner
       shinyjs::show("load_data_spinner_container")
       
-      # Load each data type
-      rv_all_data_output$main <- load_project_data(data_type = "main",
-                                                   load_data_input = main_data_info,
-                                                   project_name = project_name$value)
+      # Clear prior data before loading the selected project
+      invisible(lapply(names(rv_all_data_output),
+                       function(x) rv_all_data_output[[x]] <<- NULL))
+
+      # Load main data before dependent data types
+      main_data <- load_project_data(data_type = "main",
+                                     load_data_input = main_data_info,
+                                     project_name = project_name$value)
+      if (is.character(main_data)) {
+        shinyjs::hide("load_data_spinner_container")
+        return(rv_all_data_output$error <- TRUE)
+      }
+      rv_all_data_output$main <- main_data
       
       rv_all_data_output$port <- load_project_data(data_type = "port",
                                                    load_data_input = port_data_info,
