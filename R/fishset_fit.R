@@ -204,7 +204,6 @@ fishset_fit <- function(project,
     }
     
     data_list <- list(
-      X = design$X,
       chosen_lin_idx = chosen_lin_idx,
       N_obs = N_obs,
       J_alts = J_alts,
@@ -223,12 +222,22 @@ fishset_fit <- function(project,
       data_list$group_idx <- as.integer(group_factor)
       data_list$dist_codes <- design$random_effects$dist_codes
       
+      # Dynamically partition purely fixed columns from the main X matrix
+      data_list$fixed_idx_map <- as.integer(match(colnames(data_list$X_random), colnames(design$X)))
+      data_list$pure_fixed_idx <- as.integer(setdiff(1:K_vars, data_list$fixed_idx_map))
+      data_list$X_pure_fixed <- design$X[, data_list$pure_fixed_idx, drop = FALSE]
+      
       # Initialize variance params and local betas
       start_pars$log_sigma_random <- rep(log(0.1), K_random)
       start_pars$beta_random <- matrix(0, nrow = N_groups, ncol = K_random)
       
       # Triggers Laplace approximation for beta_random
       random_map <- "beta_random"
+      
+    } else {
+      # If not mixed, the entire X matrix is purely fixed
+      data_list$X_pure_fixed <- design$X
+      data_list$pure_fixed_idx <- as.integer(1:K_vars)
     }
     
     # Objective function
@@ -236,8 +245,12 @@ fishset_fit <- function(project,
       RTMB::getAll(data_list, pars)
       nll <- 0
       
-      # Sparse Matrix Multiply (Zonal)
-      v <- X %*% betas
+      # Sparse matrix multiply for purely fixed variables
+      if (length(pure_fixed_idx) > 0) {
+        v <- X_pure_fixed %*% betas[pure_fixed_idx]
+      } else {
+        v <- rep(0, N_obs * J_alts)
+      }
       
       if (is_mixed == 1) {
         # Apply standard normal prior mapping
@@ -246,15 +259,18 @@ fishset_fit <- function(project,
         sigma_random <- exp(log_sigma_random)
         beta_random_obs <- beta_random[group_idx, , drop = FALSE]
         
-        # Scale the random effects for each group and apply distributions
+        # Parameter first assembly
         for (k in 1:length(dist_codes)) {
+          mu <- betas[fixed_idx_map[k]]
+          z <- beta_random_obs[, k] * sigma_random[k]
+          
           if (dist_codes[k] == 1) {
-            # Normal distribution mapping: local deviation * standard deviation
-            v <- v + X_random[, k] * (beta_random_obs[, k] * sigma_random[k])
+            beta_gk <- mu + z      # Normal
           } else if (dist_codes[k] == 2) {
-            # Lognormal mapping
-            v <- v + X_random[, k] * exp(beta_random_obs[, k] * sigma_random[k])
+            beta_gk <- exp(mu + z) # Lognormal
           }
+          
+          v <- v + X_random[, k] * beta_gk
         }
       }
       
@@ -645,6 +661,22 @@ fishset_fit <- function(project,
   if (!is_epm) {
     # Extract only the fixed-effect betas (the first K_vars parameters)
     fixed_betas <- opt$par[1:ncol(design$X)]
+    
+    if (is_mixed) {
+      # Adjust fixed_betas for prediction based on the expected value of the distribution
+      l_sig_ran <- opt$par[grep("log_sigma_random", names(opt$par))]
+      sig_ran <- exp(l_sig_ran)
+      
+      for (k in seq_along(design$random_effects$dist_codes)) {
+        idx <- match(colnames(design$random_effects$X_random)[k], colnames(design$X))
+        if (design$random_effects$dist_codes[k] == 2) { 
+          # Expected value of a lognormal coefficient
+          mu <- fixed_betas[idx]
+          fixed_betas[idx] <- exp(mu + 0.5 * sig_ran[k]^2) 
+        }
+      }
+    }
+    
     final_v <- as.vector(design$X %*% fixed_betas)
     
     # Out-of-sample predictions generally set random effects to 0 (the mean)
