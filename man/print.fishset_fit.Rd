@@ -18,4 +18,5 @@ numeric values. Default is 4.}
 Formats and prints the output of a FishSET discrete choice model fit.
 Displays the model formula (if available), coefficients table with significance stars,
 and key goodness-of-fit statistics (Log-Likelihood, AIC, BIC, Pseudo-R2, Accuracy).
+For mixed logit models, coefficient outputs are split into Fixed and Random effects.
 }

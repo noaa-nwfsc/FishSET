@@ -21,7 +21,8 @@
 main_data <- data.frame(
   unique_row_id = c("1", "2", "3"),
   ZoneID = c("A", "B", "A"), 
-  other_var = c(10, 20, 30)
+  other_var = c(10, 20, 30),
+  vessel_id = c("V1", "V1", "V2")
 )
 
 # Mock AltMatrix 
@@ -279,4 +280,33 @@ test_that("format_model_data fails fast on invalid inputs", {
                       impute = "magic_wand"),
     "Impute method must be one of"
   )
+})
+
+# Test mixed logit group_id retention -------------------------------------------------------------
+test_that("format_model_data retains group_id for mixed models", {
+  setup_mocks()
+  test_base_dir <- normalizePath(file.path(tempdir(), "FishSET_FMD_Tests"), 
+                                 winslash = "/", mustWork = FALSE)
+  dir.create(file.path(test_base_dir, "TEST_PROJ_GRP", "src"), 
+             recursive = TRUE, showWarnings = FALSE)
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+  
+  suppressMessages(
+    format_model_data(project = "TEST_PROJ_GRP", 
+                      name = "TEST_GRP", 
+                      alt_name = "test_alt_1",
+                      zone_id = "ZoneID", 
+                      unique_obs_id = "unique_row_id", 
+                      group_id = "vessel_id",
+                      select_vars = c("other_var"),
+                      distance = FALSE)  
+  )
+  
+  df_out <- read_fmd_output("TEST_PROJ_GRP", test_base_dir)$TEST_GRP
+  expect_true("vessel_id" %in% names(df_out))
 })
