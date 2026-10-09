@@ -85,5 +85,8 @@ utils::globalVariables(c(
   'beta_random',
   'dist_codes',
   'group_idx',
-  'log_sigma_random'
+  'log_sigma_random',
+  'X_pure_fixed',
+  'fixed_idx_map',
+  'pure_fixed_idx'
 ))
