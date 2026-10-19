@@ -1,5 +1,6 @@
 {
-  "mapbox_token":"pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjazZ2NXh6dXUwZ25vM25wYXJ6bHFpOGc1In0.nAdb9QQybVd9ESgtr0fjZg",
+
+  "mapbox_token":"***REMOVED***",
   "choosen_scatter":"OFFICIAL_TOTAL_CATCH",
   "area_variable_column":"NMFS_AREA",
   "area_variable_map":"NMFS_AREA",
