@@ -22,6 +22,7 @@ source("modules/checklist_module.R", local = TRUE) # Checklist/progress module
 load_sidebar_server <- function(id, rv_project_name, rv_data_load_error, rv_data){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+
     
     # Initialize reactives
     rv_log_overwrite <- reactiveVal(NULL) # Reactive value for resetting log (T/F for overwriting 
@@ -358,7 +359,7 @@ select_project_server <- function(id, rv_folderpath){
 ##              tables exist in the project folder. If this is a new project, or a data type
 ##              is not present in an existing project, give a file input. Return the table name 
 ##              and type of input.
-select_data_server <- function(id, data_type, rv_project_name){
+select_data_server <- function(id, data_type, rv_project_name, rv_project_tables = NULL){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     rv_data_input_type <- reactiveVal() # indicates which input value to return
@@ -424,7 +425,11 @@ select_data_server <- function(id, data_type, rv_project_name){
         
         # Select an existing table
       } else if (project_name$type == "select" & !is.null(project_name$value)) {
-        data_table_list <- list_tables(project_name$value, data_type) # Get existing tables
+        data_table_list <- if (is.null(rv_project_tables)) {
+          list_tables(project_name$value, data_type)
+        } else {
+          rv_project_tables()[[data_type]]
+        }
         
         # if no tables previously loaded, show the file input
         if (all(FishSET::is_empty(data_table_list))){
@@ -539,6 +544,43 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
     rv_load_success_message <- reactiveVal("") # Store success message
     rv_all_data_output <- reactiveValues() # Store all of the loaded data - return to main server
     rv_data_names <- reactiveValues() # Data file/table names for uploading
+    rv_project_tables <- reactiveVal(NULL)
+
+    # A selected project is not loaded until the user clicks "Load data".
+    # Discard data from a previously loaded project before project-specific
+    # observers can use it for the newly selected project.
+    observeEvent(rv_project_name(), {
+      invisible(lapply(c("main", "port", "aux", "spat", "grid"),
+                       function(x) rv_all_data_output[[x]] <- NULL))
+      rv_all_data_output$error <- TRUE
+    }, ignoreInit = TRUE, priority = 100)
+
+    # Read project table names once, then share them across all five selectors.
+    # This avoids repeatedly opening the same SQLite database while the upload
+    # controls are being populated.
+    observeEvent(rv_project_name(), {
+      project <- rv_project_name()
+      if (is.null(project) || project$type != "select" || is.null(project$value)) {
+        rv_project_tables(NULL)
+        return()
+      }
+
+      table_types <- c(
+        main = "MainDataTable", port = "PortTable", aux = "AuxTable",
+        grid = "GridTable"
+      )
+      all_tables <- tryCatch(tables_database(project$value), error = function(e) character(0))
+      table_choices <- lapply(table_types, function(type) {
+        tables <- grep(paste0("^", project$value, ".*", type), all_tables, value = TRUE)
+        if (type == "MainDataTable") tables <- tables[!grepl("MainDataTableInfo", tables)]
+        tables
+      })
+      table_choices$spat <- tryCatch(
+        list_tables(project$value, "spat"),
+        error = function(e) character(0)
+      )
+      rv_project_tables(table_choices)
+    }, ignoreInit = FALSE, priority = 50)
     
     # Outputs for error and success messages - initially hidden
     output$load_error_message_out <- renderText({
@@ -551,27 +593,32 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
     ### Select main data
     rv_data_names$main <- select_data_server("select_main",
                                              data_type = "main",
-                                             rv_project_name = rv_project_name)
+                                             rv_project_name = rv_project_name,
+                                             rv_project_tables = rv_project_tables)
     
     ### Select port data (optional)
     rv_data_names$port <- select_data_server("select_port",
                                              data_type = "port",
-                                             rv_project_name = rv_project_name)
+                                             rv_project_name = rv_project_name,
+                                             rv_project_tables = rv_project_tables)
     
     ### Select aux data (optional)
     rv_data_names$aux <- select_data_server("select_aux",
                                             data_type = "aux",
-                                            rv_project_name = rv_project_name)
+                                            rv_project_name = rv_project_name,
+                                            rv_project_tables = rv_project_tables)
     
     ### Select spatial data
     rv_data_names$spat <- select_data_server("select_spatial",
                                              data_type = "spat",
-                                             rv_project_name = rv_project_name)
+                                             rv_project_name = rv_project_name,
+                                             rv_project_tables = rv_project_tables)
     
     ### Select gridded data (optional)
     rv_data_names$grid <- select_data_server("select_grid",
                                              data_type = "grid",
-                                             rv_project_name = rv_project_name)
+                                             rv_project_name = rv_project_name,
+                                             rv_project_tables = rv_project_tables)
     
     ### Loading helper functions ------------------------------------------------------------------
     # Check validity of project name
@@ -582,6 +629,24 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
       return(TRUE)
     }
     
+    remove_empty_rows <- function(dat, file_name) {
+      empty_rows <- apply(is.na(dat), 1, all)
+      rows_removed <- sum(empty_rows)
+
+      if (rows_removed > 0) {
+        showNotification(
+          paste0(rows_removed, " completely empty row",
+                 if (rows_removed == 1) "" else "s",
+                 " removed from ", file_name, "."),
+          type = "warning",
+          duration = 60
+        )
+        dat <- dat[!empty_rows, , drop = FALSE]
+      }
+
+      dat
+    }
+
     # Load all of the selected data
     load_project_data <- function(data_type, load_data_input, project_name){
       # Skip the function if optional data input is empty
@@ -618,15 +683,8 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
         if (data_type != "spat"){
           tryCatch(
             {
-              data_out <- read_dat(load_data_input$value$datapath)
-            },
-            warning = function(w) {
-              load_warning_error <<- TRUE
-              rv_load_error_message(
-                paste0("⚠️ ", load_data_input$value$name, 
-                       " failed to load. Check data file for compatibility with FishSET.")
-              )
-              shinyjs::show("load_error_message")
+              data_out <- suppressWarnings(read_dat(load_data_input$value$datapath))
+              data_out <- remove_empty_rows(data_out, load_data_input$value$name)
             },
             error = function(e) {
               load_warning_error <<- TRUE
@@ -653,15 +711,9 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
             } else {
               tryCatch(
                 {
-                  data_out <- read_dat(load_data_input$value$datapath, is.map = TRUE)
-                },
-                warning = function(w) {
-                  load_warning_error <<- TRUE
-                  rv_load_error_message(
-                    paste0("⚠️ ", load_data_input$value$name, 
-                           " failed to load. Check data file for compatibility with FishSET.")
+                  data_out <- suppressWarnings(
+                    read_dat(load_data_input$value$datapath, is.map = TRUE)
                   )
-                  shinyjs::show("load_error_message")
                 },
                 error = function(e) {
                   load_warning_error <<- TRUE
@@ -754,13 +806,15 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
                          y = NULL)
           table_name <- paste0(project_name, "MainDataTable")
           
-          # Save package version and recent git commit to the output folder
-          fishset_commit <- packageDescription("FishSET")$GithubSHA1
-          fishset_version <- packageDescription("FishSET")$Version
-          fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
-          version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
-          cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"),
-              file = version_file, append = TRUE)
+          if (isTRUE(pass)) {
+            # Save package version and recent git commit to the output folder
+            fishset_commit <- packageDescription("FishSET")$GithubSHA1
+            fishset_version <- packageDescription("FishSET")$Version
+            fishset_version <- paste0("v", fishset_version, " / commit ", fishset_commit)
+            version_file <- paste0(locoutput(project_name), "fishset_version_history.txt")
+            cat(c("Date: ", as.character(Sys.Date()), "\n", "FishSET", fishset_version, "\n\n"),
+                file = version_file, append = TRUE)
+          }
           
           if (is.null(pass)) {
             rv_load_error_message(
@@ -946,10 +1000,19 @@ load_data_server <- function(id, rv_project_name, rv_data_names, parent_session)
       # Show local spinner
       shinyjs::show("load_data_spinner_container")
       
-      # Load each data type
-      rv_all_data_output$main <- load_project_data(data_type = "main",
-                                                   load_data_input = main_data_info,
-                                                   project_name = project_name$value)
+      # Clear prior data before loading the selected project
+      invisible(lapply(names(rv_all_data_output),
+                       function(x) rv_all_data_output[[x]] <<- NULL))
+
+      # Load main data before dependent data types
+      main_data <- load_project_data(data_type = "main",
+                                     load_data_input = main_data_info,
+                                     project_name = project_name$value)
+      if (is.character(main_data)) {
+        shinyjs::hide("load_data_spinner_container")
+        return(rv_all_data_output$error <- TRUE)
+      }
+      rv_all_data_output$main <- main_data
       
       rv_all_data_output$port <- load_project_data(data_type = "port",
                                                    load_data_input = port_data_info,

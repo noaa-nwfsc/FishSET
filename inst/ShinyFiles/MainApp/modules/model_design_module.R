@@ -19,7 +19,8 @@
 #' @param rv_data A reactiveValues object containing the loaded data frames.
 #'
 #' @return This module does not return a value.
-model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
+model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
+                                rv_current_tab = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -31,6 +32,10 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
     
     # Reactive to store the currently loaded formatted dataframe (for column extraction)
     rv_current_formatted_data <- reactiveVal(NULL)
+
+    observeEvent(rv_project_name(), {
+      rv_current_formatted_data(NULL)
+    }, ignoreInit = TRUE, priority = 100)
     
     # Helper to read formatted data from flat files -----------------------------------------------
     read_long_format_file <- function(project_dir, project_name) {
@@ -75,8 +80,10 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
                            choices = just_names, selected = "")
     }
     
-    # Load data on init
-    observeEvent(rv_project_name()$value, {
+    # Refresh existing designs after data is loaded or when this tab becomes active.
+    observe({
+      req(rv_data$main, rv_project_name())
+      if (!is.null(rv_current_tab) && rv_current_tab() != "model_design") return()
       load_designs()
     })
     
@@ -87,6 +94,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
       intervalMillis = 1000, 
       session = session,
       checkFunc = function() {
+        if (is.null(rv_data$main)) return("data_not_loaded")
         if (is.null(rv_project_name())) return("")
         project <- rv_project_name()$value
         if (is.null(project) || project == "") return("")
@@ -107,6 +115,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
         return(paste(state_qs2, state_rds, sep = "|")) 
       },
       valueFunc = function() {
+        if (is.null(rv_data$main)) return(character(0))
         if (is.null(rv_project_name())) return(character(0))
         project <- rv_project_name()$value
         if (is.null(project) || project == "") return(character(0))
@@ -126,6 +135,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name,  rv_data) {
     )
     
     observe({
+      if (!is.null(rv_current_tab) && rv_current_tab() != "model_design") return()
       choices <- formatted_data_choices()
       current_selection <- isolate(input$formatted_data_input)
       

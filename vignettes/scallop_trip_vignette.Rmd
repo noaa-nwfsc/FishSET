@@ -306,13 +306,25 @@ still shows the exact commands a user would run locally to estimate and
 print both model tables. The printed tables include estimated coefficients,
 standard errors, p-values, log-likelihood, AIC, Pseudo R2, and accuracy.
 
+Note that in order to plot the predicted probabilities of fishing on a map
+the `return_full_prob_mat` input for `fishset_fit()` must be set to `TRUE`.
+
 ```{r eval=FALSE}
 clogit1_fit <- fishset_fit(project = project, model_name = "clogit1")
 print(clogit1_fit)
 
+map_predicted_probs(project,
+                    fit_name = "clogit1_fit",
+                    spat = "scallop_vignettetenMNSQRSpatTable",
+                    zone_spat = "TEN_ID",
+                    plot_type = "dynamic",
+                    output = "plot")
+
 zlogit1_fit <- fishset_fit(project = project, model_name = "zlogit1")
 print(zlogit1_fit)
 ```
+
+
 
 ## Model diagnostics and validation
 
