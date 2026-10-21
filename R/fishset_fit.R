@@ -3,7 +3,7 @@
 #' Estimates parameters for logit models using the RTMB (R Template Model Builder) 
 #' framework. This function takes a design object created by \code{\link{fishset_design}}, 
 #' optimizes the negative log-likelihood, and returns a comprehensive list of model results, 
-#' fit statistics, and diagnostics.
+#' fit statistics, and diagnostics. Also supports mixed logit estimation via Laplace approximation.
 #'
 #' @param project Character string. Name of the project.
 #' @param model_name Character string. Name of the specific model design to fit. 
@@ -76,6 +76,16 @@
 #'   fit_name = "epm_fit1",
 #'   distribution = "normal"
 #' )
+#' 
+#' # 4. Mixed Logit Model
+#' # The function automatically detects the random parameter architecture from 
+#' # the design object and uses a Laplace approximation to fit the model.
+#' mixed_fit <- fishset_fit(
+#'   project = "MyProject",
+#'   model_name = "mixed_logit1",
+#'   fit_name = "mixed_fit_results",
+#'   se_calc = TRUE # Ensures standard errors for the random deviations are computed
+#' )
 #' }
 #'
 #' @seealso \code{\link{fishset_design}} for creating the input design object.
@@ -142,8 +152,15 @@ fishset_fit <- function(project,
     }
   }
   
-  # Check if this is an EPM
+  # Check if this is an EPM or mixed logit
   is_epm <- isTRUE(design$epm$is_epm)
+  is_mixed <- !is.null(design$random_effects)
+  
+  if (is_epm && is_mixed) {
+    stop("Mixed logit modeling is currently restricted to standard conditional logits. ",
+         "Random parameters are not yet supported for Expected Profit Models (EPMs).")
+  }
+  
   if (is_epm) {
     if (is.null(distribution)) stop("EPMs require a distribution for the catch function.")
     valid_dists <- c("normal", "lognormal", "weibull")
@@ -171,6 +188,9 @@ fishset_fit <- function(project,
                "Ensure data is sorted by Obs/Zone."))
   }
   
+  # Set random map default
+  random_map <- NULL
+  
   # STANDARD LOGIT SETUP --------------------------------------------------------------------------
   if (!is_epm) {
     K_vars <- design$settings$K_vars
@@ -184,23 +204,77 @@ fishset_fit <- function(project,
     }
     
     data_list <- list(
-      X = design$X,
       chosen_lin_idx = chosen_lin_idx,
       N_obs = N_obs,
-      J_alts = J_alts
+      J_alts = J_alts,
+      is_mixed = as.integer(is_mixed)
     )
     
     start_pars <- list(betas = init_beta)
     
+    ## Mixed logit architecture -------------------------------------------------------------------
+    if (is_mixed) {
+      group_factor <- as.factor(design$ids$group)
+      N_groups <- length(levels(group_factor))
+      K_random <- ncol(design$random_effects$X_random)
+      
+      data_list$X_random <- design$random_effects$X_random
+      data_list$group_idx <- as.integer(group_factor)
+      data_list$dist_codes <- design$random_effects$dist_codes
+      
+      # Dynamically partition purely fixed columns from the main X matrix
+      data_list$fixed_idx_map <- as.integer(match(colnames(data_list$X_random), colnames(design$X)))
+      data_list$pure_fixed_idx <- as.integer(setdiff(1:K_vars, data_list$fixed_idx_map))
+      data_list$X_pure_fixed <- design$X[, data_list$pure_fixed_idx, drop = FALSE]
+      
+      # Initialize variance params and local betas
+      start_pars$log_sigma_random <- rep(log(0.1), K_random)
+      start_pars$beta_random <- matrix(0, nrow = N_groups, ncol = K_random)
+      
+      # Triggers Laplace approximation for beta_random
+      random_map <- "beta_random"
+      
+    } else {
+      # If not mixed, the entire X matrix is purely fixed
+      data_list$X_pure_fixed <- design$X
+      data_list$pure_fixed_idx <- as.integer(1:K_vars)
+    }
+    
     # Objective function
     nll_func <- function(pars) {
       RTMB::getAll(data_list, pars)
+      nll <- 0
       
-      # Sparse Matrix Multiply (Zonal)
-      v <- X %*% betas
+      # Sparse matrix multiply for purely fixed variables
+      if (length(pure_fixed_idx) > 0) {
+        v <- X_pure_fixed %*% betas[pure_fixed_idx]
+      } else {
+        v <- rep(0, N_obs * J_alts)
+      }
+      
+      if (is_mixed == 1) {
+        # Apply standard normal prior mapping
+        nll <- nll - sum(RTMB::dnorm(beta_random, 0, 1, log = TRUE))
+        
+        sigma_random <- exp(log_sigma_random)
+        beta_random_obs <- beta_random[group_idx, , drop = FALSE]
+        
+        # Parameter first assembly
+        for (k in 1:length(dist_codes)) {
+          mu <- betas[fixed_idx_map[k]]
+          z <- beta_random_obs[, k] * sigma_random[k]
+          
+          if (dist_codes[k] == 1) {
+            beta_gk <- mu + z      # Normal
+          } else if (dist_codes[k] == 2) {
+            beta_gk <- exp(mu + z) # Lognormal
+          }
+          
+          v <- v + X_random[, k] * beta_gk
+        }
+      }
       
       v_chosen <- v[chosen_lin_idx]
-      
       dim(v) <- c(J_alts, N_obs)
       
       if (robust) {
@@ -216,10 +290,9 @@ fishset_fit <- function(project,
         log_sum_exp <- log(RTMB::colSums(exp(v)))
       }
       
-      nll <- -sum(v_chosen - log_sum_exp)
+      nll <- nll - sum(v_chosen - log_sum_exp)
       return(nll)
     }
-    
     
     # EPM LOGIT SETUP -----------------------------------------------------------------------------
   } else {
@@ -376,6 +449,7 @@ fishset_fit <- function(project,
   obj <- RTMB::MakeADFun(func = nll_func,
                          data = data_list,
                          parameters = start_pars,
+                         random = random_map,
                          silent = TRUE)
   
   # Proactive gradient check
@@ -449,7 +523,30 @@ fishset_fit <- function(project,
   if (!is_epm) {
     ### standard logit reporting ###
     coef_names <- colnames(design$X)
-    if(length(estimated_coefs) == ncol(design$X)) names(estimated_coefs) <- coef_names
+    
+    if (is_mixed) {
+      # Append standard deviations of random parameters to report
+      K_ran <- ncol(design$random_effects$X_random)
+      ran_names <- paste0("Sd_", colnames(design$random_effects$X_random))
+      
+      idx_log_sig <- grep("log_sigma_random", names(estimated_coefs))
+      sig_ran_est <- exp(estimated_coefs[idx_log_sig])
+      
+      # Transform standard errors via Delta method for the standard deviations
+      if (se_calc) {
+        se_log_sig <- report_se[idx_log_sig]
+        se_sig_ran <- se_log_sig * sig_ran_est
+        report_se[idx_log_sig] <- se_sig_ran
+      }
+      
+      # Overwrite names
+      names(estimated_coefs)[1:length(coef_names)] <- coef_names
+      names(estimated_coefs)[idx_log_sig] <- ran_names
+      estimated_coefs[idx_log_sig] <- sig_ran_est
+    } else {
+      if(length(estimated_coefs) == ncol(design$X)) names(estimated_coefs) <- coef_names  
+    }
+    
     report_coefs <- estimated_coefs
     
     if (!is.null(design$scalers) && length(design$scalers) > 0) {
@@ -562,7 +659,28 @@ fishset_fit <- function(project,
   
   # Predictions (Recalculate with original X outside AD tape)
   if (!is_epm) {
-    final_v <- as.vector(design$X %*% opt$par)
+    # Extract only the fixed-effect betas (the first K_vars parameters)
+    fixed_betas <- opt$par[1:ncol(design$X)]
+    
+    if (is_mixed) {
+      # Adjust fixed_betas for prediction based on the expected value of the distribution
+      l_sig_ran <- opt$par[grep("log_sigma_random", names(opt$par))]
+      sig_ran <- exp(l_sig_ran)
+      
+      for (k in seq_along(design$random_effects$dist_codes)) {
+        idx <- match(colnames(design$random_effects$X_random)[k], colnames(design$X))
+        if (design$random_effects$dist_codes[k] == 2) { 
+          # Expected value of a lognormal coefficient
+          mu <- fixed_betas[idx]
+          fixed_betas[idx] <- exp(mu + 0.5 * sig_ran[k]^2) 
+        }
+      }
+    }
+    
+    final_v <- as.vector(design$X %*% fixed_betas)
+    
+    # Out-of-sample predictions generally set random effects to 0 (the mean)
+    # The expected utility calculation only uses the fixed parameter components
     dim(final_v) <- c(J_alts, N_obs)
     v_max <- apply(final_v, 2, max)
     exp_v <- exp(t(t(final_v) - v_max))
@@ -615,11 +733,25 @@ fishset_fit <- function(project,
   y_div <- if (!is.null(design$scalers$Y_catch_divisor)) design$scalers$Y_catch_divisor else 1
   p_div <- if (!is.null(design$scalers$price_divisor)) design$scalers$price_divisor else 1
   
+  # Extract group-level random deviations if mixed logit
+  random_effects_estimates <- NULL
+  if (is_mixed) {
+    raw_beta_ran <- obj$env$parList()$beta_random
+    group_levels <- levels(as.factor(design$ids$group))
+    
+    if (!is.null(raw_beta_ran) && length(group_levels) == nrow(raw_beta_ran)) {
+      rownames(raw_beta_ran) <- as.character(group_levels)
+      colnames(raw_beta_ran) <- colnames(design$random_effects$X_random)
+      random_effects_estimates <- raw_beta_ran
+    }
+  }
+  
   # Output and save -------------------------------------------------------------------------------
   result <- list(
     opt = opt,
     coefficients = report_coefs,
     coef_table = coef_table,
+    random_effects = random_effects_estimates,
     logLik = -nll,
     null_logLik = null_logLik,
     AIC = aic,
@@ -702,6 +834,7 @@ fishset_fit <- function(project,
 #' Formats and prints the output of a FishSET discrete choice model fit.
 #' Displays the model formula (if available), coefficients table with significance stars,
 #' and key goodness-of-fit statistics (Log-Likelihood, AIC, BIC, Pseudo-R2, Accuracy).
+#' For mixed logit models, coefficient outputs are split into Fixed and Random effects.
 #'
 #' @param x A \code{fishset_fit} object returned by \code{\link{fishset_fit}}.
 #' @param digits Integer. The number of significant digits to use when printing
@@ -719,7 +852,7 @@ print.fishset_fit <- function(x, digits = 4, ...) {
   cat("\nFishSET Model Fit\n")
   cat("========================================================\n")
   
-  # Metadata (if available in settings, otherwise check formula)
+  # Metadata
   if (!is.null(x$formula)) {
     cat("Formula:      ", deparse(x$formula), "\n")
   }
@@ -732,22 +865,41 @@ print.fishset_fit <- function(x, digits = 4, ...) {
     cat("Price Units:   Modeled in 1 /", format(x$price_divisor, scientific = FALSE), "units\n")
   }
   
-  # Coefficients table
-  cat("\nCoefficients:\n")
-  cat("--------------------------------------------------------\n")
+  # Coefficients table formatting
   if (!is.null(x$coef_table)) {
-    # Check if the table includes P-values
     has_pvals <- "Pr_z" %in% colnames(x$coef_table)
     
-    stats::printCoefmat(x$coef_table,
-                        digits = digits,
-                        signif.stars = has_pvals,
-                        P.values = has_pvals,
-                        has.Pvalue = has_pvals)
+    # Check if this is a mixed logit by looking for the "Sd_" prefix
+    is_mixed <- any(grepl("^Sd_", rownames(x$coef_table)))
     
-    cat("--------------------------------------------------------\n")
+    if (is_mixed) {
+      idx_ran <- grep("^Sd_", rownames(x$coef_table))
+      fix_table <- x$coef_table[-idx_ran, , drop = FALSE]
+      ran_table <- x$coef_table[idx_ran, , drop = FALSE]
+      
+      cat("\nFixed Effects:\n")
+      cat("--------------------------------------------------------\n")
+      stats::printCoefmat(fix_table, digits = digits, signif.stars = has_pvals, 
+                          P.values = has_pvals, has.Pvalue = has_pvals)
+      
+      cat("\nRandom Effects (Standard Deviations):\n")
+      cat("--------------------------------------------------------\n")
+      stats::printCoefmat(ran_table, digits = digits, signif.stars = has_pvals, 
+                          P.values = has_pvals, has.Pvalue = has_pvals)
+      cat("--------------------------------------------------------\n")
+      
+    } else {
+      # Standard Logit / EPM print
+      cat("\nCoefficients:\n")
+      cat("--------------------------------------------------------\n")
+      stats::printCoefmat(x$coef_table, digits = digits, signif.stars = has_pvals, 
+                          P.values = has_pvals, has.Pvalue = has_pvals)
+      cat("--------------------------------------------------------\n")
+    }
     
   } else {
+    cat("\nCoefficients:\n")
+    cat("--------------------------------------------------------\n")
     print(x$coefficients)
     cat("--------------------------------------------------------\n")
   }

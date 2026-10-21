@@ -10,6 +10,7 @@ format_model_data(
   alt_name,
   zone_id,
   unique_obs_id,
+  group_id = NULL,
   select_vars = NULL,
   aux_data = NULL,
   aux_key = NULL,
@@ -34,6 +35,9 @@ project's formatted data list.}
 
 \item{unique_obs_id}{Variable name in the dataset representing the unique observation
 identifier (unique rows in the main data table).}
+
+\item{group_id}{Optional. Variable name representing the panel or grouping identifier
+(e.g., vessel or fisher) for mixed logit models with random effects.}
 
 \item{select_vars}{Character vector of variable names to retain from the main data table.
 Although this input is optional, it is recommended to limit the final format to necessary

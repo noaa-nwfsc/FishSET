@@ -49,6 +49,16 @@ epm_design <- list(
 colnames(epm_design$X) <- "UtilVar"
 colnames(epm_design$epm$X_catch) <- "CatchVar"
 
+# Synthetic Design Object (Mixed Logit)
+N_groups <- 3
+mixed_design <- standard_design
+mixed_design$ids$group <- rep(1:N_groups, length.out = N_obs * J_alts)
+mixed_design$random_effects <- list(
+  X_random = matrix(rnorm(N_obs * J_alts * 1), ncol = 1, dimnames = list(NULL, "Var1")),
+  group_id = "vessel_id",
+  dist_codes = c("Var1" = 1)
+)
+
 # Mocking architecture ----------------------------------------------------------------------------
 orig_functions <- list(
   log_call = getFromNamespace("log_call", "FishSET")
@@ -287,4 +297,34 @@ test_that("Vectorized unscaling correctly divides coefficients and SEs", {
 
   expect_equal(unname(result$coefficients["Var1"]), (unname(raw_var1) / 2.0), tolerance = 1e-5)
   expect_equal(unname(result$coefficients["Var2"]), (unname(raw_var2) / 10.0), tolerance = 1e-5)
+})
+
+
+# Test mixed logit fit ----------------------------------------------------------------------------
+test_that("Mixed Logit Fit runs and outputs group-level random effects", {
+  setup_mocks()
+  test_base_dir <- save_design_to_temp(mixed_design, "mixed_model", "TestProj_Mixed")
+  
+  old_opts <- options(test_folder_path = test_base_dir)
+  on.exit({
+    options(old_opts)
+    restore_mocks()
+  }, add = TRUE)
+  
+  result <- fishset_fit(
+    project = "TestProj_Mixed",
+    model_name = "mixed_model",
+    fit_name = "mixed_fit_1",
+    control = list(iter.max = 1, eval.max = 5)
+  )
+  
+  expect_s3_class(result, "fishset_fit")
+  
+  # Verify standard deviation parameter prefix
+  expect_true(any(grepl("^Sd_", names(result$coefficients))))
+  
+  # Verify random deviations matrix is populated and mapped to group levels
+  expect_true(!is.null(result$random_effects))
+  expect_equal(nrow(result$random_effects), N_groups)
+  expect_equal(colnames(result$random_effects), "Var1")
 })

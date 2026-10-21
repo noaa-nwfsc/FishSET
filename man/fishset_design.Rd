@@ -13,22 +13,19 @@ fishset_design(
   zone_id,
   catch_formula = NULL,
   price_var = NULL,
+  random_dists = NULL,
   scale = FALSE,
   overwrite = FALSE
 )
 }
 \arguments{
 \item{formula}{A two-part formula specifying the model structure (e.g., 
-\code{chosen ~ expected_catch + distance | income}). The left-hand side specifies the 
-binary choice variable, which is always specified as \code{chosen} from the 
-\code{\link{format_model_data}} function. The right-hand side is separated by a pipe (|):
-Part 1 contains alternative-specific variables, and 
-Part 2 contains trip- or haul-specific variables (i.e., do not vary across fishing zones).}
+\code{chosen ~ expected_catch + distance | income}). For random parameters, use the 
+standard mixed model syntax: \code{chosen ~ var1 + (1 + var1 | group_id)}.}
 
 \item{project}{Name of the project.}
 
-\item{model_name}{Name for this specific model design instance. Must be unique within the 
-project's design list.}
+\item{model_name}{Name for this specific model design instance.}
 
 \item{formatted_data_name}{Name of the formatted data object to use. This must correspond to a 
 name previously created by \code{\link{format_model_data}}.}
@@ -43,6 +40,9 @@ identifier.}
 \item{price_var}{Variable name in the dataset representing price. This input is only used for
 Expected Profit Models, and the price variable must be included in the formatted dataset 
 created in the \code{\link{format_model_data}} function.}
+
+\item{random_dists}{Optional. Named vector specifying the distribution for random parameters.
+(e.g., \code{c(distance = "lognormal", SST = "normal")}). Defaults to "normal".}
 
 \item{scale}{Logical. Default = FALSE. If TRUE, numeric predictors in the design matrix (X) 
 are centered and scaled (z-score normalization) before saving. Scaling factors are stored to 
@@ -59,9 +59,9 @@ A list object of class 'fishset_design' containing the design matrices, choice v
 Constructs the design object required for discrete choice model fitting within the FishSET 
 framework. This function parses the model formula, validates the formatted data, and generates 
 the design matrix (X) and choice vector (y). It handles both alternative-specific variables and 
-trip- or haul-specific variables (automatically creating interactions with zone constants). The 
-resulting design object is the primary input for the \code{\link{fishset_fit}} function, 
-which performs the parameter estimation.
+trip- or haul-specific variables (automatically creating interactions with zone constants). 
+This function also supports random parameters for mixed logit models using (var | group_id) 
+syntax, which estimates how sensitivity to var varies randomly across group_ids.
 }
 \details{
 The resulting design object is saved as a compressed file in the 'Models/ModelDesigns' folder,
@@ -118,6 +118,21 @@ fishset_design(
   price_var = "price_var",
   scale = TRUE
 ) 
+
+# 5. Mixed Logit Model (Random Parameters)
+# Use the standard mixed model syntax (var | group_id) to specify parameters
+# that vary across groups. In this example, the effect of 'distance' varies 
+# randomly across vessels, and we assign it a lognormal distribution.
+fishset_design(
+  formula = chosen ~ expected_catch + distance + (0 + distance | vessel_id),
+  project = "MyProject",
+  model_name = "mixed_logit1",
+  formatted_data_name = "my_formatted_data",
+  unique_obs_id = "haul_id",
+  zone_id = "zone_id",
+  random_dists = c(distance = "lognormal"),
+  scale = TRUE
+)
 }
 
 }

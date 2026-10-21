@@ -72,7 +72,7 @@ A list object of class \code{"fishset_fit"} containing, this list is also saved 
 Estimates parameters for logit models using the RTMB (R Template Model Builder) 
 framework. This function takes a design object created by \code{\link{fishset_design}}, 
 optimizes the negative log-likelihood, and returns a comprehensive list of model results, 
-fit statistics, and diagnostics.
+fit statistics, and diagnostics. Also supports mixed logit estimation via Laplace approximation.
 }
 \examples{
 \dontrun{
@@ -102,6 +102,16 @@ epm_fit <- fishset_fit(project = project,
   model_name = "epm1",
   fit_name = "epm_fit1",
   distribution = "normal"
+)
+
+# 4. Mixed Logit Model
+# The function automatically detects the random parameter architecture from 
+# the design object and uses a Laplace approximation to fit the model.
+mixed_fit <- fishset_fit(
+  project = "MyProject",
+  model_name = "mixed_logit1",
+  fit_name = "mixed_fit_results",
+  se_calc = TRUE # Ensures standard errors for the random deviations are computed
 )
 }
 
