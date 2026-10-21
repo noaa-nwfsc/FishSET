@@ -8,7 +8,11 @@
 #'   converted into geojson. This is done automatically when the file is loaded 
 #'   with \code{\link{read_dat}} with \code{is.map} set to true. \code{spat} 
 #'   cannot, at this time, be loaded from the FishSET database. \cr
-#' @param zone_spat Variable in \code{spat} that identifies the individual areas or zones.
+#' @param mainname Optional, data file or character. The main dataset containing
+#'   non-spatial records that can be used to select zones based on existing variables.
+#' @param zone_spat Variable in \code{spatname} that identifies the individual areas or zones.
+#' @param zone_main Variable in \code{mainname} that identifies the individual areas or zones.
+#'   Required if \code{mainname} is provided.
 #' @param lon_spat Required for csv files. Variable or list from \code{spat} 
 #'   containing longitude data. Leave as NULL if \code{spat} is a shape or json file.
 #' @param lat_spat Required for csv files. Variable or list from \code{spat} 
@@ -17,7 +21,6 @@
 #'   If epsg is not specified but is defined for \code{spat}. 
 #'   See \url{http://spatialreference.org/} to help identify the optimal epsg number.
 #' @importFrom sf st_crs st_transform
-#' @importFrom yaml write_yaml
 #' @importFrom grDevices topo.colors
 #' @importFrom shiny dataTableOutput renderDataTable
 #' @import leaflet
@@ -29,11 +32,13 @@
 #'   Clicking 'Add closure' instantly saves the scenario to the project database. 
 #'   These saved choices are later called in the policy scenario function.
 #' @export
-#' @return Returns a yaml file to the project output folder.
+#' @return A Shiny application object.
 
 zone_closure <- function(project, 
                          spatname, 
+                         mainname = NULL,
                          zone_spat, 
+                         zone_main = NULL,
                          lon_spat = NULL,
                          lat_spat = NULL, 
                          epsg = NULL) { 
@@ -61,12 +66,40 @@ zone_closure <- function(project,
   
   
   # Set zone closure shiny path -------------------------------------------------------------------
-  zone_closure_dir <- system.file("ShinyFiles", "MainApp", "modules", "policy", package = "FishSET")
+  zone_closure_dir <- system.file("ShinyFiles", "MainApp", "modules", "policy",
+                                  package = "FishSET")
   if (zone_closure_dir == "") {
     stop("Could not find example directory. Try re-installing `FishSET`.", call. = FALSE)
   }
+  
+  # SOURCE SPINNER.R HERE
+  # Adjust this path if spinner.R lives in a different directory (like "utils" instead 
+  # of "policy")
+  spinner_path <- system.file("ShinyFiles", "MainApp", "modules", package = "FishSET")
+  spinner_path_full <- file.path(spinner_path, "spinner.R")
+  if (file.exists(spinner_path_full)) {
+    source(spinner_path_full, local = TRUE)
+  } else {
+    # Fallback path check if you keep UI components in a separate folder
+    alt_spinner_path <- file.path(system.file("ShinyFiles", "MainApp", "modules", "utils",
+                                              package = "FishSET"), "spinner.R")
+    if (file.exists(alt_spinner_path)) source(alt_spinner_path, local = TRUE)
+  }
+
+  # Source the main module
   source(file.path(zone_closure_dir, "zone_closure_module.R"), local = TRUE)
   
+  # Pull main data if provided ---------------------------------------------------------------
+  main_dat <- NULL
+  if (!is.null(mainname)) {
+    main_out <- data_pull(mainname, project)
+    main_dat <- main_out$dataset
+    
+    if (is.null(zone_main)) {
+      warning("mainname was provided but zone_main is NULL. 'Select Existing Variable' 
+              from main data may fail.")
+    }
+  }
   
   # Pull spatial data if needed -------------------------------------------------------------------
   spat_out <- data_pull(spatname, project)
@@ -87,7 +120,7 @@ zone_closure <- function(project,
     zone_closure_ui("policy")
   )
   
-  # Zone closure server ---------------------------------------------------------------------------
+ # Zone closure server ---------------------------------------------------------------------------
   server <- function(input, output, session){
     session$onSessionEnded(function() {
       stopApp()
@@ -95,15 +128,19 @@ zone_closure <- function(project,
     
     rv_project_name <- reactive({ project })
     rv_folderpath   <- reactive({ locproject() }) 
-    rv_data         <- reactiveValues(spat = spat)
     
-    # Call the module server, passing the parameter string directly
+    # Include main_dat in the reactiveValues
+    rv_data         <- reactiveValues(spat = spat, main = main_dat)
+    
     zone_closure_server(
       id = "policy", 
       rv_folderpath = rv_folderpath, 
       rv_project_name = rv_project_name, 
       rv_data = rv_data,
-      spat_zone_id = zone_spat 
+      spat_zone_id = zone_spat,
+      main_zone_id = zone_main,  # Maps correctly from the new function argument
+      spat_name = spatname,      
+      main_name = if(!is.null(mainname)) mainname else "Main Data"
     )
   }
   

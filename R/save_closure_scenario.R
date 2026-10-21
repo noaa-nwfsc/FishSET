@@ -2,20 +2,28 @@ get_closure_scenario <- function(project) {
   #' Retrieve closure scenario by project
   #' 
   #' @param project Name of project.
-  #' @importFrom yaml read_yaml
+  #' @importFrom DBI dbConnect dbDisconnect dbGetQuery dbExecute dbQuoteIdentifier
+  #' @importFrom RSQLite SQLite
   #' @export
   #' @examples 
   #' \dontrun{
   #' get_closure_scenario("pollock")
   #' }
   
-  filename <- paste0(locoutput(project), project, "_closures.yaml")
+  table_name <- paste0(project, "ClosureScenarios")
+  if (!table_exists(table_name, project)) {
+    return(NULL)
+  }
   
-  if (file.exists(filename)) {
-    
-    yaml::read_yaml(filename)
-    
-  } else return(NULL)
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  result <- DBI::dbGetQuery(
+    fishset_db,
+    paste0("SELECT data FROM ", DBI::dbQuoteIdentifier(fishset_db, table_name),
+           " LIMIT 1")
+  )
+  
+  if (nrow(result) == 0) NULL else unserialize(result$data[[1]])
 }
 
 
@@ -53,36 +61,19 @@ unique_closure <- function(project, c_list, ind = TRUE) {
 save_closure_scenario <- function(project, c_list) {
   #' Save unique closure scenarios
   #' 
-  #' Used to save unique closures scenarios to the closures yaml file located in
-  #' the project output folder.
+  #' Saves closure scenarios in the project's internal SQLite database.
   #' 
   #' @param project Name of project.
   #' @param c_list List of closure scenarios to check and save. 
-  #' @importFrom yaml write_yaml read_yaml
+  #' @importFrom DBI dbConnect dbDisconnect dbExecute dbQuoteIdentifier
+  #' @importFrom RSQLite SQLite
   #' @keywords internal
   #' @export
   
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)
   
-  filename <- paste0(locoutput(project), project, "_closures.yaml")
-  
-  if (!file.exists(filename)) {
-
-    yaml::write_yaml(c_list, filename)
-
-  } else {
-    
-    keep <- unique_closure(project, c_list, ind = TRUE)
-    
-    c_list <- c_list[keep]
-
-    c_file <- yaml::read_yaml(filename)
-
-    c_file <- c(c_file, c_list)
-
-    yaml::write_yaml(c_file, filename)
-  }
+  serialize_table(paste0(project, "ClosureScenarios"), c_list, project)
   
   cat("Closure scenario saved", file = tmp)
   
@@ -94,6 +85,28 @@ save_closure_scenario <- function(project, c_list) {
   save_closure_scenario_function$args <- list(project, c_list)
   save_closure_scenario_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, save_closure_scenario_function)
+}
+
+
+serialize_table <- function(table, object, project) {
+  #' Serialize an object into a FishSET project database table
+  #'
+  #' @param table Database table name.
+  #' @param object R object to serialize.
+  #' @param project Project name.
+  #' @keywords internal
+  
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  table_name <- DBI::dbQuoteIdentifier(fishset_db, table)
+  
+  DBI::dbExecute(fishset_db, paste("DROP TABLE IF EXISTS", table_name))
+  DBI::dbExecute(fishset_db, paste("CREATE TABLE", table_name, "(data BLOB)"))
+  DBI::dbExecute(
+    fishset_db,
+    paste("INSERT INTO", table_name, "(data) VALUES (:data)"),
+    params = list(data = list(serialize(object, NULL)))
+  )
 }
 
 
