@@ -3,6 +3,7 @@
 # Description: This module defines the UI and server logic for creating Model Design objects.
 #              It constructs the design matrices (X) and choice vector (y) required for
 #              discrete choice modeling.
+#              Optional mixed-logit controls append random slopes and their distributions.
 #              
 # Dependencies: shiny, DT, shinyjs, bslib, qs2
 # Notes: This module interacts with Models/FormattedData (input) and 
@@ -150,6 +151,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     
     # Update Column Selectors based on chosen Formatted Data
     observeEvent(input$formatted_data_input, {
+      rv_current_formatted_data(NULL)
       req(rv_project_name(), input$formatted_data_input)
       project <- rv_project_name()$value
       data_name <- input$formatted_data_input
@@ -176,6 +178,33 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       }, error = function(e) {
         showNotification("Error loading dataset columns.", type = "error")
       })
+    }, ignoreNULL = FALSE)
+
+    observeEvent(rv_current_formatted_data(), {
+      df <- rv_current_formatted_data()
+      cols <- colnames(df)
+      numeric_cols <- cols[vapply(df, is.numeric, logical(1))]
+      updateSelectizeInput(session, "group_id_input", choices = cols, selected = "")
+      updateSelectizeInput(session, "random_vars_input", choices = numeric_cols,
+                           selected = character(0))
+    }, ignoreNULL = FALSE)
+
+    random_dist_input_id <- function(variable) {
+      paste0("random_dist_", paste(utf8ToInt(variable), collapse = "_"))
+    }
+
+    output$random_dists_ui <- renderUI({
+      req(isTRUE(input$enable_random_input))
+      df <- rv_current_formatted_data()
+      vars <- intersect(input$random_vars_input, colnames(df))
+      tagList(lapply(vars, function(variable) {
+        input_id <- random_dist_input_id(variable)
+        selected <- isolate(input[[input_id]])
+        if (is.null(selected)) selected <- "normal"
+        selectInput(ns(input_id), paste("Distribution for", variable),
+                    choices = c("Normal" = "normal", "Lognormal" = "lognormal"),
+                    selected = selected, width = "100%")
+      }))
     })
     
     
@@ -244,6 +273,40 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         if (!grepl("~", form_str)) {
           stop("Invalid formula format. Must contain '~'.")
         }
+
+        random_dists <- NULL
+        if (isTRUE(input$enable_random_input)) {
+          df <- rv_current_formatted_data()
+          group_id <- input$group_id_input
+          random_vars <- input$random_vars_input
+          if (is.null(df)) stop("Please load a Formatted Dataset for random parameters.")
+          if (is.null(group_id) || !nzchar(group_id) || !(group_id %in% colnames(df))) {
+            stop("Please select a grouping variable from the Formatted Dataset.")
+          }
+          if (length(random_vars) == 0 || !all(random_vars %in% colnames(df))) {
+            stop("Please select at least one random parameter from the Formatted Dataset.")
+          }
+          if (!all(vapply(random_vars, function(variable) is.numeric(df[[variable]]),
+                          logical(1)))) {
+            stop("Random parameters must be numeric covariates.")
+          }
+          if (any(make.names(c(group_id, random_vars)) != c(group_id, random_vars))) {
+            stop("Random parameters and the grouping variable require syntactically valid R column names.")
+          }
+          if (grepl("\\([^)]+\\|[^)]+\\)", form_str)) {
+            stop("Specify random parameters using either the controls or the formula, not both.")
+          }
+          random_dists <- setNames(vapply(random_vars, function(variable) {
+            distribution <- input[[random_dist_input_id(variable)]]
+            if (is.null(distribution) ||
+                !(distribution %in% c("normal", "lognormal"))) {
+              stop(paste("Please select a distribution for", variable))
+            }
+            distribution
+          }, character(1)), random_vars)
+          form_str <- paste0(form_str, " + (0 + ", paste(random_vars, collapse = " + "),
+                             " | ", group_id, ")")
+        }
         
         # Prepare arguments
         args <- list(
@@ -255,6 +318,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
           zone_id = rv_selected_vars$vars$main$main_zone_id,
           scale = input$scale_input
         )
+        if (isTRUE(input$enable_random_input)) args$random_dists <- random_dists
         
         # Add EPM specific arguments if applicable
         if (is_epm) {
@@ -595,7 +659,7 @@ model_design_ui <- function(id) {
                       )
                   ),
                   
-                  # RIGHT COLUMN: Scale Toggle and Reference Variables
+                  # RIGHT COLUMN: Random Parameters, Scale and Reference Variables
                   div(class = "d-flex flex-column gap-3",
                       
                       helpText(tags$small(
@@ -610,6 +674,27 @@ model_design_ui <- function(id) {
                           div(class = "text-muted mt-2", style = "font-size: 0.8rem;",
                               textOutput(ns("avail_vars_list"))
                           )
+                      ),
+                      checkboxInput(ns("enable_random_input"),
+                                    "Enable Random Parameters (Mixed Logit)", value = FALSE),
+                      conditionalPanel(
+                        condition = "input.enable_random_input",
+                        ns = ns,
+                        div(
+                          class = "p-3 bg-light border rounded",
+                          h6("Random Parameters", class = "card-title text-primary mb-3"),
+                          selectizeInput(ns("group_id_input"), "Grouping Variable",
+                                         choices = NULL, width = "100%"),
+                          selectizeInput(ns("random_vars_input"), "Random Parameters",
+                                         choices = NULL, multiple = TRUE, width = "100%"),
+                          uiOutput(ns("random_dists_ui")),
+                          helpText(
+                            "Select numeric covariates and a distribution for each random slope.",
+                            "Keep fixed effects in the utility formula; these controls append",
+                            "(0 + variables | group_id) without a random intercept.",
+                            "Normal is the default; lognormal constrains coefficients to be positive."
+                          )
+                        )
                       ),
                       checkboxInput(ns("scale_input"), 
                                     label = tags$span(

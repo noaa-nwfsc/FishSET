@@ -310,14 +310,17 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         grep(paste0("^", zb), raw_params, value = TRUE)))
       sigma_cols <- grep("Sigma_Catch|Sdlog_Catch|Shape_Catch|Sigma_Error", 
                          raw_params, ignore.case = TRUE, value = TRUE)
+      random_sd_cols <- grep("^Sd_", raw_params, value = TRUE)
       
       # Clean up and ensure absolute priority
-      dist_cols <- setdiff(unique(dist_cols), sigma_cols)
-      catch_cols <- setdiff(unique(catch_cols), c(dist_cols, sigma_cols))
-      zone_cols <- setdiff(unique(zone_cols), c(dist_cols, catch_cols, sigma_cols))
-      other_cols <- setdiff(raw_params, c(dist_cols, catch_cols, zone_cols, sigma_cols))
-      
-      all_params <- c(dist_cols, catch_cols, zone_cols, other_cols, sigma_cols)
+      sigma_cols <- setdiff(sigma_cols, random_sd_cols)
+      dist_cols <- setdiff(unique(dist_cols), c(random_sd_cols, sigma_cols))
+      catch_cols <- setdiff(unique(catch_cols), c(dist_cols, random_sd_cols, sigma_cols))
+      zone_cols <- setdiff(unique(zone_cols), c(dist_cols, catch_cols, random_sd_cols, sigma_cols))
+      other_cols <- setdiff(raw_params,
+                           c(dist_cols, catch_cols, zone_cols, random_sd_cols, sigma_cols))
+
+      all_params <- c(dist_cols, catch_cols, zone_cols, other_cols, random_sd_cols, sigma_cols)
       
       coef_df <- data.frame(Model = names(fits_list), stringsAsFactors = FALSE)
       
