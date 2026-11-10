@@ -33,7 +33,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     
     # Server-side state for selected models to prevent double-loading tables
     rv_selected_models <- reactiveVal(character(0))
-
+    
     observeEvent(rv_project_name(), {
       rv_fit_list(list())
       rv_existing_fits(character(0))
@@ -146,7 +146,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       
       meta
     }
-
+    
     rv_selected_design_metadata <- reactive({
       selected_design <- input$design_input
       if (is.null(selected_design) || selected_design == "") {
@@ -154,7 +154,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       }
       read_design_metadata(selected_design)
     })
-
+    
     rv_design_metadata <- reactive({
       read_design_metadata(available_designs())
     })
@@ -318,8 +318,8 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       catch_cols <- setdiff(unique(catch_cols), c(dist_cols, random_sd_cols, sigma_cols))
       zone_cols <- setdiff(unique(zone_cols), c(dist_cols, catch_cols, random_sd_cols, sigma_cols))
       other_cols <- setdiff(raw_params,
-                           c(dist_cols, catch_cols, zone_cols, random_sd_cols, sigma_cols))
-
+                            c(dist_cols, catch_cols, zone_cols, random_sd_cols, sigma_cols))
+      
       all_params <- c(dist_cols, catch_cols, zone_cols, other_cols, random_sd_cols, sigma_cols)
       
       coef_df <- data.frame(Model = names(fits_list), stringsAsFactors = FALSE)
@@ -608,6 +608,7 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       req(rv_static_map_holder())
       rv_static_map_holder()
     })
+    
   })
 }
 
@@ -726,10 +727,8 @@ model_fit_ui <- function(id) {
         ),
         
         bslib::card(
-          class = "card-overflow",
-          bslib::card_header("Coefficient Estimates"),
+          class = "card-overflow mb-3 border-0 shadow-sm",
           bslib::card_body(
-            class = "card-overflow",
             div(style = "width: 100%; position: relative;", 
                 shinycssloaders::withSpinner(
                   DT::dataTableOutput(ns("combined_coef_table")), type = 8, color = "#007bc2")
