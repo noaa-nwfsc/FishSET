@@ -274,7 +274,8 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
           
           # Pull the chosen distributions
           random_dists <- stats::setNames(vapply(random_vars, function(v) {
-            input[[paste0("dist_", make.names(v))]] %||% "normal"
+            dist <- input[[paste0("dist_", make.names(v))]]
+            if (is.null(dist)) "normal" else dist
           }, character(1)), random_vars)
           
           # Check if user already appended random effects manually
