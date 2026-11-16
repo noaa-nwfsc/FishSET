@@ -82,7 +82,7 @@ run_simulation(
   marg_util_income = "expected_catch"
 )
 
-# Run simulations for two separate spatial closures defined in your YAML
+# Run simulations for two saved spatial closure scenarios
 run_simulation(
   project = "MyProject",
   mod_name = "clogit_model1",

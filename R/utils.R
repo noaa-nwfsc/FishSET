@@ -2714,8 +2714,8 @@ pull_shiny_output <- function(project, fun = NULL, type = "plot", conf = TRUE) {
   end <- FALSE
   
   outs <- project_files(project)
-  ext <- switch(type, "plot" = ".*\\.png$", "table" = ".*\\.csv$", 
-                "notes" = ".*\\.txt$", "zone" = ".*\\.yaml")
+  ext <- switch(type, "plot" = ".*\\.png$", "table" = ".*\\.csv$",
+                "notes" = ".*\\.txt$")
   
   out <- grep(ext, outs, value = TRUE)
   

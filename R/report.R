@@ -213,8 +213,8 @@ pull_output <- function(project, fun = NULL, date = NULL, type = "plot", conf = 
   end <- FALSE
   
   outs <- project_files(project)
-  ext <- switch(type, "plot" = ".*\\.png$", "table" = ".*\\.csv$", 
-                "notes" = ".*\\.txt$", "zone" = ".*\\.yaml")
+  ext <- switch(type, "plot" = ".*\\.png$", "table" = ".*\\.csv$",
+                "notes" = ".*\\.txt$")
   
   out <- grep(ext, outs, value = TRUE)
   
@@ -1347,7 +1347,7 @@ table_type <- function(tab) {
                  "LDGlobalCheck", "FleetTable", "ModelOut", "ModelFit", "ModelInputData", 
                  "modelDesignTable", "FilterTable", "GridTable", "AuxTable", "SpatTable", 
                  "spat", "predictOutput", "LongFormatData", "ModelDesigns",
-                 "PolicySimulations")
+                 "PolicySimulations", "ClosureScenarios")
     
     t_regex <- paste0(db_type, collapse = "|")
     t_str <- stringi::stri_extract_first_regex(tab, t_regex)
@@ -1377,7 +1377,8 @@ table_type <- function(tab) {
                   "predictOutput" = "predict output",
                   "LongFormatData" = "long format data",
                   "ModelDesigns" = "model designs",
-                  "PolicySimulations" = "policy simulations")
+                  "PolicySimulations" = "policy simulations",
+                  "ClosureScenarios" = "closure scenarios")
     
     out
   }
