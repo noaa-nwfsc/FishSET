@@ -265,6 +265,9 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
         
         # Handle Random Parameters logic for Mixed Logit
         if (input$model_type_input == "mixed_logit") {
+          if (isTRUE(input$scale_input)) {
+            stop("Scaling covariates is not currently supported for Mixed Logit designs.")
+          }
           df <- rv_current_formatted_data()
           group_id <- input$group_id_input
           random_vars <- input$random_vars_input
