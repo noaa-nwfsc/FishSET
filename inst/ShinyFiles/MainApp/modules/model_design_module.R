@@ -130,9 +130,9 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     })
     
     # Update Column Selectors based on chosen Formatted Data
-    observeEvent(input$formatted_data_input, {
+    observeEvent(list(rv_project_name(), rv_data$main, input$formatted_data_input), {
       rv_current_formatted_data(NULL)
-      req(rv_project_name(), input$formatted_data_input)
+      req(rv_data$main, rv_project_name(), input$formatted_data_input)
       
       project <- rv_project_name()$value
       data_name <- input$formatted_data_input
