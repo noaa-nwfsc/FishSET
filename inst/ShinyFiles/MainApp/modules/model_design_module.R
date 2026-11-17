@@ -296,8 +296,18 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
                   remove it and let the Random Parameters UI build it, or select a different 
                   model type.")
           } else {
-            form_str <- sub("~", paste0("~ ", paste(random_vars, collapse = " + "), " + "),
-                            form_str, fixed = TRUE)
+            # Only append random variables to fixed effects if they are missing to prevent 
+            # duplicates
+            missing_vars <- random_vars[!vapply(random_vars, function(v) {
+              grepl(paste0("\\b", v, "\\b"), form_str)
+            }, logical(1))]
+            
+            if (length(missing_vars) > 0) {
+              form_str <- sub("~", paste0("~ ", paste(missing_vars, collapse = " + "), " + "),
+                              form_str, fixed = TRUE)
+            }
+            
+            # Append the random effects structure at the end of the formula
             form_str <- paste0(form_str, " + (0 + ", 
                                paste(random_vars, collapse = " + "), " | ", group_id, ")")
           }

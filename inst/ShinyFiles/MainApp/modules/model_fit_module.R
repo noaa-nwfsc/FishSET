@@ -150,7 +150,8 @@ model_fit_server <- function(id, rv_folderpath, rv_project_name, rv_data,
     rv_selected_design_metadata <- reactive({
       selected_design <- input$design_input
       if (is.null(selected_design) || selected_design == "") {
-        return(list(catch_cols = character(0), zone_cols = character(0), epm_designs = character(0)))
+        return(list(catch_cols = character(0), zone_cols = character(0),
+                    epm_designs = character(0)))
       }
       read_design_metadata(selected_design)
     })
