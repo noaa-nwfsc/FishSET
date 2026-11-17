@@ -153,12 +153,20 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       })
     }, ignoreNULL = FALSE)
     
+    random_parameter_columns <- reactive({
+      df <- rv_current_formatted_data()
+      req(df)
+      cols <- colnames(df)
+      cols[make.names(cols) == cols & !cols %in% c(".", "...") &
+             !grepl("^\\.\\.[0-9]+$", cols)]
+    })
+
     # Populate Random Variables Dropdowns
     observeEvent(rv_current_formatted_data(), {
       df <- rv_current_formatted_data()
       req(df)
-      cols <- colnames(df)
-      numeric_cols <- cols[vapply(df, is.numeric, logical(1))]
+      cols <- random_parameter_columns()
+      numeric_cols <- cols[vapply(df[cols], is.numeric, logical(1))]
       
       updateSelectizeInput(session, "group_id_input", choices = cols, selected = "")
       updateSelectizeInput(session, "random_vars_input", choices = numeric_cols,
@@ -171,7 +179,7 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
       df <- rv_current_formatted_data()
       req(df)
       
-      vars <- intersect(input$random_vars_input, colnames(df))
+      vars <- intersect(input$random_vars_input, random_parameter_columns())
       if (length(vars) == 0) return(NULL)
       
       # Build a neat grid of inputs
@@ -262,10 +270,11 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
           random_vars <- input$random_vars_input
           
           if (is.null(df)) stop("Please load a Formatted Dataset for random parameters.")
-          if (is.null(group_id) || !nzchar(group_id) || !(group_id %in% colnames(df))) {
+          supported_cols <- random_parameter_columns()
+          if (is.null(group_id) || !nzchar(group_id) || !(group_id %in% supported_cols)) {
             stop("Please select a grouping variable from the Formatted Dataset.")
           }
-          if (length(random_vars) == 0 || !all(random_vars %in% colnames(df))) {
+          if (length(random_vars) == 0 || !all(random_vars %in% supported_cols)) {
             stop("Please select at least one random parameter from the Formatted Dataset.")
           }
           if (!all(vapply(random_vars, function(v) is.numeric(df[[v]]), logical(1)))) {
