@@ -49,7 +49,7 @@ test_that("mixed-logit controls only accept supported column identifiers", {
                       html, fixed = TRUE))
 
     session$setInputs(model_name_input = "test",
-                      formula_input = "chosen ~ catch.rate + fuel_cost",
+                      formula_input = "chosen ~ catch.rate",
                       group_id_input = "vessel id", random_vars_input = "catch.rate",
                       run_design_btn = 1)
     expect_match(output$design_error_out, "Please select a grouping variable", fixed = TRUE)
@@ -67,6 +67,10 @@ test_that("mixed-logit controls only accept supported column identifiers", {
     expect_length(designs, 1)
     expect_identical(designs[[1]]$random_dists,
                      c(catch.rate = "lognormal", fuel_cost = "normal"))
+    fixed_formula <- sub(" \\+ \\(0 \\+.*$", "", paste(deparse(designs[[1]]$formula),
+                                                       collapse = " "))
+    expect_setequal(attr(terms(as.formula(fixed_formula)), "term.labels"),
+                    c("catch.rate", "fuel_cost"))
     expect_identical(all.vars(designs[[1]]$formula),
                      c("chosen", "catch.rate", "fuel_cost", "vessel_id"))
   })

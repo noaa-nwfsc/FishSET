@@ -296,6 +296,8 @@ model_design_server <- function(id, rv_folderpath, rv_project_name, rv_data,
                   remove it and let the Random Parameters UI build it, or select a different 
                   model type.")
           } else {
+            form_str <- sub("~", paste0("~ ", paste(random_vars, collapse = " + "), " + "),
+                            form_str, fixed = TRUE)
             form_str <- paste0(form_str, " + (0 + ", 
                                paste(random_vars, collapse = " + "), " | ", group_id, ")")
           }
