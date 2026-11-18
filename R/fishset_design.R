@@ -12,7 +12,7 @@
 #' 
 #' @param formula A two-part formula specifying the model structure (e.g., 
 #'   \code{chosen ~ expected_catch + distance | income}). For random parameters, use the 
-#'   standard mixed model syntax: \code{chosen ~ var1 + (1 + var1 | group_id)}.
+#'   standard mixed model syntax: \code{chosen ~ var1 + (0 + var1 | group_id)}.
 #' @param project Name of the project.
 #' @param model_name Name for this specific model design instance.
 #' @param formatted_data_name Name of the formatted data object to use. This must correspond to a 
